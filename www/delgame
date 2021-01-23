@@ -1,0 +1,728 @@
+<?php
+
+@session_start();
+
+include "pagetpl.php";
+include_once "util.php";
+include "starctl.php";
+include_once "gamesearchpopup.php";
+
+// we have to be logged in to edit a game
+include "login-check.php";
+if (!logged_in())
+    exit();
+
+$userid = $_SESSION['logged_in_as'];
+$errMsg = false;
+
+// connect to the database
+include_once "dbconnect.php";
+$db = dbConnect();
+
+// check for special privileges
+$result = mysql_query(
+    "select `privileges` from users where id='$userid'", $db);
+$adminPriv =
+    $result
+    && strpos(mysql_result($result, 0, "privileges"), "A") !== false;
+
+// Check for cascade mode.
+$cascade = (get_req_data("refmode") == "cascade");
+$createFwd = $adminPriv && isset($_REQUEST['fwd']);
+$confirmParam = "&confirm"
+                . ($cascade ? "&refmode=cascade" : "")
+                . ($createFwd ? "&fwd" : "");
+
+// make sure we have a game
+$qid = mysql_real_escape_string(get_req_data("id"), $db);
+if ($qid == "")
+    errExit("The game listing ID was not specified in the request.");
+
+// Flag a referential integrity violation.  This explains why the deletion
+// isn't allowed.  If the reference is overridable, it means that we can
+// offer a 'cascade' option to carry out the deletion and cascade it to
+// delete all references.  Administrators can use cascade mode for any
+// reference type; regular users can only cascade certain types.
+function refErrExit($refs)
+{
+    global $adminPriv, $qid, $db;
+
+    // determine if we can override the reference error: we can override
+    // as long as all of the references we found are overridable
+    $override = true;
+    foreach ($refs as $r) {
+        if (!$r[1])
+            $override = false;
+    }
+
+    // explain the problem
+    if ($override)
+        $msg = "Warning! This game listing is referenced elsewhere on IFDB:";
+    else
+        $msg = "This game listing can't be deleted because it's referenced "
+               . "elsewhere on IFDB:";
+
+    // add the list of referencers
+    $msg .= "<p><ul>";
+    foreach ($refs as $r) {
+        // add the description
+        $msg .= "<li>{$r[0]}</li>";
+
+        // if it's not overridable, clear the override flag
+        if (!$r[1])
+            $override = false;
+    }
+    $msg .= "</ul><p>";
+
+    // add an override option, or explain why it's not available
+    if ($override || $adminPriv) {
+
+        $msg .= "<p>How would you like to proceed?"
+                . "<p><a href=\"delgame?id=$qid&refmode=cascade\">"
+                . "Delete it anyway</a>"
+				. "<p><a href=\"delgame?id=$qid&fwd&confirm&refmode=cascade\">"
+				. "Delete it, but merge the references into another game's page</a>"
+                . "<p><a href=\"viewgame?id=$qid\">No, return to the game's "
+                . "page</a>";
+    } else {
+        $msg .= "<p> If you feel that this listing should be deleted "
+                . "anyway, please <a href=\"contact\">contact us</a>, and "
+                . "an administrator can carry out the deletion if "
+                . "appropriate.";
+    }
+
+    // terminate
+    pgErrExit($msg);
+}
+
+function pgErrExit($msg)
+{
+    global $db;
+    mysql_query("unlock tables", $db);
+    errExit($msg);
+}
+
+// make sure it's a valid game
+$result = mysql_query(
+    "select title, editedby from games where id = '$qid'", $db);
+if (mysql_num_rows($result) == 0)
+    errExit("The specified game is not in the database.");
+
+$title = htmlspecialcharx(mysql_result($result, 0, "title"));
+$editedby = mysql_result($result, 0, "editedby");
+
+// lock the tables that we'll be checking or updating
+$result = mysql_query(
+    "lock tables games write, gamefwds write,
+       gametags read write, playedgames read write,
+       wishlists read write, unwishlists read write,
+       reclistitems write, reviews write,
+       extreviews write, gamelinks write, gameprofilelinks write,
+       games_history write, ifids read write, crossrecs write,
+       pollvotes read write, pollcomments write, ucomments write,
+       reviewflags write, reviewtags write, reviewvotes write,
+       news write, compgames write", $db);
+
+// we have no referencers yet
+$refs = array();
+
+// make sure it's our game; admin privs overide this
+if (!$adminPriv) {
+    // we can only delete our own listings
+    $result = mysql_query(
+        "select editedby, pagevsn from games_history where id='$qid'
+         union select editedby, pagevsn from games where id='$qid'
+         order by pagevsn", $db);
+    list($createdBy) = mysql_fetch_row($result);
+    if ($createdBy != $userid) {
+        pgErrExit("You cannot delete this listing because it was "
+                  . "created by another user. Listings can only be "
+                  . "deleted by their original creators.");
+    }
+
+    // check for other users in the change log
+    $result = mysql_query(
+        "select count(*) as c from games_history
+         where id='$qid' and ifnull(editedby, '') <> '$userid'", $db);
+
+    if ($userid == ""
+        || $userid != $editedby
+        || mysql_result($result, 0, "c") != 0) {
+        $refs[] = array("Other users have edited this listing (you can "
+                        . "only delete a listing if you created it <b>and</b> "
+                        . "you're the only person who's edited it)", false);
+    }
+}
+
+// Check for references from reviews, recommended lists, play lists,
+// wish lists, or tags. 
+
+
+$result = mysql_query(
+    "select count(*) as c from gametags where gameid='$qid'", $db);
+if (!$result || mysql_result($result, 0, "c") != 0)
+    $refs[] = array("This game has one or more tags associated with it", true);
+
+$result = mysql_query(
+    "select count(*) as c from extreviews where gameid='$qid'", $db);
+if (!$result || mysql_result($result, 0, "c") != 0)
+    $refs[] = array("This game has one or more off-site reviews", false);
+
+$result = mysql_query(
+    "select count(*) as c from playedgames where gameid='$qid'", $db);
+if (!$result || mysql_result($result, 0, "c") != 0)
+    $refs[] = array("This game has been added to one or more "
+                    . "members' play lists", true);
+
+$result = mysql_query(
+    "select count(*) as c from wishlists where gameid='$qid'", $db);
+if (!$result || mysql_result($result, 0, "c") != 0)
+    $refs[] = array("This game has been added to one or more "
+                    . "members' wishlists", true);
+
+$result = mysql_query(
+    "select count(*) as c from unwishlists where gameid='$qid'", $db);
+if (!$result || mysql_result($result, 0, "c") != 0)
+    $refs[] = array("This game has been added to one or more "
+                    . "members' \"not interested\" lists", true);
+
+$result = mysql_query(
+    "select count(*) as c from reclistitems where gameid='$qid'", $db);
+if (!$result || mysql_result($result, 0, "c") != 0)
+    $refs[] = array("This game has been listed in one or more "
+                    . "Recommended Lists", true);
+
+$result = mysql_query(
+    "select count(*) as c from reviews
+     where gameid='$qid' and review is not null", $db);
+if (!$result || mysql_result($result, 0, "c") != 0)
+    $refs[] = array("This game has one or more member reviews", false);
+
+$result = mysql_query(
+    "select count(*) as c from crossrecs
+     where fromgame='$qid' or togame='$qid'", $db);
+if (!$result || mysql_result($result, 0, "c") != 0)
+    $refs[] = array("This game is mentioned in one or more "
+                    . "cross-recommendations", true);
+
+$result = mysql_query(
+    "select count(*) as c from pollvotes where gameid='$qid'", $db);
+if (!$result || mysql_result($result, 0, "c") != 0)
+    $refs[] = array("This game has votes in one or more polls", true);
+
+$result = mysql_query(
+    "select count(*) as c from compgames where gameid='$qid'", $db);
+if (!$result || mysql_result($result, 0, "c") != 0)
+    $refs[] = array("This game is referenced in one or more competitions", true);
+
+$result = mysql_query(
+    "select count(*) as c from news
+     where source = 'G' and sourceid = '$qid'", $db);
+if (!$result || mysql_result($result, 0, "c") != 0)
+    $refs[] = array("This game has one or more news items", true);
+
+$result = mysql_query(
+    "select count(*) as c from gamefwds
+     where fwdgameid = '$qid'", $db);
+if (!$result || mysql_result($result, 0, "c") != 0)
+    $refs[] = array(
+        "One or more games have forwarding redirects to this game", false);
+
+// If there are any references, check for an override.  Only allow
+// the deletion if there's a valid override.
+if (count($refs) != 0) {
+    // check for overridability - if there's a single non-overridable
+    // entry, we can't override
+    $canOverride = true;
+    foreach ($refs as $r) {
+        if (!$r[1])
+            $canOverride = false;
+    }
+
+    // ...however, we can always override if we're an administrator
+    if ($adminPriv)
+        $canOverride = true;
+
+    // if overriding isn't allowed, or they didn't ask to override,
+    // flag the error
+    if (!$cascade || !$canOverride)
+        refErrExit($refs);
+}
+
+// Okay, we've passed our reference checking, so we can proceed
+
+// show the confirmation page if applicable
+if (!isset($_REQUEST['confirm'])) {
+
+    // we're done with this operation - release our table locks
+    mysql_query("unlock tables", $db);
+
+    pageHeader("$title - Delete Listing");
+    echo "<h1>$title - Delete Listing</h1>";
+    ?>
+
+    <b>Are you sure you want to delete this game's listing?</b> 
+
+    <p>If you click "Yes" below, the game will be permanently
+    deleted.  This action is irrevocable - it can't be undone. If you 
+    change your mind later, you'll have to re-enter the game's
+    information from scratch.
+
+    <p>The main valid reason to delete a game listing is that
+    you've discovered that it's a duplicate - that is, that there
+    was already a listing for the same game before you created
+    this one.
+
+    <p>Keep in mind that if you delete a listing, any links from
+    other web sites to the listing will be broken.  It's safest
+    to delete a listing that you created very recently, because
+    it's less likely that anyone will have found it and linked
+    to it.
+
+    <p>Do you still want to delete this listing?
+    <?php
+
+if ($adminPriv) {
+    echo "<p><a href=\"delgame?id=$qid$confirmParam&fwd\">Yes, permanently "
+        . "delete it <b>with</b> a forwarding redirect</a>"
+        . "<br><a href=\"delgame?id=$qid$confirmParam\">Yes, permanently "
+        . "delete it <b>without</b> a forwarding redirect</a>";
+} else {
+    echo "<p><a href=\"delgame?id=$qid$confirmParam\">Yes, permanently "
+        . "delete this listing</a>";
+}
+
+    echo "<p><a href=\"viewgame?id=$qid\">No, return to the game's "
+        . "page</a>";
+
+    pageFooter();
+    exit();
+}
+
+// if we're forwarding, verify the forwarding parameters
+if ($createFwd)
+{
+    // get the forwarding parameters
+    $fwdid = mysql_real_escape_string(get_req_data('fwdid'), $db);
+    $fwdnotes = mysql_real_escape_string(get_req_data('fwdnotes'), $db);
+    $fwdErr = false;
+
+    // if there's a forward, confirm that it's valid
+    if ($fwdid)
+    {
+        // make sure the TUID refers to an existing game
+        $result = mysql_query(
+            "select id from games where id = '$fwdid'", $db);
+        if (mysql_num_rows($result) == 0) {
+            $fwdErr = "The forwarding TUID you entered doesn't refer to "
+                      . "an existing game listing.";
+        }
+
+        // also, make sure it's not a circular redirect
+        if (strcasecmp($fwdid, $qid) == 0) {
+            $fwdErr = "This is the TUID for the game you're deleting - please "
+                      . "enter a different game for the forwarding target.";
+        }
+    }
+
+    // if we don't have a forwarding game ID, show the form to ask for it
+    if (!$fwdid || $fwdErr)
+    {
+        // we're done with this operation - release our table locks
+        mysql_query("unlock tables", $db);
+
+        pageHeader("$title - Delete Listing", "fwdgame.fwdid",
+                   false, "<script src='xmlreq.js'></script>");
+
+        gameSearchPopupSupportFuncs();
+        gameSearchPopupDiv();
+
+        echo "<h1>$title - Delete Listing</h1>";
+
+        if ($fwdErr)
+            echo "<span class=errmsg>$fwdErr</span>";
+        
+        ?>
+
+        <p>A forwarding redirect will automatically redirect page views
+        for the deleting game's TUID to the specified page.  This is
+        useful for duplicate listings, since it preserves the integrity
+        of any off-site hyperlinks to the page you're deleting.  Any
+        off-site links will simply be forwarded to the merged
+        listing instead of reaching a 404 Not Found error page.
+
+        <p>To create a forwarding link, you must have already merged
+        this game's listing into another existing listing. 
+        Enter the target game's TUID below.
+
+        <form name="fwdgame" method="post" action="delgame">
+           <input type=hidden name="id" value="<?php echo $qid ?>">
+           <input type=hidden name="fwd" value="">
+           <input type=hidden name="confirm" value="<?php
+              echo get_req_data("confirm") ?>">
+           <input type=hidden name="refmode" value="<?php
+              echo get_req_data("refmode") ?>">
+
+           <b>Target game for forwarding redirect (TUID):</b><br>
+           <input name="fwdid" id="fwdid" type="text" size=50
+                 value="<?php echo $fwdid ?>">
+           <a href="needjs"
+              onclick="javascript:openGameSearchPopup(
+                 'fwdid', applyFwd, '<?php
+   echo str_replace(array("'", '"'), array("\\'", "&#34;"), $title)
+                 ?>');return false;"
+              >Find game by title</a>
+
+<script type="text/javascript">
+<!--
+function applyFwd(id, title, author)
+{
+    document.getElementById("fwdid").value = id;
+    gameSearchPopupClose();
+}
+//-->
+</script>
+
+           <p><b>Notes:</b> <span class=details style="padding-left: 2em;">
+              <i>Optional; saved with the redirect record for future
+              reference</i></span><br>
+           <textarea name="fwdnotes" cols=80 rows=5><?php
+              echo htmlspecialcharx($fwdnotes) ?></textarea>
+
+           <p><input type="submit" name="fwdSubmit"
+               value="Delete Game and Create Forward">
+           <p><a href="viewgame?id=<?php echo $qid ?>">Cancel, return to the
+              game's page</a>
+           
+        </form>
+        <?php
+
+        pageFooter();
+        exit();
+    }
+}
+
+// we have confirmation - do the deletion
+$result = true;
+
+if ($result) {
+    $progress = "EXR5201";
+	$query = ($createFwd ?
+			  "delete from extreviews where gameid = '$qid'" :
+			  "update extreviews set gameid='$fwdid' where gameid='$qid'");
+	$result = mysql_query($query, $db);
+}
+if ($result) {
+	if ($createFwd) {
+		$progress = "GMT5250.u";
+		$result = mysql_query(
+			"update gametags
+			 set gameid='$fwdid'
+             where
+               gameid='$qid'
+               and (userid, tag) not in (select userid, tag from (
+                 select * from gametags where gameid = '$fwdid')
+               as tmp)", $db);
+	}
+	if ($result) {
+		$progress = "GMT5250.d";
+		$result = mysql_query("delete from gametags where gameid='$qid'", $db);
+	}
+}
+
+if ($result) {
+    $progress = "LNK5202";
+	$query = ($createFwd ?
+			  "update gamelinks set gameid = '$fwdid' where gameid = '$qid'" :
+			  "delete from gamelinks where gameid = '$qid'");
+    $result = mysql_query($query, $db);
+}
+
+if ($result) {
+    $progress = "PRO5203";
+	$query = ($createFwd ?
+			  "update gameprofilelinks set gameid = '$fwdid' where gameid = '$qid'" :
+			  "delete from gameprofilelinks where gameid = '$qid'");
+    $result = mysql_query($query, $db);
+}
+
+if ($result) {
+	if ($createFwd) {
+		$result = mysql_query(
+			"update ifids
+             set gameid = '$fwdid'
+             where
+               gameid = '$qid'
+			   and ifid not in (select ifid from (select * from ifids where gameid='$fwdid') as tmp)", $db);
+		$progress = "IFI5204.u";
+	}
+	if ($result) {
+		$progress = "IFI5204.d";
+		$result = mysql_query(
+			"delete from ifids where gameid = '$qid'", $db);
+	}
+}
+
+if ($result) {
+    $progress = "HST5205";
+    $result = mysql_query(
+        "delete from games_history where id = '$qid'", $db);
+}
+    
+if ($result) {
+    $progress = "GME5206";
+    $result = mysql_query(
+        "delete from games where id = '$qid'", $db);
+}
+
+// do the cascading delete, if applicable
+if ($cascade)
+{
+    if ($result) {
+		if ($createFwd) {
+			$progress = "PLG5251.u";
+			$result = mysql_query(
+				"update playedgames
+                 set gameid = '$fwdid'
+                 where
+                   gameid = '$qid'
+                   and (userid) not in (select userid from (
+					 select * from playedgames where gameid = '$fwdid')
+                   as tmp)", $db);
+		}
+		if ($result) {
+			$progress = "PLG5251.d";
+			$result = mysql_query(
+				"delete from playedgames where gameid='$qid'", $db);
+		}
+    }
+
+    if ($result) {
+		if ($createFwd) {
+			$progress = "WLS5252.u";
+			$result = mysql_query(
+				"update wishlists
+                 set gameid = '$fwdid'
+                 where
+                   gameid = '$qid'
+                   and (userid) not in (select userid from (
+                     select * from wishlists where gameid = '$fwdid')
+                   as tmp)", $db);
+		}
+		if ($result) {
+			$progress = "WLS5252.d";
+			$result = mysql_query(
+				"delete from wishlists where gameid='$qid'", $db);
+		}
+    }
+
+    if ($result) {
+		if ($createFwd) {
+			$progress = "UWS5252.u";
+			$result = mysql_query(
+				"update unwishlists 
+                 set gameid = '$fwdid'
+                 where
+                   gameid = '$qid'
+                   and (userid) not in (select userid from (
+                     select * from unwishlists where gameid = '$fwdid')
+				   as tmp)", $db);
+		}
+		if ($result) {
+			$progress = "UWS5252.d";
+			$result = mysql_query(
+				"delete from unwishlists where gameid='$qid'", $db);
+		}
+    }
+
+    if ($result) {
+		if ($createFwd) {
+			$progress = "RLI5253.u";
+			$result = mysql_query(
+				"update reclistitems
+				 set gameid = '$fwdid'
+                 where
+                   gameid = '$qid'
+                   and (listid) not in (select listid from (
+                     select * from reclistitems where gameid = '$fwdid')
+				   as tmp)", $db);
+		}
+		if ($result) {
+			$progress = "RLI5253.d";
+			$result = mysql_query(
+				"delete from reclistitems where gameid='$qid'", $db);
+		}
+    }
+
+    if ($result) {
+        $progress = "RVC5254.1";
+		$query = ($createFwd ?
+				  "update ucomments
+                   set sourceid = '$fwdid'
+                   where
+                     source = 'R'
+					 and sourceid in (select id from reviews where gameid = '$qid')" :
+				  "delete from ucomments
+			       where
+                     source = 'R'
+                     and sourceid in (select id from reviews where gameid='$qid')");
+		$result = mysql_query($query, $db);
+    }
+
+	if ($createFwd)
+	{
+		if ($result) {
+			$progress = "RVW5254.0";
+			$result = mysql_query(
+				"update reviews set gameid='$fwdid' where gameid='$qid'", $db);
+		}
+	}
+	else
+	{
+		if ($result) {
+			$progress = "RVF5254.2";
+			$result = mysql_query(
+				"delete from reviewflags where reviewid in
+				 (select id from reviews where gameid='$qid')", $db);
+		}
+
+		if ($result) {
+			$progress = "RVT5254.3";
+			$result = mysql_query(
+				"delete from reviewtags where reviewid in
+				 (select id from reviews where gameid='$qid')", $db);
+		}
+
+		if ($result) {
+			$progress = "RVV5254.4";
+			$result = mysql_query(
+				"delete from reviewvotes where reviewid in
+				 (select id from reviews where gameid='$qid')", $db);
+		}
+
+		if ($result) {
+			$progress = "REV5254";
+			$result = mysql_query(
+				"delete from reviews where gameid='$qid'", $db);
+		}
+	}
+
+    if ($result) {
+		if ($createFwd) {
+			$progress = "CRS5255.1";
+			$result = mysql_query(
+				"update crossrecs set fromgame='$fwdid' where fromgame='$qid'", $db);
+			if ($result) {
+				$progress = "$CRS5255.2";
+				$result = mysql_query(
+					"update crossrecs set togame='$fwdid' where togame='$qid'", $db);
+			}
+		}
+		else {
+			$progress = "CRS5255.3";
+			$result = mysql_query(
+				"delete from crossrecs
+			     where fromgame='$qid' or togame='$qid'", $db);
+		}
+    }
+
+    if ($result) {
+		if ($createFwd) {
+			$progress = "PLV5256.u";
+			$result = mysql_query(
+				"update pollvotes
+				 set gameid = '$fwdid'
+                 where
+                   gameid = '$qid'
+                   and (pollid, userid) not in (select pollid, userid from (
+                     select * from pollvotes where gameid = '$fwdid')
+				   as tmp)", $db);
+		}
+		if ($result) {
+			$progress = "PLV5256.d";
+			$result = mysql_query(
+				"delete from pollvotes where gameid='$qid'", $db);
+		}
+    }
+
+    if ($result) {
+        $progress = "PLC5256";
+		$query = ($createFwd ?
+				  "update pollcomments set gameid='$fwdid' where gameid='$qid'" :
+				  "delete from pollcomments where gameid='$qid'");
+		$result = mysql_query($query, $db);
+    }
+
+    if ($result) {
+        $progress = "CMG5256";
+		$query = ($createFwd ?
+				  "update compgames set gameid='$fwdid' where gameid='$qid'" :
+				  "delete from compgames where gameid='$qid'");
+		$result = mysql_query($query, $db);
+	}
+
+    if ($result) {
+        $progress = "NWS5256";
+		$query = ($createFwd ?
+				  "update news
+                     set sourceid = '$fwdid'
+                     where sourceid = '$qid' and source = 'G'" :
+				  "delete from news where source = 'G' and sourceid = '$qid'");
+		$result = mysql_query($query, $db);
+    }
+}
+
+// create the forwarding redirect if desired
+if ($createFwd)
+{
+    // create the forwarding entry to this game
+    if ($result) {
+        $progress = "CFW5257";
+        $result = mysql_query(
+            "insert into gamefwds
+             (gameid, fwdgameid, created, notes)
+             values ('$qid', '$fwdid', now(), '$fwdnotes')", $db);
+    }
+
+    // redirect any games that redirected to this game to the new forward
+    if ($result) {
+        $progress = "UFW5258";
+        $result = mysql_query(
+            "update gamefwds
+             set fwdgameid = '$fwdid'
+             where fwdgameid = '$qid'", $db);
+    }
+}
+else if ($cascade)
+{
+    // We're not creating a forwarding link for this game, AND we're
+    // cascading the delete to referencing objects.  So, we must also
+    // delete any forwarding references that point to the game we're
+    // deleting.
+    if ($result) {
+        $progress = "DFW5259";
+        $result = mysql_query(
+            "delete from gamefwds where fwdgameid = '$qid'", $db);
+    }
+}
+
+// note any sql error for diagnostics
+$sqlerr = false;
+if ($adminPriv)
+	$sqlerr = "; database error: " . mysql_error($db);
+
+// we're done with this operation - release our table locks
+mysql_query("unlock tables", $db);
+
+if (!$result) {
+    errExit("An error occurred deleting the game from the database "
+            . "(error code $progress$sqlerr). You might want to try again "
+            . "later.");
+}
+
+pageHeader("$title - Deleted");
+echo "<h1>$title - Deleted</h1>"
+   . "This game's listing has been successfully deleted.";
+
+pageFooter();
+?>

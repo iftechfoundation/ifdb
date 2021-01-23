@@ -1,0 +1,44 @@
+<?php
+@session_start();
+include_once "util.php";
+include "pagetpl.php";
+helpPageHeader("Baf's Guide Identifiers");
+?>
+
+<h1><i>Baf's Guide</i> Identifiers</h1>
+
+<a href="http://www.wurb.com/if"><i>Baf's Guide to the IF
+Archive</i></a> is an extensive catalog of the games at the <a
+href="http://www.ifarchive.org">IF Archive</a>.  Baf's includes
+extensive search and cross-referencing features, and provides
+well-written capsule reviews for a huge selection of the games at the
+Archive.
+
+<p><i>Baf's Guide</i> is one of the key resources for anyone
+interested in IF, so we wanted to make it easy to link each game to
+its Baf's page.  All you need is the Baf's ID for the game.  The
+Guide assigns a unique ID to each game in its database - this is a
+number, and it's designed to be a permanent ID for the game, even as
+Baf's evolves.
+
+<p>To find the Baf's ID for a game, go to the <a
+href="http://www.wurb.com/if"> Baf's Guide site</a> and search for the
+game.  Once you find the game, view its page by clicking on the game
+in the search results.  Then look at your browser's Address bar: it
+should have a URL that looks something like this:
+
+<p><pre>
+  http://www.wurb.com/if/game/395
+</pre>
+
+<p>The number at the end of the URL is the Baf's ID - in this case,
+395.
+
+<p>If you can't find the game in the Baf's database, it probably just
+isn't listed yet.  In this case, it doesn't have a Baf's ID at all, so
+you should just leave this field blank.
+
+
+<?php
+helpPageFooter();
+?>

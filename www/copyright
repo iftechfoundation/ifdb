@@ -1,0 +1,56 @@
+<?php
+
+include "pagetpl.php";
+
+pageHeader("IFDB Copyright and Trademark Information");
+
+?>
+
+<h1>Copyrights</h1>
+
+<p>This site is copyrighted &copy; 2007, <?php echo date('Y') ?> by
+Michael J. Roberts.
+
+<p>Reviews from <a href="http://www.wurb.com/if">Baf's Guide to the IF
+Archive</a> are copyrighted by their respective authors and are used
+here by permission.  Baf's Guide is copyrighted &copy; 2007 by
+Carl Muckenhoupt.
+
+<p>"Cover art" images (in game listings) and personal profile images
+have individual copyrights that are indicated in the full-size view of
+each image.  When not otherwise specified, these images are
+copyrighted by their respective authors.
+
+<p>User-contributed items (such as reviews, bibliographical data,
+comments, and news items), except as noted above, are copyrighted by
+their credited authors and are licensed under a <a rel="license"
+href="http://creativecommons.org/licenses/by/3.0/us/">Creative
+Commons Attribution 3.0 United States license</a>, as described in our
+<a href="tos">Terms of Service</a>.
+
+<p>Please note that the games themselves cataloged on IFDB are
+<b>not</b> user-contributed items, and thus are <b>not</b> subject to
+the Creative Commons license.  IFDB doesn't store any games - just
+metadata <b>about</b> the games, such as bibliography and reviews.
+Each game's copyright and license terms are set exclusively by the
+game's author(s), and inclusion in IFDB does not in any way affect those
+terms.
+
+
+<h2>Trademarks</h2>
+
+<p>Any trademarks, service marks, or similar marks or rights mentioned
+in any game listing or other material on this site are the property of
+their respective owners.  They are used here for informational and
+educational purposes only, and do not imply any affiliation with or
+endorsement by their holders.
+
+<h2>For More Information</h2>
+
+<p>Please <a href="contact">contact us</a> with any questions.
+
+<?php
+
+pageFooter();
+
+?>

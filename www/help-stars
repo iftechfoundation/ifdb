@@ -1,0 +1,91 @@
+<?php
+@session_start();
+include_once "util.php";
+include "pagetpl.php";
+helpPageHeader("Star Ratings");
+?>
+
+<h1>Star Ratings</h1>
+
+<p>The "star" rating system lets you express your overall judgment on
+a game by giving it a score on a 1 to 5 scale.  We know it's not easy
+to reduce something so complex to a single number, but most readers
+find this sort of summary judgment really helpful.  You can always
+explain in your review why you chose the score you did.
+
+<p>The star scale is inherently subjective, so it's up to you to
+determine what the different levels mean.  As a rough guide, 
+though, we recommend something like this:<p>
+
+<table cellpadding=0 cellspacing=0>
+
+<tr valign=baseline>
+<td style="padding-right: 1em;"><?php echo showStars(1); ?></td>
+<td>A terrible game; completely unrecommended</td>
+</tr>
+
+<tr valign=baseline>
+<td style="padding-right: 1em;"><?php echo showStars(2); ?></td>
+<td>A badly flawed game, but maybe worth a look</td>
+</tr>
+
+<tr valign=baseline>
+<td style="padding-right: 1em;"><?php echo showStars(3); ?></td>
+<td>An average game; or a mixed bag, with some real strengths
+but some serious weaknesses</td>
+</tr>
+
+<tr valign=baseline>
+<td style="padding-right: 1em;"><?php echo showStars(4); ?></td>
+<td>A very good game, highly recommended</td>
+</tr>
+
+<tr valign=baseline>
+<td style="padding-right: 1em;"><?php echo showStars(5); ?></td>
+<td>An excellent, exceptional game</td>
+</tr>
+
+</table>
+
+<p>We recommend that you "grade on a curve" - reserve the 5- and 1-star
+ratings for the really exceptional games (good and bad).  If you rate
+everything a 5, it makes it hard for your handful of all-time favorites 
+to stand out.
+
+<h2>Leaving out the rating</h2>
+
+<p>You can write a review without entering a rating.  If you do this,
+your review won't affect the game's average rating - omitting a rating
+is <b>not</b> the same as giving a game 0 stars.
+
+<p>Some example of reasons why you might want to omit a rating:
+<ul class=doublespace>
+
+<li>You haven't played enough of the game to feel you can give it a
+meaningful score, but you nonetheless want to share your impressions
+of what you've seen so far via a review.
+
+<li>You've only played an older, out-of-date version of the game, and
+you've heard the newer version is considerably better/worse/different -
+so you don't want your rating to affect the overall score for the
+current version.
+
+</ul>
+
+<h2>I want to give this game ZERO stars!</h2>
+
+<p>Sorry, the rating scale is 1 to 5; there's no "zero stars" rating.
+(We don't allow 0-star ratings because that would sometimes be
+confusing - it would be hard to tell the difference in some cases
+between "awful" and merely "unrated.")
+
+<p>Don't think of "1 star" as being like "1 dollar" - stars aren't
+bling, they're ratings.  You're not giving the author of a bad game a
+tip she can spend at FrobMart.  Since 1 star is the lowest score, a
+1-star rating is saying exactly what you want: "this game is among
+the worst I've played." 
+
+
+<?php
+helpPageFooter();
+?>

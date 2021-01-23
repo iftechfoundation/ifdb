@@ -1,0 +1,99 @@
+<?php
+
+@session_start();
+include_once "../pagetpl.php";
+include_once "../util.php";
+
+pageHeader("IFDB APIs");
+
+?>
+
+<h1>IFDB APIs</h1>
+
+<p>IFDB offers a few Application Program Interfaces (APIs)
+that let third parties create Web-based or client-side software that
+accesses IFDB's data.
+
+<p>The IFDB APIs are implemented as HTTP services.  Invoking an API is
+just like accessing a Web page: you construct a URL, perform an HTTP
+GET or POST operation on the URL, and read the results.  The main
+thing that makes an API call different from an ordinary page view is
+that the results of an API call are designed to be machine-readable,
+whereas an ordinary page view returns HTML formatted for visual
+display.  The API calls return function-specific data structures
+formatted into XML, which is readily parseable in software.
+
+<p>Since the IFDB API calls are performed using standard HTML verbs
+and content formats, you should be able to use any HTTP client library
+to construct the calls, and any XML library to parse the XML
+responses.  Most modern programming languages have some degree of HTTP
+client and XML parsing support, either built in or via open source
+libraries.
+
+
+<h2>Caveats and limitations</h2>
+
+<p>The APIs are designed primarily for low-volume, user-driven
+applications, rather than big batches of automated requests.  They're
+not really meant for constantly crawling the database,
+high-speed mirroring, etc.  The servers that IFDB runs on are from a shared
+hosting service marketed for personal and small business sites,
+so they're not set up for high scalability.  Please use the APIs with
+this in mind.  If you're contemplating a usage that might put a lot of
+load on the servers, please consider technical measures that would
+minimize the impact, such as adding artificial delays while generating
+requests to throttle the rate.
+
+<p>If the application you have in mind doesn't need live data, note
+that full exports of the IFDB SQL database (minus users' personal
+information) are available on the
+<a href="http://www.ifarchive.org/">IF Archive</a> in the
+<a
+href="http://ifarchive.org/indexes/if-archiveXinfoXifdb.html">info/ifdb</a>
+directory.  You can use these exports to create local copies of the
+database for more computation-intensive analysis, without using any network
+bandwidth and without creating any load on the IFDB servers.  The
+exports are updated roughly quarterly, so they're not live, but
+they're always reasonably recent.  
+
+<p>It probably goes without saying, but the APIs are subject to change
+or withdrawal at any time.  If you're developing an application that
+makes use of the APIs, we'd be interested in hearing about your plans,
+so that we can keep you in mind as the system evolves.  Likewise, if
+you have a need for any additional API services beyond what's
+currently available, let us know.
+
+<h2>List of APIs</h2>
+
+<p><a href="putific"><b>putific</b></a>: Create or edit a listing by
+uploading an iFiction XML file.  This API is designed primarily for
+use by IF authoring software, so that a client-side authoring tool can
+offer a "Publish to IFDB" command that automatically creates a listing
+from project metadata.
+
+<p><a href="search"><b>search</b></a>: Run a search (for games,
+Recommended Lists, etc).  This invokes IFDB's Advanced Search engine,
+which can perform both full-text and structured (metadata-based)
+searches.
+
+<p><a href="viewgame"><b>viewgame</b></a>: Retrieve a game listing in
+the iFiction XML format.  This allows client programs, such as IF
+browsers or "jukeboxes", to take advantage of IFDB's structured data
+about most of the IF games in circulation.
+
+<h2>Note on XML namespaces</h2>
+
+<p>Most of the APIs reply with XML and/or take XML content parameters,
+and most of the XML formats use XML namespaces.  The namespace
+identifiers are in the form of URLs, according to the XML convention,
+but we use them simply as GUIDs (which is also a typical XML
+convention).  There are no actual resources (i.e., files to download)
+at the URL paths we use for our namespace identifiers.  Each API's
+documentation page serves as the definitive specification for the
+namespaces used in the API.
+
+<?php
+
+pageFooter();
+
+?>

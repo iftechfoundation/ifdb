@@ -1,0 +1,206 @@
+<?php
+
+@session_start();
+
+// make sure we process any persistent login state
+include_once "login-persist.php";
+$curuser = checkPersistentLogin();
+
+include_once "dbconnect.php";
+$db = dbConnect();
+
+include "pagetpl.php";
+include_once "util.php";
+include "plugin-detect.php";
+include "starctl.php";
+include_once "rss.php";
+include_once "game-rss.php";
+include_once "gameinfo.php";
+include_once "commentutil.php";
+include_once "news.php";
+include_once "editgame-util.php";
+
+// get the game ID
+$gameid = mysql_real_escape_string($_REQUEST['game'], $db);
+
+// check the user for ADMIN privileges
+$userprivs = $adminPriv = false;
+if ($curuser) {
+    $result = mysql_query(
+        "select `privileges` from users where id='$curuser'", $db);
+    $userprivs = mysql_result($result, 0, "privileges");
+    $adminPriv = (strpos($userprivs, "A") !== false);
+}
+
+function showResult($title, $msg)
+{
+    global $gameid;
+    pageHeader($title);
+    echo "<h1>{$title}</h1>"
+        . "<p>{$msg}</p>"
+        . "<p><a href=\"viewgame?id={$gameid}&history\">Return to game page</a></p>";
+    pageFooter();
+    exit();
+}
+
+if (!$adminPriv) {
+    showResult(
+        "Admin authorization required",
+        "This function can only be performed by administrators.  Please contact us "
+        . "to let us know what you needed to do here and we'll try to assist you.");
+}
+
+// query the game history entry
+$result = mysql_query("select pagevsn, editedby, moddate, deltas from games_history where id = '$gameid' order by pagevsn desc", $db);
+if (!$result)
+    showResult("Game not found", "The specified game wasn't found (or has no page version history data to roll back).");
+
+// build the UPDATE for the game record
+$rec = mysql_fetch_array($result, MYSQL_ASSOC);
+$pagevsn = $rec['pagevsn'];
+$editedby = $rec['editedby'];
+$moddate = $rec['moddate'];
+$deltas = unserialize($rec['deltas']);
+
+// build the update
+$cols = array();
+$locks = array();
+foreach ($deltas as $colname => $colval)
+{
+    switch ($colname)
+    {
+    case "links":
+        $locks[] = "gamelinks write";
+        break;
+        
+    case "ifids":
+        $locks[] = "ifids write";
+        break;
+        
+    case "extreviews":
+        $locks[] = "extreviews write, reviews write";
+        break;
+            
+    case "xrefs":
+        $locks[] = "gamexrefs write";
+        break;
+        
+    case "profileLinks":
+        $locks[] = "gameprofilelinks write";
+        break;
+    
+    default:
+        // add others to the scalar column list
+        $cols[] = "`{$colname}` = '" . mysql_real_escape_string($colval, $db) . "'";
+        break;
+    }
+}
+
+$cols[] = "pagevsn = '$pagevsn'";
+$cols[] = "editedby = '$editedby'";
+$cols[] = "moddate = '$moddate'";
+    
+$cols = implode(", ", $cols);
+
+// no errors yet
+$errors = array();
+function addError($desc, $query)
+{
+    global $errors, $db;
+    $errors[] = "<div><span class=\"errmsg\">{$desc}</span>"
+                .   "<div class=\"indented\">"
+                .     "<p>Query: " . htmlspecialcharx($query) . "</p>"
+                .     "<p>Error: ". htmlspecialcharx(mysql_error($db)) . "</p>"
+                .   "</div>"
+                . "</div>";
+}
+function runQuery($desc, $query)
+{
+    global $db;
+    if (!mysql_query($query, $db))
+        addError($desc, $query);
+}
+
+// lock tables if we're updating more than just 'games'
+if (count($locks)) {
+    $locks[] = "games write";
+    $locks[] = "games_history write";
+    $locks[] = "users read";
+    $locks[] = "gamefwds read";
+    $locks[] = "gamexreftypes read";
+    $locks[] = "filetypes read";
+    runQuery("Locking tables", "lock tables " . implode(", ", $locks));
+    if (count($errors))
+        showResult("Error updating database", implode("", $errors));
+}
+
+// execute the update
+runQuery("Game record update", "update games set $cols where id = '$gameid'");
+
+// update IFIDs
+if (isset($deltas["ifids"])) {
+    runQuery("Deleting old IFIDs", "delete from ifids where gameid = '$gameid'");
+
+    $ifidVals = array();
+    foreach ($deltas["ifids"] as $ifid) {
+        $qifid = mysql_real_escape_string(strtoupper($ifid), $db);
+        $ifidVals[] = "('{$gameid}', '{$qifid}')";
+    }
+    $ifidVals = implode(",", $ifidVals);
+    runQuery("Inserting new IFIDs", "insert into ifids (gameid, ifid) values {$ifidVals}");
+}
+
+// update links
+if (isset($deltas["links"])) {
+    $links = $deltas["links"];
+    runQuery("Deleting old game links", "delete from gamelinks where gameid = '$gameid'");
+    for ($i = 0; $i < count($links); $i++) {
+        if (!insert_gamelink($db, $gameid, $links[$i], $i))
+            addError("Inserting gamelink", "insert_gamelink({$links[$i]}, {$i})");
+    }
+}
+
+// update external review links
+if (isset($deltas["extreviews"])) {
+    $revs = $deltas['extreviews'];
+    runQuery("Deleting old external review links", "delete from extreviews where gameid = '$gameid'");
+    runQuery("Deleting old external reviews", "delete from reviews where gameid = '$gameid' and special='4'");
+    for ($i = 0 ; $i < count($revs) ; $i++) {
+        if (!insert_extrev($db, $gameid, $revs[$i], $i))
+            addError("Inserting external review link", "insert_extrev({$revs[$i]}, {$i})");
+    }
+}
+
+if (isset($deltas["profileLinks"])) {
+    $progress = false;
+    $pl = $deltas["profileLinks"];
+    if (!update_profile_links($db, $gameid, $pl, $progress))
+        addError("Updating profile links", "update_profile_links([" . implode(",", $pl) . "]) : {$progress}");
+}    
+
+// update cross-references
+if (isset($deltas["xrefs"])) {
+    $xrefs = $deltas["xrefs"];
+    runQuery("Deleting old xrefs", "delete from gamexrefs where fromid = '$gameid'");
+    for ($i = 0 ; $i < count($xrefs); $i++) {
+        if (!insert_xref($db, $gameid, $xrefs[$i], $i))
+            addError("Inserting xref", "insert_xref({$xrefs[$i]}, {$i})");
+    }
+}
+
+// delete the version
+if (count($errors) == 0)
+    runQuery("Deleting version history record", "delete from games_history where id = '$gameid' and pagevsn = '$pagevsn'");
+else
+    $errors[] = "<div>Note: errors occurred rolling back game entry; version history record was not deleted</div>";
+
+// unlock tables
+runQuery("Unlocking tables", "unlock tables");    
+
+// show errors
+if (count($errors))
+    showResult("Error updating database", implode("", $errors));
+
+// success
+    showResult("Success", "Game version successfully rolled back.");
+?>

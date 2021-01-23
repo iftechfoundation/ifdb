@@ -1,0 +1,169 @@
+<?php
+
+include "pagetpl.php";
+include_once "util.php";
+include "starctl.php";
+
+// we have to be logged in to edit a game
+@session_start();
+include "login-check.php";
+if (!logged_in())
+    exit();
+
+$userid = $_SESSION['logged_in_as'];
+$errMsg = false;
+
+// connect to the database
+include_once "dbconnect.php";
+$db = dbConnect();
+
+// check for special privileges
+$result = mysql_query(
+    "select `privileges` from users where id='$userid'", $db);
+$adminPriv =
+    $result
+    && strpos(mysql_result($result, 0, "privileges"), "A") !== false;
+
+// make sure we have admin privileges
+if (!$adminPriv)
+    errexit("This operation can only be performed by an administrator.");
+
+// make sure we have the FROM and TO games
+$qfrom = mysql_real_escape_string(get_req_data("from"), $db);
+$qto = mysql_real_escape_string(get_req_data("to"), $db);
+if ($qfrom == "" || $qto == "")
+    errExit("The TO and/or FROM game IDs were not specified in the request.");
+
+// make sure they're both valid games
+$result = mysql_query(
+    "select title, editedby from games where id = '$qfrom'", $db);
+if (mysql_num_rows($result) == 0)
+    errExit("The FROM game is not in the database.");
+$fromTitle = htmlspecialcharx(mysql_result($result, 0, "title"));
+
+$result = mysql_query(
+    "select title, editedby from games where id = '$qto'", $db);
+if (mysql_num_rows($result) == 0)
+    errExit("The TO game is not in the database.");
+$toTitle = htmlspecialcharx(mysql_result($result, 0, "title"));
+
+pageHeader("$fromTitle - Merge Listing");
+
+if (!isset($_REQUEST['confirm'])) {
+    echo "FROM game: <a href=\"viewgame?id=$qfrom\">$fromTitle</a><br>"
+        . "TO game: <a href=\"viewgame?id=$qto\">$toTitle</a><br>"
+        . "<p>"
+        . "This operation will move all secondary records (reviews, ratings, "
+        . "recommended list references, tags, wish lists, play lists) from "
+        . "the FROM listing to the TO listing, so that the FROM listing can "
+        . "be deleted.  This should only be done if the two listings are "
+        . "redundant, and the TO listing is the correct entry that is to "
+        . "be preserved after the merge."
+        . "<p>"
+        . "Note that this operation will <b>not</b> merge the actual "
+        . "game listings.  You must <b>manually</b> copy any listing data "
+        . "that you wish to preserve from the FROM listing itself to the "
+        . "TO listing by using the \"Edit this page\" feature on the TO "
+        . "page.  The update history of the FROM page will not be "
+        . "copied to the TO page; the TO page will simply keep its existing "
+        . "history, with a new log entry for any updates you make during "
+        . "the manual step just described."
+        . "<p>"
+        . "This operation will <b>not</b> delete the FROM listing.  You "
+        . "must manually delete the FROM listing after completing this "
+        . "merge step and after you are satisfied that all of the main "
+        . "listing data that you wish to preserve from the FROM listing "
+        . "is properly duplicated in the TO listing."
+        . "<p>"
+        . "<a href=\"mergegame?from=$qfrom&to=$qto&confirm\">"
+        . "Click here to merge these listings</a><p>";
+
+    pageFooter();
+    exit();
+}
+
+// lock the tables that we'll be checking or updating
+$result = mysql_query(
+    "lock tables games write, gamefwds write,
+       gametags write, playegames write,
+       wishlists write, unwishlists write,
+       reclistitems write, reviews write,
+       extreviews write, gamelinks write, gameprofilelinks write,
+       games_history write, ifids write", $db);
+
+
+// make the updates
+$progress = "EXR5201";
+$result = mysql_query(
+    "update extreviews set gameid = '$qto' where gameid = '$qfrom'", $db);
+
+if ($result) {
+    $progress = "LNK5202";
+    $result = mysql_query(
+        "update gamelinks set gameid = '$qto' where gameid = '$qfrom'", $db);
+}
+
+if ($result) {
+    $progress = "PRO5203";
+    $result = mysql_query(
+        "update gameprofilelinks set gameid = '$qto' where gameid = '$qfrom'",
+        $db);
+}
+
+if ($result) {
+    $progress = "WSH5205";
+    $result = mysql_query(
+        "update wishlists set gameid = '$qto' where gameid = '$qfrom'", $db);
+}
+
+if ($result) {
+    $progress = "UWL5205";
+    $result = mysql_query(
+        "update unwishlists set gameid = '$qto' where gameid = '$qfrom'", $db);
+}
+
+if ($result) {
+    $progress = "PLY5206";
+    $result = mysql_query(
+        "update playedgames set gameid = '$qto' where gameid = '$qfrom'", $db);
+}
+
+if ($result) {
+    $progress = "TAG5207";
+    $result = mysql_query(
+        "update gametags set gameid = '$qto' where gameid = '$qfrom'", $db);
+}
+
+if ($result) {
+    $progress = "RIT5208";
+    $result = mysql_query(
+        "update reclistitems set gameid = '$qto' where gameid = '$qfrom'", $db);
+}
+
+if ($result) {
+    $progress = "RVW5209";
+    $result = mysql_query(
+        "update reviews set gameid = '$qto' where gameid = '$qfrom'", $db);
+}
+
+if ($result) {
+    $progress = "FWD5210";
+    $result = mysql_query(
+        "update gamefwds set fwdgameid = '$qto'
+         where fwdgameid = '$qfrom'", $db);
+}
+
+// done updating tables - release our locks
+mysql_query("unlock tables", $db);
+
+if (!$result) {
+    errExit("An error occurred deleting the game from the database "
+            . "(error code $progress). You might want to try again "
+            . "later.");
+}
+
+echo "<h1>$fromTitle - Merged into $toTitle</h1>"
+   . "The listings have been successfully merged.";
+
+pageFooter();
+?>

@@ -1,0 +1,53 @@
+<?php
+@session_start();
+include_once "util.php";
+include "pagetpl.php";
+helpPageHeader("Guidelines for Game Listings");
+?>
+
+<h1>Guidelines for Game Listings</h1>
+
+<ul class=doublespace>
+
+<li>Anyone is allowed to edit a game listing, whether they wrote the 
+game or not.
+
+<li>Keep the listing factual. If you're not sure of a piece of data,
+leave it blank (or if it's already there, don't change it).
+
+<li><b>Don't</b> include spoilers.  Don't give away plot twists,
+solutions to puzzles, or any other of the game's secrets.
+
+<li><b>Don't</b> use the listing as a review.  If you want to express
+your opinion about the game, write an actual review instead (by going
+to the game's home page and clicking "Write a review").
+
+<li><b>Don't</b> attack the author.
+
+<li>Avoid things like "better" or "worse" comparisons to other games,
+judgments on writing quality, overall excellence, etc.  Those belong in a
+review, not a listing.
+
+<li>It's okay to "sell" the game a little in its description, but
+keep it informative, basically factual, and focused on the game.  The
+description should be like the "blurb" on the inside flap of a book -
+it should give readers an idea of what the game is about and what its
+overall style is.
+
+  <ul>
+    <li>"An emotional
+    roller-coaster ride with plot twists that keep you guessing to the
+    end" - that's fine, because it tells you something about the style
+    of the game.
+
+    <li>"The first good text game since Infocom stopped making them!" -
+    <b>not</b> so good, because it doesn't tell you anything concrete 
+    about the game, and it's completely subjective.
+  </ul>
+
+</ul>
+
+
+<?php
+helpPageFooter();
+?>

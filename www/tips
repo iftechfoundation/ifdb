@@ -1,0 +1,125 @@
+<?php
+include "pagetpl.php";
+pageHeader("Tips on Using IFDB", false);
+?>
+
+<h1>Tips on Using IFDB</h1>
+
+<p>IFDB has three main functions.
+
+<p>First, it's a comprehensive catalog of IF, past and present.  IFDB
+is a collaborative, community project - it's a little like a <a
+href="http://wiki.org/wiki.cgi?WhatIsWiki">Wiki</a> for IF
+bibliography.  Members can edit the game listings in the catalog, and
+even add new listings, so you never have to wait for the site's
+administrators to get around to adding the latest releases or fixing
+errors in existing listings.  If something's missing, you can add it;
+if something's wrong, you can fix it.
+
+<p>Second, IFDB is a place to share recommendations.  The site offers
+several tools for giving and getting personalized recommendations
+about games to play.  The key word is <i>personalized</i>.  IFDB isn't
+just a "Top 10" scoreboard that boils everything down to an average of
+what <i>everyone</i> likes (although it can do that, too).  IFDB's
+recommendation tools are based on the idea that tastes vary, so the
+goal is to help you find games that match your individual style.  One
+way we do this is by giving you lots of ways to sift through the
+database, and another is by helping you find other people with tastes
+in IF similar to your own.
+
+<p>Third, IFDB makes it easier to get started at playing these games.
+Modern IF games usually require "interpreter" programs, so it can be
+time consuming, and sometimes frustrating, for new players to track
+down everything they need.  IFDB's "Download Adviser" is designed to
+fix this.  The Download Adviser can give you step-by-step
+instructions that tell you precisely what you need, where to find it,
+and how to install it - customized for the exact game you want to play
+and the computer you want to play it on.  IFDB can even make the whole
+process completely automatic via a <a href="plugins/index">browser
+plug-in</a>.
+
+
+<h2>If you're looking for recommendations</h2>
+
+<p>Here are some ways to use IFDB to find recommendations for games
+to play:
+
+<p><b>1. Start with a "Recommended List."</b> One of IFDB's key
+features is the Recommended List.  Any member can create a list of
+favorite games in any category.  There's no pre-set list of
+categories, so members can get as creative as they like.  If you're
+looking for a particular kind of game, try using "Search for a list,"
+which you can find on the IFDB Home page.  Enter keywords describing
+the kind of list you're looking for - "children's fantasy," say, or
+"post-apocalyptic science fiction."  You can search the same way for
+polls created by other members - polls are similar to Recommended
+Lists, but reflect the votes of the whole IFDB community rather
+than just one member's favorites.
+<a href="search?list&browse&sortby=new">Browse lists</a> -
+<a href="search?poll&browse&sortby=new">Browse polls</a>.
+
+<p><b>2. Start with a reviewer you trust.</b> Spend a little while
+browsing through games, and read some of the member reviews.  You'll
+probably find some reviewers who seem to have similar taste to your
+own.  When you see a review you like, you can click on the reviewer's
+name to see all of their other reviews.  Take a look at which games
+they rate most highly - chances are that you'll like them, too.
+
+<p><b>3. Start with a game you really like.</b> If you have a favorite
+game, look at its listing.  There are a couple of useful connections
+you can explore from here.  The listing will point out some
+Recommended Lists that feature the game - these lists can be great
+sources of recommendations for similar games.  Also, look at the
+reviews: people who give the game high marks might have similar taste
+to yours, so you can see what other games they like by viewing their
+other reviews.
+
+<p><b>4. Create a poll.</b> If you still can't find what you're
+looking for, you can directly ask for help from other members by <a
+href="poll?id=new">creating a poll</a>.  When you create a poll, you
+describe what sort of game you're interested in; then, other members
+can provide their input by voting for games that they think match what
+you're seeking.  Votes will appear on your poll's home page, so you
+can see everyone's suggestions in one place.
+
+
+<h2>If you want to promote your favorite games</h2>
+
+<p><b>1. Make sure the game is listed accurately.</b> If you can't
+find a favorite game listed on IFDB, add it! IFDB lets members add new
+listings, so there's no need to wait for a central administrator to
+get around to updating the catalog when a new game comes out.  <a
+href="editgame?id=new">Click here to add a new listing</a>, or use the
+link on the Home page.  And if you find a listing that's incomplete
+or inaccurate, you can expand or correct it yourself - every game
+page has a link titled "Edit this page" that lets you update the listing.
+
+<p><b>2. Write a review.</b> One of the best things you can do to
+promote a game is to tell people what's so great about it.  Don't just
+say that the game is great - tell people why.  In your profile, or
+even in the review, give some thoughts on your own taste, so
+readers will have some idea of how closely your perspective aligns
+with theirs.  To write a review, go to the game's main page and
+click the "Write a review" link.
+
+<p><b>3. Create a Recommended List.</b> People looking for games want
+customized, personalized recommendations - they want to know about the
+specific kinds of games they're looking for.  Recommended Lists let
+you give other members exactly this kind of custom recommendation.  If
+there's a particular category of game that you like, create a list
+with your favorite games in the category.  You can create as many
+lists as you want, so you don't have to limit yourself to a generic
+"Top 10" list - you can create lists tailored to the niches you're
+interested in.  <a href="editlist?id=new">Click here to create a list</a>.
+
+<p><b>4. Vote.</b> <a href="search?browse&poll&sortby=new">Browse
+polls</a> once in a while to see if you have any suggestions to add.
+When you know of a game that would be a good fit for a poll, vote
+for the game.
+
+<p>
+
+
+<?php
+pageFooter();
+?>

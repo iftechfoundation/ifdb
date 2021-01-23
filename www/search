@@ -1,0 +1,1688 @@
+<?php
+
+@session_start();
+
+// make sure we process any persistent login state
+include_once "login-persist.php";
+checkPersistentLogin();
+
+include "pagetpl.php";
+include_once "util.php";
+include_once "searchutil.php";
+
+include_once "dbconnect.php";
+$db = dbConnect();
+
+// check for API requests
+$xml = isset($_REQUEST['xml']);
+
+// get the request parameters
+$term = get_req_data('searchfor');
+$bTerm = get_req_data('searchbar');
+$extraLink = get_req_data('xlink');
+
+if ($term == "" && $bTerm != "")
+    $term = $bTerm;
+
+// check for special API requests
+$enum = get_req_data("enum");
+if ($xml && $enum)
+{
+    // assume no error
+    $errmsg = false;
+    $itemType = false;
+
+    // queries for the various types
+    $queries = array(
+        "genre" => "select distinct genre from games",
+        "forgiveness" => "select distinct forgiveness from games",
+        "language" => "select distinct language from games",
+        "system" => "select distinct system from games",
+        "series" => "select distinct seriesname from games",
+        "format" => "select distinct if(f.fmtclass = 'X', os.name, fmtname) "
+                  . "from gamelinks as gl "
+                  .   "join filetypes as f on f.id = gl.fmtid "
+                  .   "left outer join operatingsystems as os "
+                  .       "on os.id = gl.osid "
+                  . "where f.fmtclass in ('X', 'G')");
+
+    // get the query
+    if (isset($queries[$enum]))
+    {
+        // query the data set
+        $result = mysql_query($queries[$enum], $db);
+
+        // fetch the rows
+        for ($i = 0, $cnt = mysql_num_rows($result), $items = array() ;
+             $i < $cnt ; ++$i)
+        {
+            // fetch this row
+            list($g) = mysql_fetch_row($result);
+
+            // apply any special per-row handling
+            switch ($enum)
+            {
+            case "genre":
+                // the genre field can have multiple entries, separated
+                // by commas or slashes - split up the field into the
+                // individual entries
+                if (strpos($g, ",") !== false)
+                    $g = explode(",", $g);
+                else if (strpos($g, "/") !== false)
+                    $g = explode("/", $g);
+                else
+                    $g = array($g);
+
+                // add each element
+                for ($j = 0 ; $j < count($g) ; $j++)
+                    $items[] = trim($g[$j]);
+                break;
+
+            default:
+                // add the row to the results
+                $items[] = $g;
+                break;
+            }
+        }
+
+        // do some special post-processing for certain item types
+        switch ($enum)
+        {
+        case "language":
+            // add the English name of the language, as in "English (en)"
+            for ($i = 0 ; $i < count($items) ; $i++)
+            {
+                // pull out the root ID of the language
+                $l = $lorig = $items[$i];
+                if (preg_match("/^([a-z0-9]+)-/i", $l, $m))
+                    $l = $m[1];
+
+                // lower-case it and quote it
+                $l = mysql_real_escape_string(strtolower($l), $db);
+
+                // figure the search column
+                $col = (strlen($l) == 2 ? "id2" : "id3");
+
+                // look up this language
+                $result = mysql_query(
+                    "select group_concat(distinct name separator '/') "
+                    . "from iso639x "
+                    . "where $col = '$l' "
+                    . "group by $col", $db);
+
+                if (mysql_num_rows($result) > 0)
+                {
+                    list($langName) = mysql_fetch_row($result);
+                    $items[$i] = "$langName ($lorig)";
+                }
+            }
+            break;
+
+        case "forgiveness":
+            // filter out any parenthetical comments - the official
+            // scale is all single words, but some entries have been
+            // embellished with explanatory comments in this field
+            for ($i = 0 ; $i < count($items) ; $i++)
+            {
+                if (preg_match("/^(.*)\(.*\)/", $items[$i], $m))
+                    $items[$i] = trim($m[1]);
+            }	
+            break;
+        }
+
+        // sort the result set alphabetically
+        usort($items, "strcasecmp");
+
+        // generate a list of unique results
+        for ($src = $dst = 0 ; $src < count($items) ; $src++)
+        {
+            $g = $items[$src];
+            if ($g && ($dst == 0 || strcasecmp($g, $items[$dst-1]) != 0))
+                $items[$dst++] = $g;
+        }
+    }
+    else
+    {
+        $errmsg = "<enumError>Invalid enumeration type</enumError>";
+    }
+
+    // send the results
+	ini_set("default_charset", "ISO-8859-1");
+    header("Content-type: text/xml");
+    header("Expires: Mon, 26 Jul 1997 05:00:00 GMT");
+    header("Cache-Control: no-store, no-cache, must-revalidate");
+
+    echo "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
+        . "<searchEnum xmlns=\"http://ifdb.tads.org/api/xmlns\">"
+        . rss_encode($errmsg)
+        . "<itemType>$enum</itemType>"
+        . "<items>";
+
+    for ($i = 0 ; $i < $dst ; $i++)
+        echo "<item>" . rss_encode(htmlspecialcharx($items[$i])) . "</item>";
+
+    echo "</items>"
+        . "</searchEnum>";
+
+    // done
+    exit();
+}
+
+$extraLinkMap = array(
+    "edit" => "<a href=\"editgame?id=##\">Edit Listing</a>",
+    "review" => "<a href=\"review?id=##\">Write a Review</a>"
+);
+if ($extraLink && isset($extraLinkMap[$extraLink])) {
+    $hiddenXL = "<input type=\"hidden\" name=\"xlink\" value=\""
+                . htmlspecialcharx($extraLink) . "\">";
+    $urlXL = "&xlink=$extraLink";
+    $extraLinkA = $extraLinkMap[$extraLink];
+} else {
+    $extraLink = false;
+    $extraLinkA = false;
+    $hiddenXL = false;
+    $urlXL = false;
+}
+
+$tTerm = get_req_data('tterm');
+$qterm = mysql_real_escape_string($term, $db);
+
+$hrefTerm = ($term ? $term : $tTerm);
+$hrefTerm = urlencode($hrefTerm);
+$hrefSearchGame = "href=\"search?tterm=$hrefTerm\" "
+                  . "onclick=\"javascript:newSearch('');return false;\"";
+$hrefSearchList = "href=\"search?list&tterm=$hrefTerm\" "
+                  . "onclick=\"javascript:newSearch('list');return false;\"";
+$hrefSearchMember = "href=\"search?member&tterm=$hrefTerm\" "
+                    . "onclick=\"javascript:newSearch('member');return false;\"";
+$hrefSearchPoll = "href=\"search?poll&tterm=$hrefTerm\" "
+                  . "onclick=\"javascript:newSearch('poll');return false;\"";
+$hrefSearchComp = "href=\"search?comp&tterm=$hrefTerm\" "
+                  . "onclick=\"javascript:newSearch('comp');return false;\"";
+$hrefSearchClub = "href=\"search?club&tterm=$hrefTerm\" "
+                  . "onclick=\"javascript:newSearch('club');return false;\"";
+
+// get the search type
+$searchType = (isset($_REQUEST['list']) ? "list" :
+               isset($_REQUEST['poll']) ? "poll" :
+               isset($_REQUEST['member']) ? "member" :
+               isset($_REQUEST['comp']) ? "comp" :
+               isset($_REQUEST['club']) ? "club" :
+               "game");
+
+$browseTabs = array(
+    "game" => "Games",
+    "list" => "Lists",
+    "poll" => "Polls",
+    "comp" => "Competitions",
+    "club" => "Clubs",
+    "member" => "Members");
+
+if (isset($_REQUEST['list'])) {
+    $searchType = "list";
+    $searchButton = "Search Lists";
+    $hiddenTypeField = "<input type=\"hidden\" name=\"list\" value=\"1\">";
+}
+else if (isset($_REQUEST['poll'])) {
+    $searchType = "poll";
+    $searchButton = "Search Polls";
+    $hiddenTypeField = "<input type=\"hidden\" name=\"poll\" value=\"1\">";
+}
+else if (isset($_REQUEST['member'])) {
+    $searchType = "member";
+    $searchButton = "Search Members";
+    $hiddenTypeField = "<input type=\"hidden\" name=\"member\" value=\"1\">";
+}
+else if (isset($_REQUEST['comp'])) {
+    $searchType = "comp";
+    $searchButton = "Search Competitions";
+    $hiddenTypeField = "<input type=\"hidden\" name=\"comp\" value=\"1\">";
+}
+else if (isset($_REQUEST['club'])) {
+    $searchType = "club";
+    $searchButton = "Search Clubs";
+    $hiddenTypeField = "<input type=\"hidden\" name=\"club\" value=\"1\">";
+}
+else {
+    $searchType = "game";
+    $searchButton = "Search Games";
+    $hiddenTypeField = "";
+}
+
+
+$pg = isset($_REQUEST['pg']) ? $_REQUEST['pg'] : "";
+$pgAll = false;
+$perPage = 20;
+$showAllMaxRows = 250;
+$sortby = isset($_REQUEST['sortby']) ? $_REQUEST['sortby'] : "";
+
+$browse = isset($_REQUEST['browse']);
+
+
+// calculate where we are in the results according to the paging mode
+if ($pg == 'all') {
+
+    // showing all results, so we're inherently on the first page
+    $pg = 1;
+
+    // note that we're in Show All mode
+    $pgAll = true;
+
+    // set the limit clause to show the first row to the maximum fetch
+    $limit = "limit 0, $showAllMaxRows";
+
+    $firstOnPage = 0;
+    $lastOnPage = 0;
+    
+} else {
+
+    // we can't be at a page number less than 1
+    if ($pg < 1)
+        $pg = 1;
+    
+    // calculate where that puts us in the results
+    $firstOnPage = ($pg - 1) * $perPage;
+    $lastOnPage = $firstOnPage + $perPage - 1;
+
+    // limit the query to this range
+    $limit = "limit $firstOnPage, $perPage";
+}
+
+// callback to prepend a "+" to a search word
+function prependPlus($txt)
+{
+    return "+" . $txt;
+}
+
+// is the given string a name suffix?
+function isNameSuffix($s)
+{
+    return in_array(strtolower($s),
+                    array("jr", "jr.", "sr", "sr.", "phd", "ph.d.",
+                          "md", "m.d."));
+}
+
+function unNegate($w)
+{
+    if (substr($w, 0, 1) == '-')
+        $w = substr($w, 1);
+    return $w;
+}
+
+// if we have a search term, find it
+if ($term || $browse) {
+
+    // run the search
+    list($rows, $rowcnt, $sortList, $errMsg, $summaryDesc, $badges,
+         $specials, $specialsUsed, $orderBy) =
+        doSearch($db, $term, $searchType, $sortby, $limit, $browse);
+
+    // adjust our page limits to include the whole result set if desired
+    if ($pgAll) {
+        $perPage = $rowcnt;
+        $lastOnPage = $rowcnt;
+    }
+
+    // if there's exactly one row, jump directly to the result page
+    if ($rowcnt == 1 && !$browse && !$xml) {
+        $redir = false;
+        switch ($searchType) {
+        case "game":
+            $redir = "viewgame?id={$rows[0]['id']}";
+            break;
+
+        case "list":
+            $redir = "viewlist?id={$rows[0]['id']}";
+            break;
+
+        case "poll":
+            $redir = "poll?id={$rows[0]['id']}";
+            break;
+
+        case "member":
+            $redir = "showuser?id={$rows[0]['id']}";
+            break;
+
+        case "comp":
+            $redir = "viewcomp?id={$rows[0]['compid']}";
+            break;
+
+        case "club":
+            $redir = "club?id={$rows[0]['clubid']}";
+            break;
+        }
+
+        // if we found a unique result, redirect to it, so that we go directly
+        // to it rather than showing a pointless single-item list
+        if ($redir) {
+            header("HTTP/1.1 301 Moved Permanently");
+            header("Content-Type: text/html");
+            header("Location: $redir");
+
+            echo "<a href=\"$redir\">Redirecting (click here if your "
+                . "browser doesn't redirect automatically)</a>";
+        }
+    }
+}
+
+// ------------------------------------------------------------------------
+//
+//   Start the page, if we're showing a UI (i.e., HTML mode, not XML mode)
+//
+
+if (!$xml) {
+
+    // start the page
+    $searchTypeName = ($searchType == "list" ? "Recommended Lists" :
+                       ($searchType == "poll" ? "Polls" :
+                        ($searchType == "member" ? "Members" :
+                         ($searchType == "comp" ? "Competitions" :
+                          ($searchType == "club" ? "Clubs" :
+                           "Games")))));
+
+    pageHeader($term == "" && $browse ? "Browse $searchTypeName"
+                                      : "Search for $searchTypeName",
+               $browse ? "" : "advsearch.searchfor", false,
+               "<script src=\"xmlreq.js\"></script>");
+
+    $commonInstructions =
+        "<p><b>+<i>word</i></b> makes <i>word</i> mandatory - only items
+         that contain this word will be listed.
+
+         <p><b>-<i>word</i></b> makes <i>word</i> prohibited - only items
+         that <i>don't</i> contain this word will be listed.
+
+         <p><b>\"<i>phrase</i>\"</b> searches for the <i>exact</i> phrase within
+            the quotes: all of the words have to be matched in the exact
+            order given.";
+
+    $commonPostInstructions =
+        "<p>You can negate any of the special modifiers by putting "
+        . "a hyphen '-' in front of the modifier name "
+        . "(e.g., <b>-author:bob</b>).  This <b>excludes</b> items that "
+        . "match the modifier's criteria.";
+}
+
+// ------------------------------------------------------------------------
+//
+//  If there's no search term, show the full instructions
+//
+
+function helpListLink($title, $id, $tableWid, $params)
+{
+    if (!$tableWid)
+        $tableWid = 4;
+    
+    echo "<div class=\"searchHelpList\" id=\"helpList.$id\">"
+        . "<a href=\"javascript:void(0);\" class=\"silent\" "
+        .    "onclick=\"javascript:openHelpList('$id', $tableWid, '$params');"
+        .      "return false;\">"
+        . "<img border=0 src=\"/blank.gif\" class=\"listarrow\">$title</a>"
+        . "</div>";
+}
+
+function helpExtLink($title, $url)
+{
+    echo "<div class=\"searchHelpList\" id=\"helpList.$id\">"
+        . "<a href=\"$url\" class=\"silent\">"
+        . "<img border=0 src=\"/blank.gif\" class=\"listarrow\">$title</a>"
+        . "</div>";
+}
+
+if (!$browse && !$xml) {
+    $otherTabs = "<div class=\"browseBar\">"
+                 . "<div class=\"browseTabs\">"
+                 . "<span class=\"browseLabel\">Searching</span>";
+    $tabClass = "browseTab firstBrowseTab";
+    foreach ($browseTabs as $key => $label)
+    {
+        if ($key == $searchType)
+            $otherTabs .= "<span class=\"$tabClass activeBrowseTab\">"
+                          . "<a href=\"search?$key\">"
+                          . "$label</a></span>";
+        else
+            $otherTabs .= "<span class=\"$tabClass\">"
+                          . "<a href=\"search?$key\">"
+                          . "$label</a></span>";
+        
+        $tabClass = "browseTab";
+    }
+    $otherTabs .= "</div></div>";
+    echo $otherTabs;
+
+    ?>
+<script type="text/javascript">
+
+function openHelpList(id, tableWid, params)
+{
+    var divId = "helpList." + id;
+    var div = document.getElementById(divId);
+    xmlSend("search?enum=" + id, divId,
+            function(xml) {
+                populateHelpList(id, div, tableWid, params, xml);
+            }, null);
+    div.innerHTML = "(Retrieving list...)";
+}
+
+function populateHelpList(id, div, tableWid, params, xml)
+{
+    var err = xmlChildText(xml, "enumError");
+    if (err)
+    {
+        div.innerHTML = err;
+        return;
+    }
+
+    var items = xml.getElementsByTagName("item");
+    var s = [];
+    for (var i = 0 ; i < items.length ; ++i)
+    {
+        var txt = items[i].firstChild.data;
+        var hrefParam = txt;
+
+        var match;
+        if (id == "language" && (match = txt.match(/\((.+)\)/)))
+            hrefParam = RegExp.$1;
+    
+        s.push("<td class=\"searchHelpItem\"><nobr>"
+               + "<a href=\"search?searchfor="
+               + params.replace('@@', encodeURI8859(hrefParam))
+               + "\" class=\"silent\">"
+               + encodeHTML(txt)
+               + "</a></nobr></td>");
+        if (i % tableWid == (tableWid - 1) && i + 1 < items.length)
+            s.push("</tr><tr>");
+    }
+
+    div.innerHTML = "<table><tr>" + s.join("") + "</tr></table>";
+}
+   
+</script>
+    <?php
+}
+
+if ($xml) {
+
+    // no UI in XML mode - this is an API request
+    
+} else if ($term || $browse) {
+
+    if (!$browse) {
+    ?>
+
+    <form name="advsearch" method="get" action="search">
+       <input type="text" name="searchfor" id="searchfor" size=70
+              value="<?php echo htmlspecialcharx($term) ?>">
+       <input type="submit" name="searchgo"
+             value="<?php echo $searchButton ?>">
+       <?php echo $hiddenTypeField ?>
+       <?php echo $hiddenXL ?>
+       <br>
+       <!--
+       <span class=details>
+          <a <?php echo $hrefSearchGame ?>>Advanced Search Games</a> -
+          <a <?php echo $hrefSearchList ?>>Search Lists</a> -
+          <a <?php echo $hrefSearchPoll ?>>Search Polls</a> -
+          <a <?php echo $hrefSearchComp ?>>Search Competitions</a> -
+          <a <?php echo $hrefSearchClub ?>>Search Clubs</a> -
+          <a <?php echo $hrefSearchMember ?>>Search Members</a>
+       </span>
+       -->
+    </form>
+
+    <?php
+    }
+} else if ($searchType == "list") {
+
+    ?>
+
+    <form name="advsearch" method="get" action="search">
+       <!-- <h2>Search Recommended Lists</h2> -->
+       <table cellspacing=0 cellpadding=0 border=0>
+          <tr>
+             <!--
+             <td>
+                <b>Search for:&nbsp;</b>
+             </td>
+             -->
+             <td>
+                <input type="text" name="searchfor" id="searchfor" size=70
+                      value="<?php echo htmlspecialcharx($tTerm) ?>">
+                <input type="submit" name="searchgo" value="Search Lists">
+             </td>
+          </tr>
+          <tr>
+             <td></td>
+             <!--
+             <td>
+                <span class=details><b>Other searches:</b>
+                   <a <?php echo $hrefSearchGame ?>>Games</a> -
+                   <a <?php echo $hrefSearchPoll ?>>Search Polls</a> -
+                   <a <?php echo $hrefSearchComp ?>>Search Competitions</a> -
+                   <a <?php echo $hrefSearchClub ?>>Search Clubs</a> -
+                   <a <?php echo $hrefSearchMember ?>>Members</a>
+                </span>
+             </td>
+             -->
+          </tr>
+       </table>
+       <input type="hidden" name="list" value="1">
+    </form>
+
+    <br><br>
+    <h3>Search Tips</h3>
+
+    <div class=searchnotes>
+
+    <p>By default, IFDB searches each list's title and keywords for the
+    words you enter, and shows lists that match at least one of your
+    search terms.  You can customize the search with the
+    special modifiers below.
+    Note that modifiers with ":" parameters
+    have to go <i>last</i>, after regular search words.
+
+    <div class=indented>
+
+       <?php echo $commonInstructions ?>
+
+       <p><b>author:<i>member name</i></b> only shows lists created by
+       the given author.
+
+    </div>
+
+    <?php echo $commonPostInstructions ?>
+
+    </div>
+
+    <?php
+}
+else if ($searchType == "poll") {
+
+    ?>
+
+    <form name="advsearch" method="get" action="search">
+       <!-- <h2>Search Polls</h2> -->
+       <table cellspacing=0 cellpadding=0 border=0>
+          <tr>
+             <!--
+             <td>
+                <b>Search for:&nbsp;</b>
+             </td>
+             -->
+             <td>
+                <input type="text" name="searchfor" id="searchfor" size=70
+                      value="<?php echo htmlspecialcharx($tTerm) ?>">
+                <input type="submit" name="searchgo" value="Search Polls">
+             </td>
+          </tr>
+          <tr>
+             <td></td>
+             <!--
+             <td>
+                <span class=details><b>Other searches:</b>
+                   <a <?php echo $hrefSearchGame ?>>Games</a> -
+                   <a <?php echo $hrefSearchList ?>>Search Lists</a> -
+                   <a <?php echo $hrefSearchComp ?>>Search Competitions</a> -
+                   <a <?php echo $hrefSearchClub ?>>Search Clubs</a> -
+                   <a <?php echo $hrefSearchMember ?>>Members</a>
+                </span>
+             </td>
+             -->
+          </tr>
+       </table>
+       <input type="hidden" name="poll" value="1">
+    </form>
+
+    <br><br>
+    <h3>Search Tips</h3>
+
+    <div class=searchnotes>
+
+    <p>IFDB searches each poll's title for the words you enter, and
+    shows polls that match at least one of your search terms.  You
+    can customize the search with the special modifiers below.
+    Note that modifiers with ":" parameters
+    have to go <i>last</i>, after regular search words.
+    
+
+    <div class=indented>
+
+       <?php echo $commonInstructions ?>
+
+       <p><b>author:<i>member name</i></b> only shows lists created by
+       the given author.
+
+    </div>
+
+    <?php echo $commonPostInstructions ?>
+
+    </div>
+
+    <?php
+}
+else if ($searchType == "comp") {
+
+    ?>
+
+    <form name="advsearch" method="get" action="search">
+       <!-- <h2>Search Competitions</h2> -->
+       <table cellpadding=0 cellspacing=0>
+          <tr>
+             <!--
+             <td>
+                <b>Search for:&nbsp;</b>
+             </td>
+             -->
+             <td>
+                <input type="text" name="searchfor" id="searchfor" size=70
+                      value="<?php echo htmlspecialcharx($tTerm) ?>">
+                <input type="submit" name="searchgo" value="Search Competitions">
+             </td>
+          </tr>
+          <tr>
+             <td></td>
+             <!--
+             <td>
+                <span class=details><b>Other searches:</b>
+                   <a <?php echo $hrefSearchGame ?>>Games</a> -
+                   <a <?php echo $hrefSearchList ?>>Recommended Lists</a> -
+                   <a <?php echo $hrefSearchPoll ?>>Search Polls</a> -
+                   <a <?php echo $hrefSearchClub ?>>Search Clubs</a> -
+                   <a <?php echo $hrefSearchMember ?>>Search Members</a>
+                </span>
+             </td>
+             -->
+          </tr>
+       </table>
+       <input type="hidden" name="comp" value="1">
+    </form>
+
+    <br><br>
+    <h3>Search Tips</h3>
+
+    <div class=searchnotes>
+
+    <p>By default, IFDB searches each competition's title, series name,
+    description, and keywords for the
+    words you enter, and show competitions that match at least one of your
+    search terms.  You can customize the search with the 
+    special modifiers below.
+    Note that modifiers with ":" parameters
+    have to go <i>last</i>, after regular search words.
+
+
+    <div class=indented>
+
+       <?php echo $commonInstructions ?>
+
+       <p><b>series:<i>name</i></b> shows competitions with <i>name</i>
+       in their series names
+
+       <p><b>year:</i>low-high</i></b> shows competitions whose award
+       dates were in the given range of years. You can make the range
+       open-ended by leaving out an endpoint: <b>year:1995-</b> searches
+       for all competitions 1995 and later, and <b>year:-2000</b> searches
+       for competitions up to 2000.
+
+       <p><b>organizer:<i>name</i></b> shows competitions with <i>name</i>
+       found in the Organizer names.
+       
+       <p><b>judge:<i>name</i></b> shows competitions with <i>name</i>
+       found in the Judge names.
+
+       <p><b>#games:<i>low-high</i></b> shows competitions whose total
+       number of listed games (entries, nominees, etc) fall in the given
+       range.  You can use specify open-ended range by leaving off an
+       endpoint.
+
+       <p><b>#divisions:<i>low-high</i></b> shows competitions with the
+       given number of divisions.  (Every competition has at least one
+       division, even it's just a default main division for all entries.)
+
+    </div>
+
+    <?php echo $commonPostInstructions ?>
+
+    </div>
+
+
+    <?php
+}
+else if ($searchType == "club") {
+
+    ?>
+
+    <form name="advsearch" method="get" action="search">
+       <!-- <h2>Search Clubs</h2> -->
+       <table cellpadding=0 cellspacing=0>
+          <tr>
+             <!--
+             <td>
+                <b>Search for:&nbsp;</b>
+             </td>
+             -->
+             <td>
+                <input type="text" name="searchfor" id="searchfor" size=70
+                      value="<?php echo htmlspecialcharx($tTerm) ?>">
+                <input type="submit" name="searchgo" value="Search Clubs">
+             </td>
+          </tr>
+          <tr>
+             <td></td>
+             <!--
+             <td>
+                <span class=details><b>Other searches:</b>
+                   <a <?php echo $hrefSearchGame ?>>Games</a> -
+                   <a <?php echo $hrefSearchList ?>>Recommended Lists</a> -
+                   <a <?php echo $hrefSearchPoll ?>>Search Polls</a> -
+                   <a <?php echo $hrefSearchClub ?>>Search Clubs</a> -
+                   <a <?php echo $hrefSearchMember ?>>Search Members</a>
+                </span>
+             </td>
+             -->
+          </tr>
+       </table>
+       <input type="hidden" name="club" value="1">
+    </form>
+
+    <br><br>
+    <h3>Search Tips</h3>
+
+    <div class=searchnotes>
+
+    <p>By default, IFDB searches each club's title, description, and
+    keywords for the words you enter, and show clubs that match
+    at least one of your search terms.  You can customize the search
+    with the special modifiers below.
+    Note that modifiers with ":" parameters
+    have to go <i>last</i>, after regular search words.
+
+
+    <div class=indented>
+
+       <?php echo $commonInstructions ?>
+
+       <p><b>#members:<i>low-high</i></b> shows clubs with IFDB member
+       enrollment in the given range.  You can
+       make the range open-ended by leaving out one or the other endpoint;
+       for example, <b>#members:100-</b> searches for clubs with at least
+       100 members.  Note that this only works for clubs with public
+       membership lists and clubs you belong to; otherwise the number
+       of members will be counted as zero.
+
+       <p><b>contact:<i>name</i></b> searches for clubs with <i>name</i>
+       in the contact list
+
+    </div>
+
+    <?php echo $commonPostInstructions ?>
+
+    </div>
+
+
+    <?php
+}
+else if ($searchType == "member") {
+
+    ?>
+
+    <form name="advsearch" method="get" action="search">
+       <!-- <h2>Search Member Directory</h2> -->
+       <table cellpadding=0 cellspacing=0>
+          <tr>
+             <!--
+             <td>
+                <b>Search for:&nbsp;</b>
+             </td>
+             -->
+             <td>
+                <input type="text" name="searchfor" id="searchfor" size=70
+                      value="<?php echo htmlspecialcharx($tTerm) ?>">
+                <input type="submit" name="searchgo" value="Search Members">
+             </td>
+          </tr>
+          <tr>
+             <td></td>
+             <!--
+             <td>
+                <span class=details><b>Other searches:</b>
+                   <a <?php echo $hrefSearchGame ?>>Games</a> -
+                   <a <?php echo $hrefSearchList ?>>Recommended Lists</a> -
+                   <a <?php echo $hrefSearchPoll ?>>Search Polls</a>
+                   <a <?php echo $hrefSearchComp ?>>Search Competitions</a> -
+                   <a <?php echo $hrefSearchClub ?>>Search Clubs</a> -
+                </span>
+             </td>
+             -->
+          </tr>
+       </table>
+       <input type="hidden" name="member" value="1">
+    </form>
+
+    <br><br>
+    <h3>Search Tips</h3>
+
+    <div class=searchnotes>
+
+    <p>By default, IFDB searches each member's name for the
+    words you enter, and shows members who match at least one of your
+    search terms.  You can customize the search with the 
+    special modifiers below.
+    Note that modifiers with ":" parameters
+    have to go <i>last</i>, after regular search words.
+
+
+    <div class=indented>
+
+       <?php echo $commonInstructions ?>
+
+       <p><b>location:<i>place</i></b> only shows members with the
+       given place name within their location.  For example,
+       "location:california" would show members with locations
+       that include the word "california."
+
+       <p><b>club:<i>name</i></b> shows members who belong to clubs
+       that have <i>name</i> in their club names.  This only works
+       for clubs with public membership lists or that you belong to.
+
+    </div>
+
+    <?php echo $commonPostInstructions ?>
+
+    </div>
+
+
+    <?php
+} else {
+    ?>
+
+    <form name="advsearch" method="get" action="search">
+       <!-- <h2>Search for Games</h2> -->
+       <input type="text" name="searchfor" id="searchfor" size=70
+              value="<?php echo htmlspecialcharx($tTerm) ?>">
+       <input type="submit" name="searchgo" value="Search Games">
+       <?php echo $hiddenXL ?>
+       <!-- 
+       <br>
+       <span class=details><b>Other searches:</b>
+          <a <?php echo $hrefSearchList ?>>Recommended Lists</a> -
+          <a <?php echo $hrefSearchPoll ?>>Polls</a> -
+          <a <?php echo $hrefSearchComp ?>>Competitions</a> -
+          <a <?php echo $hrefSearchClub ?>>Search Clubs</a> -
+          <a <?php echo $hrefSearchMember ?>>Members</a>
+       </span>
+       -->
+
+       <br><br>
+       <h3>Search Tips</h3>
+
+       <div class=searchnotes>
+
+       <p>If you're getting too many irrelevant results, try searching
+       for a complete phrase in quotes rather than individual words:
+       <b>"deep space drifter"</b> rather than <b>deep space
+       drifter</b>.
+
+       <p>By default, IFDB searches each game's title, author, and
+       description for the words you enter, and shows all of the games
+       that match at least one of your search terms.  You can customize
+       the search with the special modifiers below.
+       Note that modifiers with ":" parameters
+       have to go <i>last</i>, after regular search words.
+
+       <div class=indented>
+
+       <?php echo $commonInstructions ?>
+
+       <p><b>author:<i>name</i></b> lists games by the named author or
+          authors.
+
+       <p><b>tag:<i>tag name</i></b> searches for games containing
+          the given tag text. (<?php
+             echo helpWinLink("help-tags", "What's a tag?"); ?>)
+             <?php helpExtLink("Go to the IFDB tag cloud", "showtags"); ?>
+
+       <p><b>series:<i>name</i></b> lists only games with the given
+          series name.
+          <?php helpListLink(
+              "Show all series names appearing in game listings",
+              "series", 2, "series:@@"); ?>
+
+       <p><b>genre:<i>genre name</i></b> only shows games with the given genre.
+          (If a game's listing has multiple genres, it will match as long
+          as <i>genre name</i> is found within the listing. For example,
+          <b>genre:western</b> will match a game listed with genre
+          "Science Fiction/Western/Romance."
+          <?php helpListLink(
+              "Show all genres used in game listings",
+              "genre", 5, "genre:@@"); ?>
+
+       <p><b>rating:<i>low-high</i></b> lists games with average ratings
+          in the given range (inclusive). For example, <b>rating:2.5-3.5</b>
+          lists games rated from 2&frac12; to 3&frac12; stars.  Leave out
+          an endpoint for an open-ended search:
+          <b>rating:3-</b> lists games with ratings 3 stars and above;
+          <b>rating:-2</b> lists games rated 2 stars and below.
+
+       <p><b>#ratings:<i>low-high</i></b> lists games with a total number
+          of ratings in the given range.  For example, <b>#ratings:3-</b>
+          lists games with three or more ratings.
+
+       <p><b>ratingdev:</i>low-high</i></b> lists games with a ratings
+          standard deviation in the given range. (If you use this option,
+          the standard deviation for each rating will be shown in parentheses
+          after the star rating, and you'll have the option to order the
+          results by it.)
+
+       <p><b>#reviews:<i>low-high</i></b> lists games with a total number
+          of member reviews in the given range.  (This doesn't count
+          editorial reviews.)
+
+       <p><b>forgiveness:<i>rating</i></b> only shows games with the given
+          "forgiveness" rating (on the Zarfian scale: Merciful, Polite,
+          Tough, Nasty, Cruel - <?php
+             echo helpWinLink("help-forgiveness", "more information");
+          ?>).
+          <?php helpListLink(
+              "Show all forgivness ratings used in game listings",
+              "forgiveness", 5, "forgiveness:@@"); ?>
+
+       <p><b>published:<i>year-year</i></b> only shows games with publication
+          dates in the given range.  For example,
+          <b>published:1990-2000</b> shows games published from 1990
+          to 2000.  <b>published:1990</b> lists only games published
+          in 1990.  <b>published:1990-</b> lists games published in 1990
+          or later, and <b>published:-2000</b> lists games published in
+          2000 or earlier.
+
+       <p><b>language:<i>code</i></b> lists games written in the given
+          spoken language.  You can use the English name of the language,
+          or a two- or three-letter
+          <a href="http://en.wikipedia.org/wiki/List_of_ISO_639-1_codes">ISO-639</a>
+          code ("en" for English, "fr" for French, etc).
+          <?php helpListLink("Show all language codes used in game listings",
+              "language", 5, "language:@@"); ?>
+
+       <p><b>system:<i>name</i></b> lists only games written with the
+          given authoring system (TADS, Inform, Hugo, etc).
+          <?php helpListLink(
+              "Show all authoring systems used in game listings",
+              "system", 4, "system:@@"); ?>
+
+       <p><b>format:<i>name</i></b> lists only games with downloadable
+          files available for the given format.  To search for multiple
+          system versions, use * as a wildcard: <b>format:tads *</b> searches
+          for all TADS versions.  Use an operating system name to search
+          for native executables for that system.
+          <?php helpListLink(
+              "Show all file formats with available downloads",
+              "format", 6, "format:@@"); ?>
+
+       <p><b>downloadable:<i>yes</i>|<i>no</i></b> lists games that
+          are/are not downloadable.  A downloadable game is one that has
+          at least one story file or application download link. 
+
+       <p><b>bafs:<i>id</i></b> searches for the game with the given
+          <a href="http://www.wurb.com/if">Baf's Guide</a> ID.
+
+       <p><b>ifid:<i>xxx</i></b> searches for a game with the given IFID.
+       (<?php
+          echo helpWinLink("help-ifid", "What's an IFID?");
+//<a href="needjs" onclick="javascript:helpWin('help-ifid');return false;"
+//          >What's an IFID?</a>
+       ?>)
+
+       </div>
+
+       <?php echo $commonPostInstructions ?>
+
+       <p>To search for listings that <i>lack</i> information on genre,
+       publication date, language, development system, Baf's Guide entry,
+       or IFID, enter the modifier with nothing after the colon.
+       For example, to search for games that don't have publication
+       date or language settings, enter <b>published: language:</b>.
+       
+
+       <p>You can combine these modifiers to create more specific searches.
+       For example, "outer space genre:science fiction published:-1990"
+       searches for games in the "science fiction" genre published in
+       1990 or earlier, with at least one of the words "outer" and
+       "space" somewhere in their title, author, or description.
+       Be sure to put all modifiers with ":" parameters <i>after</i>
+       any regular search words.
+
+       </div>
+
+    </form>
+
+    <?php
+}
+
+// ------------------------------------------------------------------------
+//
+//   If we had a search term, show the results
+//
+
+if ($xml) {
+
+    // start the XML reply
+    header("Content-type: text/xml");
+    header("Expires: Mon, 26 Jul 1997 05:00:00 GMT");
+    header("Cache-Control: no-store, no-cache, must-revalidate");
+
+    echo "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
+        . "<searchReply xmlns=\"http://ifdb.tads.org/api/xmlns\">";
+
+    // check for errors
+    if ($errMsg)
+    {
+        echo "<error>"
+            . rss_encode(htmlspecialcharx($errMsg))
+            . "</error>"
+            . "</searchReply>";
+        exit();
+    }
+
+    // we have a valid reply - start it
+    $grouptags = array(
+        "game" => "games",
+        "list" => "lists",
+        "poll" => "polls",
+        "comp" => "competitions",
+        "club" => "clubs",
+        "member" => "members"
+    );
+    $grouptag = $grouptags[$searchType];
+    echo "<$grouptag>";
+
+    // send the results
+    for ($i = 0 ; $i < count($rows) ; $i++)
+    {
+        $row = $rows[$i];
+        $site = "http://ifdb.tads.org";
+        switch($searchType)
+        {
+        case "game":
+            $id = $row['id'];
+            $title = htmlspecialcharx($row['title']);
+            $author = htmlspecialcharx($row['author']);
+            $published = $row['published'];
+            $pubfmt = $row['pubfmt'];
+            $devsys = $row['devsys'];
+            $rating = $row['avgrating'];
+            list($stars) = roundStars($rating);
+            $ratingCnt = $row['ratingcnt'];
+            $art = ($row['hasart'] ? "yes" : "no");
+            $link = htmlspecialcharx("$site/viewgame?id=$id");
+
+            $coverArtLink = "";
+            if ($art == "yes") {
+                $coverArtLink =
+                    "<coverArtLink>"
+                    . htmlspecialcharx("$site/viewgame?id=$id&coverart")
+                    . "</coverArtLink>";
+            }
+
+            echo rss_encode(
+                "<game>"
+                .   "<tuid>$id</tuid>"
+                .   "<title>$title</title>"
+                .   "<link>$link</link>"
+                .   "<author>$author</author>"
+                .   "<averageRating>$rating</averageRating>"
+                .   "<numRatings>$ratingCnt</numRatings>"
+                .   "<starRating>$stars</starRating>"
+                .   "<hasCoverArt>$art</hasCoverArt>"
+                .   "<devsys>$devsys</devsys>"
+                .   "<published>"
+                .     "<machine>$published</machine>"
+                .     "<printable>$pubfmt</printable>"
+                .   "</published>"
+                .   $coverArtLink
+                . "</game>");
+            break;
+
+        case "list":
+            $id = $row['id'];
+            $title = htmlspecialcharx($row['title']);
+            $desc = htmlspecialcharx(fixDesc($row['desc']));
+            $userid = $row['userid'];
+            $username = htmlspecialcharx($row['username']);
+            $items = $row['itemcount'];
+            $link = htmlspecialcharx("$site/viewlist?id=$id");
+
+            echo rss_encode(
+                "<list>"
+                .  "<tuid>$id</tuid>"
+                .  "<title>$title</title>"
+                .   "<link>$link</link>"
+                .  "<desc>$desc</desc>"
+                .  "<creatorID>$userid</creatorID>"
+                .  "<creatorName>$username</creatorName>"
+                .  "<numItems>$items</numItems>"
+                . "</list>");
+            break;
+
+        case "poll":
+            $id = $row['id'];
+            $title = htmlspecialcharx($row['title']);
+            $desc = fixDesc($row['desc']);
+            $userid = $row['userid'];
+            $username = htmlspecialcharx($row['username']);
+            $votecnt = $row['votecnt'];
+            $gamecnt = $row['gamecnt'];
+            $link = htmlspecialcharx("$site/poll?id=$id");
+
+            echo rss_encode(
+                "<poll>"
+                .  "<tuid>$id</tuid>"
+                .  "<title>$title</title>"
+                .   "<link>$link</link>"
+                .  "<desc>$desc</desc>"
+                .  "<creatorID>$userid</creatorID>"
+                .  "<creatorName>$username</creatorName>"
+                .  "<numVotes>$votecnt</numVotes>"
+                .  "<numGames>$gamecnt</numGames>"
+                . "</poll>");
+            break;
+
+        case "comp":
+            $id = $row['compid'];
+            $title = htmlspecialcharx($row['title']);
+            $desc = fixDesc($row['desc']);
+            $gamecnt = $row['gamecnt'];
+            $divcnt = $row['divcnt'];
+            $link = htmlspecialcharx("$site/viewcomp?id=$id");
+
+            echo rss_encode(
+                "<competition>"
+                .  "<tuid>$id</tuid>"
+                .  "<title>$title</title>"
+                .   "<link>$link</link>"
+                .  "<desc>$desc</desc>"
+                .  "<numGames>$gamecnt</numGames>"
+                .  "<numDivisions>$divcnt</numDivisions>"
+                . "</competition>");
+            break;
+
+        case "club":
+            $id = $row['clubid'];
+            $title = htmlspecialcharx($row['name']);
+            $desc = fixDesc($row['desc']);
+            $membercnt = $row['membercnt'];
+            $link = htmlspecialcharx("$site/club?id=$id");
+
+            echo rss_encode(
+                "<club>"
+                .  "<tuid>$id</tuid>"
+                .  "<name>$title</name>"
+                .   "<link>$link</link>"
+                .  "<desc>$desc</desc>"
+                .  "<numMembers>$membercnt</numMembers>"
+                . "</club>");
+            break;
+
+        case "member":
+            $id = $row['id'];
+            $name = htmlspecialcharx($row['name']);
+            $loc = htmlspecialcharx($row['location']);
+            $pic = ($row['haspic'] ? "yes" : "no");
+            $badgeInfo = $badges ? $badges[$id] : false;
+            $badge = ($badgeInfo ? $badgeInfo[1] : false);
+            $link = htmlspecialcharx("$site/showuser?id=$id");
+
+            $picLink = "";
+            if ($pic == "yes") {
+                $picLink =
+                    "<pictureLink>"
+                    . htmlspecialcharx("$site/showuser?id=$id&pic")
+                    . "</pictureLink>";
+            }
+
+            echo rss_encode(
+                "<member>"
+                .  "<tuid>$id</tuid>"
+                .  "<name>$name</name>"
+                .   "<link>$link</link>"
+                .  "<location>$loc</location>"
+                .  "<hasPicture>$pic</hasPicture>"
+                .  $picLink
+                .  "<badge>$badge</badge>"
+                . "</member>");
+            break;
+        }
+    }
+
+    // end the XML reply
+    echo "</$grouptag>"
+        . "</searchReply>";
+    exit();
+}
+else if ($term || $browse)
+{
+    // if an error occurred doing the search, show it
+    if ($errMsg)
+        echo $errMsg;
+
+    // calculate the number of pages available
+    $lastPage = (int)floor(($rowcnt + $perPage - 1)/$perPage);
+    if ($lastOnPage > $rowcnt - 1)
+        $lastOnPage = $rowcnt - 1;
+
+    // show the page controls
+    $pageCtl = "<span class=details>"
+               . makePageControl("search?searchfor="
+                                 . urlencode($term)
+                                 . $urlXL
+                                 . "&sortby=$sortby"
+                                 . ($browse ? "&browse" : "")
+                                 . ($searchType == "list" ? "&list" : "")
+                                 . ($searchType == "poll" ? "&poll" : "")
+                                 . ($searchType == "member" ? "&member" : "")
+                                 . ($searchType == "comp" ? "&comp" : "")
+                                 . ($searchType == "club" ? "&club" : ""),
+                                 $pg, $lastPage, $firstOnPage, $lastOnPage,
+                                 $rowcnt, true,
+                                 $rowcnt < $showAllMaxRows, $pgAll)
+               . "</span>";
+
+    // if our page number puts us past the end of the result set,
+    // just say that we're past the end of the results
+    if ($rowcnt == 0) {
+        
+        echo "<i>No results were found.</i>";
+
+        if ($searchType == "game") {
+            echo "<div class=inlinetip>"
+                . "<h1>Can't find the game you're looking for?</h1>"
+                . "You can help improve IFDB by adding listings for any "
+                . "missing games you're aware of. Members can revise "
+                . "listings and add new ones. <a href=\"editgame?id=new\">"
+                . "Click here</a> to add a new game."
+                . "</div>";
+        }
+        
+    } else if ($firstOnPage >= $rowcnt) {
+        echo "<i>No more results were found.</i>";
+    } else {
+
+        $otherBrowse = "";
+        if ($browse)
+        {
+            $otherBrowse = "<div class=\"browseTabs\">"
+                           . "<span class=\"browseLabel\">Browsing</span>";
+            $tabClass = "browseTab firstBrowseTab";
+            foreach ($browseTabs as $key => $label)
+            {
+                if ($key == $searchType)
+                    $otherBrowse .= "<span class=\"$tabClass activeBrowseTab\">"
+                                    . "$label</span>";
+                else
+                    $otherBrowse .= "<span class=\"$tabClass\">"
+                                    . "<a href=\"search?browse&$key\">"
+                                    . "$label</a></span>";
+
+                $tabClass = "browseTab";
+            }
+            $otherBrowse .= "</div>";
+        }
+
+        if ($pgAll)
+            $range = "$rowcnt Result" . ($rowcnt == 1 ? "" : "s");
+        else
+            $range = ($firstOnPage+1) . "-" . ($lastOnPage+1) . " of $rowcnt";
+
+        // show where we are in the results
+        echo "<div class=\"browseBar\">"
+            . ($term != ""
+               ? "Results for <b>" . htmlspecialcharx($term) . "</b>" : "")
+            . $otherBrowse
+            . "<div class=\"browseSummary\">$range</div></div>";
+
+        // if this is a game search, show the tip boxes
+        if ($searchType == "game") {
+            echo "<div class=tipgroup>"
+                . "<div class=tipbox><h1>Can't find it?</h1>"
+                . "If the game you're looking for isn't in our database yet, "
+                . "you can help improve IFDB by "
+                . "<a href=\"editgame?id=new\">adding a new listing</a> "
+                . "yourself. "
+                . "</div>";
+
+            if ($pg == 1 && !$pgAll)
+                echo  "<div class=tipbox><h1>Bookmark this search</h1>"
+                    . "If you think you might want to repeat this search "
+                    . "in the future, you can save the search parameters "
+                    . "simply by bookmarking this page (adding it to "
+                    . "your \"favorites\") in your browser."
+                    . "</div>";
+
+            echo "</div>";
+        }
+
+        // show the sorting controls
+        $hids = array("searchfor" => $term);
+        if ($browse)
+            $hids['browse'] = '1';
+        if ($searchType != "game")
+            $hids[$searchType] = '1';
+        if ($urlXL)
+            $hids['xlink'] = $extraLink;
+        showSortingControls("searchOrder", "sortby", $sortList, $sortby,
+                            $hids, "search");
+
+        // show the page controls at the top of the results;
+        // if all of the results fit on one page, don't bother with
+        // the page controls
+        echo "<div style=\"margin: 1em 0 2em 0\">";
+        if ($pg == 1 && $rowcnt < $perPage)
+            echo "$rowcnt result" . ($rowcnt != 1 ? "s" : "") . " found";
+        else
+            echo $pageCtl;
+        echo "</div>";
+
+        for ($i = 0 ; $i < count($rows) ; $i++) {
+            // retrieve the row
+            $row = $rows[$i];
+
+            // generate the appropriate display
+            switch ($searchType) {
+
+            case "game":
+                // get the row data, formatted for display
+                $id = $row['id'];
+                $title = output_encode(htmlspecialcharx($row['title']));
+                $author = output_encode(htmlspecialcharx($row['author']));
+                $stars = showStars($row['avgrating']);
+                $year = output_encode(htmlspecialcharx($row['pubyear']));
+                $art = $row['hasart'];
+                $rcnt = $row['ratingcnt'];
+                $rdev = $row['ratingdev'];
+                $xlink = "";
+                if ($extraLinkA) {
+                    $xlink = "<span class=details style='padding-left:2em;'>"
+                             . str_replace("##", $id, $extraLinkA)
+                             . "</span>";
+                }
+
+                // show the matching tags only if we were searching for them
+                $tagDisp = "";
+                if (isset($specialsUsed['tag:'])) {
+                    // turn the game's tags into an array
+                    $tags = array_map("trim", explode(",", $row['tags']));
+
+                    // scan the tags for matches to the "tag:" search terms
+                    $tagsMatched = array();
+                    foreach ($specials as $s) {
+                        if ($s[0][0] == "tags") {
+                            foreach ($tags as $t) {
+                                if (strpos(strtolower($t),
+                                           strtolower($s[1])) !== false) {
+                                    $tagsMatched[$t] = true;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+
+                    // turn the list into a display list
+                    if (count($tagsMatched) != 0) {
+                        $sep = "<span class=details>Tags matched: ";
+                        foreach ($tagsMatched as $t => $v) {
+                            $tu = urlencode($t);
+                            $td = htmlspecialcharx($t);
+                            $tagDisp .= "$sep<a href=\"search?searchfor="
+                                        . "tag:$tu$urlXL\">$td</a>";
+                            $sep = ", ";
+                        }
+                        $tagDisp .= "</span><br>";
+                    }
+                }
+
+                $ratingExtra = "";
+                if (isset($specialsUsed['ratingdev:']) && $rcnt != 0) {
+                    $ratingExtra = "$rcnt rating"
+                                   . ($rcnt == 1 ? "" : "s")
+                                   . ", &sigma;=$rdev";
+                }
+                else if ((isset($specialsUsed['#ratings:'])
+                          || preg_match("/^ratingcnt[ ,]/", $orderBy))
+                         && $rcnt != 0) {
+                    $ratingExtra = "$rcnt rating"
+                                   . ($rcnt == 1 ? "" : "s");
+                }
+                if ($ratingExtra != "")
+                    $ratingExtra = "<span class=details>($ratingExtra)</span>";
+
+                // show the item
+                echo "<p>";
+                if ($art) {
+                    // display with art
+                    echo "<table class=grid border=0 cellspacing=0 cellpadding=0>"
+                        . "<tr><td>"
+                        . "<a href=\"viewgame?id=$id\">"
+                        . "<img src=\"viewgame?"
+                        . "id=$id&coverart&thumbnail=80x80\" border=0>"
+                        . "</a></td><td>"
+                        . "<a href=\"viewgame?id=$id\">"
+                        . "<b>$title</b></a>$xlink<br>"
+                        . "by $author<br>";
+
+                    if ($year)
+                        echo "<span class=details>$year</span>";
+
+                    // build the tags, average rating, and rating details;
+                    // if we have anything to show, and we also showed a
+                    // year, add a newline between the two
+                    $xtra = "$tagDisp$stars$ratingExtra";
+                    if ($year)
+                        $xtra = "<br>$xtra";
+
+                    // add the extra detail
+                    echo "$xtra</td></tr></table>";
+
+                } else {
+                    // display with no art
+                    echo "<a href=\"viewgame?id=$id\">"
+                        . "<b>$title</b></a>"
+                        . ", by $author";
+
+                    if ($year)
+                        echo " ($year)";
+
+                    echo "$xlink<br>$tagDisp$stars$ratingExtra";
+                }
+                break;
+
+            case "list":
+                // get the row data
+                $id = $row['id'];
+                $title = output_encode(htmlspecialcharx($row['title']));
+                $descInfo = summarizeHtml($row['desc'], 240);
+                $desc = fixDesc($descInfo[0]);
+                $userid = $row['userid'];
+                $username = htmlspecialcharx($row['username']);
+                $items = $row['itemcount'];
+
+                // show the listing
+                echo "<p><a href=\"viewlist?id=$id\">"
+                    . "<b>$title</b></a><br>"
+                    . "<span class=details>"
+                    . "by <a href=\"showuser?id=$userid\">$username</a>"
+                    . " - $items game"
+                    . ($items == 1 ? "" : "s")
+                    . "<br></span>"
+                    . ($desc ? "<i>\"$desc\"</i>" : "");
+
+                break;
+
+            case "poll":
+                $id = $row['id'];
+                $title = output_encode(htmlspecialcharx($row['title']));
+                $descInfo = summarizeHtml($row['desc'], 240);
+                $desc = fixDesc($descInfo[0]);
+                $userid = $row['userid'];
+                $username = htmlspecialcharx($row['username']);
+                $votecnt = $row['votecnt'];
+                $gamecnt = $row['gamecnt'];
+                $created = $row['createdfmt'];
+                $votedate = $row['votedatefmt'];
+
+                echo "<p><a href=\"poll?id=$id\"><b>$title</b></a><br>"
+                    . "<span class=details>"
+                    . "by <a href=\"showuser?id=$userid\">$username</a>"
+                    . " - "
+                    . ($votecnt == 0 ? "No votes" :
+                       ($votecnt == 1 ? "1 vote" :
+                        ("$votecnt votes for $gamecnt game"
+                         . ($gamecnt == 1 ? "" : "s"))))
+                    . ($votecnt == 0 ? "" :
+                       ", last vote on $votedate")
+                    . "; created on $created"
+                    . "</span><br>"
+                    . ($desc ? "<div class=indented><i>\"$desc\"</i></div>"
+                             : "");
+                break;
+
+            case "comp":
+                $id = $row['compid'];
+                $title = htmlspecialcharx($row['title']);
+                $descInfo = summarizeHtml($row['desc'], 240);
+                $desc = fixDesc($descInfo[0]);
+                $adate = $row['awarddate'];
+                $gamecnt = $row['gamecnt'];
+                $divcnt = $row['divcnt'];
+
+                echo "<p><a href=\"viewcomp?id=$id\"><b>$title</b></a><br>"
+                    . "<span class=details>$gamecnt game"
+                    . ($gamecnt == 1 ? "" : "s")
+                    . ($divcnt > 1 ? " in $divcnt divisions" : "")
+                    . ($adate ? "; award date $adate" : "")
+                    . "</span><br>"
+                    . ($desc ? "<div class=indented><i>$desc</i></div>" : "");
+                break;
+
+            case "club":
+                $id = $row['clubid'];
+                $name = htmlspecialcharx($row['name']);
+                $descInfo = summarizeHtml($row['desc'], 240);
+                $desc = fixDesc($descInfo[0]);
+                $created = $row['created'];
+                $membercnt = $row['membercnt'];
+                $contacts = false;
+                if ($sortby == 'con'
+                    || isset($specialsUsed['contact:'])
+                    || isset($specialsUsed['contacts:']))
+                    $contacts = $row['contacts'];
+
+                echo "<p><a href=\"club?id=$id\"><b>$name</b></a><br>"
+                    . "<span class=details>Listed on IFDB $created"
+                    . ($membercnt ? "; $membercnt member"
+                       . ($membercnt == 1 ? "" : "s") : "")
+                    . ($contacts ? "<br>Contact(s): $contacts" : "")
+                    . "</span>"
+                    . ($desc ? "<div class=\"indented details\">"
+                       . "<i>$desc</i></div>" : "");
+                break;
+
+            case "member":
+                // get the row data
+                $id = $row['id'];
+                $name = htmlspecialcharx($row['name']);
+                $loc = htmlspecialcharx($row['location']);
+                $profileInfo = summarizeHtml($row['profile'], 140);
+                $profile = fixDesc($profileInfo[0]);
+                $created = $row['createdfmt'];
+                $pic = $row['haspic'];
+                $score = isset($row['score']) ? $row['score'] : 0;
+                $badgeInfo = $badges ? $badges[$id] : false;
+                $badge = false;
+                if ($badgeInfo) {
+                    $badge[] = "<b>{$badgeInfo[1]}</b>";
+                }
+                if ($score) {
+                    $badge[] = "$score <a class=silent "
+                               . helpWinHRef("help-ff")
+                               . "><i>Frequent Fiction</i></a> point"
+                               . ($score == 1 ? "" : "s");
+                }
+                if ($badge) {
+                    $badge = "<span style='padding-left: 2em;' class=details>"
+                             . implode("; ", $badge)
+                             . "</span>";
+                }
+
+                // generate the user listing
+                echo "<p><hr class=dots><p>";
+                if ($pic) {
+                    echo "<table class=grid border=0 cellspacing=0 cellpadding=0>"
+                        . "<tr><td>"
+                        . "<a href=\"showuser?id=$id\">"
+                        . "<img src=\"showuser?id=$id&pic&thumbnail=80x80\" "
+                        . "border=0></td><td>"
+                        . "<a href=\"showuser?id=$id\">"
+                        . "<b>$name</b></a>$badge<br>"
+                        . "<span class=details>"
+                        . ($loc ? "$loc<br>" : "")
+                        . "Member since $created<br><br>"
+                        . ($profile ? "<i>\"$profile\"</i>" : "")
+                        . "</span></td></tr></table>";
+                } else {
+                    echo "<a href=\"showuser?id=$id\">"
+                        . "<b>$name</b></a>$badge<br>"
+                        . "<span class=details>"
+                        . ($loc ? "$loc<br>" : "")
+                        . "Member since $created<br><br>"
+                        . ($profile ? "<i>\"$profile\"</i>" : "")
+                        . "</span>";
+                }
+                break;
+            }
+        }
+
+        // add the page controls again at the bottom, if applicable
+        if ($pg != 1 || $rowcnt > $perPage)
+            echo "<div style=\"margin: 2em 0 2em 0;\">$pageCtl</div>";
+    }
+
+
+    // add another search box at the bottom
+    ?>
+    <hr class=dots style="margin: 1em 0 1em 0;">
+    <form name="advsearch2" method="get" action="search">
+       <center>
+          <input type="text" name="searchfor" id="searchfor2" size=50
+              value="<?php echo htmlspecialcharx($term) ?>">
+          <input type="submit" name="searchgo" id="searchgo2"
+                value="<?php echo $searchButton ?>">
+          <?php echo $hiddenTypeField ?>
+          <?php echo $hiddenXL ?>
+       </center>
+    </form>
+
+    <?php
+    
+}
+
+if (!$xml) {
+?>
+<script type="text/javascript">
+<!--
+function newSearch(typ)
+{
+    var t = document.getElementById("searchfor").value;
+    var h = "search?tterm=" + encodeURI8859(t) + "<?php echo $urlXL ?>";
+    if (typ != "")
+        h += "&" + typ;
+    location.replace(h);
+}
+//-->
+</script>
+<?php
+
+// end the page
+pageFooter();
+
+}
+
+?>

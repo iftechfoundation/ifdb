@@ -1,0 +1,716 @@
+<?php
+
+@session_start();
+include_once "login-persist.php";
+$curuser = checkPersistentLogin();
+
+define("MaxImages", 100);            // maximum number of stored images
+define("MaxImageQuota", 256*1024);   // maximum aggregate stored image size
+define("MaxImageSize", 128*1024);    // maximum size of a single image
+
+include_once "util.php";
+include_once "pagetpl.php";
+
+include_once "dbconnect.php";
+$db = dbConnect();
+
+// presume the upload form fields are blank
+$uploadFilename = false;
+$uploadDesc = false;
+$imgErrMsg = false;
+
+$mainErrMsg = false;
+$mainStatMsg = false;
+
+function prettifySize($siz)
+{
+    if ($siz < 1024) {
+        $base = 1;
+        $unit = "byte";
+    } else if ($siz < 1024*1024) {
+        $base = 1024;
+        $unit = "KByte";
+    } else {
+        $base = 1024*1024;
+        $unit = "MByte";
+    }
+
+    $siz = round($siz / $base, 1);
+    if ($siz == 1)
+        return "$siz $unit";
+    else
+        return "$siz {$unit}s";
+}
+
+function validate_filename($f)
+{
+    // make sure it's not empty
+    if ($f == "")
+        return "The server filename is missing.";
+
+    // make sure the length is within the limit
+    if (strlen($f) > 128)
+        return "The server filename is too long.";
+
+    // make sure it doesn't contain any invalid characters
+    if (preg_match("/[][{}\s\/\\:*?'%&]/", $f))
+        return "The server filename contains invalid characters.";
+
+    // looks good - no error
+    return false;
+}
+
+pageHeader("Style Sheet Image Manager");
+
+$userid = get_req_data("user");
+if ($userid) {
+    // we're asking for a specific user's pictures
+    $userid = mysql_real_escape_string($userid, $db);
+    $result = mysql_query("select name from users where id = '$userid'", $db);
+    if (mysql_num_rows($result) == 0) {
+        echo "<span class=errmsg>The specified user cannot be found.</span>";
+        pageFooter();
+        exit();
+    }
+    $username = mysql_result($result, 0, "name");
+} else {
+    // no user ID specified - show the current user's pictures
+    $userid = $curuser;
+}
+
+if (!$userid) {
+    echo "<span class=errmsg>You must <a href=\"login?dest=stylepics\">"
+        . "log in</a> to upload or edit your style sheet images.";
+    pageFooter();
+    exit();
+}
+
+// check for an image upload
+if ($userid == $curuser
+    && $_SERVER['REQUEST_METHOD'] == 'POST'
+    && $_REQUEST['formid'] == 'upload') {
+
+    // get the parameters
+    $uploadFilename = mysql_real_escape_string(get_req_data('imagefname'), $db);
+    $uploadDesc = mysql_real_escape_string(get_req_data('imagedesc'), $db);
+
+    // make sure we have an image file, and that the local filename is valid
+    if (!isset($_FILES['imagefile']))
+        $imgErrMsg = "Please select a file on your computer to upload.";
+    else if (strlen($_FILES['imagefile']['tmp_name']) == 0)
+        $imgErrMsg = "Sorry, this file exceeds the maximum upload size of "
+                     . (MaxImageSize/1024) . " KBytes.";
+    else
+        $imgErrMsg = validate_filename($uploadFilename);
+
+    // if we're good so far, try storing the image
+    if (!$imgErrMsg) {
+
+        // lock the table for a moment
+        $progress = "SLK.001";
+        $result = mysql_query("lock tables stylepics write", $db);
+
+        // make sure the filename isn't already in use
+        if ($result) {
+            $progress = "SCK.002";
+            $result = mysql_query(
+                "select name from stylepics
+                 where userid = '$curuser'
+                   and name = '$uploadFilename'", $db);
+            if (mysql_num_rows($result) > 0) {
+                $result = false;
+                $imgErrMsg = "The server filename is already used "
+                             . "for another image in your collection. "
+                             . "You must give each image in your "
+                             . "collection a unique name.";
+            }
+        }
+
+        // get the file contents
+        if ($result) {
+            // load the image data
+            $filename = $_FILES['imagefile']['tmp_name'];
+            $imgdata = file_get_contents($filename);
+            $imgbytes = strlen($imgdata);
+            $imgtype = false;
+
+            // check for a TTF font
+            if (strtolower(substr($uploadFilename, -4)) == ".ttf"
+                && validate_ttf($imgdata)) {
+
+                // it looks like a valid font
+                $imgtype = "ttf";
+
+            } else {
+                // parse the image file
+                $imginfo = getimagesize($filename);
+                $imgtype = $imginfo[2];
+
+                // translate the image type to an image/xxx name
+                $xlat = array(IMAGETYPE_JPEG => "jpeg",
+                              IMAGETYPE_GIF => "gif",
+                              IMAGETYPE_PNG => "png");
+                $imgtype = isset($xlat[$imgtype]) ? $xlat[$imgtype] : null;
+            }
+
+            // make sure it's a valid type and not too big
+            if (!$imgtype) {
+                $result = false;
+                $imgErrMsg = "This does not appear to be a valid image "
+                             . "or font - please only upload images "
+                             . "(JPEG, PNG, GIF) or True-Type fonts (TTF). ";
+            } else if ($imgbytes > MaxImageSize) {
+                $result = false;
+                $imgErrMsg = "The image specified is too large. Each "
+                             . "image is limited to "
+                             . (MaxImageSize / 1024) . " KBytes.";
+            }
+        }
+
+        // if we're good so far, check quota
+        if ($result) {
+            $progress = "SQC.003";
+            $result = mysql_query(
+                "select count(*), sum(picturebytes) from stylepics
+                 where userid = '$curuser'", $db);
+            list($curCnt, $curUsage) = mysql_fetch_row($result);
+
+            if ($result && $curCnt + 1 > MaxImages) {
+                $result = false;
+                $imgErrMsg = "Sorry, but uploading this image would exceed "
+                             . "your maximum storage limit of "
+                             . MaxImages . " images. You will need to "
+                             . "delete some unused images before you "
+                             . "can upload new ones.";
+            }
+
+            if ($result && $curUsage + $imgbytes > MaxImageQuota) {
+                $result = false;
+                $imgErrMsg = "Sorry, but uploading this image would exceed "
+                             . "your maximum style image storage limit of "
+                             . (MaxImageQuota / 1024) . " KBytes. You "
+                             . "will need to delete some unused images "
+                             . "to upload more, or reduce the size "
+                             . "of this image (for example, by using "
+                             . "more aggressive compression).";
+            }
+        }
+
+        // if everything's good to this point, store the image
+        if ($result) {
+            // tentatively store the image
+            $imgID = tentative_store_image(
+                $imgdata, $imgtype, "C", "", $curuser);
+
+            // store it in the stylepics table
+            $progress = "SIN.004";
+            $result = mysql_query(
+                "insert into stylepics
+                   (userid, name, picture, `desc`, picturebytes)
+                 values
+                   ('$curuser', '$uploadFilename', '$imgID',
+                    '$uploadDesc', '$imgbytes')", $db);
+
+            // if that succeeded, commit the stored image
+            if ($result)
+                commit_image($imgID);
+        }
+
+        // done with our table locks
+        mysql_query("unlock tables", $db);
+
+        // if we failed a database operation, flag it
+        if (!$result && !$imgErrMsg) {
+            $imgErrMsg = "A database operation failed (error code "
+                         . "$progress). Please try the operation again, "
+                         . "or <a href=\"contact\">contact us</a> if the "
+                         . "problem persists.";
+        }
+
+        // if we were successful, provide a status message; also,
+        // *don't* retain the form data - we want a fresh form for
+        // the next upload
+        if ($result) {
+            $mainSuccMsg = "The image \""
+                           . htmlspecialcharx($uploadFilename)
+                           . "\" has been added to your collection.";
+            $uploadFilename = false;
+            $uploadDesc = false;
+        }
+    }
+}
+
+// verify write access to an image
+function verify_write_access($fname, $verb)
+{
+    global $db, $curuser;
+
+    // presume success
+    $errMsg = false;
+    $imgdesc = false;
+    $imgpic = false;
+    
+    // make sure this is the current user's image
+    $fname = mysql_real_escape_string($fname, $db);
+    $result = mysql_query(
+        "select userid, picture, `desc`
+        from stylepics where name = '$fname' and userid = '$curuser'", $db);
+
+    if (mysql_num_rows($result) == 0) {
+        $errMsg = "The requested picture was not found in the database.";
+        $result = false;
+    }
+    
+    if ($result) {
+        if (mysql_result($result, 0, "userid") != $curuser) {
+            $errMsg = "Access denied - you can only $verb images "
+                          . "that belong to you.";
+            $result = false;
+        }
+    }
+
+    if ($result) {
+        // get the rest of the image data
+        $imgdesc = mysql_result($result, 0, "desc");
+        $imgpic = mysql_result($result, 0, "picture");
+    }
+
+    // return the results
+    return array($result, $errMsg, $fname, $imgdesc, $imgpic);
+}
+
+// check for deletion
+if (isset($_REQUEST['delete']) && $userid == $curuser) {
+
+    // verify access
+    list($result, $mainErrMsg, $fname, $imgdesc, $imgpic) =
+        verify_write_access(get_req_data('delete'), "delete");
+
+    // if access is good, proceed
+    if ($result) {
+
+        // check for confirmation
+        $confID = $_SESSION['stylepics-delete-conf'];
+        if ($confID && get_req_data('confirm') == $confID) {
+
+            // confirmed - delete the image from the stylepics table
+            $result = mysql_query(
+                "delete from stylepics
+                 where name = '$fname' and userid = '$curuser'", $db);
+
+            if (!$result)
+                $mainErrMsg = "An error occurred deleting the image from "
+                              . "the database. Please try again, or "
+                              . "<a href=\"contact\">contact us</a> if "
+                              . "the problem persists.";
+
+            // assuming that succeeded, delete it from the image repository;
+            // ignore any errors at this stage, as a failure here will
+            // simply orphan the repository image, which we can clean up
+            // later in a maintenance sweep (via adminops - orphaned image
+            // deletion)
+            if ($result)
+                delete_image($imgpic);
+
+            // clear out the confirmation-pending, in case we return
+            // to this page via browser BACK
+            $_SESSION['stylepics-delete-conf'] = md5(rand() . rand() . rand());
+
+        } else {
+
+            // not confirmed - show the confirmation screen
+
+            // select a random confirmation ID, to prevent accidental
+            // deletion due to browser BACK button use
+            $_SESSION['stylepics-delete-conf'] = $confID =
+                md5(rand() . rand() . rand());
+
+            $fnameUrl = urlencode($fname);
+            echo "<h1>Confirm Deletion</h1>"
+                . "<center>"
+                . "<img src=\"showimage?id=$imgpic\"><br><b>"
+                . htmlspecialcharx($fname) . "</b><br><span class=notes>"
+                . htmlspecialcharx($imgdesc) . "</span>"
+                . "<p><b>Do you really want to delete this image?</b>"
+                . "<br><br>"
+                . "<a href=\"stylepics?delete=$fnameUrl&confirm=$confID\">"
+                . "Yes, delete it</a><br>"
+                . "<a href=\"stylepics\">No, keep it</a>"
+                . "</center>"
+                . "<br><br>";
+
+            pageFooter();
+            exit();
+        }
+    }
+}
+
+// check to see if we have an editing request
+$showEditForm = false;
+if (isset($_REQUEST['edit'])) {
+    // verify access
+    list($result, $mainErrMsg, $fname, $imgdesc, $imgpic) =
+        verify_write_access(get_req_data('edit'), "edit");
+
+    // since we're starting the editing process, the new and old filenames
+    // are currently the same
+    $oldfname = $fname;
+
+    // if access is good, proceed
+    if ($result)
+        $showEditForm = true;
+}
+
+// check for an edit-save request
+if ($userid == $curuser
+    && $_SERVER['REQUEST_METHOD'] == 'POST'
+    && $_REQUEST['formid'] == 'edit') {
+
+    // verify access
+    list($result, $mainErrMsg, $oldfname, $olddesc, $imgpic) =
+        verify_write_access(get_req_data('oldfname', "edit"));
+
+    // get the new field values from the request parameters
+    $fname = mysql_real_escape_string(get_req_data('newfname'), $db);
+    $imgdesc = mysql_real_escape_string(get_req_data('newdesc'), $db);
+
+    // validate the new filename
+    $mainErrMsg = validate_filename($fname);
+    if ($mainErrMsg)
+        $result = false;
+
+    // lock tables while we're working
+    if ($result) {
+        $progress = "SEL.100";
+        $result = mysql_query("lock tables stylepics write", $db);
+    }
+
+    // if we're renaming, make sure the new name won't collide with
+    // another image
+    if ($result && $oldfname != $fname) {
+        $progress = "SEQ.101";
+        $result = mysql_query(
+            "select name from stylepics
+             where name = '$fname' and userid = '$curuser'", $db);
+        if (mysql_num_rows($result) > 0) {
+            $mainErrMsg = "The file name is already in use by "
+                          . "another image in your collection. Each "
+                          . "image in your collection must have a "
+                          . "unique name.";
+            $result = false;
+        }
+    }
+
+    // make the update
+    if ($result) {
+        $progress = "SEU.102";
+        $result = mysql_query(
+            "update stylepics
+             set name = '$fname', `desc` = '$imgdesc'
+             where name = '$oldfname' and userid = '$curuser'", $db);
+    }
+    
+    // done with our table locks
+    mysql_query("unlock tables", $db);
+
+    // check for a database error
+    if (!$result && !$mainErrMsg)
+        $mainErrMsg = "A database error occurred saving changes (error code "
+                      . "$progress). Please try again, or <a href=\"contact\">"
+                      . "contact us</a> if the problem persists.";
+
+    // if we have an error, show the edit form again
+    if (!$result)
+        $showEditForm = true;
+}
+
+    
+// show the edit form if applicable
+if ($showEditForm) {
+
+    ?>
+
+<script type="text/javascript">
+<!--
+function validateImageForm()
+{
+    var fn = document.stylepicedit.newfname.value;
+    if (fn == "")
+    {
+        alert("The server filename is empty - please enter a name.");
+        return false;
+    }
+    if (fn.length > 128)
+    {
+        alert("The server filename you entered is too long.");
+        return false;
+    }
+    if (fn.search(/[][{}:\/\\*?"'%& \t]/) >= 0)
+    {
+        alert("The server filename contains invalid characters.");
+        return false;
+    }
+    return true;
+}
+//-->
+</script>
+
+<h1><?php echo htmlspecialcharx($oldfname); ?> - Edit Image</h1>
+
+<?php
+if ($mainErrMsg)
+    echo "<span class=errmsg>$mainErrMsg</span><br><br>";
+?>
+
+<form name="stylepicedit" id="stylepicedit"
+      method="post" action="stylepics" align=center
+      onsubmit="javascript:return validateImageForm();">
+
+   <input type="hidden" name="formid" value="edit">
+   <input type="hidden" name="oldfname" value="<?php
+      echo htmlspecialcharx($oldfname); ?>">
+
+   <img src="showimage?id=<?php echo $imgpic ?>"><br><br>
+   <b>Filename:</b><br>
+      <span class=notes>Must be unique among your images;
+         up to 128 characters; do not use:
+         spaces, /\:*?"'[]{}%&amp;</span><br>
+      <input type="text" size=60 id="newfname" name="newfname"
+             value="<?php echo htmlspecialcharx($fname) ?>"><br><br>
+
+   <b>Description:</b><br>
+   <span class=notes>Optional</span><br>
+   <textarea name="newdesc" id="newdesc" rows=3 cols=60><?php
+      echo htmlspecialcharx($imgdesc); ?></textarea>
+
+   <br><br>
+   <input type="submit" value="Save Changes" name="editSave">
+   <br><br>
+   <a href="stylepics">Discard changes, return to the image manager</a>
+
+</form>
+
+    <?php
+
+    // that's it - don't show the normal page in this case
+    pageFooter();
+    exit();
+}
+
+// show the main page headline, which varies depending on whether we're
+// showing the current user's images or another user's images
+if ($userid == $curuser)
+    echo "<h1>Style Sheet Image Manager</h1>";
+else
+    echo "<h1><a href=\"showuser?id=$userid\">$username</a>'s "
+        . "Style Sheet Images</h1>";
+
+// show any main status message after the headline
+if ($mainErrMsg)
+    echo "<p><span class=errmsg>$mainErrMsg</span>";
+if ($mainSuccMsg)
+   echo "<p><span class=success>$mainSuccMsg</span>";
+
+// show the introductory text, which again varies by user
+if ($userid == $curuser) {
+
+    ?>
+<p>This page lets you upload and manage a collection of small images
+for use in your <a href="styles">custom style sheets</a>.  Using
+custom CSS, you can replace IFDB's default graphics (for things like
+the top banner, the "star" ratings graphics, and the various graphical
+buttons) with your own custom images.
+
+<p><span class=details>
+<b>Storage Limits:</b> There's an overall storage limit for each user
+of <?php echo MaxImages ?> images, and <?php
+echo MaxImageQuota/1024 ?> KBytes of combined image
+sizes.  (<?php echo helpWinLink("help-image-quota", "Why?"); ?>)
+</span></p>
+
+<p><span class=details>
+<b>Copyrights:</b> Since there's no way to indicate copyright status
+for graphics incorporated onto pages via style sheets, we ask that you
+only upload images for which you own the copyright, or which you're
+otherwise authorized to license under the Creative Commons license,
+per our <a href="tos">Terms of Service</a>.
+</span></p>
+
+<div class=inlinetip>
+   To refer to one of your images in any of your style sheets, use this
+   notation:
+   <nobr><tt>url('images/<i>image-name</i>')</tt></nobr>
+</div>
+
+<?php
+} else {
+?>
+
+<div class=inlinetip>
+
+   If you want to refer to this user's images within your own styles
+   sheets, use this notation:
+   <nobr><tt>url('/users/<?php echo $userid ?>/css/images/<i>image-name</i>')</tt></nobr>
+
+   <p>Be aware that there's no guarantee that this user won't rename,
+   change, or remove any of these images, so you might want to upload
+   your own copies rather than linking directly to the originals.
+      
+</div>
+   
+<?php
+}
+
+echo "<p>";
+
+$result = mysql_query(
+    "select name, `desc`, picture, picturebytes from stylepics
+     where userid = '$userid'
+     order by name", $db);
+
+$rowcnt = mysql_num_rows($result);
+if ($rowcnt == 0) {
+    if ($userid == $curuser)
+        echo "You currently have no images in your collection.";
+    else
+        echo "This user does not currently have any style sheet images.";
+} else {
+
+    echo "<table class=thumbnailpic align=center><tr>";
+    for ($i = 0, $col = 0, $totBytes = 0 ; $i < $rowcnt ; $i++, $col++) {
+        list($iName, $iDesc, $iPic, $iBytes) = mysql_fetch_row($result);
+        $totBytes += $iBytes;
+        $iNameUrl = urlencode($iName);
+        $iName = htmlspecialcharx($iName);
+        $iDesc = htmlspecialcharx($iDesc);
+        if ($col == 5) {
+            echo "</tr><tr>";
+            $col = 0;
+        }
+        echo "<td align=center valign=middle>"
+            . "<img src=\"showimage?id=$iPic&thumbnail=100x100\"><br>"
+            . "<span class=notes>"
+            . "<b>$iName</b>";
+
+        $iSize = prettifySize($iBytes);
+
+        if ($iDesc)
+            echo "<br><span class=details>$iDesc ($iSize)</span>";
+        else
+            echo "<br><span class=details>$iSize</span>";
+
+        if ($userid == $curuser) {
+            echo "<br><span class=details><nobr>"
+                . "<a href=\"stylepics?delete=$iNameUrl\">Delete</a> - "
+                . "<a href=\"stylepics?edit=$iNameUrl\">Edit</a>"
+                . "</nobr></span></td>";
+        }
+    }
+
+    echo "</tr></table>"
+        . "<br>Number of images: $rowcnt"
+        . "<br>Total space used: " . prettifySize($totBytes) . "<br>";
+}
+
+
+if ($curuser == $userid) {
+    ?>
+
+<script type="text/javascript">
+<!--
+function validateImageForm()
+{
+    if (document.stylepicupload.imagefile.value == "")
+    {
+        alert("Please select an image to upload.");
+        return false;
+    }
+    
+    var fn = document.stylepicupload.imagefname.value;
+    if (fn == "")
+    {
+        alert("Please enter a name for the file on the server.");
+        return false;
+    }
+    if (fn.length > 128)
+    {
+        alert("The server filename you entered is too long.");
+        return false;
+    }
+    if (fn.search(/[][{}:\/\\*?"'%& \t]/) >= 0)
+    {
+        alert("The server filename contains invalid characters.");
+        return false;
+    }
+    return true;
+}
+function applyDefaultFilename()
+{
+    var lf = document.stylepicupload.imagefile.value;
+    var sf = document.stylepicupload.imagefname.value;
+
+    if (lf != "" && sf == "")
+    {
+        lf = lf.split(/[\/\\:]/);
+        lf = lf[lf.length - 1];
+        sf = lf.replace(/[][{}:\/\\*?"'%& \t]/g, "_");
+        document.stylepicupload.imagefname.value = sf;
+    }
+}
+//-->
+</script>
+
+    <form name="stylepicupload" id="stylepicupload" class="stylepicform"
+          method="post" enctype="multipart/form-data"
+          action="stylepics" align=center
+          onsubmit="javascript:return validateImageForm();">
+
+       <h2>Upload a new image</h2>
+
+       <?php
+          if ($imgErrMsg) {
+              echo "<p><span class=errmsg>An error occurred with your "
+                  . "image upload: $imgErrMsg</span><br><br>";
+          }
+       ?>
+
+       <input type="hidden" name="formid" value="upload">
+       <input type="hidden" name="MAX_FILE_SIZE" value="<?php
+          echo MaxImageSize ?>">
+
+       <b>1. Select a file to upload from your computer:</b><br>
+       <span class=notes>Accepted formats: JPEG, GIF, and PNG for images;
+       TTF (TrueType) for fonts.</span><br>
+       <input type="file" name="imagefile" id="imagefile"
+              onchange="applyDefaultFilename();">
+
+       <br><br><b>2. Name on server:</b><br>
+       <span class=notes>Must be unique among your images;
+          up to 128 characters; do not use:
+          spaces, /\:*?"'[]{}%&amp;</span><br>
+       <input type="text" size=60 id="imagefname" name="imagefname"
+              value="<?php echo htmlspecialcharx($uploadFilename) ?>">
+
+       <br><br><b>3. Description:</b><br>
+       <span class=notes>Optional</span><br>
+       <textarea name="imagedesc" id="imagedesc" rows=3 cols=60><?php
+          echo htmlspecialcharx($uploadDesc); ?></textarea>
+
+       <br><br><input type="submit" value="Upload" name="imageupload">
+
+    </form>
+
+    <?php
+}
+
+
+echo "<p>";
+
+if ($curuser != $userid)
+    echo "<a href=\"stylepics\">Manage my own style sheet images</a><br>";
+
+echo "<a href=\"styles\">Manage my custom style sheets</a><br>";
+
+pageFooter();
+
+?>

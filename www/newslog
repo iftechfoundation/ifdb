@@ -1,0 +1,442 @@
+<?php
+
+@session_start();
+
+include "pagetpl.php";
+include_once "util.php";
+include_once "dbconnect.php";
+include_once "news.php";
+$db = dbConnect();
+
+// note if we're logged in
+include_once "login-persist.php";
+$curuser = checkPersistentLogin();
+
+$sourceType = mysql_real_escape_string(get_req_data('type'), $db);
+$sourceTypeName = false;
+$sourceID = mysql_real_escape_string(get_req_data('source'), $db);
+$newsID = mysql_real_escape_string(get_req_data('newsid'), $db);
+$deletions = (isset($_REQUEST['deletions']) ? "&deletions" : false);
+$histp = isset($_REQUEST['history']);
+
+$perPage = 20;
+$pgAll = false;
+$pg = get_req_data('pg');
+
+$errMsg = false;
+$pageTitle = false;
+
+// if there's a news item ID, we're after an item history; otherwise
+// we're after a listing of the news items for this source object
+$hist = false;
+if ($newsID) {
+
+    if ($histp)
+        $pageTitle = "News Item Update History";
+
+    // query the history - pull up all of the items that have the same
+    // original as the source item, as these are all edits to the source
+    // version
+    $result = mysql_query(
+        "select
+           n.newsid, n.source, n.sourceid, n.status,
+           date_format(n.modified, '%M %e, %Y %l:%i %p'),
+           date_format(n.created, '%M %e, %Y %l:%i %p'),
+           n.userid, u.name,
+           n.headline, n.body
+         from
+           news as n
+           join users as u on u.id = n.userid
+           join news as nsrc
+             on ifnull(n.original, n.newsid) = ifnull(nsrc.original, nsrc.newsid)
+         where
+           nsrc.newsid = '$newsID'
+         order by
+           n.modified desc", $db);
+
+    // pull up the history
+    for ($hist = array(), $i = 0 ; $i < mysql_num_rows($result) ; $i++)
+        $hist[] = mysql_fetch_row($result);
+
+    // get the source information from the first history item (they're
+    // necessarily all the same for edits to the same item)
+    if (count($hist) > 0) {
+        $hLatest = $hist[0];
+        $hOldest = $hist[count($hist) - 1];
+
+        $sourceType = $hLatest[1];
+        $sourceID = $hLatest[2];
+
+        if ($histp) {
+            $sourceInfo =
+                "This is a history of updates to the news item \""
+                . htmlspecialcharx($hLatest[8])
+                . "\", originally posted by "
+                . htmlspecialcharx($hOldest[7])
+                . " on "
+                . str_replace("/\s+\d+:\d+\s+[AP]M$/", "", $hOldest[4])
+                . ".";
+        }
+        
+    } else {
+        // didn't find any matches
+        $errMsg = "The specified news item is not in the database. The "
+                  . "link you followed to reach this page might be broken.";
+    }
+}
+
+// find the source object
+$returnLink = "";
+if ($sourceType == "G") {
+
+    // game source
+    $hrefReturn = "viewgame?id=$sourceID";
+    $sourceTypeName = "game";
+
+    // look up the game
+    $result = mysql_query(
+        "select title, author from games where id = '$sourceID'", $db);
+
+    if (mysql_num_rows($result) > 0) {
+
+        // build the source item reference
+        list($gtitle, $gauthor) = mysql_fetch_row($result);
+        $gtitle = htmlspecialcharx($gtitle);
+        $gauthor = htmlspecialcharx($gauthor);
+
+        $ginfo = "<a href=\"viewgame?id=$sourceID\"><i>$gtitle</i><a>, "
+                 . "by $gauthor";
+
+        if ($histp) {
+            $sourceInfo .= " (This item is for $ginfo.)";
+        } else if ($newsID) {
+            $pageTitle = "News for $gtitle";
+        } else {
+            $pageTitle = "News for $gtitle";
+            $sourceInfo .= "News items are shown chronologically, from "
+                           . "newest to oldest.";
+        }
+
+        $returnLink = "<a href=\"viewgame?id=$sourceID\">Go to "
+                      . "the game's main page</a>";
+
+    } else {
+        $errMsg = "The game you're attempting to update is no longer "
+                  . "in the database.";
+    }
+
+} else if ($sourceType == "C") {
+
+    // competition source
+    $hrefReturn = "viewcomp?id=$sourceID";
+    $sourceTypeName = "competition";
+
+    // look up the comp
+    $result = mysql_query(
+        "select title from competitions where compid = '$sourceID'", $db);
+
+    if (mysql_num_rows($result) > 0) {
+
+        // build the source item reference
+        list($ctitle) = mysql_fetch_row($result);
+        $ctitle = htmlspecialcharx($ctitle);
+
+        $cinfo = "<a href=\"viewcomp?id=$sourceID\">$ctitle<a>";
+
+        if ($histp) {
+            $sourceInfo .= " ($cinfo)";
+        } else if ($newsID) {
+            $pageTitle = "$ctitle - News";
+        } else {
+            $pageTitle = "$ctitle - News";
+            $sourceInfo .= "News items are shown chronologically, from "
+                           . "newest to oldest.";
+        }
+
+        $returnLink = "<a href=\"viewcomp?id=$sourceID\">Go to "
+                      . "the competition's main page</a>";
+
+    } else {
+        $errMsg = "The competition you're attempting to update is "
+                  . "no longer in the database.";
+    }
+
+} else if ($sourceType == "U") {
+
+    // club source
+    $hrefReturn = "club?id=$sourceID";
+    $sourceTypeName = "club";
+
+    $result = mysql_query(
+        "select name from clubs where clubid = '$sourceID'", $db);
+
+    if (mysql_num_rows($result) > 0) {
+
+        // build the source item reference
+        list($ctitle) = mysql_fetch_row($result);
+        $ctitle = htmlspecialcharx($ctitle);
+
+        $cinfo = "<a href=\"club?id=$sourceID\">$ctitle<a>";
+
+        if ($histp) {
+            $sourceInfo .= " ($cinfo)";
+        } else if ($newsID) {
+            $pageTitle = "$ctitle - News";
+        } else {
+            $pageTitle = "$ctitle - News";
+            $sourceInfo .= "News items are shown chronologically, from "
+                           . "newest to oldest.";
+        }
+
+        $returnLink = "<a href=\"club?id=$sourceID\">Go to "
+                      . "the club's main page</a>";
+
+    } else {
+        $errMsg = "The club you're attempting to update is "
+                  . "no longer in the database.";
+    }
+
+} else {
+    $pageTitle = "News";
+    $errMsg = "The page parameters are incorrect. The link "
+              . "you followed to reach this page might be broken.";
+}
+
+if ($histp) {
+    $returnLink = "<a href=\"newslog?type=$sourceType&source=$sourceID\">"
+                  . "View the full news list</a><br>$returnLink";
+}
+
+
+pageHeader($pageTitle);
+
+if ($errMsg) {
+    echo "<span class=errmsg>$errMsg</span><br><br>";
+} else {
+
+    echo "<h1>$pageTitle</h1>$sourceInfo<p>";
+
+    // if we're doing an item history, show the history; otherwise
+    // query and show the items
+    if ($hist && $histp) {
+
+        if ($histp && $hist[0][3] != 'D') {
+            echo "<span class=details>"
+                . "<a href=\"editnews?newsid={$hist[0][0]}&type=$sourceType"
+                . "&source=$sourceID&delete\">Delete this item</a></span><p>";
+        }
+
+        // show each history item
+        for ($i = 0 ; $i < count($hist) ; $i++) {
+
+            // decode the record
+            list($nid, $ntype, $nsrc, $status,
+                 $modified, $created, $userid, $username,
+                 $headline, $body) = $hist[$i];
+
+            // quote items for display
+            $username = htmlspecialcharx($username);
+            $headline = htmlspecialcharx($headline);
+            $body = fixDesc($body, FixDescSpoiler);
+
+            // for deletions, show a special headline
+            if ($status == "D") {
+                $headline = "[Deleted]";
+                $body = "<i>This entry records that the entire article "
+                        . "has been deleted.</i>";
+            }
+
+            // the earliest item was posted; others were edited
+            $action = ($status == "D" ? "Deleted" :
+                       ($i == count($hist) - 1 ? "Posted" : "Edited"));
+
+            // the latest item can be edited; others must be reinstated
+            $editBtn = ($i == 0 ? "Edit" : "Reinstate");
+            $editLink = "editnews?newsid={$hist[0][0]}&type=$sourceType"
+                        . "&source=$sourceID"
+                        . ($i > 0 ? "&reinstate=$nid" : "");
+
+            // display it
+            if ($i > 0)
+                echo "<hr class=dots>";
+            
+            echo "<div class=\"newsItemHeadline\">$headline</div>"
+                . "<div class=\"newsItemDateline\">$action "
+                . "by <a href=\"showuser?id=$userid\">$username</a>"
+                . ", $modified";
+
+            if ($status != "D")
+                echo " - <a href=\"$editLink\">$editBtn</a>";
+
+            echo "</div>"
+                . "<div class=\"newsItemBody\">$body</div>";
+        }
+
+    } else if ($newsID) {
+
+        echo "<span class=details>"
+            . "<a href=\"newslog?type=$sourceType&source=$sourceID\">"
+            . "Show all news for this $sourceTypeName</a>"
+            . "</span><p>";
+
+        // decode the most recent history item
+        $h = $hist[0];
+        list($nid, $nsrc, $nsrcid, $status, $modified, $created,
+             $userID, $userName,
+             $headline, $body) = $h;
+
+        // get the immediately preceding item
+        $h = $hist[1];
+        $prvHeadline = $h[8];
+
+        // we're also interested in the poster of the original item
+        $h = $hist[count($hist)-1];
+        list($x, $x, $x, $x, $x, $createdOrig,
+             $origUserID, $origUserName) = $h;
+        
+        // fix up fields for display
+        $headline = htmlspecialcharx($headline);
+        $body = fixDesc($body, FixDescSpoiler);
+        $userName = htmlspecialcharx($userName);
+        $origUserName = htmlspecialcharx($origUserName);
+
+        // if it was deleted, show the old headline
+        if ($status == 'D') {
+            $headline = "[Deleted Item] " . htmlspecialcharx($prvHeadline);
+        } else {
+            $updated = "updated";
+        }
+
+        // figure the byline
+        $updated = ($status == 'D' ? "deleted" : "updated");
+        $byline = "Reported by <a href=\"showuser?id=$origUserID\">"
+                  . "$origUserName</a>";
+        if ($userID != $origUserID) {
+            $byline .= " ($updated by <a href=\"showuser?id=$userID\">"
+                       . "$userName</a> on $modified)";
+        } else if ($creDate != $modDate) {
+            $byline .= " ($updated on $modified)";
+        }
+
+        // display it
+        echo "<div class=\"newsItemHeadline\">$headline</div>"
+            . "<div class=\"newsItemDateline\">$created</div>"
+            . "<div class=\"newsItemBody\"><div>$body</div>"
+            . "<div class=\"newsItemFooter\">$byline | "
+            . "<a href=\"newslog?newsid=$nid&history\">History</a>";
+
+        if ($status != 'D') {
+            echo " | <a href=\"editnews?newsid=$nid&type=$sourceType"
+                . "&source=$sourceID\">Edit</a>"
+                . " | <a href=\"editnews?newsid=$nid&type=$sourceType"
+                . "&source=$sourceID&delete\">Delete</a>";
+        }
+
+        echo "</div></div>";
+
+    } else {
+
+        // offer to show or deletions
+        echo "<span class=details>"
+            . "<a href=\"newslog?type=$sourceType&source=$sourceID"
+            . ($deletions ? "" : "&deletions")
+            . "\">"
+            . ($deletions ? "Hide deletions" : "Show all items including deletions")
+            . "</a> - <a href=\"editnews?type=$sourceType&source=$sourceID\">"
+            . "Create a new item</a></span><p>";
+
+        // figure the page limits
+        if ($pg == "all") {
+            $pg = 1;
+            $pgAll = true;
+            $limit = "";
+        } else {
+            $pg = (int)$pg;
+            if ($pg < 1)
+                $pg = 1;
+            $firstOnPage = ($pg - 1) * $perPage;
+            $limit = "limit $firstOnPage, $perPage";
+        }
+
+        // showing news items - query them up
+        $result = queryNews($db, $sourceType, $sourceID, $deletions,
+                            $limit, $rowcnt);
+
+        // if we're in "show all" mode, the whole list goes on this page
+        if ($pgAll)
+            $perPage = $rowcnt;
+
+        // figure how many pages there are
+        $lastPage = (int)floor(($rowcnt + $perPage - 1)/$perPage);
+
+        // calculate our page limits
+        $lastOnPage = $firstOnPage + $perPage - 1;
+        if ($lastOnPage > $rowcnt)
+            $lastOnPage = $rowcnt - 1;
+
+        // show where we are in the list
+        $pageCtl = "<span class=details>"
+                   . makePageControl(
+                       "newslog?type=$sourceType&source=$sourceID$deletions",
+                       $pg, $lastPage, $firstOnPage, $lastOnPage, $rowcnt,
+                       true, true, $pgAll)
+                   . "</span>";
+
+        echo "$pageCtl<br><br><br>";
+
+        // show each item
+        for ($i = 0 ; $i < mysql_num_rows($result) ; $i++) {
+
+            // fetch the next row
+            list($nid, $nOrigId, $status,
+                 $creDate, $created, $modDate, $modified,
+                 $userID, $userName, $origUserID, $origUserName,
+                 $headline, $body)
+                = mysql_fetch_row($result);
+
+            // fix up fields for display
+            $headline = htmlspecialcharx($headline);
+            $body = fixDesc($body, FixDescSpoiler);
+            $userName = htmlspecialcharx($userName);
+            $origUserName = htmlspecialcharx($origUserName);
+
+            // figure the byline
+            $updated = ($status == 'D' ? "deleted" : "updated");
+            $byline = "Reported by <a href=\"showuser?id=$origUserID\">"
+                      . "$origUserName</a>";
+            if ($userID != $origUserID) {
+                $byline .= " ($updated by <a href=\"showuser?id=$userID\">"
+                           . "$userName</a> on $modified)";
+            } else if ($creDate != $modDate) {
+                $byline .= " ($updated on $modified)";
+            }
+
+            // display it
+            echo "<div class=\"newsItemHeadline\">$headline</div>"
+                . "<div class=\"newsItemDateline\">$created</div>"
+                . "<div class=\"newsItemBody\"><div>$body</div>"
+                . "<div class=\"newsItemFooter\">$byline | "
+                . "<a href=\"newslog?newsid=$nid&history\">History</a>";
+
+            if ($status != 'D') {
+                echo " | <a href=\"editnews?newsid=$nid&type=$sourceType"
+                    . "&source=$sourceID\">Edit</a>"
+                    . " | <a href=\"editnews?newsid=$nid&type=$sourceType"
+                    . "&source=$sourceID&delete\">Delete</a>";
+            }
+
+            echo "</div></div>";
+        }
+
+        // add the page controls at the bottom of the page
+        echo "<br>$pageCtl<br><br><br>";
+    }
+}
+
+if ($returnLink)
+    echo "<br>$returnLink<br>";
+    
+pageFooter();
+
+
+?>

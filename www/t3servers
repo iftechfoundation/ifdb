@@ -1,0 +1,523 @@
+<?php
+
+// administer t3 game servers
+
+@session_start();
+
+include_once "util.php";
+include_once "pagetpl.php";
+include_once "dbconnect.php";
+include_once "login-persist.php";
+
+$db = dbConnect();
+$sdb = storageDbConnect();
+$userid = checkPersistentLogin();
+
+pageHeader("T3 Server Cloud Status");
+
+// Get a list of game servers this user is authorized to edit.
+// If the user is an IFDB administrator, they can edit any server.
+// Otherwise, the user must be in the server's admin list.
+$userIsAdmin = false;
+$adminList = false;
+if ($userid)
+{
+    // check if the user is an IFDB admin
+    $result = mysql_query(
+        "select privileges
+         from users
+         where id = '$userid'", $db);
+    list($privs) = mysql_fetch_row($result);
+    $userIsAdmin = (stristr($privs, "A") !== false);
+
+    // get a list of servers this user is specifically authorized to edit
+    $result = mysql_query(
+        "select gameserverid
+         from gameserveradmins
+         where userid = '$userid'", $sdb);
+
+    for ($i = 0 ; $i < mysql_num_rows($result) ; $i++)
+    {
+        list($sid) = mysql_fetch_row($result);
+        $adminList[] = $sid;
+    }
+}
+
+// check for a dispatch log request
+if (isset($_REQUEST['log']))
+{
+    // get the server whose log they're requesting
+    $sid = get_req_data('log');
+    $qsid = mysql_real_escape_string($sid, $sdb);
+
+    // query the server information
+    $result = mysql_query(
+        "select name, url, enabled
+         from gameservers
+         where gameserverid = '$qsid'", $sdb);
+
+    // make sure we found it
+    if (mysql_num_rows($result) == 0)
+    {
+        echo "<span class=errmsg>Server not found.</span>";
+        pageFooter();
+        exit();
+    }
+
+    // retrieve the row
+    list($sname, $surl, $sena) = mysql_fetch_row($result);
+    $dsname = htmlspecialcharx($sname);
+    $dsurl = htmlspecialcharx($surl);
+    $dsena = ($sena ? "Enabled" : "Disabled");
+
+    // list the basic server information
+    echo "<h1>T3 Server Dispatch Log</h1>"
+        . "Server name: $dsname<br>"
+        . "Launch URL: $dsurl "
+        .    "(<a href=\"" . str_replace("\"", "&#34;", $surl)
+        .    "?ping\">ping</a>)<br>"
+        . "Status: $dsena<br><br>";
+
+    // set up the table
+?>
+<style type="text/css">
+table.srvlog {
+    border: 1px solid gray;
+    border-collapse: collapse;
+    margin: 1em;
+}
+table.srvlog th {
+    background: #f0f0f0;
+    border: 1px solid gray;
+    padding: 0.25ex 1ex;
+}
+table.srvlog td {
+    border: 1px solid gray;
+    padding: 0.25ex 1ex;
+}
+</style>
+<table class=srvlog>
+   <tr>
+      <th>Game</th>
+      <th>Story File</th>
+      <th>Time</th>
+      <th>Status</th>
+   </tr>
+    
+<?php
+
+    // query the dispatch log
+    $result = mysql_query(
+        "select
+           gameid, gameurl, date_format(started, '%d-%b-%Y %H:%i'), success
+         from gameserverlog
+         where gameserverid = '$qsid'
+         order by started desc", $sdb);
+
+    // display the results
+    for ($i = 0 ; $i < mysql_num_rows($result) ; $i++)
+    {
+        // fetch the row
+        list($gid, $gurl, $gtime, $gok) = mysql_fetch_row($result);
+        $dgurl = htmlspecialcharx($gurl);
+        $dgok = ($gok ? "OK" : "Ping Failed");
+
+        // retrieve the name of the game
+        $qgid = mysql_real_escape_string($gid, $db);
+        $result2 = mysql_query(
+            "select title, author
+             from games
+             where id = '$qgid'", $db);
+
+        if (mysql_num_rows($result2) > 0)
+        {
+            list($gtitle, $gauthor) = mysql_fetch_row($result2);
+            $dgame = "<a href=\"viewgame?id=$gid\">"
+                     . htmlspecialcharx($gtitle)
+                     . "</a>";
+        }
+        else
+        {
+            $dgame = htmlspecialcharx($gid) . " (unknown TUID)";
+        }
+
+        // display it
+        echo "<tr>"
+            .   "<td>$dgame</td>"
+            .   "<td>$dgurl</td>"
+            .   "<td>$gtime</td>"
+            .   "<td>$dgok</td>"
+            . "</tr>";
+    }
+
+    echo "</table>"
+        . "<br>"
+        . "<a href=\"t3servers\">Return to server list</a>";
+
+    pageFooter();
+    exit();
+}
+
+// check for editing
+if (isset($_REQUEST['edit']))
+{
+    // get the item we're editing
+    $sid = get_req_data('edit');
+    $qsid = mysql_real_escape_string($sid, $sdb);
+
+    // query the server being edited
+    $result = mysql_query(
+        "select gameserverid, name, url, email, apikey, enabled
+         from gameservers
+         where gameserverid = '$qsid'", $sdb);
+
+    // make sure we found the server and have the necessary privileges
+    if (mysql_num_rows($result)
+        && ($userIsAdmin
+            || ($adminList && array_search($sid, $adminList) !== false)))
+    {
+        // show the edit page
+        $row = mysql_fetch_row($result);
+        echo "<h1>T3 Server - Edit</h1>";
+        editGameServer($row);
+    }
+}
+
+// check for applying an edit
+if (isset($_REQUEST['editSID']))
+{
+    // get the server ID
+    $sid = get_req_data('editSID');
+    $qsid = mysql_real_escape_string($sid, $sdb);
+
+    // get the edit parameters
+    $sname = get_req_data('serverName');
+    $surl = get_req_data('serverURL');
+    $semail = get_req_data('serverEmail');
+    $sapikey = get_req_data('serverKey');
+    $sena = get_req_data('serverEnabled');
+
+    // build the database fetch format
+    $row = array($sid, $sname, $surl, $semail, $sapikey, $sena);
+
+    // quote the parameters for SQL use
+    $qname = mysql_real_escape_string($sname, $sdb);
+    $qurl = mysql_real_escape_string($surl, $sdb);
+    $qemail = mysql_real_escape_string($semail, $sdb);
+    $qapikey = mysql_real_escape_string($sapikey, $sdb);
+    $qena = ($sena == '1' ? 1 : 0);
+
+    // clear flags
+    $errmsg = false;
+    $delrow = false;
+
+    // check whether we're creating a row or updating an existing row
+    if ($sid == 'NEW')
+    {
+        // only IFDB Admins can add new servers
+        if (!$userIsAdmin)
+            $errmsg = "This operation is restricted to authorized users.";
+
+        // insert the row
+        if (!$errmsg)
+        {
+            $result = mysql_query(
+                "insert into gameservers
+                   (name, url, email, apikey, enabled)
+                 values ('$qname', '$qurl', '$qemail',
+                         '$qapikey', '$qena')", $sdb);
+
+            if ($result)
+            {
+                // success - retrieve the new row ID
+                $sid = mysql_insert_id($sdb);
+
+                // set it in the in-memory version of the row
+                $row[0] = $sid;
+            }
+            else
+            {
+                // error inserting the row
+                $errmsg = "Failed - error adding new record to database.";
+            }
+        }
+    }
+    else
+    {
+        // check that the row exists
+        $result = mysql_query(
+            "select gameserverid
+             from gameservers
+             where gameserverid = '$qsid'", $sdb);
+
+        if (mysql_num_rows($result) == 0)
+            $errmsg = "Invalid server ID specified.";
+
+        // check for privileges
+        if (!$errmsg
+            && !$userIsAdmin
+            && (!$adminList || array_search($sid, $adminList) === false))
+            $errmsg = "This operation is restricted to authorized users.";
+
+        // check for deletion flag
+        $delrow = isset($_REQUEST['ApplyDelete']);
+
+        // update or delete the row
+        if (!$errmsg)
+        {
+            if ($delrow)
+            {
+                $result = mysql_query(
+                    "delete from  gameservers
+                     where gameserverid = '$qsid'", $sdb);
+            }
+            else
+            {
+                // update the row
+                $result = mysql_query(
+                    "update gameservers
+                     set
+                       name = '$qname',
+                       url = '$qurl',
+                       apikey = '$qapikey',
+                       enabled = '$qena'
+                     where
+                       gameserverid = '$qsid'", $sdb);
+            }
+
+            if (!$result)
+                $errmsg = "Failed - error updating database record.";
+        }
+    }
+
+    echo "<h1>T3 Server - Edit</h1>";
+
+    // if the operation isn't allowed, flag an error and quit
+    if ($errmsg)
+    {
+        echo "<span class=errmsg>$errmsg</span>";
+        pageFooter();
+        exit();
+    }
+
+    // otherwise, it was successful
+    echo "<span class=success>Operation successful.</span><br><br>";
+
+    // continue editing the row, unless we just deleted it
+    if ($delrow)
+    {
+        // deleting - just show a return-to-list link
+        echo "<a href=\"t3servers\">Return to server list</a>";
+        exit();
+    }
+    else
+    {
+        // inserting/updating - go back for another edit pass
+        editGameServer($row);
+    }
+}
+
+// check for adding a new server - only IFDB Admins can do this
+if (isset($_REQUEST['new']) && $userIsAdmin)
+{
+    // show the edit page with an empty server row, signifying a new row
+    editGameServer(false);
+}
+
+// display the add/edit form
+function editGameServer($row)
+{
+    global $db, $sdb, $userid;
+
+    // if there's an existing row we're editing, query it up
+    if ($row)
+    {
+        // editing an existing server - query the row
+        list($sid, $sname, $surl, $semail, $sapikey, $sena) = $row;
+        $applyID = $sid;
+    }
+    else
+    {
+        // adding a new server - generate the blank row, with a randomly
+        // generated API key
+        $sid = "<New>";
+        $applyID = "NEW";
+        $sname = "";
+        $surl = "http://";
+        $semail = "";
+        $sapikey = strtoupper(md5_rand($userid));
+    }
+
+    // generate html-escaped display values
+    $dsid = htmlspecialcharx($sid);
+    $dsname = htmlspecialcharx($sname);
+    $dsurl = htmlspecialcharx($surl);
+    $dsemail = htmlspecialcharx($semail);
+    $dsapikey = htmlspecialcharx($sapikey);
+
+    // display the edit form
+?>
+
+<style type="text/css">
+table.srvedit {
+}
+table.srvedit td {
+    padding: 0.5ex 1ex;
+}
+table.srvedit td.1 {
+    text-align: right;
+    font-weight: bold;
+}
+</style>
+<form name=srvedit method=post action="t3servers">
+<?php
+   echo "<input type=hidden name=editSID value=\"$applyID\">"
+       . "<table class=srvedit>"
+       . "<tr><td class=1>Server ID:</td><td>$dsid</td></tr>"
+       . "<tr><td class=1>Server Name:</td><td>"
+       .    "<input type=text name=serverName value=\"$dsname\" size=100>"
+       . "</td></tr>"
+       . "<tr><td class=1>Launch URL:</td><td>"
+       .    "<input type=text name=serverURL value=\"$dsurl\" size=100>"
+       . "</td></tr>"
+       . "<tr><td class=1>Admin email:</td><td>"
+       .    "<input type=text name=serverEmail value=\"$dsemail\" size=100>"
+       . "</td></tr>"
+       . "<tr><td class=1>API key:</td><td>"
+       .    "<input type=text name=serverKey value=\"$dsapikey\" size=100>"
+       . "</td></tr>"
+       . "<tr><td class=1>Status:</td><td>"
+       .    "<label for=ckEnabled>"
+       .    "<input id=ckEnabled type=checkbox name=serverEnabled value=1"
+       .     ($sena ? " checked" : "")
+       .    "><label> Enabled</label></label>"
+       . "</tr></td>"
+       
+       . "<tr><td>&nbsp;</td><td style=\"padding-top: 1em;\">"
+       . "<input type=\"submit\" name=\"Apply\" value=\"Apply\"> &nbsp; ";
+
+   // add a Delete button, except for a new entry
+   if ($applyID != 'NEW')
+   {
+       echo "<input type=\"submit\" name=\"ApplyDelete\" value=\"Delete\" "
+           . "onclick=\"javascript:return confirmDeleteRow();\"> "
+           . "&nbsp; ";
+
+?>
+<script type="text/javascript">
+function confirmDeleteRow()
+{
+    return confirm("Are you sure you want to permanently delete this "
+                   + "server from the database?");
+}
+</script>
+<?php
+   }
+
+   echo  "<br><br><a href=\"t3servers\">Return to server list</a>"
+       . "</td></tr>"
+       . "</table>"
+       
+       . "</form>";
+
+    pageFooter();
+    exit();
+}
+
+// ---------------------------------------------------------------------------
+//
+// Main page - we didn't find any other sub-operation flags or form
+// submissions in the request parameters, so show the basic server
+// list page.
+//
+
+echo "<h1>T3 Server Cloud Status</h1>";
+
+// get the list of storage servers
+$result = mysql_query(
+    "select
+       gameserverid, name, url, enabled,
+       (select date_format(max(started), '%d-%b-%Y %H:%i')
+        from gameserverlog as l
+        where l.gameserverid = s.gameserverid and l.success) as last_success,
+       (select count(*) from gameserverlog as l
+        where l.gameserverid = s.gameserverid) as num_dispatches
+     from
+       gameservers as s
+     order by
+       name", $sdb);
+
+?>
+
+<style type="text/css">
+table.servers {
+    border: 1px solid gray;
+    border-collapse: collapse;
+}
+table.servers th {
+    border: 1px solid gray;
+    background: #f0f0f0;
+    padding: 0.25ex 1ex;
+}
+table.servers td {
+    border: 1px solid gray;
+    padding: 0.25ex 1ex;
+}
+table.servers td.c {
+    text-align: center;
+}
+</style>
+<table class="servers">
+   <tr>
+      <th>Server ID</th>
+      <th>Name</th>
+      <th>Launch URL</th>
+      <th>Status</th>
+      <th>Last Online</th>
+      <th># Dispatches</th>
+   </tr>
+<?php
+for ($i = 0 ; $i < mysql_num_rows($result) ; $i++)
+{
+    // fetch the server row
+    list($sid, $sname, $surl, $sena, $sdate, $sdispatches) =
+        mysql_fetch_row($result);
+
+    // set some fields up for html display
+    $dsid = htmlspecialcharx($sid);
+    $dsname = htmlspecialcharx($sname);
+    $surl = htmlspecialcharx($surl)
+            . " (<a href=\"" . str_replace("\"", "&#34;", $surl)
+            . "?ping\" target=\"_blank\">ping</a>)";
+    $sena = ($sena ? "Enabled" : "Disabled");
+
+    if ($sdispatches > 0)
+        $sdispatches = "<a href=\"t3servers?log=$sid\">$sdispatches</a>";
+
+    // check if we can administer this server row
+    if ($userIsAdmin
+        || ($adminList && array_search($sid, $adminList) !== false))
+    {
+        // this user can administer the server - show it as an admin link
+        $dsname = "<a href=\"t3servers?edit=$sid\">$dsname</a>";
+    }
+
+    // display the row
+    echo "<tr>"
+        . "<td class=c>$dsid</td>"
+        . "<td>$dsname</td>"
+        . "<td>$surl</td>"
+        . "<td>$sena</td>"
+        . "<td>$sdate</td>"
+        . "<td class=c>$sdispatches</td>"
+        . "</tr>";
+}
+
+echo "</table>";
+
+if ($userIsAdmin)
+    echo "<br><a href=\"t3servers?new\">Add new server</a>";
+
+pageFooter();
+
+?>

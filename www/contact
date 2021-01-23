@@ -1,0 +1,91 @@
+<?php
+@session_start();
+include "pagetpl.php";
+include_once "util.php";
+include_once "captcha.php";
+
+varPageHeader("Contacting Us", false, get_req_data('helpwin'),
+              false, "<script src=\"xmlreq.js\"></script>");
+
+$capkey = "contact";
+captchaSupportScripts($capkey);
+?>
+
+<h1>Contacting Us</h1>
+
+<p>Michael Roberts created and maintains IFDB.
+
+<p>If you have any comments or questions about this site, you can
+reach us by email at <?php
+   echo captchaMaskEmail("ifdbadmin@ifdb.tads.org",
+                         "[<a><i>click to reveal</i></a>]") ?>.
+Please read the advice below about reporting specific kinds of
+problems.
+
+<?php
+captchaAjaxForm($capkey);
+captchaFinish($capkey);
+?>
+
+<h3>Reporting errors in game listings</h3>
+
+<p>If you catch an error in a game listing (a typo, factual
+inaccuracy, etc), there's no need to send us email.  Instead, please
+take advantage of IFDB's community-edited,
+<a href="http://wiki.org/wiki.cgi?WhatIsWiki">Wiki</a>-like design and
+make the correction yourself.  This is the best way to keep IFDB
+accurate and up-to-date, since it avoids the inevitable delay of
+involving a site administrator in every change.
+
+<p>Likewise, if you discover that there's a game missing from our
+database, you can add a new listing yourself.
+
+<p>You can edit any game's listing by clicking the "Edit this page"
+link at the bottom of the game's main page.  To add a game, click 
+the "Add a new game listing" link on the IFDB home page.
+
+
+<h3>Reporting broken download links</h3>
+
+<p>A broken link in the "Download" section of a game listing should be
+treated like any other listing error: you can correct it yourself by
+editing the page containing the bad link.  To edit a game's page,
+click the "Edit this page" link at the bottom of the page.
+
+<p>A word of caution, though.  It's much better to <b>correct</b> a
+link than to delete it outright.  If you know that a link has moved to
+a new location, or contains a typo, by all means update/correct it.
+But if you're not sure why a link isn't working, it's probably better
+to leave the broken link as is than to delete it.  Links are sometimes
+only temporarily broken - the target site might be down for
+maintenance, for example, or the site admin might be in the process of
+moving files around.  We strongly recommend that before you delete a
+broken link, you contact the game's author or the target site's owner
+to determine whether the link is truly broken or just temporarily out
+of commission.  If you find out that the file was intentionally
+removed and is no longer available anywhere else, that's the time to
+actually delete the link.
+
+
+<h3>Reporting technical problems</h3> 
+
+<p>If you encounter any problems using the site (especially an error
+message saying something to the effect that "you should try again
+later or contact us if the problem persists," and <i>especially</i> if
+you did try again later and the problem did persist), please let us
+know what you were trying to do, in as much detail as you can.  The
+most important thing is to tell us the <b>step by step</b> procedure
+that triggers the problem, since we have the best chance of fixing it
+if we can reproduce the problem ourselves.  Budget constraints and a
+certain prima donna attitude among our senior staff force us to assign
+bug-fixing duties to our most junior technicians, whose thankless toil
+in the dark recesses of our underground laboratory complex leaves
+them so broken-spirited and bewildered that everything has to be
+spelled out to them in minute, tedious detail; so we ask for your
+understanding and cooperation in providing as complete a report
+as you can.
+
+
+<?php
+varPageFooter(get_req_data('helpwin'));
+?>

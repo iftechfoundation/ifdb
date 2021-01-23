@@ -1,0 +1,229 @@
+<?php
+
+@session_start();
+
+// make sure we process any persistent login state
+include_once "login-persist.php";
+checkPersistentLogin();
+
+include "pagetpl.php";
+include_once "util.php";
+
+include_once "dbconnect.php";
+$db = dbConnect();
+
+$qtype = get_req_data('t');
+$refresh = "random" . ($qtype != "" ? "?t=$qtype" : "");
+$where = "1";
+$having = "";
+switch ($qtype) {
+case 'high-rated':
+    $having = "avgrating >= 4";
+    $qname = "Highly-rated Game%s";
+    $expl = "This is a randomly selected list of 4- and 5-star games, "
+            . "according to IFDB member ratings.";
+    break;
+
+case 'low-rated':
+    $having = "avgrating <= 2";
+    $qname = "Low-rated Game%s";
+    $expl = "This is a randomly selected list of 1- and 2-star games, "
+            . "according to IFDB member ratings.";
+    break;
+
+case 'controversy':
+    $having = "ratingdev >= 0.7";
+    $qname = "Controversial Game%s";
+    $expl = "This is a randomly selected list of games that have a lot "
+            . "of variation in the \"star\" ratings by IFDB members. "
+            . "(Specifically, these games have relatively high "
+            . "standard deviations in the ratings.)";
+    break;
+
+case 'this-year':
+    $where = "(published >= concat(extract(year from curdate()), '-01-01'))";
+    $qname = "Game%s Published This Year";
+    $expl = "This is a randomly selected list of games published "
+            . "during the current calendar year.";
+    break;
+
+case 'recent':
+    $where = "(published >= concat(extract(year from curdate()) - 1, '-01-01'))";
+    $qname = "Recently Published Game%s";
+    $expl = "This is a randomly selected list of games published "
+            . "since the beginning of last year.";
+    break;
+
+case 'unrated':
+    $having = "ratingcnt = 0";
+    $qname = "Unrated Game%s";
+    $expl = "This is a randomly selected list of games that don't "
+            . "have any ratings by IFDB members yet.";
+    break;
+
+case 'art':
+    $where = "coverart is not null";
+    $qname = "Game%s With Cover Art";
+    $expl = "This is a randomly selected list of games that "
+            . "have cover artwork in the database.";
+    break;
+
+case 'noart':
+    $where = "coverart is null";
+    $qname = "Game%s Without Cover Art";
+    $expl = "This is a randomly selected list of games that "
+            . "don't have any cover artwork in the database.";
+    break;
+
+default:
+    $where = "1";
+    $qname = "Game%s";
+    $expl = "This is a list of randomly selected games from the database.";
+    break;
+}
+
+// SELECT parameters for game queries
+$selectList = "games.id as id,
+               title,
+               author,
+               tags,
+               games.moddate as moddate,
+               date_format(published, '%Y') as pubyear,
+               published,
+               (coverart is not null) as hasart,
+               avg(reviews.rating) as avgrating,
+               count(reviews.rating) as ratingcnt,
+               stddev(reviews.rating) as ratingdev,
+               sort_title, sort_author";
+$tableList = "games
+              left outer join reviews on reviews.gameid = games.id
+                and not (reviews.RFlags & " . RFLAG_OMIT_AVG . ")
+                and ifnull(now() >= reviews.embargodate, 1)";
+$groupBy = "group by games.id";
+
+// if there's a HAVING clause, plug in the HAVING phase
+if ($having != "")
+    $having = "having $having";
+
+// build the SELECT statement
+$sql = "select
+          $selectList
+        from
+          $tableList
+        where
+          $where
+        $groupBy
+        $having
+        order by rand()
+        limit 0, 10";
+
+//    echo "$sql<br>";
+
+// run the query
+$result = mysql_query($sql, $db);
+
+$errMsg = false;
+if ($result) {
+    // fetch the results
+    $rowcnt = mysql_num_rows($result);
+    for ($rows = array(), $i = 0 ; $i < $rowcnt ; $i++)
+        $rows[] = mysql_fetch_array($result, MYSQL_ASSOC);
+
+} else {
+    $rows = array();
+    $rowcnt = 0;
+    $errMsg = "<p><span class=errmsg>"
+              . "An error occurred searching the database.</span><p>";
+//    echo mysql_error($db);
+}
+
+// start the page
+$qname = str_replace("%s", ($rowcnt == 1 ? "" : "s"), $qname);
+pageHeader("$rowcnt Random $qname");
+
+?>
+    <table align=right class="rightbar">
+       <tr><td>
+          <b>Random Lists</b><br>
+          <a href="random">10 Random games</a><br>
+          <a href="random?t=high-rated">10 Highly-rated games</a><br>
+          <a href="random?t=low-rated">10 Low-rated games</a><br>
+          <a href="random?t=controversy">10 Controversial games</a><br>
+          <a href="random?t=this-year">10 Games published this year</a><br>
+          <a href="random?t=recent">10 Recently published games</a><br>
+          <a href="random?t=unrated">10 Unrated games</a><br>
+          <a href="random?t=art">10 Games with cover art</a><br>
+          <a href="random?t=noart">10 Games without cover art</a><br>
+          <br>
+          <a href="<?php echo $refresh ?>">Refresh the current list</a>
+       </td></tr>
+    </table>
+<?php
+
+echo "<h1>A Random List: $rowcnt $qname</h1>"
+   . "<i>$expl</i><br><br>";
+
+// if an error occurred doing the search, show it
+if ($errMsg)
+    echo $errMsg;
+
+// if our page number puts us past the end of the result set,
+// just say that we're past the end of the results
+if ($rowcnt == 0) {
+    echo "<i>No results were found.</i>";
+} else {
+
+    for ($i = 0 ; $i < count($rows) ; $i++) {
+        // retrieve the row
+        $row = $rows[$i];
+
+        // get the row data, formatted for display
+        $id = $row['id'];
+        $title = output_encode(htmlspecialcharx($row['title']));
+        $author = output_encode(htmlspecialcharx($row['author']));
+        $stars = showStars($row['avgrating']);
+        $year = output_encode(htmlspecialcharx($row['pubyear']));
+        $art = $row['hasart'];
+        $dev = $row['ratingdev'];
+
+        // show the item
+        echo "<p>";
+        if ($art) {
+            // display with art
+            echo "<table class=grid border=0 cellspacing=0 cellpadding=0>"
+                . "<tr><td>"
+                . "<a href=\"viewgame?id=$id\">"
+                . "<img src=\"viewgame?"
+                . "id=$id&coverart&thumbnail=80x80\" border=0>"
+                . "</a></td><td>"
+                . "<a href=\"viewgame?id=$id\">"
+                . "<b>$title</b></a><br>"
+                . "by $author<br>";
+
+            if ($year)
+                echo "<span class=details>$year</span><br>";
+
+            echo "$stars</td></tr></table>";
+
+        } else {
+            // display with no art
+            echo "<a href=\"viewgame?id=$id\">"
+                . "<b>$title</b></a>"
+                . ", by $author";
+
+            if ($year)
+                echo " ($year)";
+
+            echo "<br>$stars<br>";
+        }
+    }
+}
+
+echo "<br><br><hr class=dots>"
+   . "<a href=\"$refresh\">Get another random selection"
+   . "</span>";
+
+// end the page
+pageFooter();
+
+?>

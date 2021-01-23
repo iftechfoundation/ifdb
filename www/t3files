@@ -1,0 +1,406 @@
+<?php
+
+// t3file - storage server file manager
+
+@session_start();
+
+include_once "dbconnect.php";
+include_once "pagetpl.php";
+include_once "util.php";
+include_once "storage-util.php";
+include_once "gameinfo.php";
+include_once "login-check.php";
+
+// connect to IFDB
+$db = dbConnect();
+
+// we must be logged in to access this page
+if (!logged_in())
+    exit();
+$userid = $_SESSION['logged_in_as'];
+
+// check for download requests
+$dlpath = get_req_data('download');
+if ($dlpath)
+{
+    // check for the file
+    $fpath = STORAGE_DIR . "$userid/$dlpath";
+    if (@stat($fpath) === false)
+    {
+        header("HTTP/1.1 404 Not Found");
+        echo "404 Not Found";
+        echo $fpath;
+        exit();
+    }
+
+    // check for a known extension to set the MIME type
+    $ext = "";
+    if (preg_match("/\.([a-z0-9]+)$/i", $fpath, $m))
+        $ext = strtolower($m[1]);
+
+    $mimeTypes = array(
+        "t3v" => "application/x-t3vm-state",
+        "txt" => "text/plain",
+        "htm" => "text/html",
+        "html" => "text/html",
+        "xml" => "text/xml",
+        "jpg" => "image/jpeg",
+        "jpeg" => "image/jpeg",
+        "jpe" => "image/jpeg",
+        "png" => "image/png",
+        "css" => "text/css",
+        "js" => "text/javascript");
+    $mimeType = "application/octet-stream";
+    if (isset($mimeTypes[$ext]))
+        $mimeType = $mimeTypes[$ext];
+
+    // send the file
+    header("Content-type: $mimeType");
+    readfile($fpath);
+    exit();
+}
+
+// check for deletion requests
+$delKey = $_SESSION['t3files_delete_key'];
+if ($delKey && get_req_data('delete') && get_req_data('confirm') == $delKey)
+{
+    // confirmed request - delete the selected files
+    $delList = $_SESSION['t3files_delete_list'];
+    $files = $delList[get_req_data('delete')];
+    if ($files && count($files))
+    {
+        $path = STORAGE_DIR . $userid;
+        $err = array();
+        $delCnt = 0;
+        foreach ($files as $file)
+        {
+            $fpath = $file['path'];
+            if (@unlink($fpath))
+                $delCnt += 1;
+            else
+                $err[] = $file['desc'];
+        }
+
+        // show the results
+        pageHeader("Delete Files");
+
+        if (count($err) > 0)
+        {
+            if ($delCnt == 0)
+                echo "<h1>Error Deleting Files</h1>"
+                    . "<span class=errmsg>An error occurred deleting "
+                    . "the file(s) you selected. No files were deleted."
+                    . "</span>";
+            else {
+                echo "<h1>Files Deleted</h1>"
+                    . "<span class=errmsg>The file(s) you selected "
+                    . "have been deleted, <b>except</b> for the following, "
+                    . "which were not deleted due to errors:</span><p>"
+                    . "<div class=indented>";
+
+                foreach ($err as $e)
+                    echo "<span class=errmsg>"
+                        . htmlspecialchars($e)
+                        . "</span><br>";
+
+                echo "</div>";
+            }
+        }
+        else if ($delCnt == 0)
+        {
+            echo "<h1>No Files Deleted</h1>"
+                . "<span class=errmsg>No files were selected for "
+                . "deletion.</span>";
+        }
+        else
+        {
+            echo "<h1>Files Deleted</h1>"
+                . "<span class=success>The selected files have been "
+                . "deleted.</span>";
+        }
+
+        // remove empty directories
+        cleanEmptyDirs(STORAGE_DIR . $userid);
+
+        echo "<p><a href=\"t3files\">Return to file list</a>";
+        pageFooter();
+        exit();
+    }
+}
+if ($delKey && get_req_data('delete') && get_req_data('reqid') == $delKey)
+{
+    // initial request - show the files to delete and ask for confirmation
+    $delList = $_SESSION['t3files_delete_list'];
+    $delid = get_req_data('delete');
+    $files = $delList[$delid];
+    if (count($files) > 0)
+    {
+        $s = (count($files) > 1 ? "s" : "");
+        $these = (count($files) > 1 ? "these" : "this");
+    
+        pageHeader("Confirm Deletion");
+        echo "<h1>Confirm Deletion</h1>"
+            . "Please confirm that you'd like to delete the following "
+            . "file$s from your Storage Server account:<p>"
+            . "<div class=indented>";
+        
+        foreach ($files as $file)
+            echo htmlspecialchars($file['desc']) . "<br>";
+
+        echo "</div>";
+
+        echo "<p><a href=\"t3files?delete=$delid&confirm=$delKey\">"
+            . "Yes, permanently delete $these file$s</a><br>"
+            . "<a href=\"t3files\">No, return to the file list</a> "
+            . "(without deleting anything)<br>";
+
+        pageFooter();
+        exit();
+    }
+}
+
+// remove empty directories within a given root directory
+function cleanEmptyDirs($root)
+{
+    // we haven't found any files in this directory yet
+    $fileCnt = 0;
+
+    // scan the directory
+    if ($dh = opendir($root))
+    {
+        while (($fname = readdir($dh)) !== false)
+        {
+            // skip . and ..
+            if ($fname == '.' || $fname == '..')
+                continue;
+
+            // check the file type
+            $fpath = "$root/$fname";
+            switch (filetype($fpath))
+            {
+            case "dir":
+                // recursively clean it up, and count its contents
+                $fileCnt += cleanEmptyDirs($fpath);
+                break;
+
+            case "file":
+                // we found a file - count it
+                $fileCnt += 1;
+                break;
+            }
+        }
+
+        // done with the current
+        closedir($dh);
+
+        // if this directory is empty, remove it
+        if ($fileCnt == 0)
+            @rmdir($root);
+        else
+            $fileCnt += 1;
+    }
+
+    // return the number of files we found
+    return $fileCnt;
+}
+
+// no deletion requests - roll up a new deletion key
+$_SESSION['t3files_delete_key'] = $delKey = md5_rand($userid);
+$delList = array();
+
+// start the page
+pageHeader("Storage Server Files");
+
+?><h1>Storage Server Files</h1>
+
+<p>On-line TADS games can store files on the IFDB Storage Server.
+These files are accessible from any computer or device, so you can start
+a game on one machine, save the game, and resume playing on another device.
+
+<p>Your saved games and other files for on-line TADS games are listed
+below.  Note that this list only includes TADS games you've played on
+the Web.  Downloaded TADS games store all files on your local hard
+disk.
+
+<?php
+
+// scan the user's directory
+$path = STORAGE_DIR . $userid;
+$files = array();
+$numFiles = 0;
+if ($dh = @opendir($path))
+{
+    // scan the game entries in the directory
+    while (($fname = readdir($dh)) !== false)
+    {
+        $fpath = "$path/$fname";
+        if (filetype($fpath) == "dir" && $fname != "." && $fname != "..")
+        {
+            // get the saved game and misc data file listing
+            $saveFiles = getStorageFileList("$fpath/save");
+            $dataFiles = getStorageFileList("$fpath/data");
+
+            // if we found any files, list them
+            if (count($saveFiles) > 0 || count($dataFiles) > 0)
+            {
+                // look up the game's IFDB listing
+                $gameid = $fname;
+                $qgameid = mysql_real_escape_string($gameid, $db);
+                $result = mysql_query(
+                    "select title from games where id = '$qgameid'", $db);
+
+                if (mysql_num_rows($result) > 0)
+                    list($title) = mysql_fetch_row($result);
+                else
+                    $title = "$gameid (no IFDB listing)";
+
+                // display the game information
+                $gameDelKey = md5_rand($gameid);
+                $gameDelList = array();
+                echo "<div class=\"sfl-game-header\">"
+                    . "<a class=silent href=\"viewgame?id=$gameid\">"
+                    . "<span class=\"sfl-game-title\">"
+                    . htmlspecialchars($title)
+                    . "</span></a> - "
+                    . "<a href=\"t3files?delete=$gameDelKey&reqid=$delKey\">"
+                    . "delete all</a>"
+                    . "</div>"
+                    . "<div class=indented>";
+
+                // display the saved game files
+                if (count($saveFiles) > 0)
+                {
+                    // start the group
+                    echo "<div class=\"sfl-type-header\">Saved Games</div>"
+                        . "<div class=indented><div class=\"sfl-type-group\">";
+
+                    // show the files
+                    foreach ($saveFiles as $f)
+                    {
+                        // get the information
+                        $fpath = $f["path"];
+                        $fname = htmlspecialchars($f["name"]);
+                        $slotno = saveFileSlotNumStr($fname);
+
+                        // generate the download path
+                        $dlpath = fixDlPath($f, $path);
+
+                        // get the user description information
+                        $meta = parseSaveMetaData($fpath);
+                        $udesc = $meta['UserDesc'];
+
+                        // generate the Delete link key
+                        $fileDelKey = md5_rand($fpath);
+
+                        // add it to the deletion lists
+                        $del = array(
+                            "path" => $f["path"],
+                            "desc" => "$title > Save > $slotno$udesc");
+                        $gameDelList[] = $del;
+                        $delList[$fileDelKey] = array($del);
+                        
+                        // generate the Download and Delete links
+                        $links = array(
+//                            "<a href=\"t3files?download=$dlpath\">"
+                            "<a href=\"t3file/$dlpath\">"
+                            . "Download</a>",
+                            "<a href=\"t3files?delete=$fileDelKey"
+                            . "&reqid=$delKey\">Delete</a>");
+
+                        // generate the description
+                        $desc = getSaveFileDesc($f, "#\$: ", $links);
+
+                        // display it
+                        echo "<div class=\"sfl-item\">$desc</div>";
+
+                        // count it
+                        $numFiles += 1;
+                    }
+
+                    echo "</div></div>";
+                }
+
+                // display the miscellaneous data files
+                if (count($dataFiles) > 0)
+                {
+                    echo "<div class=\"sfl-type-header\">Data Files</div>"
+                        . "<div class=indented><div class=\"sfl-type-group\">";
+                    foreach ($dataFiles as $f)
+                    {
+                        // get the information
+                        $fname = htmlspecialchars($f["name"]);
+                        $fsize = $f["size-disp"];
+                        $ftime = $f["mtime-fancy"];
+                        $dlpath = fixDlPath($f, $path);
+
+                        // display it
+                        $fileDelKey = md5_rand($fpath);
+                        echo "$fname - $fsize, $ftime - "
+//                            . "<a href=\"t3files?download=$dlpath\">"
+                            . "<a href=\"t3file/$dlpath\">"
+                            . "Download</a> - "
+                            . "<a href=\"t3files?delete=$fileDelKey"
+                            . "&reqid=$delKey\">Delete</a>"
+                            . "<br>";
+
+                        // add it to the deletion lists
+                        $del = array(
+                            "path" => $f["path"],
+                            "desc" => "$title > Data > {$f['name']}");
+                        $gameDelList[] = $del;
+                        $delList[$fileDelKey] = array($del);
+                    }
+
+                    echo "</div></div>";
+                }
+
+                echo "</div>";
+
+                // add the deletion lists to the session list
+                $delList[$gameDelKey] = $gameDelList;
+            }
+        }
+    }
+
+    // done with the user directory traversal
+    closedir($dh);
+}
+
+// if there are no files, say so
+if ($numFiles == 0)
+{
+    echo "<p>(You don't currently have any saved files.)";
+}
+
+// save the delete list in the session, in case they want to delete anything
+$_SESSION['t3files_delete_list'] = $delList;
+
+
+pageFooter();
+
+// ------------------------------------------------------------------------
+//
+// convert a file path to download path form for a /t3file/xxx URL
+function fixDlPath($f, $path)
+{
+    // get the actual file system path
+    $p = $f["path"];
+
+    // remove the base prefix to get the path within the user account
+    $p = substr($p, strlen($path) + 1);
+
+    // The user account path has the format game-tuid/type-dir/file-title.
+    // Pull apart the three sections.
+    preg_match("#^([a-z0-9]+)/([a-z0-9]+)/(.*)$#", $p, $match);
+    $tuid = $match[1];
+    $dir = $match[2];
+    $title = $match[3];
+
+    // now put it back together in the same format, but quote the title,
+    // since it can contain special characters
+    $title = rawurlencode($title);
+    return "$tuid/$dir/$title";
+}
+
+
+?>

@@ -1,0 +1,69 @@
+<?php
+
+include_once "util.php";
+include_once "dbconnect.php";
+
+// connect to the storage server database
+$sdb = storageDbConnect();
+
+// get the session ID we're pinging
+$qsid = mysql_real_escape_string(get_req_data("id"), $sdb);
+
+// presume failure
+$status = "inactive";
+
+// look up the session
+$result = mysql_query(
+    "select url, guesturl from sessions where extid = '$qsid'", $sdb);
+
+// if that succeeded, ask the session for connection data
+if (mysql_num_rows($result) > 0)
+{
+    // fetch the session row
+    list($url, $guestUrl) = mysql_fetch_row($result);
+
+    // build the guest connection request URL - the recorded URL is the
+    // primary user connection URL, so we need to replace the resource name
+    // portion of the URL
+    $url = preg_replace("#/[^/?]*\?#", "/webui/guestConnect?", $url);
+    $url .= "&xid=" . rand();
+
+    // connect to the game server
+    $body = x_http_get($url, null, $headers);
+
+    // check the HTTP status
+    if (preg_match("#HTTP/[\d.]+ 200#", $headers))
+    {
+        // success
+        $status = "active";
+
+        // if the database didn't already have the guest connection URL,
+        // add it
+        if (!$guestUrl)
+        {
+            $guestUrl = mysql_real_escape_string($body, $sdb);
+            mysql_query(
+                "update sessions
+                 set guesturl = '$guestUrl'
+                 where extid = '$qsid'", $sdb);
+        }
+    }
+    else
+    {
+        // failed - the server is no longer active or does not accept
+        // guest connections; delete the row in the database
+        mysql_query(
+            "delete from sessions where extid = '$qsid'", $sdb);
+    }
+}
+
+// send the XML reply
+header("Content-Type: text/xml");
+header("Expires: Mon, 26 Jul 1997 05:00:00 GMT");
+header("Cache-Control: no-store, no-cache, must-revalidate");
+
+echo "<?xml version=\"1.0\" encoding=\"UTF-8\" ?><pingMultiUser>"
+   . "<status>$status</status>"
+   . "</pingMultiUser>";
+
+?>

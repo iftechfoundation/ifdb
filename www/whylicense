@@ -1,0 +1,75 @@
+<?php
+include "pagetpl.php";
+include_once "util.php";
+varPageHeader("More on Content Licensing", false, get_req_data('helpwin'));
+?>
+
+<h1>More on Content Licensing</h1>
+
+<p>The current copyright laws in most countries (including the United
+States, where IFDB is based) say that you automatically own the
+copyright to any original intellectual works you create, such as
+writings or artwork.  A "copyright" is literally the right to copy.
+This means that, by default, you're the only person who's allowed to
+make copies of an original work you create.
+
+<p>That's the default.  However, in practice, most authors and other
+artists would find it tedious and unwieldy if they had to personally
+create all of the copies of their works for sale.  That's why the law
+lets you extend your exclusive copying rights to other people, such as
+publishers (and Web sites like IFDB) by granting them special
+permissions.  Further, if you choose to grant such permission, you can
+make it conditional: you can attach restrictions to it.  For example, you
+could grant permission only to specific people, or you could say they
+can only make copies on alternating Thursdays.  This kind of
+conditional permission, with a list of restrictions, is called a license.
+
+<p>When you upload your original work to IFDB, such as when you write
+a game review, you're obviously making the initial copy of your work.
+However, in the course of its normal operation, IFDB has to be able to
+make additional copies: it has to display the review when someone
+views the game's page, for example, and it has to store parts of the
+review in its search index.  This means that IFDB couldn't legally use
+the content you upload, just in terms of its technical operations,
+without your permission.  This is why we need you to grant us a
+license.
+
+<p>Now, obviously, it's not practical for us to ask you to ask your
+lawyer write up a license and send it to us each time you upload
+something to IFDB.  That would be expensive for you, and it would be
+impossible for us to keep track of the differences in all those
+licenses.  So, like all "Web 2.0" sites, we provide a standard license
+that everyone uses for uploaded material, so that all uploaded content
+is uniformly licensed.  All you have to do is agree to use the license
+we provide, which you signify simply by uploading your material.  (We
+know that many people feel that "click-wrap" agreements like this
+are obnoxious, and we kind of think so too, but we're pretty sure
+it's the only practical way we can operate a site like this.)
+
+<p>This is where the Creative Commons license comes in.  We could have
+gone the route of many other sites, which have their own licenses for
+user-submitted content, drawn up by their own lawyers.  But we felt
+that we're already asking a lot when we ask you to license your
+material to us in the first place; we didn't also want to impose one
+of those endless streams of fine print that protects us at your
+expense, as you'll often find on commercial sites.  Instead, we
+decided to use a well-known public license created by a neutral third
+party.  That way you can be sure that we didn't hide any self-serving
+"gotchas" in the legalese.  We chose Creative Commons because their
+licenses are well regarded for protecting the rights of authors while
+fostering sharing.  The CC license was created by copyright law
+professionals, and it's been widely reviewed, so we can all be
+comfortable that it's fair and reasonable and legally sound.
+
+<p>In short, by using the Creative Commons license, we're not asking
+you to give IFDB any special permissions; we're simply asking
+you to share your work with the whole IF community.
+
+
+<p><a href="tos">Back to the Terms of Service</a>
+<br><a href="home">IFDB Home</a>
+
+
+<?php 
+varPageFooter(get_req_data('helpwin'));
+?>

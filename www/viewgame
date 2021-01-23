@@ -1,0 +1,3200 @@
+<?php
+
+@session_start();
+
+// make sure we process any persistent login state
+include_once "login-persist.php";
+$curuser = checkPersistentLogin();
+
+include "pagetpl.php";
+include_once "util.php";
+include "plugin-detect.php";
+include "starctl.php";
+include_once "rss.php";
+include_once "game-rss.php";
+include_once "gameinfo.php";
+include_once "commentutil.php";
+include_once "news.php";
+
+// check the user for ADMIN privileges
+$userprivs = $adminPriv = false;
+if ($curuser) {
+    $result = mysql_query(
+        "select `privileges` from users where id='$curuser'", $db);
+    $userprivs = mysql_result($result, 0, "privileges");
+    $adminPriv = (strpos($userprivs, "A") !== false);
+}
+
+$errMsg = false;
+$errCode = false;
+$title = "Game Details";
+$detailView = false;
+$recView = false;
+$historyView = false;
+$reviewView = false;
+$ratingsView = false;
+$oneReviewView = false;
+
+// note if we're on IE6
+$userAgent = $_SERVER['HTTP_USER_AGENT'];
+$ie6 = preg_match("/; msie 6\./i", $userAgent);
+
+// Zero-Width Space: for IE6, use &shy;, otherwise use &#8203;.  (The latter
+// is the unicode zero-width space character, which allows a line break but
+// is otherwise invisible.  &shy; is the soft hyphen, which is invisible most
+// of the time but allows a line break, and is rendered as a hyphen if the
+// renderer does elect to put a line break there.  IE6 doesn't handle the
+// unicode zwsp; the other browsers, including IE7, do.)
+$zwsp = ($ie6 ? "&shy;" : "&#8203;");
+
+if (isset($_REQUEST['cssOverride']))
+    $cssOverride = get_req_data('cssOverride');
+
+// connect to the database
+include_once "dbconnect.php";
+$db = dbConnect();
+
+// retrieve the special reviewer names
+include_once "reviews.php";
+$specialNames = initSpecialNames($db);
+
+// cache the IF Archive mirror mapping, if any
+include "mirrorUrl.php";
+cacheUrlPref($db, $curuser);
+
+// presume the default layout preferences: show off-site reviews with
+// summaries in the Editorial Review section
+$offsiteMode = 'A';
+
+// if we're logged in, get the user's miscellaneous layout preferences
+if ($curuser) {
+    $result = mysql_query(
+        "select offsite_display from users where id = '$curuser'", $db);
+    if (mysql_num_rows($result) != 0)
+        list($offsiteMode) = mysql_fetch_row($result);
+
+    // if it's not set, default to 'A'
+    if (strlen($offsetMode) != 1 || strpos("ABLN", $offsiteMode) === false)
+        $offsetMode = 'A';
+}
+
+// ------------------------------------------------------------------------
+// get a footnote indicator for the given footnote number
+//
+function getFootnoteStar($num)
+{
+    $f = array("*", "&dagger;", "&Dagger;");
+    if ($num <= 0)
+        return "";
+    else if ($num <= count($f))
+        return $f[$num-1];
+    else
+        return str_repeat("*", 2 + $num - count($f));
+}
+
+// ------------------------------------------------------------------------
+// Write the client-side code for the auto-install button.  We only want
+// to write the button at all for systems that support it.  If the system
+// supports it but the necessary plug-in or other client piece isn't
+// installed, we'll write instructions on installing it.
+//
+function writeAutoInstallButton()
+{
+    global $id, $mirrorIDPref, $title;
+
+    // check to see if we've detected a plugin-compatible browser
+    $pluginType = detectPlugin();
+    if ($pluginType == "WindowsIE") {
+        ?>
+<script type="text/javascript">
+if (detectMetaInstaller())
+{
+    document.write("<object id=\"ifdbactivex\" "
+                   + "classid=\"clsid:67BAF0C9-D511-4925-A796-3F7BB19726EE\" "
+                   + "width=0 height=0 style=\"display:none;\">"
+                   + "<param name=\"gameID\" "
+                   + "value=\"" + <?php echo "\"".jsSpecialChars($id)."\"" ?>
+                   + "\"><param name=\"mirrorID\" "
+                   + "value=\"" + <?php
+                      echo "\"". jsSpecialChars($mirrorIDPref) . "\"" ?>
+                   + "\"></object><script type=\"text/javascript\">\n"
+                   + "function PlayItNow() { "
+                   + "var d=document.getElementById(\"ifdbactivex\");\n"
+                   + "d.doDownload();}\n</scr" + "ipt>\n"
+                   + "<a href=\"needjs\" onclick=\"javascript:PlayItNow();"
+                   + "return false;\" title=\"Play Now!\">"
+                   + "<img border=0 src=\"blank.gif\" "
+                   + "alt=\"Play Now!\" class=\"auto-install-button\" "
+                   + "style=\"margin:0 0 0.3em 0;cursor:pointer;\"></a><br>");
+}
+</script>
+<?php
+    } else if ($pluginType == "WindowsMozilla") {
+        ?>
+<script type="text/javascript">
+<!--
+function PlayItNow(g,m)
+{
+    document.getElementById("PlayNowButton").doInstall(g,m);
+}
+if (detectMetaInstaller()) {
+    document.write(
+        "<a href=\"needjs\" onclick=\"javascript:PlayItNow('<?php
+        echo jsSpecialChars($id) ?>', '<?php
+        echo jsSpecialChars($mirrorIDPref)
+        ?>');return false;\" title=\"Play Now!\">"
+        + "<img border=0 src=\"blank.gif\" "
+        + "alt=\"Play Now!\" class=\"auto-install-button\" "
+        + "style=\"margin:0 0 0.3em 0;cursor:pointer;\"></a>"
+        + "<object type=\"" + mozPluginType + "\" "
+        + "style=\"width:0px; height: 0px; "
+        + "position: absolute; left: -1px; top: -1px;\" "
+        + "id=\"PlayNowButton\" border=0></object>"
+        + "<br>");
+}
+//-->
+</script>
+<?php
+    } else if ($pluginType == "MacintoshZoom.Dev"
+               || $pluginType == "MacintoshZoom") {
+
+        // use the title as the filename, with special characters removed
+        $fname = rawurlencode(str_replace(
+            array("/", ":"), array(" ", " "), $title));
+
+        // The following is a special URL that .htaccess maps to a regular
+        // dladviser URL like this:  dladviser?id=$id&os=MacOSX&xml
+        echo "<a href=\"dla-zoom/$id/$fname.signpost\">"
+            . "<img src=\"blank.gif\" class=\"auto-install-button\" "
+            . "style=\"margin:0 0 0.3em 0;cursor:pointer;\">"
+            . "</a><br>";
+    }
+}
+
+// ------------------------------------------------------------------------
+// get the game ID - it can be given as an IFID via ?ifid=xxx, or as an
+// internal ID via ?id=xxx
+function getID() {
+    global $db, $errMsg, $errCode;
+
+    $id = false;
+    if (isset($_REQUEST['ifid'])) {
+        // We have an IFID - look up our corresponding internal ID.  Note
+        // that letters in IFIDs are always upper-case; we store them in
+        // the database this way, so capitalize the request string before
+        // looking it up.
+        $qifid = mysql_real_escape_string(strtoupper($_REQUEST['ifid']), $db);
+        $result = mysql_query("select gameid from ifids
+            where ifid = '$qifid'", $db);
+
+        // make sure we found a match
+        if (mysql_num_rows($result) == 0) {
+            $errMsg = "No game was found matching the requested IFID.";
+            $errCode = "notFound";
+            return null;
+        }
+
+        // get the ID from the record
+        $id = mysql_result($result, 0, "gameid");
+    } else if (isset($_REQUEST['id'])) {
+        // there's no IFID, so use the internal ID number
+        $id = $_REQUEST['id'];
+    }
+
+    // return the ID we found
+    return $id;
+}
+
+// --------------------------------------------------------------------------
+function sendCoverArt()
+{
+    global $errMsg, $db;
+    
+    // get the ID
+    $id = getID();
+    if (is_null($id))
+        exit($errMsg);
+
+    // look up the game
+    $qid = mysql_real_escape_string($id, $db);
+    $result = mysql_query(
+        "select coverart, title, pagevsn from games where id = '$qid'", $db);
+    if (mysql_num_rows($result) == 0) {
+        checkRedirect($id);
+        exit("No game record found for ID");
+    }
+
+    // retrieve the image
+    list($imgname, $title, $pagevsn) = mysql_fetch_row($result);
+
+    // get the target version from the request
+    $targVsn = (isset($_REQUEST['version'])
+                && (int)$pagevsn != (int)($_REQUEST['version']))
+               ? (int)($_REQUEST['version']) : false;
+
+    // if we're retrieving an old version, go back and find it
+    if ($targVsn) {
+        // query up the old versions from newest to oldest
+        $result = mysql_query(
+            "select pagevsn, deltas
+            from games_history
+            where id = '$qid'
+            order by pagevsn desc", $db);
+
+        // scan for a version that overrides the current definition
+        $rows = mysql_num_rows($result);
+        $foundvsn = false;
+        for ($i = 0 ; $i < $rows ; $i++) {
+            // get this row
+            $rec = mysql_fetch_array($result, MYSQL_ASSOC);
+
+            // deserialize the deltas
+            $deltas = unserialize($rec['deltas']);
+            
+            // if this entry defines artwork, use the override
+            if (isset($deltas['coverart']))
+                $imgname = $deltas['coverart'];
+
+            if (isset($deltas['title']))
+                $title = $deltas['title'];
+
+            // stop if this is the version we're looking for
+            if ((int)$rec['pagevsn'] == $targVsn)
+            {
+                $foundvsn = true;
+                break;
+            }
+        }
+        
+        // if we didn't find the requested version, give up
+        if (!$foundvsn)
+            exit("The requested version of the art image wasn't found");
+    }
+
+    // generate the ldesc page if applicable
+    if (isset($_REQUEST['ldesc']))
+        sendImageLdesc("Cover Art for $title"
+                       . ($targVsn ? " (version $targVsn)" : ""),
+                       $imgname);
+
+    // retrieve the image data
+    list($imgdata, $fmt) = fetch_image($imgname, true);
+
+    // get the thumbnail setting
+    $thumbnail = (isset($_REQUEST['thumbnail'])
+                  ? $_REQUEST['thumbnail'] : null);
+
+    // send it
+    sendImage($imgdata, $fmt, $thumbnail);
+}
+
+// --------------------------------------------------------------------------
+// display the Member Review section header
+//
+function showMemberReviewsHeader($rowcnt, $ratingsView, $showHisto)
+{
+    global $ratingAvg, $ratingCntAvg, $ratingHisto, $id, $currentUserReview;
+    
+    // start the section
+    $title = ($ratingsView ? "Reviews and Ratings" : "Member Reviews");
+    echo "<a name='memberReviews'></a>"
+        . "<h2>$title</h2><div class=indented>";
+
+    // count the ratings in the histogram, and get the maximum
+    for ($cnt = $max = 0, $i = 1 ; $i <= 5 ; $i++) {
+        $cur = $ratingHisto[$i];
+        $cnt += $cur;
+        if ($cur > $max)
+            $max = $cur;
+    }
+
+    // show the histogram if desired
+    if ($showHisto && $cnt > 1) {
+        echo "<table border=0 cellspacing=0 cellpadding=0><tr valign=top>"
+            . "<td valign=top>"
+            . "<table class=ratingHistogram border=0 cellspacing=0 cellpadding=0>";
+
+        // show the histogram
+        for ($i = 5 ; $i >= 1 ; $i--) {
+            $num = $ratingHisto[$i];
+            $pct = (int)($num*100 / $max);
+            echo "<tr><td>$i star:</td>"
+                . "<td><div class=ratingHistoBox>"
+                . "<div class=ratingHistoBar style=\"width: $pct%;\">"
+                . "</div></div></td>"
+                . "<td align=right>($num)</td></tr>";
+        }
+
+        echo "</table></td><td style=\"padding-left: 2em;\" valign=top>";
+    }
+
+    // show the statistics
+    if ($ratingCntAvg > 0) {
+        echo "<span class=details>Average Rating: "
+            . showStars($ratingAvg)
+            . "</span><br>";
+    }
+    echo "<span class=details>Number of "
+        . ($ratingsView ? "Ratings" : "Reviews")
+        . ": $rowcnt<br>"
+        . "<a href=\"review?id=$id\">"
+        . ($currentUserReview ? "Revise your review" : "Write a review")
+        . "</a>"
+        . "</span>";
+
+    // finish the histogram table if applicable
+    if ($showHisto) {
+        echo "</td></tr></table>";
+    }
+
+    echo "<br><br>";
+}
+
+// ------------------------------------------------------------------------
+// Convert a list of (place, division) names to a printable award list.
+// We'll make the list into a semicolon-separated list of "place, division"
+// items.  The "Main" division has special handling: if it's the only
+// award, we omit any mention of the division at all, otherwise we call
+// it "Overall".
+function awardList($awards)
+{
+    // check for a "main" division
+    $names = array();
+    for ($i = 0 ; $i < count($awards) ; $i++)
+    {
+        $a = $awards[$i];
+        if ($a[1] == "Main")
+        {
+            // if this is the only item, leave out the division name
+            // entirely, since it's just the place in the overall
+            // competition; otherwise explicitly call it the "Overall"
+            // division
+            if (count($awards) == 1)
+                $names[] = $a[0];
+            else
+                $names[] = "{$a[0]} overall";
+        }
+        else
+        {
+            // make the name: "Place, Division"
+            $names[] = "{$a[0]}, {$a[1]}";
+        }
+    }
+
+    // return the semicolon-separated list
+    return implode("; ", $names);
+}
+
+// ----------------------- COVER ART HANDLING ------------------------
+//
+// if we're being asked for a cover art image, send that instead of
+// serving up the game page
+if (isset($_REQUEST['coverart'])) {
+    // send the image
+    sendCoverArt();
+
+    // we only wanted the cover art image, so we're done now
+    exit();
+}
+
+// initialize - this fetches the database record for the game we're
+// being asked to display
+function init()
+{
+    global $db, $id, $qid, $errMsg, $errCode;
+    
+    // make sure we're connected
+    if ($db == false) {
+        $errMsg = "An error occurred connecting to the game database. Please
+          try refreshing the page. If the error persists,
+          <a href=\"/contact\">contact us</a> to let us know about
+          the problem.";
+        $errCode = "dbError";
+        return;
+    }
+
+    // check the game ID
+    $id = getID();
+    if (is_null($id)) {
+        if (!$errMsg) {
+            $errMsg = "No game was specified in the request.";
+            $errCode = "badRequest";
+        }
+        return;
+    }
+
+    // get the quoted ID
+    $qid = mysql_real_escape_string($id, $db);
+}
+init();
+
+// load the game information
+$reqVersion = $_REQUEST['version'];
+if (!$errMsg) {
+    list($ifids, $title, $author, $authorExt,
+         $pubYear, $pubFull, $license,
+         $system, $desc, $rawDesc,
+         $hasart, $genre, $seriesname, $seriesnum,
+         $forgiveness, $bafsid, $version,
+         $language, $languageNameOnly,
+         $website, $links,
+         $ratingCntAvg, $ratingCntTot, $ratingAvg, $memberReviewCnt,
+         $currentUserRating, $currentUserReview,
+         $editedbyid, $editedbyname, $moddate, $moddate2, $pagevsn,
+         $historyView,
+         $dlnotes, $extReviews, $extRevDisplayRank,
+         $ratingHisto, $xrefs, $inrefs) =
+             getGameInfo($db, $id, $curuser, $reqVersion, $errMsg, $errCode);
+
+    // encode some items for output
+    $title = output_encode($title);
+    $desc = output_encode($desc);
+}
+
+// check for an explicit redirect from this TUID to another TUID
+function checkRedirect($id)
+{
+    global $db;
+    $qid = mysql_real_escape_string($id, $db);
+    $result = mysql_query(
+        "select fwdgameid from gamefwds where gameid = '$qid'", $db);
+    if (mysql_num_rows($result) > 0)
+    {
+        // get the target game
+        list($toID) = mysql_fetch_row($result);
+
+        // build the redirect string with all of the original URL parameters
+        $redir = "viewgame?id=$toID";
+        foreach ($_GET as $key => $val) {
+            if (strcasecmp($key, "id") != 0) {
+                $val = urlencode(get_req_data($key));
+                $redir .= "&$key" . ($val ? "=$val" : "");
+            }
+        }
+        
+        header("HTTP/1.1 301 Moved Permanently");
+        header("Content-Type: text/html");
+        header("Location: $redir");
+
+        echo "The listing you requested was a duplicate. Your browser should "
+            . "automatically take you to the original in a moment. "
+            . "(<a href=\"$redir\">Click here</a> if your "
+            . "browser doesn't load the new page automatically.)";
+    
+        exit();
+    }
+}
+
+if ($errCode == "notFound")
+    checkRedirect($id);
+
+// Member review query - this selects REVIEWS (not just ratings, so
+// the 'review' field can't be null), BY MEMBERS (i.e., not special
+// reviews, so 'special' must be null).
+$selectMemberReviews = getReviewQueryByGame(
+    $db, $id, "reviews.review is not null and reviews.special is null");
+
+// Rating query - this selects RATINGS (so the 'rating' field must
+// not be null).  We'll also include reviews in this list, so it's
+// okay for the review field to be non-null.  If we wanted ONLY
+// ratings and not any reviews, we'd also require 'review is null'.
+$selectMemberRatings = getReviewQueryByGame(
+    $db, $id, "reviews.rating is not null");
+
+// User filter ordering - if we're logged in, sort by any user filter
+// (promotions and demotions) in effect.
+$orderByUserFilter = 'null';
+if ($curuser) {
+    $orderByUserFilter = "(case ifnull(userfilters.filtertype, '*') "
+                         . "when 'P' then 1 "
+                         . "when 'D' then 3 "
+                         . "else 2 end)";
+}
+
+// check for an RSS feed request
+if (isset($_REQUEST['rss'])) {
+
+    // get the feed type
+    if (isset($_REQUEST['reviews']))
+        $feedType = GAME_RSS_REVIEWS;
+    else if (isset($_REQUEST['downloads']))
+        $feedType = GAME_RSS_DLS;
+    else
+        $feedType = GAME_RSS_ALL;
+
+    // get the RSS item list 
+    $items = getGameRssItems($db, $id, $feedType, $title, $links, false);
+
+    // send it
+    if ($feedType == GAME_RSS_ALL) {
+        sendRSS("$title - IFDB Updates",
+                "http://ifdb.tads.org/viewgame?id=$id",
+                "Updates to <i>$title</i>'s IFDB page",
+                $items, 50);
+    } else if ($feedType == GAME_RSS_DLS) {
+        sendRSS("$title - File Updates on IFDB",
+                "http://ifdb.tads.org/viewgame?id=$id",
+                "IFDB File Updates for <i>$title</i>",
+                $items, 50);
+    } else if ($feedType == GAME_RSS_REVIEWS) {
+        sendRSS("$title - IFDB Reviews",
+                "http://ifdb.tads.org/viewgame?id=$id&reviews",
+                "IFDB Member Reviews of <i>$title</i>",
+                $items, 50);
+    }
+
+    // done
+    exit();
+}
+
+// check for an iFiction request
+function xmlField($fld, $val)
+{
+    if ($val)
+        echo "<$fld>" . rss_encode(htmlspecialcharx($val)) . "</$fld>";
+}
+function xmlDescField($fld, $val)
+{
+    if ($val)
+        echo "<$fld>" . rss_encode(fixDesc($val, FixDescIfic)) . "</$fld>";
+}
+if (isset($_REQUEST['ifiction']))
+{
+    header("Content-Type: text/xml");
+    header("Expires: Mon, 26 Jul 1997 05:00:00 GMT");
+    header("Cache-Control: no-store, no-cache, must-revalidate");
+
+    echo "<?xml version=\"1.0\" encoding=\"UTF-8\"?>";
+
+    // if an error occurred, show the error
+    if ($errMsg) {
+        echo "<viewgame xmlns=\"http://ifdb.tads.org/api/xmlns\">";
+        xmlField("errorCode", $errCode);
+        xmlField("errorMessage", $errMsg);
+        echo "</viewgame>";
+        exit();
+    }
+    
+    echo "<ifindex version=\"1.0\" "
+        .    "xmlns=\"http://babel.ifarchive.org/protocol/iFiction/\">"
+        . "<story>"
+        
+        . "<colophon>"
+        .    "<generator>ifdb.tads.org/viewgame</generator>"
+        .   "<generatorversion>1</generatorversion>"
+        .   "<originated>" . date("Y-m-d", strtotime($moddate2)) . "</originated>"
+        . "</colophon>"
+
+        . "<identification>";
+
+    foreach($ifids as $i)
+        echo xmlField("ifid", $i);
+    xmlField("bafn", $bafsid);
+
+    // Figure the format.  This is actually a bit tricky, since we keep
+    // different data from babel on this count.  First, try basing this
+    // on the development system ID, since many development systems map
+    // to specific output formats.
+    $formatMap = array(
+        "TADS 2" => "tads2",
+        "TADS 3" => "tads3",
+        "Hugo" => "hugo",
+        "AGT" => "agt",
+        "Alan 2" => "alan2",
+        "Alan 3" => "alan3",
+        "ADRIFT" => "adrift",
+        "AdvSys" => "advsys",
+        "Level 9" => "level9",
+        "Magnetic Scrolls" => "magscrolls");
+    $format = false;
+    if (isset($formatMap[$system])) {
+        $format = $formatMap[$system];
+    }
+
+    // If that didn't work, scan the download links.  Check the format ID
+    // for each link: most of our story file formats map to babel formats.
+    // So, if we can find a story file among the downloads, we'll know the
+    // babel format.
+    if (!$format) {
+        $linkTypeMap = array(
+            "tads2" => "tads2",
+            "tads3" => "tads3",
+            "zcode" => "zcode",
+            "blorb/zcode" => "zcode",
+            "glulx" => "glulx",
+            "blorb/glulx" => "glulx",
+            "hugo" => "hugo",
+            "alan2" => "alan2",
+            "alan3" => "alan3",
+            "agt" => "agt",
+            "adrift" => "adrift",
+            "advsys" => "advsys",
+            "executable" => "executable");
+        
+        foreach ($links as $l) {
+            $xid = $l['fmtexternid'];
+            if (isset($linkTypeMap[$xid])) {
+                $format = $linkTypeMap[$xid];
+                break;
+            }
+        }
+    }
+    xmlField("format", $format);
+
+    echo "</identification>"
+        . "<bibliographic>";
+
+    xmlField("title", $title);
+    xmlField("author", $author);
+
+    // Pull out the language code from the language string, which
+    // we've formatted as something like "English (en-US)".  If there
+    // are no parens, we must not have found a name for the language,
+    // so the whole language string is the identifier.
+    if (preg_match("/\(([-a-z]+)\)$/i", $language, $match))
+        xmlField("language", $match[1]);
+    else
+        xmlField("language", $language);
+
+    xmlField("firstpublished",
+             $pubFull ? date("Y-m-d", strtotime($pubFull)) : $pubYear);
+    
+    xmlField("genre", $genre);
+    xmlDescField("description", $rawDesc);
+    xmlField("series", $seriesname);
+    xmlField("seriesnumber", $seriesnum);
+    xmlField("forgiveness", $forgiveness);
+
+    echo "</bibliographic>"
+        . "<contact>";
+    
+    xmlField("url", $website);
+    
+    echo "</contact>";
+
+    echo "<ifdb xmlns=\"http://ifdb.tads.org/api/xmlns\">";
+    xmlField("tuid", $id);
+    xmlField("link", "http://ifdb.tads.org/viewgame?id=$id");
+    if ($hasart) {
+        echo "<coverart>";
+        xmlField("url", "http://ifdb.tads.org/viewgame?id=$id&coverart");
+        echo "</coverart>";
+    }
+    xmlField("averageRating", $ratingAvg);
+    list($stars) = roundStars($ratingAvg);
+    xmlField("starRating", $stars);
+    xmlField("ratingCountAvg", $ratingCntAvg);
+    xmlField("ratingCountTot", $ratingCntTot);
+    echo "</ifdb>";
+    
+    // main end tags
+    echo "</story>"
+        . "</ifindex>";
+
+    // done
+    exit();
+}
+
+// start the page
+pageHeader("$title - Details", false, false,
+           "<script src=\"xmlreq.js\"></script>", true);
+initReviewVote();
+
+// check for a game specified by IFID and not found
+if (is_null(getID()) && get_req_data('ifid') != "") {
+
+    // check for a title in the request; if it's there, try searching for
+    // matches based on the title
+    $title = get_req_data('title');
+    $titleSearch = array();
+    if ($title != "") {
+        $qtitle = mysql_real_escape_string($title, $db);
+        $result = mysql_query(
+            "select
+                id, title, author from games
+             where
+                title like '$qtitle'
+                or match (title) against ('$qtitle' in boolean mode)
+             order by
+                if (title like '$qtitle', 0, 1),
+                match (title) against ('$qtitle' in boolean mode) desc
+             limit 0, 3", $db);
+        for ($i = 0 ; $i < mysql_num_rows($result) ; $i++)
+            $titleSearch[] = mysql_fetch_array($result, MYSQL_ASSOC);
+    }
+
+    ?>
+
+    <h1>This IFID is not in the database</h1>
+
+    <p>IFDB doesn't have a listing matching the <?php
+echo helpWinLink("help-ifid", "IFID");
+//    <a href="needjs"
+//     onclick="javascript:helpWin('help-ifid');return false;">IFID</a>
+    ?>
+    "<?php echo htmlspecialcharx(get_req_data('ifid')) ?>."  This
+    could mean one of several things:
+
+    <ul class=doublespace>
+       <li><b>The game is listed in the database, but this IFID hasn't
+       been entered for it yet.</b>
+       <?php
+           if (count($titleSearch) != 0) {
+               echo "Here";
+               if (count($titleSearch) == 1)
+                   echo "'s a possible match";
+               else
+                   echo " are some possible matches";
+               echo " based on the title:<ul>";
+               foreach ($titleSearch as $t) {
+                   $sid = $t['id'];
+                   $stitle = output_encode(htmlspecialcharx($t['title']));
+                   $sauthor = output_encode(htmlspecialcharx($t['author']));
+                   echo "<li><a href=\"viewgame?id=$sid\">$stitle</a>, "
+                       . "by $sauthor";
+               }
+               echo "</ul>If ";
+               if (count($titleSearch) == 1)
+                   echo "this isn't";
+               else
+                   echo "none of these are";
+               echo " the game you're looking for, you can try a "
+                   . "<a href=\"search\">full search</a> ";
+           } else {
+               echo "You can try <a href=\"search\">"
+                   . "searching for the game</a> ";
+           }
+       ?>
+       by title or author to see if it's listed.
+
+       <p>If you do find an existing listing,
+       you can help us improve IFDB by editing the listing and adding
+       the missing IFID - just click "Edit this page" at the bottom of
+       the game's page.
+
+       <li><b>The game isn't listed yet.</b>  If you search for it and can't
+       find it, it's probably not in the database.  You can help out
+       by <a href="editgame?id=new">adding a new listing</a> for the game.
+       (You don't have to be the game's author to do this - anyone can
+       add a listing.)
+
+       <li><b>The IFID might have been entered incorrectly.</b>  If you entered
+       the IFID by hand, please double-check that it's correct.
+    </ul>
+
+    <?php
+} else if ($errMsg) {
+    echo "<font color=red><b>Error: $errMsg</b></font>";
+} else {
+
+// ------------------ VARIANT PAGE VIEWS -------------------------
+//
+// We use this same PHP script to show multiple page views: we can
+// show the main page, pages of member reviews, or an editing history.
+
+    if (isset($_REQUEST['history'])) {
+        // we're showing the history, so this counts as a version view,
+        // even though the version we're showing is the current version
+        $historyView = true;
+    }
+    if (isset($_REQUEST['reviews']) || isset($_REQUEST['ratings'])) {
+        // we're viewing a page of member reviews
+        $reviewView = true;
+
+        // note whether we're including ratings that don't have reviews
+        $ratingsView = isset($_REQUEST['ratings']);
+
+        // get the page we're showing, defaulting to 1 if it's non-positive
+        $reviewPage = get_req_data('pg');
+        if ($reviewPage != 'all' && $reviewPage < 1)
+            $reviewPage = 1;
+    }
+    if (isset($_REQUEST['review'])) {
+        // we're viewing a single review
+        $oneReviewView = true;
+    }
+    if (isset($_REQUEST['findmore'])) {
+        // we're showing the 'recommendations' view
+        $recView = true;
+    }
+
+    // the default view mode is the Detail view (this is the game's
+    // "home page" view)
+    $detailView = !($historyView || $reviewView || $oneReviewView || $recView);
+
+    // in history view, use the default external review layout - we're
+    // not showing the full normal view in this case, so the normal
+    // layout preferences don't apply
+    if ($historyView) {
+        $offsiteMode = 'A';
+    }
+
+// ------------------------ DOWNLOADS -------------------------------
+    if ($detailView || $historyView) {
+
+        ?>
+<div class="downloadfloat">
+        <?php
+//
+//  This script fixes up the width of the table at run-time to limit it to
+//  the desired size.  We use an off-screen template table to get the
+//  correct size, then after loading the page we figure the difference
+//  in size between the template table and the real table, and shrink the
+//  real table if necessary.  The trick is that we have to shrink a DIV
+//  within the real table, because browsers refuse to respect a table width
+//  that shrinks the table below the content width, even width overflow:hidden
+//  on the table.  They'll even refuse this on <TD>.  The solution is to put
+//  the overflow:hidden on a DIV within a <TD>.  The snag with doing this
+//  statically via CSS is that we can't mix width units to figure the
+//  exact static size for the DIV with all of the padding and margins and
+//  so on.  But we *can* do it via JS.  The template table lets the browser
+//  do the regular layout work for us to figure the desired layout of the
+//  table.  Everything is in pixels at that point, so we can simply figure
+//  the difference between the template table width and the real table width,
+//  and take any excess out of those inner DIVs.
+//
+//  I've disabled this for now because I found an even easier solution that
+//  fixes the particular case I've encountered in the wild.  The case is that
+//  someone stuck a really long URL in the filedesc field for a game ("Me
+//  Princess Adore"), and IE treats the whole thing as one word for layout.
+//  The other browsers will break the line at '/'.  So, new solution: rewrite
+//  the filedesc by inserting &#8203; (unicode zero-width space, &zswp) after
+//  each slash.  IE then happily breaks the line after a slash as needed, so
+//  problem solved.  If someone comes back and sticks an unbroken 70-letter
+//  alpha string in another game's filedesc, I'll probably re-enable this
+//  script, since it does seem to work.  I'm just disabling it for now out
+//  of an abundance of caution, since it doesn't seem very necessary right now.
+//
+//   <table class=downloads style="position: absolute; top: -1000px;" id="dlWidthProbe">
+//      <tr><td></td></tr>
+//   </table>
+//<script type="text/javascript">
+//<!--
+//setTimeout(function() {
+//    var prc = getObjectRect(document.getElementById("dlWidthProbe"));
+//    var trc = getObjectRect(document.getElementById("downloadsTable"));
+//    if (trc.width > prc.width)
+//    {
+//        var rrc = getObjectRect(document.getElementById("dlItem0"));
+//        var newWidth = rrc.width - (trc.width - prc.width);
+//        for (var i = 0 ; ; ++i)
+//        {
+//            var iele = document.getElementById("dlItem" + i);
+//            if (!iele)
+//                break;
+//            iele.style.width = newWidth + "px";
+//        }
+//    }
+//}, 10);
+////-->
+//</script>
+        ?>
+   <table class=downloads id="downloadsTable">
+       <tr>
+           <td>
+              <table width="100%" border=0 cellpadding=0 cellspacing=0>
+                 <tr>
+                    <td valign=top>
+                       <h3>Download</h3>
+                       <?php
+//                           if ($version != "")
+//                               echo "<span class=notes>Version
+//                                     $version</span><br>";
+                       ?>
+                    </td>
+                    <?php
+
+// Check to see if the game is available for download in any form.
+// PC == "parchment capable" - a format that we can play with Parchment.
+// T3W == "tads 3 web UI"
+// HEX = Hugo file playable online with textadventures.online/play/?story=XXX
+for ($foundGame = $foundPC = $foundT3W = $foundHex = $pcUrl = $t3wUrl = $hexUrl = false, $i = 0 ;
+     $i < count($links) ; $i++)
+{
+    // get this link
+    $link = $links[$i];
+
+    // if it's a game, note that we found a game link
+    if ($link['isgame'])
+        $foundGame = true;
+
+    // if this is the first Parchment-capable link, and it's not compressed,
+    // note it so that we can set up a Parchment play link to it
+    if (!$foundPC
+        && ($link['fmtexternid'] == 'zcode'
+            || $link['fmtexternid'] == 'blorb/zcode'
+            || $link['fmtexternid'] == 'glulx'
+            || $link['fmtexternid'] == 'blorb/glulx'
+            )
+        && !$link['compression'])
+    {
+        $foundPC = true;
+        $pcUrl = urlencode($link['url']);
+    }
+
+    // check for a TADS 3 Web UI game
+    if (!$foundT3W
+        && $link['fmtexternid'] == 'tads3web'
+        && !$link['compression'])
+    {
+        $foundT3W = true;
+        $t3wUrl = urlencode($link['url']);
+    }
+
+	// check for an uncompressed Hugo executable
+	if (!$foundHex
+        && $link['fmtexternid'] == 'hugo'
+        && !$link['compression'])
+	{
+		$foundHex = true;
+		$hexUrl = urlencode($link['url']);
+	}
+}
+if ($foundGame)
+{
+    echo "<td align=right valign=middle style=\"position:relative;\">\r\n";
+
+    // if we have a Parchment-capable game, set up a play-with-Parchment link
+    if ($foundPC && $pcUrl) {
+        $parchment = "http://iplayif.com/?story=";
+//        $parchment = "http://parchment.googlecode.com/svn/trunk/parchment.html?story=";
+        $ptarget = (is_kindle() ? "" : "target=\"_blank\"");
+        echo "<a href=\"$parchment$pcUrl\" $ptarget "
+            . "title=\"Play this game right now in your browser, using "
+            . "the Parchment interpreter. No installation is required.\">"
+            . "<img src=\"/blank.gif\" class=\"play-online-button\" "
+            . "style=\"margin:0px 0px 0.3em 0px;cursor:pointer;\">"
+            . "</a><br>";
+    }
+
+    // if we have a TADS 3 Web UI game, set up a play-online link
+    if ($foundT3W && $t3wUrl) {
+        $t3launch = "t3run?id=$id&storyfile={$t3wUrl}";
+        $ttarget = (is_kindle() ? "" : "target=\"_blank\"");
+        echo "<a href=\"{$t3launch}\" $ttarget "
+            . "title=\"Play this game right now in your browser. No "
+            . "installation is required.\">"
+            . "<img src=\"/blank.gif\" class=\"play-online-button\" "
+            . "style=\"margin:0px 0px 0.3em 0px;cursor:pointer;\">"
+            . "</a><br>";
+    }
+
+	// if we have a Hugo game, set up a play-online link
+	if ($foundHex && $hexUrl) {
+		$hexLaunch = "http://textadventures.online/play/?story={$hexUrl}";
+		$htarget = (is_kindle() ? "" : "target=\"_blank\"");
+        echo "<a href=\"{$hexLaunch}\" $htarget "
+			. "title=\"Play this game right now in your browser. No "
+            . "installation is required.\">"
+            . "<img src=\"/blank.gif\" class=\"play-online-button\" "
+            . "style=\"margin:0px 0px 0.3em 0px;cursor:pointer;\">"
+            . "</a><br>";
+	}
+
+    // Add the Play Now (meta-installer) button, if we're using a browser
+    // that has a plug-in available; we omit this when the browser doesn't
+    // have a plug-in to avoid confusing the user.
+    writeAutoInstallButton();
+
+    // Write the Download Adviser ("Show Me How") button if applicable.
+    // For Zoom on Mac OS, omit this; Zoom is a tightly integrated browser
+    // and interpreter, so it seems safe to assume that users will
+    // essentially never need manual download instructions if they're
+    // using Zoom to access the game listing.
+    $plugin = detectPlugin();
+    if ($plugin == "MacintoshZoom"
+        || $plugin == "MacintoshZoom.Dev") {
+        // for these user agents, omit the DLA button entirely
+    } else {
+        // show the DLA button for every other browser
+        echo "<a href=\"dladviser?id=$id\" "
+            . "title=\"Get customized help for downloading and installing "
+            . "this game\">"
+            . "<img src=\"/blank.gif\" class=\"dla-button\" "
+            . "style=\"padding:0 0 0 0;margin:0 0 0 0\"></a><br>";
+    }
+
+    echo "</td>";
+}
+                    ?>
+                 </tr>
+              </table>
+
+                   <?php
+if (count($links) == 0 && $dlnotes == "") {
+    echo "<i>There are no known download links for this game.</i>";
+} else {
+    // put the download notes at the top
+    if ($dlnotes != "") {
+        $dlnotes = preg_replace(
+            "/([a-z0-9][\/.])([a-z0-9])/i", "$1$zwsp$2", $dlnotes);
+        echo "<i>$dlnotes</i>";
+    }
+
+    // count compressed files
+    $zips = array();
+    $zipnotes = array();
+    for ($i = 0 ; $i < count($links) ; $i++) {
+        $c = $links[$i]['compression'];
+        if ($c) {
+            if (isset($zips[$c]) && $zips[$c]) {
+                $zips[$c][0] += 1;
+            }
+            else {
+                $result = mysql_query("select `desc` from filetypes
+                    where id = '" . mysql_real_escape_string($c, $db) . "'", $db);
+                $zips[$c] = array(1, "", mysql_result($result, 0, "desc"));
+                $zipnotes[] = $c;
+            }
+        }
+    }
+
+    // use footnotes for any compression formats appearing more than once
+    $footnoteid = 1;
+    for ($i = 0 ; $i < count($zipnotes) ; $i++) {
+        $c = $zipnotes[$i];
+        if ($zips[$c][0] > 1) {
+            $zips[$c][1] = getFootnoteStar($footnoteid++);
+        }
+    }
+
+    // display the link table
+    echo "<table class=\"downloadlist\">";
+    for ($i = 0 ; $i < count($links) ; $i++) {
+        // get this link's information
+        $link = $links[$i];
+        $url = $link['url'];
+        $zipped = (strcasecmp(substr($url, -4), ".zip") == 0);
+        $fmtisgame = $link['isgame'];
+        $linktitle = output_encode(htmlspecialcharx($link['title']));
+        $linkdesc = output_encode(htmlspecialcharx($link['desc']));
+        $fmtid = $link['fmtid'];
+        $fmtexternid = $link['fmtexternid'];
+        $fmtos = $link['osid'];
+        $fmtosvsn = $link['osvsn'];
+        $fmtname = $link['fmtname'];
+        $fmtdesc = $link['fmtdesc'];
+        $fmticon = $link['fmticon'];
+        $fmtclass = $link['fmtclass'];
+        $fmtcomp = mysql_real_escape_string($link['compression'], $db);
+        $compPri = htmlspecialcharx($link['compressedprimary']);
+        $osname = isset($link['osname']) ? $link['osname'] : "";
+        $osvsnname = isset($link['osvsnname']) ? $link['osvsnname'] : "";
+        $osicon = isset($link['osicon']) ? $link['osicon'] : "";
+
+        // if it's an executable format, qualify the format name with
+        // the OS name, since an executable is native to a particular OS
+        $typename = ($fmtclass == 'X' ? "$osname $fmtname" : "");
+
+        // if the OS version name is distinct from the OS name, mention
+        // the minimum version in the desription
+        if ($fmtos != $fmtosvsn && $fmtosvsn != "")
+            $typename .= " ($osvsnname and later)";
+
+        // build the full type description
+        $typedesc = (($fmtdesc && $typename) ? "$typename: $fmtdesc" :
+                     ($fmtdesc ? $fmtdesc : $typename));
+
+        // if there's no title, use the base name from the URL as the title
+        if ($linktitle == "") {
+            $prsurl = parse_url($url);
+            $linktitle = htmlspecialcharx(basename($prsurl['path']));
+        }
+
+        // map the URL to the user's selected IF Archive mirror, if
+        // applicable, and fix it up for HTML display
+        $url = fixUrl(urlToMirror($url));
+
+        // add a note about zip format if applicable
+        $zipnote = "";
+        $zipstar = "";
+        if ($fmtcomp) {
+            $z = $zips[$fmtcomp];
+            if ($z[0] == 1) {
+                $result = mysql_query("select `desc` from filetypes
+                    where id = '$fmtcomp'", $db);
+                $zipnote = " <i>({$z[2]})</i>";
+            }
+            else
+                $zipstar = " <span class=zipstar>{$z[1]}</span>";
+        }
+
+        // generate the information
+        echo "<tr valign=top><td style='width: 0;' id='dlIcon$i'>";
+
+        $iconsrc = ($osicon ? "opsys?geticon=$fmtos" :
+                    ($fmticon ? "fileformat?geticon=$fmtid" :
+                     false));
+        if ($iconsrc)
+            echo "<a href=\"$url\"><img src=\"$iconsrc\" border=0></a>";
+
+        echo "</td><td><div class='downloaditem' id='dlItem$i'>
+              <a href=\"$url\"><b>$linktitle</b></a>$zipstar<br>";
+
+        if ($compPri)
+            echo "<span class=dlzipmain><img src=\"/blank.gif\" "
+                . "class=\"zip-contents-arrow\">Contains "
+                . "<b>$compPri</b></span><br>";
+              
+        if ($linkdesc) {
+            $linkdesc = preg_replace(
+                "/([a-z0-9][\/.])([a-z0-9])/i", "$1$zwsp$2", $linkdesc);
+            echo "<span class=dlnotes>$linkdesc<br></span>";
+        }
+
+        echo "<span class=fmtnotes>$typedesc$zipnote</span></div></td></tr>";
+    }
+    echo "</table>";
+
+    // add a footnote on each compressed format that appeared more than once
+    for ($i = 0 ; $i < count($zipnotes) ; $i++) {
+        $z = $zips[$zipnotes[$i]];
+        if ($z[0] > 1)
+            echo "<div class=zipnote><span class=zipstar>{$z[1]}</span> "
+                . "<span class=zipnote>{$z[2]}</span></div>";
+    }
+}
+         ?>
+           </td>
+       </tr>
+   </table>
+
+   <?php
+   // ------------ end of the download table -----------------
+   ?>
+
+   <p>
+   <table class=gamerightbar>
+      <tr>
+         <td>
+            <h3>Have you played this game?</h3>
+            <?php
+if ($curuser) {
+    $result = mysql_query("select userid from playedgames
+        where userid='$curuser' and gameid='$qid'", $db);
+    $played = mysql_num_rows($result) > 0;
+
+    $result = mysql_query("select userid from wishlists
+        where userid='$curuser' and gameid='$qid'", $db);
+    $wishlist = mysql_num_rows($result) > 0;
+
+    $result = mysql_query("select userid from unwishlists
+        where userid='$curuser' and gameid='$qid'", $db);
+    $unwishlist = mysql_num_rows($result) > 0;
+            ?>
+            <script type="text/javascript">
+            <!--
+function updateRating(rating)
+{
+    xmlSend("setrating?game=<?php echo $id?>&rating=" + rating,
+            "ratingSaveMsg", null, null);
+}
+function clearRating()
+{
+    updateRating(0);
+    setStarCtlValue("ratingStars", 0);
+    mouseOutRating(0);
+}
+function mouseOutRating(rating)
+{
+    document.getElementById("ratingCaption").innerHTML =
+        (rating != 0 ? "<b>My rating:</b>" : "<b>Rate it:</b>");
+    var s = document.getElementById("clearRatingSpan");
+    if (s)
+        s.style.display = (rating ? "" : "none");
+}
+function updatePlayed(id, stat)
+{
+    var func = function(d)
+    {
+        updatePlaylistCount(Number(xmlChildText(d, "newCount")));
+    };
+    xmlSend("setplayed?game=<?php echo $id?>&played="
+            + (ckboxIsChecked("ckPlayed") ? "1" : "0"),
+            "ckPlaySaveMsg", func, null);
+}
+function updateWishList(id, stat)
+{
+    var func = function(d)
+    {
+        updateWishlistCount(Number(xmlChildText(d, "newCount")));
+    };
+    xmlSend("setwishlist?game=<?php echo $id?>&add="
+            + (ckboxIsChecked("ckWishList") ? "1" : "0"),
+            "ckWishlistSaveMsg", func, null);
+}
+function updateUnwishList(id, stat)
+{
+    var func = function(d)
+    {
+        updateUnwishlistCount(Number(xmlChildText(d, "newCount")));
+    };
+    xmlSend("setunwishlist?game=<?php echo $id?>&add="
+            + (ckboxIsChecked("ckUnwishList") ? "1" : "0"),
+            "ckUnwishlistSaveMsg", func, null);
+}
+//-->
+</script>
+    <?php
+
+
+    // check to see if I've made any explicit cross-recommendations
+    // of my own
+    $myCrossRecs = 0;
+    if ($curuser)
+    {
+        $result = mysql_query(
+            "select count(*) from crossrecs
+             where userid = '$curuser' and fromgame = '$qid'", $db);
+        list($myCrossRecs) = mysql_fetch_row($result);
+    }
+
+    initStarControls();
+    echo "<div class=indented>"
+
+        . "<div style=\"margin: 1.25ex 0 0.75ex 0;\">"
+        . "<span id=\"ratingCaption\"><b>Rate it:</b></span> "
+        . showStarCtl("ratingStars", $currentUserRating,
+                      "updateRating", "mouseOutRating")
+        . " <span id=\"ratingSaveMsg\" class=xmlstatmsg></span><br>"
+        . ($currentUserReview != "" ? "" :
+           "<span id=\"clearRatingSpan\"><a href=\"needjs\" "
+           . "onclick=\"javascript:clearRating();return false\">"
+           . "Remove rating<br></span>")
+        . "<a href=\"review?id=$id\">"
+        . ($currentUserReview != "" ? "Revise my review" : "Review it")
+        . "</a><br>"
+        . "<a href=\"crossrec?game=$id&edit\">"
+        . ($myCrossRecs ? "Edit my suggestions ($myCrossRecs)"
+                        : "Suggest similar games")
+        . "</a>"
+        . "</div>"
+
+        . "<div style=\"margin: 1.25ex 0 0.75ex 0;\">";
+    checkboxWrite("ckPlayed", "I've played it", $played, "updatePlayed");
+    echo " (<a href=\"playlist?type=played\">view</a>)"
+        . " &nbsp; <span id=\"ckPlaySaveMsg\" class=\"xmlstatmsg\">"
+        . "</span><br>";
+    checkboxWrite("ckWishList", "It's on my wish list", $wishlist,
+                  "updateWishList");
+    echo " (<a href=\"playlist?type=wishlist\">view</a>) "
+        . " &nbsp; <span id=\"ckWishlistSaveMsg\" class=\"xmlstatmsg\">"
+        . "</span><br>";
+    checkboxWrite("ckUnwishList", "I'm not interested", $unwishlist,
+                  "updateUnwishList");
+    echo " (<a href=\"playlist?type=unwishlist\">view</a>) "
+        . " &nbsp; <span id=\"ckUnwishlistSaveMsg\" class=\"xmlstatmsg\">"
+        . "</span><br></div>";
+
+    ?>
+<script type="text/javascript">
+<!--
+mouseOutRating(<?php echo $currentUserRating ?>);
+if (!document.all)
+    document.captureEvents(Event.MOUSEMOVE);
+//-->
+</script>
+            <?php
+
+} else {
+    echo "You can rate this game, record that you've played it, "
+        . "or put it on your wish list after you "
+        . "<a href=\"login?dest=viewgame?id=$id\">log in</a>.";
+}
+
+            ?>
+         </td>
+      </tr>
+   </table>
+
+   <p>
+   <table class=gamerightbar>
+      <tr>
+         <td>
+            <h3>Playlists and Wishlists</h3>
+            <div class=indented>
+               <a href="whoselist?game=<?php echo $id ?>&type=playlist"
+                 class="silent">
+                  <span id='playlistCount'></span></a><br>
+               <a href="whoselist?game=<?php echo $id ?>&type=wishlist"
+                 class="silent">
+                  <span id='wishlistCount'></span></a><br>
+<?php
+//               <a href="whoselist?game=<#php echo $id #>&type=unwishlist"
+//                 class="silent">
+//                  <span id='unwishlistCount'></span></a>
+?>
+            </div>
+         </td>
+      </tr>
+   </table>
+
+<script type="text/javascript">
+<!--
+function updatePlaylistCount(n)
+{
+    document.getElementById("playlistCount").innerHTML =
+        "" + (n == 0 ? "No" : n) + " member" + (n == 1 ? " has" : "s have")
+        + " played this game";
+}
+function updateWishlistCount(n)
+{
+    document.getElementById("wishlistCount").innerHTML =
+        (n == 0 ? "It's not on any wish lists yet" :
+         "It's on " + n + " wish list" + (n == 1 ? "" : "s"));
+}
+function updateUnwishlistCount(n)
+{
+<?php
+//    document.getElementById("unwishlistCount").innerHTML =
+//        (n == 0 ? "It's not on any no-interest lists" :
+//         "It's on " + n + " no-interest list" + (n == 1 ? "" : "s"));
+?>
+}
+
+<?php
+$result = mysql_query(
+    "select count(userid) from playedgames where gameid='$qid'", $db);
+list($playlistCnt) = mysql_fetch_row($result);
+
+$result = mysql_query(
+    "select count(userid) from wishlists where gameid='$qid'", $db);
+list($wishlistCnt) = mysql_fetch_row($result);
+
+$result = mysql_query(
+    "select count(userid) from unwishlists where gameid='$qid'", $db);
+list($unwishlistCnt) = mysql_fetch_row($result);
+
+echo "updatePlaylistCount($playlistCnt); updateWishlistCount($wishlistCnt);"
+   . "updateUnwishlistCount($unwishlistCnt);";
+?>
+//-->
+</script>
+
+   <p>
+   <table class=gamerightbar>
+      <tr>
+         <td>
+            <h3>RSS Feeds</h3>
+            <a href="viewgame?id=<?php echo $id ?>&reviews&rss">
+               <img src="blank.gif" class="rss-icon">New member reviews</a>
+            <br><a href="viewgame?id=<?php echo $id ?>&downloads&rss">
+               <img src="blank.gif" class="rss-icon">Updates to downloadable files</a>
+            <br><a href="viewgame?id=<?php echo $id ?>&news&rss">
+               <img src="blank.gif" class="rss-icon">All updates to this page</a>
+         </td>
+      </tr>
+   </table>
+
+</div>
+<?php
+
+    } // if ($detailView || $historyView)
+
+
+//------------------------- MAIN SUMMARY -------------------------
+
+?>
+
+<div style="margin:0 0 0 0;padding:0 0 0 0;">
+<table cellspacing=0 cellpadding=0 border=0>
+   <tr valign=top>
+      <td>
+         <p>
+         <table cellspacing=0 cellpadding=0 border=0>
+            <tr valign=top>
+               <?php
+if ($hasart) {
+    $arthref = "{$_SERVER['PHP_SELF']}?coverart&id=$id";
+    if (isset($_REQUEST['version']))
+        $arthref .= "&version=" . $_REQUEST['version'];
+               ?>
+               <td class=coverart>
+
+                  <a href="<?php echo $arthref ?>&ldesc">
+                     <img src="<?php echo $arthref ?>&thumbnail=175x175"
+                        border=0
+                        title="Cover Art - click to view at full size">
+                  </a>
+               </td>
+               <?php
+} // if ($hasart)
+               ?>
+               
+               <td>
+                  <h1><?php echo $title ?></h1>
+
+                  <b>by <?php
+
+// build the list of authors - hyperlink each one in the list to a
+// search for that author's name (using the "author:" search modifier)
+$authorList = splitPersonalNameList($authorExt != "" ? $authorExt : $author);
+$conj = "";
+for ($i = 0, $acnt = count($authorList) ; $i < $acnt ; $i++) {
+    // get this author
+    $au = $authorList[$i];
+
+    // check for a profile link
+    $proLink = "";
+    while ($authorExt != ""
+           && preg_match("/\s*\{([a-z0-9]+)\}/i", $au,
+                         $match, PREG_OFFSET_CAPTURE, 0)) {
+
+        // pull out this author profile TUID
+        $pro = $match[1][0];
+
+        // remove the matched text
+        $au = substr_replace($au, "", $match[0][1], strlen($match[0][0]));
+
+        // make sure the profile exists
+        $qpro = mysql_real_escape_string($pro, $db);
+        $result = mysql_query(
+            "select id, name from users where id='$qpro'", $db);
+        if (mysql_num_rows($result) != 0) {
+            // build this profile link
+            $hpro = urlencode($pro);
+            $proName = htmlspecialcharx(mysql_result($result, 0, "name"));
+            $proLink .= " </b><a class=authorProfileLink "
+                        . "href=\"showuser?id=$hpro\" "
+                        . "title=\"View $proName's profile\">profile</a><b>";
+        }
+    }
+    
+    // quote the author's name for display and use in the search HREF
+    $uau = urlencode($au);
+    $dau = output_encode(htmlspecialcharx($au));
+
+    // show the link
+    echo "$conj<a href=\"search?searchfor=author%3A$uau\">$dau</a>$proLink";
+
+    // figure the conjunction for the next in the list
+    $conj = ($i + 2 == $acnt ? ($i == 0 ? " and " : ", and ") : ", ");
+}
+                  ?></b><br><br>
+                  <span class=details>
+                     <?php
+if (!isEmpty($seriesname)) {
+    if (isEmpty($seriesnum))
+        echo "Part of ";
+    else
+        echo "Episode $seriesnum of ";
+    echo "<a href=\"search?searchfor=series:" . urlencodeFromHTML($seriesname)
+        . "\">$seriesname</a><br>";
+}
+                     ?>
+                     <?php if (!isEmpty($genre)) echo "$genre<br>" ?>
+                     <?php if (!isEmpty($pubYear)) echo "$pubYear<br>" ?>
+                     <?php if (!isEmpty($website))
+                         echo "<br><a href=\"$website\">Web Site</a><br>" ?>
+                  </span>
+               </td>
+            </tr>
+         </table>
+
+         <?php
+
+
+// ------------------- Query the reviews and recommendations ---------------
+// We need to query these items for the Detail and Recommendation views.
+//
+
+    if ($detailView || $recView) {
+
+        // Check for cross-recommendations.  There are two forms
+        // of recommendation we generate: Recommend Lists that mention
+        // this game, and other games that were highly rated by people
+        // who rated this game highly.
+
+        // look for lists containing this game
+        $sortMeLast = "";
+        if ($curuser)
+            $sortMeLast = "if(reclists.userid = '$curuser', 2, 1),";
+        $result = mysql_query(
+            "select
+                reclists.id as listid,
+                reclists.title as title,
+                reclists.`desc` as `desc`,
+                users.id as userid,
+                users.name as username
+             from
+                reclists
+                join reclistitems
+                join users
+             where
+                reclistitems.gameid = '$qid'
+                and reclists.id = reclistitems.listid
+                and users.id = reclists.userid
+             group by reclistitems.listid
+             order by $sortMeLast rand()
+             limit 0, 4", $db);
+
+        // fetch the recommendation lists to show
+        $listcnt = mysql_num_rows($result);
+        for ($lists = array(), $i = 0 ; $i < $listcnt ; $i++)
+            $lists[] = mysql_fetch_array($result, MYSQL_ASSOC);
+
+        // look for polls with votes for this game
+        $sortMeLast = "";
+        if ($curuser)
+            $sortMeLast = "if(v.userid = '$curuser' or p.userid = '$curuser'"
+                          . ", 2, 1),";
+        $result = mysql_query(
+            "select
+               p.pollid as pollid,
+               p.title as title,
+               p.`desc` as `desc`,
+               u.id as userid,
+               u.name as username
+             from
+               polls as p
+               join pollvotes as v on v.pollid = p.pollid
+               join users as u on u.id = p.userid
+             where
+               v.gameid = '$qid'
+             group by
+               p.pollid
+             order by
+               $sortMeLast rand()
+             limit
+               0, 4", $db);
+
+        // fetch the polls
+        $pollcnt = mysql_num_rows($result);
+        for ($polls = array(), $i = 0 ; $i < $pollcnt ; $i++)
+            $polls[] = mysql_fetch_array($result, MYSQL_ASSOC);
+
+        // Look for other games to recommend - these are games that
+        // were given 4- or 5-star ratings by members who also gave
+        // the current game a 4- or 5-star rating, AND which games
+        // are unrated AND unplayed by the current user.
+        //
+        // If we're logged in, make sure the ratings are coming from
+        // other users (don't bother generating recommendations based
+        // on the current user's own ratings, for obvious reasons).
+        // Also exclude games that are already on the current user's
+        // play list or wish list - they obviously already know about
+        // these games, so there's no reason to recommend them.
+        if ($curuser) {
+            $joinOtherUser = "left outer join reviews as r3"
+                             . "  on r3.gameid = r2.gameid"
+                             . "  and r3.id != r2.id"
+                             . "  and r3.userid = '$curuser'"
+                             . " left outer join playedgames as pg"
+                             . "  on pg.userid = '$curuser'"
+                             . "  and pg.gameid = r2.gameid"
+                             . " left outer join wishlists as wl"
+                             . "  on wl.userid = '$curuser'"
+                             . "  and wl.gameid = r2.gameid"
+                             . " left outer join unwishlists as uw"
+                             . "  on uw.userid = '$curuser'"
+                             . "  and uw.gameid = r2.gameid";
+            $andOtherUser = "and r1.userid != '$curuser'"
+                            . " and r2.userid != '$curuser'"
+                            . " and r3.id is null"
+                            . " and ifnull(now() >= r3.embargodate, 1)"
+                            . " and pg.userid is null"
+                            . " and wl.userid is null"
+                            . " and uw.userid is null";
+        } else {
+            $joinOtherUser = "";
+            $andOtherUser = "";
+        }
+        $result = mysql_query(
+            "select
+               games.id as id,
+               games.title as title,
+               games.author as author,
+               games.`desc` as `desc`,
+               (games.coverart is not null) as hasart
+            from
+               (games,
+               reviews as r1,
+               reviews as r2)
+               $joinOtherUser
+            where
+               r1.gameid = '$qid'
+               and r1.special is null and r2.special is null
+               and r1.rating >= 4
+               and r2.gameid != r1.gameid
+               and r2.rating >= 4
+               and r1.userid = r2.userid
+               and games.id = r2.gameid
+               and ifnull(now() >= r1.embargodate, 1)
+               and ifnull(now() >= r2.embargodate, 1)
+               $andOtherUser
+            group by r2.gameid
+            order by rand()
+            limit 0, 3", $db);
+
+        // fetch the cross-recommendations
+        $crosscnt = mysql_num_rows($result);
+        for ($crossrecs = array(), $i = 0 ; $i < $crosscnt ; $i++)
+            $crossrecs[] = mysql_fetch_array($result, MYSQL_ASSOC);
+
+        // add current-user exclusions for explicit cross-recs, if logged in
+        if ($curuser) {
+            $joinOtherUser = "left outer join playedgames as pg"
+                             . "  on pg.userid = '$curuser'"
+                             . "  and pg.gameid = c.togame"
+                             . " left outer join wishlists as wl"
+                             . "  on wl.userid = '$curuser'"
+                             . "  and wl.gameid = c.togame"
+                             . " left outer join unwishlists as uw"
+                             . "  on uw.userid = '$curuser'"
+                             . "  and uw.gameid = c.togame"
+                             . " left outer join crossrecs as cmine "
+                             . "  on cmine.fromgame = c.fromgame"
+                             . "  and cmine.togame = c.togame"
+                             . "  and cmine.userid = '$curuser'";
+            $andOtherUser = "and cmine.togame is null"
+                            . " and pg.userid is null"
+                            . " and wl.userid is null"
+                            . " and uw.userid is null";
+        } else {
+            $joinOtherUser = "";
+            $andOtherUser = "";
+        }
+
+        // check for explicit cross-recommendations
+        $result = mysql_query(
+            "select
+               c.togame as id,
+               g.title as title,
+               g.author as author,
+               g.`desc` as `desc`,
+               (g.coverart is not null) as hasart,
+               c.notes as notes,
+               (select count(*) from crossrecs as c2
+                where c2.fromgame = '$qid' and c2.togame = c.togame)
+                as votecount
+             from
+               crossrecs as c
+               join games as g on g.id = c.togame
+               join crossrecs as c2 on c2.togame = c.togame
+               $joinOtherUser
+             where
+               c.fromgame = '$qid'
+               $andOtherUser
+             group by
+               c.fromgame, c.togame
+             order by
+               rand()
+             limit
+               0, 3", $db);
+
+        $ecrosscnt = mysql_num_rows($result);
+        for ($ecrossrecs = array(), $i = 0 ; $i < $ecrosscnt ; $i++)
+            $ecrossrecs[] = mysql_fetch_array($result, MYSQL_ASSOC);
+
+        // if we have any cross-recommendations, limit the member
+        // reviews to the top 3; otherwise, show up to 5 reviews
+        $reviewsOnHomePage =
+            (($listcnt || $pollcnt || $crosscnt || $ecrosscnt) ? 3 : 5);
+    }
+
+// --------------------- GAME DETAILS -------------------------------
+
+    // show the review summary if we're in Detail View mode
+    if ($detailView) {
+?>
+         <p>
+         <span class=details>
+            <?php
+
+$embargoCnt = 0;
+if ($curuser) {
+    $result = mysql_query(
+        "select id, date_format(embargodate, '%M %e, %Y') from reviews
+         where userid = '$curuser' and gameid = '$qid'
+           and embargodate > now()", $db);
+    $embargoCnt = mysql_num_rows($result);
+    if ($embargoCnt > 0)
+        list($embargoID, $embargoDate) = mysql_fetch_row($result);
+}
+
+if ($ratingCntTot == 0) {
+    echo "<img src=\"/blank.gif\" class=\"star0\" title=\"No Ratings\">
+       No member reviews yet";
+    if ($embargoCnt == 0)
+        echo " - <a href=\"review?id=$id\">be the first</a>";
+} else if ($ratingAvg == 0 && $memberReviewCnt == 0) {
+    echo "<a href=\"viewgame?id=$id&ratings\" "
+        . "title=\"View all ratings and reviews for this game\">"
+        . "$ratingCntTot member rating" . ($ratingCntTot != 1 ? "s" : "")
+        . "</a><br>";
+} else {
+    if ($ratingAvg != 0) {
+        echo showStars($ratingAvg)
+            . " (based on <a href=\"viewgame?id=$id&ratings\" "
+            . "title=\"View all ratings and reviews for this game\">"
+            . "$ratingCntAvg rating" . ($ratingCntAvg != 1 ? "s" : "")
+            . "</a>)<br>";
+    }
+
+    if ($memberReviewCnt != 0) {
+        $href = ($memberReviewCnt > $reviewsOnHomePage)
+                ? "viewgame?id=$id&reviews" : "#memberReviews";
+        echo "<a href=\"$href\">$memberReviewCnt member review"
+            . ($memberReviewCnt != 1 ? "s" : "")
+            . "</a>";
+    }
+    else {
+        echo "No member reviews yet";
+        if ($embargoCnt == 0)
+            echo " - <a href=\"review?id=$id\">be the first</a>";
+    }
+}
+
+if ($embargoCnt > 0)
+    echo "<br><i>Your review of this game is hidden until $embargoDate - "
+        . "<a href=\"review?id=$id\">Revise it</a></i>";
+
+            ?>
+         </span>
+
+<?php
+    } // if ($detailView)
+
+    // show the description, if it's present AND we're in Detail or
+    // History mode
+    if (!isEmpty($desc) && ($detailView || $historyView)) {
+?>
+         <h3>About the Story</h3>
+         <?php echo $desc ?>
+<?php
+    }
+
+    // show the Game Details if we're in Detail or History view modes
+    if ($detailView || $historyView) {
+?>
+
+         <br>
+         <h2>Game Details</h2>
+         <div class=indented>
+            <span class=notes>
+               <?php if (!isEmpty($language))
+                  echo "Language: " . htmlspecialcharx($language) . "<br>" ?>
+               <?php if(!isEmpty($pubFull))
+                  echo "First Publication Date: $pubFull<br>"; ?>
+               Current Version: <?php
+                  echo !isEmpty($version) ? $version : "<i>Unknown</i>"
+               ?><br>
+               <?php if (!isEmpty($license))
+                   echo "License: $license<br>" ?>
+               <?php if (!isEmpty($system))
+                   echo "Development System: $system<br>" ?>
+               <?php if (!isEmpty($forgiveness))
+                   echo "<a class=silent " . helpWinHRef("help-forgiveness")
+//                       href=\"needjs\"
+//                     onclick=\"javascript:helpWin('help-forgiveness');return false;\"
+                       . " title=\"What does this mean?\">"
+                       . "Forgiveness Rating</a>: $forgiveness<br>" ?>
+               <?php if(!isEmpty($bafsid))
+                   echo "<a class=silent href=\"http://www.wurb.com/if\"
+                        title=\"Go to Baf's Guide to the IF Archive\">
+                        Baf's Guide</a> ID:
+                     <a class=silent
+                      href=\"http://www.wurb.com/if/game/$bafsid\"
+                        title=\"Go to the Baf's Guide listing for this game\">
+                        $bafsid</a>
+                     <br>" ?>
+
+            </span>
+            <?php
+
+$caption = "<a class=silent " . helpWinHRef("help-ifid")
+//              href=\"needjs\"
+//              onclick=\"javascript:helpWin('help-ifid');return false;\"
+           . " title=\"What's an IFID?\">IFID</a>";
+
+if (count($ifids) == 0 || isEmpty($ifids[0]))
+    echo "<span class=notes>$caption: <i>Unknown</i></span><br>";
+else if (count($ifids) == 1)
+    echo "<span class=notes>$caption: $ifids[0]</span><br>";
+else {
+    echo "<table border=0 cellpadding=0 cellspacing=0>
+        <tr><td><span class=notes>{$caption}s:&nbsp;</span></td>
+        <td><span class=notes>$ifids[0]</span></td></tr>";
+    for ($i = 1 ; $i < count($ifids) ; $i++)
+        echo "<tr><td></td><td><span class=notes>$ifids[$i]</span></td></tr>";
+    echo "</table>";
+}
+            ?>
+            <span class=notes>
+              <a class=silent <?php echo helpWinHRef("help-tuid");
+//                 href="needjs"
+//                 onclick="javascript:helpWin('help-tuid');return false;"
+                 ?> title="What's a TUID?">TUID</a>:
+                 <?php echo htmlspecialcharx($id) ?>
+            </span><br>
+
+            <?php
+// show the outbound references, if any
+if (count($xrefs) != 0) {
+    echo "<br>";
+    for ($i = 0 ; $i < count($xrefs) ; $i++) {
+        $x = $xrefs[$i];
+        $fn = $x['fromname'];
+        $fn = str_replace(array("<language>", "<system>"),
+                          array($languageNameOnly, $system),
+                          $fn);
+        echo "<span class=notes>" . initCap($fn)
+            . " <a href=\"viewgame?id={$x['toID']}\"><i>{$x['toTitle']}</i></a>"
+            . ", by {$x['author']}</span><br>";
+    }
+}
+
+// show the inbound references, if any
+if (count($inrefs) != 0 && !$historyView) {
+    echo "<br>";
+    for ($i = 0 ; $i < count($inrefs) ; ) {
+        $x = $inrefs[$i];
+        for ($j = $i + 1 ;
+             $j < count($inrefs) && $inrefs[$j]['reftype'] == $x['reftype'] ;
+             $j++) ;
+
+        $cnt = $j - $i;
+        if ($cnt > 1) {
+            echo "<span class=notes>" . initCap($x['tonames'])
+                . ":</span><br><div class=\"indented\">";
+        } else {
+            $toname = str_replace(
+                array('<language>', '<system>'),
+                array($x['language'], $x['system']),
+                $x['toname']);
+            echo "<span class=notes>" . initCap($toname) . " </span>";
+        }
+            
+        for ( ; $i < $j ; ++$i) {
+            $x = $inrefs[$i];
+            echo "<span class=notes>"
+                . "<a href=\"viewgame?id={$x['fromid']}\">"
+                . "<i>{$x['title']}</i></a>"
+                . ", by {$x['author']}</span><br>";
+        }
+
+        if ($cnt > 1)
+            echo "</div>";
+    }
+}
+            ?>
+
+         </div>
+
+<?php
+    // ---------- end Game Detail section ------------
+?>
+
+      </td>
+   </tr>
+</table>
+<?php
+// ------------ end of the main page layout table -----------------
+?>
+
+</div>
+   
+<?php
+    // ---------------- Awards Section ----------------------------
+    if ($detailView) {
+
+        // look up awards for this game
+        $result = mysql_query(
+            "select
+               c.compid, c.title,
+               d.divname,
+               g.place
+             from
+               compgames as g
+               join competitions as c on c.compid = g.compid
+               join compdivs as d on d.divid = g.divid
+             where
+               g.gameid = '$qid'
+             order by
+               lower(c.title), d.divno, lower(d.divname)", $db);
+
+        // if we have any rows, show the awards section
+        if (mysql_num_rows($result) > 0)
+        {
+            // start the section
+            echo "<br><h2>Awards</h2><div class=hangindentedMore>";
+
+            // display the award rows
+            $lastComp = false;
+            $awards = array();
+            for ($i = 0 ; $i < mysql_num_rows($result) ; $i++)
+            {
+                // fetch and decode this row
+                list($compID, $compTitle, $compDivName, $compPlace)
+                    = mysql_fetch_row($result);
+                $compTitle = htmlspecialcharx($compTitle);
+                $compDivName = htmlspecialcharx($compDivName);
+                $compPlace = htmlspecialcharx($compPlace);
+
+                // build the comp link
+                $comp = "<a href=\"viewcomp?id=$compID\">$compTitle</a>";
+
+                // if this is a new comp, flush the last one
+                if ($comp != $lastComp)
+                {
+                    // display the last one
+                    if ($lastComp)
+                        echo "<p>" . awardList($awards) . " - $lastComp</p>";
+
+                    // start the new one
+                    $lastComp = $comp;
+                    $awards = array();
+                }
+
+                // add this award to the list
+                $awards[] = array($compPlace, $compDivName);
+            }
+
+            // flush the last award
+            echo "<p>" . awardList($awards) . " - $lastComp</p>";
+
+            // close the section
+            echo "</div>";
+        }
+    }
+
+
+    // ---------------- News Section ----------------------------
+
+    // if there's news, and we're in the detail view, show the news
+    //
+    if ($detailView) {
+        newsSummary($db, "G", $qid, 3,
+                    "<br><h2>News</h2><div class=indented>",
+                    "</div>");
+    }
+
+    // --------------- end News section ----------------
+?>
+
+         <?php
+    } // if ($detailView || $historyView)
+
+//--------------------------- EDITORIAL REVIEWS ---------------------------
+
+    // we haven't started a nested division yet (we may or may not,
+    // depending on what parts we end up displaying)
+    $divStarted = false;
+
+    // If we're showing the Detail view, show the special reviews and
+    // a few of the top-rated (most helpful) member reviews.  The Detail
+    // View page can get too long if we show all reviews, so we only
+    // show a few, with a link to see the rest.
+    //
+    // In history view mode, show just the external reviews, since these
+    // are edited as part of the page history.
+    if ($detailView || ($historyView && count($extReviews) != 0)) {
+
+        // ---------- Show the editorial reviews ------------
+
+        // start with an empty string for the off-site review section
+        $osr = "";
+
+        // fetch the non-external editor reviews
+        $srevs = array();
+        if ($detailView) {
+            // fetch the editorial review list
+            $result = mysql_query(
+                "select
+                   r.rating as rating, r.summary as headline,
+                   r.review as summary, sr.name as specialname, sr.code as code,
+                   sr.displayrank as displayrank,
+                   null as sourcename, null as sourceurl, null as url,
+                   r.userid as userid, u.name as username
+                 from
+                   reviews as r
+                   join specialreviewers as sr on sr.id = r.special
+                   left outer join users as u on u.id = r.userid
+                 where
+                   r.gameid = '$qid'
+                   and sr.editorial != 0
+                   and sr.code <> 'external'
+                   and ifnull(now() >= r.embargodate, 1)
+                 order by
+                   sr.displayrank", $db);
+
+            // collect the reviews
+            for ($i = 0 ; $i < mysql_num_rows($result) ; $i++)
+                $srevs[] = mysql_fetch_array($result, MYSQL_ASSOC);
+        }
+
+        // merge the external reviews
+        if ($extReviews) {
+            // find the sorting position for the externals
+            for ($i = 0 ; $i < count($srevs) ; $i++) {
+                if ($srevs[$i]['displayrank'] > $extRevDisplayRank)
+                    break;
+            }
+
+            // merge the arrays
+            array_splice($srevs, $i, 0, $extReviews);
+        }
+
+        // see what we have
+        if (count($srevs) != 0) {
+            if ($historyView)
+                echo "<h2>Off-Site Reviews</h2>";
+            else
+                echo "<h2>Editorial Reviews</h2>";
+            
+            echo "<div class=indented>";
+            $divStarted = true;
+
+            for ($i = 0 ; $i < count($srevs) ; $i++) {
+                // get this row
+                $srev = $srevs[$i];
+                $rating = $srev['rating'];
+                $headline = htmlspecialcharx($srev['headline']);
+                $review = $srev['summary'];
+                $specialname = $srev['specialname'];
+                $code = $srev['code'];
+                $xsrc = htmlspecialcharx($srev['sourcename']);
+                $xsrcurl = $srev['sourceurl'];
+                $xurl = $srev['url'];
+                $suid = $srev['userid'];
+                $suname = htmlspecialcharx($srev['username']);
+
+                $stars = showStars($rating);
+
+                $showBody = false;
+
+                // clear out the buffer for building this row
+                $txt = "";
+
+                // show the review heading - this varies by review type
+                if ($code == 'bafs' && $detailView) {
+
+                    // Baf's Guide
+                    $showBody = true;
+                    $txt .= "<h3><a href=\"http://www.wurb.com/if";
+                    if (!isEmpty($bafsid))
+                        $txt .= "/game/$bafsid";
+                    $txt .= "\" title=\"Go to Baf's Guide to the IF Archive\">"
+                            . "$specialname</a></h3>"
+                            . "<div class=smallhead>$stars<br></div>";
+
+                } else if ($code == 'external') {
+
+                    // External review link
+
+                    if ($stars && $headline)
+                        $stars .= " ";
+
+                    // generate the link to the source site
+                    if ($xsrcurl)
+                        $xlink = "<span class=xsrc>"
+                                 . "<a href=\"$xsrcurl\">$xsrc</a>"
+                                 . "</span>";
+                    else
+                        $xlink = "<span class=xsrc>$xsrc</span>";
+
+                    if ($offsiteMode == 'L') {
+                        // links-only mode
+
+                        // start a new paragraph with the link
+                        $txt .= "<a href=\"$xurl\">";
+
+                        // if we have a rating or a headline, use that as
+                        // the link to the off-site review; otherwise
+                        // synthesize a title for the link
+                        if ($stars && $headline)
+                            $txt .= "$stars<b>$headline</b></a> - ";
+                        else if ($stars)
+                            $txt .= "$stars</a> <a href=\"$xurl\">Review</a>"
+                                    . " at ";
+                        else if ($headline)
+                            $txt .= "$headline</a> - ";
+                        else
+                            $txt .= "A review</a> at ";
+
+                        // add the site link
+                        $txt .= "$xlink<br>";
+
+                        // omit the body in this view
+                        $showBody = false;
+    
+                    } else {
+                        // full mode - include the headline and summary
+
+                        // start the paragraph with the link to the main site
+                        $txt .= "<p>$xlink<br>";
+
+                        // if there's a rating or headline, it goes next
+                        if ($stars || $headline)
+                            $txt .= "$stars<b>$headline</b><br>";
+
+                        // and we'll want to add the summary as the body
+                        $showBody = true;
+                    }
+
+                    // show the body, unless we're in "links only" mode
+                    // for external reviews
+                    $showBody = ($offsiteMode != 'L');
+                    
+                } else if ($detailView) {
+
+                    // any other special review
+                    $showBody = true;
+                    $txt .= "<h3>$specialname</h3>"
+                            . "<div class=smallhead>$stars<br></div>";
+
+                }
+
+                // show the review body if applicable
+                if ($showBody)
+                    $txt .= fixDesc($review, FixDescSpoiler);
+
+                // for an external review, show the full-review link
+                if ($code == 'external' && $offsiteMode != 'L') {
+                    $txt .= "<br><span class=details><a href=\"$xurl\">"
+                            . "See the full review</a></span>";
+                }
+
+                // If this is an external review, and we're showing
+                // external reviews separately after the member review
+                // section, add this to the string we're accumulating
+                // for later display.
+                if ($code == 'external' && $offsiteMode != 'A') {
+                    // don't show now - accumulate for later
+                    $osr .= $txt;
+                } else {
+                    // this is for immediate display
+                    echo $txt;
+                }
+            }
+        }
+    }
+
+    // end the division if we're not continuing with the detail view
+    if (!$detailView && $divStarted) {
+        echo "</div>";
+        $divStarted = false;
+    }
+
+    // if we're in History mode, show the page history
+    if ($historyView) {
+
+//----------------------- PAGE HISTORY SECTION ------------------------
+
+    // show the page history
+
+    // start off with the current version
+    echo "<h2>Page Update History</h2><div class=indented>
+            <table cellspacing=0 cellpadding=0 border=0>
+            <tr valign=baseline><td>";
+
+    // if we're showing the latest version, flag it
+    if (!isset($_REQUEST['version']) || $_REQUEST['version'] == $pagevsn)
+        echo "<img src=\"/blank.gif\" class=\"current-version-marker\">&nbsp;";
+
+    echo "</td><td>
+            <a href=\"viewgame?history&version=$pagevsn&id=$id\">
+            v.$pagevsn: $moddate2</a> -
+            <a href=\"showuser?id=$editedbyid\">$editedbyname</a>
+            (Current Version)
+            - <a href=\"editgame?id=$id\">Edit Page</a>";
+
+    if ($adminPriv) {
+        echo " - <a href=\"rollbackGameVersion?game=$id\">Delete Version</a>";
+    }
+
+    echo " - <a href=\"viewgame?id=$id\">Normal View</a>
+          <br>";
+
+    // query up the version history
+    $result = mysql_query("select pagevsn, editedby, users.name editorname,
+               date_format(moddate, '%d-%b-%Y %H:%i') moddate, deltas
+            from games_history
+              left outer join users on users.id = editedby
+            where games_history.id = '$qid'
+            order by pagevsn desc", $db);
+    $rowcnt = mysql_num_rows($result);
+    for ($i = 0 ; $i < $rowcnt ; $i++) {
+        // retrieve the row
+        list ($ivsn, $ieditor, $ieditorname, $idate, $deltas) =
+            mysql_fetch_row($result);
+
+        // make the user name safe for display
+        $ieditorname = htmlspecialcharx($ieditorname);
+
+        // set up the linked user name
+        if ($ieditor)
+            $iedlink = "<a href=\"showuser?id=$ieditor\">$ieditorname</a>";
+        else
+            $iedlink = "IFDB";
+
+        // deserialize the deltas
+        $deltas = unserialize($deltas);
+
+        // get the description of the changes
+        $changeList = getDeltaDesc($deltas);
+
+        // show which columns changed in the *next* version - each
+        // history record saves the old values for the columns edited
+        // in the *following* version
+        if ($changeList) {
+            echo "<div class=indented><span class=details>"
+                . "<i>Changed $changeList</i></span></div>";
+        }
+
+        // start the new row
+        echo "</td></tr><tr valign=baseline><td>";
+
+        // if this is the active version, highlight it
+        if (isset($_REQUEST['version']) && $ivsn == $_REQUEST['version'])
+            echo "<img src=\"/blank.gif\" class=\"current-version-marker\">&nbsp;";
+
+        // show this version entry
+        echo "</td><td><a href=\"viewgame?version=$ivsn&id=$id\">
+           v.$ivsn: {$idate}</a> - $iedlink<br>";
+    }
+
+    // the last version we show is always the first version
+    echo "<div class=indented><span class=details>
+        <i>Created page</i></span></div>";
+
+    // end the history table and division
+    echo "</td></tr></table></div>";
+
+    } // if ($historyView)
+
+
+    // -------------------------- DETAIL VIEW ------------------------------
+    //
+    if ($detailView) {
+
+        // show other (non-editorial) special reviews
+        $result = mysql_query(
+            "select reviews.id as reviewid,
+               rating, summary, review,
+               date_format(moddate, '%M %e, %Y') as moddate,
+               specialreviewers.id as special,
+               specialreviewers.name as specialname,
+               users.id as userid, users.name as username, location
+             from reviews, specialreviewers, users
+             where gameid = '$qid'
+               and reviews.special = specialreviewers.id
+               and users.id = reviews.userid
+               and editorial = 0
+               and ifnull(now() >= reviews.embargodate, 1)
+             order by displayrank", $db);
+
+        if (mysql_num_rows($result) != 0) {
+
+            // start an indented section if we haven't already
+            if (!$divStarted) {
+                echo "<div class=indented>";
+                $divStarted = true;
+            }
+
+            // show the reviews
+            for ($i = 0 ; $i < mysql_num_rows($result) ; $i++)
+                showReview($db, $id, mysql_fetch_array($result, MYSQL_ASSOC),
+                           $specialNames);
+        }
+
+        // end the indented division if we started one
+        if ($divStarted)
+            echo "</div>";
+
+
+//--------------------------- TAGS SECTION -----------------------------
+
+        echo "<h2><a name=\"tags\"></a>Tags</h2><div class=indented>";
+
+        ?>
+
+        <span id="tagPre" class=details></span>
+        <span class=details style="margin-left: 1ex;">
+           - <a href="showtags?limit=50">View the most common tags</a>
+           (<?php echo helpWinLink("help-tags", "What's a tag?")
+     //<a href="needjs"
+//           onclick="javascript:helpWin('help-tags');return false;"
+//           >What's a tag?</a>
+           ?>)
+        </span>
+        <div class=indented>
+           <table id="tagTable" border=0 class=tags>
+           </table>
+        </div>
+        <?php
+        if ($curuser) {
+        ?>
+            <span class=details>
+               <b>Your tags:</b>
+               <span id="myTagList" style="margin-right:1ex;"></span> -
+               <a href="needjs" onclick="javascript:editTags();return false;"
+                  >Edit</a>
+               <span class="xmlstatmsg" style="margin-left:1ex;"
+                  id="tagStatusSpan"></span>
+            </span>
+        <?php
+        } else {
+            echo "<span class=details>"
+                . "(<a href=\"login?dest=viewgame?id=$id%23tags\">Log in</a>"
+                . " to add your own tags)</span>";
+        }
+        ?>
+
+        <div style="position:relative;height:0px;">
+           <div style="position:absolute; z-index:10000; top:-5em; left:0px;
+              display:none;background:#ffffff;border:3px solid #b0d8ff;
+              padding:0;"  id="tagEditor">
+              <div style="position:relative;padding:2px;
+                 background:#b0d8e8;font-size:80%;">
+                 <div style="text-align:center;">
+                    <b>Edit Tags</b>
+                 </div>
+                 <div style="position:absolute;top:2px;right:0px;
+                    text-align:right;">
+                    <a href="needjs" onclick="javascript:closeTags();
+                       return false;">Cancel<img src="/blank.gif"
+                          class="popup-close-button"></a>
+                 </div>
+              </div>
+              <form name="tagForm" onsubmit="javascript:addTags();return false;"
+                 style="padding:1ex 1ex 0.5ex 1ex; margin:0 0 0 0;">
+                 <span class=details>Tags you added are shown below with
+                    checkmarks.  To remove one of your tags, simply
+                    un-check it.
+                 </span>
+                 <table id="editTagTable" border=0 class=tags
+                    style="font-size:85%;">
+                 </table>
+                 <br>
+                 <span class=details>
+                 Enter new tags here (use commas to separate tags):<br>
+                 </span>
+                 <input type=text size=50 id="myTagFld"
+                    style="vertical-align:middle;">
+                 <input type=image src="/blank.gif" class="add-button"
+                    id="viewgame-add-tags-button"
+                    name="addTags" style="vertical-align:middle;"
+                    onclick="javascript:addTags();return false;"><br>
+                 <input type=image src="/blank.gif" class="save-button"
+                    id="viewgame-save-tags-button"
+                    name="saveTags" style="margin-top:1ex;"
+                    onclick="javascript:saveTags();return false;">
+              </form>
+           </div>
+        </div>
+
+
+<script type="text/javascript">
+<!--
+var dbTagList = [
+<?php
+        $isMine = ($curuser
+                   ? "sum(userid = '$curuser' and gameid = '$qid')"
+                   : "0");
+        $result = mysql_query(
+            "select
+               tag,
+               sum(gameid = '$qid') as tagcnt,
+               count(distinct gameid) as gamecnt,
+               $isMine as isMine
+             from gametags
+             group by tag
+             having tagcnt != 0
+             order by tag", $db);
+        $cnt = mysql_num_rows($result);
+    
+        for ($i = 0 ; $i < $cnt ; $i++) {
+            list($tag, $tagcnt, $gamecnt, $isMine) = mysql_fetch_row($result);
+            $tag = jsSpecialChars($tag);
+            echo ($i > 0 ? "," : "")
+                . "{tag: \"$tag\", tagcnt: $tagcnt, "
+                . "gamecnt: $gamecnt, isMine: $isMine, isNew: false}";
+        }
+?>
+];
+var memTagList = [];
+function encodeHTML(str)
+{
+    return str.replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+function doTagCkBox(id, stat)
+{
+    var i = parseInt(id.substr(5));
+    memTagList[i].tagcnt += (stat ? 1 : -1);
+    memTagList[i].gamecnt += (memTagList[i].isNew ? (stat ? 1 : -1) : 0);
+    memTagList[i].isMine = stat ? 1 : 0;
+    var ce = document.getElementById("tagCnt" + i);
+    var ct = memTagList[i].tagcnt;
+    ce.innerHTML = (memTagList[i].isNew || ct < 2  ? "" :
+                    "(x" + memTagList[i].tagcnt + ")");
+    ce.title = ct + " member" + (ct > 1 ? "s have" : " has")
+               + " tagged this game with \"" + memTagList[i].tag + "\"";
+}
+function dispTagTable(tableID, lst, editor)
+{
+    var tbl = document.getElementById(tableID);
+    while (tbl.rows != null && tbl.rows.length != 0)
+        tbl.deleteRow(0);
+    var row = null, rownum = 0;
+    for (var i = 0 ; i < lst.length ; i++) {
+        var t = encodeHTML(lst[i].tag);
+        var u = encodeURI8859(lst[i].tag);
+        var ct = lst[i].tagcnt;
+        var cg = lst[i].gamecnt;
+        var m = lst[i].isMine;
+        var n = lst[i].isNew;
+        if (i % 4 == 0)
+            row = tbl.insertRow(rownum++);
+        var cell = row.insertCell(i % 4);
+        var s;
+        if (editor) {
+            var ck = "tagCk" + i;
+            s = "<span class=\"cklabel\" onmouseover=\"javascript:"
+                + "ckboxOver('"+ck+"',false);return true;\" "
+                + "onmouseout=\"javascript:ckboxLeave('"+ck+"',false);"
+                + "return true;\" onclick=\"javascript:ckboxClick('"+ck
+                + "',false,doTagCkBox);return false;\"><img align=absmiddle "
+                + "border=0 id=\"ckImg"+ck+"\"> <span id=\"ckLbl"+ck+"\">" + t
+                + "</span></span>&nbsp;<span class=details id=\"tagCnt"+i+"\">";
+        }
+        else
+            s = "<span class=details title=\"Search for games tagged with "
+                + t.replace(/"/g, "&#34;")
+                + "\"><a href=\"search?searchfor=tag:"
+                + u + "\">"
+                + t + "</a>&nbsp;";
+
+        if (!n)
+        {
+            if (editor)
+            {
+                s += "<span title=\"" + ct + " member"
+                     + (ct > 1 ? "s have" : " has")
+                     + " tagged this game with &#34;" + t
+                     + "&#34;\">"
+                     + (ct > 1 ? "(x" + ct + ")" : "")
+                     + "</span></span>";
+            }
+            else
+            {
+                s += "<span title=\"" + cg + " game"
+                     + (cg > 1 ? "s have" : " has") + " this tag\">(" + cg
+                     + ")</span></span>";
+            }
+        }
+        cell.innerHTML = s;
+
+        if (editor)
+            ckboxCheck(ck, false, m);
+    }
+    if (editor && lst.length == 0) {
+        tbl.insertRow(0).insertCell(0).innerHTML =
+            "<i>This game doesn't have any tags yet.</i>"
+    }
+}
+function dispTags()
+{
+    var pre = document.getElementById("tagPre");
+    if (dbTagList.length == 0)
+        pre.innerHTML = "There are no tags associated with this game yet - "
+                        + "you can be the first to tag it.";
+    else
+        pre.innerHTML =
+            "The following tags are associated with this game. Click on a tag "
+            + "to search for other games with the same tag. ";
+    dispTagTable("tagTable", dbTagList, false);
+
+    var s = "";
+    for (var i = 0 ; i < dbTagList.length ; i++) {
+        var t = dbTagList[i];
+        if (t.isMine) {
+            if (s != "")
+                s += ", ";
+            s += encodeHTML(t.tag)
+        }
+    }
+    if (s == "")
+        s = "(None)";
+    var tl = document.getElementById("myTagList");
+    if (tl != null)
+        tl.innerHTML = s;
+}
+function dispEditTags()
+{
+    document.getElementById("tagStatusSpan").innerHTML = "";
+    dispTagTable("editTagTable", memTagList, true);
+}
+function editTags()
+{
+    memTagList = [];
+    for (var i = 0 ; i < dbTagList.length ; ++i) {
+        var t = dbTagList[i];
+        memTagList[i] = {tag: t.tag, tagcnt: t.tagcnt, gamecnt: t.gamecnt,
+                         isMine: t.isMine};
+    }
+
+    document.getElementById("tagEditor").style.display = "";
+    dispEditTags();
+    document.getElementById("myTagFld").focus();
+}
+function closeTags()
+{
+    document.getElementById("tagEditor").style.display = "none";
+}
+function saveTags()
+{
+    addTags();
+    dbTagList = [];
+    var c = "id=<?php echo $id ?>";
+    var i, j, k;
+    for (i = j = k = 0 ; i < memTagList.length ; i++)
+    {
+        var t = memTagList[i];
+        if (t.tagcnt != 0)
+            dbTagList[j++] = t;
+        if (t.isMine)
+            c += "&t" + (k++) + "=" + encodeURI8859(t.tag);
+    }
+    dispTags();
+    closeTags();
+    xmlSend("taggame", "tagStatusSpan", cbSaveTags, c);
+}
+function cbSaveTags(resp)
+{
+    var tags = resp.getElementsByTagName("tag");
+    for (var i = 0 ; i < tags.length ; ++i)
+    {
+        var tag = tags[i];
+        var name = tag.getElementsByTagName("name")[0].firstChild.data;
+        var gamecnt = tag.getElementsByTagName("gamecnt")[0].firstChild.data;
+        var tagcnt = tag.getElementsByTagName("tagcnt")[0].firstChild.data;
+        name = name.toLowerCase();
+        
+        for (var j = 0 ; j < memTagList.length ; j++)
+        {
+            if (memTagList[j].tag.toLowerCase() == name)
+            {
+                memTagList[j].gamecnt = parseInt(gamecnt);
+                memTagList[j].tagcnt = parseInt(tagcnt);
+                memTagList[j].isNew = false;
+                break;
+            }
+        }
+    }
+
+    dispTags();
+}
+function trim(str) { return str.replace(/^\s+|\s+$/g, ''); }
+function tagSorter(a, b)
+{
+    a = a.tag.toLowerCase();
+    b = b.tag.toLowerCase();
+    return (a > b ? 1 : a < b ? -1 : 0);
+}
+function addTags()
+{
+    var fld = document.getElementById("myTagFld");
+    if (trim(fld.value) == "")
+        return;
+    var lst = fld.value.split(",");
+    for (var i = 0 ; i < lst.length ; i++)
+    {
+        var s = trim(lst[i]);
+        if (s == "")
+            continue;
+        var j;
+        for (j = 0 ; j < memTagList.length ; j++) {
+            var t = memTagList[j];
+            if (t.tag == s) {
+                if (!t.isMine) {
+                    t.tagcnt += 1;
+                    t.gamecnt += 1;
+                    t.isMine = 1;
+                }
+                break;
+            }
+        }
+        if (j == memTagList.length)
+            memTagList[j] = {tag: s, tagcnt: 1, gamecnt: 1, isMine: 1, isNew: true};
+    }
+    memTagList.sort(tagSorter);
+    dispEditTags();
+    fld.value = "";
+    fld.focus();
+}
+
+dispTags();
+//-->
+</script>
+        <?php
+
+        echo "</div>";
+        
+
+//----------------------- MEMBER REVIEW SECTION ------------------------
+
+        // query up the member reviews, sorted by helpfulness - for ordering
+        // purposes, helpfulness is defined as helpful votes minus unhelpful
+        // votes; this way, each unhelpful vote essentially cancels out a
+        // helpful vote
+        $result = mysql_query(
+            $selectMemberReviews
+            . " order by $orderByUserFilter, "
+            . " netHelpful desc, moddate desc", $db);
+
+        $rowcnt = mysql_num_rows($result);
+        if ($rowcnt > 0) {
+
+            // we have some reviews - start off the section
+            $showcnt = $rowcnt;
+
+            // show the Member Reviews section header
+            showMemberReviewsHeader($rowcnt, false, true);
+
+            // if we have too many for this front page, limit it
+            if ($rowcnt > $reviewsOnHomePage) {
+                echo "<h3>Most Helpful Member Reviews</h3><br>";
+                $showcnt = $reviewsOnHomePage;
+            }
+
+            // show the top reviews
+            for ($i = 0 ; $i < $showcnt ; $i++) {
+                // fetch the review
+                $reviewRec = mysql_fetch_array($result, MYSQL_ASSOC);
+
+                // show it
+                showReview($db, $id, $reviewRec, $specialNames);
+            }
+
+            // show the link to the full list of reviews, if there are more
+            if ($rowcnt > $reviewsOnHomePage) {
+                echo "<span class=details><a href=\"viewgame?id=$id&reviews\">
+                      See All $memberReviewCnt Member Reviews</a></span><br>";
+            }
+
+            // end the indented division
+            echo "</div>";
+        }
+    } // if ($detailView)
+
+
+//------------------------ CROSS-RECOMMENDATIONS --------------------------
+//
+// Show recommendations in the Detail and Recommendations views.
+//
+// If we have any recommended lists mentioning the game, or any
+// cross-recommendations for games, list them
+    if ($detailView || $recView) {
+
+        // show the header if (a) we have any recommendations to show,
+        // or (b) we're in the explicit Recommendations view mode - in
+        // the latter case, since the user asked for recommendations,
+        // show the header even if we don't have anything to list
+        $divStarted = false;
+        if ($crosscnt == 0 && $ecrosscnt == 0
+            && !$recView && ($listcnt || $pollcnt)) {
+            $divStarted = true;
+            echo "<h2><i>$title</i> on IFDB</h2>"
+                . "<div class=indented>";
+        }
+        else if ($listcnt || $pollcnt || $crosscnt || $ecrosscnt || $recView) {
+            $divStarted = true;
+            echo "<h2>If you enjoyed <i>$title</i>...</h2>"
+                . "<div class=indented>";
+        }
+
+        // if we have recommendations, show them
+        if ($listcnt || $pollcnt || $crosscnt || $ecrosscnt) {
+
+            // display the cross-recommendations for games
+            if ($crosscnt || $ecrosscnt) {
+                echo "<h3>Related Games</h3>";
+
+                $these = ($ecrosscnt + $crosscnt == 1
+                          ? "this game" : "these games");
+
+                if ($ecrosscnt && $crosscnt && $ecrosscnt < 3) {
+                    echo "Other members recommend $these for "
+                        . "people who like <i>$title</i>, or gave both "
+                        . "high ratings:";
+                } else if ($ecrosscnt) {
+                    echo "Other members recommend $these for "
+                        . "people who like <i>$title</i>:";
+                } else {
+                    echo "People who like <i>$title</i> also gave high "
+                        . "ratings to $these:";
+                }
+
+                echo "<div class=indented>";
+
+                // merge the two arrays, starting with explicit suggestions
+                $allrecs = array_merge($ecrossrecs, $crossrecs);
+
+                // show up to three items
+                $allcnt = min(count($allrecs), 3);
+                for ($i = 0 ; $i < $allcnt ; $i++) {
+                    // get this item
+                    $c = $allrecs[$i];
+
+                    // format the data for display
+                    $crid = mysql_real_escape_string($c['id'], $db);
+                    $crtitle = output_encode(htmlspecialcharx($c['title']));
+                    $crauthor = output_encode(htmlspecialcharx($c['author']));
+                    $crdescInfo = summarizeHtml($c['desc'], 240);
+                    $crdesc = fixDesc($crdescInfo[0]);
+                    $crart = $c['hasart'];
+
+					$gameRatingsView = getGameRatingsView($db);
+                    $result = mysql_query(
+                        "select avgRating, numRatingsInAvg, numRatingsTotal
+                         from $gameRatingsView
+                         where gameid = '$crid'", $db);
+                    if ($result)
+                        list($crravg, $crrcnt, $crrtot) =
+                            mysql_fetch_row($result);
+                    else
+                        $crravg = $crrcnt = $crrtot = 0;
+
+                    echo "<p>";
+                    if ($crart)
+                        echo "<table class=grid cellspacing=0 cellpadding=0 "
+                            . "border=0><tr><td>"
+                            . "<a href=\"viewgame?id=$crid\">"
+                            . "<img border=0 src=\"viewgame?id=$crid&coverart"
+                            . "&thumbnail=80x80\"></a></td><td>";
+                    
+                    echo "<a href=\"viewgame?id=$crid\"><b>$crtitle</b></a>"
+                        . ", by $crauthor<br>";
+
+                    if ($crrcnt)
+                        echo "<span class=details>"
+                            . "Average member rating: " .showStars($crravg)
+                            . " ($crrcnt rating" . ($crrcnt == 1 ? "" : "s")
+                            . ")</span><br>";
+
+                    echo "<span class=details>$crdesc</span>";
+
+                    if ($crart)
+                        echo "</td></tr></table>";
+                }
+
+                echo "<p><span class=details>";
+                if (count($ecrosscnt) > 3) {
+                    echo "<a href=\"crossrec?game=$id\">"
+                        . "See more suggestions</a> - ";
+                }
+                echo "<a href=\"crossrec?game=$id&edit\">"
+                    . ($myCrossRecs ?
+                       "View or edit my suggestions ($myCrossRecs)" :
+                       "Suggest a game")
+                    . "</a></span>"
+
+                    . "</div>";
+            }
+
+            // display the lists
+            if ($listcnt) {
+                echo "<h3>Recommended Lists</h3>"
+                    . "<i>$title</i> appears in the "
+                    . "following Recommended Lists:"
+                    . "<div class=indented>";
+
+                for ($i = 0 ; $i < 3 && $i < count($lists) ; $i++) {
+                    // format the list data for display
+                    $l = $lists[$i];
+                    $listid = $l['listid'];
+                    $listname = htmlspecialcharx($l['title']);
+                    $listdescInfo = summarizeHtml($l['desc'], 240);
+                    $listdesc = fixDesc($listdescInfo[0]);
+                    $listuserid = $l['userid'];
+                    $listusername = htmlspecialcharx($l['username']);
+
+                    // display it
+                    echo "<p><a href=\"viewlist?id=$listid\">"
+                        . "<b>$listname</b></a>"
+                        . " by <a href=\"showuser?id=$listuserid\">"
+                        . "$listusername</a><br>"
+                        . "<span class=notes>$listdesc</span>";
+                }
+
+                if (count($lists) > 3)
+                    echo "<p><span class=details>"
+                        . "<a href=\"alllists?game=$id\">See all lists "
+                        . "mentioning this game</a></span>";
+                        
+                echo "</div>";
+            }
+
+            // display the polls
+            if ($pollcnt) {
+                echo "<h3>Polls</h3>"
+                    . "The following polls include votes for <i>$title</i>:"
+                    . "<div class=indented>";
+
+                for ($i = 0 ; $i < 3 && $i < count($polls) ; $i++) {
+                    // format the poll data for display
+                    $p = $polls[$i];
+                    $pollid = $p['pollid'];
+                    $pollname = htmlspecialcharx($p['title']);
+                    $polldescInfo = summarizeHtml($p['desc'], 240);
+                    $polldesc = fixDesc($polldescInfo[0]);
+                    $polluserid = $p['userid'];
+                    $pollusername = htmlspecialcharx($p['username']);
+
+                    // display it
+                    echo "<p><a href=\"poll?id=$pollid\"><b>$pollname</b></a>"
+                        . " by <a href=\"showuser?id=$polluserid\">"
+                        . "$pollusername</a><br>"
+                        . "<span class=notes>$polldesc</span>";
+                }
+
+                if (count($polls) > 3)
+                    echo "<p><span class=details>"
+                        . "<a href=\"allpolls?game=$id\">"
+                        . "See all polls with votes for this game</a></span>";
+
+                echo "</div>";
+            }
+
+        } else if ($recView) {
+
+            // We're explicitly in the Recommendations view, but we don't
+            // have any recommendations to show. 
+
+            // check to see if we've reviewed this game
+            $reviewIt = false;
+            if ($curuser) {
+                $result = mysql_query(
+                    "select id from reviews
+                     where gameid='$qid' and userid='$curuser'", $db);
+                if (mysql_num_rows($result) > 0) {
+                    $reviewIt = "rating a few other games you like";
+                }
+            }
+            if (!$reviewIt) {
+                $reviewIt = "rating this game and a few other games "
+                            . "you also like";
+            }
+
+            ?>
+            IFDB doesn't currently have any recommendations for
+            similar games.  Our recommendations depend on input
+            from our members, so you can help!  If you know of other
+            games that you'd recommend to people who liked
+            <i><?php echo $title ?></i>, you can help by...
+
+            <ul class=doublespace>
+               <li><a href="editlist?id=new">creating a Recommended
+                  List</a> that includes <i><?php echo $title ?></i> and
+                  other games you like for similar reasons;
+
+               <li><?php echo $reviewIt ?>.
+            </ul>
+
+            <p>We use member ratings and Recommended Lists to
+            offer suggestions, so the more input our members provide,
+            the better IFDB's suggestions will become.
+
+            <?php
+        }
+
+        // end the indented division if we started it
+        if ($divStarted)
+            echo "</div>";
+
+        if ($recView)
+            echo "<p><a href=\"viewgame?id=$id\">Go to the "
+                . "main page for this game</a>";
+
+    } // if ($detailView || $recView)
+
+
+//------------------ OFF-SITE REVIEWS ("BELOW" MODE) ---------------------
+//
+// Off-site reviews, if the preferences are set to 'B' (show below
+// member reviews) or 'L' (show links only below member reviews)
+    if ($detailView && $osr && ($offsiteMode == 'B' || $offsiteMode == 'L')) {
+
+        echo "<h2>Off-Site Reviews</h2>"
+            . "<div class=indented>$osr</div>";
+
+    } // if (off-site "below" mode)
+
+
+//--------------------------- LINKS SECTION -------------------------------
+
+    if ($detailView) {
+
+        // Check to see if there are indeed any links.  If there's a Baf's
+        // ID, we have a link to Baf's Guide.  If there's an IFID, we
+        // *might* have a link to the IF Wiki, but we won't know until we
+        // send our xml request to ask.  So always start with an invisible
+        // section, and enable it in javascript as needed.
+
+        echo "<div style=\"display:none;\">"
+            . "<h2>Links</h2>"
+            . "<div class=indented id=\"links-div\">";
+
+
+        echo "</div>"
+            . "</div>";
+        ?>
+        <script type="text/javascript">
+        function addLinkItem(name, url, page)
+        {
+            var div = document.getElementById("links-div");
+            div.parentNode.style.display = "block";
+            var txt;
+            if (page) {
+                txt = "<a href=\"" + url + page + "\"><i><?php
+                    echo str_replace("\"", "&#34;", $title)
+                    ?></i></a> at <a href=\"" + url + "\">"
+                    + name + "</a>";
+            } else {
+                txt = "<a href=\"" + url + "\">" + name + "</a>";
+            }
+            div.innerHTML += txt + "<br>";
+        }
+        <?php
+
+        // generate the official site link, if present
+        if ($website) {
+            echo "addLinkItem(\"<i>"
+                . str_replace("\"", "&#34;", $title)
+                . "</i> Web Site\", \""
+                . str_replace("\"", "%22", $website)
+                . "\", null);\n";
+        }
+
+        // generate the Baf's Guide link if we have one
+        if ($bafsid) {
+            echo "addLinkItem(\"Baf's Guide\", \"http://www.wurb.com/if\", "
+                . "\"/game/" . $bafsid . "\");\n";
+        }
+
+        // generate a run-time check for an IF Wiki link, if we have an IFID
+        if (count($ifids) > 0) {
+            $jifid = str_replace("\"", "&#34;", $ifids[0]);
+        ?>
+            xmlSend("ifwiki-check?ifid=<?php echo $jifid ?>", null,
+                function(doc) {
+                    if (xmlChildText(doc, "exists") == "yes") {
+                        addLinkItem("IF Wiki", "http://ifwiki.org/index.php",
+                                    "?title=IFID:<?php echo $jifid ?>");
+                    }
+                }, null, true);
+        <?php
+        }
+        ?>
+        </script>
+        <?php
+    }
+
+
+//-------------------------- DETAIL VIEW FOOTER ---------------------------
+    if ($detailView) {
+
+        // if this is our page, and we own all the versions, offer
+        // deletion
+        $deletePageLink = "";
+        if ($curuser != "" && $curuser == $editedbyid) {
+            // look for other users in the version history
+            $qedby = mysql_real_escape_string($editedbyid, $db);
+            $result = mysql_query(
+                "select count(*) as c from games_history
+                 where id = '$qid'
+                 and ifnull(editedby, '') <> '$qedby'", $db);
+            if (mysql_result($result, 0, "c") == 0) {
+                $deletePageLink =
+                    "- <a href=\"delgame?id=$id\">Delete This Page</a>";
+            }
+        }
+
+        // add the footer showing the version/edit links
+        $editedby =
+            ($editedbyname
+             ? ("edited by <a href=\"showuser?id=$editedbyid\">"
+                . "$editedbyname</a>")
+             : "last edited");
+        echo "<br clear=all><br>
+           <hr class=dots>
+           <span class=notes>
+              <i>This is version $pagevsn of this page, $editedby
+                 on $moddate.</i>
+              - <a href=\"viewgame?history&id=$id\">View Update History</a>
+              - <a href=\"editgame?&id=$id\">Edit This Page</a>
+              - <a href=\"editnews?type=G&source=$id\">Add a News Item</a>
+              $deletePageLink
+           </span>";
+
+    } // if ($detailView)
+
+//----------------------------- ONE-REVIEW VIEW ---------------------------
+
+    // if we're showing a single review, show it
+    if ($oneReviewView) {
+
+        // make it easy to return to the overview page
+        echo "<br><span class=notes><a href=\"viewgame?id=$id\">Go to the
+            game's main page</a></span><br>";
+
+        // query the review by ID
+        $reviewID = get_req_data('review');
+        $result = mysql_query(
+            getReviewQueryByReview($db, $reviewID), $db);
+
+        // fetch the review
+        $reviewRec = mysql_fetch_array($result, MYSQL_ASSOC);
+        $reviewAuthor = $reviewRec['userid'];
+
+        if (mysql_num_rows($result) == 0) {
+            echo "The requested review does not exist.";
+        } else {
+
+            // start the section
+            showMemberReviewsHeader($memberReviewCnt, false, false);
+
+            // Show our single review.  Only show the "Add Comment"
+            // button for the comment controls, since we're going to
+            // list the comments below and thus don't need the control
+            // to show more of them.
+            showReview($db, $id, $reviewRec, $specialNames,
+                       SHOWREVIEW_COMMENTCTLSADDONLY);
+
+            // end the nested division that the header opens
+            echo "</div>";
+
+            // show the comments
+            $qReviewID = mysql_real_escape_string($reviewID, $db);
+            showCommentPage($db, $reviewAuthor, $qReviewID, "R",
+                            "viewgame?id=$id&review=$reviewID",
+                            "reviewcomment?review=$reviewID",
+                            25, "Comments on this review", "comments");
+        }
+
+    }
+
+//--------------------------- SEE-ALL-REVIEWS VIEW -------------------------
+
+    // if we're showing the Review View, show 10 member reviews
+    if ($reviewView) {
+
+        // number per page
+        $per_page = ($ratingsView ? 25 : 10);
+        $pgAll = false;
+
+        $limit = "";
+        if ($reviewPage == 'all') {
+            $pgAll = true;
+            $reviewPage = 1;
+        } else {
+            $reviewPage = (int)$reviewPage;
+        }
+
+        // calculate the row number of the first review on the page
+        $firstOnPage = ($reviewPage - 1) * $per_page;
+
+        // figure the page limits, if not viewing all
+        if (!$pgAll)
+            $limit = "limit $firstOnPage, $per_page";
+
+        // sorting option mapping - "sortby" <select> list to ORDER BY clause
+        $orderByMap = array(
+            'new' => array('moddate desc', 'Newest First'),
+            'old' => array('moddate', 'Oldest First'),
+            'hlp' => array('netHelpful desc', 'Most Helpful First'),
+            'unh' => array('netHelpful', 'Least Helpful First'),
+            'hi' => array('rating desc', 'Highest Ratings First'),
+            'lo' => array('rating', 'Lowest Ratings First'));
+
+        // build the query that gives us the right sorting order
+        $sortReq = get_req_data('sortby');
+        $orderBy = isset($orderByMap[$sortReq])
+                   ? $orderByMap[$sortReq][0] : "moddate desc";
+
+        // if it's a helpfulness query, apply the user filter ordering
+        if ($sortReq == 'hlp')
+            $orderBy = "$orderByUserFilter, $orderBy";
+        else if ($sortReq == 'unh')
+            $orderBy = "$orderByUserFilter desc, $orderBy";
+
+        // pick the appropriate base query
+        $query = ($ratingsView ? $selectMemberRatings : $selectMemberReviews);
+
+        // run the query
+        $result = mysql_query(
+            "$query order by $orderBy, moddate desc $limit", $db);
+
+        // get the query total - it might differ from the overall total
+        // due to plonking or other filters
+        $realtotcnt = ($ratingsView ? $ratingCntTot : $memberReviewCnt);
+        $result2 = mysql_query("select found_rows()", $db);
+        list($totcnt) = mysql_fetch_row($result2);
+
+        // if viewing all, make the page limit equal to the actual count
+        if ($pgAll)
+            $per_page = $totcnt;
+
+        // figure the number of pages that gives us
+        $lastPage = (int)floor(($totcnt + $per_page - 1)/$per_page);
+        if ($reviewPage > $lastPage)
+            $reviewPage = $lastPage;
+
+        // calculate the last on the page
+        $lastOnPage = $firstOnPage + $per_page - 1;
+        if ($lastOnPage > $totcnt - 1)
+            $lastOnPage = $totcnt - 1;
+
+        // make it easy to return to the overview page
+        echo "<br><span class=notes><a href=\"viewgame?id=$id\">Return to the
+            game's main page</a></span><br>";
+
+        // start the section
+        showMemberReviewsHeader($realtotcnt, $ratingsView, true);
+
+        // show the reviews/ratings only if we have any
+        if ($totcnt != 0) {
+
+            // show the sorting controls
+            showSortingControls("reviewOrder", "sortby", $orderByMap, $sortReq,
+                                array("id" => $id, "reviews" => "1",
+                                      "ratings" => $ratingsView),
+                                "viewgame");
+
+            // generate the page navigation controls
+            $pageCtl = "<span class=details>"
+                       . makePageControl(
+                           "viewgame?id=$id&reviews&sortby=$sortReq"
+                           . ($ratingsView ? "&ratings" : ""),
+                           $reviewPage, $lastPage,
+                           $firstOnPage, $lastOnPage, $totcnt,
+                           $totcnt > 20, true, $pgAll)
+                       . "</span>";
+
+            // show the page controls at the top of the review list
+            echo "$pageCtl<br><br><br>";
+
+            // now show the reviews
+            for ($i = $firstOnPage ; $i <= $lastOnPage ; $i++) {
+                showReview($db, $id, mysql_fetch_array($result, MYSQL_ASSOC),
+                           $specialNames);
+            }
+
+            // show the page controls again at the bottom of the review list
+            echo "<br>$pageCtl<span class=details> | "
+                . "<a href=\"viewgame?id=$id\">Return to game's main page"
+                . "</a><br><br>";
+        }
+
+        // end the indented division started in the review header
+        echo "</div>";
+
+    } // if ($reviewView)
+    
+} // if $(errMsg)
+
+pageFooter();
+
+?>

@@ -1,0 +1,56 @@
+<?php
+
+include_once "util.php";
+
+$srcCode = 'U';
+$type = "user";
+$typeName = "member's profile";
+$typeTitle = "Member";
+$ownSrc = "your own profile page";
+$ownerDesc = "owner of this profile";
+
+$baseUrl = "usercomment";
+$srcParamName = "user";
+
+include "comment.php";
+
+function getCommentReference($db, $srcID)
+{
+    $quid = mysql_real_escape_string($srcID, $db);
+    $result = mysql_query(
+        "select id, name, picture, location
+         from users
+         where id = '$quid'", $db);
+
+    if (mysql_num_rows($result) == 0)
+        return array(false, false, false, true,
+                     "The specified user isn't in the database.");
+
+    $rec = mysql_fetch_row($result);
+    return array($rec, $rec[0], $rec[1]);
+}
+
+function showCommentReference($db, $rec)
+{
+    // show the review, if we found it
+    if ($rec) {
+
+        list($uid, $name, $pic, $loc) = $rec;
+        $name = htmlspecialcharx($name);
+        $loc = htmlspecialcharx($loc);
+        
+        echo "<p><hr class=dots>You are commenting on this member's profile:<p>";
+        if ($pic)
+            echo "<table class=grid border=0 cellspacing=0 cellpadding=0>"
+                . "<tr><td><a href=\"showuser?id=$uid\">"
+                . "<img src=\"showuser?id=$uid&pic&thumbnail=120x120\" "
+                . "border=0></a></td><td>"
+                . "<a href=\"showuser?id=$uid\"><b>$name</b></a><br>"
+                . "<span class=details>$loc</span>"
+                . "</td></tr></table>";
+        else
+            echo "<a href=\"showuser?id=$uid\"><b>$name</b></a><br>"
+                . "<span class=details>$loc</span>";
+    }
+}
+?>

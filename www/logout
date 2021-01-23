@@ -1,0 +1,31 @@
+<?php
+@session_start();
+
+include "pagetpl.php";
+include_once "dbconnect.php";
+include_once "util.php";
+
+// delete any persistent sessions associated with the user
+$db = dbConnect();
+
+$uid = $_SESSION['logged_in_as'];
+mysql_query("delete from persistentsessions where userid = '$uid'", $db);
+
+$_SESSION['logged_in'] = false;
+$_SESSION['logged_in_as'] = null;
+
+// clear the recommendation cache
+shoot_recommendation_cache();
+
+pageHeader("Logged out");
+?>
+<h1>Logged Out</h1>
+
+<p>You are now logged out.
+
+<p><a href="login">Click here</a> to log in again.
+
+
+<?php
+pageFooter();
+?>

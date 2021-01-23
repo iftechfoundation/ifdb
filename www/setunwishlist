@@ -1,0 +1,101 @@
+<?php
+
+@session_start();
+include_once "util.php";
+include "pagetpl.php";
+include "login-check.php";
+
+function sendResponse($statmsg, $errmsg, $detail, $newCount = -1)
+{
+    global $xml;
+    
+    if ($xml)
+    {
+        header("Content-Type: text/xml");
+        header("Expires: Mon, 26 Jul 1997 05:00:00 GMT");
+        header("Cache-Control: no-store, no-cache, must-revalidate");
+
+        echo "<?xml version=\"1.0\" encoding=\"UTF-8\" ?><response>"
+            . ($statmsg ? "<label>$statmsg</label>" : "")
+            . ($errmsg ? "<error>$errmsg</error>" : "")
+            . ($newCount >= 0 ? "<newCount>$newCount</newCount>" : "")
+            . "</response>";
+    }
+    else
+    {
+        smallPageHeader("Review Vote");
+        if ($errmsg)
+            echo "<span class=errmsg>$errmsg</span><p>";
+
+        echo $detail;
+        smallPageFooter();
+    }
+
+    exit();
+}
+
+// connect to the database
+include_once "dbconnect.php";
+$db = dbConnect();
+if ($db == false)
+    sendResponse("Not Saved", "An error occurred connecting to the database. "
+                 . "Please try again later.", false);
+
+// get the request parameters
+$gameid = get_req_data("game");
+$add = (int)get_req_data("add");
+$xml = isset($_REQUEST['xml']);
+
+// validate & quote the parameters
+$qgameid = mysql_real_escape_string($gameid, $db);
+
+// make sure it's a valid game
+$result = mysql_query("select title from games where id='$qgameid'", $db);
+if (mysql_num_rows($result) == 0)
+    sendResponse("Not Saved", "The specified game doesn't exist in the "
+                 . "database.");
+
+// make sure we process any persistent login state
+$userid = checkPersistentLogin();
+if (!$userid && !$xml && !logged_in(true))
+    exit();
+
+if (!$userid)
+    sendResponse("Not Saved", "You must log in to use this feature.", false);
+
+$progress = "QU107";
+$result = mysql_query(
+    "select gameid from unwishlists
+     where gameid='$qgameid' and userid='$userid'", $db);
+$cnt = mysql_num_rows($result);
+if ($cnt == 0 && $add) {
+    // it's not already in the list, so insert it
+    $progress = "IN108";
+    $sql = "insert into unwishlists (gameid, userid, date_added)
+             values ('$qgameid', '$userid', now())";
+        $result = mysql_query($sql, $db);
+} else if ($cnt != 0 && !$add) {
+    // it was in the unwish list, but they want to remove it, so delete the row
+    $progress = "DL109";
+    $sql = "delete from unwishlists
+            where gameid='$qgameid' and userid='$userid'";
+    $result = mysql_query($sql, $db);
+}
+
+if ($result) {
+
+    // get the new count to send with the reply
+    $result = mysql_query(
+        "select count(userid) from unwishlists
+         where gameid='$qgameid'", $db);
+    list($newCnt) = mysql_fetch_row($result);
+
+    // send the success reply
+    sendResponse("Saved", false, "Your change has been recorded.", $newCnt);
+}
+else
+    sendResponse("Not Saved", "An error occurred updating the database "
+                 . "(failed operation: $progress). Please try again later.",
+                 false);
+
+?>

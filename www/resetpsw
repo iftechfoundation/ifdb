@@ -1,0 +1,222 @@
+<?php
+
+include "pagetpl.php";
+include_once "dbconnect.php";
+
+@session_start();
+
+// read the activation code
+$errFlagged = false;
+$activated = false;
+$actcode = $_REQUEST['a'];
+$email = $_REQUEST['userid'];
+$psw = $_REQUEST['password'];
+$psw2 = $_REQUEST['password2'];
+
+// verifier function
+function verify() {
+    global $actcode, $activated, $errFlagged, $email, $psw, $psw2;
+    
+    // connect to the database
+    $db = dbConnect();
+    if ($db == false) {
+        $errFlagged = "An error occurred accessing the user database. Please
+            try again. If the problem persists, please
+            <a href='/contact'>contact us</a> to let us know about the
+            problem.";
+        return true;
+    }
+
+    // look up the activation code
+    $qcode = mysql_real_escape_string($actcode, $db);
+    $result = mysql_query("select id, email, acctstatus from users
+        where activationcode = '$qcode'", $db);
+    if (mysql_num_rows($result) == 0) {
+        // the activation code doesn't exist
+        $errFlagged = "No matching account wasn't found in the user database.
+            Please check that you copied the link correctly from your password
+            reset email. If you've already reset your password through this
+            link, you must <a href=\"lostpass\">request another reset</a>
+            - the reset code is good for one use only.";
+        return true;
+    }
+
+    // get the user ID number, stored email address, and activation status
+    $usernum = mysql_result($result, 0, "id");
+    $dbemail = mysql_result($result, 0, "email");
+    $acctstatus = mysql_result($result, 0, "acctstatus");
+
+    // check for activation
+    if ($acctstatus == 'D') {
+        // activate now
+        if (mysql_query("update users set acctstatus = 'A'
+                where id = '$usernum'", $db) == false) {
+            $errFlagged = "An error occurred updating the user database to
+                activate your account. Please try again. If the problem
+                persists, please <a href='/contact'>contact us</a> to
+                let us know about the problem.";
+            return true;
+        }
+
+        // note that we activated
+        $activated = true;
+    }
+
+    // check for review needed
+    if ($acctstatus == 'R') {
+        $errFlagged = "This account is still pending review.";
+        return true;
+    }
+
+    // check for updates
+    if (strlen($email) != 0 || strlen($psw) != 0 || strlen($psw2) != 0) {
+        // validate the user ID
+        if (strcasecmp($email, $dbemail) != 0) {
+            $errFlagged = "Incorrect email address - you must enter your
+                registered email address to confirm your identity.";
+            return true;
+        }
+
+        // validate the password
+        if (strlen($psw) < 6) {
+            $errFlagged = "The password is too short - it must be at least
+                six characters long.";
+            return true;
+        }
+        if (strcmp($psw, $psw2) != 0) {
+            $errFlagged = "Password mismatch - you must enter the
+                <b>identical</b> password two times to ensure that you
+                didn't make any mistakes typing it.";
+            return true;
+        }
+
+        // looks good - make the updates; first, calculate the hashed password
+        $salt = md5(rand());
+        $hashpsw = sha1($salt . $psw);
+
+        // activation code are one-time-only, so change it
+        $actcode = sha1($usernum . md5(rand()) . md5(rand()). md5(rand()));
+
+        // update the database
+        if (mysql_query("update users set password = '$hashpsw',
+                pswsalt = '$salt', activationcode = '$actcode'
+                where id = '$usernum'", $db) == false) {
+            $errFlagged = "An error occurred updating the database. You might
+                want to try again - if the problem persists,
+                <a href=\"/contact\">contact us</a> to let us know
+                about it.";
+            return true;
+        }
+
+        // all is well - start the page
+        pageHeader("Password Reset", "resetpsw.userid");
+?>
+
+<h1>Password Changed</h1>
+
+<p>Your new password is now in effect. Please make a note of it.
+
+<p><a href="login">Click here</a> to log in.
+
+<?php
+
+        // no need to show the reset page again
+        return false;
+    }
+
+    // proceed with displaying the entry form
+    return true;
+}
+
+// make sure the activation code is well formed
+if (strlen($actcode) != 40) {
+    // start the page
+    pageHeader("Password Reset");
+?>
+
+<h1>Password Reset</h1>
+
+<p><font color=red><b>Error: Invalid password reset code</b></font>
+
+<p>This page is for use only <b>after</b> you request a new password.
+If you've forgotten your password and you'd like to request a new one,
+<a href="lostpsw">click here</a>.
+
+<p>If you've already requested a new password, and you've come here
+according to the instructions in the email you received, make sure
+that you correctly copied the <b>entire</b> link, <b>exactly</b> as
+shown in the email.
+
+<?php
+
+    pageFooter();
+
+} else {
+    // run the verification
+    if (!verify())
+        exit();
+
+    // start the page
+    pageHeader("resetpsw.userid");
+?>
+
+<h1>Password Reset</h1>
+
+<?php
+    if ($errFlagged) {
+        echo "<p><font color=red><b>Error:</b> $errFlagged</font>";
+    }
+
+    if ($activated) {
+        echo "<p><b>Note: Successful Activation!</b> Your new account has ";
+        echo "now been activated. If you also want to change your password, ";
+        echo "you can do so using the form below.";
+    }
+?>
+
+<p><a href="login">Click here to go the login page</a>
+
+<p><a href="lostpass">Click here to request a password reset</a>
+
+<p>To select a new password, enter your email address and the new
+password below.  You must enter your email address exactly as it's
+registered.  (You must enter the password twice, identically both
+times, to confirm that you didn't make any mistakes typing it.)
+
+<p>
+<form method=post action="resetpsw" name="resetpsw">
+   
+   <table border=0>
+      <tr>
+         <td>
+            Email address:
+         <td>
+            <input type="text" name="userid" id="userid" size=30
+                  value="<?php echo $email ?>">
+
+      <tr>
+         <td>
+            Password:
+         <td>
+            <input type="password" name="password" id="password" size=30
+                  value="<?php echo $psw ?>">
+
+      <tr>
+         <td>
+            Repeat Password:
+         <td>
+            <input type="password" name="password2" id="password2" size=30
+                  value="<?php echo $psw2 ?>">
+
+   </table>
+
+   <br><br>
+   <input type=submit value="Submit">
+   <input type=hidden name="a" id="a" value="<?php echo $actcode ?>">
+    
+<?php
+   pageFooter();
+}
+?>
+
+</html>

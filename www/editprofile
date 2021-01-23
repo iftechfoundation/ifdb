@@ -1,0 +1,1047 @@
+<?php
+
+include "pagetpl.php";
+include_once "captcha.php";
+include_once "akismet.php";
+
+@session_start();
+include "login-check.php";
+include_once "util.php";
+if (provisionally_logged_in())
+    $usernum = $_SESSION['provisional_logged_in_as'];
+else if (logged_in())
+    $usernum = $_SESSION['logged_in_as'];
+else
+    exit();
+    
+$captchaKey = "editProfile.$usernum";
+list($captchaOK, $captchaErr) = captchaCheckPost($captchaKey);
+
+// if there's an image upload, process that
+include "imageuploadhandler.php";
+
+// if they're canceling, return to the user profile page with no changes
+if (isset($_REQUEST['cancel'])) {
+    // success - redirect to the page we just updated/created
+    header("HTTP/1.1 301 Moved Permanently");
+    header("Content-Type: text/html");
+    header("Location: home");
+    
+    echo "<a href=\"home\">Redirecting (click here if your
+         browser doesn't redirect automatically)</a>";
+
+    exit();
+}
+
+// read the request parameters
+$errFlagged = false;
+$email = get_req_data('email');
+$email2 = get_req_data('email2');
+$dname = get_req_data('dname');
+$pubemail = get_req_data('pubemail');
+$loc = get_req_data('location');
+$profile = get_req_data('profile');
+$changed = false;
+$emailChanged = false;
+$profileChanged = false;
+$pic = isset($_REQUEST['profilepic']) ? $_REQUEST['profilepic'] : false;
+$defaultOS = get_req_data('defaultos');
+$mirror = get_req_data('mirror');
+$noExes = get_req_data('noexes');
+$playlistPub = (get_req_data('plpub') != 0);
+$wishlistPub = (get_req_data('wlpub') != 0);
+$unwishlistPub = (get_req_data('uwpub') != 0);
+$emailcaptcha = (get_req_data('emailcaptcha') != 0);
+$emailcloaked = (get_req_data('emailcloaked') != 0);
+$gender = get_req_data('gender');
+$offsite = get_req_data('offsite');
+$accessibility = (get_req_data('accessibility') ? 1 : 0);
+
+if (strlen($gender) != 1 || strpos("MF", $gender) === false)
+    $gender = "";
+
+if (strlen($offsite) != 1 || strpos("ABLN", $offsite) == false)
+    $offsite = 'A';
+
+// if we just uploaded a picture, select it
+$pic = getJustUploadedImage($pic);
+
+// show the hidden fields for a sub-form
+function showHiddenFields()
+{
+    global $email, $email2, $pubemail, $dname, $loc, $profile, $pic,
+        $defaultOS, $mirror, $noExes,
+        $playlistPub, $wishlistPub, $unwishlistPub, $gender,
+        $emailcaptcha, $emailcloaked;
+    
+    echo "<input type=hidden name=email value=\""
+          . htmlspecialcharx($email) . "\">"
+        . "<input type=hidden name=email2 value=\""
+          . htmlspecialcharx($email2) . "\">"
+        . "<input type=hidden name=dname value=\""
+          . htmlspecialcharx($dname) . "\">"
+        . "<input type=hidden name=pubemail value=\""
+          . htmlspecialcharx($pubemail) . "\">"
+        . "<input type=hidden name=location value=\""
+          . htmlspecialcharx($loc) . "\">"
+        . "<input type=hidden name=profile value=\""
+          . htmlspecialcharx($profile) . "\">"
+        . "<input type=hidden name=profilepic value=\""
+          . htmlspecialcharx($pic) . "\">"
+        . "<input type=hidden name=noexes value=\""
+          . htmlspecialcharx($noExes) . "\">"
+        . "<input type=hidden name=plpub value=\""
+          . ($playlistPub ? 1 : 0) . "\">"
+        . "<input type=hidden name=wlpub value=\""
+          . ($wishlistPub ? 1 : 0) . "\">"
+        . "<input type=hidden name=uwpub value=\""
+          . ($unwishlistPub ? 1 : 0) . "\">"
+        . "<input type=hidden name=emailcaptcha value=\""
+          . ($emailcaptcha ? 1 : 0) . "\">"
+        . "<input type=hidden name=emailcloaked value=\""
+          . ($emailcloaked ? 1 : 0) . "\">"
+        . "<input type=hidden name=gender value=\"$gender\">"
+        . "<input type=hidden name=offsite value=\"$offsite\">"
+        . "<input type=hidden name=accessibility value=\"$accessibility\">"
+        . "<input type=hidden name=mirror value=\""
+        . htmlspecialcharx($mirror) . "\">"
+        . "<input type=hidden name=defaultos value=\""
+        . htmlspecialcharx($defaultOS) . "\">";
+}
+
+include_once "dbconnect.php";
+$db = dbConnect();
+
+// quote a string for database use - return 'str' or NULL if empty
+function dbEscape($str)
+{
+    global $db;
+
+    if ($str == "")
+        return "null";
+    else
+        return "'" . mysql_real_escape_string($str, $db) . "'";
+}
+
+// initialize
+function init()
+{
+    global $db, $usernum, $email, $email2, $pubemail, $dname, $loc, $profile,
+        $errFlagged, $emailChanged, $changed, $pic, $hasPic, $oldPic,
+        $oldemail, $oldpubemail, $olddname, $oldloc,
+        $oldprofile, $oldprostat, $profileChanged,
+        $oldstat, $defaultOS, $oldDefaultOS, $noExes, $oldNoExes, $playlistPub,
+        $oldPlaylistPub, $wishlistPub, $oldWishlistPub,
+        $unwishlistPub, $oldUnwishlistPub, $gender, $oldGender,
+        $emailcaptcha, $oldEmailcaptcha, $emailcloaked, $oldEmailcloaked,
+        $mirror, $oldMirror, $actcode, $oldPicName, $offsite, $oldOffsite,
+        $accessibility, $oldAccessibility;
+    
+    // connect to the database
+    if ($db == false) {
+        $errFlagged = "An error occurred accessing the user database. Please
+            try again. If the problem persists, please
+            <a href='/contact'>contact us</a> to let us know about the
+            problem.";
+        return;
+    }
+
+    // look up the current password data, for validation
+    $result = mysql_query(
+        "select
+           email, name, publicemail, location,
+           profile, profilestatus,
+           picture is not null as haspic, picture as pic,
+           acctstatus, activationcode,
+           concat(defaultos, '.', ifnull(defaultosvsn,'')) as defaultos,
+           noexedownloads, publiclists, gender, emailflags, mirrorid,
+           offsite_display, accessibility
+        from
+           users
+        where
+           id = '$usernum'", $db);
+
+    // abort if we can't look it up
+    if (mysql_num_rows($result) == 0) {
+        $errFlagged = "Your user account could not be accessed in the
+            user database. You might want to try the operation again -
+            <a href=\"/contact\">contact us</a> if the problem persists.";
+        return;
+    }
+
+    // get the old account data
+    $oldemail = mysql_result($result, 0, "email");
+    $olddname = mysql_result($result, 0, "name");
+    $oldpubemail = mysql_result($result, 0, "publicemail");
+    $oldloc = mysql_result($result, 0, "location");
+    $oldprofile = mysql_result($result, 0, "profile");
+    $oldprostat = mysql_result($result, 0, "profilestatus");
+    $oldstat = mysql_result($result, 0, "acctstatus");
+    $actcode = mysql_result($result, 0, "activationcode");
+    $hasPic = mysql_result($result, 0, "haspic");
+    $oldPicName = mysql_result($result, 0, "pic");
+    $oldPic = $hasPic ? "old" : "none";
+    $oldDefaultOS = mysql_result($result, 0, "defaultos");
+    $oldNoExes = mysql_result($result, 0, "noexedownloads");
+    $publists = mysql_result($result, 0, "publiclists");
+    $oldPlaylistPub = (strpos($publists, "P") !== false ? 1 : 0);
+    $oldWishlistPub = (strpos($publists, "W") !== false ? 1 : 0);
+    $oldUnwishlistPub = (strpos($publists, "U") !== false ? 1 : 0);
+    $oldGender = mysql_result($result, 0, "gender");
+    $emailflags = mysql_result($result, 0, "emailflags");
+    $oldEmailcaptcha = (($emailflags & EMAIL_CAPTCHA) ? 1 : 0);
+    $oldEmailcloaked = (($emailflags & EMAIL_CLOAKED) ? 1 : 0);
+    $oldMirror = mysql_result($result, 0, "mirrorid");
+    $oldOffsite = mysql_result($result, 0, "offsite_display");
+    $oldAccessibility = mysql_result($result, 0, "accessibility");
+
+    // if we're not posting, populate the form with the current values
+    // from the database
+    if ($_SERVER['REQUEST_METHOD'] != 'POST') {
+        // use the stored values
+        $email = $oldemail;
+        $pubemail = $oldpubemail;
+        $dname = $olddname;
+        $loc = $oldloc;
+        $profile = $oldprofile;
+        $pic = $oldPic;
+        $defaultOS = $oldDefaultOS;
+        $noExes = $oldNoExes;
+        $playlistPub = $oldPlaylistPub;
+        $wishlistPub = $oldWishlistPub;
+        $unwishlistPub = $oldUnwishlistPub;
+        $emailcaptcha = $oldEmailcaptcha;
+        $emailcloaked = $oldEmailcloaked;
+        $gender = $oldGender;
+        $mirror = $oldMirror;
+        $offsite = $oldOffsite;
+        $accessibility = $oldAccessibility;
+    }
+
+    // if the current cover art setting refers to an uploaded image
+    // that's been discarded, revert to the current game image
+    if (substr($pic, 0, 3) == "tmp" && !findTempImage($pic)) {
+        // can't find it - revert to the original database setting
+        $pic = $oldPic;
+    }
+}
+
+// save
+function saveChanges()
+{
+    global $db, $usernum, $email, $email2, $pubemail, $dname, $loc, $profile,
+        $errFlagged, $emailChanged, $changed, $pic, $hasPic, $oldPic,
+        $oldemail, $olddname, $oldpubemail, $oldloc,
+        $oldprofile, $oldprostat, $profileChanged,
+        $oldstat, $defaultOS, $oldDefaultOS, $noExes, $oldNoExes, $oldPicName,
+        $playlistPub, $oldPlaylistPub, $wishlistPub, $oldWishlistPub,
+        $unwishlistPub, $oldUnwishlistPub,
+        $gender, $oldGender, $emailcaptcha, $oldEmailcaptcha,
+        $emailcloaked, $oldEmailcloaked, $mirror, $oldMirror, $actcode,
+        $offsite, $oldOffsite, $accessibility, $oldAccessibility,
+        $captchaKey, $captchaOK, $captchaErr;
+
+    // no new picture yet
+    $imgID = false;
+    
+    // check for updates
+    if (strcmp($email, $oldemail) != 0
+        || strcmp($dname, $olddname) != 0
+        || strcmp($pubemail, $oldpubemail) != 0
+        || strcmp($loc, $oldloc) != 0
+        || strcmp($profile, $oldprofile) != 0
+        || strcmp($pic, $oldPic) != 0
+        || strcmp($oldDefaultOS, $defaultOS) != 0
+        || $noExes != $oldNoExes
+        || $playlistPub != $oldPlaylistPub
+        || $wishlistPub != $oldWishlistPub
+        || $unwishlistPub != $oldUnwishlistPub
+        || $emailcaptcha != $oldEmailcaptcha
+        || $emailcloaked != $oldEmailcloaked
+        || $gender != $oldGender
+        || $mirror != $oldMirror
+        || $offsite != $oldOffsite
+        || $accessibility != $oldAccessibility)
+    {
+        // if we're changing the email address, we'll need to reactivate
+        if (strcmp($email, $oldemail) != 0) {
+            // note that we have a new email address
+            $emailChanged = true;
+
+            // make sure the confirmation entry matches
+            if (strcmp($email, $email2) != 0) {
+                $errFlagged = "Email mismatch - the two email addresses
+                    you entered don't match. You must enter the same
+                    address twice, <b>identically</b>, to protect against
+                    typing mistakes. Please check your entries.";
+                return;
+            }
+        }
+
+        // note if we're changing the profile
+        if (strcmp($profile, $oldprofile) != 0)
+            $profileChanged = true;
+
+        // get the actual artwork
+        $changedPic = false;
+        if (findTempImage($pic)) {
+            // find the temporary image in the session
+            $img = findTempImage($pic);
+
+            // tentatively store the picture in the database
+            $imgID = tentative_store_image(
+                $img[0], $img[1], $img[3], $img[4], $usernum);
+            
+            // set the update data for the picture
+            $setPic = ",picture='$imgID'";
+            $changedPic = true;
+        } else if ($pic == "none") {
+            // changing to no picture - set the picture to null
+            $setPic = ",picture=null";
+            $changedPic = true;
+        } else {
+            // keeping the old one - simply omit this column from the update
+            $setPic = "";
+        }
+
+        // quote the new strings
+        $qemail = mysql_real_escape_string($email, $db);
+        $qdname = mysql_real_escape_string($dname, $db);
+        $qpubemail = mysql_real_escape_string($pubemail, $db);
+        $qloc = mysql_real_escape_string($loc, $db);
+        $qprofile = mysql_real_escape_string($profile, $db);
+
+        // make sure the location doesn't contain a url
+        if (preg_match("/http:/i", $loc)) {
+            $errFlagged = "For \"Location\", please enter a city or "
+                          . "region, not a web site.";
+            return;
+        }
+
+        if ($defaultOS == "")
+            $qdefos = $qdefosvsn = "null";
+        else
+            list($qdefos, $qdefosvsn) =
+                array_map("dbEscape", explode(".", $defaultOS));
+
+        $qNoExes = (int)$noExes;
+
+        $qPublicLists = ($playlistPub ? "P" : "")
+                        . ($wishlistPub ? "W" : "")
+                        . ($unwishlistPub ? "U" : "");
+
+        $qGender = mysql_real_escape_string($gender, $db);
+
+        $qmirror = mysql_real_escape_string($mirror, $db);
+
+        $qOffsite = mysql_real_escape_string($offsite, $db);
+
+        $qAccessibility = ($accessibility ? 1 : 0);
+
+        $emailflags = (($emailcaptcha ? EMAIL_CAPTCHA : 0)
+                       | ($emailcloaked ? EMAIL_CLOAKED : 0));
+
+        // ensure that the email and display names aren't blank
+        if (strlen($dname) == 0) {
+            $errFlagged = "You must provide a Display Name.";
+            return;
+        }
+        if (strlen($email) == 0) {
+            $errFlagged = "You must provide an Email Address.";
+            return;
+        }
+        if (preg_match("/\s*http:/i", $pubemail)) {
+            $errFlagged = "The format of your public email address appears "
+                          . "to be invalid.";
+            return;
+        }
+        if (preg_match("/\s*http:/i", $dname)) {
+            $errFlagged = "Your Display Name is invalid - you can't use "
+                          . "a hyperlink as your display name.";
+            return;
+        }
+
+        // ensure that the new email and display names aren't taken
+        if ($emailChanged) {
+            $result = mysql_query("select id from users
+                where email = '$qemail'", $db);
+            if (mysql_num_rows($result) != 0) {
+                $errFlagged = "That email address is already registered by
+                    another user.";
+                return;
+            }
+        }
+        if (strcmp($dname, $olddname) != 0) {
+            $result = mysql_query("select id from users
+                where name = '$qdname'", $db);
+            if (mysql_num_rows($result) != 0) {
+                $errFlagged = "That Display Name is already taken by
+                    another user.";
+                return;
+            }
+        }
+
+        // note the new profile status
+        $newprostat = $oldprostat;
+
+        // note the new activation status
+        $newstat = $oldstat;
+        if ($emailChanged && $oldstat == 'A')
+            $newstat = 'D';
+
+        // if there are any links in the description field, show a captcha
+        if ($profileChanged
+            && preg_match("/<\s*a\s+href/i", $profile)
+            && !$captchaOK) {
+
+            // we need the captcha form step
+            pageHeader("Update Profile", false, false,
+                       "<script src='xmlreq.js'></script");
+            captchaSupportScripts($captchaKey);
+
+            ?>
+            <h1>Please confirm that you're a real person</h1>
+
+            <p>The profile description you entered appears to contain
+            hyperlinks.  In an effort to reduce spam on the site, we
+            ask that you confirm that you're a real person by entering
+            the words below.
+
+            <p>
+            <form method=post action=editprofile name=confirmReal>
+            <?php
+               captchaSubForm($captchaKey, $captchaErr);
+               showHiddenFields();
+            ?>
+
+            <p>
+            <input type=submit name="confirmCaptcha" value="Save Changes">
+            <input type=submit name="revise" value="Continue Editing">
+            <input type=hidden name="save" value=1>
+            </form>
+            <?php
+            captchaFinish($captchaKey);
+            pageFooter();
+            exit();
+        }
+
+        // further checks for profile changes
+        if ($profileChanged)
+        {
+            // check for http inclusions - these get the profile flagged
+            // for review if it's not marked as trusted
+            if ((preg_match("/http:/i", $profile)
+                 || preg_match("/<\s*a\s+href/i", $profile))
+                && $oldprostat != "T")
+            {
+                // we have a link - flag it for review
+                $newprostat = "R";
+            }
+
+            // ask akismet for a judgment - if akismet thinks it's spam,
+            // flag it for review even if it's a trusted profile
+            $ak = akNew();
+            $ak->setCommentAuthor($dname);
+            $ak->setCommentAuthorEmail($email);
+            $ak->setCommentAuthorURL(
+                "http://ifdb.tads.org/showuser?id=$usernum");
+            $ak->setCommentContent($profile);
+            $ak->setPermalink(
+                "http://ifdb.tads.org/showuser?id=$usernum");
+
+            $akIsSpam = $ak->isCommentSpam();
+            if ($akIsSpam)
+                $newprostat = "R";
+
+            // generate an admin nonce to update the record
+            $task = "review user profile $usernum";
+            $nonce = create_nonce($db, $task);
+            if (!$nonce) {
+                $errFlagged = "An error occurred updating the database. "
+                              . "You might want to wait a few moments "
+                              . "and try again, or <a href=\"contact\">"
+                              . "contact us</a> if the problem persists. "
+                              . "(Error code EPN1688)";
+                return false;
+            }
+
+            // profile status code to name map
+            $proStatMap = array(
+                "T" => "Trusted",
+                "R" => "Pending Review",
+                "" => "Normal");
+
+            // Send email to the IFDB admin on any profile change.  Even
+            // if the profile doesn't require review, we want to take a
+            // look anyway just to be sure.
+            $adminUrl = "http://ifdb.tads.org/userconfirm"
+                        . "?nonce=$nonce"
+                        . "&userid=$usernum"
+                        . "&reviewProfile=";
+    
+            $msg = "IFDB profile change notification\r\n<p>"
+                   . ($newprostat == "R" ?
+                      "<b>*** Review required ***</b>" :
+                      "(No review required - advisory only)")
+                   . "<p>Profile page: "
+                   . "<a href=\"http://ifdb.tads.org/showuser"
+                   . "?id=$usernum&unlock=$nonce\">"
+                   .     "http://ifdb.tads.org/showuser?id=$usernum</a>"
+                   . "<br>User email: " . htmlspecialcharx($email)
+                   . "<br>Screen name: " . htmlspecialcharx($dname)
+                   . "<br>Location: " . htmlspecialcharx($loc)
+                   . "<br>IP address: ". $_SERVER['REMOTE_ADDR']
+                   . "<br>Akismet judgment: " . ($akIsSpam ? "Spam" : "Okay")
+                   . "<br>Profile status: "
+                   .    "$newprostat ({$proStatMap[$newprostat]})"
+                   . "<p>Profile text: " . htmlspecialcharx($profile)
+                   . "<p><a href=\"{$adminUrl}A\">"
+                   . ($newprostat == "T" ? "Set user to \"normal\"</a>"
+                      . " (remove \"trusted\" designation)" :
+                      "Approve the profile</a>")
+                   . "<br><a href=\"{$adminUrl}T\">Set user to \"trusted\"</a>"
+                   .   " (automatically approves future profile changes)"
+                   . "<br><a href=\"{$adminUrl}B\">Ban the user</a>"
+
+                   . "<br><a href=\"http://localhost/mjrnet/sfs-report.php"
+                   .     "?email=" . urlencode($email)
+                   .     "&ip=" . $_SERVER['REMOTE_ADDR']
+                   .     "&username=" . urlencode($dname)
+                   .     "\">Report this user to StopForumSpam</a>"
+
+                   . "<br><br>";
+
+            $hdrs = "From: IFDB <noreply@ifdb.tads.org>\r\n"
+                    . "Content-type: Text/HTML\r\n";
+
+            mail("ifdbadmin@ifdb.tads.org",
+                 "IFDB profile change", $msg, $hdrs);
+        }
+
+        // if they're changing the email address, verify that they're
+        // serious
+        if ($emailChanged && !isset($_REQUEST['confirmEmailChange'])) {
+            // we haven't asked for confirmation yet - display
+            pageHeader("Confirm Email Change");
+?>
+<h1>Confirm E-mail Change</h1>
+
+<p>You have entered a new email address: "<?php
+    echo htmlspecialcharx($email) ?>"
+
+<p>If you proceed with this change, you'll have to verify that you're
+the owner of the new address.  The activation procedure is the same as
+when you first registered.  <b>Your account will be temporarily
+deactivated, and you will not be able to log in again, until you
+complete the re-activation process.</b>
+
+<p>Do you really want to proceed?
+
+<p>
+<form method="post" action="editprofile" name="confirmEmail">
+   <input type=submit name="confirmEmailChange" value=" Proceed ">
+   &nbsp;&nbsp;&nbsp;
+   <input type=submit name="cancelEmailChange" value=" Cancel ">
+   <?php showHiddenFields() ?>
+</form>
+
+<?php
+            pageFooter();
+            exit();
+        }        
+
+        // if we're changing the email address, send an activation email
+        if ($emailChanged) {
+            // generate a new activation code - they're single use only
+            $actcode = sha1(md5_rand($usernum) . md5_rand($email));
+
+            // build the activation link
+            $actlink = "http://ifdb.tads.org/userconfirm?a=$actcode";
+
+            // build the message body
+            $msg = "Welcome to IFDB!\n\n
+                <p>You can start using your new account as soon as you activate it.\n
+                To activate, click on the link below:\n\n
+                <p><a href='$actlink'>$actlink</a>\n\n
+                <p>If your email program doesn't let you open the link by\n
+                clicking on it, copy and paste the entire link into your Web\n
+                browser's Address bar.\n\n
+                <p>Thank you for registering your new user account.  If you need to\n
+                contact us, please see the Contact page at ifdb.tads.org.  Please do\n
+                not reply to this email - replies to this address are not monitored.\n\n";
+
+            // build the headers
+            $hdrs = "From: IFDB <noreply@ifdb.tads.org>\r\n"
+                    . "Content-type: Text/HTML\r\n";
+
+            // send the message
+            if (!mail($email, "IFDB user activation", $msg, $hdrs)) {
+                $errFlagged = "<b>Error:</b>
+                    Because you're attempting to change
+                    your registered email address, we need to send you email
+                    with instructions for confirming the new address.
+                    However, an error occurred sending that email, so
+                    we can't apply your changes right now. If you think
+                    the problem is at our end, you can try again later,
+                    or <a href=\"/contact\">contact us</a> to let
+                    us know about the problem.";
+                return;
+            }
+        }
+
+        // update the database
+        if (mysql_query("update users
+                set email = '$qemail', name = '$qdname', location = '$qloc',
+                   publicemail = '$qpubemail', profile = '$qprofile',
+                   profilestatus = '$newprostat',
+                   acctstatus = '$newstat', activationcode = '$actcode',
+                   defaultos = $qdefos, defaultosvsn = $qdefosvsn,
+                   noexedownloads = '$qNoExes', publiclists = '$qPublicLists',
+                   gender = '$qGender', emailflags = '$emailflags',
+                   mirrorid = '$qmirror', offsite_display = '$qOffsite',
+                   accessibility = '$qAccessibility'
+                   $setPic
+                where id = '$usernum'", $db) == false) {
+            $errFlagged = "An error occurred updating the database. You might
+                want to try again - if the problem persists,
+                <a href=\"/contact\">contact us</a> to let us know
+                about it.";
+            return;
+        }
+
+        // success - commit the picture if applicable
+        if ($imgID)
+            commit_image($imgID);
+
+        // if there was an old picture, delete it
+        if ($changedPic && $oldPicName != "")
+            delete_image($oldPicName);
+
+        // the picture setting for the redisplay is explicitly "old" or
+        // "none", as applicable
+        $hasPic = ($pic != "none");
+        if ($pic != "none")
+            $pic = "old";
+
+        // we've made changes
+        $changed = true;
+    }
+
+    if (!$changed)
+        $errFlagged = "You didn't make any changes.";
+}
+
+// initialize the request
+init();
+
+// If this is a save request, attempt the save.  A save request can either
+// be the first iteration, with our own Save button, or a confirmation from
+// the email-change warning screen.
+if ($_SERVER['REQUEST_METHOD'] == 'POST'
+    && !isset($_REQUEST['revise'])
+    && (isset($_REQUEST['save'])
+        || isset($_REQUEST['confirmEmailChange'])
+        || isset($_REQUEST['confirmCaptcha']))) {
+    saveChanges();
+}
+
+// start the page
+pageHeader("Update Profile", "editprofile.email", false,
+           "<script src='xmlreq.js'></script");
+imageUploadScripts();
+captchaSupportScripts($captchaKey);
+
+?>
+
+<h1>Update Profile</h1>
+
+<?php
+    if ($errFlagged)
+        echo "<p><span class=errmsg>$errFlagged</span>";
+
+    // if this is a cancellation from the email-change warning screen, note it
+    if (isset($_REQUEST['cancelEmailChange']))
+        echo "<p><span class=errmsg>Canceled - no changes have been
+           saved.</span>";
+
+    if ($changed)
+        echo "<p><span class=success><b>
+           Your profile has been updated.</b></span>";
+
+    if ($emailChanged && !$errFlagged)
+        echo "<p><font color=red><b>Your email address has been updated,
+            which requires that you re-activate your account to confirm
+            that you own the new address.  We have sent you a message at
+            your new email address with instructions for re-activating.
+            You will not be able to log in again until you complete the
+            re-activation.</font>";
+?>
+
+
+<form method="post" action="editprofile" name="editprofile">
+
+<h2>1. User ID</h2>
+
+<div class=indented>
+
+<p><span class=details>Your email address is your user ID
+   when you log in.  It's <b>not</b> displayed to other users.</span>
+
+<p>
+   
+   <table class=dataform border=0 cellspacing=0 cellpadding=0>
+      <tr>
+         <td>
+            Email Address:
+         </td>
+         <td>
+            <input type="text" name="email" id="email" size=30
+                  value="<?php echo htmlspecialcharx($email) ?>">
+         </td>
+      </tr>
+
+      <tr>
+         <td>
+            Confirm Email:
+         </td>
+         <td>
+            <input type="text" name="email2" id="email2" size=30
+                  value="<?php echo htmlspecialcharx($email2) ?>">
+         </td>
+      </tr>
+   </table>      
+
+   <br>
+   <p>To change your password, <a href="changepsw">click here</a>.
+
+</div>
+
+<h2>2. Public Profile</h2>
+
+<div class=indented>
+
+   <p><span class=details>These settings let you control how you
+      appear to other users.  A Screen Name is required, although
+      you don't have to use your real name.  (It's helpful if you
+      use a name you use in other IF-related forums, though, so
+      community members will recognize you.)  The other information
+      is optional.
+   </span>
+   <p>
+
+   <table class=dataform border=0 cellspacing=0 cellpadding=0>
+      <tr valign=top>
+         <td align=right>
+            Screen Name:
+         </td>
+         <td>
+            <input type="text" name="dname" id="dname" size=30
+                  value="<?php echo htmlspecialcharx($dname) ?>">
+            <br><span class=microhelp>Required - this is the name shown
+               for your reviews, lists, etc.
+         </td>
+      </tr>
+
+      <tr valign=top><td>&nbsp;<br></td></tr>
+      <tr valign=top>
+         <td align=right>
+            Gender:
+         </td>
+         <td>
+            <label><input type="radio" name="gender" id="genderM" value="M"
+                <?php if ($gender == "M") echo "checked"
+                ?>> <label for="genderM">Male</label></label>
+            <label><input type="radio" name="gender" id="genderF" value="F"
+                <?php if ($gender == "F") echo "checked"
+                ?>> <label for="genderF">Female</label></label>
+            <label><input type="radio" name="gender" id="genderN" value="N"
+                <?php if ($gender == "") echo "checked"
+                ?>> <label for="genderN">Decline to state</label></label>
+            <br><span class=microhelp>Optional. We use this in a few places
+               to ensure we use the right wording when referring to you.
+         </td>
+      </tr>
+
+      <tr valign=top><td>&nbsp;<br></td></tr>
+      <tr valign=top>
+         <td align=right>
+            Location:
+         </td>
+         <td>
+            <input type="text" name="location" id="location" size=30
+                  value="<?php echo htmlspecialcharx($loc) ?>">
+            <br><span class=microhelp>Optional. For example,
+                "San Diego, California," "Barcelona, Spain" </span>
+         </td>
+      </tr>
+
+      <tr valign=top><td>&nbsp;<br></td></tr>
+      <tr valign=top>
+         <td align=right>
+            <nobr>Public E-Mail Address:</nobr>
+         </td>
+         <td>
+            <input type="text" name="pubemail" id="pubemail" size=30
+                  value="<?php echo htmlspecialcharx($pubemail) ?>"><br>
+            <label><input type="checkbox" name="emailcaptcha"
+                     id="emailcaptcha" value="1"
+                   <?php if ($emailcaptcha) echo "checked"
+                   ?>> <label for="emailcaptcha">Hide from web crawlers
+                   </label></label>
+                <br>
+            <label><input type="checkbox" name="emailcloaked"
+                     id="emailcloaked" value="1"
+                   <?php if ($emailcloaked) echo "checked"
+                   ?>> <label for="emailcloaked">This address is "cloaked"
+                       against spam
+                   </label></label>
+                <br>
+            <span class=microhelp>Optional - this is displayed on your
+               profile page. If you check "hide," the address won't be visible
+               until the user enters a code from a verification image.  Check
+               "cloaked" if you've manually obscured your address to prevent
+               spam (<?php
+                 echo helpWinLink("help-spamcloaking", "explain");
+//<a href="needjs"
+//               onclick="javascript:helpWin('help-spamcloaking');return false;"
+//               >explain</a>
+               ?>) - we'll warn other users about this if so.
+            </span>
+         </td>
+      </tr>
+
+      <tr valign=top><td>&nbsp;<br></td></tr>
+      <tr valign=top>
+         <td align=right>
+            Public Play Lists:
+         </td>
+         <td>
+            <label><input type="checkbox" name="plpub" id="plpub" value="1"
+                   <?php if ($playlistPub) echo "checked"
+                   ?>> <label for="plpub">List of games I've played
+                   </label></label>
+                <br>
+            <label><input type="checkbox" name="wlpub" id="wlpub" value="1"
+                   <?php if ($wishlistPub) echo "checked"
+                   ?>> <label for="wlpub">Wish list</label></label>
+                <br>
+            <label><input type="checkbox" name="uwpub" id="uwpub" value="1"
+                   <?php if ($unwishlistPub) echo "checked"
+                   ?>> <label for="uwpub">"Not Interested" list</label></label>
+            <br><span class=microhelp>Check these boxes to let other members
+               see your various game lists.</span>
+         </td>
+      </tr>
+
+      <tr valign=top><td>&nbsp;<br></td></tr>
+      <tr valign=top>
+         <td align=right>
+            Describe Yourself:
+            <br>
+            <span class=microhelp>(Your IF interests, accomplishments,
+               etc.)</span>
+         </td>
+         <td>
+            <textarea name="profile" id="profile" rows=10 cols=60><?php
+                  echo htmlspecialcharx($profile);
+            ?></textarea>
+         </td>
+      </tr>
+
+      <tr valign=top><td>&nbsp;<br></td></tr>
+      <tr valign=top>
+         <td align=right>
+            Picture:
+         </td>
+         <td>
+            <?php
+                imageUploadRadio(
+                    $hasPic
+                    ? "profilepic?id=$usernum&thumbnail=100x100" : false,
+                    "Don't show a picture in your profile",
+                    "profilepic", $pic, 100);
+            ?>
+         </td>
+      </tr>
+         
+         
+
+   </table>
+
+   <br>
+
+</div>
+
+<h2>3. Display Preferences</h2>
+
+<div class=indented>
+<table border=0 cellspacing=0 cellpadding=0>
+   <tr valign=top>
+      <td align=right>
+         <p><nobr>Custom style sheet:&nbsp;</nobr>
+      </td>
+      <td>
+         <a href="styles" target="_blank">Click here to select</a>
+
+         <br><span class=microhelp>Style sheets let you customize IFDB's fonts,
+         colors, and other display elements.  You can select from pre-defined
+         emplates or create your own.</span>
+      </td>
+   </tr>
+
+   <tr><td>&nbsp;</td></tr>
+   <tr valign=top>
+      <td align=right>
+         <nobr>Off-site reviews:&nbsp;</nobr>
+      </td>
+      <td>
+         <label><input type="radio" name="offsite" id="offsiteA" value="A"
+           <?php if ($offsite == 'A') echo "checked" ?>
+           > <label for="offsiteA">Include in the Editorial Reviews
+            section</label></label><br>
+         <label><input type="radio" name="offsite" id="offsiteB" value="B"
+           <?php if ($offsite == 'B') echo "checked" ?>
+           > <label for="offsiteB">Show separately, below member
+            reviews</label></label><br>
+         <label><input type="radio" name="offsite" id="offsiteL" value="L"
+           <?php if ($offsite == 'L') echo "checked" ?>
+           > <label for="offsiteL">Show links only (no summaries), below
+            member reviews</label></label><br>
+         <label><input type="radio" name="offsite" id="offsiteN" value="N"
+           <?php if ($offsite == 'N') echo "checked" ?>
+           > <label for="offsiteN">Don't show</label></label>
+      </td>
+   </tr>
+
+   <tr><td>&nbsp;</td></tr>
+   <tr valign=top>
+      <td align=right>
+         <nobr>Accessibility:&nbsp;</nobr>
+      </td>
+      <td>
+         <label><input type="checkbox" name="accessibility"
+           id="accessibility" value="1"
+           <?php if ($accessibility) echo "checked" ?>
+           > <label for="accessibility">Use accessible controls
+           </label></label><br>
+         <span class=microhelp>Some IFDB pages use input controls that
+           can only be operated via the mouse (for example, the "star"
+           controls for entering ratings). Sight-impaired users can
+           check this box to substitute keyboard-operable versions.
+         </span>
+      </td>
+   </tr>
+
+</table>
+</div>
+
+<h2>4. User Filtering</h2>
+
+<div class=indented>
+<p><span class=details>If you particularly like a certain user's reviews,
+   you can "promote" that user, which makes IFDB show you that user's
+   reviews first when you view game listings.  If you dislike someone's
+   reviews, you can "demote" her to show her reviews last.  If you
+   <i>really</i> dislike someone, you can "plonk" him, which prevents
+   you from seeing his reviews at all.</span>
+<p><span class=details>To promote, demote, or plonk someone, use the
+   controls shown below each review.</span>
+
+<p><a href="userfilter?list" target="_blank">View/Edit my filter list</a>
+
+</div>
+
+<h2>5. Download Preferences</h2>
+
+<div class=indented>
+<p><span class=details>The IFDB Download Adviser can give you
+customized help with downloading and installing each game that
+you want to play.  Just click the "Show Me How" button in the
+Downloads box on the game's home page.  The Download Adviser
+will customize its advice based on the settings below.</span>
+
+<p>
+
+   <table class=dataform border=0 cellspacing=0 cellpadding=0>
+      <tr valign=top>
+         <td align=right>
+            <nobr>IF Archive Mirror:</nobr>
+         </td>
+         <td>
+            <select name="mirror" id="mirror">
+            <?php
+$result = mysql_query(
+    "select mirrorid, name from mirrors
+     order by if(mirrorid=1, 1, if(mirrorid=100, 2, 3)), name", $db);
+for ($i = 0 ; $i < mysql_num_rows($result) ; $i++) {
+    list($mid, $mname) = mysql_fetch_row($result);
+    $mname = htmlspecialcharx($mname);
+    $sel = ($mid == $mirror ? " selected" : "");
+    echo "<option value=\"$mid\"$sel>$mname</option>";
+}
+            ?>
+            </select>
+            <br>
+            <span class=microhelp>
+               The site you select here will be used for the IF Archive file
+               links you see on IFDB.
+               (<?php
+                  echo helpWinLink("help-mirrors", "What's a mirror?");
+//<a href="needjs"
+//               onclick="javascript:helpWin('help-mirrors');return false;"
+//               >What's a mirror?</a>
+               ?>)
+            </span>
+         </td>
+      </tr>
+
+      <tr valign=top><td>&nbsp;<br></td></tr>
+      <tr valign=top>
+         <td align=right>
+            <nobr>Primary Operating System:</nobr>
+         </td>
+         <td>
+            <?php
+               showOSPopup($db, "defaultos", $defaultOS, OSPOP_NONE_OPTION);
+            ?>
+            <br>
+            <span class=microhelp>The Download Adviser will show help
+               for this OS by default</span>
+         </td>
+      </tr>
+
+      <tr valign=top><td>&nbsp;<br></td></tr>
+      <tr valign=top>
+         <td></td>
+         <td>
+            <label>
+               <input type="checkbox" name="noexes" id="noexes" value=1
+                  <?php if ($noExes) echo "checked" ?>>
+               <label for="noexes"> Avoid native Application files</label>
+               <br>
+               <span class=microhelp>If you check this box, the Download
+                  Adviser will only show <?php
+                     echo helpWinLink("help-storyfile", "Story File");
+//<a href="needjs"
+//                  onclick="javascript:helpWin('help-storyfile');return false;">
+//                     Story File</a>
+                  ?> downloads. Otherwise, Application files
+                     (installers and stand-alone executables) will be shown
+                     when available.  Applications are usually easier to
+                     install, but Story Files are usually smaller and are
+                     considered less risky (in terms of viruses, etc).
+                     </span>
+            </label>
+         </td>
+      </tr>
+      
+   </table>
+
+</div>
+
+<br><br>
+<input type=submit value="Save Changes" name="save">
+<input type=submit value="Cancel" name="cancel">
+</form>
+    
+<?php pageFooter() ?>

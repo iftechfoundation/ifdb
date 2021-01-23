@@ -1,0 +1,203 @@
+<?php
+@session_start();
+
+
+
+include "pagetpl.php";
+include_once "util.php";
+include_once "dbconnect.php";
+$db = dbConnect();
+
+// note if we're logged in
+include_once "login-persist.php";
+$curuser = checkPersistentLogin();
+
+$uid = $_REQUEST['user'];
+$quid = mysql_real_escape_string($uid, $db);
+
+$gameid = get_req_data('game');
+$qgameid = mysql_real_escape_string($gameid, $db);
+
+$perPage = 10;
+$pgAll = false;
+$pg = get_req_data('pg');
+$sortReq = get_req_data('sortby');
+
+$errMsg = false;
+
+$sortList = array(
+    'new' => array('p.created desc', 'Newest First'),
+    'old' => array('p.created', 'Oldest First'),
+    'nm' => array('p.title', 'By Title'),
+    'votes' => array('votecount desc', 'Most Votes First'),
+    'mvotes' => array('votecount', 'Fewest Votes First'));
+
+// look up the game or user record
+if ($gameid) {
+    $result = mysql_query(
+        "select title from games where id='$qgameid'", $db);
+    if (mysql_num_rows($result) == 0) {
+        $errMsg = "The requested game was not found in the database.";
+    } else {
+        list($gameTitle) = mysql_fetch_row($result);
+        $gameTitle = htmlspecialcharx($gameTitle);
+
+        $pageTitle = "Polls with votes for $gameTitle";
+    }
+
+    // search the database for polls that include this game
+    $extraCols = ", sum(v.gameid = '$qgameid') as gameVoteCount";
+    $whereList = "1";
+    $having = "having gameVoteCount > 0";
+
+} else {
+    $result = mysql_query(
+        "select name from users where id='$quid'", $db);
+    if (mysql_num_rows($result) == 0) {
+        $errMsg = "The requested user was not found in the database.";
+    } else {
+        list($username) = mysql_fetch_row($result);
+        $username = htmlspecialcharx($username);
+
+        $pageTitle = "All Polls by $username";
+    }
+
+    // we just need to search for polls owned by this user ID
+    $extraCols = "";
+    $whereList = "p.userid = '$quid'";
+    $having = "";
+}
+
+pageHeader($pageTitle);
+
+if ($errMsg) {
+    echo "<span class=errmsg>$errMsg</span><br><br>";
+} else {
+    if ($gameid != "") {
+        echo "<h1>Polls with votes for $gameTitle</h1>"
+            . "<a href=\"viewgame?id=$gameid\">Go to this game's overview</a>"
+            . "<br><br>";
+    } else if ($uid == $curuser) {
+        echo "<h1>Your Polls</h1>"
+            . "<a href=\"poll?id=new\">Create a new poll</a><br><br>";
+    } else {
+        echo "<h1>Polls by $username</h1>"
+            . "<a href=\"showuser?id=$uid\">"
+            . "View this member's profile</a><br><br>";
+    }
+
+    // figure the limit clause for the page range
+    if ($pg == 'all') {
+        $pg = 1;
+        $pgAll = true;
+        $firstOnPage = 0;
+        $limit = "";
+    } else {
+        $pg = (int)$pg;
+        if ($pg < 1)
+            $pg = 1;
+        $pgAll = false;
+        $firstOnPage = ($pg - 1)*$perPage;
+        $limit = "limit $firstOnPage, $perPage";
+    }
+
+    // determine the sorting order
+    $ord = isset($sortList[$sortReq]) ? $sortList[$sortReq] : $sortList['new'];
+
+    // query the lists
+    $result = mysql_query(
+        "select sql_calc_found_rows
+            p.pollid, p.title, p.`desc`,
+            date_format(p.created, '%M %e, %Y'),
+            p.userid, u.name,
+            count(v.gameid) as votecount,
+            count(distinct v.gameid) as gamecount
+            $extraCols
+        from
+            polls as p
+            left outer join pollvotes as v on v.pollid = p.pollid
+            join users as u on u.id = p.userid
+        where $whereList
+        group by p.pollid
+        $having
+        order by {$ord[0]}
+        $limit", $db);
+        
+    // get the row count
+    $result2 = mysql_query("select found_rows()", $db);
+    list($lstcnt) = mysql_fetch_row($result2);
+    
+    // figure how many pages that makes
+    $lastPage = ($pgAll ? 1 :
+                 (int)floor(($lstcnt + $perPage - 1)/$perPage));
+
+    // figure the last item on the page
+    $lastOnPage = $firstOnPage + $perPage - 1;
+    if ($lastOnPage >= $lstcnt)
+        $lastOnPage = $lstcnt - 1;
+
+    // limit the page request to existing pages
+    if ($pg > $lastPage)
+        $pg = $lastPage;
+    
+    if ($lstcnt == 0)
+    {
+        if ($gameid)
+            echo "<i>There are no polls with votes for this game.</i><br>";
+        else
+            echo "<i>This member hasn't created any polls yet.</i><br>";
+    }
+    else
+    {
+        // show the sorting controls
+        showSortingControls("lstorder", "sortby", $sortList, $sortReq,
+                            array("user" => $uid, "game" => $gameid),
+                            "allpolls");
+
+        // show where we are in the list
+        $pageCtl = "<span class=details>"
+                   . makePageControl(
+                       "allpolls?user=$uid&game=$gameid&sortby=$sortReq",
+                       $pg, $lastPage, $firstOnPage, $lastOnPage, $lstcnt,
+                       false, true, $pgAll)
+                   . "</span>";
+
+        echo "$pageCtl<br><br><br>";
+
+        // show each poll
+        for ($i = 0, $cnt = mysql_num_rows($result) ; $i < $cnt ; $i++) {
+
+            // fetch the next row
+            list($pollid, $title, $desc, $created, $authid, $authname,
+                 $votecnt, $gamecnt) = mysql_fetch_row($result);
+
+            // fix up fields for display
+            $title = htmlspecialcharx($title);
+            list($desc, $desclen, $desctrunc) = summarizeHtml($desc, 140);
+            $desc = fixDesc($desc);
+            $authname = htmlspecialcharx($authname);
+
+            // show the summary
+            echo "<a href=\"poll?id=$pollid\">$title</a> - "
+                . "<span class=details><i>"
+                . ($votecnt == 0 ? "No votes" :
+                   ($votecnt == 1 ? "1 vote" :
+                    ("$votecnt votes for $gamecnt game"
+                     . ($gamecnt == 1 ? "" : "s"))))
+                . "; created $created</i></span><br>"
+                . ($gameid ?
+                   "A poll by <a href=\"showuser?id=$authid\">"
+                   . "$authname</a><br>" : "")
+                . "<div class=indented><span class=details>"
+                . "$desc</span></div><br>";
+        }
+
+        // add the page controls at the bottom of the page
+        echo "<br>$pageCtl<br><br><br>";
+    }
+}
+
+pageFooter();
+
+
+?>

@@ -1,0 +1,37 @@
+ErrorDocument 403 /error403
+ErrorDocument 404 /error404
+
+<FilesMatch "^[^.]+$">
+  ForceType application/x-httpd-php
+</FilesMatch>
+
+<FilesMatch "\.php$">
+  Order Deny,Allow
+  Deny from All
+</FilesMatch>
+
+RewriteEngine on
+Options FollowSymLinks
+RewriteBase /
+
+RewriteCond %{SERVER_PORT} 80
+RewriteCond %{SERVER_NAME} ifdb.tads.org
+RewriteRule ^(.*)$ https://ifdb.tads.org/$1 [R,L]
+
+RewriteRule ^$ home [L]
+RewriteRule ^index$ home [L]
+RewriteRule ^index\.htm$ home [L]
+RewriteRule ^index\.html$ home [L]
+
+RewriteRule ^dla-zoom/([a-z0-9]+)/[^/]+\.signpost$ /dladviser?id=$1&xml&os=MacOSX [L]
+
+RewriteRule ^users/([a-z0-9]+)/(.+)$ /userfile?u=$1&f=$2 [L]
+
+RewriteRule ^t3file/([a-z0-9]+)/(.+)$ /t3files?download=$1/$2 [L]
+
+#RewriteCond %{SERVER_PORT} !^443$
+#RewriteRule ^login$ mylogin [R]
+
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteRule (.*) /error404 [L]
+

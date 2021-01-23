@@ -1,0 +1,192 @@
+<?php
+@session_start();
+
+// note if we're logged in
+include "login-check.php";
+$curuser = checkPersistentLogin();
+
+include "pagetpl.php";
+include_once "util.php";
+include_once "dbconnect.php";
+$db = dbConnect();
+
+include "reviews.php";
+$specialNames = initSpecialNames($db);
+
+// get the game ID specified in the request
+$gameid = get_req_data('game');
+$qgameid = mysql_real_escape_string($gameid, $db);
+
+$errMsg = false;
+$listtype = get_req_data('type');
+
+$pgAll = false;
+$perPage = 25;
+$pg = get_req_data('pg');
+$sortReq = get_req_data('sortby');
+
+// look up the game
+$result = mysql_query(
+    "select title, author from games where id='$qgameid'", $db);
+if (mysql_num_rows($result) == 0) {
+    $errMsg = "The requested game was not found in the database.";
+    $gtitle = "";
+    $gauthor = "";
+    $pageTitle = "Members Listing a Game";
+} else {
+    list($gtitle, $gauthor) = mysql_fetch_row($result);
+    $gtitle = htmlspecialcharx($gtitle);
+    $gauthor = htmlspecialcharx($gauthor);
+    $pageTitle = "Members Listing $gtitle";
+}
+
+$sortList = array(
+    'nam' => array('users.name', 'Sort by Name'),
+    'new' => array('date_added desc', 'Newest Additions First'),
+    'old' => array('date_added', 'Oldest Additions First'));
+
+if ($listtype == "wishlist") {
+    $listTable = "wishlists";
+    $listName = "wish list";
+    $title = "Members who plan to play <i>$gtitle</i>";
+    $privcode = "W";
+} else if ($listtype == "unwishlist") {
+    $listTable = "unwishlists";
+    $listName = "\"Not Interested\" list";
+    $title = "Members who aren't interested in <i>$gtitle</i>";
+    $privcode = "U";
+} else {
+    $listTable = "playedgames";
+    $listName = "play list";
+    $title = "Members who've played <i>$gtitle</i>";
+    $privcode = "P";
+}
+
+pageHeader($pageTitle);
+
+if ($errMsg) {
+    echo "<span class=errmsg>$errMsg</span><br><br>";
+} else {
+    echo "<h1>$title</h1>";
+
+    echo "<a href=\"viewgame?id=$gameid\">Go to the game's page</a><br><br>";
+
+    // determine the total number of games on the list
+    $result = mysql_query(
+        "select
+           count(*)
+         from
+           $listTable
+           join users on users.id = $listTable.userid
+         where
+           $listTable.gameid = '$qgameid'
+           and locate('$privcode', users.publiclists) > 0", $db);
+    list($cnt) = mysql_fetch_row($result);
+
+    if ($pg == 'all') {
+        $pgAll = true;
+        $perPage = $cnt;
+        $pg = 1;
+    }
+
+    // figure how many pages that makes
+    $lastPage = (int)floor(($cnt + $perPage - 1)/$perPage);
+
+    // limit the page request to existing pages
+    if ($pg < 1)
+        $pg = 1;
+    else if ($pg > $lastPage)
+        $pg = $lastPage;
+
+    // calculate our position in the list
+    $firstOnPage = ($pg - 1) * $perPage;
+    $lastOnPage = $firstOnPage + $perPage - 1;
+    if ($lastOnPage > $cnt - 1)
+        $lastOnPage = $cnt - 1;
+
+    // determine the sorting order
+    $ord = isset($sortList[$sortReq]) ? $sortList[$sortReq] : $sortList['nam'];
+
+    // query the reviews
+    $sql = "select
+              users.id, users.name, users.picture,
+              if ($listTable.date_added > '1981-01-01',
+                  date_format($listTable.date_added, '%M %e, %Y'), null)
+            from
+              $listTable
+              join users on users.id = $listTable.userid
+            where
+              $listTable.gameid = '$qgameid'
+              and locate('$privcode', users.publiclists) > 0
+            order by {$ord[0]}
+            limit $firstOnPage, $perPage";
+
+    $result = mysql_query($sql, $db);
+    echo mysql_error($db);
+
+    if (mysql_num_rows($result) == 0) {
+        echo "<i>This game doesn't appear in any publicly viewable "
+            . "{$listName}s.</i><br>";
+    } else {
+        // show the sorting controls
+        showSortingControls("whoseorder", "sortby", $sortList, $sortReq,
+                            array("game" => $gameid, "type" => $listtype),
+                            "whoselist");
+
+        // show where we are in the list
+        $pageCtl = "<span class=details>"
+                   . makePageControl(
+                       "whoselist?game=$gameid&type=$listtype&sortby=$sortReq",
+                       $pg, $lastPage,
+                       $firstOnPage, $lastOnPage, $cnt, true, true, $pgAll)
+                   . "</span>";
+
+        echo "$pageCtl<br><br><br>";
+
+        // fetch and display each game on the list
+        for ($i = 0 ; $i < mysql_num_rows($result) ; $i++) {
+            // retrieve the result
+            list($uid, $uname, $upic, $dateAdded) = mysql_fetch_row($result);
+            $uname = htmlspecialcharx($uname);
+
+            // display the user information
+            echo "<p>";
+            if ($upic)
+            {
+                echo "<table class=grid border=0 cellspacing=0 cellpadding=0>"
+                    . "<tr><td>"
+                    . "<a href=\"showuser?id=$uid\">"
+                    . "<img src=\"showuser?id=$uid&pic&thumbnail=80x80\" "
+                    . "border=0></td><td>"
+                    . "<a href=\"showuser?id=$uid\"><b>$uname</b></a>";
+
+                if ($dateAdded)
+                    echo "<br><span class=details>"
+                        . "Added to $listName on $dateAdded"
+                        . "</span>";
+                
+                echo "</td></tr></table>";
+            }
+            else
+            {
+                echo "<a href=\"showuser?id=$uid\"><b>$uname</b></a>";
+
+                if ($dateAdded)
+                    echo "<br><span class=details>"
+                        . "Added to $listName on $dateAdded"
+                        . "</span>";
+            }
+        }
+
+        // add the page controls at the bottom of the page
+        echo "<br><br><br>$pageCtl<br><br><br>"
+            . "<p>Note: members whose privacy settings don't allow "
+            . "other people to see their {$listName}s are not listed.";
+
+    }
+}
+
+pageFooter();
+
+
+?>

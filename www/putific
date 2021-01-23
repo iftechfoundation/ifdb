@@ -1,0 +1,670 @@
+<?php
+
+error_reporting(E_ALL & ~(E_NOTICE | E_WARNING));
+
+@session_start();
+include_once "util.php";
+include_once "login-check.php";
+include_once "dbconnect.php";
+include_once "images.php";
+include_once "editgame-util.php";
+$db = dbConnect();
+
+// ------------------------------------------------------------------------
+//
+// Send our reply in XML format
+//
+function replyXml($body)
+{
+    header("Content-type: text/xml");
+    header("Expires: Mon, 26 Jul 1997 05:00:00 GMT");
+    header("Cache-Control: no-store, no-cache, must-revalidate");
+    header("Cache-Control: post-check=0, pre-check=0", false);
+    header("Pragma: no-cache");
+
+    echo "<?xml version=\"1.0\" encoding=\"utf8\"?>"
+        . "<putific xmlns=\"http://ifdb.tads.org/api/xmlns\">"
+        . rss_encode($body)
+        . "</putific>";
+    exit();
+}
+
+//
+// Reply with an error message
+//
+function replyError($code, $msg)
+{
+    replyXml("<error><code>$code</code><message>"
+             . htmlspecialcharx(processError($msg))
+             . "</message></error>");
+}
+
+function processError($msg)
+{
+    return preg_replace("/\s+/", " ", str_replace("\n", "", $msg));
+}
+
+// ------------------------------------------------------------------------
+//
+//  Validate a file upload.  This checks for upload errors and does
+//  php session upload validation.  If the file is valid, we return the
+//  name of the local temp file containing the uploaded data.
+//
+function validateUpload($id, $desc, $required)
+{
+    // check to see if the file was among the parameters at all
+    if (isset($_FILES[$id]))
+    {
+        // get the local temp filename
+        $fname = $_FILES[$id]["tmp_name"];
+
+        // check for upload errors, and do php source validation
+        if ($_FILES[$id]["error"] || !is_uploaded_file($fname))
+            replyError("BadAtt",
+                       "A network error occurred uploading the $desc.");
+
+        // looks good - return the filename
+        return $fname;
+    }
+    else if ($required)
+    {
+        // it's required, but it's not there - fail
+        replyError("MissingParam", "The request is invalid: "
+                   . "the required $desc is missing.");
+    }
+    else
+    {
+        // not present and not required; just return an empty filename
+        return false;
+    }
+}
+
+// ------------------------------------------------------------------------
+//
+// Log in.  To keep things simple for the API client, we don't rely on
+// keeping login data in the session.  Instead, we store the login data
+// in the request via parameters.
+//
+$username = get_req_data("username");
+$password = get_req_data("password");
+
+list($curuser, $errCode, $errMsg) = doLogin($db, $username, $password);
+if (!$curuser)
+    replyError("Login", "The IFDB login failed: $errCode.");
+
+
+// ------------------------------------------------------------------------
+//
+// XML utilities
+//
+
+// parse an XML attachment, returning a SimpleXML parse tree
+function load_xml_file($fname, $fdesc)
+{
+    // capture error messages internally
+    libxml_use_internal_errors(true);
+
+    // load the file
+    $xml = simplexml_load_file($fname);
+
+    // if that failed, abort with an error reply
+    if (!$xml)
+    {
+        // get the human-readable error messages
+        $errList = array();
+        foreach (libxml_get_errors() as $error) {
+            $errList[] = "line {$error->line}, col {$error->column}: "
+                         . trim($error->message);
+        }
+        
+        // send the error reply
+        replyError("XmlParse",
+                   "The $fdesc can't be parsed because it contains "
+                   . "XML errors (" . implode("; ", $errList) . ")");
+    }
+
+    // return the XML
+    return $xml;
+}
+
+// UTF-8 conversion from XML to local 8859-1
+function xcvt($str)
+{
+    return iconv("UTF-8", "ISO-8859-1//TRANSLIT", (string)$str);
+}
+
+// ------------------------------------------------------------------------
+//
+//  Get the iFiction data.  This is in the iFiction XML file that's
+//  attached to the request as an uploaded file in the form data.
+//
+
+// Get the uploaded file.  This file is required; if it's not present,
+// we can't proceed.
+$ificFile = validateUpload("ifiction", "iFiction record", true);
+
+// load its xml
+$xml = load_xml_file($ificFile, "iFiction record");
+
+// mapping from IFDB fields to the iFiction XML xpaths, for
+// reporting errors
+$colMap = array();
+$colMap["title"] = array("bibliographic/title", "title");
+$colMap["eAuthor"] = array("bibliographic/author", "author");
+$colMap["ifids"] = array("identification/ifid", "IFID");
+$colMap["published"] =
+    array("bibliographic/firstpublished", "publication date");
+$colMap["version"] =
+    array("releases/attached/release/version", "version number");
+$colMap["system"] = array("identification/format", "story file format");
+$colMap["language"] = array("bibliographic/language", "spoken language");
+$colMap["desc"] = array("bibliographic/description", "game description");
+$colMap["seriesname"] = array("bibliographic/series", "series name");
+$colMap["seriesnumber"] =
+    array("bibliographic/seriesnumber", "series episode number");
+$colMap["genre"] = array("bibliographic/genre", "genre name");
+$colMap["forgiveness"] =
+    array("bibliographic/forgiveness", "forgiveness rating");
+$colMap["bafsid"] = array("identification/bafn", "Baf's Guide ID number");
+$colMap["website"] = array("contacts/url", "game Web site URL");
+
+// parse out the fields that we can map from iFiction to our game record
+$ifids = array();
+foreach ($xml->story->identification->ifid as $i) {
+    $ifids[] = mysql_real_escape_string(xcvt($i), $db);
+}
+$ifid = implode(",", $ifids);
+
+$title = xcvt($xml->story->bibliographic->title);
+$author = xcvt($xml->story->bibliographic->author);
+$pubDate = xcvt($xml->story->bibliographic->firstpublished);
+$fmt = xcvt($xml->story->identification->format);
+$lang = xcvt($xml->story->bibliographic->language);
+$series = xcvt($xml->story->bibliographic->series);
+$episode = xcvt($xml->story->bibliographic->seriesnumber);
+$genre = xcvt($xml->story->bibliographic->genre);
+$forgiveness = xcvt($xml->story->bibliographic->forgiveness);
+$bafsid = xcvt($xml->story->identification->bafn);
+$website = xcvt($xml->story->contacts->url);
+
+
+// version is special, since it can come from four places (in order of
+// precedence):
+// 
+//   - story/releases/attached/release/version
+//   - story/releases/history/release/version
+//   - tads2/version
+//   - tads3/version
+//
+$version = xcvt($xml->story->releases->attached->release->version);
+if (!$version) {
+    $version = xcvt($xml->story->releases->history[0]->release->version);
+    $colMap["version"][0] = "releases/history/release/version";
+}
+if (!$version) {
+    $version = xcvt($xml->story->tads2->version);
+    $colMap["version"][0] = "tads2/version";
+}
+if (!$version) {
+    $version = xcvt($xml->story->tads3->version);
+    $colMap["version"][0] = "tads3/version";
+}
+
+// The description is special, because of the possibility of embedded <br/>
+// tags.  To get embedded XML, we need to retrieve the description node
+// as XML, then strip off the <description> tags.  (If SimpleXML had an
+// innerHTML equivalent, we'd just use that.  Our trick seems to produce
+// the same effect.)
+$desc = $xml->story->bibliographic->description;
+if ($desc)
+{
+    $desc = xcvt($desc->asXML());
+    $desc = preg_replace("/^<description>|<\/description>$/", "", $desc);
+
+    // now fix up the description: change any HTML curly quote markups to
+    // win cp 1250 characters; replace newlines with spaces
+    $desc = str_replace(
+        array("&lsquo;", "&rsquo;", "&ldquo;", "&rdquo;",
+              "\n\r", "\r\n", "\n", "\r"),
+        array("\221", "\222", "\223", "\224",
+              " ", " ", " ", " "),
+        $desc);
+
+    // descriptions aren't *supposed* to use paragraphs, but just in case,
+    // convert <p> to <br/>, and convert </p> to nothing
+    $desc = preg_replace(array("/<\s*p\s*>/i", "/<\s*\/?\s*p\s*>/i"),
+                         array("<br/>", ""),
+                         $desc);
+
+    // And finally, trim out excess spaces: turn any run of spaces into one
+    // space, strip leading and trailing spaces, and remove space around
+    // <br/> tags.
+    $desc = preg_replace("/\s\s+/", " ", $desc);
+    $desc = preg_replace("/\s*<\s*br\s*\/\s*>\s*/i", "<br/>", $desc);
+    $desc = preg_replace("/<br\/>/i", "\n<br/>\n", $desc);
+    $desc = trim($desc);
+}
+
+// figure the development system based on the format
+$devSystems = array("zcode" => "Inform",
+                    "glulx" => "Inform",
+                    "tads2" => "TADS 2",
+                    "tads3" => "TADS 3",
+                    "hugo" => "Hugo",
+                    "alan2" => "Alan 2",
+                    "alan3" => "Alan 3",
+                    "adrift" => "ADRIFT",
+                    "level9" => "Level9",
+                    "agt" => "AGT",
+                    "magscrolls" => "Magnetic Scrolls",
+                    "advsys" => "AdvSys",
+                    "executable" => "None");
+if ($fmt && isset($devSystems[$fmt]))
+    $devsys = $devSystems[$fmt];
+else
+    $devsys = $fmt;
+
+// build the posted data record
+$req = array();
+if ($title) $req["title"] = $title;
+if ($author) $req["eAuthor"] = $author;
+if ($ifid) $req["ifids"] = $ifid;
+if ($pubDate) $req["published"] = $pubDate;
+if ($version) $req["version"] = $version;
+if ($devsys) $req["system"] = $devsys;
+if ($lang) $req["language"] = $lang;
+if ($desc) $req["desc"] = $desc;
+if ($series) $req["seriesname"] = $series;
+if ($episode) $req["seriesnumber"] = $episode;
+if ($genre) $req["genre"] = $genre;
+if ($bafsid) $req["bafsid"] = $bafsid;
+if ($forgiveness) $req["forgiveness"] = $forgiveness;
+if ($website) $req["website"] = $website;
+
+// for a new game, the cover art is "none" by default
+$req["coverart"] = "none";
+   
+//foreach ($req as $k=>$v)       // DIAGNOSTICS
+//    echo "req[$k] => $v\n";
+
+// The title is required
+if (!$title)
+    replyError("MissingTitle",
+               "A title must be specified in the iFiction record.");
+
+// ------------------------------------------------------------------------
+//
+// Look up an existing game.
+//
+//  - If we have one or more IFIDs, and none of the IFIDs are in the
+//    database, we're creating a new game listing.
+//
+//  - If we have one or more IFIDs, and any are in the database, we're
+//    editing an existing listing.  Editing is allowed only if all
+//    of the IFIDs match the same listing AND the current user is the
+//    last person to edit the listing.  If another user last edited this
+//    game, we disallow editing, because we might have editing conflicts:
+//    the current user might have updated the iFiction independently
+//    of the other user's IFDB updates and might not even be aware of
+//    them, so we don't want to overwrite them with the iFiction data.
+//
+//  - If we have no IFIDs, we're creating a new game listing.  In
+//    this case we require that the new listing have a unique title.
+//
+$gameid = false;
+if (count($ifids) > 0)
+{
+    // We have one or more IFIDs.  Look up the existing game(s)
+    // associated with these IFIDs.  If any of the IFIDs refer
+    // to an existing listing, they must ALL refer to the same
+    // listing, except that it's okay for some to point to a
+    // given existing listing and others to be absent - this
+    // simply means that we're adding the absent IFIDs to the
+    // listing.
+    $ifidlist = implode("','", $ifids);
+    $result = mysql_query(
+        "select gameid from ifids
+         where ifid in ('$ifidlist')
+         group by gameid", $db);
+
+    // We must have zero or one row.  Zero rows means that none of
+    // the IFIDs are in the database.  One row means that at least
+    // one is in the database, and that all that are in the database
+    // match the same game.  More than one row means that we have
+    // matches for multiple games, which is an error.
+    switch (mysql_num_rows($result))
+    {
+    case 0:
+        // no matches: this is a new game
+        $gameid = "new";
+        break;
+
+    case 1:
+        // one game matched: we're editing an existing game
+        list($gameid) = mysql_fetch_row($result);
+        break;
+
+    default:
+        // two or more games matches: the IFIDs don't uniquely identify
+        // a single game, so this is an error
+        replyError("IfidsNotUnique",
+                   "The IFIDs in the iFiction record match more than "
+                   . "one existing IFDB game listing. The IFIDs must "
+                   . "uniquely identify a single game.");
+    }
+}
+else
+{
+    // Only allow the no-IFID option with an explicit override
+    if (get_req_data("requireIFID") == "no")
+        replyError("IfidMissing",
+                   "The required IFID is missing from the iFiction record. "
+                   . "The IFID is the unique identifier for this game "
+                   . "as defined in the Treaty of Babel specification. "
+                   . "This must be provided to ensure that games are "
+                   . "not listed multiple times in IFDB.");
+
+    // No IFIDs, so we're creating a new listing.  Since we have no
+    // other unique identifier for the new listing, at least require
+    // the title to be unique.
+    $ltitle = mysql_real_escape_string(quoteSqlLike($title), $db);
+    $result = mysql_query(
+        "select id from games where title like '$ltitle'", $db);
+    if (mysql_num_rows($result) > 0)
+        replyError("TitleNotUnique",
+                   "This game's title is not unique: an existing "
+                   . "IFDB listing for the same title already exists. "
+                   . "To create a new listing for the same title, "
+                   . "an IFID must be provided for the new game.");
+
+    // it's a new listing
+    $gameid = "new";
+}
+
+// ------------------------------------------------------------------------
+//
+// If we're editing an existing game, load the existing game record, and
+// validate that we're the last editor.
+//
+$rec = array();
+if ($gameid != "new")
+{
+    // load the old record
+    list($rec, $errMsg, $errMsgShort) = loadGameRecord($db, $gameid);
+
+    // if an error occurred, fail
+    if (!$rec)
+        replyError("LoadRecord",
+                   "An error occurred loading the existing game record: "
+                   . "$errMsgShort.");
+
+    // presume we won't be changing the cover art
+    $req["coverart"] = $rec["coverart"];
+
+    // presume we won't be changing the links
+    $req["links"] = $rec["links"];
+
+    // get the page version we're basing our changes on
+    $req["pagevsn"] = $rec["pagevsn"];
+
+    // verify that we're the last editor
+    if ($rec["editedby"] != $curuser)
+        replyError("CannotMerge",
+                   "You are attempting to update an existing IFDB listing, "
+                   . "but this listing was last edited by another user. "
+                   . "IFDB is a collaborative system that allows any member "
+                   . "to edit a game listing. To ensure that your iFiction "
+                   . "updates don't overwrite the other user's changes, "
+                   . "please go to the IFDB Web site and review your "
+                   . "game's listing.  You can then edit the page via the "
+                   . "IFDB Web site if you still want to make any changes.");
+
+    // Copy all of the parameters from the old record that aren't set
+    // in the new record.  This ensures that manually edited fields
+    // that were never set in the iFiction record are retained.
+    foreach ($rec as $k=>$v)
+    {
+        // if this $rec item isn't set in $req, copy the $rec value to $req
+        if (!isset($req[$k]))
+            $req[$k] = $v;
+    }
+}
+
+// ------------------------------------------------------------------------
+//
+// Get the cover art, if present.  The cover art is attached to the
+// request as another file parameter.
+//
+$artFile = validateUpload("coverart", "Cover Art image file", false);
+if ($artFile)
+{
+    // get the image copyright status
+    $imgCprStat = get_req_data("imageCopyrightStatus");
+    $imgCprMsg = get_req_data("imageCopyright");
+
+    // if there's no copyright status, use "unspecified" by default
+    if (!$imgCprStat)
+        $imgCprStat = "unspecified";
+
+    // if there's no copyright message, generate a default, unless the
+    // status is "public domain" (which explicitly means that the work is
+    // not under copyright) or "unspecified"
+    if (!$imgCprMsg
+        && ($imgCprStat != "public domain" && $imgCprStat != "unspecified"))
+    {
+        $imgCprMsg = "Copyright " . date('Y');
+        if (isset($req['eAuthor']) && $req['eAuthor'])
+            $imgCprMsg .= " by {$req['eAuthor']}";
+    }
+
+    // map the copyright status
+    $statmap = array(
+        "by permission" => "U",
+        "creative commons" => "C",
+        "free software" => "L",
+        "fair use" => "F",
+        "public domain" => "P",
+        "unspecified" => "");
+
+    if (!isset($statmap[$imgCprStat]))
+        replyError("ImageCprInvalid",
+                   "The image copyright status is invalid.");
+
+    // add it as a temporary image
+    list($imgErrLong, $imgErrShort, $imgErrCode, $artImageName) =
+        addTempImageFile($artFile, $statmap[$imgCprStat], $imgCprMsg);
+    
+    // if that failed, abort
+    if ($imgErrShort)
+        replyError($imgErrCode, "An error occurred uploading the "
+                   . "Cover Art image: $imgErrShort.");
+
+    // set the new record to point to the uploaded image for its cover art
+    $req['coverart'] = $artImageName;
+
+    // If there's an existing cover art image, compare the new file
+    // to the old one in the database.  The normal web UI for editing
+    // a game assumes that any upload is new, since the UI offers the
+    // user the option of explicitly keeping the old image.  With the
+    // API we can't count on the user agent to offer such an option.
+    // In all likelihood, the UA is an IDE (e.g., TADS Workbench or
+    // the Inform 7 IDE) that is simply doing a full fresh upload of
+    // its internal notion of the game's biblio data.  The editor API
+    // that we use already does diffs for all the text data, but
+    // because of the special UI for images, not for images.  So,
+    // we need to load the old image, load the new image, and do a
+    // binary compare.
+    if ($rec["orig:coverart"])
+    {
+        // query up the old image
+        list($oldImgData) = fetch_image($rec["orig:coverart"], true);
+
+        // load the new image file
+        $newImgData = file_get_contents($artFile);
+
+        // compare the files
+        if ($oldImgData == $newImgData)
+            $req['coverart'] = "old";
+
+//        echo "old image len=" . strlen($oldImgData) // DIAGNOSTICS
+//            . ", new image len=" . strlen($newImgData)
+//            . ", equal? " . ($oldImgData == $newImgData ? "yes" : "no")
+//            . "\n";
+    }
+}
+    
+// ------------------------------------------------------------------------
+//
+// Get the download links, if present.  These are provided via another
+// file attachment, which contains an XML description of the links.
+//
+$linkFile = validateUpload("links", "Download link list", false);
+if ($linkFile)
+{
+    // parse the XML
+    $xml = load_xml_file($linkFile, "download link list");
+
+    // load the translation table for the file formats
+    $result = mysql_query(
+        "select id, externid from filetypes", $db);
+    for ($i = 0, $fmtMap = array() ; $i < mysql_num_rows($result) ; $i++) {
+        list($id, $ext) = mysql_fetch_row($result);
+        $fmtMap[$ext] = $id;
+    }
+
+    // load the translation table for the OSes and OS versions
+    $result = mysql_query(
+        "select os.id, vsn.vsnid, os.externid, vsn.externid
+         from
+           operatingsystems as os
+           join osversions as vsn on vsn.osid = os.id", $db);
+    for ($i = 0, $osMap = array() ; $i < mysql_num_rows($result) ; $i++) {
+        list($osid, $vsnid, $osext, $vsnext) = mysql_fetch_row($result);
+        $osMap["$osext.$vsnext"] = array($osid, $vsnid);
+    }
+
+    // get the original links from the existing record, if any
+    $recLinks = (isset($rec["links"]) ? $rec["links"] : array());
+
+    // process the XML entries into link entries in the database format
+    $reqLinks = $recLinks;
+    foreach ($xml->links->link as $l)
+    {
+        // get the items requiring mapping
+        $fmtid = xcvt($l->format);
+        $os = xcvt($l->os);
+        $cmp = xcvt($l->compression);
+
+        // get the URL
+        $url = xcvt($l->url);
+
+        // build the link record in the database format
+        $link = array(
+            "url" => $url,
+            "title" => xcvt($l->title),
+            "desc" => xcvt($l->desc),
+            "attrs" => (isset($l->isGame) ? GAMELINK_IS_GAME : 0)
+                     | (isset($l->pending) ? GAMELINK_PENDING : 0),
+            "fmtid" => (isset($fmtMap[$fmtid]) ? $fmtMap[$fmtid] : false),
+            "osid" => (isset($osMap[$os]) ? $osMap[$os][0] : false),
+            "osvsn" => (isset($osMap[$os]) ? $osMap[$os][1] : false),
+            "compression" => (isset($fmtMap[$cmp]) ? $fmtMap[$cmp] : false),
+            "compressedprimary" => xcvt($l->compressedPrimary));
+
+        // Look for an existing link with the same URL.  If there's an
+        // existing link, we'll update it.  Otherwise we'll add this one
+        // as a new link.
+        for ($i = 0, $found = false ; $i < count($recLinks) ; $i++)
+        {
+            $recl = $recLinks[$i];
+            if (strcasecmp($recl["url"], $url) == 0)
+            {
+                // If the new record has a pending flag, and the old one
+                // doesn't, clear the pending flag in the new record.  This
+                // must be a new upload of an existing file, in which case
+                // the existing link will presumably continue to work until
+                // the new upload replaces it.  So there's no need for a
+                // pending marker in this case.
+                if (!($recl["attrs"] & GAMELINK_PENDING))
+                    $link["attrs"] &= ~GAMELINK_PENDING;
+
+                // stop looking - replace this record
+                $found = true;
+                break;
+            }
+        }
+
+        // replace the record if we found one, otherwise add a new one
+        if ($found) {
+            $link["displayorder"] = $i;
+            $reqLinks[$i] = $link;
+        } else {
+            $link["displayorder"] = count($reqLinks);
+            $reqLinks[] = $link;
+        }
+    }
+
+    // store our new list of links in the new record so that we update
+    // it in the database
+    $req["links"] = $reqLinks;
+}
+
+
+// ------------------------------------------------------------------------
+//
+//  Okay, we have our existing record (if any) and our new record.
+//  Submit the changes.
+//
+$saveErrMsg = false;
+$saveErrCode = false;
+$newid = saveUpdates($db, false, true,
+                     $gameid, $rec, $req,
+                     $saveErrMsg, $saveErrCode, $errDetail);
+
+// if we succeeded, note whether we created or edited the record
+$action = "";
+if (!$saveErrMsg) {
+    $action = ($gameid == "new" ? "created" : "edited");
+}
+
+// Check for a special case: if the error code is "NoChanges", consider
+// it a benign failure, not an error.
+if ($saveErrCode == "NoChanges")
+{
+    // treat this as a success
+    $saveErrMsg = $saveErrCode = false;
+
+    // the action is "unchanged"
+    $action = "unchanged";
+
+    // it has to be an existing record, so we can just use the old TUID
+    $newid = $gameid;
+}
+
+// if any errors occurred, send the error reply
+if ($saveErrMsg) {
+    $errlist = array();
+    foreach ($errDetail as $col => $msg) {
+        $errlist[] = "<detail><field>{$colMap[$col][0]}</field>"
+                     . "<desc>{$colMap[$col][1]}</desc>"
+                     . "<error>"
+                     . htmlspecialcharx(implode("; ", processError($msg)))
+                     . "</error></detail>";
+    }
+    replyXml("<error>"
+             . "<code>$saveErrCode</code>"
+             . "<message>"
+             . htmlspecialcharx(processError($saveErrMsg))
+             . "</message>"
+             . implode("", $errlist)
+             . "</error>");
+}
+
+// send the success reply
+replyXml("<ok/>"
+         . "<$action/>"
+         . "<tuid>$newid</tuid>"
+         . "<viewUrl>http://ifdb.tads.org/viewgame?id=$newid</viewUrl>"
+         . "<editUrl>http://ifdb.tads.org/editgame?id=$newid</editUrl>");
+    
+?>

@@ -1,0 +1,183 @@
+<?php
+@session_start();
+
+include "pagetpl.php";
+include_once "util.php";
+include_once "dbconnect.php";
+$db = dbConnect();
+
+// note if we're logged in
+include "login-check.php";
+$curuser = checkPersistentLogin();
+
+// get the request parameter
+$uid = get_req_data('user');
+
+$pgAll = false;
+$perPage = 10;
+$pg = get_req_data('pg');
+$sortReq = get_req_data('sortby');
+
+// if there's no user ID in the request, default to the current user
+if (!$uid) {
+    if (!logged_in())
+        exit();
+
+    // use the current user ID
+    $uid = $curuser = $_SESSION['logged_in_as'];
+}
+
+// quote it
+$quid = mysql_real_escape_string($uid, $db);
+
+$errMsg = false;
+
+$sortList = array(
+    'new' => array('sortdate desc', 'Latest Edits First'),
+    'old' => array('sortdate', 'Oldest Edits First'),
+    'nm' => array('sort_title', 'By Title'));
+
+// get the user's name
+$result = mysql_query("select name from users where id='$quid'", $db);
+if (mysql_num_rows($result) == 0) {
+    pageHeader("All Updates");
+    echo "The specified user ID was not found in the database.";
+    pageFooter();
+    exit();
+}
+$username = htmlspecialcharx(mysql_result($result, 0, "name"));
+
+// prepare the table of updates
+mysql_query(
+    "create temporary table my_edits as
+     select
+       games.id as id,
+       games.title as title,
+       games.sort_title as sort_title,
+       games.author as author,
+       max(games_history.moddate) as moddate,
+       max(games_history.pagevsn) as pagevsn
+     from
+       games, games_history
+     where
+       games_history.id = games.id
+       and games_history.editedby = '$quid'
+     group by
+       games.id
+     union
+     select id, title, sort_title, author, cast(moddate as datetime), pagevsn
+       from games where editedby = '$quid'", $db);
+
+// uniquify it on user ID
+mysql_query(
+    "create temporary table my_edits_trimmed as
+     select
+        id, title, sort_title, author,
+        max(pagevsn) as pagevsn, max(moddate) as moddate
+     from my_edits
+     group by id", $db);
+
+// count up what we have left
+$result = mysql_query("select count(*) as c from my_edits_trimmed", $db);
+$cnt = mysql_result($result, 0, "c");
+
+if ($pg == 'all') {
+    $pgAll = true;
+    $perPage = $cnt;
+    $pg = 1;
+}
+
+pageHeader("Catalog Updates by $username");
+
+echo "<h1>Catalog Updates by $username</h1>";
+
+// figure how many pages we have to show
+$lastPage = (int)floor(($cnt + $perPage - 1)/$perPage);
+
+// limit the page request to existing pages
+if ($pg < 1)
+    $pg = 1;
+else if ($pg > $lastPage)
+    $pg = $lastPage;
+
+// calculate our position in the list
+$firstOnPage = ($pg - 1) * $perPage;
+$lastOnPage = $firstOnPage + $perPage - 1;
+if ($lastOnPage > $cnt - 1)
+    $lastOnPage = $cnt - 1;
+
+// determine the sorting order
+$ord = isset($sortList[$sortReq]) ? $sortList[$sortReq] : $sortList['new'];
+
+// run the query for the current page's contents
+$result = mysql_query(
+    "select id, title, sort_title, author, pagevsn,
+        date_format(moddate, '%M %e, %Y') as moddate,
+        moddate as sortdate
+     from my_edits_trimmed
+     order by {$ord[0]}
+     limit $firstOnPage," . $perPage, $db);
+
+if (mysql_num_rows($result) == 0) {
+    echo "<i>This member hasn't edited or added any catalog listings.</i><br>";
+} else {
+
+    // show the sorting controls
+    showSortingControls("lstorder", "sortby", $sortList, $sortReq,
+                        array("user" => $uid), "allupdates");
+
+    // show where we are in the list
+    $pageCtl = "<span class=details>"
+               . makePageControl(
+                   "allupdates?user=$uid&sortby=$sortReq",
+                   $pg, $lastPage, $firstOnPage, $lastOnPage, $cnt,
+                   true, true, $pgAll)
+               . "</span>";
+
+    echo "$pageCtl<br><br><br>";
+
+    // show each update entry
+    for ($i = 0 ; $i < mysql_num_rows($result) ; $i++) {
+        // fetch the next row
+        list($gameid, $title, $sortTitle, $author, $pagevsn, $moddate) =
+            mysql_fetch_row($result);
+
+        // fix up fields for display
+        $title = htmlspecialcharx($title);
+        $author = htmlspecialcharx($author);
+
+        // show the entry
+        echo "<p><a href=\"viewgame?id=$gameid\"><i>$title</i></a>, "
+            . "by $author<br><div class=indented><span class=details>";
+
+        // show all updates made by this user
+        $res2 = mysql_query(
+            "select pagevsn, date_format(moddate, '%M %e, %Y') as moddate
+             from games_history
+             where
+                id = '$gameid'
+                and pagevsn != '$pagevsn'
+                and editedby = '$quid'
+             order by pagevsn desc", $db);
+
+        $vsns = array(array($pagevsn, $moddate));
+        for ($j = 0 ; $j < mysql_num_rows($res2) ; $j++)
+            $vsns[] = mysql_fetch_row($res2);
+
+    
+        foreach ($vsns as $v) {
+            echo "page version {$v[0]} - "
+                . ($v[0] == 1 ? "created" : "edited") . " on {$v[1]}<br>";
+        }
+
+        echo "</span></div>";
+    }
+
+    // add the page controls at the bottom of the page
+    echo "<br>$pageCtl<br><br><br>";
+}
+
+pageFooter();
+
+
+?>

@@ -1,0 +1,37 @@
+<?php
+include "pagetpl.php";
+
+@session_start();
+
+header("HTTP/1.1 403 Forbidden");
+pageHeader("403 - Forbidden");
+?>
+<h1>Forbidden</h1>
+
+<p><span class=details>HTTP Error 403</span>
+
+<p>Access to the page you requested is not allowed.
+
+
+<ul>
+
+<li>If you typed the URL (the page address) directly into your
+browser's address bar, check to make sure you entered it correctly.
+
+<li>If you followed a link from another site, the link might be
+incorrect or out of date.  If the problem persists, you might want to
+contact the administrator of the other site to let them know about the
+problem.
+
+<li>If you followed a link from within this site, please let us know
+so that we can fix the broken link - see our <a href='/contact.htm'>
+contact information</a>.
+
+<li>You might be able to find the information you're looking for by
+following links from our home page, <a href='/'>ifdb.tads.org</a>.
+
+</ul>
+
+<?php
+pageFooter();
+?>

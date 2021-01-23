@@ -1,0 +1,241 @@
+<?php
+
+@session_start();
+
+include "pagetpl.php";
+include_once "util.php";
+include "starctl.php";
+
+// we have to be logged in to delete a poll
+include "login-check.php";
+if (!logged_in())
+    exit();
+
+$userid = $_SESSION['logged_in_as'];
+$errMsg = false;
+
+// connect to the database
+include_once "dbconnect.php";
+$db = dbConnect();
+
+// check for special privileges
+$result = mysql_query(
+    "select `privileges` from users where id='$userid'", $db);
+$adminPriv =
+    $result
+    && strpos(mysql_result($result, 0, "privileges"), "A") !== false;
+
+// Check for cascade parameter
+$cascade = (get_req_data("refmode") == "cascade");
+$confirmParam = "&confirm" . ($cascade ? "&refmode=cascade" : "");
+
+// make sure we have a poll
+$qid = mysql_real_escape_string(get_req_data("id"), $db);
+if ($qid == "")
+    errExit("The poll ID was not specified in the request.");
+
+// Flag a referential integrity violation.  This explains why the deletion
+// isn't allowed.  If the reference is overridable, it means that we can
+// offer a 'cascade' option to carry out the deletion and cascade it to
+// delete all references.  Administrators can use cascade mode for any
+// reference type; regular users can only cascade certain types.
+function refErrExit($refs)
+{
+    global $adminPriv, $qid, $db;
+
+    // determine if we can override the reference error: we can override
+    // as long as all of the references we found are overridable
+    $override = true;
+    foreach ($refs as $r) {
+        if (!$r[1])
+            $override = false;
+    }
+
+    // explain the problem
+    if ($override)
+        $msg = "Warning! This poll is referenced elsewhere on IFDB:";
+    else
+        $msg = "This poll can't be deleted because it's "
+               . "referenced elsewhere on IFDB:";
+
+    // add the list of referencers
+    $msg .= "<p><ul>";
+    foreach ($refs as $r) {
+        // add the description
+        $msg .= "<li>{$r[0]}</li>";
+
+        // if it's not overridable, clear the override flag
+        if (!$r[1])
+            $override = false;
+    }
+    $msg .= "</ul><p>";
+
+    // add an override option, or explain why it's not available
+    if ($override || $adminPriv) {
+        $msg .= "<p>Would you like to override the references and delete "
+                . "the poll anyway?  Doing so will delete "
+                . "the poll and the cross-references listed above."
+                . "<p><a href=\"delpoll?id=$qid&refmode=cascade\">"
+                . "Yes, delete it anyway</a>"
+                . "<p><a href=\"poll?id=$qid\">No, return to the "
+                . "poll's page</a>";
+    } else {
+        $msg .= "<p> If you feel that this poll should be deleted "
+                . "anyway, please <a href=\"contact\">contact us</a>, and "
+                . "an administrator can carry out the deletion if "
+                . "appropriate.";
+    }
+
+    // terminate
+    pgErrExit($msg);
+}
+
+function pgErrExit($msg)
+{
+    global $db;
+    mysql_query("unlock tables", $db);
+    errExit($msg);
+}
+
+// make sure it's a valid poll
+$result = mysql_query(
+    "select title, userid from polls where pollid = '$qid'", $db);
+if (mysql_num_rows($result) == 0)
+    errExit("The specified poll is not in the database.");
+
+$title = htmlspecialcharx(mysql_result($result, 0, "title"));
+$createdBy = mysql_result($result, 0, "userid");
+
+// lock the tables that we'll be checking or updating
+$result = mysql_query(
+    "lock tables
+       polls write,
+       pollvotes write,
+	   pollcomments write", $db);
+
+// we have no referencers yet
+$refs = array();
+
+// make sure it's our listing; admin privs overide this
+if (!$adminPriv) {
+    // we can only delete our own listings
+    if ($createdBy != $userid) {
+        pgErrExit("You cannot delete this poll because it was "
+                  . "created by another user. Polls can only be "
+                  . "deleted by their original creators.");
+    }
+
+    // check for votes or comments by other users
+    $result = mysql_query(
+        "select count(*) as c from pollvotes
+         where pollid='$qid' and ifnull(userid, '') <> '$userid'", $db);
+
+    if ($userid == ""
+        || $userid != $editedby
+        || mysql_result($result, 0, "c") != 0) {
+        $refs[] = array("Other users have added votes to this poll (you can "
+                        . "only delete a listing if you created it <b>and</b> "
+                        . "you're the only person who's voted on it)", false);
+    }
+}
+
+// Check for references from comments
+$result = mysql_query(
+    "select count(*) as c from pollcomments
+     where pollid = '$qid'", $db);
+if (!$result || mysql_result($result, 0, "c") != 0)
+    $refs[] = array("This poll has one or more comments", true);
+
+
+// If there are any references, check for an override.  Only allow
+// the deletion if there's a valid override.
+if (count($refs) != 0) {
+    // check for overridability - if there's a single non-overridable
+    // entry, we can't override
+    $canOverride = true;
+    foreach ($refs as $r) {
+        if (!$r[1])
+            $canOverride = false;
+    }
+
+    // ...however, we can always override if we're an administrator
+    if ($adminPriv)
+        $canOverride = true;
+
+    // if overriding isn't allowed, or they didn't ask to override,
+    // flag the error
+    if (!$cascade || !$canOverride)
+        refErrExit($refs);
+}
+
+// okay, we've passed our reference checking, so we can proceed
+
+// show the confirmation page if applicable
+if (!isset($_REQUEST['confirm'])) {
+
+    // we're done with this operation - release our table locks
+    mysql_query("unlock tables", $db);
+
+    pageHeader("$title - Delete Poll");
+    echo "<h1>$title - Delete Poll</h1>";
+    ?>
+
+    <b>Are you sure you want to delete this poll?</b> 
+
+    <p>If you click "Yes" below, the poll will be permanently
+    deleted.  This action is irrevocable - it can't be undone. If you 
+    change your mind later, you'll have to re-create the poll from
+	scratch, and all votes will have to be re-entered.
+
+    <p>The main valid reason to delete a poll is that
+    you've discovered that it's a duplicate, or the poll isn't
+	appropriate or doesn't ask a relevant question about IF works.
+
+    <p>Keep in mind that if you delete a poll, any links from
+    other web sites to the poll will be broken.  It's safest
+    to delete only polls that were created very recently, because
+    it's less likely that anyone will have found it and linked to it.
+
+    <p>Do you still want to delete this poll?"
+    <?php
+
+    echo "<p><a href=\"delpoll?id=$qid$confirmParam\">Yes, permanently "
+        . "delete this poll</a>"
+        . "<p><a href=\"viewcomp?id=$qid\">No, return to the poll's page</a>";
+
+    pageFooter();
+    exit();
+}
+
+// we have confirmation - do the deletion
+$progress = "DPC0657";
+$result = mysql_query(
+    "delete from pollcomments where pollid = '$qid'", $db);
+
+$progress = "DPV0658";
+if ($result) {
+    $result = mysql_query(
+        "delete from pollvotes where pollid = '$qid'", $db);
+}
+
+if ($result) {
+    $progress = "DPL0661";
+    $result = mysql_query(
+        "delete from polls where pollid = '$qid'", $db);
+}
+
+// we're done with this operation - release our table locks
+mysql_query("unlock tables", $db);
+
+if (!$result) {
+    errExit("An error occurred deleting the poll from the database "
+            . "(error code $progress). You might want to try again "
+            . "later.");
+}
+
+pageHeader("$title - Deleted");
+echo "<h1>$title - Deleted</h1>"
+   . "This poll has been successfully deleted.";
+
+pageFooter();
+?>

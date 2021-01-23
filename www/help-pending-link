@@ -1,0 +1,34 @@
+<?php
+@session_start();
+include_once "util.php";
+include "pagetpl.php";
+helpPageHeader("Pending Download Links");
+?>
+
+<h1>Pending Download Links</h1>
+
+<p>The "pending" checkbox for a game download link tells IFDB that the
+file isn't available for download yet, but will be soon.  If you check
+this box, IFDB will do two things:
+
+<ul class=doublespace>
+
+   <li>Hide the link on the game's home page, so that users viewing the
+   page won't be confused by a broken link error.
+
+   <li>Check the URL periodically to see if it's working yet, and remove
+   the "pending" flag as soon as the link works.
+
+</ul>
+
+<p>This option is especially useful with the IF Archive, because
+files uploaded to the Archive are not available for download until
+they're reviewed by administrators.  This process usually takes a few
+days.  You <i>could</i> just wait to add the download link until the
+file appears on the Archive, but the "pending" option saves you that
+extra editing step.  Just check the box, and IFDB will monitor the
+Archive for you, updating the link as soon as it's working.
+
+<?php
+helpPageFooter();
+?>

@@ -1,0 +1,117 @@
+<?php
+include_once "util.php";
+include "pagetpl.php";
+
+$title = get_req_data('title');
+$titleForm = 
+"<form name=\"pickGame\" id=\"pickGame\" method=\"post\" action=\"gamelink\">
+   <input type=\"text\" name=\"title\" id=\"title\"
+       value=\"$title\">
+   <input type=\"submit\" name=\"go\" value=\"Go\">
+</form>";
+
+function prependPlus($str)
+{
+    return "+" . $str;
+}
+
+if (isset($_REQUEST['id'])) {
+
+    $id = htmlspecialcharx($_REQUEST['id']);
+    $title = htmlspecialcharx(get_req_data('title'));
+
+    smallPageHeader("Hyperlink to a Game");
+    echo "<h1>Hyperlink to a Game</h1>
+         Copy the following in its entirety, and paste it into the
+         description text:
+         <p>
+         <tt>&lt;a game=\"$id\"&gt;$title&lt;/a&gt;</tt>
+         <p>
+         The above will create a link that looks like this when
+         displayed:
+         <p>
+         <a href=\"viewgame?id=$id\">$title</a>
+         <p>";
+             
+} else if (isset($_REQUEST['title'])) {
+
+    include_once "dbconnect.php";
+    $db = dbConnect();
+
+    // generate the title in the form "+word1 +word2 ..."
+    $title = get_req_data('title');
+    $qtitle = mysql_real_escape_string(
+        implode(" ", array_map("prependPlus", explode(" ", $title))),
+        $db);
+
+    // look up games matching the title
+    $result = mysql_query("select id, title, author from games
+        where match (title) against ('$qtitle' in boolean mode)", $db);
+    $rowcnt = mysql_num_rows($result);
+
+    if ($rowcnt == 0) {
+
+        smallPageHeader("Hyperlink to a Game", "pickGame.title");
+        echo "<h1>Hyperlink to a Game</h1>
+             The title you entered didn't match any games in the
+             database.  Please check the title and try again.";
+        echo $titleForm;
+
+    } else if ($rowcnt == 1) {
+
+        $id = mysql_result($result, 0, "id");
+        $title = htmlspecialcharx(mysql_result($result, 0, "title"));
+
+        smallPageHeader("Hyperlink to a Game");
+        echo "<h1>Hyperlink to a Game</h1>
+             Copy the following in its entirety, and paste it into the
+             description text:
+             <p>
+             <tt>&lt;a game=\"$id\"&gt;$title&lt;/a&gt;</tt>
+             <p>
+             The above will create a link that looks like this when
+             displayed:
+             <p>
+             <a href=\"viewgame?id=$id\">$title</a>
+             <p>";
+
+    } else {
+
+        smallPageHeader("Hyperlink to a Game", "pickGame.title");
+        echo "<h1>Hyperlink to a Game</h1>
+             The title you entered matches multiple games.  Select
+             the game you're looking for:
+             <p>";
+
+        for ($i = 0 ; $i < $rowcnt ; $i++) {
+            $id = mysql_result($result, $i, "id");
+            $title = htmlspecialcharx(mysql_result($result, $i, "title"));
+            $titleParam = urlencode(mysql_result($result, $i, "title"));
+            $author = htmlspecialcharx(mysql_result($result, $i, "author"));
+            echo "<a href=\"gamelink?id=$id&title=$titleParam\">"
+                . "$title</a>, by $author<br>";
+        }
+
+        echo "<p>If you don't see the game you were looking for,
+            edit the title and try again:<br>" . $titleForm;
+
+    }
+
+} else {
+
+    $title = htmlspecialcharx(get_req_data('title'));
+    smallPageHeader("Hyperlink to a Game", "pickGame.title");
+
+?>
+
+<h1>Hyperlink to a Game</h1>
+
+<p>Enter the title of the game you want to link to:
+
+<?php
+    echo $titleForm;
+
+}
+
+helpPageFooter();
+?>

@@ -1,0 +1,1117 @@
+<?php
+
+include "pagetpl.php";
+include_once "util.php";
+include_once "captcha.php";
+include_once "news.php";
+include_once "rss.php";
+include "login-check.php";
+
+@session_start();
+
+$userid = checkPersistentLogin();
+$pagetitle = "Club Details";
+$errMsg = false;
+
+// connect to the database
+include_once "dbconnect.php";
+$db = dbConnect();
+
+// get the club ID
+$qid = mysql_real_escape_string(get_req_data("id"), $db);
+if (!$qid) {
+    $errMsg = "The club ID was missing from the page request. The link "
+              . "you followed to reach this page might be broken.";
+}
+
+// club wish list query
+$clubListQuery =
+    "select sql_calc_found_rows
+       l.gameid, g.title, g.author, g.`desc`, g.coverart,
+       count(m.userid) as c
+     from
+       clubmembers as m
+       join #TABLE# as l
+         on l.userid = m.userid
+       join games as g
+         on g.id = l.gameid
+     where
+       m.clubid = '$qid'
+     group by
+       l.gameid";
+
+$clubWishListQuery = str_replace("#TABLE#", "wishlists", $clubListQuery);
+$clubPlayListQuery = str_replace("#TABLE#", "playedgames", $clubListQuery);
+
+// retrieve the club data
+$result = mysql_query(
+    "select
+      name, `desc`, url, contacts,
+      date_format(created, '%M %e, %Y'),
+      members_public, password, pswsalt
+     from
+      clubs
+     where
+      clubid = '$qid'", $db);
+
+if (mysql_num_rows($result) > 0)
+{
+    // fetch and decode the row
+    list($name, $desc, $url, $contacts, $created, $membersPublic,
+         $password, $pswsalt) = mysql_fetch_row($result);
+
+    // quote items for HTML
+    $name = htmlspecialcharx($name);
+    $desc = fixDesc($desc, FixDescSpoiler);
+    $membersPublic = ($membersPublic == "Y");
+
+    // if the URL doesn't start with a valid scheme, assume http://
+    if (!preg_match("/^[a-z0-9]+:\/\//i", $url))
+        $url = "http://$url";
+}
+else
+{
+    $errMsg = "The requested club is not in the database. It might have "
+              . "been deleted, or the link you followed to reach this "
+              . "page might be broken.";
+}
+
+// if we've encountered an error, display it and abort
+if ($errMsg)
+    clubErrExit($errMsg);
+
+// check for RSS
+if (isset($_REQUEST['news-rss']))
+{
+    // get the news for this club
+    $result = queryNewsRss($items, $db, "U", $qid, 50,
+                           "clubTitleRss", $name);
+
+    // send the items
+    sendRSS("$name - Club News",
+            "http://ifdb.tads.org/club?id=$qid",
+            "IFDB news postings for the club $name",
+            $items, false);
+
+    // done
+    exit();
+}
+function clubTitleRss($ctx, $headline)
+{
+    return $headline;
+}
+
+function clubErrExit($errMsg, $extra = false)
+{
+    global $qid, $db;
+
+    // if the operation involved locking tables, we're done now
+    mysql_query("unlock tables", $db);
+
+    // show the error page
+    pageHeader("View Club");
+    echo "<span class=errmsg>$errMsg</span>";
+    echo $extra
+        . "<p><a href=\"club?id=$qid\">Return to the club page</a>";
+    
+    pageFooter();
+    exit();
+}
+
+function clubSuccExit($succMsg)
+{
+    global $qid, $name, $db;
+
+    // if the operation involved locking tables, we're done now
+    mysql_query("unlock tables", $db);
+
+    // show the result page
+    pageHeader("$name - View Club");
+    echo "<h1>$name</h1>"
+        . "<span class=success>$succMsg</span>"
+        . "<p><a href='club?id=$qid'>Return to the club page</a>";
+    pageFooter();
+
+    exit();
+}
+
+
+// if we're logged in, check to see if we're a member
+$isMember = $isAdmin = $joinDate = false;
+if ($userid)
+{
+    // look up the current user in the club member roll
+    $result = mysql_query(
+        "select joindate, admin
+         from clubmembers
+         where clubid = '$qid' and userid = '$userid'", $db);
+    if (mysql_num_rows($result) > 0) {
+        $isMember = true;
+        list($joinDate, $admin) = mysql_fetch_row($result);
+        $isAdmin = ($admin == "Y");
+    }
+}
+
+// ------------------ Club Wish/Play List request --------------------
+if (isset($_REQUEST['wishlist']) || isset($_REQUEST['playlist']))
+{
+    // get the appropriate query, title, etc
+    if (isset($_REQUEST['wishlist'])) {
+        $query = $clubWishListQuery;
+        $hdr = "Wish List";
+        $nm = "wishlist";
+        $link = "wishlist";
+    } else {
+        $query = $clubPlayListQuery;
+        $hdr = "Play List";
+        $nm = "play list";
+        $link = "playlist";
+    }
+
+    // this is only possible if the member list is visible
+    if (!$membersPublic)
+    {
+        // make sure we're logged in so we can tell if we're a member
+        if (!logged_in())
+            exit();
+        
+        // if we're not a member, explain the problem
+        if (!$isMember) {
+            clubErrExit("Sorry, but this club's membership list is private, "
+                        . "so its $nm can only be viewed by members.",
+                        "<p><a href=\"club?id=$qid&join\">Join this club</a>");
+        }
+    }
+
+    // start the page
+    pageHeader("$name - Club $hdr");
+    echo "<h1>$name - Club $hdr</h1>"
+        . "The Club $hdr is a combination of the {$nm}s of all of the "
+        . "members of the club."
+
+        . "<p><a href=\"club?id=$qid\">Return to the club page</a>";
+
+    // get the page parameters
+    $pg = get_req_data("pg");
+    $perPage = 20;
+    $pgAll = false;
+    if ($pg == "all") {
+        $pg = 1;
+        $pgAll = true;
+    } else {
+        $pg = (int)$pg;
+        if ($pg < 1)
+            $pg = 1;
+    }
+
+    // figure the page limits
+    $firstOnPage = ($pg - 1) * $perPage;
+    $lastOnPage = $firstOnPage + $perPage - 1;
+    $limit = ($pgAll ? "" : "limit $firstOnPage, $perPage");
+
+    // figure the sorting
+    $sortList = array(
+        'title' => array('g.sort_title', 'Sort by Title'),
+        'author' => array('g.sort_author', 'Sort by Author'),
+        'cntd' => array('count(m.userid) desc', 'On Most Member Lists First'),
+        'cntu' => array('count(m.userid)', 'On Fewest Member Lists First'),
+        'rand' => array('rand()', 'Random Order'));
+
+    $sortby = get_req_data("sortby");
+    if (!isset($sortList[$sortby]))
+        $sortby = 'title';
+
+    // run the query
+    $sql = "$query order by {$sortList[$sortby][0]}, g.sort_title $limit";
+    $result = mysql_query($sql, $db);
+
+    // get the total row count
+    $result2 = mysql_query("select found_rows()", $db);
+    list($rowcnt) = mysql_fetch_row($result2);
+
+    if ($pgAll) {
+        $lastOnPage = $rowcnt;
+        $lastPage = 1;
+    } else {
+        $lastPage = (int)floor(($rowcnt + $perPage - 1)/$perPage);
+    }
+
+    // show the sorting controls
+    $hids = array("id" => $qid, $link => "1");
+    showSortingControls("searchOrder", "sortby", $sortList, $sortby,
+                        $hids, "club");
+
+    // show the paging controls
+    $pageCtl = "<span class=details>"
+               . makePageControl("club?id=$qid&$link&sortby=$sortby",
+                                 $pg, $lastPage, $firstOnPage, $lastOnPage,
+                                 $rowcnt, true, true, $pgAll)
+               . "</span>";
+    echo $pageCtl;
+
+    // show the rows
+    if ($rowcnt == 0)
+        echo "<p><i>This club's $nm is currently empty.</i>";
+
+    for ($i = 0 ; $i < mysql_num_rows($result) ; $i++)
+    {
+        // fetch the row
+        list($gid, $gtitle, $gauthor, $gdesc, $gpic, $gcnt) =
+            mysql_fetch_row($result);
+
+        $gtitle = htmlspecialcharx($gtitle);
+        $gauthor = htmlspecialcharx($gauthor);
+
+        // display the row
+        if ($gpic) {
+            echo "<p><table border=0 cellpadding=0 cellspacing=0 class=grid>"
+                . "<tr><td><a href=\"viewgame?id=$gid\">"
+                . "<img src=\"viewgame?id=$gid&coverart&thumbnail=80x80\" "
+                . "border=0></a></td>"
+                . "<td><a href=\"viewgame?id=$gid\"><i>$gtitle</i></a>, "
+                . "by $gauthor<br>"
+                . "<span class=details>On $gcnt member $nm"
+                . ($gcnt == 1 ? "" : "s") . "</span>"
+                . "</td></tr></table>";
+        } else {
+            echo "<p><a href=\"viewgame?id=$gid\"><i>$gtitle</i></a>, "
+                . "by $gauthor<br>"
+                . "<span class=details>On $gcnt member $nm"
+                . ($gcnt == 1 ? "" : "s") . "</span>";
+        }
+    }
+
+    // end the page
+    echo "<p>$pageCtl";
+    pageFooter();
+    
+    // done
+    exit();
+}
+
+// ---------------------  join request -----------------------
+if (isset($_REQUEST['join']))
+{
+    // we have to be logged in to do this
+    if (!logged_in())
+        exit();
+
+    // get the current user's wish list privacy
+    $result = mysql_query(
+        "select publiclists from users where id = '$userid'");
+    list($userPublicLists) = mysql_fetch_row($result);
+
+    // lock tables
+    $result = mysql_query(
+        "lock tables clubmembers write", $db);
+
+    // check if we're already a member
+    $result = mysql_query(
+        "select count(*) from clubmembers
+         where clubid = '$qid' and userid = '$userid'", $db);
+    list($i) = mysql_fetch_row($result);
+
+    // if we're already a member, say so and abort
+    if (!$result || $i > 0)
+        clubErrExit("You're already a member of this club.");
+
+    // check if the club requires a password to join
+    $passwordParam = $reqPassword = "";
+    if ($password)
+    {
+        // if a password was provided, verify it
+        if (isset($_REQUEST['password']))
+        {
+            // password provided - check it
+            $reqPassword = get_req_data("password");
+            $passwordParam = "&password=$reqPassword";
+            $hash = sha1($pswsalt . $reqPassword);
+            if ($hash != $password)
+                showPasswordForm("The password you entered is incorrect.");
+        }
+        else
+        {
+            // no password - ask for one
+            showPasswordForm(false);
+        }
+    }
+
+    // check for confirmation
+    if (get_req_data("confirm") != $userid)
+    {
+        // release the table locks
+        mysql_query("unlock tables", $db);
+
+        pageHeader("$name - Join");
+        echo "<h1>$name - Join</h1>"
+            . "<b>Privacy notes:</b>";
+
+        if ($membersPublic)
+            echo "<p>This club's membership list is currently public. "
+                . "This means all IFDB members will be able to see "
+                . "your membership status.";
+        else
+            echo "<p>This club's membership list is currently private. This "
+                . "means your membership status will be visible to other "
+                . "members of the club, but not to non-members. "
+                . "Club administrators could change this in "
+                . "the future to make the membership list public.";
+
+        echo "<p>One of the benefits of club membership is that your "
+            . "personal wish list entries will be added to the combined "
+            . "Club Wish List.  Nothing on the combined list will be "
+            . "attributed to you personally, but we want you to be aware "
+            . "of the information sharing. ";
+
+        if (strpos($userPublicLists, "W") !== false)
+            echo "Since your personal wish list is already public, "
+                . "this probably doesn't bother you, but note that your "
+                . "entries will still be included in the club's combined "
+                . "wish list even if you make your list private in the "
+                . "future.";
+        else
+            echo "Note that this sharing will occur even though your "
+                . "personal wish list is private.";
+
+        echo "<p>Do you wish to proceed?"
+            . "<p><a href=\"club?id=$qid&join&confirm=$userid$passwordParam\">"
+            . "Yes, join $name</a>"
+            . "<br><a href=\"club?id=$qid\">No, don't join</a>";
+
+        pageFooter();
+        exit();
+    }
+
+    // looks good for joining
+    $result = mysql_query(
+        "insert into clubmembers (clubid, userid, joindate, admin)
+         values ('$qid', '$userid', now(), 'N')", $db);
+
+    if ($result)
+        clubSuccExit("Welcome! You have successfully joined $name.");
+    else
+        clubErrExit("A database error occurred adding you to the club "
+                    . "membership list. You might try again shortly, "
+                    . "or <a href='contact'>contact us</a> if the "
+                    . "problem persists.");
+}
+
+function showPasswordForm($errMsg)
+{
+    global $qid;
+    pageHeader("Join $name", "clubPasswordForm.password");
+
+    echo "<h1>Join $name</h1>"
+
+        . "This club is open to invited members only. If you "
+        . "have an invitation, please verify it by entering the "
+        . "club password, which you should have received with "
+        . "your invitation."
+
+        . "<p>If you don't have an invitation, you can request "
+        . "one from the club officials listed in the Contacts "
+        . "section on the club's page."
+
+        . "<p><a href='club?id=$qid'>Return to the club's page</a>";
+
+    if ($errMsg)
+        echo "<p><span class=errmsg>$errMsg</span>";
+
+    echo "<p><form name='clubPasswordForm' method='get' action='club'>"
+        . "<input type='hidden' name='id' value='$qid'>"
+        . "<input type='hidden' name='join' value='1'>"
+        . "<b>Club password:</b> "
+        . "<input type='password' name='password' size='20'>"
+        . "<input type='submit' name='submit' value='Join' "
+        . "style='margin-left:1em;'>"
+        . "</form>";
+
+    pageFooter();
+    exit();
+}
+
+// --------------------- resign request -----------------------
+if (isset($_REQUEST['resign']))
+{
+    // we have to be logged in to do this
+    if (!logged_in())
+        exit();
+
+    // if we're not a member, there's nothing to resign
+    if (!$isMember)
+        clubErrExit("You're not a member of this club.");
+
+    // check again that we're not an administrator, with a lock to ensure
+    // nothing sneaks by while processing
+    mysql_query("lock tables clubmembers write", $db);
+
+    $result = mysql_query(
+        "select admin from clubmembers
+         where clubid = '$qid' and userid = '$userid'", $db);
+    list($admin) = mysql_fetch_row($result);
+
+    if ($admin == 'Y')
+        clubErrExit("You can't resign from the club as long as you're "
+                    . "a club administrator.",
+                    "<p><a href='club?id=$qid&resignAdmin'>Resign from "
+                    . "administrator role</a>");
+
+    // if this club is password protected, ask for confirmation
+    if ($password && get_req_data("confirm") != "resign.$userid")
+    {
+        // release the table locks
+        mysql_query("unlock tables", $db);
+
+        // show the confirmation page
+        pageHeader("Resign $name");
+        echo "This club is open to invited members only, so if you "
+            . "resign, you might need a new invitation if you "
+            . "want to rejoin. Are you sure you want to resign?"
+            . "<p><a href=\"club?id=$qid&resign&confirm=resign.$userid\">"
+            . "Yes, resign my membership</a>"
+            . "<br><a href=\"club?id=$qid\">No, keep my membership</a>";
+
+        pageFooter();
+        exit();
+    }
+
+    // looks good - carry out the resignation
+    $result = mysql_query(
+        "delete from clubmembers
+         where clubid = '$qid' and userid = '$userid'", $db);
+
+    if ($result)
+        clubSuccExit("You have successfully been removed from the "
+                     . "membership list for this club.");
+    else
+        clubErrExit("A database error occurred removing you from "
+                    . "the club membership list. You might try again "
+                    . "shortly, or <a href='contact'>contact us</a> "
+                    . "if the problem persists.");
+}
+
+// ------------------ admin resignation request ---------------
+if (isset($_REQUEST['resignAdmin']))
+{
+    // we have to be logged in to do this
+    if (!logged_in())
+        exit();
+
+    // lock tables so we can verify and delete atomically
+    $result = mysql_query("lock tables clubmembers", $db);
+
+    // check to see if we're the only admin - we can't resign if we are
+    $result = mysql_query(
+        "select count(userid) from clubmembers
+             where clubid = '$qid' and admin = 'Y'", $db);
+    list($adminCnt) = mysql_fetch_row($result);
+
+    if ($adminCnt < 2) {
+        clubErrExit("You are currently the only administrator for this "
+                    . "club. The sole administrator can't resign, since "
+                    . "that would leave no one with the ability to "
+                    . "designate a new administrator. If you wish to "
+                    . "resign this role, you must first designate "
+                    . "another administrator to carry on maintenance "
+                    . "of the club's page.");
+    }
+
+    // check for confirmation
+    if (get_req_data("confirm") == "admin.$userid")
+    {
+        // remove my admin privs
+        $result = mysql_query(
+            "update clubmembers set admin = null
+             where clubid = '$qid' and userid = '$userid'", $db);
+
+        // show the result
+        if ($result)
+            clubSuccExit("You have successfully resigned as administrator.");
+        else
+            clubErrExit("A database error occurred removing your "
+                        . "administrator role.");
+    }
+    else
+    {
+        // done with table locks
+        mysql_query("unlock tables", $db);
+
+        // show the confirmation page
+        pageHeader("Resign Administrator Role");
+        echo "<h1>Resign Administrator Role</h1>"
+            . "If you resign your administrator role in this club, "
+            . "you will no longer be able to perform any privileged "
+            . "operations on the IFDB club listing, such as editing "
+            . "the club's page or managing membership.  You will not "
+            . "be able to resume this position on your own if you "
+            . "change your mind - a remaining administrator will have "
+            . "to grant you the admin role again."
+
+            . "<p>Are you sure you want to resign as club administrator?"
+
+            . "<p><a href=\"club?id=$qid&resignAdmin&confirm=admin.$userid\">"
+            . "Yes, resign as administrator</a>"
+            . "<br><a href=\"club?id=$qid\">No, do not resign</a>";
+
+        pageFooter();
+        exit();
+    }
+}
+
+// ------------------------------------------------------------------------
+//
+// Enforce administrator privileges for an admin request
+//
+// NB - this function locks the club-related tables to ensure that the
+// admin enforcement and subsequent operation are atomic.  The caller
+// must release table locks after completing the sql operations and
+// before showing the page header.
+//
+function enforceAdmin($userParam)
+{
+    global $db, $qid, $isAdmin, $userid;
+    
+    // get the user parameter, if applicable
+    $targetUser = false;
+    if ($userParam)
+        $targetUser = mysql_real_escape_string(get_req_data($userParam), $db);
+
+    // we have to be an administrator
+    if (!$isAdmin)
+        clubErrExit("This operation is restricted to club administrators.");
+
+    // if there's a target user, validate it
+    if ($userParam)
+    {
+        if (!$targetUser)
+            clubErrExit("No user was specified in the request.");
+        
+        // the target can't be self
+        if ($targetUser == $userid)
+            clubErrExit("You can't perform this operation on yourself.");
+
+        // lock tables to make the verification and operation atomic
+        $result = mysql_query(
+            "lock tables clubmembers as c write,
+               clubmembers write,
+               users as u read", $db);
+
+        // validate the user we're operating on
+        $result = mysql_query(
+            "select
+               c.userid, c.admin, u.name, u.location
+             from
+               clubmembers as c
+               join users as u on u.id = c.userid
+             where
+               c.clubid = '$qid' and c.userid = '$targetUser'", $db);
+
+        list($tid, $tadmin, $tname, $tloc) = mysql_fetch_row($result);
+        $tname = htmlspecialcharx($tname);
+        $tloc = htmlspecialcharx($tloc);
+        $tadmin = ($tadmin == 'Y');
+
+        // we can't update a user who doesn't exist, or who's an admin
+        if (!$tid)
+            clubErrExit("The specified user is not a member of this club.");
+        if ($tadmin)
+            clubErrExit("You can't perform this operation on another "
+                        . "club administrator.");
+
+        // everything's valid - return the user record
+        return array($targetUser, $tname, $tloc);
+    }
+
+    // valid
+    return true;
+}
+
+// ------------------- "Remove Member" admin request ---------------------
+if (isset($_REQUEST["removeMember"]))
+{
+    // enforce privilege restrictions and retrieve the target user
+    list($targ, $tname, $tloc) = enforceAdmin("removeMember");
+
+    // check for confirmation
+    if (get_req_data("confirm") == $targ)
+    {
+        // do the delete
+        $result = mysql_query(
+            "delete from clubmembers
+             where clubid = '$qid' and userid = '$targ'", $db);
+
+        if ($result)
+            clubSuccExit("<a href='showuser?id=$targ'>$tname</a> has been "
+                         . "successfully removed from the club's membership "
+                         . "list.");
+        else
+            clubErrExit("A database error occurred removing the member.");
+    }
+    else
+    {
+        // release the table locks from enforceAdmin()
+        mysql_query("unlock tables", $db);
+
+        // show the confirmation page
+        pageHeader("$name - Remove Member");
+        echo "<h1>$name - Remove Member</h1>"
+
+            . "You are removing the following user from this club's "
+            . "membership:"
+
+            . "<div class=indented style='margin-top:1em;margin-bottom:1em;'>"
+            . "<a href='showuser?id=$targ'>$tname</a>"
+            . ($tloc ? "<br><span class=details>$tloc</span>" : "")
+            . "</div>"
+
+            . "Do you want to proceed?"
+
+            . "<p><a href='club?id=$qid&removeMember=$targ&confirm=$targ'>"
+            . "Yes, remove this member</a>"
+            . "<br><a href='club?id=$qid'>No, keep this member</a>";
+
+        pageFooter();
+        exit();
+    }
+}
+
+
+// --------------------- "Make Admin" admin request ---------------------
+if (isset($_REQUEST["makeAdmin"]))
+{
+    // enforce privilege restrictions and retrieve the target user
+    list($targ, $tname, $tloc) = enforceAdmin("makeAdmin");
+
+    // check for confirmation
+    if (get_req_data("confirm") == $targ)
+    {
+        // do the delete
+        $result = mysql_query(
+            "update clubmembers
+             set admin = 'Y'
+             where clubid = '$qid' and userid = '$targ'", $db);
+
+        if ($result)
+            clubSuccExit("<a href='showuser?id=$targ'>$tname</a> has been "
+                         . "successfully made a club administrator.");
+        else
+            clubErrExit("A database error updating the member records.");
+    }
+    else
+    {
+        // release the table locks from enforceAdmin()
+        mysql_query("unlock tables", $db);
+
+        // show the confirmation page
+        pageHeader("$name - Make Administrator");
+        echo "<h1>$name - Make Administrator</h1>"
+
+            . "You are making the following user into a club administrator:"
+
+            . "<div class=indented style='margin-top:1em;margin-bottom:1em;'>"
+            . "<a href='showuser?id=$targ'>$tname</a>"
+            . ($tloc ? "<br><span class=details>$tloc</span>" : "")
+            . "</div>"
+
+            . "Note that once a user is an administrator, they have full "
+            . "admin privileges for the club.  <b>You will not be able "
+            . "to remove this user's admin privileges once added</b> - "
+            . "the administrator role can only be voluntarily relinquished. "
+
+            . "<p>Do you want to proceed?"
+
+            . "<p><a href='club?id=$qid&makeAdmin=$targ&confirm=$targ'>"
+            . "Yes, make this member an administrator</a>"
+            . "<br><a href='club?id=$qid'>No, return to the club page</a>";
+
+        pageFooter();
+        exit();
+    }
+}
+
+
+// -------------------------- list members ----------------------------
+if (isset($_REQUEST['members']))
+{
+    // if the membership is private, we have to be a member
+    if (!$membersPublic)
+    {
+        // make sure we're logged in so we can tell if we're a member
+        if (!logged_in())
+            exit();
+
+        // if we're not a member, explain the problem
+        if (!$isMember) {
+            clubErrExit("Sorry, but this club's membership can only "
+                        . "be viewed by members.",
+                        "<p><a href=\"club?id=$qid&join\">Join this club</a>");
+        }
+    }
+
+    // start the page
+    pageHeader("$name - Members");
+    echo "<h1>$name - Members</h1>"
+        . "<a href=\"club?id=$qid\">Return to the club page</a>";
+
+    // get the page limits
+    $perPage = 25;
+    $pgAll = false;
+    $pg = get_req_data("pg");
+    if ($pg == "all") {
+        $pg = 1;
+        $pgAll = true;
+    }
+    if ($pg < 1)
+        $pg = 1;
+
+    $firstOnPage = ($pg - 1)*$perPage;
+    $lastOnPage = $firstOnPage + $perPage;
+
+    $limit = ($pgAll ? "" : "limit $firstOnPage, $perPage");
+
+    // set up the sorting options list
+    $sortList = array(
+        'name' => array('u.name', 'Sort by Name'),
+        'new' => array('m.joindate desc', 'Newest Members First'),
+        'old' => array('m.joindate', 'Longest Tenure First'),
+        'loc' => array("if(u.location is null or u.location='', 2, 1), "
+                       . "u.location", 'Sort by Location'),
+        'rand' => array('rand()', 'Random Order'));
+
+    // get the sorting order from the request; use 'name' by default
+    $sortby = get_req_data("sortby");
+    if (!isset($sortList[$sortby]))
+        $sortby = 'name';
+
+    // set up the ORDER BY clause for hte query
+    $orderBy = "{$sortList[$sortby][0]} ,u.name";
+    
+    // query members
+    $result = mysql_query(
+        "select sql_calc_found_rows
+           m.userid, u.name, u.location, u.picture,
+           date_format(m.joindate, '%M %e, %Y'), m.admin
+         from
+           clubmembers as m
+           join users as u on u.id = m.userid
+         where
+           m.clubid = '$qid'
+         order by
+           $orderBy
+         $limit", $db);
+
+    // get the total row count
+    $result2 = mysql_query("select found_rows()", $db);
+    list($rowcnt) = mysql_fetch_row($result2);
+
+    if ($pgAll) {
+        $lastOnPage = $rowcnt;
+        $lastPage = 1;
+    } else {
+        $lastPage = (int)floor(($rowcnt + $perPage - 1)/$perPage);
+    }
+
+    // show the sorting controls
+    $hids = array("id" => $qid, "members" => 1);
+    showSortingControls("searchOrder", "sortby", $sortList, $sortby,
+                        $hids, "club");
+    
+    // show the paging controls
+    $pageCtl = "<span class=details>"
+               . makePageControl("club?id=$qid&members&sortby=$sortby", 
+                                 $pg, $lastPage, $firstOnPage, $lastOnPage,
+                                 $rowcnt, true, true, $pgAll)
+               . "</span>";
+    echo $pageCtl;
+
+    // show the data
+    for ($i = 0 ; $i < mysql_num_rows($result) ; $i++)
+    {
+        // fetch the row
+        list($mid, $mname, $mloc, $mpic, $mjoin, $madmin) =
+            mysql_fetch_row($result);
+
+        // quote items
+        $mname = htmlspecialcharx($mname);
+        $mloc = htmlspecialcharx($mloc);
+        $madmin = ($madmin == 'Y');
+
+        echo "<p>";
+        $main = "<a href=\"showuser?id=$mid\"><b>$mname</b></a>"
+                . ($madmin
+                   ? "<span style='padding-left:2em' class=details>"
+                   . "<i>Club Administrator</i></span>"
+                   : ($isAdmin
+                      ? "<span style='padding-left:2em' class=details>"
+                      . "<a href=\"club?id=$qid&removeMember=$mid\">"
+                      . "Remove Member</a> | "
+                      . "<a href=\"club?id=$qid&makeAdmin=$mid\">"
+                      . "Make Administrator</a></span>"
+                      : ""))
+                . "<br>"
+                . "<span class=details>"
+                . ($mloc ? "$mloc<br>" : "")
+                . "Joined $mjoin"
+                . "</span>";
+        
+        if ($mpic) {
+            echo "<table class=grid border=0 cellspacing=0 cellpadding=0>"
+                . "<tr><td>"
+                . "<a href=\"showuser?id=$mid\">"
+                . "<img src=\"showuser?id=$mid&pic&thumbnail=80x80\" "
+                . "border=0></td>"
+                . "<td>$main</td>"
+                . "</tr></table>";
+        } else {
+            echo $main;
+        }
+    }
+
+    // show the paging controls again
+    echo "<p>$pageCtl";
+
+    // done with the page
+    pageFooter();
+    exit();
+}
+
+
+// --------------------------- Standard View --------------------------------
+
+$pageTitle = "$name - Club Details";
+pageHeader($pageTitle, false, false, "<script src=\"xmlreq.js\"></script>");
+echo "<h1>$name</h1>"
+   . $desc;
+
+// ----------------- Details section -----------------------
+    
+echo "<h2>Details</h2>"
+   . "<div class=\"indented details\">";
+
+echo "Listed on IFDB: $created<br>";
+
+// we might need the captcha scripts for email masking
+$captchaKey = "club.$qid";
+captchaSupportScripts($captchaKey);
+
+if ($url) {
+    echo "Official club Web site: <a href=\"$url\">$name</a><br>";
+}
+
+function parseContact($contact, $pat)
+{
+    if (preg_match($pat, $contact, $match, PREG_OFFSET_CAPTURE))
+    {
+        // the first paren group is the item to return
+        $item = $match[1][0];
+
+        // get the offset and length of the overall match
+        list($txt, $ofs) = $match[0];
+
+        // snip the overall match out of the string
+        $contact = substr($contact, 0, $ofs)
+                   . substr($contact, $ofs + strlen($txt));
+
+        // return the parsed match
+        return array($contact, $item);
+    }
+    else
+    {
+        // no match - return the item unchanged
+        return array($contact, false);
+    }
+}
+
+if ($contacts)
+{
+    // split the contact list into an array
+    $contacts = array_map("trim", explode(",", $contacts));
+
+    // display the contacts using a table for column alignment
+    echo "<table border=0 cellspacing=0 cellpadding=0>"
+        . "<tr valign=baseline>"
+        . "<td><span class=details>Contact"
+        . (count($contacts) > 1 ? "s" : "")
+        . ":&nbsp;&nbsp;</span></td>";
+
+    // process each one for email addresses and profile links
+    $foundEmail = false;
+    foreach ($contacts as $i => $contact)
+    {
+        // parse out the profile link, if present
+        $proLink = "";
+        list($contact, $tuid) =
+            parseContact($contact, "/\s*\{([a-zA-Z0-9]+)\}/");
+        if ($tuid) {
+            $proLink = " <a href=\"showuser?id=$tuid\" "
+                       . "class=\"authorProfileLink\" "
+                       . "title=\"View #N#'s profile\">profile</a>";
+        }
+
+        // parse out the email address
+        $emailLink = "";
+        list($contact, $email) =
+            parseContact($contact, "/\s*<([^>@]+@[^>@]+)>/");
+        if ($email) {
+            $foundEmail = true;
+            $emailLink = "<span style=\"padding-left: 1em;\">("
+                         . captchaMaskEmail($email, false)
+                         . ")</span>";
+        }
+        
+        // put everything back together
+        $contact = htmlspecialcharx($contact);
+        $contact = $contact
+                   . str_replace("#N#", $contact, $proLink)
+                   . $emailLink;
+        
+        // start a new row (except for the first row)
+        if ($i > 0)
+            echo "<tr><td></td>";
+
+        // display the contact
+        echo "<td><span class=details>$contact</span></td></tr>";
+    }
+
+    // end the table
+    echo "</table><br>";
+
+    // show the captcha form for email if we need it
+    if ($foundEmail) {
+        captchaAjaxForm($captchaKey);
+        captchaFinish($captchaKey);
+    }
+}
+echo "</div>";
+
+// ---------------- News Section ----------------------------
+
+echo "<h2 style='margin-bottom: 0.25ex;'>News</h2>"
+   . "<div class=details style='margin-bottom: 1em;'>"
+   . "<a href=\"club?id=$qid&news-rss\">"
+   . "<img src='blank.gif' class='rss-icon'>RSS Feed</a>"
+   . "</div>"
+   . "<div class=indented>";
+
+if (!newsSummary($db, "U", $qid, 3, "", "")) {
+    echo "<i>No news has been posted for this club.</i>"
+        . "<br><a href=\"editnews?type=U&source=$qid\">"
+        . "Add a news item</a>";
+}
+
+echo "</div>";
+
+// ----------------- Membership Section -----------------------
+echo "<h2>Membership</h2>"
+   . "<div class=\"indented details\">";
+
+if ($membersPublic || $isMember)
+{
+    $result = mysql_query(
+        "select count(*) from clubmembers
+         where clubid = '$qid'", $db);
+    list($mcnt) = mysql_fetch_row($result);
+
+    echo "$mcnt member" . ($mcnt > 1 ? "s" : "")
+        . " on IFDB - <a href=\"club?id=$qid&members\">Show member list</a><br>";
+}
+else
+{
+    echo "This club's membership list is visible only to members.<br>";
+}
+
+if ($isMember) {
+    echo "You are a member of $name - <a href=\"club?id=$qid&resign\">"
+        . "Resign membership</a><br>";
+}
+else if ($password) {
+    echo "<p><a href=\"club?id=$qid&join\">Join this club</a><br>"
+        . "<i>Note: this club is open to invited members only. If you "
+        . "don't already have an invitation, please contact a club "
+        . "official listed in the Contact section above to inquire "
+        . "about membership.</i>";
+} else {
+    echo "<a href=\"club?id=$qid&join\">Join this club</a><br>";
+}
+
+echo "</div>";
+
+
+// ----------------- Club Wish List Section -----------------------
+
+if ($membersPublic || $isMember)
+{
+    echo "<h2>Club Play Lists</h2>"
+        . "The Club Wish List and Play List are club-wide combinations "
+        . "of the personal Wish Lists and Play Lists for all of the "
+        . "members of the club. "
+        . "These can be helpful for picking topics of discussion, "
+        . "games for group play or club events, etc."
+        . "<div class=indented>";
+
+    $lists = array(
+        array("Wish List", "wishlist", "wishlist", $clubWishListQuery),
+        array("Play List", "play list", "playlist", $clubPlayListQuery));
+
+    foreach ($lists as $cur)
+    {
+        list($hdr, $nm, $link, $query) = $cur;
+
+        $result = mysql_query("$query order by c desc limit 0, 5", $db);
+        $rowcnt = mysql_num_rows($result);
+
+        $result2 = mysql_query("select found_rows()", $db);
+        list($totcnt) = mysql_fetch_row($result2);
+
+        echo "<h3>$hdr</h3>";
+        if ($rowcnt > 0)
+        {
+            for ($i = 0 ; $i < $rowcnt ; $i++)
+            {
+                list($gid, $gtitle, $gauthor, $gpic, $gdesc, $gcnt) =
+                    mysql_fetch_row($result);
+                $gtitle = htmlspecialcharx($gtitle);
+                $gauthor = htmlspecialcharx($gauthor);
+
+                echo "<a href=\"viewgame?id=$gid\"><i>$gtitle</i></a>, "
+                    . "by $gauthor <span class=details>(on $gcnt member "
+                    . $nm . ($gcnt == 1 ? "" : "s") . ")</span><br>";
+            }
+
+            if ($totcnt > $rowcnt)
+                echo "<p><span class=details>"
+                    . "<a href=\"club?id=$qid&$link\">More...</a></span>";
+        }
+        else
+            echo "<i>The club $hdr currently has no entries.</i>";
+    }
+
+    echo "</div>";
+}
+
+
+// ----------------- Admin Section -----------------------
+//
+// if we're an administrator, show the edit options
+//
+if ($isAdmin)
+{
+    echo "<h2>Administration</h2>"
+        . "<div class=indented>"
+
+        . "<a href=\"editclub?id=$qid\">Edit this page</a>"
+
+        . "<br><a href=\"delclub?id=$qid\">Delete this page</a>"
+
+        . "<br><a href=\"club?id=$qid&resignAdmin\">"
+        . "Resign my administrator role</a>"
+
+        . "<p>For membership operations, including removing members "
+        . "and designating new administrators, "
+        . "<a href=\"club?id=$qid&members\"> go to the member list</a>."
+
+        . "</div>";
+}
+
+pageFooter();
+?>

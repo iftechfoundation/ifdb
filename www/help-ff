@@ -1,0 +1,90 @@
+<?php
+@session_start();
+include_once "util.php";
+include "pagetpl.php";
+helpPageHeader("Frequent Fiction Points");
+?>
+
+<h1><i>Frequent Fiction</i> Points - Q &amp; A</h1>
+
+<p><b>What are <i>Frequent Fiction</i> points?</b><br>
+
+They're a scoring system to recognize members who contribute to IFDB
+in the form of reviews, ratings, etc.
+
+<p><b>How are my points calculated?</b><br> 
+
+Points are awarded as follows:
+
+<ul class=doublespace>
+
+   <li>+100 points for each review you write.
+
+   <li>+5 points for each "Helpful" vote for one of your reviews, and
+   -5 for each "Unhelpful" vote, but the total score for an individual
+   review can never go above 200 or below zero.
+
+   <li>+25 points for each Recommended List you've created that includes
+   at least five games.
+
+   <li>+10 points for each game rating you enter without a review.
+
+   <li>+1 point for each Helpful or Unhelpful vote you enter for
+   someone else's review.
+
+</ul>
+
+<p>The rationale for the Helpful/Unhelpful adjustments to your own
+review scores is to better recognize high-quality reviews, and to
+discourage writing perfunctory reviews just to pump up one's points.  The
+reason you get points for voting on other people's reviews is that
+those votes help improve the overall quality of the reviews on the
+site, by providing reviewers with feedback and a little extra
+incentive to make a good effort.  These only rate a small bonus,
+because otherwise some people might be tempted to enter a lot of
+insincere votes just for the points.
+
+<p><b>When are my points updated?</b><br>
+
+The system keeps your point total updated continuously.  There's
+no need to do anything special to get points counted - every time
+you do something that affects your points, they'll be updated
+immediately.
+
+
+<p><b>Can I redeem points for cash and valuable merchandise?  Is
+there a credit card that earns <i>Frequent Fiction</i> points
+with every purchase?</b>
+
+<br>Sadly, no.  IF isn't exactly a commercial juggernaut these days.
+We haven't heard back yet from the many deep-pocketed investors we've
+approached with our plan wherein they shower our members with cash and
+prizes.  We'll let you know as soon as we hear anything.
+
+<p><b>Then what are my points good for?</b>
+
+<br>They're good for prestige in the IF community.  IFDB awards Top
+10, Top 25, Top 50, and Top 100 status according to your point ranking
+among the IFDB membership, and displays your status when other users
+view your profile.
+
+
+<p><b>How is "Top 10 Reviewer" status determined?</b><br>
+
+The "Top N Reviewers" are simply the "N" members with the highest
+Frequent Fiction scores, with the proviso that they must all have
+written at least one review.  In other words, you can't earn "Top
+Reviewer" status purely from points for non-review activities.
+
+<p>Don't get us wrong: we think those other activities are valuable
+too - that's why they're worth points in the first place.  We just
+feel that "Top <i>Reviewer</i>" status should be reserved for, well,
+reviewers - people who have written reviews.  Writing a review takes
+some serious thought and effort, so we think it deserves a special
+level of recognition.
+
+
+
+<?php
+helpPageFooter();
+?>

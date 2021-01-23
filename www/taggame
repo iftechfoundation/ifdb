@@ -1,0 +1,160 @@
+<?php
+
+@session_start();
+include_once "util.php";
+include "pagetpl.php";
+include "login-check.php";
+
+function sendResponse($statmsg, $errmsg, $detail, $tagInfo)
+{
+    global $xml;
+    
+    if ($xml)
+    {
+        header("Content-Type: text/xml");
+        header("Expires: Mon, 26 Jul 1997 05:00:00 GMT");
+        header("Cache-Control: no-store, no-cache, must-revalidate");
+
+        echo "<?xml version=\"1.0\" encoding=\"UTF-8\" ?><response>"
+            . ($statmsg ? "<label>$statmsg</label>" : "")
+            . ($errmsg ? "<error>$errmsg</error>" : "")
+            . $tagInfo
+            . "</response>";
+    }
+    else
+    {
+        smallPageHeader("Tag a Game");
+        if ($errmsg)
+            echo "<span class=errmsg>$errmsg</span><p>";
+
+        echo $detail;
+        smallPageFooter();
+    }
+
+    exit();
+}
+
+// connect to the database
+include_once "dbconnect.php";
+$db = dbConnect();
+if ($db == false)
+    sendResponse("Not Saved", "An error occurred connecting to the database. "
+                 . "Please try again later.", false);
+
+// get the request parameters
+$id = get_req_data('id');
+$xml = isset($_REQUEST['xml']);
+for ($i = 0, $tags = array() ; ; $i++) {
+    if (!isset($_REQUEST["t$i"]))
+        break;
+
+    // get this tag
+    $tag = get_req_data("t$i");
+
+    // if it's UTF-8 encoded, translate to 8859-1
+    if (is_utf8($tag))
+        $tag = iconv("UTF-8", "ISO-8859-1//IGNORE", approx_utf8($tag));
+
+    // trim it
+    $tag = trim($tag);
+
+    // if it's not an empty string, add it to the list
+    if (strlen($tag))
+        $tags[] = $tag;
+}
+
+// make sure we process any persistent login state
+$userid = checkPersistentLogin();
+if (!$userid && !$xml && !logged_in(true))
+    exit();
+
+if (!$userid)
+    sendResponse("Not Saved", "To tag a game, please log in.", false);
+
+if (isEmpty($id))
+    sendResponse(
+        "Not Saved", "No game was specified in the tag request.", false);
+
+// make sure the game is valid
+$qid = mysql_real_escape_string($id, $db);
+$result = mysql_query("select id from games where id = '$qid'", $db);
+if (mysql_num_rows($result) == 0)
+    sendResponse("Not Saved",
+                 "This tag request refers to a non-existent game.",
+                 false);
+
+// delete any old tags set by this user
+mysql_query(
+    "delete from gametags where userid = '$userid' and gameid='$qid'", $db);
+
+// insert the new tags
+$result = true;
+foreach ($tags as $t) {
+    $t = mysql_real_escape_string($t, $db);
+    $result = mysql_query(
+        "insert into gametags (gameid, userid, tag)
+         values ('$qid', '$userid', '$t')", $db);
+    if (!$result)
+        break;
+}
+
+// copy the new full set of tags for the game into the GAMES table
+if ($result) {
+
+    $result = mysql_query(
+        "select tag from gametags where gameid = '$qid'", $db);
+
+    for ($i = 0, $allTags = array(), $tagList = array(), $cnt = mysql_num_rows($result) ; $i < $cnt ; $i++) {
+        $curTag = mysql_result($result, $i, "tag");
+        $allTags[] = $curTag;
+        $tagList[] = "'" . mysql_real_escape_string($curTag, $db) . "'";
+    }
+
+    if (count($allTags) != 0) {
+        $allTags = implode(",", $allTags);
+        $allTags = '\'' . mysql_real_escape_string($allTags, $db) . '\'';
+        $tagList = implode(",", $tagList);
+    } else {
+        $allTags = "null";
+        $tagList = "";
+    }
+
+    $result = mysql_query(
+        "update games set tags = $allTags where id = '$qid'", $db);
+}
+
+// query the new counts
+$tagInfo = "";
+if ($result && $tagList) {
+
+    $result = mysql_query(
+        "select
+           tag,
+           sum(gameid = '$qid') as tagcnt,
+           count(distinct gameid) as gamecnt
+         from gametags
+         where tag in ($tagList)
+         group by tag
+         having tagcnt != 0", $db);
+
+    for ($i = 0, $tagInfo, $cnt = mysql_num_rows($result) ;
+         $i < $cnt ; $i++) {
+        list($tag, $tagCnt, $gameCnt) = mysql_fetch_row($result);
+        $tagInfo .= "<tag><name>" . htmlspecialcharx($tag) . "</name>"
+                    . "<tagcnt>$tagCnt</tagcnt>"
+                    . "<gamecnt>$gameCnt</gamecnt>"
+                    . "</tag>";
+    }
+}
+
+// explain what happened
+if ($result) {
+    sendResponse("Saved", false,
+                 "Your tags have been saved.", $tagInfo);
+} else {
+    sendResponse("Not Saved", "An error occurred updating the database. "
+                 . "Please try again later.", false, false);
+}
+
+smallPageFooter();
+?>

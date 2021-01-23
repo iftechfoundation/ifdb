@@ -1,0 +1,33 @@
+<?php
+include "pagetpl.php";
+
+@session_start();
+
+header("HTTP/1.1 404 Not Found");
+pageHeader("404 - Not Found");
+?>
+<h1>Page Not Found</h1>
+
+<p><span class=details>HTTP Error 404</span>
+
+<p>
+Sorry!  We couldn't find the page you're trying to reach.
+
+<ul class=doublespace>
+
+<li>If you followed a link from another site, the link might be
+incorrect or out of date - you might want to contact the other site's
+owner to let them know about the problem.  (If the broken link is on
+IFDB itself, see our <a href='/contact'>contact information</a>.)
+
+<li>If you typed the URL (the page address) directly into your
+browser's address bar, check to make sure you entered it correctly.
+
+<li>You might be able to find the information you're looking for via
+our home page, <a href='/'>ifdb.tads.org</a>.
+
+</ul>
+
+<?php
+pageFooter();
+?>

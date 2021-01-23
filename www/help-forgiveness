@@ -1,0 +1,56 @@
+<?php
+@session_start();
+include_once "util.php";
+include "pagetpl.php";
+helpPageHeader("Forgiveness Ratings");
+?>
+
+<h1>Forgiveness Ratings</h1>
+
+<p>The Forgiveness Rating measures how much freedom the game gives you
+to screw up the story.  For example, in some games it's possible for
+the main character to die by doing the wrong thing, while in others
+there's no way to kill the main character. But dying is only the most
+obvious way to "lose" in IF.  In some games, you can get yourself into
+a situation where you can go on playing forever, but you'll never be
+able to win because of some irreversible action you've taken.  For
+instance, the game might let you lock your keys in the car, or it might
+let you discard or destroy a vital object that you'll need to solve to
+a puzzle much later in the game.
+
+<p>The Zarfian forgiveness scale was proposed by Andrew Plotkin on <a
+href="news:rec.arts.int-fiction">rec.arts.int-fiction</a> to classify
+games according to whether they make unwinnable situations possible,
+and to what degree:
+
+<ul class=doublespace>
+
+<li><b>Merciful</b> - You can't get stuck, and the main character
+can't die.  It's impossible to permanently lose an object that's
+required to win the game.  The game will always remain winnable no
+matter what you do.
+
+<li><b>Polite</b> - The main character can die, and it's possible to
+lose vital objects or otherwise make it impossible to win, <b>but</b>
+it's immediately obvious whenever you've just done something that
+makes the game unwinnable.  This means that you can always immediately
+UNDO to get back on track.
+
+<li><b>Tough</b> - You can get stuck or die, but it's immediately
+obvious when you're about to do something irrevocable.  (You might not
+be able to anticipate that a particular action will make the game
+unwinnable, though - only that it will be irreversible.)
+
+<li><b>Nasty</b> - You can get stuck or die, but it's immediately
+obvious <b>after the fact</b> when you've done something irrevocable.
+(Again, though, you might not realize that an action made the game
+unwinnable - just that the action was irrevocable.)
+
+<li><b>Cruel</b> - You can get stuck or die, and you can do so by an
+action that you didn't even realize was irrevocable after doing it.
+
+</ul>
+
+<?php
+helpPageFooter();
+?>

@@ -1,0 +1,1654 @@
+<?php
+
+include "pagetpl.php";
+include_once "util.php";
+include_once "combobox.php";
+include_once "profilelink.php";
+include_once "gamesearchpopup.php";
+
+// we have to be logged in to edit a competition
+@session_start();
+include "login-check.php";
+if (!logged_in())
+    exit();
+
+// translate image button request parameters to the normal SUBMIT button style
+foreach (array("save", "discard", "divedit", "divedit-done") as $b) {
+    if (isset($_REQUEST[$b . "_x"]) && !isset($_REQUEST[$b]))
+        $_REQUEST[$b] = true;
+}
+$userid = $_SESSION['logged_in_as'];
+
+// connect to the database
+include_once "dbconnect.php";
+$db = dbConnect();
+
+// can't be a troll, an unapproved new user, a banned user, or a closed account
+if (!check_editing_privileges($db))
+    exit();
+
+// get the username
+$result = mysql_query(
+    "select name, location, `privileges` from users 
+    where id = '$userid'", $db);
+list($username, $userloc, $userprivs) = mysql_fetch_row($result);
+$username = htmlspecialcharx($username);
+$userloc = htmlspecialcharx($userloc);
+$adminPriv =
+    $result && strpos(mysql_result($result, 0, "privileges"), "A") !== false;
+
+// no errors/status yet
+$errMsg = false;
+$succMsg = false;
+$errDetail = array();
+$saveErrMsg = false;
+$show = "form";
+$pageTitle = "Edit Competition";
+
+
+// ------------------------------------------------------------------------
+//
+// define the fields in the form, their display properties, and their
+// mapping to the database
+//
+define("TypeInt", 1);
+define("TypeString", 2);
+define("TypeDate", 3);
+
+
+$fields = array(
+    array("Name", "title", 60,
+          "Name of the competition or awards event.  For an annual or "
+          . "other ongoing series, include the year, edition number "
+          . "(\"4th Annual\"), etc.",
+          null, TypeString),
+
+    array("Series", "series", 60,
+          "If this event is repeated annually (or at other intervals), enter "
+          . "the series name here.  Be sure to enter the same series name "
+          . "on the pages for all of the other editions in the series - "
+          . "IFDB uses this to tie the series together",
+          null, TypeString),
+
+    array("Description", "desc", 60,
+          "Overview of the competition: purpose, selection criteria, "
+          . "history, etc.  Be brief; leave the full details to the "
+          . "Comp's official Web site - "
+          . helpWinLink("help-formatting", "Formatting Hints"),
+          null, TypeString),
+
+    array("Keywords", "keywords", 60,
+          "Optional search keywords, separated by spaces; the search engine "
+          . "will match search terms to these words (as well as the title, "
+          . "series name, and description)",
+          null, TypeString),
+
+    array("Web site", "url", 80,
+          "The competition's official web site, if it has one (http:// is "
+          . "assumed if not included)",
+          null, TypeString),
+
+    array("Organizers", "organizersExt", 80,
+          "The people who organize the competition - "
+          . "<a href=\"needjs\" "
+          . "onclick=\"javascript:aplOpen('organizersExt', 'Organizers');"
+          . "return false;\">Link to profile</a>",
+          null, TypeString),
+
+    array("Judges", "judgesExt", 80,
+          "For a juried competition, the names of the judges - "
+          . "<a href=\"needjs\" "
+          . "onclick=\"javascript:aplOpen('judgesExt', 'Judges');"
+          . "return false;\">Link to profile</a>",
+          null, TypeString),
+
+    array("Opening date", "qualopen", 15,
+          "DD-MON-YYYY - The opening date of the qualification period; "
+          . "fill this in if games released over a specific period "
+          . "were eligible",
+          null, TypeDate),
+
+    array("Closing date", "qualclose", 15,
+          "DD-MON-YYYY - The end of the qualifying period, or the "
+          . "deadline for submitting entries",
+          null, TypeDate),
+    
+    array("Award date", "awarddate", 15,
+          "DD-MON-YYYY (e.g., 16-Oct-2009) - The date the winners "
+          . "were announced",
+          null, TypeDate)
+);
+
+// ------------------------------------------------------------------------
+//
+//  Load the database record, if we're editing an entry that
+//  already exists
+//
+
+// get the ID of the comp we're editing
+$compID = mysql_real_escape_string(get_req_data("id"), $db);
+
+// If we're editing an existing entry, load the old record from the database
+$oldRec = array();
+if ($compID == "new") {
+
+    // creating a new record
+    $pageTitle = "New Competition/Awards Event";
+
+    // set up the initial division list
+    $oldRec["divisions"] = array(
+        array("divid" => "-2",
+              "divname" => "Main",
+              "divdesc" => "This is the default division. For an event "
+                         . "in which all games are competing for the same "
+                         . "awards, simply list all games under this "
+                         . "division."));
+
+} else {
+
+    // editing an old record - query the record we're editing
+    $result = mysql_query(
+        "select
+           compid, title, series, `desc`, url, organizers, organizersExt,
+           judges, judgesExt,
+           date_format(qualopen, '%d-%b-%Y') as qualopen,
+           date_format(qualclose, '%d-%b-%Y') as qualclose,
+           date_format(awarddate, '%d-%b-%Y') as awarddate,
+           created, editedby, moddate, pagevsn
+         from
+           competitions
+         where
+           compid = '$compID'", $db);
+
+    // fetch it
+    if (mysql_num_rows($result) > 0) {
+
+        // fetch the row
+        $oldRec = mysql_fetch_array($result, MYSQL_ASSOC);
+
+        // set the page title
+        $pageTitle = htmlspecialcharx($oldRec["title"]) . " - Edit";
+        
+        // query the division list
+        $result = mysql_query(
+            "select divid, divname, divdesc
+             from compdivs
+             where compid = '$compID'
+             order by divno", $db);
+
+        // fetch the division records
+        for ($i = 0, $divs = array() ; $i < mysql_num_rows($result) ; $i++)
+            $divs[] = mysql_fetch_array($result, MYSQL_ASSOC);
+        
+        // add the division list to the main record
+        $oldRec["divisions"] = $divs;
+
+        // query the games list
+        $result = mysql_query(
+            "select
+               c.divid as divid, c.gameid as gameid, c.place as place,
+               g.title as title, g.author as author
+             from
+               compgames as c
+               join games as g on g.id = c.gameid
+             where
+               c.compid = '$compID'
+             order by
+               c.divid, c.seqno", $db);
+
+        // fetch the game list
+        for ($j = 0, $games = array() ; $j < mysql_num_rows($result) ;
+             $j++)
+            $games[] = mysql_fetch_array($result, MYSQL_ASSOC);
+        
+        // add the games list to the main record
+        $oldRec["games"] = $games;
+
+    } else {
+        $errMsg[] = "The specified competition is not in the database. "
+                    . "It might have been recently deleted, or the link "
+                    . "you followed to reach this page might be broken.";
+
+        $show = "status";
+    }
+}
+
+// ------------------------------------------------------------------------
+//
+//   Load the posted form data, if this is a POST submission
+//
+
+$newRec = array();
+if ($_SERVER['REQUEST_METHOD'] == "POST") {
+
+    // load the fields from the parameters
+    for ($i = 0 ; $i < count($fields) ; $i++) {
+
+        // get this field descriptor
+        $field = $fields[$i];
+        $colname = $field[1];
+
+        // load it from the request
+        $newRec[$colname] = get_req_data($colname);
+    }
+
+    // get the hidden page version field
+    $newRec["pagevsn"] = get_req_data("pagevsn");
+
+    // We haven't seen any temporary (negative) division IDs on this round
+    // so far.  If we don't find any, we'll start handing out temporary IDs
+    // to new divisions starting at -2.
+    $nextNewDiv = -2;
+
+    // load the division and games
+    for ($divs = array(), $i = 0 ; ; $i++) {
+
+        // if we're out of divid# records, we're done
+        if (!isset($_REQUEST["divid$i"]))
+            break;
+
+        // load this record
+        $div = array();
+        $div["divid"] = $id = get_req_data("divid$i");
+        $div["divname"] = get_req_data("divname$i");
+        $div["divdesc"] = get_req_data("divdesc$i");
+
+        // if this is a temporary (new) division, note the next available ID
+        // in case we also find new divisions that new new temporary IDs
+        if ($id <= $nextNewDiv)
+            $nextNewDiv = $id - 1;
+
+        // add the division to the list
+        $divs[] = $div;
+    }
+
+    // Go back and assign temporary division IDs to any divisions that were
+    // newly created in the division editor.  The division editor gives
+    // each new division an ID of -1.  We need to change that to a unique
+    // ID so that we can track any games that get added to the division
+    // while we're editing.
+    for ($i = 0 ; $i < count($divs) ; $i++) {
+        // if this is a new division, assign it the next temporary ID
+        if ($divs[$i]["divid"] == -1)
+            $divs[$i]["divid"] = $nextNewDiv--;
+    }
+
+    // make a map of the divisions by ID
+    for ($divMap = array(), $i = 0 ; $i < count($divs) ; $i++)
+        $divMap[$divs[$i]["divid"]] = 1;
+
+    // store the division list in the main record
+    $newRec["divisions"] = $divs;
+
+    // Load the games.  First, try the grid format: for each division n,
+    // there's a list of games with field suffixes like "n_m".
+    for ($games = array(), $i = 0 ; $i < count($divs) ; $i++)
+    {
+        // The games are divided into sets by division.  Each division
+        // has a local index 0..Ndivs-1, and and within each division the
+        // games have local indices 0..Ngames-1.  The composite grid
+        // fields are named xxx$i_$j, where $i is the division index and
+        // $j is the game index within the division.
+        for ($j = 0 ; ; $j++) {
+
+            // build the composite index
+            $idx = "{$i}_{$j}";
+
+            // check to see if we're out of games in this division
+            if (!isset($_REQUEST["gameid$idx"]))
+                break;
+
+            // load this game
+            $game = array();
+            $game["divid"] = $divid = get_req_data("gamediv$idx");
+            $game["gameid"] = get_req_data("gameid$idx");
+            $game["place"] = get_req_data("gameplace$idx");
+            $game["title"] = get_req_data("gametitle$idx");
+            $game["author"] = get_req_data("gameauthor$idx");
+
+            // If this game's division exists, add it to the list.  Skip this
+            // if the division isn't found, since this must mean that the
+            // division has been deleted in the division editor.
+            if (isset($divMap[$divid]))
+                $games[] = $game;
+        }
+    }
+
+    // Next try loading hidden games.  When we don't have a grid, we just
+    // write out a simple linear list of the games.
+    for ($i = 0 ; ; $i++)
+    {
+        // if the next item doesn't exist, we're done
+        if (!isset($_REQUEST["gameid$i"]))
+            break;
+    
+        // load this game
+        $game = array();
+        $game["divid"] = $divid = get_req_data("gamediv$i");
+        $game["gameid"] = get_req_data("gameid$i");
+        $game["place"] = get_req_data("gameplace$i");
+        $game["title"] = get_req_data("gametitle$i");
+        $game["author"] = get_req_data("gameauthor$i");
+
+        // add it to the list, as long as its division still exists
+        if (isset($divMap[$divid]))
+            $games[] = $game;
+    }
+
+    // For update purposes, we want the new games array in the same order
+    // as the old games array, so that we won't find spurious deltas just
+    // because the arrays are in different order.  The ordering of the
+    // divisions within the games list is arbitrary, since the division
+    // display order is controlled by the separate divisions list.
+    // Within a division, the order of games matters, because this is
+    // the actual display order.  So, sort by division, but within a
+    // division preserve the current relative order.
+    for ($i = 0 ; $i < count($games) ; $i++)
+        $games[$i]["oldIndex"] = $i;
+    usort($games, "newGamesSorter");
+
+    // store the games list 
+    $newRec["games"] = $games;
+
+    // since this is a submission, populate the form with the submitted data
+    $dispRec = $newRec;
+
+} else {
+
+    // this isn't a form submission, so populate the form with the db data
+    $dispRec = $oldRec;
+}
+
+// sort the new games list: sort by division, preserving the old order
+// within a division
+function newGamesSorter($a, $b)
+{
+    $diva = $a["divid"];
+    $divb = $b["divid"];
+    return $diva != $divb ? $diva - $divb : $a["oldIndex"] - $b["oldIndex"];
+}
+
+// If they're resetting the form, use the old data after all
+if (isset($_REQUEST['discard']))
+    $dispRec = $oldRec;
+
+// If they're submitting the division editor form, check that all of the
+// divisions have names
+if (isset($_REQUEST['divedit-done'])) {
+
+    foreach ($newRec["divisions"] as $div) {
+        if (preg_replace("/\s/", "", $div["divname"]) == "") {
+            $errMsg[] = "Please enter a name for each division.";
+            $show = "divform";
+            break;
+        }
+    }
+}
+    
+
+// ------------------------------------------------------------------------
+//
+//  Handle updates
+//
+
+// validate that an optional date field contains a parseable date
+function valDateField($rec, $field, &$errDetail)
+{
+    $val = $rec[$field];
+    if ($val && !parseDateVal($val))
+        $errDetail[$field][] = "Please enter dates in the format "
+                               . "DD-Mon-YYYY; e.g., 12-Jun-2009";
+}
+
+// Calculate the deltas between an old record and a new record.  Returns
+// an array of (old-deltas, new-deltas) - each item is a hashtable keyed
+// by column name of the changed items.  Old-deltas contains as its values
+// the old values of the changed items, and new-deltas gives the new values
+// of the changed items.  Each table has the same set of keys, so you can
+// fish out the old and new value for each changed item by looking in the
+// respective table.
+function calcDeltas($oldRec, $newRec)
+{
+    global $fields, $userid;
+
+    // set up our internal list of fields - start with the display list,
+    // and add our special internal fields
+    $f = $fields;
+    
+    // run through the fields and generate the list of differences
+    $changesOld = array();
+    $changesNew = array();
+    for ($i = 0 ; $i < count($f) ; $i++) {
+
+        // get the column descriptor
+        $field = $f[$i];
+        $colname = $field[1];
+
+        // get the old and new values
+        $oldval = (isset($oldRec[$colname]) ? $oldRec[$colname] : "");
+        $newval = $newRec[$colname];
+
+        // parse/convert the field values to our internal representation
+        switch ($field[5]) {
+        case TypeInt:
+            $oldval = parseIntVal($oldval);
+            $newval = parseIntVal($newval);
+            break;
+
+        case TypeDate:
+            $oldval = parseDateVal($oldval);
+            $newval = parseDateVal($newval);
+            break;
+        }
+
+        // compare the fields: if they differ, this column has changed
+        if (strcmp($oldval, $newval) != 0) {
+            $changesOld[$colname] = $oldval;
+            $changesNew[$colname] = $newval;
+        }
+    }
+
+    // check for changes to the divisions
+    $newDivs = $newRec["divisions"];
+    $oldDivs = $oldRec["divisions"];
+    if (!arrayOfArrayValsEqual(
+        $newDivs, $oldDivs,
+        array("divid", "divname", "divdesc"))) {
+        $changesNew["divisions"] = $newDivs;
+        $changesOld["divisions"] = $oldDivs;
+    }
+
+    // compare the game lists
+    $newGames = $newRec["games"];
+    $oldGames = $oldRec["games"];
+    if (!arrayOfArrayValsEqual(
+        $newGames, $oldGames,
+        array("divid", "gameid", "place"))) {
+        $changesNew["games"] = gameChangeArray($newGames);
+        $changesOld["games"] = gameChangeArray($oldGames);
+    }
+
+    // return the changes
+    return array($changesOld, $changesNew);
+}
+
+// Map a "games" array to the fields relevant for the change history.
+// We have some extra fields in the in-memory data, such as title and
+// author, for convenience in displaying the game in the grid control.
+// We don't want to store the extra derived fields in the history in
+// the database, though, so we filter them out here.
+function gameChangeArray($old)
+{
+    for ($new = array(), $i = 0 ; $i < count($old) ; $i++)
+    {
+        // get the old record and set up a blank new one
+        $o = $old[$i];
+        $n = array();
+
+        // copy the relevant fields
+        $n["divid"] = $o["divid"];
+        $n["gameid"] = $o["gameid"];
+        $n["place"] = $o["place"];
+
+        // add the new record
+        $new[] = $n;
+    }
+
+    // return the new list
+    return $new;
+}
+
+// convert a value to a quoted and escaped string, or to NULL
+function valOrNull($val, $db)
+{
+    return $val ? "'" . mysql_real_escape_string($val, $db) . "'" : "null";
+}
+
+// mapping from temporary division IDs for new insertions to real IDs
+$newDivID = array();
+
+// update the division list
+function saveDivisions($newDivs)
+{
+    global $db, $compID, $newDivID;
+
+    $keepList = array();
+    $result = true;
+    for ($i = 0 ; $i < count($newDivs) ; $i++) {
+
+        // decode this record
+        $div = $newDivs[$i];
+        $id = mysql_real_escape_string($div["divid"], $db);
+        $name = mysql_real_escape_string($div["divname"], $db);
+        $desc = valOrNull($div["divdesc"], $db);
+
+        // if this is a new division, insert it; if old, update it
+        if ($id < 0) {
+            // new - insert it
+            $progress = "INS7739";
+            $result = mysql_query(
+                "insert into compdivs
+                 (compid, divno, divname, divdesc)
+                 values ('$compID', '$i', '$name', $desc)", $db);
+
+            // note the assigned database ID
+            $newDivID[$id] = $newid = mysql_insert_id($db);
+
+            // add this to the keeper list
+            $keepList[] = $newid;
+
+        } else {
+
+            // old - update it
+            $progress = "UPD7739";
+            $result = mysql_query(
+                "update compdivs
+                 set divno = '$i', divname = '$name', divdesc = $desc
+                 where compid = '$compID' and divid = '$id'", $db);
+
+            // add it to the keeper list
+            $keepList[] = $id;
+        }
+
+        // stop if that failed
+        if (!$result)
+            break;
+    }
+
+    // delete old divisions not in the keeper list
+    if ($result) {
+        $progress = "DEL7739";
+        $keepList = implode("','", $keepList);
+        $result = mysql_query(
+            "delete from compdivs
+             where
+               compid = '$compID'
+               and divid not in ('$keepList')", $db);
+    }
+    
+    return array($result, $progress);
+}
+
+// save games
+function saveGames($newGames)
+{
+    global $db, $compID, $newDivID;
+
+    // delete all of the old games
+    $progress = "DEL1999";
+    $result = mysql_query(
+        "delete from compgames where compid = '$compID'", $db);
+
+    // insert the new games
+    for ($i = 0 ; $result && $i < count($newGames) ; $i++) {
+
+        // get the fields, properly quoted
+        $game = $newGames[$i];
+        $divID = mysql_real_escape_string($game["divid"], $db);
+        $gameID = mysql_real_escape_string($game["gameid"], $db);
+        $place = mysql_real_escape_string($game["place"], $db);
+
+        // if this is a new division, look up the real ID
+        if ($divID < 0)
+            $divID = $newDivID[$divID];
+
+        // insert the record
+        $progress = "INS1999.$i";
+        $result = mysql_query(
+            "insert into compgames
+              (compid, divid, gameid, place, seqno)
+              values ('$compID', '$divID', '$gameID', '$place', '$i')", $db);
+    }
+
+    return array($result, $progress);
+}
+
+// save profile links
+function saveProfileLinks($new, $role)
+{
+    global $db, $userid, $compID;
+
+    // query the existing links
+    $progress = "SEL1147";
+    $result = mysql_query(
+        "select userid from compprofilelinks
+         where compid = '$compID' and role = '$role'", $db);
+
+    for ($i = 0, $old = array(), $oldMap = array() ;
+         $i < mysql_num_rows($result) ; $i++)
+    {
+        list($uid) = mysql_fetch_row($result);
+        $old[] = $uid;
+        $oldMap[$uid] = 1;
+    }
+
+    // insert the links that don't appear in the old record
+    for ($i = 0 ; $result && $i < count($new) ; $i++) {
+        $uid = $new[$i];
+        if (!isset($oldMap[$uid])) {
+            $progress = "INS1147.$i";
+            $result = mysql_query(
+                "insert into compprofilelinks
+                 (compid, userid, moddate, role)
+                 values ('$compID', '$uid', now(), '$role')", $db);
+        }
+    }
+    
+    // delete everything not in the new list
+    if ($result) {
+        $progress = "DEL1147";
+        $result = mysql_query(
+            "delete from compprofilelinks
+             where
+               compid = '$compID'
+               and role = '$role'
+               and userid not in ('" . implode("','", $new) . "')", $db);
+    }
+
+    // return the status indication
+    return array($result, $progress);
+}
+
+// parse profile links
+function parseProfileLinks(&$newRec, $field, &$errDetail)
+{
+    global $db;
+
+    // get the field from the new record
+    $txt = $newRec["{$field}Ext"];
+
+    // trim out the profile links from the string for the plain version
+    $newRec[$field] = preg_replace("/\s?\{[a-z0-9]+\}/i", "", $txt);
+    
+    // look for the profile link pattern
+    for ($ofs = 0, $proList = array() ;
+         preg_match("/\{([a-z0-9]+)\}/i", $txt, $match,
+                    PREG_OFFSET_CAPTURE, $ofs) ; $ofs = $match[0][1]+1) {
+        // pull out this match and add it to the list
+        $proList[] = $pro = mysql_real_escape_string($match[1][0], $db);
+        
+        // validate it
+        $result = mysql_query(
+            "select id from users where id='$pro'", $db);
+
+        if (mysql_num_rows($result) == 0) {
+            $errDetail['eAuthor'][] =
+                "The profile ID {{$pro}} doesn't refer to any existing user.";
+            return false;
+        }
+    }
+
+    // success
+    $newRec["{$field}-links"] = $proList;
+    return true;
+}
+
+// save a new listing
+function saveNew($newRec)
+{
+    global $db, $userid, $compID;
+    $result = true;
+    
+    // generate a TUID for the new entry
+    $progress = "TUI8586";
+    $newID = generateTUID($db, "competitions.compid", 10);
+    if (!$newID)
+        $result = false;
+    
+    // insert the new main competition record
+    if ($result) {
+
+        // get the form fields, formatted and quoted
+        $title = mysql_real_escape_string($newRec["title"], $db);
+        $series = valOrNull($newRec["series"], $db);
+        $desc = valOrNull($newRec["desc"], $db);
+        $url = valOrNull($newRec["url"], $db);
+        $organizers = valOrNull($newRec["organizers"], $db);
+        $organizersExt = valOrNull($newRec["organizersExt"], $db);
+        $judges = valOrNull($newRec["judges"], $db);
+        $judgesExt = valOrNull($newRec["judgesExt"], $db);
+        $qualopen = valOrNull(parseDateVal($newRec["qualopen"]), $db);
+        $qualclose = valOrNull(parseDateVal($newRec["qualclose"]), $db);
+        $awarddate = valOrNull(parseDateVal($newRec["awarddate"]), $db);
+
+        $progress = "INS8586.1";
+        $result = mysql_query(
+            "insert into competitions
+             (compid, title, series, `desc`, url,
+              organizers, organizersExt, judges, judgesExt,
+              qualopen, qualclose, awarddate,
+              created, editedby, moddate, pagevsn)
+             values
+             ('$newID', '$title', $series, $desc, $url,
+              $organizers, $organizersExt, $judges, $judgesExt,
+              $qualopen, $qualclose, $awarddate,
+              now(), '$userid', now(), 1)", $db);
+
+        // we've made it far enough to assign the new ID
+        $compID = $newID;
+    }
+
+    // insert the divisions
+    if ($result)
+        list($result, $progress) = saveDivisions($newRec["divisions"]);
+    
+    // insert the games
+    if ($result)
+        list($result, $progress) = saveGames($newRec["games"], false);
+
+    // insert the profile links
+    if ($result)
+        list($result, $progress) = saveProfileLinks(
+            $newRec["judges-links"], "J");
+    if ($result)
+        list($result, $progress) = saveProfileLinks(
+            $newRec["organizers-links"], "O");
+
+    // check what happened
+    if ($result) {
+
+        // success - use the new TUID for the current record
+        $compID = $newID;
+    
+    } else if ($newID) {
+
+        // failed - roll back as much as possible
+        mysql_query(
+            "delete from competitions where compid = '$newID'", $db);
+        mysql_query(
+            "delete from compdivs where compid = '$newID'", $db);
+        mysql_query(
+            "delete from compgames where compid = '$newID'", $db);
+        mysql_query(
+            "delete from compprofilelinks where compid = '$newID'", $db);
+
+        // revert to a new record, and forget any new division IDs assigned
+        $compID = "new";
+        $newDivID = false;
+    }
+
+    // return results
+    return array($result, $progress);
+}
+
+// update an existing listing
+function saveUpdates($newRec, $oldRec, $changesNew, $changesOld)
+{
+    global $db, $userid, $errDetail, $compID;
+    $result = true;
+
+    // save the history update
+    $deltas = mysql_real_escape_string(serialize($changesOld), $db);
+    $editedby = mysql_real_escape_string($oldRec["editedby"], $db);
+    $moddate = mysql_real_escape_string($oldRec["moddate"], $db);
+    $pagevsn = mysql_real_escape_string($oldRec["pagevsn"], $db);
+
+    $progress = "IHS8586";
+    $result = mysql_query(
+        "insert into comps_history
+         (compid, editedby, moddate, pagevsn, deltas)
+         values ('$compID', '$editedby', '$moddate', '$pagevsn', '$deltas')",
+        $db);
+
+    // update the new main competition record
+    if ($result) {
+
+        // get the form fields, formatted and quoted
+        $title = mysql_real_escape_string($newRec["title"], $db);
+        $series = valOrNull($newRec["series"], $db);
+        $desc = valOrNull($newRec["desc"], $db);
+        $url = valOrNull($newRec["url"], $db);
+        $organizers = valOrNull($newRec["organizers"], $db);
+        $organizersExt = valOrNull($newRec["organizersExt"], $db);
+        $judges = valOrNull($newRec["judges"], $db);
+        $judgesExt = valOrNull($newRec["judgesExt"], $db);
+        $qualopen = valOrNull(parseDateVal($newRec["qualopen"]), $db);
+        $qualclose = valOrNull(parseDateVal($newRec["qualclose"]), $db);
+        $awarddate = valOrNull(parseDateVal($newRec["awarddate"]), $db);
+
+        $progress = "INS8586.1";
+        $result = mysql_query(
+            "update competitions
+             set
+               title = '$title',
+               series = $series,
+               `desc` = $desc,
+               url = $url,
+               organizers = $organizers,
+               organizersExt = $organizersExt,
+               judges = $judges,
+               judgesExt = $judgesExt,
+               qualopen = $qualopen,
+               qualclose = $qualclose,
+               awarddate = $awarddate,
+               moddate = now(),
+               editedby = '$userid',
+               pagevsn = pagevsn + 1
+             where
+               compid = '$compID'", $db);
+    }
+
+    // insert the divisions 
+    if ($result)
+        list($result, $progress) = saveDivisions($newRec["divisions"]);
+    
+    // insert the games
+    if ($result)
+        list($result, $progress) = saveGames($newRec["games"], false);
+
+    // insert the profile links
+    if ($result)
+        list($result, $progress) = saveProfileLinks(
+            $newRec["judges-links"], "J");
+    if ($result)
+        list($result, $progress) = saveProfileLinks(
+            $newRec["organizers-links"], "O");
+
+    // return results
+    return array($result, $progress);
+}
+
+// save the form, if this is a Save submission
+if (!$errMsg && isset($_REQUEST["save"])) {
+
+    // validate fields
+    if (preg_replace("/\s/", "", $newRec["title"]) == "")
+        $errDetail["title"][] = "Please enter a name for the competition.";
+
+    $divTitleMissing = 0;
+    foreach ($newRec["divisions"] as $div) {
+        if (preg_replace("/\s/", "", $div["divname"]) == ""
+            && $divTitleMissing++ == 0)
+            $errDetail["divisions"][] = "Please enter a name for each division.";
+    }
+
+    $gameMissing = array();
+    foreach ($newRec["games"] as $game) {
+        $div = $game["divid"];
+        if (!$game["gameid"] && !$gameMissing[$div]) {
+            $gameMissing[$div] = 1;
+            $errDetail["games_$div"][] =
+                "Please select a game for each entry in this division.";
+        }
+    }
+
+    valDateField($newRec, "qualopen", $errDetail);
+    valDateField($newRec, "qualclose", $errDetail);
+    valDateField($newRec, "awarddate", $errDetail);
+
+    parseProfileLinks($newRec, "organizers", $errDetail);
+    parseProfileLinks($newRec, "judges", $errDetail);
+
+    // if there were no errors, do the update
+    if (!$errDetail) {
+
+        // lock the relevant tables
+        $progress = "LCK8586";
+        $result = mysql_query(
+            "lock tables
+               competitions write,
+               compdivs write,
+               compgames write,
+               compprofilelinks write,
+               comps_history write", $db);
+
+        // create a new record or update the old one, as appropriate
+        if ($result) {
+            if ($compID == "new") {
+
+                // save the new record
+                list($result, $progress) = saveNew($newRec);
+
+            } else {
+                
+                // compute differences
+                list($changesOld, $changesNew) =
+                    calcDeltas($oldRec, $newRec);
+
+                // if we found anything different, save the updates
+                if (count($changesNew) == 0) {
+                    $result = false;
+                    $errMsg[] = "You didn't make any changes.";
+                }
+
+                // query the current page version, to make sure the page
+                // hasn't been updated concurrently while we were working
+                // on it
+                if ($result) {
+                    $progress = "SPV8856";
+                    $result = mysql_query(
+                        "select pagevsn from competitions
+                         where compid = '$compID'", $db);
+                    list($pagevsn) = mysql_fetch_row($result);
+                    
+                    if ($pagevsn != $newRec["pagevsn"]) {
+                        $result = false;
+                        $errMsg[] =
+                            "This competition listing's in the database "
+                            . "has been updated since you started editing "
+                            . "the page. Another user must have been "
+                            . "editing the same page concurrently. "
+                            . "Please compare your changes to the "
+                            . "<a href=\"viewcomp?id=$compID\" "
+                            . "target='_blank'>current version of the page</a> "
+                            . "to determine if "
+                            . "you want to keep the other user's changes "
+                            . "instead of your own. <b>If you click Save "
+                            . "again, your update will overwrite the "
+                            . "last version.</b>";
+
+                        // update our version indicator to the new version
+                        $newRec["pagevsn"] = $pagevsn;
+                        $dispRec = $newRec;
+                    }
+                }
+
+                // if everything's good, do the update
+                if ($result) {
+                    list($result, $progress) = saveUpdates(
+                        $newRec, $oldRec, $changesNew, $changesOld);
+                }
+            }
+        }
+
+        // if we encountered a database error, say so
+        if (!$errMsg && !$result) {
+
+            $errMsg[] = "A database error occurred saving changes. You "
+                        . "might want to try again shortly, or "
+                        . "<a href='contact'>contact us</a> if the problem "
+                        . "persists. For reference, please pass along this "
+                        . "error code: $progress."
+                        . ($adminPriv ?
+                           "<br>DB Error: " . mysql_error($db) : "");
+    
+        }
+
+        // if successful, do some additional cleanup
+        if (!$errMsg) {
+            // add a confirmation message
+            $succMsg = "Your changes have been saved.";
+
+            // update the division and games to reflect newly assigned
+            // division IDs
+            for ($divs = $newRec["divisions"], $i = 0 ; $i < count($divs) ;
+                 $i++) {
+                $id = $divs[$i]["divid"];
+                if ($id < 0)
+                    $newRec["divisions"][$i]["divid"] = $newDivID[$id];
+            }
+            for ($games = $newRec["games"], $i = 0 ; $i < count($games) ;
+                 $i++) {
+                $id = $games[$i]["divid"];
+                if ($id < 0)
+                    $newRec["games"][$i]["divid"] = $newDivID[$id];
+            }
+
+            // update to the new page version
+            $result = mysql_query(
+                "select pagevsn from competitions
+                 where compid = '$compID'", $db);
+            list($newRec["pagevsn"]) = mysql_fetch_row($result);
+
+            // use the updated post as the display record, too
+            $dispRec = $newRec;
+
+            // unlock tables
+            mysql_query("unlock tables", $db);
+
+            // redirect to the page we just updated/created
+            header("HTTP/1.1 301 Moved Permanently");
+            header("Content-Type: text/html");
+            header("Location: viewcomp?id=$compID");
+
+            echo "<a href=\"viewcomp?id=$compID\">Redirecting
+                (click here if your browser doesn't redirect
+                 automatically)</a>";
+
+            // we're done; the browser will handle the rest via
+            // the redirect
+            exit();
+        }
+
+        // unlock tables
+        mysql_query("unlock tables", $db);
+
+    } else {
+        // show a general error message at the top of the form
+        $errMsg[] = "Some of the entries are missing or incorrect. Please "
+                    . "review the form and correct the noted items.";
+    }
+}
+
+
+// ------------------------------------------------------------------------
+//
+//  Show the form
+//
+
+// if we're still showing a form, note which form
+if ($show == "form" && isset($_REQUEST["divedit"]))
+    $show = "divform";
+
+// start the page
+if ($show == "divform") {
+
+    // showing the division editor form
+    pageHeader($pageTitle, false,
+               "gfGenForm('divModel');",
+               "<script src=\"gridform.js\"></script>"
+               . "<script src=\"xmlreq.js\"></script>",
+               false, false);
+
+}
+else if ($show == "form") {
+
+    // showing the form - set up the form page
+    pageHeader($pageTitle, "editcomp.title",
+               "initGrids();",
+               "<script src=\"gridform.js\"></script>"
+               . "<script src=\"xmlreq.js\"></script>",
+               false,
+               "onmousedown=\"checkClosePopup(event, true);\"");
+
+
+
+} else if ($show == "status") {
+
+    // just showing status
+    pageHeader($pageTitle);
+
+} else {
+    // not showing anything
+    exit();
+}
+
+
+// show the header
+echo "<h1>$pageTitle</h1>";
+
+// show the top-level error or status message
+if ($errMsg) {
+
+    foreach ($errMsg as $m) {
+        echo "<p><img src=\"/blank.gif\" class=\"form-error-icon\" "
+            . "id=\"editgame-form-field-error\">&nbsp;&nbsp;"
+            . "<span class=errmsg>$m</span>";
+    }
+}
+if ($succMsg) {
+    echo "<p><span class=success>$succMsg</span>";
+}
+
+function showFieldErrorDetail($col)
+{
+    global $errDetail;
+    
+    if (isset($errDetail[$col]) && count($errDetail[$col]) != 0) {
+        echo "<table border=0 cellspacing=0 cellpadding=0>
+              <tr valign=top>
+              <td><img src=\"/blank.gif\" class=\"form-error-icon\"
+                  id=\"editgame-form-field-error\">&nbsp;&nbsp;</td>
+              <td><span class=errmsg><i>";
+
+        foreach ($errDetail[$col] as $txt)
+            echo "$txt<br>";
+
+        echo "</i></span></td></tr></table>";
+
+        return true;
+    }
+    else
+        return false;
+}
+
+define("SHF_MAIN",  0x0001);
+define("SHF_DIVS",  0x0002);
+define("SHF_GAMES", 0x0004);
+
+function showHiddenFields($which)
+{
+    global $compID, $dispRec, $fields;
+
+    // show the main fields if desired
+    if ($which & SHF_MAIN) {
+
+        // show the secret fields
+        echo "<input type='hidden' name='pagevsn' value='"
+            . htmlspecialcharx($dispRec["pagevsn"]) . "'>"
+            . "<input type='hidden' name='id' value='"
+            . htmlspecialcharx($compID) . "'>";
+
+        // show the basic form fields
+        for ($i = 0 ; $i < count($fields) ; $i++) {
+
+            // decode this field descriptor
+            list($title, $colname, $len, $help, $vals, $dtyp) = $fields[$i];
+
+            // display the hidden field for it
+            echo "<input type='hidden' name='$colname' value=\""
+                . htmlspecialcharx($dispRec[$colname]) . "\">";
+        }
+    }
+
+    // show the divisions if desired
+    if ($which & SHF_DIVS) {
+
+        // run through the division list
+        $divs = $dispRec["divisions"];
+        for ($i = 0 ; $i < count($divs) ; $i++) {
+            
+            // decode this division record
+            $div = $divs[$i];
+            $divID = htmlspecialcharx($div["divid"]);
+            $divName = htmlspecialcharx($div["divname"]);
+            $divDesc = htmlspecialcharx($div["divdesc"]);
+
+            // write the hidden fields
+            echo "<input type='hidden' name='divid$i' value=\"$divID\">"
+                . "<input type='hidden' name='divname$i' value=\"$divName\">"
+                . "<input type='hidden' name='divdesc$i' value=\"$divDesc\">";
+        }
+    }
+
+    // show the games if desired
+    if ($which & SHF_GAMES) {
+
+        // write out the games as a simple linear list
+        $games = $dispRec["games"];
+        for ($i = 0 ; $i < count($games) ; $i++) {
+
+            // decode this game record
+            $game = $games[$i];
+            $gameid = htmlspecialcharx($game["gameid"]);
+            $gamediv = htmlspecialcharx($game["divid"]);
+            $place = htmlspecialcharx($game["place"]);
+            $title = htmlspecialcharx($game["title"]);
+            $author = htmlspecialcharx($game["author"]);
+
+            // write the hidden fields
+            echo "<input type='hidden' name='gameid$i' "
+                . "value=\"$gameid\">"
+                . "<input type='hidden' name='gamediv$i' "
+                . "value=\"$gamediv\">"
+                . "<input type='hidden' name='gameplace$i' "
+                . "value=\"$place\">"
+                . "<input type='hidden' name='gametitle$i' "
+                . "value=\"$title\">"
+                . "<input type='hidden' name='gameauthor$i' "
+                . "value=\"$author\">";
+        }
+    }
+}
+
+// show the appropriate form
+if ($show == "divform") {
+
+    // ------------------------------------------------------------------
+    // Division Editor Form
+
+    echo "<h2>Division Editor</h2>"
+        . "<p>Use this form to edit the event's \"division\" list. "
+        . "A division is a subset of the entries eligible for a given "
+        . "award. For example, some Competitions have had division "
+        . "for TADS and Inform games, with a separate winner in each "
+        . "category. Similarly, the Xyzzy Awards have several categories, "
+        . "each with its own list of nominees."
+
+        . "<p>Many competitions have just a single slate of entries "
+        . "competing for the same awards. In this case, simply use a "
+        . "single division called <b>Main</b>.  The competition display "
+        . "page displays games in the Main division without any "
+        . "division label."
+
+        . "<form name=\"edit-div-form\" id=\"edit-div-form\" "
+        . "method=\"post\" action=\"editcomp\">";
+
+    // we're not listing the games or the main fields on this form, so
+    // put them in hidden fields to retain them through the next submit
+    showHiddenFields(SHF_MAIN | SHF_GAMES);
+
+    // set up the division grid
+    echo "<div id=\"divGridDiv\" style=\"margin: 2em 0 2em 0;\"></div>";
+
+?>
+<script type="text/javascript">
+<!--
+var divModel = {
+    rowhead: "Division Name</th><th>Description",
+    addbutton: "add-div-button",
+    name: "divGridDiv",
+    vals: "divVals",
+    fields: ["divid", "divname", "divdesc", "divNumGames"],
+    newRowVals: ['-1', '', '', '0'],
+    rowtpl: "<input #1 type='hidden'>"
+            + "<input #4 type='hidden'>"
+            + "<input #2 type='text' size='40'></td>"
+            + "<td><input #3 type='text' size='80'>",
+    confirmRemove: function(n) {
+        if (divVals[n][3] > 0)
+            return confirm("This division has " + divVals[n][3]
+                           + (divVals[n][3] == 1 ? " game " : " games ")
+                           + "listed. Are you sure you want to delete it?");
+        else
+            return confirm("Are you sure you want to delete this division?");
+    }
+};
+var divVals = [
+<?php
+
+    // write the division list for the grid initializer
+    $divs = $dispRec["divisions"];
+    $games = $dispRec["games"];
+    for ($i = 0 ; $i < count($divs) ; $i++)
+    {
+        // decode this division
+        $div = $divs[$i];
+        $divid = $div["divid"];
+        $divname = $div["divname"];
+        $divdesc = $div["divdesc"];
+        
+        // count up the games in this division
+        for ($j = 0, $gameCnt = 0 ; $j < count($games) ; $j++)
+        {
+            // if this game is in our division, count it
+            if ($games[$j]["divid"] == $divid)
+                $gameCnt++;
+        }
+
+        // write out the record
+        echo ($i > 0 ? ", ['" : "['")
+            . jsSpecialChars($divid)
+            . "','" . jsSpecialChars($divname)
+            . "','" . jsSpecialChars($divdesc)
+            . "','" . $gameCnt
+            . "']";
+    }
+?>
+];
+//-->
+</script>
+
+<?php
+
+    echo "<input type=image alt='Return to the main form' "
+        . "src='/blank.gif' class='done-button' "
+        . "name='divedit-done' value='Done' id='divedit-done-button'>"
+        . "</form>";
+
+} else if ($show == "form") {
+
+    // ------------------------------------------------------------------
+    //
+    // Main Comp editor form
+    //
+
+
+    // we need combo box support for the main form
+    comboSupportFuncs();
+
+    // also the profile links
+    profileLinkSupportFuncs();
+    gameSearchPopupSupportFuncs();
+    profileLinkDiv();
+    gameSearchPopupDiv();
+
+?>
+<script type="text/javascript">
+<!--
+function checkClosePopup(event, byMouse)
+{
+    return checkCloseCombo(event, byMouse);
+}
+function initGrids()
+{
+    <?php
+    $divs = $dispRec["divisions"];
+    for ($i = 0 ; $i < count($divs) ; $i++) {
+        echo "gfGenForm('divModel$i');";
+    }
+    ?>
+}
+function nthOrd(n)
+{
+    var m = n % 10;
+    return "" + n
+        + (n > 10 && n < 20 ? "th" :
+           m == 1 ? "st" :
+           m == 2 ? "nd" :
+           m == 3 ? "rd" :
+           "th");
+}
+
+<?php
+    for ($i = 0 ; $i < count($divs) ; $i++) {
+
+        $divid = $divs[$i]["divid"];
+        echo "var divModel$i = { "
+            . "addbutton: 'add-game-button', "
+
+            . "addExtra: \" <a href='#' title='Sort by Place' "
+            . "onmouseover=\\\"javascript:window.status='Sort by Place';"
+            . "return true;\\\" "
+            . "onmouseout=\\\"javascript:window.status='';\\\" "
+            . "onclick=\\\"javascript:sortDivByPlace('divModel$i', divVals$i);"
+            . "return false;\\\"><img src='/blank.gif' "
+            . "class='sortByPlaceButton'></a>\", "
+
+            . "name: 'divDiv$i', "
+            . "fields: ['gameid{$i}_', 'gameplace{$i}_', "
+            .          "'gametitle{$i}_', 'gameauthor{$i}_', "
+            .          "'gamediv{$i}_'], "
+            . "vals: 'divVals$i', "
+            . "newRowVals: function(n) { var p = ''; "
+            . "if (n > 0) {"
+            . "  var re = /([0-9]+)(st|nd|rd|th) Place/i, match; "
+            . "  p = divVals{$i}[n-1][1]; "
+            . "  if (p == 'Winner' || p == 'Honorable Mention'"
+            . "      || p == 'Runner-Up') p = 'Nominee'; "
+            . "  else if (match = re.exec(p)) "
+            . "    p = nthOrd(Number(match[1]) + 1) + ' Place'; "
+            . "} else p = '1st Place'; "
+            . "return ['', p, '', '', '$divid']; },"
+            . "onAddRow: function(n) { editGame('$i',n); }, "
+            . "rowfunc: function(n) "
+            .           "{ return divRowTpl({$i}, n, divVals{$i}[n]); } "
+            . "};";
+    }
+?>
+
+function sortDivByPlace(modelVar, vals)
+{
+    var place = function(r)
+    {
+        var p = r[1];
+        var pat = /[^0-9]*([0-9]+)[^0-9]*/;
+        var m = pat.exec(p);
+        if (m)
+            return Number(m[1]).valueOf();
+
+        if (p == "Winner" || p == "Co-Winner")
+            return -10;
+        if (p == "Runner-Up")
+            return -9;
+        if (p == "Honorable Mention")
+            return -8;
+
+        return 1000000;
+    };
+    gfSort(modelVar, vals, function(a, b) { return place(a) - place(b); });
+}
+
+function divRowTplFld(fldno, i, n, row, typ)
+{
+    var id = eval("divModel" + i).fields[fldno] + n;
+    return "<input name='" + id + "' id='" + id + "' "
+        + typ + " value=\"" + jsQuote(row[fldno]) + "\">";
+}
+
+function divRowTpl(i, n, row)
+{
+    var combo = "<?php
+
+        // build the standard list of place names
+        $vals = array(
+            "Winner", "Nominee", "Entrant",
+            "Co-Winner", "Honorable Mention", "Runner-Up");
+        for ($i = 1 ; $i <= 50 ; $i++) {
+            $m = $i % 10;
+            $vals[] = $i . ($i > 10 && $i < 20 ? "th" :
+                            ($m == 1 ? "st" :
+                             ($m == 2 ? "nd" :
+                              ($m == 3 ? "rd" : "th"))))
+                      . " Place";
+        }
+
+        // Make the combo box; since it's going into a javascript string,
+        // quote the quotes.
+        //
+        // Note that we can't know the division or row number at page
+        // generation time, since the row is dynamically generated on
+        // the client side.  So we have to plug in the element ID and
+        // value at run time, via javascript.  Do this by putting in
+        // special placeholder strings - #I# for the ID suffix, and
+        // #V# for the value.  The javascript will then replace these
+        // placeholders with the appropriate run-time values wherever
+        // they appear in the generated combo box string.
+        echo jsSpecialChars(makeComboBox("gameplace#I#", 25, "#V#", $vals));
+        
+     ?> &nbsp; ".replace(/#[IV]#/g, function(str) {
+         if (str == "#I#") return "" + i + "_" + n;
+         if (str == "#V#") return jsQuote(row[1]);
+         return "";
+     });
+
+    return divRowTplFld(0, i, n, row, "type=\"hidden\"")
+        + combo
+        + divRowTplFld(2, i, n, row, "type=\"hidden\"")
+        + divRowTplFld(3, i, n, row, "type=\"hidden\"")
+        + divRowTplFld(4, i, n, row, "type=\"hidden\"")
+        + "</td><td><span id=\"gameDispTitle" + i + "_" + n + "\">"
+        + (row[2]
+           ? ("<a href=\"viewgame?id=" + row[0] + "\" target='_blank'><i>"
+              + encodeHTML(row[2]) + "</i></a>")
+           : ("<a href='needjs' onclick=\"javascript:editGame("
+              + i + "," + n + ");return false;\">"
+              + "<i>Not set - click to select a game</i></a>"))
+           + "</span><span style='padding-right: 3ex;'></span></td><td>"
+           + "<a href='needjs' onclick=\"javascript:editGame("
+           + i + "," + n + ");return false;\"><img src='/blank.gif' "
+           + "class='grid-edit-button'></a>";
+}
+
+function editGame(divno, rownum)
+{
+    var idx = "" + divno + "_" + rownum;
+    openGameSearchPopup("gameDispTitle" + idx,
+                        function(id, title, author) {
+
+        document.getElementById("gameid" + idx).value = id;
+        document.getElementById("gametitle" + idx).value = title;
+        document.getElementById("gameauthor" + idx).value = author;
+        document.getElementById("gameDispTitle" + idx).innerHTML =
+            "<a href=\"viewgame?id=" + id + "\" target='_blank'><i>"
+            + encodeHTML(title) + "</i>";
+
+        gameSearchPopupClose();
+    
+    }, '');
+}
+
+<?php
+
+    // add the division initializers
+    $divs = $dispRec["divisions"];
+    $games = $dispRec["games"];
+    for ($i = 0 ; $i < count($divs) ; $i++) {
+
+        // add this division initializer variable
+        $div = $divs[$i];
+        echo "var divVals$i = [ ";
+
+        // add each game that's associated with this division
+        for ($j = $k = 0 ; $j < count($games) ; $j++) {
+
+            // decode this game record
+            $game = $games[$j];
+            $gameid = $game["gameid"];
+            $gamediv = $game["divid"];
+            $place = $game["place"];
+            $title = $game["title"];
+            $author = $game["author"];
+
+            // if this game is associated with this division, add it
+            if ($gamediv == $div["divid"]) {
+
+                // add the record
+                echo ($k++ > 0 ? ", ['" : "['")
+                    . jsSpecialChars($gameid)
+                    . "','" . jsSpecialChars($place)
+                    . "','" . jsSpecialChars($title)
+                    . "','" . jsSpecialChars($author)
+                    . "','" . jsSpecialChars($gamediv)
+                    . "']";
+            }
+        }
+
+        // end the division array
+        echo "];";
+    }
+?>
+
+//-->
+</script>
+
+<?php
+
+    // show an explanation if this is a new entry
+    if ($compID == "new") {
+        echo "<p>Use this form to create an IFDB page for a Competition "
+            . "or awards event.  To avoid creating a duplicate page, "
+            . "please check that your event isn't already in the "
+            . "database first by <a href='search?comp'>searching</a> for it."
+
+            . "<p>For an annual or other repeated event, each year or "
+            . "edition should have its own separate page.";
+    } else {
+        echo "<p><a href=\"viewcomp?id=$compID\">Return to the "
+            . "competition's page</a> (without saving changes)";
+    }
+
+    // start the form
+    echo "<p><form name=\"editcomp\" method=\"post\" action=\"editcomp\">"
+        . "<input type='hidden' name='pagevsn' value='"
+        . htmlspecialcharx($dispRec["pagevsn"]) . "'>"
+        . "<input type='hidden' name='id' value='"
+        . htmlspecialcharx($compID) . "'>"
+        . "<table class='gamedataform' border=0>";
+
+    // show the basic fields
+    for ($i = 0 ; $i < count($fields) ; $i++) {
+
+        // decode this field descriptor
+        list($title, $colname, $len, $help, $vals, $dtyp) = $fields[$i];
+
+        // draw the label
+        echo "<tr valign=top><td align=right><b>"
+            . "<nobr>$title:&nbsp;&nbsp;</nobr></b>"
+            . "</td><td>";
+
+        // get the current value of the field
+        $curval = isset($dispRec[$colname]) ? $dispRec[$colname] : "";
+
+        // display it
+        if ($colname == "desc") {
+            echo "<textarea name=\"$colname\" id=\"$colname\" "
+                . "rows=15 cols=$len>" . htmlspecialcharx($curval)
+                . "</textarea>";
+        } else {
+            echo "<input type=\"text\" name=\"$colname\" id=\"$colname\" "
+                . "size=$len value=\"" . htmlspecialcharx($curval) . "\">";
+        }
+
+        // add the error detail
+        $br = (showFieldErrorDetail($colname) ? "" : "<br>");
+
+        // add the help text
+        if ($help)
+            echo "$br<span class=details><i>$help</i></span>";
+        
+        // end the row
+        echo "</td></tr>";
+    }
+
+    // add the divisions and games
+    echo "<tr><td></td><td><hr><br>"
+        . "<b>Divisions and Games:</b> If this event has separate groups "
+        . "of games competing for different awards, create a Division "
+        . "entry for each award or subset of games.  To add, delete, "
+        . "rename, or rearrange the divisions listed below, click the "
+        . "Edit Divisions button.<br>";
+
+    showFieldErrorDetail("divisions");
+
+    echo "<p><input type=image alt='Edit Divisions' "
+        . "src='/blank.gif' class='edit-div-button' "
+        . "name='divedit' value='Edit Divisions' id='edit-div-button'>"
+        . "<div class=indented>";
+
+    $divs = $dispRec["divisions"];
+    for ($i = 0 ; $i < count($divs) ; $i++) {
+
+        // decode this division record
+        $div = $divs[$i];
+        $divID = htmlspecialcharx($div["divid"]);
+        $divName = htmlspecialcharx($div["divname"]);
+        $divDesc = htmlspecialcharx($div["divdesc"]);
+
+        // display it - we just need a set of hidden fields to retain
+        // the division information on posting, plus an empty <DIV>
+        // with ID "divDiv$i" for the grid initializer to fill in with
+        // the list of games
+        echo "<input type='hidden' name='divid$i' value=\"$divID\">"
+            . "<input type='hidden' name='divname$i' value=\"$divName\">"
+            . "<input type='hidden' name='divdesc$i' value=\"$divDesc\">"
+            . "<p><hr class=dots><b>$divName</b>"
+            . ($divDesc ? " - $divDesc" : "")
+            . "<br>";
+
+        showFieldErrorDetail("games_$divID");
+
+        // add the placeholder DIV for the grid for this division's games
+        echo  "<div class=indented style='margin-top:1ex;' id='divDiv$i'>"
+            . "</div>";
+    }
+        
+
+    // finish the form
+    echo "<p><hr class=dots></div><tr><td></td><td><br><br>"
+
+        . "<input type=image alt='Save Changes' "
+        . "src='/blank.gif' class='save-button' "
+        . "name='save' value='Save Changes' id='edit-save-button'>"
+
+        . " &nbsp; "
+
+        . "<input type=image alt='Reset Form (Discard Changes)' "
+        . "src='/blank.gif' class='reset-form-button' "
+        . "name='discard' value='Reset Form (Discard Changes)' id='edit-reset' "
+        . "onclick=\"javascript:return confirm('"
+        . ($compID == "new"
+           ? "This will discard all of the data you\\'ve entered and reset "
+           . "to a blank form."
+           : "This will discard all of the changes you\\'ve made and "
+           . "reset to the last saved data from the database.")
+        . " Do you wish to proceed?');\">"
+
+        . " &nbsp; "
+
+        . "<a href='" . ($compID == "new" ? "home" : "viewcomp?id=$compID")
+        . "'><img alt='Cancel' src='/blank.gif' class='cancel-button' "
+        . "id='edit-cancel-button'></a>"
+
+        . "<br><br><span class=details>"
+        . "<i>Your changes will be attributed to you as $username ($userloc). "
+        . "<a href=\"" . switchUserAndReturnHRef()
+        . "\">Click here</a> to log in as a different user (but note "
+        . "that this will discard your unsaved changes above).</i></span>"
+
+        . "</td></tr></table></form>";
+
+} else if ($show == "status") {
+
+    if ($compID != "new") {
+        echo "<p><a href=\"viewcomp?id=$compID\">Go to this event's page</a>"
+            . "<br><a href=\"editcomp?id=$compID\">Edit this event</a>";
+    }
+
+    echo "<p><a href=\"home\">IFDB Home</a>";
+    
+}
+
+pageFooter();
+
+?>

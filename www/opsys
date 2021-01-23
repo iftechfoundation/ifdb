@@ -1,0 +1,936 @@
+<?php
+
+include "pagetpl.php";
+include_once "util.php";
+
+// we have to be logged in to edit a game
+@session_start();
+
+// make sure we process any persistent login state
+include_once "login-persist.php";
+$userid = checkPersistentLogin();
+
+include_once "dbconnect.php";
+$db = dbConnect();
+
+// if there's an image upload, process that
+include "imageuploadhandler.php";
+
+// translate image button request parameters to the normal SUBMIT button style
+foreach (array("saveos", "savevsn") as $b) {
+    if (isset($_REQUEST[$b . "_x"]) && !isset($_REQUEST[$b]))
+        $_REQUEST[$b] = true;
+}
+
+$errMsg = false;
+$errDetail = array();
+$saveErrMsg = false;
+$saveNotes = "";
+$pagetitle = "Edit Operating Systems";
+
+// check to see if we're editing a particular format
+$osid = get_req_data('id');
+$qosid = mysql_real_escape_string($osid, $db);
+
+$editvsn = get_req_data('editvsn');
+$qeditvsn = mysql_real_escape_string($editvsn, $db);
+
+$geticon = mysql_real_escape_string(get_req_data('geticon'), $db);
+
+
+// assume no privileges
+$userprivs = $adminPriv = $allOsPriv = $thisOsPriv = false;
+
+// check the user for ADMIN and EDIT OPERATING SYSTEMS privileges
+if ($userid) {
+    $result = mysql_query(
+        "select `privileges` from users where id='$userid'", $db);
+    $userprivs = mysql_result($result, 0, "privileges");
+    $adminPriv = (strpos($userprivs, "A") !== false);
+    $allOsPriv = (strpos($userprivs, "O") !== false);
+}
+
+// check for specific privileges for the selected operating system
+if ($userid && $osid != "") {
+    $result = mysql_query("select osid from osprivs
+        where userid='$userid' and osid='$qosid'", $db);
+    if (mysql_num_rows($result) > 0)
+        $thisOsPriv = true;
+}
+
+// determine if editing is authorized based on the data
+$editPriv = ($adminPriv || $allOsPriv || $thisOsPriv);
+
+// get the request parameters
+$osname = get_req_data('osname');
+$externid = get_req_data('externid');
+$osicon = get_req_data('icon');
+$ospri = (int)get_req_data('displaypriority');
+for ($versions = array(), $i = 0 ; ; $i++) {
+    // if we've reached the end, stop looking
+    if (!isset($_REQUEST["vsnid$i"]))
+        break;
+
+    // add this to the list
+    $versions[] = array(get_req_data("vsnid$i"),
+                        get_req_data("vsnname$i"),
+                        "",
+                        get_req_data("vsnextid$i"));
+}
+
+// if we just uploaded a picture, select it
+$osicon = getJustUploadedImage($osicon);
+
+define("CTL_INPUT", 1);
+define("CTL_TEXTAREA", 2);
+$vsnfields = array(
+    array(CTL_INPUT, "Browser ID Match Pattern",
+          "browserid",
+          "Enter a regular expression pattern (PHP rules, case insensitive)
+           to find within the HTTP user agent identification string. This
+           is used to guess the user's OS if the user doesn't explicitly
+           specify one."),
+    array(CTL_TEXTAREA,
+          "Instructions for <b>downloading and saving</b> a
+           file from a hyperlink using a typical browser on this OS",
+          "dlinstructions", null),
+    array(CTL_TEXTAREA,
+          "Instructions for <b>downloading and running</b>
+           an application from a hyperlink using a typical
+           browser on this OS",
+          "dlruninstructions", null),
+    array(CTL_TEXTAREA,
+          "Instructions for <b>running</b> a local application file
+           called <b>{fname}</b>",
+          "runinstructions", null));
+$vsnrec = array();
+foreach ($vsnfields as $f) {
+    $nm = $f[2];
+    $vsnrec[$nm] = get_req_data($nm);
+}
+
+function showHiddenFields()
+{
+    global $osid, $osname, $osicon, $versions, $externid;
+    
+    echo "<input type=hidden name=id value=\""
+        . htmlspecialcharx($osid) . "\">"
+        . "<input type=hidden name=osname value=\""
+        . htmlspecialcharx($osname) . "\">"
+        . "<input type=hidden name=icon value=\""
+        . htmlspecialcharx($osicon) . "\">"
+        . "<input type=hidden name=externid value=\""
+        . htmlspecialcharx($externid) . "\">"
+        . "<input type=hidden name=displaypriority value=\"$ospri\">"
+        . "<input type=hidden name=edit value=1>";
+
+    foreach ($versions as $i=>$v) {
+        echo "<input type=hidden name=\"vsnid$i\" value=\""
+            . htmlspecialcharx($v[0]) . "\">"
+            . "<input type=hidden name=\"vsnname$i\" value=\""
+            . htmlspecialcharx($v[1]) . "\">"
+            . "<input type=hidden name=\"vsnextid$i\" value=\""
+            . htmlspecialcharx($v[3]) . "\">";
+    }
+}
+
+// get the old settings for the selected format
+$oldexternid = $oldname = $hasicon = $oldicon = $oldpri = "";
+$oldversions = array();
+$oldvsnrec = false;
+if ($osid != "" && $osid != "new") {
+    // query the database values
+    $result = mysql_query(
+        "select externid, name, (icon is not null) as icon, displaypriority
+        from operatingsystems where id = '$qosid'", $db);
+
+    if (mysql_num_rows($result) == 0) {
+        pageHeader("OS Not Found");
+        echo "<h1>OS Not Found</h1>The specified OS identifier does
+             not exist in the database.
+             <p><a href=\"opsys\">Return to the OS list</a><p>";
+        pageFooter();
+        exit();
+    }
+
+    // load the values
+    $oldexternid = mysql_result($result, 0, "externid");
+    $oldname = mysql_result($result, 0, "name");
+    $hasicon = mysql_result($result, 0, "icon");
+    $oldicon = ($hasicon ? "old" : "none");
+    $oldpri = mysql_result($result, 0, "displaypriority");
+
+    // get the version list
+    $result = mysql_query(
+        "select vsnid, externid, name, seq, browserid
+         from osversions
+         where osid = '$qosid' and name != '*'
+         order by seq", $db);
+
+    for ($cnt = mysql_num_rows($result), $i = 0, $oldversions = array() ;
+         $i < $cnt ; $i++)
+        $oldversions[] = array(mysql_result($result, $i, "vsnid"),
+                               mysql_result($result, $i, "name"),
+                               mysql_result($result, $i, "browserid"),
+                               mysql_result($result, $i, "externid"));
+}
+
+// get the old settings for the selected version
+if ($editvsn) {
+    // look up the record - if we're looking for the All-Versions record,
+    // look for a record for this OS with name='*' and seq=0, otherwise
+    // just look for the version by the given ID
+    $vsnwhere = ($editvsn == "*"
+                 ? "osid='$qosid' and name='*' and seq=0"
+                 : "vsnid='$qeditvsn'");
+    $result = mysql_query("select vsnid, externid, name, browserid,
+         dlinstructions, dlruninstructions, runinstructions
+         from osversions
+         where $vsnwhere", $db);
+    $oldvsnrec = mysql_fetch_array($result, MYSQL_ASSOC);
+
+    // get the version name
+    $vsnname = ($editvsn == "*" ? "$oldname (defaults)" : $oldvsnrec['name']);
+
+    // get the real version ID, in case we looked it up by name
+    $origeditvsn = $editvsn;
+    $editvsn = $oldvsnrec['vsnid'];
+    $qeditvsn = mysql_real_escape_string($editvsn, $db);
+}
+
+// if the current icon setting refers to an uploaded image
+// that's been discarded, revert to the old icon
+if (substr($osicon, 0, 3) == "tmp" && !findTempImage($osicon))
+    $osicon = $oldicon;
+
+// if this isn't a post, use the old values from the database
+if ($_SERVER['REQUEST_METHOD'] != 'POST') {
+    $osname = $oldname;
+    $externid = $oldexternid;
+    $osicon = $oldicon;
+    $ospri = $oldpri;
+    $versions = $oldversions;
+
+    $vsnrec = $oldvsnrec;
+}
+
+// if we didn't get an OS name via the request parameters, use the
+// database name
+if ($osname == "")
+    $osname = $oldname;
+
+
+// show the appropriate screen, depending on what we're doing
+if ($geticon) {
+
+    // ?geticon=xxx - send the icon
+    $result = mysql_query("select icon from operatingsystems
+        where id='$geticon'", $db);
+    $iconData = mysql_result($result, 0, "icon");
+    sendImage($iconData, "gif", null);
+    exit();
+
+} else if ($osid != "") {
+
+    // ?id=xxx - view/edit/update an OS or Version entry
+
+    $saving = false;
+    $saveErrMsg = false;
+
+    if ($editPriv
+        && $_SERVER['REQUEST_METHOD'] == 'POST'
+        && isset($_REQUEST['saveos'])) {
+
+        // note that we're trying to save something
+        $saving = true;
+
+        // save the changes
+        $qname = mysql_real_escape_string($osname, $db);
+        $qexternid = mysql_real_escape_string($externid, $db);
+
+        $seticon = "";
+        $insicon = "null";
+        if (findTempImage($osicon)) {
+            $img = findTempImage($osicon);
+            $imgData = mysql_real_escape_string($img[0], $db);
+            if ($img[1] != "gif")
+                $saveErrMsg = "Only GIF images are allowed for OS icons -
+                   the icon was <b>not</b> changed.";
+            else {
+                $seticon = ",icon='$imgData'";
+                $insicon = "'$imgData'";
+            }
+        } else if ($osicon == "none") {
+            $seticon = ",icon=null";
+        }
+
+        // set up a transaction and lock the tables we'll be updating
+        $result = mysql_query("set autocommit=0", $db)
+                  && mysql_query("start transaction", $db)
+                  &&mysql_query(
+                      "lock tables operatingsystems write, "
+                      . "osversions write, audit write", $db);
+
+        // check for inserting a new OS
+        if ($qosid == 'new') {
+            $progress = "inserting OS record";
+            $sql = "insert into operatingsystems "
+                   . "(externid,name,icon,displaypriority) "
+                   . "values ('$qexternid', '$qname', $insicon, $ospri)";
+        } else {
+            $progress = "updating OS record";
+            $sql = "update operatingsystems
+                    set externid='$qexternid', name='$qname',
+                      displaypriority='$ospri'  $seticon
+                    where id='$qosid'";
+        }
+        if ($result)
+            $result = mysql_query($sql, $db);
+
+        if ($result && $qosid == 'new') {
+            // note the new ID
+            $osid = mysql_insert_id($db);
+            $qosid = mysql_real_escape_string($osid, $db);
+            $sql .= " [new ID=$osid]";
+            
+            // add the special "all versions" version row
+            $progress = "inserting OS version '*' record";
+            $result = mysql_query(
+                "insert into osversions (externid, osid, name, seq)
+                 values ('*', '$qosid', '*', 0)", $db);
+        }
+
+        if ($result) {
+            // save an audit entry for the update
+            for ($i = 0 ; $i < count($versions) ; $i++) {
+                $sql .= " [osversion $i = "
+                        . "('{$versions[$i][0]}', '{$versions[$i][1]}')";
+            }
+            mysql_query("insert into audit (userid, action)
+                        values ('$userid', '"
+                        . mysql_real_escape_string($sql, $db) . "')", $db);
+        }
+
+        // insert/update the new version list
+        for ($i = 0 ; $result && $i < count($versions) ; $i++) {
+            // get this record
+            $v = $versions[$i];
+            $vsnid = mysql_real_escape_string($v[0], $db);
+            $vsnname = mysql_real_escape_string($v[1], $db);
+            $vsnextid = mysql_real_escape_string($v[3], $db);
+
+            // assign its sequence - this is just the index in the new list
+            $seq = $i + 1;
+
+            // if we have a version ID in the record, it's an update;
+            // otherwise it's an insertion of a new record
+            if ($vsnid == "") {
+                $progress = "inserting version record #$i ($newvsnid)";
+                $result = mysql_query(
+                    "insert into osversions (osid, externid, name, seq)
+                     values ('$qosid', '$vsnextid', '$vsnname', '$seq')",
+                    $db);
+
+                // update our internal record of the version ID
+                if ($result)
+                    $versions[$i][0] = $v[3];
+            } else {
+                $progress = "updating version record #$i";
+                $result = mysql_query(
+                    "update osversions
+                     set name='$vsnname', externid='$vsnextid', seq='$seq'
+                     where vsnid='$vsnid'", $db);
+            }
+        }
+
+        // delete versions that are no longer in the list
+        for ($i = 0 ; $result && $i < count($oldversions) ; $i++) {
+            // look for an ID match to oldversion[i] in the new versions list
+            $oldv = $oldversions[$i];
+            $vsnid = $oldv[0];
+            $qvsnid = mysql_real_escape_string($vsnid, $db);
+            $vsnname = $oldv[1];
+            for ($found = false, $j = 0 ; $j < count($versions) ; $j++) {
+                if ($versions[$j][0] == $vsnid) {
+                    $found = true;
+                    break;
+                }
+            }
+
+            // if we didn't find it, delete it
+            if (!$found) {
+                $progress = "deleting old version record "
+                            . "[vsnid=$vsnid, name=$vsnname]";
+                $result = mysql_query("delete from osversions
+                    where osid='$qosid' and vsnid='$qvsnid'", $db);
+
+                // add a warning about this
+                $saveNotes .= "<span class=errmsg>Warning: Deleted old "
+                              . "version: ID=$vsnid name=$vsnname</span><br>";
+            }
+        }
+
+        // commit the changes
+        if ($result)
+            $result = mysql_query("commit", $db);
+
+        // done with our locked tables
+        $result = mysql_query("unlock tables", $db);
+
+        if (!$result && !$saveErrMsg)
+            $saveErrMsg = "A database error occurred updating the OS
+               record - changes were <b>not</b> saved.  (Failed
+               operation was: $progress.)<br>";
+    }
+    else if ($editPriv
+             && $_SERVER['REQUEST_METHOD'] == 'POST'
+             && isset($_REQUEST['savevsn'])) {
+        
+        // note that we're attempting a save
+        $saving = true;
+
+        // update the table
+        $setvars = "";
+        foreach ($vsnfields as $f) {
+
+            if ($setvars != "")
+                $setvars .= ",";
+
+            $col = $f[2];
+            $val = mysql_real_escape_string($vsnrec[$col], $db);
+            if ($val == "")
+                $setvars .= "$col=null";
+            else
+                $setvars .= "$col='$val'";
+        }
+
+        // update the table
+        $progress = "updating version row (setvars=$setvars)";
+        $sql = "update osversions set $setvars where vsnid='$qeditvsn'";
+        $result = mysql_query($sql, $db);
+        if ($result) {
+            // save the audit entry
+            mysql_query("insert into audit (userid, action)
+                        values ('$userid', '"
+                        . mysql_real_escape_string($sql, $db) . "')", $db);
+        }
+
+        // note any error
+        if (!$result && !$saveErrMsg)
+            $saveErrMsg = "A database error occurred updating the
+                OS version record - changes were <b>note</b> saved.
+                (Failed operation was: $progress.)<br>";
+    }
+
+    //
+    // Check which mode we're in
+    //
+    
+    if ($editPriv && isset($_REQUEST['editvsn'])) {
+    // -------------------------  EDIT VERSION -------------------------------
+
+        pageHeader("Edit OS/Interpreter Version", "editvsn.browserid");
+        
+        if ($saveErrMsg)
+            echo "<p><span class=errmsg>$saveErrMsg</span><p>";
+        else if ($saving) {
+            echo "<p><span class=success>Your changes were saved.</span><br>";
+            if ($saveNotes != "")
+                echo $saveNotes;
+            echo "<p>";
+        }
+        $pagetitle = htmlspecialcharx(
+            $vsnname != '*'
+            ? "$vsnname - Edit OS Version"
+            : "$osname - Edit Defaults for All Versions");
+
+        ?>
+        <h1><?php echo $pagetitle ?></h1>
+
+        <a href="opsys">Return to OS List</a><br>
+        <a href="opsys?id=<?php echo $osid ?>">Return to <?php echo $osname
+           ?> overview</a>
+        <br><br><br>
+
+        <form name="editvsn" id="editvsn" method="post"
+              action="opsys?id=<?php echo $osid ?>">
+
+           <input type=hidden name=editvsn value="<?php echo $origeditvsn ?>">
+           <input type=hidden name=id value="<?php echo $osid ?>">
+           <?php
+
+               foreach ($vsnfields as $f) {
+                   echo "<p>{$f[1]}:<br>";
+
+                   switch ($f[0]) {
+                   case CTL_INPUT:
+                       echo "<input type=\"text\" "
+                           . "name=\"{$f[2]}\" id=\"{$f[2]}\" "
+                           . "size=60 value=\""
+                           . htmlspecialcharx($vsnrec[$f[2]])
+                           . "\">";
+                       break;
+
+                   case CTL_TEXTAREA:
+                       echo "<textarea name=\"{$f[2]}\" id=\"{$f[2]}\" "
+                           . "rows=5 cols=60>"
+                           . htmlspecialcharx($vsnrec[$f[2]])
+                           . "</textarea>";
+                       break;
+                   }
+
+                   if ($f[3])
+                       echo "<br><span class=details>{$f[3]}</span>";
+               }
+           ?>
+
+            <p><input type=image name="savevsn" value="Save Changes"
+                src="/blank.gif" class="save-button"
+                id="opsys-save-version-button">
+        </form>
+        <?php
+    }
+
+    else if ($editPriv && isset($_REQUEST['edit'])) {
+    // ------------------------- EDIT OS ENTRY -------------------------------
+
+        // we can edit it - show the editing form
+        pageHeader("Edit OS/Interpreter", "editos.osname",
+                   "gfGenForm('vsnGridModel');",
+                   "<script src=\"gridform.js\"></script>");
+
+        imageUploadScripts();
+
+        if ($saveErrMsg)
+            echo "<p><span class=errmsg>$saveErrMsg</span><p>";
+        else if ($saving) {
+            echo "<p><span class=success>Your changes were saved.</span><br>";
+            if ($saveNotes != "")
+                echo $saveNotes;
+            echo "<p>";
+        }
+
+        $pagetitle = ($osid == "new" ? "New OS/Interpreter"
+                                     : "$osname - Edit OS/Interpreter");
+        ?>
+        <h1><?php echo htmlspecialcharx($pagetitle) ?></h1>
+
+        <a href="opsys">Return to OS List</a><br>
+
+        <?php
+            if ($osid != "new")
+                echo "<a href=\"opsys?id=$osid\">"
+                    . "Return to $osname overview</a>";
+        ?>
+        <br><br><br>
+
+        <form name="editos" id="editos" method="post"
+              action="opsys?id=<?php echo $osid ?>">
+
+           <input type=hidden name=edit value=1>
+
+           <table class=dataform border=0 cellspacing=0 cellpadding=0>
+              <tr valign=top>
+                 <td align=right>
+                    <nobr>OS Name:</nobr>
+                 </td>
+                 <td>
+                     <input type=text name=osname id=osname
+                         size=50 value="<?php
+                             echo htmlspecialcharx($osname) ?>">
+                 </td>
+              </tr>
+
+
+              <tr><td>&nbsp;<br></td></tr>
+              <tr valign=top>
+                 <td align=right>External ID:</td>
+                 <td>
+                    <input type=text name=externid id=externid
+                       size=50 value="<?php
+                       echo htmlspecialcharx($externid) ?>">
+                    <br><span class=details>
+                       Alphanumeric, up to 16 characters. This is the
+                       identifier that external tools (e.g., Meta
+                       Installers) use to refer to the OS.
+                       <b>Warning:</b> changing the
+                       external ID could break external tools.
+                    </span>
+                 </td>
+              </tr>
+
+              <tr><td>&nbsp;<br></td></tr>
+              <tr valign=top>
+                 <td align=right>
+                    <nobr>Display Priority:</nobr>
+                 </td>
+                 <td>
+                     <input type=text name=displaypriority id=displaypriority
+                         size=30 value="<?php echo $ospri ?>">
+                     <br>
+                    <span class=details>(When the user is shown a list of
+                       operating systems, such as in a drop-down select
+                       list, the systems are sorted in descending priority
+                       order. This allows the most common systems to be
+                       grouped at the top of such lists, to make them easier
+                       to find.  Use a negative priority to hide the OS
+                       from user display lists, such as for pseudo-OS
+                       entries for multi-format interpreters.)</span>
+                 </td>
+              </tr>
+
+              <tr><td>&nbsp;<br></td></tr>
+              <tr valign=top>
+                 <td align=right>
+                    Icon:
+                 </td>
+                 <td>
+                    <?php
+                        imageUploadRadio(
+                            $hasicon ? "opsys?geticon=$osid" : false,
+                            "Don't use an icon", "icon", $osicon, 40);
+                    ?>
+                    <span class=details>(Image Format Requirements:
+                       GIF format, 40x40 pixels, transparent background)
+                 </td>
+              </tr>
+
+              <?php
+if ($osid == "new" || $osid != 0) {
+              ?>
+              <tr><td>&nbsp;<br></td></tr>
+              <tr valign=top>
+                 <td align=right>
+                    Versions:
+                 </td>
+                 <td>
+
+<script type="text/javascript">
+<!--
+var vsnGridModel = {
+   "emptylabel": "<i>No versions are defined for this OS.</i>",
+   "addbutton": "add-version-button",
+
+   "rowhead": "Version Name</th><th>External ID</th>",
+    "rowheadattr": "style=\"font-size:85%;\"",
+
+   "name": "vsnGridDiv",
+   "vals": "vsnVals",
+
+   "fields": ["vsnid", "vsnname", "vsnextid"],
+   "rowtpl": "<input type=hidden #1>"
+       + "<input type=text #2></td>"
+       + "<td><input type=text #3>"
+};
+var vsnVals = [
+<?php
+    for ($i = 0 ; $i < count($versions) ; $i++) {
+       $v = $versions[$i];
+       $vsnid = jsSpecialChars($v[0]);
+       $vsnname = jsSpecialChars($v[1]);
+       $vsnextid = jsSpecialChars($v[3]);
+       echo "[\"$vsnid\",\"$vsnname\",\"$vsnextid\"]"
+           . ($i + 1 < count($versions) ? "," : "");
+    }
+?>
+];
+
+//-->
+</script>
+
+                    <div id="vsnGridDiv">
+                       <noscript>
+                          <i>JavaScript must be enabled to edit
+                             the version list.</i>
+                       </noscript>
+                    </div>
+                    <br>
+                    <span class=details>
+                    <b>Warning:</b> Deleting a version or changing its
+                    external ID could break external tools (e.g.,
+                    Meta Installers) that refer to the version record.
+                    </span>
+                 </td>
+              </tr>
+
+              <?php
+} // if ($osid != 0)
+              ?>
+
+              <tr><td>&nbsp;<br></td></tr>
+              <tr>
+                 <td>
+                 </td>
+                 <td>
+                    <input type=image name="saveos" value="Save Changes"
+                     src="/blank.gif" class="save-button"
+                     id="opsys-save-os-button">
+                 </td>
+              </tr>
+
+           </table>
+
+        </form>
+        <?php
+
+    } else {
+        // not editing - just show the OS description
+        $pagetitle = htmlspecialcharx(
+            $osid == "new" ? "New OS/Interpreter" : "$osname - Details");
+        pageHeader($pagetitle);
+        echo "<h1>$pagetitle</h1>"
+            . "<a href=\"opsys\">Return to the OS list</a><br>";
+        
+        if ($editPriv)
+            echo "<a href=\"opsys?id=$osid&edit\">Edit this OS entry</a><br>";
+
+        echo "<p><b>OS Name:</b> " . htmlspecialcharx($osname) . "<br>"
+            . "<b>External ID:</b> " . htmlspecialcharx($externid) . "<br>"
+            . "<b>Display Priority:</b> $ospri<br>"
+            . ($hasicon
+               ? ("<table cellspacing=0 cellpadding=0 border=0>"
+                  . "<tr valign=middle><td><b>Icon:</b>&nbsp;</td>"
+                  . "<td><img src=\"opsys?geticon=$osid\"></td></tr></table>")
+               : "<b>Icon</b>: None")
+            . "<br>";
+
+        // show versions
+        echo "<h2>Versions &amp; Download Adviser entries</h2>";
+
+        // add the "all versions" entry to the display list, if present
+        $dversions = $versions;
+        $result = mysql_query("select vsnid, browserid from osversions
+                   where osid='$qosid' and name='*' and seq=0", $db);
+        if (mysql_num_rows($result) > 0) {
+            $allvsns = array(
+                mysql_result($result, 0, "vsnid"),
+                "All Versions",
+                mysql_result($result, 0, "browserid"),
+                "*");
+            array_unshift($dversions, $allvsns);
+        }
+
+        if (count($dversions) == 0) {
+            echo "<i>No versions are defined. This means that all
+               versions of this operating system are considered
+               equivalent for the purposes of IFDB's download &amp;
+               installation advice.</i>";
+               
+        } else {
+            for ($i = 0 ; $i < count($dversions) ; $i++) {
+                $v = $dversions[$i];
+                $vsnid = $v[0];
+                $vsnnm = htmlspecialcharx($v[1]);
+                $vsnbs = htmlspecialcharx($v[2]);
+                $vsnext = htmlspecialcharx($v[3]);
+                echo "$vsnnm [External ID: $externid.$vsnext"
+                    . ($vsnbs ? "; Browser ID match pattern: $vsnbs" : "")
+                    . "]";
+
+                if ($editPriv)
+                    echo " - <a href=\"opsys?id=$osid&editvsn=$vsnid\">"
+                        . "Edit version</a>";
+
+                echo "<br>";
+
+                $qvsnid = mysql_real_escape_string($vsnid, $db);
+                if ($userid) {
+                    $privCols = "formatprivs.fmtid";
+                    $privJoin =
+                        "left outer join formatprivs"
+                        . " on formatprivs.fmtid = downloadhelp.fmtid"
+                        . "    and formatprivs.userid = '$userid'";
+                } else {
+                    $privCols = "0";
+                    $privJoin = "";
+                }
+                $result = mysql_query(
+                    "select
+                       downloadhelp.fmtid as fmtid,
+                       filetypes.fmtname as fmtname,
+                       $privCols
+                     from
+                       downloadhelp $privJoin, filetypes
+                     where
+                       downloadhelp.fmtid = filetypes.id
+                       and downloadhelp.osid = '$qosid'
+                       and downloadhelp.osvsnid = '$qvsnid'
+                     order by fmtname", $db);
+
+                if ($result && mysql_num_rows($result) > 0) {
+                    echo "<div class=indented><span class=notes>";
+                    for ($j = 0 ; $j < mysql_num_rows($result) ; $j++) {
+                        list($fmtid, $fmtname, $fmtpriv) =
+                            mysql_fetch_row($result);
+                        $fmtname = htmlspecialcharx($fmtname);
+                        $href = "fileformat?id=$fmtid&dla=$osid.$vsnid";
+                        echo "<a href=\"$href\">$fmtname</a>";
+
+                        if ($editPriv || $fmtpriv)
+                            echo " - <a href=\"$href&edit\">Edit</a>";
+
+                        echo "<br>";
+                    }
+                    echo "</span></div>";
+                }
+            }
+
+            if ($editPriv) {
+                echo "<p><form name=\"newdla\" id=\"newdla\" "
+                    . "method=\"get\" action=\"fileformat\">"
+                    . "<input type=hidden name=edit value=1>"
+                    . "Add a new Download Adviser entry for: "
+                    . "<select name=\"id\">";
+
+                $result = mysql_query("select id, fmtname
+                    from filetypes
+                    order by if(externid='*',1,2), fmtname", $db);
+                for ($i = 0 ; $i < mysql_num_rows($result) ; $i++) {
+                    list($fmtid, $fmtname) = mysql_fetch_row($result);
+                    $fmtname = htmlspecialcharx($fmtname);
+                    echo "<option value=\"$fmtid\">$fmtname</option>";
+                }
+
+                echo "</select> on <select name=\"dla\">";
+                for ($i = 0 ; $i < count($dversions) ; $i++) {
+                    $v = $dversions[$i];
+                    $vsnid = $v[0];
+                    $vsnname = htmlspecialcharx($v[1]);
+                    echo "<option value=\"$osid.$vsnid\">$vsnname</option>";
+                }
+
+                echo "</select> "
+                    . "<input type=image src=\"/blank.gif\" "
+                    . "class=\"go-button\" id=\"opsys-add-dla\" "
+                    . "name=\"addDla\"></form>";
+            }
+        }
+
+        echo "<p><span class=notes><i>Versions are shown in
+            chronological order of release. For the purposes of
+            download &amp; installation advice, IFDB assumes
+            that a later version of this operating system is
+            backward-compatible with earlier versions; that
+            is, we assume that an application designed for
+            an earlier version will work on all later versions.
+            </i></span>
+            <p>
+            <span class=notes><i>The OS and Version ID values
+            are permanent identifiers for the OS and version
+            entries.  These can be used in external tools to
+            unambiguously refer to our OS list data.
+            </i></span> ";
+    }
+
+} else {
+    // ---------------------------- VIEW OS ENTRY ---------------------------
+
+    // no OS selected yet - just show the entire list
+    pageHeader("Operating Systems/Interpreters");
+
+    echo "<h1>Operating Systems/Interpreters</h1>
+      <p>The Operating Systems and Interpreters that IFDB knows about are
+      listed below.  Click on an item to see its details.
+
+      <p>Some of the systems in the list have been released in
+      numerous versions.  The versions that IFDB distinguishes
+      are listed with each system; if a system is listed without
+      any versions, IFDB considers all versions of that system to
+      be equivalent.  Within a major system group, we assume that
+      each newer version is backward-compatible with earlier
+      versions: for example, we assume that Windows XP runs
+      applications compatible with Windows NT 4, ME, and so on.
+      When a new version isn't fully backward compatible,
+      we consider it a separate system: for example, we treat
+      Mac OS X as a separate OS from Mac OS 9 and earlier.
+
+      <p>Interpreters are mixed in with Operating Systems in this list
+      because the two perform a similar function - they're both run-time
+      platforms, and they both have download instructions associated
+      with them.  Our interpreter list isn't exhaustive; we generally
+      only list interpreters that handle more than one file format,
+      because these have download information that's shared among
+      multiple OS/file-type combinations.
+
+      <p>If you'd like to suggest any additions or changes to
+      this list, please <a href=\"contact\">contact us</a>.
+
+      <p><a href=\"fileformat\">View the File Format list</a>";
+
+    if ($editPriv)
+        echo "<p><a href=\"opsys?id=new&edit\">Add a new Operating System</a>";
+
+    $result = mysql_query(
+        "select
+           id, operatingsystems.name as osname,
+           osversions.name as vsnname, seq,
+           (icon is not null) as icon
+         from
+            operatingsystems
+            left outer join osversions
+              on operatingsystems.id = osversions.osid
+         order by
+            osname, seq", $db);
+
+    $curos = false;
+    $indiv = $intab = false;
+    $cnt = mysql_num_rows($result);
+    for ($i = 0 ; $i < $cnt ; $i++) {
+
+        // fetch this row
+        $id = mysql_result($result, $i, "id");
+        $osname = htmlspecialcharx(mysql_result($result, $i, "osname"));
+        $vsnname = htmlspecialcharx(mysql_result($result, $i, "vsnname"));
+        $icon = mysql_result($result, $i, "icon");
+
+        // start a new OS group if necessary
+        if ($id != $curos) {
+            // end the previous section, if applicable
+            if ($indiv)
+                echo "</div>";
+            if ($intab)
+                echo "</td></tr></table>";
+
+            //start the new section
+            $indiv = $intab = false;
+            echo "<p>";
+
+            // if it has an icon, show it
+            if ($icon) {
+                echo "<table class=grid cellpadding=0 cellspacing=0 border=0>"
+                    . "<tr><td>"
+                    . "<a href=\"opsys?id=$id\">"
+                    . "<img border=0 src=\"opsys?geticon=$id\">"
+                    . "</a></td><td>";
+
+                $intab = true;
+            }
+            
+            // show the OS name
+            echo "<a href=\"opsys?id=$id\">$osname</a><br>";
+
+            // if there are versions, start the division
+            if ($vsnname) {
+                echo "<div class=indented>";
+                $indiv = true;
+            }
+
+            // this is the group we're working on now
+            $curos = $id;
+        }
+
+        // if there's a version, show it
+        if ($vsnname != "" && $vsnname != '*')
+            echo htmlspecialcharx($vsnname) . "<br>";
+    }
+
+    // end the last group
+    if ($indiv)
+        echo "</div>";
+    if ($intab)
+        echo "</td></tr></table>";
+
+    pageFooter();
+}
+
+?>

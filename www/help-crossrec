@@ -1,0 +1,43 @@
+<?php
+@session_start();
+include_once "util.php";
+include "pagetpl.php";
+helpPageHeader("Automatic Recommendations");
+?>
+
+<h1>How does IFDB pick games to recommend?</h1>
+
+<p>The recommendations on the IFDB home page are "algorithmic" -
+they're picked by the computer based on statistics in the database.
+They're <i>not</i> paid ads - they're based purely on ratings from our
+members and review sites like <a href=\"http://www.wurb.com/if"
+target="_blank">Baf's Guide</a>.  We're not being paid to promote one
+game over another.
+
+<p>The system picks front-page recommendations by looking for other
+members with similar patterns of likes and dislikes to your own, as
+expressed in the ratings they gave to the games they reviewed.  IFDB
+tries to match you up with a few other members, then recommends games
+that those other members rated highly.
+
+<p>In principle, the more ratings you and other members provide,
+the more accurate the matching will become.  So the recommendations
+should get better and better as you rate more games.
+
+<p>This approach is sometimes called "collaborative filtering."  Some
+people think it's great, others are skeptical.  The obvious objection
+is that it doesn't capture the <i>reasons</i> that you like the games
+you like, so it might match you up with someone who happens to like
+some of the same games, but for completely different reasons.  There's
+obviously no guarantee that the approach will actually produce good
+advice, but we hope that it gives you at least a few leads on games
+that you might otherwise have overlooked.
+
+<p>If the algorithmic recommendations on the home page don't work for
+you, remember that IFDB still offers several ways to get
+<i>personal</i> recommendations from other users, such as member
+reviews and Recommended lists.
+
+<?php
+helpPageFooter();
+?>

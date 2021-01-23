@@ -1,0 +1,709 @@
+<?php
+
+@session_start();
+include_once "api.php";
+
+apiPageHeader("putific");
+
+?>
+
+<p>The putific API provides a way for application programs to add new
+game listings to IFDB, or update existing listings.
+
+<p>The usual way to create or edit an IFDB listing is through the IFDB
+Web form interface.  The Web form is, of course, designed for direct
+interaction with a human user.  The API provides a programmatic
+alternative, for situations where an application program has access to
+its own representation of a game's structured metadata, and wishes to
+send the data to IFDB without forcing the user to re-type the same data
+into a Web form.
+
+<p>This API was designed primarily for IF IDE-type tools, such as TADS
+Workbench or the Inform 7 IDE.  These tools create and edit IF game
+projects, so by their nature they keep track of project metadata.  The
+particular use case we envision for an IDE is a menu command (or
+something similar) to "Publish to IFDB".  This would cause the IDE to
+send the project metadata to IFDB via this API, in order to create or
+update the IFDB listing for the game.  This would save the user the
+trouble of re-entering the project metadata via the IFDB web form.
+
+<p>The metadata format used in the putific API is iFiction, the XML
+format defined by the <a href="http://babel.ifarchive.org/">Treaty of
+Babel</a> specification.  iFiction is the obvious format for our
+purposes here, since it was was specifically designed for metadata
+interchange among sites like IFDB and the IF Archive, tools such as an
+Inform or TADS IDE, client programs that act as IF browsers or
+jukeboxes, etc.  IFDB's own game listing format was designed with the
+iFiction spec in mind, so an iFiction input file maps to an IFDB
+listing with excellent fidelity.
+
+
+<h2>Basic protocol</h2>
+
+<p>The putific API is exposed as an HTTP POST request to a particular
+URL on the IFDB Web site.  The URL is <tt>http://ifdb.tads.org/putific</tt>.
+
+<p>All parameters are passed as POST data with the HTTP request.  As
+typical for HTTP, there's no session state or context; the entire
+transaction is carried out as the single POST request.
+
+<p>The parameters to the API are provided in the usual HTTP POST
+fashion, by encoding them into the content body of the POST as though
+they were HTML form input field values being sent with a form
+submission.  HTTP defines a number of Content-Type encodings that work
+with the POST verb, but this API requires a particular format.
+Specifically, the parameters <b>must</b> be provided as a content body
+with MIME type "multipart/form-data".  This is required because of the
+need to attach one or more files to the request (the iFiction file,
+and optionally the Cover Art image file), and this is the standard
+HTTP way of handling file uploads using HTML forms.  This format also
+handles ordinary scalar data parameters, and can freely mix scalar
+data values with file uploads.
+
+<p>The server replies to the POST with an XML object describing the
+result of the request.  The contents are described below.
+
+<h2>Constructing multipart/form-data requests</h2>
+
+<p>The easiest way to construct a POST request meeting the API's
+requirements is to use a Web client library with support for POST
+requests with multipart/form-data payloads.  If that's not available,
+constructing the payload manually is fairly straightforward.  For the
+benefit of hand-coders, this section outlines how to construct the
+payload.  For full details, see the formal multipart/form-data
+specification in <a href="http://tools.ietf.org/html/rfc2388">RFC 2388</a>.
+
+<p>The overall form of the request body is a series of sections
+separated by "boundary" lines.  A boundary line is just some fairly
+arbitrary text that's chosen so that it can't be confused with
+anything in any of the actual content being sent.  Specifically, it's
+a string of characters that doesn't appear as a leading substring of
+any line of characters occurring in any of the content sections.  The
+usual algorithm for constructing a boundary line is to pick a fairly
+long sequence of random letters and numbers (10-20 characters, say),
+then scan the content to verify that the sequence isn't a leading
+substring of any line of the content items.  If the sequence does
+happen to appear, simply pick another sequence and scan again.  Long
+random sequences are statistically unlikely to occur in the data, so
+this process should find a suitable boundary string quickly.
+
+<p>To construct a boundary line in the payload, start a line with two
+hyphens (ASCII 45), followed by the boundary string, followed by a
+CR-LF (ASCII 10-13) sequence.
+
+<p>The payload begins with a boundary line.
+
+<p>The end of the payload is indicated by a special boundary line that
+adds two hyphens (ASCII 45) at the end of the boundary string (just
+before the CR-LF).
+
+<p>Immediately after each boundary line is a Content-Disposition line.
+There are two forms for this line: one for ordinary data parameters,
+and one for file attachments.
+
+<p>An ordinary data parameter is identified with a content-disposition
+line like this:
+
+<p><pre>
+   Content-Disposition: form-data; name="foo"
+</pre>
+
+<p>A file attachment has a similar content-disposition line, but adds
+a "filename=" parameter.  It also must be followed by two additional
+header lines giving the MIME type of the file attachment and the
+transfer encoding:
+
+<p><pre>
+   Content-Disposition: form-data; name="coverart"; filename="mypic.jpg"
+   Content-type: image/jpeg
+   Content-transfer-encoding: binary
+</pre>
+
+<p>The content-type should be text/xml for the iFiction attachment,
+and image/jpeg, image/png, or image/gif for the cover art image.
+
+<p>For this API, always use the <b>8bit</b> encoding for text files
+(including UTF-8), and the <b>binary</b> encoding for image files.
+Don't use base64 or other text-encapsulated formats for image files,
+as the Apache/php combination we're using doesn't seem to decode these
+properly.
+
+<p>Following the content-disposition line (and the additional content
+headers for file attachments), add a blank line (i.e., another CR-LF
+pair), followed immediately by the content data for the section.  For
+an ordinary parameter item, this is simply the plain text of the
+parameter value.  For a file, this is the contents of the file.  Since
+we transfer binary files with the "binary" transfer encoding, you
+should simply copy a binary file into the payload byte for byte.
+
+<p>The end of the section's content is indicated by a CR-LF pair
+followed immediately by a boundary line.  The CR-LF just before the
+boundary is considered to be part of the boundary, so it must be
+present in all cases, including binary files.
+
+<p>Once the payload is constructed, it's simply sent to the server
+with an HTTP POST verb and a Content-Type header like so:
+
+<p><pre>
+   Content-Type: multipart/form-data; boundary="asdfjkl"
+</pre>
+
+<p>Note that the boundary value specified in the POST content-type
+header does not include the "--" prefix that appears with each
+boundary line within the content body.
+
+
+<h2>Parameter names and values</h2>
+
+<p><b>username</b>: the IFDB username for the account under which the
+listing will be created.  Ordinary text parameter; required.
+
+<p><b>password</b>: the user's IFDB password. Ordinary text parameter;
+required.
+
+<p><b>ifiction</b>: the iFiction XML file upload.  Use content-type
+text/xml.  The file name and suffix aren't important; the server
+ignores these and always tries to parse this file as XML regardless of
+the filename.  See the <a href="#links">download links</a> section
+for details on the XML format.  File upload parameter; required.
+
+<p><b>links</b>: the downloadable file link list.  This is an XML
+attachment, like the iFiction file.  Use content-type text/xml.  The
+file name and suffix are ignored; this is always treated as an
+XML file.  File upload parameter; optional.
+
+<p><b>coverart</b>: the Cover Art image for the game listing.  If
+present, this must be a valid JPEG, PNG, or GIF file.  There's an
+upper limit on the file size, which is currently 256K bytes; uploading
+an image over the limit will cause an error reply.  It's not necessary
+for the client detect which image format is being submitted or to
+validate the image, since the server does this itself, and ignores the
+filename, extension, and content-type.  So, for example, if you submit
+a JPEG image as a file named FOO.GIF with an image/png content type,
+the server will still know it's a JPEG.  If you try submit a Word
+document with the same name and type, the server will reject it as an
+invalid image.  If you happen to know the image type, you should
+specify correct content-type (image/jpeg, image/png, or image/gif),
+since it's conceivable that the API could become stricter in the
+future about the content-type header matching the actual submitted
+data.  If you don't know the image type, use image/x-unknown; again,
+in the event the server needs to become stricter about matching types,
+this will tell the server that the client isn't claiming to know the
+type.  File upload parameter; optional.
+
+<p><b>imageCopyrightStatus</b>: the copyright status of the image;
+IFDB records this in the database with the image.  The parameter value
+must match one of the following strings:
+
+<ul>
+   
+   <li><b>by permission</b>, meaning that the copyright owner has
+   explicitly granted permission to IFDB to use the image
+
+   <li><b>creative commons</b>, meaning that the copyright owner has
+   released the image under the Creative Commons license described
+   in the IFDB Terms of Service
+
+   <li><b>free software</b>, meaning that the copyright owner has
+   released the image under some type of free software license
+   that allows its use on IFDB
+
+   <li><b>fair use</b>, meaning that the uploader believes that using
+   the image on IFDB falls under "fair use" provisions of U.S. copyright
+   law
+
+   <li><b>public domain</b>, meaning that the image is in the public domain
+
+   <li><b>unspecified</b>, meaning that no status is specified.  (We
+   discourage using this status.  The most likely time that a user
+   is going to think about this at all is when performing the upload,
+   so if they don't specify a status with this request, they probably
+   won't go back add the information later.)
+
+</ul>
+
+<p>The default is "unspecified".  Ordinary text parameter;
+optional.
+
+<p><b>imageCopyright</b>: the copyright message for the image, as a
+text string (e.g., "Copyright 2009 Bob Smith").  The value can be any
+text.  If this omitted or empty, and the copyright status is not
+"public domain" or "unspecified", a default copyright message will be
+generated of the form "Copyright (year) by (author)", where "year" is
+the current year and "author" is the author name from the iFiction
+record.  Ordinary text parameter; optional.
+
+<p><b>requireIFID</b>: This parameter can be supplied with the value
+"no" to override the usual rule that an IFID must be provided in the
+iFiction record.  This should <b>never</b> be used by an IF IDE that's
+submitting an author's own game project for publication.  Any IF IDE
+that's using this API should conform to the Babel specification at
+least as far as generating a proper IFID for each game project, so
+there should never be a need for an IDE to submit a game without an
+IFID.  Instead, this parameter is specifically intended for clients
+importing information on old commercial games for which no copy of the
+executable is available: without an executable, it's not even possible
+to construct the MD5-based IFID that Babel specifies for legacy games.
+
+<p>When this parameter is included with the value "no", the API is
+<b>only</b> capable of creating a new game record, and requires the
+title of the game to be unique (that is, if there's an existing game
+with the same title, ignoring upper/lower case differences, the new
+listing will be rejected).  We discourage using this parameter except
+as a last resort; in particular, if you <i>could</i> compute the MD5
+IFID for the game (because you have a copy of the executable, or could
+legally get one), but you just haven't done so, the inconvenience of
+computing the MD5 IFID is a poor excuse for using this override.
+Providing an IFID (even if it's just an MD5 hash) is highly desirable
+because it helps reduce the chances that someone else will create a
+redundant listing for the same game.
+
+<p>Ordinary text parameter; optional.
+
+<h2>iFiction records</h2>
+
+<p>The iFiction file included in the request must be syntactically
+valid XML.  The API does not validate against any XML schema, so you
+can use custom tags beyond what's in the Babel spec (to store
+development system-specific extensions to the basic Babel metadata,
+for example).  The file must be encoded in the UTF-8 character set,
+although be aware that IFDB will convert content data to ISO-8859-1
+(Latin-1), so there could be loss of fidelity for characters outside
+of the 8859-1 subset of Unicode.
+
+<p>As in the Babel spec, the file must not contain any entity markups
+beyond the primitive XML set, namely &amp;lt; for &lt;, &amp;gt; for
+&gt;, and &amp;amp; for &amp;.  HTML markups are not allowed within
+field values, except for the markup &lt;br/&gt; to represent a
+paragraph break in the &lt;description&gt; item.
+
+<p>The following Babel fields are used for the corresponding IFDB
+   fields:
+
+<ul>
+   <li>title
+   <li>author
+   <li>firstpublished
+   <li>format (the Babel names are mapped to equivalent "friendly" names
+   that are conventionally used on IFDB for the various systems)
+   <li>language
+   <li>description
+   <li>series
+   <li>seriesnumber
+   <li>genre
+   <li>forgiveness
+   <li>bafn
+   <li>contacts/url
+</ul>
+
+<p>In addition to the fields listed above, the game's current version
+number is inferred from the releases/attached/release/version item, if
+present, otherwise from the first releases/history/release/version
+item in order of appearance in the file.  If none of those items are
+present, the API uses the TADS-specific item tads2/version, if
+present.
+
+<p><b>Required fields:</b> The iFiction file must minimally include
+the game's IFID(s), title, and author.  (The IFID requirement can be
+overridden with the <b>requireIFID</b> parameter, though, as described
+above.)  All other items are optional.
+
+
+<h2><a name="links">Download links</h2>
+
+<p>The request can optionally provide a list of downloadable files to
+add to the game listing.  You will usually want to include at least a
+link to the downloadable story file, but you can also include any
+desired supplemental files (such as hints, maps, instructions,
+walk-throughs, or "feelies").  These are listed on the game's IFDB
+page in the "Downloads" section.
+
+<p>Note that IFDB doesn't host game downloads.  It only links to them.
+The download section is simply a list of URLs to files on other
+servers; you don't attach any of the actual game files to the request,
+just pointers to them.
+
+<p>The download list is specified via an XML file, attached to the
+request via the <b>links</b> parameter.  The XML content is formatted
+as follows:
+
+<p><pre>
+   &lt;downloads xmlns="http://ifdb.tads.org/api/xmlns"&gt;
+      &lt;links&gt;
+        link 1
+        link 2
+        ...
+      &lt;/links&gt;
+   &lt;/downloads&gt;
+</pre>
+
+<p>Each link item has this format:
+
+<p><pre>
+   &lt;link&gt;
+      &lt;url&gt;URL to the file&lt;/url&gt;
+      &lt;title&gt;Title of the file&lt;/title&gt;
+      &lt;desc&gt;Description of the file&lt;/desc&gt;
+      &lt;isGame/&gt;
+      &lt;pending/&gt;
+      &lt;format&gt;File format ID&lt;/format&gt;
+      &lt;os&gt;Operating system ID and version&lt;/os&gt;
+      &lt;compression&gt;File format ID for compression type&lt;/compression&gt;
+      &lt;compressedPrimary&gt; &lt;/compressedPrimary&gt;
+   &lt;/link&gt;
+<p>
+
+</pre>
+
+<p>You should always include a URL, title, and format.  The OS and OS
+version are required for application program files, and shouldn't be
+included for file types.  The other fields are optional.
+
+<p>The URL is the full, absolute URL for the file, starting with
+"http://".  For files hosted on the IF Archive, <b>always</b> provide
+the URL of the <b>main IF Archive</b> server, <b>not</b> a mirror.
+IFDB has special recognition of IF Archive URLs.  In particular, each
+user can set a preferred Archive mirror, and IFDB will automatically
+rewrite IF Archive URLs to point instead to the selected mirror when
+that user is viewing a game's page.  If you specify a URL that points
+to a mirror site, IFDB won't be able to make this preference
+adjustment.
+
+<p>The title is the displayed title of the file, which serves as the
+hyperlinked text.  It's friendliest to users to use a descriptive
+name, such as "Story File" or "Installer", but many IFDB links just
+use the root filename (i.e., the last part of the URL, stripped of any
+path prefix).
+
+<p>The description is additional descriptive text to be displayed with
+the link.  This is plain text (no HTML markup).
+
+<p><b>isGame</b> should be included if this link points to a playable
+version of the game, such as a story file or an executable
+application, <i>or</i> it's a compressed file that <i>contains</i> a
+playable version of the game.  For example, &lt;isGame/&gt; should be
+included for a ZIP file containing a Z-Machine story file for the
+game.  Omit this for supplemental files (documentation, walk-throughs,
+etc).
+
+<p><b>pending</b> should be included if the provided URL isn't a
+working link yet, but is expected to be working soon.  This is
+designed especially for use with IF Archive uploads.  When you upload
+a file to the Archive, you can generally predict the final URL for the
+file based on the Archive's directory layout conventions.  However,
+the file won't actually appear at this URL immediately after uploading
+it, since the Archive administrators review uploads before moving them
+to their final directory location.  This process usually takes a few
+days.  This is inconvenient for the IDE "publish" command that the
+putific API is designed for: the publisher will want to perform the IF
+Archive upload and IFDB page creation in a single process, but
+creating the IFDB page right after the IF Archive upload means that
+either you have to put up with a broken link for a few days, or make
+the user come back and fill in the link manually when it's actually
+working.  Neither option is very good.  This is where the "pending"
+flag comes in.  The flag tells IFDB that the link isn't good yet, so
+IFDB will hide the link from the game's home page.  It also tells IFDB
+that the link will be good soon, though.  IFDB acts on this by
+periodically testing the link to see if it works.  As soon as the link
+starts working, IFDB will remove the "pending" flag and show the
+download link with the listing.
+
+<p><b>format</b> gives the file's format.  This is specified as
+an "External ID" code for the file type, which you can find
+on the <a href="/fileformat">File Formats</a> page.
+
+<p><b>os</b> gives the file's operating system and version.  This
+should be specified <b>only</b> for binary machine-code executable
+application files, such as Windows .EXE files or Unix binaries.  Don't
+include this for Virtual Machine "story file" types such as z-code or
+TADS, since these files are portable to multiple machines.  Don't
+include it for document types (PDF, Word, ASCII text, GUE maps, etc),
+since these files are also not inherently tied to a single type of
+machine.
+
+<p>The operating system is specified as a <b>two part</b> External ID
+for the OS.  The first part is the external ID for the OS itself, and
+the second is the OS version.  The two parts are separated by a period
+'.'.  You can find the list of versions for each OS by going to the <a
+href="/opsys">Operating Systems</a> page, then clicking on the OS you
+want to look up.  The OS page has a list of "Version &amp; Download
+Adviser entries".  Each version shows the External ID string for the
+OS/version combination.  For example, Windows 95's External ID is
+"Windows.95".
+
+<p>IFDB's basic assumption for OS versioning is that applications for
+version N of a given OS will also run on version N+1.  You should
+therefore always specify the <b>earliest</b> OS version that the
+executable will run on; IFDB will automatically offer it to people who
+are using later versions of the same OS.  (When our backward
+compatibility assumption fails to hold, we simply treat the newer,
+incompatible OS version as a whole new operating system.  That's why
+Mac OS is in the list twice: once as Mac OS 7-9, and separately as Mac
+OS X.)
+
+<p><b>Important:</b> for a compressed file, such as a ZIP file,
+specify the format and OS for the <b>contents</b> of the compressed
+file, rather than the compression format itself.  IFDB considers the
+compression to be just a wrapper; what's important is what's inside.
+For an archive format like ZIP or Tar that can group multiple files
+together, specify the format of the "primary" file - see
+<b>compressedPrimary</b> below for details.
+
+<p><b>compression</b> gives the file format for a compressed file,
+such as a ZIP or .tar.gz file.  Specify this only when there is indeed
+some kind of compression or wrapper format.  For our purposes, we call
+any sort of archive wrapper format a "compression" format, even if
+there's no actual data compression.  For example, you'd specify "tar"
+here for a .tar file, even though Tar doesn't involve any data
+compression.
+
+<p>As we just mentioned, the <b>format</b> entry for a
+compressed file gives the format of the contents rather than of the
+compression wrapper; so the <b>compression</b> element is where the
+compression wrapper format is specified.  The value here is an
+External ID taken from the <a href="/fileformat">File Formats</a>
+list.
+
+<p><b>compressedPrimary</b> gives the filename of the "primary" file
+within a compressed or archive file.  This is the name of the primary
+file after extraction.  If there's a directory path, use the path
+relative to the container, since you obviously can't guess at the
+absolute directory structure where a user will eventually extract the
+file.  Use URL/Unix-style "/" paths if there's a path prefix.  For
+formats like Tar or ZIP that actually store filenames within the
+wrapper, use the stored filename.  For formats like GZIP where the
+extracted filename is derived from the compressed file's name, specify
+the name that the extraction tool conventionally derives, assuming
+that the user will use the filename from the URL for the local copy.
+
+<p>Which file is "primary"?  For a format like GZIP that only wraps a
+single file, the primary file is obviously just the wrapped file.  For
+multi-file wrappers like ZIP or Tar, it's up to you to pick the
+primary file, but there's one special consideration: if there's a
+playable version of the game within the archive, such as a story file
+or executable, you should always designate that as the primary file.
+This allows the Download Adviser to generate instructions for playing
+the game given the compressed file.  If there's no playable game file,
+pick whichever file is the most important, or whichever one the user
+would most directly want to open or view.  For example, for a ZIP
+containing an HTML page and a bunch of GIFs and JPEGs displayed on the
+page, the HTML page would presumably be the primary.
+
+<p>If there's no good basis for designating a particular file as
+primary, you can omit simply omit this element.  Note that you should
+still set a valid file type for the &lt;format&gt; element.  Use the
+file type of the majority of the contents if possible, otherwise you
+can just use the generic "document" type as a last resort.  For a
+collection of source files, for example, you'd specify the format as
+"text".
+
+
+<h2>Restrictions</h2>
+
+<p>If the submitted IFID refers to an existing IFDB listing, the
+effect is to update the existing listing, as though using the standard
+IFDB listing editor Web interface.  Updating a listing is allowed
+<b>only</b> if the submitting user is the same as the last user who
+edited the page.  If another user last edited the page, an edit
+request is rejected.  This is because we have to assume that we have a
+three-way merge conflict: some other user has edited the on-line
+listing, and meanwhile the current user has edited her private,
+off-line copy of the iFiction data.  The current user now intends to
+update the on-line listing with her updated iFiction data, but we
+can't assume that she knows about the other user's edits to the
+on-line copy.  We thus reject the POST update request, and instead
+require the current user to go to the IFDB Web-based listing editor
+and edit the live on-line data manually.  The current user can still
+decide to go ahead with the updates, but by requiring her to manually
+edit the live on-line data, we ensure that she at least sees the other
+user's changes before overwriting them.
+
+<p>If the submitted iFiction record contains multiple IFIDs, and any
+of the IFIDs are already present on IFDB in existing listings, the
+IFIDs in the iFiction record must <b>all</b> refer to the same game.
+It's fairly obvious why this must be the case: a given IFID refers to
+exactly one game; so a group of IFIDs purporting to refer to the same
+game (by being grouped together in a single iFiction record) can't
+also refer to any other games.  Therefore, if the IFIDs in the
+iFiction record refer to two or more existing IFDB listings, the
+request is rejected with an error.  Note, however, that it's fine for
+there to be a mix of IFIDs that exist on IFDB and IFIDs that don't:
+this would be the case if the updated listing is adding IFIDs to an
+existing listing.  The restriction is simply that all IFIDs in the
+iFiction record that already exist on IFDB must all point to the same
+listing.
+
+<p>The download links specified through the API are purely additive.
+When the API is used to update an existing listing, the download links
+in the request are merged with the download links from the existing
+record.  The merging is by URL:
+
+<p>
+<ul>
+
+   <li>For an existing download link with a URL matching a
+   download link in the API request, the data from the request (title,
+   description, etc) replaces the existing data.
+
+   <li>For an existing link with a URL that <i>doesn't</i> match any
+   link in the API request, the existing link is kept with no changes.
+
+   <li>For a link in the API request that doesn't match any URL in
+   the existing download links, the API request link is added to the
+   list, after all of the existing links.
+
+</ul>
+
+<p>There's one exception to the replacement rule for a matching URL.
+If the link in the API request is marked as "pending", and the old
+link with the same URL is <b>not</b> marked pending, the pending flag
+in the request is ignored.  The rationale is that the non-pending
+status in the existing record presumably means that the link already
+works for an older version of the same game, and that what's really
+"pending" in the new request is the replacement of that file with the
+new version.  So even though the request client thinks of the link as
+pending, it's not actually a broken link; it's only pending in that
+the version update isn't complete yet.  It seems better to keep the
+existing link to the old game in the interim, so that users viewing
+the page will find something to download, even if it's not necessarily
+fully up to date yet.
+
+<p>The reason that the download links are additive is that the links
+presented through the request API are presumably the files published
+directly by the author of the game, but existing links might refer to
+other "unofficial" files created by third parties, such as hints or
+walk-throughs.  We don't want to delete those third-party files just
+because the author is updating her published files.  So, we simply
+retain any existing links without changes when they're not mentioned
+in the request.  In the simplest case, when the request doesn't
+include any download links, this means that we make no changes
+at all to the existing links.
+
+
+<h2>Reply format</h2>
+
+<p>The server replies to the request with an XML object describing the
+result.  The response has this tag structure for a successful
+transaction:
+
+<p><pre>
+   &lt;putific xmlns="http://ifdb.tads.org/api/xmlns"&gt;
+      &lt;ok/&gt;
+      &lt;ACTION-NAME/&gt;
+      &lt;tuid&gt;TUID (IFDB's internal ID) of the listing&lt;/tuid&gt;
+      &lt;viewUrl&gt;URL of page for viewing the listing&lt;/viewUrl&gt;
+      &lt;editUrl&gt;URL of page for editing the listing&lt;/editUrl&gt;
+   &lt;/putific&gt;
+</pre>
+
+<p>ACTION-NAME is one of the following:
+
+<ul>
+   <li><b>created</b> means that a new listing was created
+   <li><b>edited</b> means that an existing listing was updated
+   <li><b>unchanged</b> means that the listing already existed and
+       was identical to the iFiction data, so the server left the
+       existing record as it was
+</ul>
+
+<p>The TUID is the internal IFDB identifier for the game listing that
+was created or updated by the request.
+
+<p>The viewUrl is an http URL to the main IFDB page for the listing.
+The editUrl is a URL to reach a user interface for editing the listing
+manually.
+
+<p>If an error occurs, the reply has this structure:
+
+<p><pre>
+   &lt;putific&gt;
+      &lt;error&gt;
+        &lt;code&gt;error code&lt;/code&gt;
+        &lt;message&gt;error message text&lt;/message&gt;
+        &lt;detail&gt;
+          &lt;field&gt;field ID&lt;/field&gt;
+          &lt;desc&gt;description of the field&lt;/desc&gt;
+          &lt;error&gt;field-specific error message&lt;/detail&gt;
+        &lt;/detail&gt;
+      &lt;/error&gt;
+   &lt;/putific&gt;
+</pre>
+
+<p>The error code is a computer-friendly identifier for the error,
+from the following list:
+
+<ul>
+   <li>BadAtt: a file attachment to the HTTP POST is invalid.
+   <li>MissingParam: a required parameter to the HTTP POST is missing.
+   <li>Login: IFDB login failed, usually due to an invalid username or
+       password.
+   <li>XmlSyntax: an XML file attachment to the POST is not syntactically
+       valid XML.
+   <li>MissingTitle: the title is missing from the iFiction record.
+   <li>IfidsNotUnique: the IFIDs in the record match more than one game.
+       (This is only possible when multiple IFIDs are specified.  It means
+       that the different IFIDs match different games, which is not
+       allowed since all IFIDs in the iFiction record must be for the
+       same game.)
+   <li>IfidMissing: the IFID is missing from the iFiction record.
+   <li>TitleNotUnique: the title is not unique.  This error can only occur
+       when no IFID is specified, and the IFID override option is selected.
+       If an IFID is specified, the title doesn't have to be unique since
+       the IFID definitively identifies the game.
+   <li>LoadRecord: the game has an existing page, but an error occurred
+       loading its database record.
+   <li>CannotMerge: the game has an existing page, and the last version of
+       the page was edited by a different user.  The iFiction record can't
+       be used to update the page because it might inadvertently overwrite
+       the other user's changes.  The user must manually update the page
+       via the IFDB Web interface.
+   <li>ImageCprInvalid: the imageCopyrightStatus parameter value
+       is invalid.
+   <li>ImageFormatError: the image contents are invalid.  The image either
+       isn't in of the supported formats (JPEG, PNG, GIF), or the contents
+       aren't well-formed for the format.  The server ignores the
+       submitted Content-type and filename, and instead infers the format
+       by inspecting the actual submitted image data, looking for an image
+       header that matches one of the supported types.
+   <li>ImageTooBig: the image exceeds the size limit (currently 256K).
+   <li>DataValidation: one or more of the iFiction fields contains
+       invalid data.  This could be due to a missing required value,
+       a formatting problem (such as for a
+       date value), an enumerated value that doesn't match any of the
+       allowed values, a number out of range, etc.  One or more field
+       detail items will be included for this error indicating the
+       specific problem.
+   <li>DbError: a database error occurred.  This type of error should
+       only occur due to either a bug in the API or a (presumably
+       temporary) service outage on the server side, so there's generally
+       nothing the client can do to fix this, although you could advise
+       the user to retry later in case it is indeed a service outage
+       that's eventually resolved.
+</ul>
+
+<p>The error message text is human-readable text describing the error
+condition.  The "detail" items are included when the error is due to
+an invalid value for one of the submitted iFiction fields.  The field
+ID is the XPath description of the iFiction element containing the
+error, without the top-level "story" tag; for example, the "author"
+field is identified as "bibliographic/author".  The field description
+is a human-readable description of the field, for display to users.
+The field-specific error message is a human-readable message
+describing the value error.  The server validates all of the fields
+before returning an error and adds a "detail" item for each error, so
+there could be multiple "detail" items in the reply.
+
+<p>When an error is returned, the server will not have saved any
+portion of the updates; the whole create/update operation fails
+atomically.  This means that no further client action is required to
+clean up after the failed request, and also that it's safe to simply
+try again by posting a new request (which the user will probably want
+to do if the error involved a data validation problem that can be
+corrected by editing the source data).
+
+
+<?php
+
+apiPageFooter();
+
+?>

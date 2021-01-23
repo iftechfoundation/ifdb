@@ -1,0 +1,28 @@
+<?php
+@session_start();
+include_once "util.php";
+include "pagetpl.php";
+helpPageHeader("Discussions");
+?>
+
+<h1>IFDB Discussions</h1>
+
+<p>You can add comments to various pages on IFDB, including
+game reviews, Recommended Lists, and polls.  You can also add
+comments to another member's profile.
+
+<p>You can reply other people's comments, which makes for a simple
+discussion system.  This isn't a full-fledged "forum" system, let
+alone a replacement for the int-fiction newgroups, but for comments
+related to a particular IFDB page, it has the advantage of keeping the
+discussion together with its subject.
+
+<p>You can start a discussion by clicking the "Add a comment" link
+shown below a game review, on a list or poll's main page, or on a
+user's profile page.  A "View comments" link will appear as soon as a
+page has comments.  You can reply to a comment by clicking the "Reply"
+link next to the comment.
+
+<?php
+helpPageFooter();
+?>

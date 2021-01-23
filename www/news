@@ -1,0 +1,174 @@
+<?php
+
+@session_start();
+include_once "dbconnect.php";
+$db = dbConnect();
+
+include_once "util.php";
+include "pagetpl.php";
+
+// check for RSS
+if (isset($_REQUEST['rss'])) {
+
+    // query the latest news items
+    $result = mysql_query(
+        "select
+           itemid, title, ldesc, posted
+         from
+           sitenews
+         order by
+           posted desc
+         limit
+           0, 20", $db);
+
+    // use UTF-8 for RSS feeds
+    iconv_set_encoding("output_encoding", "UTF-8");
+
+    // send the RSS content-type header
+    header("Content-Type: application/rss+xml");
+    header("Expires: Mon, 26 Jul 1997 05:00:00 GMT");
+    header("Cache-Control: no-store, no-cache, must-revalidate");
+    header("Cache-Control: post-check=0, pre-check=0", false);
+    header("Pragma: no-cache");
+
+    // send the channel header
+    echo "<?xml version=\"1.0\"?>\r\n";
+?>
+<rss version="2.0">
+   <channel>
+      <title>IFDB Site News</title>
+      <link>http://ifdb.tads.org/news</link>
+      <description>Updates on the latest new features on IFDB.</description>
+      <language>en-us</language>
+<?php
+
+    // send the items
+    $rowcnt = mysql_num_rows($result);
+    for ($i = 0 ; $i < $rowcnt ; $i++) {
+        // fetch the row
+        list($itemid, $title, $ldesc, $pub) = mysql_fetch_row($result);
+
+        // format the items for RSS
+        $title = rss_encode($title);
+        $ldesc = str_replace("<p>", "</p><p>", $ldesc);
+        $ldesc = str_replace("<br>", "<br/>", $ldesc);
+        $ldesc = rss_encode($ldesc);
+        $pub = date("D, j M Y H:i:s e", strtotime($pub));
+
+        $link = "http://ifdb.tads.org/news?item=$itemid";
+        $link = rss_encode(htmlspecialcharx($link));
+
+        // send the item
+        echo "<item>\r\n"
+            . "<title>$title</title>\r\n"
+            . "<description><p>$ldesc</p></description>\r\n"
+            . "<link>$link</link>\r\n"
+            . "<pubDate>$pub</pubDate>\r\n"
+            . "<guid>$link</guid>\r\n"
+            . "</item>\r\n";
+    }
+
+    // close out the channel
+    echo "</channel>\r\n</rss>";
+
+    // done
+    exit();
+}
+
+// check for a single-item query
+$item = get_req_data('item');
+$qItem = mysql_real_escape_string($item, $db);
+
+// get the requested page number
+$pg = get_req_data('pg');
+if ($pg < 1)
+    $pg = 1;
+
+// start the page
+pageHeader("New Features on IFDB");
+echo "<h1>New Features on IFDB</h1>"
+   . "<p>This is a summary of recent additions and changes to the site. "
+   . "The list isn't comprehensive - we report only the more visible "
+   . "and significant changes, so you might notice some minor changes "
+   . "from time to time that aren't reported here."
+
+   . "<p><span class=details>";
+
+if ($item)
+    echo "<a href=\"news\">More site news</a> - ";
+
+echo  "<a href=\"news?rss\">"
+   . "<img src=\"blank.gif\" class=\"rss-icon\">RSS Feed</a></a></span><p>";
+
+// set up pagination
+$perPage = 15;
+$firstOnPage = ($pg-1) * $perPage;
+$lastOnPage = $firstOnPage + $perPage - 1;
+
+// set up for a single-item or page query
+if ($item) {
+    // single item - query on the item ID, and don't bother with a range
+    $where = "where itemid = '$qItem'";
+    $limit = "";
+} else {
+    // page view - query all items, and limit to the page range
+    $where = "";
+    $limit = "limit $firstOnPage, $perPage";
+}
+
+// query the news list
+$result = mysql_query(
+    "select sql_calc_found_rows
+       itemid, title, ldesc, date_format(posted, '%e %M %Y')
+     from
+       sitenews
+     $where
+     order by
+       posted desc
+     $limit", $db);
+
+$rowcnt = mysql_num_rows($result);
+if ($rowcnt < $perPage)
+    $lastOnPage = $firstOnPage + $rowcnt - 1;
+
+$result2 = mysql_query("select found_rows()", $db);
+list($totcnt) = mysql_fetch_row($result2);
+
+$lastPage = (int)floor(($totcnt + $perPage - 1)/$perPage);
+    
+// set up the pagination control
+if ($item) {
+    // item query - no page controls are needed
+    $pageCtl = "";
+    $pageCtlBreak = "";
+} else {
+    $pageCtl = "<span class=details>"
+               . makePageControl(
+                   "news?", $pg, $lastPage,
+                   $firstOnPage, $lastOnPage, $totcnt, true, false, false)
+               . "</span>";
+    $pageCtlBreak = "<br><br>";
+}
+
+// show the items
+$lastDate = '';
+echo "$pageCtl$pageCtlBreak";
+for ($i = 0 ; $i < $rowcnt ; $i++) {
+    // fetch the next row
+    list($itemid, $title, $ldesc, $posted) =
+        mysql_fetch_row($result);
+
+    // display the next date heading, if this is a new item
+    if ($posted != $lastDate) {
+        echo "<h2>$posted</h2>";
+        $lastDate = $posted;
+    }
+
+    // display the item
+    echo "<p><b>$title</b>: $ldesc";
+}
+
+echo "$pageCtlBreak$pageCtl<br>";
+
+pageFooter();
+

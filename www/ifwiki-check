@@ -1,0 +1,32 @@
+<?php
+
+include_once "util.php";
+
+$ifid = get_req_data("ifid");
+$qifid = strtoupper(urlencode($ifid));
+
+// look up the page on ifwiki.org
+$body = x_http_get("http://ifwiki.org/index.php?title=IFID:$qifid",
+                   null, $headers);
+
+$exists = false;
+if (preg_match("/HTTP\/[.\d]+ +200 /", $headers))
+    $exists = true;
+
+header("Expires: Mon, 26 Jul 1997 05:00:00 GMT");
+header("Cache-Control: no-store, no-cache, must-revalidate");
+header("Cache-Control: post-check=0, pre-check=0", false);
+header("Pragma: no-cache");
+header("Content-type: text/xml");
+
+echo "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>"
+   . "<ifwiki-check-result>"
+   .   "<ifid>" . htmlspecialchars($ifid) . "</ifid>"
+   .   "<exists>"
+   .     ($exists ? "yes" : "no")
+   .   "</exists>"
+   . "</ifwiki-check-result>";
+
+exit();
+
+?>

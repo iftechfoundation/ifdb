@@ -1,0 +1,70 @@
+<?php
+@session_start();
+include_once "util.php";
+include "pagetpl.php";
+helpPageHeader("Review Voting Options");
+?>
+
+<h1>Review Voting Options</h1>
+
+<p>These options let you "review the reviewer," to improve your own
+experience with IFDB and help guide other members to the best reviews.
+They make up IFDB's <a href="help-comm-mod">community moderation</a>
+system for game reviews.
+
+<p><b>Helpful (Yes/No):</b> Vote Yes if you think the review does a
+good job of sharing the reviewer's opinion of the game - it's
+respectful, informative, well-written, insightful, or just generally
+helpful.  Voting Yes <b>doesn't</b> mean that you agree with
+everything the reviewer said, or even with her overall opinion of the
+game.  Reasons to vote No would include being off-topic,
+disrespectful, or overly spoilery.
+
+<p><b>Promote/demote this user:</b> These affect how you (and only
+you) see this user's reviews throughout IFDB.  If you Promote the
+user, you'll see her reviews listed first when viewing a game; if you
+Demote her, her reviews will move to the end of the list.
+(You can view and change your promotions and demotions via the
+ <a href="userfilter?list" onclick="return openUserFilter();">user filter
+editor</a>.)
+ 
+<p><a name="plonk"><b>Plonk this user:</b></a>
+This is the nuclear option, for someone you
+find so annoying that you never again want to see anything they write.
+If you plonk a user, <b>all</b> of her reviews will be omitted when
+you view game pages throughout IFDB.  This only affects you - it won't
+actually delete the user's reviews or hide them when other members
+view the same game pages.  (You can change your mind and un-plonk
+someone later via the <a href="userfilter?list"
+onclick="javascript:window.opener.location = 'userfilter?list';return false;"
+>user filter editor</a>.)
+
+<p><b>Flag spoilers:</b> Mark this review as containing
+<b>unhidden</b> spoilers.  A spoiler gives away a secret that you're
+meant to discover in the course of playing the game, spoiling the fun
+of finding it or figuring it out on your own.  After you flag the
+review, IFDB will put a warning label on the review when other users
+view it.  <b>This affects all users</b>, so use this command
+responsibly.  <b>Don't</b> flag a review for spoilers that are already
+properly hidden with "click to see" warnings - only flag it if the
+spoilers are out in the open.
+
+<script type="text/javascript">
+function openUserFilter()
+{
+    if (window.opener
+        && window.opener != window
+        && !window.opener.closed)
+    {
+        window.opener.location = "userfilter?list";
+        window.close();
+        return false;
+    }
+    else
+        return true;
+}
+</script>
+
+<?php
+helpPageFooter();
+?>

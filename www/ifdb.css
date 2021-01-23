@@ -1,0 +1,2094 @@
+/*
+IFDB Default Main Style Sheet
+Copyright 2007, 2008 Michael J Roberts
+
+General notes:
+
+1. Whenever you refer to an item by URL (such as in an "@import"
+directive, or in a "url()" spec in a "background" style), any
+relative URL you specify will be relative to the location of your
+custom style sheet.  This will be your own user-specific directory,
+where your style-sheet-related items are stored.  This means that
+you can easily refer to your own custom images, for example, since
+they're in a subdirectory of your user directory called "images/".
+However, be aware that if you want to refer to any SYSTEM files,
+such as this main style sheet or the default graphics (GIF/JPG)
+files, you MUST start the URL with a "/" to look in the root
+system directory.  We use that notation throughout this file
+when referring to system files to provide easy cut-and-paste
+examples.
+        
+2. We recommend that custom style sheets always import this style
+sheet as the "base" style sheet.  Doing this will provide default
+definitions for everything you don't explicitly override in the
+custom style sheet.  This has two advantages: (1) it allows you to
+write a shorter style sheet, by only defining styles for items you
+want to override; and (2) it ensures better upward compatibility,
+because whenever we add new items in the future, you'll automatically
+inherit our default styles for the new items.  To import this sheet,
+add a line like this at the top of your custom CSS file:
+
+    @import url("/ifdb.css");
+
+3. Custom style sheets can replace most of the graphics used on the
+site.  To make this possible, we use a "fake" image file for the SRC
+file of each <IMG> or <INPUT TYPE=IMAGE> tag that can be replaced in
+CSS.  This fake image is simply a 1x1 transparent GIF, so it doesn't
+have any on-screen appearance.  The *actual* image is provided in the
+style sheet, via the "background" style.  So, to replace a graphic
+with your own, you must:
+
+   a. Upload the JPEG/GIF/PNG file via the style-graphic manager
+   
+   b. Add an IMG definition for the class or ID of the image you wish
+      to replace, like so:
+
+      img.rss-icon {
+          background: url("images/my-rss-icon.gif");
+          width: 22px;
+          height: 22px;
+      }
+
+Note that you must specify the height and width of the image in pixels.
+Since we're just setting the background, it doesn't automatically set
+the layout size of the object to match; the only way to set the layout
+size is to do so explicitly via the "width" and "height" styles.  And
+CSS unfortunately doesn't have a way to refer indirectly to the dimensions
+from the image file, so you just have to hard-code the actual pixel size.
+*/
+
+
+
+/*
+This is the style for the main body of the page - nearly everything
+that doesn't have a separate style of its own inherits this style.
+
+We use a 0-pixel left and top margin here so that the IFDB banner and
+navigation bar graphics at the top of the page run all the way to the
+edges of the window.  We compensate for this for the main page layout
+by specifying our actual margins the "main" division, where most of
+the page's contents go.
+*/
+body {
+    background: #ffffff;
+    font:  100%/140% Verdana, Arial, Helvetica, Sans-Serif;
+    color: #000000;
+    line-height: 1.4;
+    margin: 0px 0px 1.5em 0px;
+}
+
+/*
+The style for <form> areas - this is the style used for areas of the
+page where there are data entry fields, buttons, and so on.  We use
+the same style here as in the main page body.
+*/
+form {
+    font:  100%/140% Verdana, Arial, Helvetica, Sans-Serif;
+}
+
+/*
+Sorting controls - this is a form with a popup (select list) and
+"Go" button, for sorting lists.  This is used on numerous pages.
+*/
+form.sortingControls {
+    margin: 1em 0 1em 0;
+}
+
+/*
+The default style for cells within tables.  We use the same style
+here as in the main page body.
+*/
+table tr td {
+    font:  100%/140% Verdana, Arial, Helvetica, Sans-Serif;
+}
+
+/*
+"Silent" hyperlinks.  Some hyperlinks are marked with the silent style
+because we don't want them to be as conspicuous as ordinary links.  We
+show these as though they were ordinary text, *except* that when the
+mouse cursor is hovering over one, we reveal its hyperlink status
+with an underline (via the ":hover" version of the style).
+*/
+a.silent {
+    text-decoration: none;
+    color: #000000;
+}
+a.silent:hover {
+    text-decoration: underline;
+}
+
+/*
+Heading 1 - for top-level headings.  This is generally used for
+the title at the top of a page.
+*/
+h1 {
+    font:  125% Verdana, Arial, Helvetica, Sans-Serif;
+    font-weight: bold;
+    color: #000080;
+}
+
+/*
+Heading 2 - for second-level headings.  This is generally used
+for main section headings within a page.
+*/
+h2 {
+    /*font:  110% Verdana, Arial, Helvetica, Sans-Serif;*/
+    font-size: 110%;
+    font-weight: bold;
+    color: #000080;
+}
+
+/*
+Heading 3 - for third-level headings.  This is used for sub-section
+headings.
+*/
+h3 {
+    /*font:  95% Verdana, Arial, Helvetica, Sans-Serif;*/
+    font-size: 100%;
+    font-weight: bold;
+    color: #000080;
+    margin-bottom: 0px;
+}
+
+/*
+The "topbar" division is the area where we display the main IFDB
+banner identifying the site.  The color setting is chosen so that the
+graphic banner blends seamlessly into the background at its right edge.
+
+The "topbar" anchor is used to place a "home" hyperlink over the
+background image, so this should have the same width and height
+as the background image.  This can be set to zero size if the
+hyperlink isn't wanted.
+*/
+div.topbar {
+    width: 100%;
+    background: url("/ifdb-topbar.jpg") #c0c0c0 no-repeat;
+    height: 55px;
+}
+a.topbar {
+    height: 55px;
+    width: 511px;
+}
+
+/*
+The "topctl" division is the area at the top under the main IFDB banner
+where we show the quick navigation controls.  Within this area, we have
+a table (for spacing the navigation links) and a form (for the "Search"
+box), so we have to specify how we want these laid out.  Throughout
+this division, we use a slightly smaller version of the main page font.
+*/
+div.topctl {
+    font:  100%/140% Verdana, Arial, Helvetica, Sans-Serif;
+    width: 100%;
+    padding: 0 0 0 0;
+    margin: 0 0 2em 0;
+    font-size: 95%;
+    background: #e8e8e8;
+    border-bottom: thin dotted #d0d0d0;
+}
+div.topctl table {
+    margin: 0 0 0 0;
+    padding: 0 0 0 0;
+}
+div.topctl table tr {
+    margin: 0 0 0 0;
+    padding: 0 0 00;
+}
+div.topctl table tr td {
+    font-size: 80%;
+    margin: 0 0 0 0;
+    padding: 0 1em 0 1em;
+}
+div.topctl form {
+    font-size: 95%;
+    margin: 0 0 0 0;
+    padding: 0 0 0 0;
+}
+
+/*
+The "main" division is basically the rest of the page below the
+banner and navigation divisions at the top.  The overall body of the
+page has 0-pixel left and top margins, so that the graphics at the
+top of the page run all the way to the edges of the window; so in
+order to make the main contents more readable, we add some actual
+margins here.
+*/
+div.main {
+    margin: 1em 1em 1em 1em;
+}
+
+/*
+The "botbar" table contains the navigation controls at the bottom of the
+page.
+*/
+table.botbar {
+    padding: 0 0 0 0;
+    margin: 4em 0 0 0;
+    width: 100%;
+    border-spacing: 0;
+    border-collapse: collapse;
+    border: none;
+    background: #f8f8ff;
+}
+table.botbar tr {
+    vertical-align: top;
+}
+table.botbar td {
+    padding: 0 0 0 0;
+    border-spacing: 0;
+    border-collapse: collapse;
+    border: thin solid #a0a0e0;
+}
+table.botbar table {
+    padding: 0 0 0 0;
+    border-spacing: 0;
+    border-collapse: collapse;
+}
+table.botbar table tr.botbarhdr td {
+    background: #e0e0e0;
+    padding: 0 1em 0 1em;
+    font-size: 100%;
+    font-weight: bold;
+    color: #0000C0;
+}
+table.botbar table tr td {
+    font-size: 90%;
+    padding: 0.5em 0 0.5em 0;
+    border: none;
+}
+table.botbar div div {
+    padding: 0.5em 0 0.5em 0;
+}
+
+/*
+The "smalltopbar" division is the equivalent of "topbar" for small
+popup windows (e.g., help windows).  We show a smaller version of the
+banner image in these windows, so that the banner size is scaled down
+in proportion to the overall window size.
+*/
+div.smalltopbar {
+    width: 100%;
+    background: url("/ifdb-smalltopbar.jpg") #c0c0c0 no-repeat;
+    height: 16px;
+}
+
+/*
+The "smallmain" division is the equivalent of the "main" division for
+pages we show in pop-up windows (which we use mostly for help messages).
+Since most of these pop-ups are fairly small windows, we use a smaller
+font and smaller margins to make the contents fit the smaller area
+better.
+*/
+div.smallmain {
+    font-size: 85%;
+    margin: 5px 0.5em 0.5em 0.5em;
+}
+div.smallmain form {
+    font-size: 85%;
+}
+div.smallmain table tr td {
+    font-size: 85%;
+}
+
+/*
+The "helpmain" division is the same as the "smallmain" division, but
+we use it specifically for pages showing help messages.
+*/
+div.helpmain {
+    font-size: 90%;
+    margin: 0.25em 0.5em 0.5em 0.5em;
+}
+div.helpmain table tr td {
+    font-size: 90%;
+}
+
+/*
+The "new-review", "new-list", and "new-game" divisions are used for
+the respective types of new item listings on the home page and the
+"all new items" list.  We don't differentiate the visual styles
+in this style sheet, but the different types are marked with
+distinct classes so that custom style sheets can show each type
+in its own style.
+*/
+div.new-review {
+    margin-top: 1.25em;
+    margin-bottom: 1.25em;
+}
+div.new-list {
+    margin-top: 1.25em;
+    margin-bottom: 1.25em;
+}
+div.new-game {
+    margin-top: 1.25em;
+    margin-bottom: 1.25em;
+}
+div.new-poll {
+    margin-top: 1.25em;
+    margin-bottom: 1.25em;
+}
+div.new-game-news {
+    margin-top: 1.25em;
+    margin-bottom: 1.25em;
+}
+div.new-comp-news {
+    margin-top: 1.25em;
+    margin-bottom: 1.25em;
+}
+div.new-competition {
+    margin-top: 1.25em;
+    margin-bottom: 1.25em;
+}
+div.new-club-news {
+    margin-top: 1.25em;
+    margin-bottom: 1.25em;
+}
+div.new-club {
+    margin-top: 1.25em;
+    margin-bottom: 1.25em;
+}
+
+/*
+The "title" division is used to display the title of a game in
+a review.
+*/
+div.title {
+    font-size: 125%;
+    color: #000080;
+    font-weight: bold;
+}
+
+/*
+The "xsrc" span style is used to show the name of the source of an
+external review (e.g., Xyzzy News).
+*/
+span.xsrc {
+    font-size: 90%;
+    font-weight: bold;
+    color: #000080;
+}
+
+/*
+Review comments and replies.
+*/
+div.reviewCommentOnly {
+    margin: 1em 0 1em 0;
+}
+div.reviewCommentFirst {
+    margin: 1em 0 1em 0;
+    padding: 0 0 0 0;
+}
+div.reviewComment {
+    margin: 1em 0 1em 0;
+    padding: 1em 0 0 0;
+    border-top: 1px dotted #d0d0d0;
+}
+div.reviewCommentLast {
+    margin: 1em 0 1em 0;
+    padding: 1em 0 0 0;
+    border-top: 1px dotted #d0d0d0;
+}
+div.reviewCommentReply {
+    padding-left: 1ex;
+    border-left: 0.75ex solid #d0d0d0;
+}
+span.reviewCommentPrivate {
+    padding: 0 1em 0 1em;
+    font-weight: bold;
+    font-style: italic;
+}
+
+/*
+The "coverart" table is used on a game's main listing page to display
+the game's cover art image.
+*/
+td.coverart {
+    padding-right: 1em;
+}
+
+/*
+We use the "authorProfileLink" style for hyperlinks to author profiles,
+as shown in the author section of a game listing.  We show these without
+underlines (except when hovering), to make them fit better visually into
+the rest of the byline, but we do show them in a distinct color.
+*/
+a.authorProfileLink {
+    font-size: 75%;
+    border: 1px dotted #d0d000;
+    background: #ffff00;
+    text-decoration: none;
+    color: #0000ff;
+}
+a.authorProfileLink:hover {
+    color: #ff0000;
+    text-decoration: underline;
+}
+
+/*
+The "tags" table style is used for displaying the list of tags
+associated with a game.
+*/
+table.tags {
+    margin: 1ex 0 1em 0;
+}
+table.tags tr td {
+    padding-right: 3em;
+}
+
+/*
+The "downloadfloat" division is for the Download box on a game's
+main listing page.  This is a floating box on the right side of
+the page.
+*/
+div.downloadfloat {
+    float: right;
+    margin: 0 0 2em 1em;
+    width: 35ex;
+}
+
+/*
+The "downloads" table is for the table we use to lay out the
+contents of the Download box.
+*/
+table.downloads {
+    padding: 0;
+    margin: 0;
+    background: #F0F0F0;
+    border: thin dotted #e0e0e0;
+    width: 100%;
+}
+table.downloads h3 {
+    font: 100%/140% Verdana, Arial, Helvetica, Sans-Serif;
+    font-weight: bold;
+    color: #000080;
+    margin: 0;
+}
+table.downloads td {
+   font: 80%/140% Verdana, Arial, Helvetica, Sans-Serif;
+}
+table.downloads td div.downloaditem {
+    overflow: hidden;
+}
+
+/*
+The "downloadlist" table is a sub-table within the Download box,
+where we display the list of links to individual downloads.
+*/
+table.downloadlist td {
+   padding-top: 1em;
+}
+
+/*
+The "dlnotes" span is used for additional notes about a download
+listing.
+*/
+span.dlnotes {
+    font-size: 95%;
+}
+
+/*
+"dlzipmain" is used to show the name of the primary file within a
+compressed archive (such as a .zip file) within a download listing.
+*/
+span.dlzipmain {
+    font-size: 95%;
+    color: #000000;
+}
+
+/*
+The "zipnote" style is used to display a description of a compression
+format (e.g., ZIP) in a Download box.
+*/
+span.zipnote {
+    color: #0000C0;
+    font-style: italic;
+}
+div.zipnote {
+    margin-top: 0.5em;
+    margin-bottom: 0.5em;
+    padding: 0em 0.5em 0em 0.5em;
+}
+
+/*
+The "zipstar" style shows an asterisk, dagger, etc for a compression
+format footnote in Download box.
+*/
+span.zipstar {
+    color: #0000C0;
+}
+
+/*
+"fmtnotes" displays the description of a file format in a download
+listing.  This is used on game listing pages in the Download box,
+and also on the Download Adviser page.
+*/
+span.fmtnotes {
+    font-size: 85%;
+    line-height: 1.25em;
+    color: #606060;
+}
+
+/*
+The "gamerightbar" table is the box on a game's listing page,
+underneath the Download box, where we display quick rating
+input links ("Have you played this game?").
+*/
+table.gamerightbar {
+    padding: 0 0 0 0;
+    margin: 0 0 0 0;
+    background: #F0F0F0;
+    border: thin dotted #e0e0e0;
+    width: 100%;
+    font-size: 80%;
+}
+table.gamerightbar h3 {
+    font: 100%/140% Verdana, Arial, Helvetica, Sans-Serif;
+    font-weight: bold;
+    color: #000080;
+    margin: 0 0 0.5em 0;
+}
+table.gamerightbar td {
+    padding: 0 0 0.5em 0;
+}
+
+/*
+We use the "xmlstatmsg" span style in various places to display the
+results of "Ajax" requests.  (These are interactive features where clicking
+a button causes the page to communicate with the server, and display the
+results in-place, right on the same page, rather than navigating to a
+new page.)  These are generally short status messages - things like
+"Saved" after clicking a wishlist update button, for instance.
+*/
+span.xmlstatmsg {
+    color: red;
+    font-weight: bold;
+}
+
+/*
+We use the "details" span in various places where we display additional
+details about a listing or other item.
+*/
+span.details {
+    font-size: 85%;
+}
+div.details {
+    font-size: 85%;
+}
+
+/*
+We use the "notes" span and division styles in various places to display
+help notes or additional details about an item.
+*/
+span.notes {
+    font-size: 95%;
+    color: #606060;
+}
+span.notes a.silent {
+    color: #606060;
+}
+
+div.notes {
+    font-size: 95%;
+    color: #606060;
+}
+
+
+/*
+The "microhelp" style is used for additional help notes displayed in
+some interactive entry forms.
+*/
+span.microhelp {
+    font-size: 85%;
+    color: #606060;
+}
+
+span.spoilerButton {
+    font-size: 90%;
+    font-style: italic;
+    background: #eaeaea;
+}
+
+span.hiddenSpoiler {
+    display: none;
+}
+
+/*
+The "cklabel" span is used for checkbox labels in Ajax checkboxes.
+(These aren't "real" checkboxes - they're basically custom graphics
+that we generate, along with some Javascript code to make them
+interactive.)
+*/
+span.cklabel {
+    color: #000080;
+    cursor: pointer;
+}
+
+/*
+The "disabledCtl" span is used for navigation controls that happen to be
+disabled at the moment or for the current page, such as a "Next Page" button
+on the last page of a result set.
+*/
+span.disabledCtl {
+    color: #b0b0b0;
+}
+
+/*
+The "edit-popup-title" style is for the title bar in the various
+in-line popup windows on the Edit Game page.  "edit-popup-cont" is
+the main content area.  "edit-popup-frame" is the enclosing DIV
+that wraps the whole window area.
+*/
+div.edit-popup-frame {
+    background: #ffffff;
+    color: #000000;
+    line-height: 1.25em;
+    padding: 0;
+}
+div.edit-popup-title {
+    padding: 2px;
+    background: #b0d8e8;
+    color: #000000;
+    font-size: 85%;
+}
+div.edit-popup-win {
+    border: 3px solid #b0d8ff;
+    padding: 1ex;
+    font-size: 85%;
+}
+div.edit-popup-win table tr td {
+    background: #ffffff;
+    color: #000000;
+    font-size: 100%;
+}
+div#imageUploadCopyrightForm table td {
+    font-size: 90%;
+}
+        
+
+/*
+The "searchSummary" table is used to show the current location in the
+result set for a search.
+*/
+table.searchSummary {
+    background: #e0e000;
+    width: 100%;
+}
+table.searchSummary tr td {
+    font-size: 85%;
+}
+
+/*
+"searchHelpList" is used on the search help page for the lists of
+values for special flags, such as the list of file formats on the
+game search page.
+*/
+div.searchHelpList {
+    font-size: 85%;
+    margin: 1ex 1.5em 1ex 1.5em;
+}
+
+div.searchHelpList td {
+    font-size: 85%;
+    padding-right: 2em;
+}
+
+/*
+Tabs for browse-mode search types
+*/
+div.browseBar {
+    position: relative;
+    width: 100%;
+    font-size: 85%;
+    background: #e0e0e0;
+}
+div.browseTabs {
+    padding: 6px 0 0 4px;
+}
+span.browseLabel {
+    font-weight: bold;
+    margin-right: 2em;
+}
+span.browseTab {
+    background: #f0f0f0;
+    padding: 3px 2ex 0 2ex;
+    margin: 0;
+    border: 1px solid #c0c0c0;
+    border-left: none;
+    border-bottom: none;
+    position: relative;
+    bottom: -1px;
+}
+span.firstBrowseTab {
+    border-left: 1px solid #c0c0c0;
+}
+span.activeBrowseTab {
+    background: #a0ffff;
+}
+div.browseSummary {
+    position: absolute;
+    right: 0.5ex;
+    bottom: 0px;
+}
+
+/*
+"indented" divisions show their contents slightly indented from the
+surrounding text.
+*/
+div.indented {
+    margin-left: 1.5em;
+}
+
+/*
+"hangindented" divisions show their contents in a hanging indent style:
+the contents are indented from the surrounding text, but the first line
+of each paragraph is "outdented" a bit from the rest of the paragraph.
+*/
+div.hangindented {
+    margin-left: 2.5em;
+    text-indent: -1em;
+}
+div.hangindentedMore {
+    margin-left: 3.5em;
+    text-indent: -2em;
+}
+
+/*
+The "inset" division style is used for an area that's inset on all
+sides from the surrounding text.
+*/
+div.inset {
+    padding: 1em 1em 1em 1em;
+}
+div.inset table {
+}
+div.inset table tr td {
+    font-size: 90%;
+    padding: 1em .5ex 1em .5ex;
+}
+div.inset table tr {
+    padding: 0 0 0 0;
+    margin: 0 0 0 0;
+}
+table tr td div.inset {
+    width: 100%;
+}
+
+div.inset table tr td.insetheading {
+    padding: 0 0 0 0;
+    margin: 0 0 0 0;
+    color: #000080;
+    background: #e0e0e0;
+    font-size: 100%;
+    font-weight: bold;
+}
+
+/*
+The "tipbox" style is used to display help messages alongside
+the main page content, suggesting other things the user might want
+to try in addition to the current operation.  We display these
+in floating boxes on the right of the page.
+*/
+div.tipgroup {
+    float: right;
+}
+div.tipbox {
+    float: right;
+    border: 1px solid gray;
+    width: 35ex;
+    margin-top: 1em;
+    padding: 1ex;
+    background: #f0f0ff;
+    font-size: 80%;
+    color: #505050;
+    line-height: 1.2em;
+}
+div.tipgroup div.tipbox {
+    float: none;
+}
+div.tipbox h1 {
+    font-weight: bold;
+    font-size: 100%;
+    margin-bottom: 0.5ex;
+}
+
+/*
+The "inlinetip" style is for tip boxes displayed in-line with the
+main content of the page, rather than floating alongside the main
+page area.
+*/
+div.inlinetip {
+    margin: 1em 4em 1em 4em;
+    border: 1px solid gray;
+    padding: 1ex;
+    background: #f0f0ff;
+    font-size: 90%;
+    color: #404040;
+}
+div.inlinetip h1 {
+    font-weight: bold;
+    font-size: 100%;
+    margin-top: 0;
+    margin-bottom: 0.5ex;
+}
+
+/*
+The "prebox" style is used to simulate a data-entry text field, without
+actually making the text editable.  We display this type of text in
+a monospaced font with a border line around the box.
+*/
+div.prebox {
+    font: 85% monospace;
+    margin-top: 0.5em;
+    border: thin solid #d0d0d0;
+    padding: 0.5em;
+}
+
+/*
+The "nosp" paragraph style is for paragraphs with no additional margin
+spacing on any side.
+*/
+p.nosp {
+    margin: 0 0 0 0;
+}
+
+/*
+The "smallhead" and "smallfoot" division styles are used for headings
+and footers set in normal size text (that's the "small" part - most
+headings and footers use slightly larger text than usual).
+*/
+div.smallhead {
+    margin-top: 0.1em;
+    margin-bottom: 0.4em;
+}
+div.smallfoot {
+    margin-top: 0.4em;
+    margin-bottom: 0.4em;
+}
+
+/*
+"errmsg" spans are for error messages on interactive forms.
+*/
+span.errmsg {
+    color: #ff0000;
+}
+
+/*
+"warning" spans are for warning messages on interactive forms.
+These don't necessarily indicate error conditions, but are conditions
+that we want the user to be aware of before proceeding.  We use a
+separate color to make these stand out visually.
+*/
+span.warning {
+    background: #ffff80;
+}
+
+/*
+warning box - like a warning span, but indented from the main text
+*/
+div.warningBox {
+    color: #000000;
+    background: #ffff80;
+    padding: 1ex;
+    margin: 1em 3em 1em 1em;
+}
+
+/*
+"success" spans are for status messages showing successful outcomes
+on interactive forms.
+*/
+span.success {
+    color: #00e000;
+}
+
+/*
+We use the "dataform" table to lay out most data entry forms.
+*/
+table.dataform tr td {
+    padding-right: 1em;
+}
+
+/*
+We use the "gamedataform" table to lay out the data entry form for
+game listing data.
+*/
+table.gamedataform tr td {
+    padding-bottom: 1em;
+}
+table.gamedataform tr td tr td {
+    padding-bottom: 0em;
+}
+
+/*
+The "dlinst" table is used to display download instructions in
+the Download Adviser and for some IFDB browser plug-ins.
+*/
+table.dlinst tr td {
+    padding-top: 1em;
+    padding-bottom: 1em;
+}
+
+table.dlinst tr td ul li {
+    list-style-image: url("/dlarrow.gif");
+    margin-top: 1em;
+}
+
+table.dlinst tr td ul.normal li {
+    margin-top: 0;
+    list-style-image: none;
+}
+
+/*
+The "footer" division style is for the area with the navigation links
+at the bottom of each page.
+*/
+div.footer {
+    margin-top: 2em;
+    margin-bottom: 2em;
+    margin-left: 0px;
+    color: #808080;
+    font-size: 70%;
+}
+
+/*
+The "nav" style is used for the navigation links at the bottom
+of each page.
+*/
+a.nav {
+    text-decoration: none;
+}
+a.nav:hover {
+    text-decoration: underline;
+}
+
+/*
+The "headline" division is on the home page and some other pages to
+divide the page into major sections.  "headline1" is an add-in class
+for the topmost headline - it omits the top margin so that the the
+top headline isn't spaced out from the top of the page.
+*/
+div.headline {
+    width: 100%;
+    background: #f8f8ff;
+    border-top: thin solid #e8e8ff;
+/*    font:  110% Verdana, Arial, Helvetica, Sans-Serif;*/
+    font:  110% Georgia, Times New Roman, New York, Times, Serif;
+    font-weight: normal;
+    color: #000080;
+    margin: 2em 0 1em 0;
+    position: relative;
+}
+div.headline1 {
+    margin-top: 0;
+}
+span.headlineRss {
+    position: absolute;
+    right: 4px;
+    top: 2px;
+    text-align: right;
+    vertical-align: middle;
+    font:  70% Verdana, Arial, Helvetica, Sans-Serif;
+    font-weight: normal;
+}
+
+table.halfcol tr td {
+    border-left: 1em solid transparent;
+}
+table.halfcol tr td.firstcol {
+    border-left: none;
+}
+table.halfcol div.headline {
+}
+
+/*
+The "rightbar" table style is used for the little information
+boxes at the right of the home page and some other pages.
+*/
+table.rightbar {
+    border-top: thin solid #e8e8FF;
+    background: #F8F8FF;
+    width: 30ex;
+    padding: 0 0 0 0;
+    margin: 0 0 1em 1.5ex;
+}
+
+table.rightbar tr {
+    padding: 0 0 0 0;
+}
+
+table.rightbar tr td {
+    padding: 2px 4px 4px 4px;
+    font-size: 85%;
+}
+
+table.cpanel {
+    border: none;
+}
+table.cpanel tr td {
+    padding: 0;
+}
+
+table.botbar2 {
+    border-top: thin solid #e8e8ff;
+    background: #f8f8ff;
+    padding: 0 1em 1ex 1em;
+    margin: 1em 0 0 1.5ex;
+    font-size: 90%;
+    height: 100%;
+}
+table.botbar2a {
+    margin-left: 0;
+}
+table.botbar2 tr {
+    vertical-align: top;
+}
+table.botbar2 td {
+    vertical-align: top;
+}
+
+/*
+Control panel buttons
+*/
+div.cpanelBtn {
+    font-size: 85%;
+    border-top: 1px dotted #8080ff;
+    margin: 0;
+    padding: 0 0 0 0.75ex;
+    cursor: pointer;
+}
+div.cpanelBtnTop {
+    margin: 0;
+    border-top: none;
+}
+div.cpanelBtnHover {
+    margin: 0;
+    background: #90ffff;
+}
+div.cpanelBtn a {
+    text-decoration: none;
+}
+div.cpanelBtn a:hover {
+    text-decoration: underline;
+}
+img.cpanelBtnIcon {
+    margin-right: 1ex;
+}
+div.cpanelHeading {
+    margin: 0;
+    background: #E8E8FF;
+    font-weight: bold;
+    font-size: 90%;
+    text-align: center;
+}
+div.cpanelHeadingTop {
+}
+
+
+/*
+The "boxhead" style is used for the headline within "rightbar"
+boxes.
+*/
+tr.boxhead {
+    margin: 0 0 0 0;
+    padding: 0 0 0 0;
+}
+tr.boxhead td {
+    text-align: left;
+}
+
+/*
+The "dots" is used for horizontal rules that separate sections
+on a page.
+*/
+hr.dots {
+    border: thin dotted #d0d0d0;
+}
+
+/*
+The "grid" table class is used for tables showing images along the
+right and associated text alongside to the right.
+*/
+table.grid tr td {
+    vertical-align: top;
+    padding-right: 1em;
+}
+
+/*
+Doublespaced lists - this shows extra vertical spacing between each
+element of the list.
+*/
+ul.doublespace li {
+    margin-top: 1em;
+    margin-bottom: 1em;
+}
+
+/*
+News items
+*/
+div.newsItemHeadline {
+    font-weight: bold;
+}
+div.newsItemDateline {
+    font-size: 85%;
+    margin: .25ex 0 .75ex 0;
+}
+div.newsItemHeadline a {
+    text-decoration: none;
+}
+div.newsItemHeadline a:hover {
+    text-decoration: underline;
+}
+div.newsItemBody {
+    margin: 0 0 1em 0;
+}
+div.newsItemFooter {
+    font-size: 85%;
+    margin: 1ex 0 1em 0;
+}
+span.newsItemDate {
+    padding-left: 2em;
+    font-weight: normal;
+    font-style: italic;
+    font-size: 85%;
+}
+
+/*
+Tag ages 1 through 7 - these depict the age of a tag using font weight
+and color intensity.  We use darker color and heavier [bolder] type for
+newer tags, lighter color [more washed out, closer to white] and lighter
+type for older tags.  Age 1 is newest, 7 is oldest.
+*/
+span.tagAge1 {
+    color: #000090;
+    font-weight: 700;
+}
+span.tagAge2 {
+    color: #0000B0;
+    font-weight: 600;
+}
+span.tagAge3 {
+    color: #0000D0;
+}
+span.tagAge4 {
+    color: #2020FF;
+}
+span.tagAge5 {
+    color: #4040FF;
+}
+span.tagAge6 {
+    color: #6060FF;
+}
+span.tagAge7 {
+    color: #8080FF;
+}
+
+/*
+Popup menus
+*/
+div.popupMenu {
+    border: 1px solid #E0E0FF;
+    background: #F8F8F8;
+    padding: 0 0 0 0;
+}
+div.popupMenu table {
+    font-size: 100%;
+}
+div.popupMenu a {
+    text-decoration: none;
+    padding: 0 6px 0 6px;
+    margin: 0 0 0 0;
+    width: 100%;
+}
+div.popupMenu a:hover {
+    background: #E0E0FF;
+}
+
+/*
+The "ratingHistogram" table style is used to draw the histogram showing
+how game ratings are distributed.  Within each table row, a "ratingHistoBox"
+division contains the overall space for a single bar, and a nested
+"ratingHistoBar" division is the colored bar itself.
+*/
+table.ratingHistogram tr td {
+    font-size: 70%;
+    line-height: 1em;
+    padding-right: 5px;
+}
+div.ratingHistoBox {
+    width: 8ex;
+    background: #e0e0ff;
+    height: 1em;
+    border-top: 1px solid white;
+}
+div.ratingHistoBar {
+    background: #2020ff;
+    height: 1em;
+}
+
+/*
+The "thumbnailpic" table style is for a table showing thumbnail images,
+such as in the Style Image Manager.
+*/
+table.thumbnailpic {
+    border: none;
+    border-collapse: collapse;
+}
+table.thumbnailpic td {
+    border: 1px solid gray;
+    border-collapse: collapse;
+    padding: 4px 1ex 4px 1ex;
+}
+
+/*
+The "stylepicform" is the <form> area used for uploading custom images
+for use in style sheets
+*/
+form.stylepicform {
+    border: 1px solid gray;
+    margin: 2em 4em 2em 4em;
+    padding: 1em 1em 1em 1em;
+    background: #f8f8f8;
+}
+form.stylepicform h2 {
+    margin-top: 0;
+}
+
+/*
+"required field" caption text for forms
+*/
+span.requiredFieldCaption {
+    color: red;
+    font-style: italic;
+    font-size: 85%;
+}
+
+/*
+Captcha form
+*/
+div.captchaFormDiv {
+    font-size: 85%;
+    width: 60ex;
+    text-align: center;
+    border: 1px solid #b0b0ff;
+    background: #f4f8ff;
+    margin: 1em 3em 1em 3em;
+    padding: 1ex 2em 1ex 2em;
+}
+div.captchaFormDiv table {
+    margin: 3px auto 3px auto;
+}
+div.captchaFormDiv embed {
+    height: 0;
+    width: 0;
+}
+div.captchaFormDiv form {
+    margin: 0;
+    padding: 0;
+}
+
+/*
+Button images.  These are identified in the HTML by a CLASS and an ID.
+For ease of upward compatibility, we address them here by CLASS; but a
+custom style sheet can use ID instead if it wants to address individual
+buttons.
+
+Note that you MUST specify the pixel width and height of each button
+with an image to match the actual size of the image you're using.  CSS
+doesn't have a way to do that indirectly by reading the size from the
+image file, unfortunately.
+*/
+input.go-button {
+    background: url("/go-button.gif");
+    width: 16px;
+    height: 16px;
+    border: none;
+    vertical-align: middle;
+}
+input.save-button {
+    background: url("/savechanges.gif");
+    width: 97px;
+    height: 23px;
+    border: none;
+    vertical-align: middle;
+}
+input.reset-form-button {
+    background: url("/resetform.gif");
+    width: 46px;
+    height: 23px;
+    border: none;
+    vertical-align: middle;
+}
+img.cancel-button {
+    background: url("/cancel.gif");
+    width: 54px;
+    height: 23px;
+    border: none;
+    vertical-align: middle;
+}
+input.add-button {
+    background: url("/addbtn.gif");
+    width: 45px;
+    height: 23px;
+    border: none;
+    vertical-align: middle;
+}
+img.add-link-button {
+    background: url("/addlinkbtn.gif");
+    width: 78px;
+    height: 23px;
+    border: none;
+    vertical-align: middle;
+}
+img.add-div-button {
+    background: url("/adddivbtn.gif");
+    width: 111px;
+    height: 23px;
+    border: none;
+    vertical-align: middle;
+}
+img.add-game-button {
+    background: url("/addgamebtn.gif");
+    width: 85px;
+    height: 23px;
+    border: none;
+    vertical-align: middle;
+}
+img.sortByPlaceButton {
+    background: url("/sortByPlaceBtn.gif");
+    width: 107px;
+    height: 23px;
+    border: none;
+    vertical-align: middle;
+}
+img.add-version-button {
+    background: url("/addvsnbtn.gif");
+    width: 86px;
+    height: 23px;
+    border: none;
+    vertical-align: middle;
+}
+input.upload-image-button {
+    background: url("/uplimagebtn.gif");
+    width: 135px;
+    height: 23px;
+    border: none;
+    vertical-align: middle;
+}
+img.upload-image-button {
+    background: url("/uplimagebtn.gif");
+    width: 135px;
+    height: 23px;
+    border: none;
+    vertical-align: middle;
+}
+input.edit-div-button {
+    background: url("/editdivbtn.gif");
+    width: 107px;
+    height: 23px;
+    border: none;
+    vertical-align: middle;
+}
+input.done-button {
+    background: url("/donebtn.gif");
+    width: 52px;
+    height: 23px;
+    border: none;
+    vertical-align: middle;
+}
+
+/*
+Buttons for the "grid" forms - these are the subforms that show
+multi-row data, such as the list of download links on the Edit Game
+form.  The "grid-move-blank" button is a blank placeholder button
+that fills in the spot where the "up" button would be on the top
+row, or the "down" button on the bottom row - this is simply an
+empty square of the same size as a normal button, to make the
+buttons align nicely.
+*/
+img.grid-move-up {
+    background: url("/moveup.gif");
+    width: 27px;
+    height: 21px;
+    border: none;
+    vertical-align: middle;
+}
+img.grid-move-down {
+    background: url("/movedown.gif");
+    width: 27px;
+    height: 21px;
+    border: none;
+    vertical-align: middle;
+}
+img.grid-move-blank {
+    width: 27px;
+    height: 21px;
+    border: none;
+    vertical-align: middle;
+}
+img.grid-remove-button {
+    background: url("/removebtn.gif");
+    width: 67px;
+    height: 23px;
+    border: none;
+    vertical-align: middle;
+}
+img.grid-edit-button {
+    background: url("/editbtn.gif");
+    width: 47px;
+    height: 23px;
+    border: none;
+    vertical-align: middle;
+}
+
+/*
+Combo Box drop arrow
+*/
+img.combobox-arrow {
+    background: url("/comboarrow.gif");
+    width: 17px;
+    height: 18px;
+    border: none;
+    vertical-align: middle;
+}
+
+/*
+Close button for pop-up subforms
+*/
+img.popup-close-button {
+    background: url("/tbclose.gif");
+    width: 16px;
+    height: 10px;
+    border: none;
+    vertical-align: middle;
+}
+
+/*
+Popup menu indicator
+*/
+img.popup-menu-arrow {
+    background: url("/menuarrow.gif");
+    width: 16px;
+    height: 10px;
+    border: none;
+    vertical-align: middle;
+}
+
+/*
+The various "step number" icons.  These are displayed, for example,
+to number the list items in a Download Adviser instruction list.
+*/
+img.stepnum1 {
+    background: url("/step1.gif") transparent no-repeat center center;
+    width: 50px;
+    height: 50px;
+    vertical-align: middle;
+}
+img.stepnum2 {
+    background: url("/step2.gif") no-repeat center center;
+    width: 50px;
+    height: 50px;
+    vertical-align: middle;
+}
+img.stepnum3 {
+    background: url("/step3.gif") no-repeat center center;
+    width: 50px;
+    height: 50px;
+    vertical-align: middle;
+}
+img.stepnum4 {
+    background: url("/step4.gif") no-repeat center center;
+    width: 50px;
+    height: 50px;
+    vertical-align: middle;
+}
+img.stepnum5 {
+    background: url("/step5.gif") no-repeat center center;
+    width: 50px;
+    height: 50px;
+    vertical-align: middle;
+}
+img.stepnum6 {
+    background: url("/step6.gif") no-repeat center center;
+    width: 50px;
+    height: 50px;
+    vertical-align: middle;
+}
+img.stepnum7 {
+    background: url("/step7.gif") no-repeat center center;
+    width: 50px;
+    height: 50px;
+    vertical-align: middle;
+}
+img.stepnum8 {
+    background: url("/step8.gif") no-repeat center center;
+    width: 50px;
+    height: 50px;
+    vertical-align: middle;
+}
+img.stepnum9 {
+    background: url("/step9.gif") no-repeat center center;
+    width: 50px;
+    height: 50px;
+    vertical-align: middle;
+}
+
+/*
+Current-location arrow, used in the top navigation bar to indicate
+which page is currently being displayed
+*/
+img.topbarcurarrow {
+    background: url("/topbarcurarrow.gif") no-repeat center center;
+    width: 12px;
+    height: 10px;
+    border: none;
+    vertical-align: middle;
+}
+
+/*
+Various icon images, used on the home page and elsewhere.
+*/
+img.rss-icon {
+    background: url("/rss16.gif") no-repeat center center;
+    width: 16px;
+    height: 16px;
+    border: none;
+    vertical-align: middle;
+}
+img.game-search-icon {
+    background: url("/search.gif") no-repeat center center;
+    width: 24px;
+    height: 24px;
+    border: none;
+    vertical-align: middle;
+}
+img.competition-search-icon {
+    background: url("/findcompetition.gif") no-repeat center center;
+    width: 24px;
+    height: 24px;
+    border: none;
+    vertical-align: middle;
+}
+img.browse-competitions-icon {
+    background: url("/browsecompetitions.gif") no-repeat center center;
+    width: 24px;
+    height: 24px;
+    border: none;
+    vertical-align: middle;
+}
+img.club-search-icon {
+    background: url("/findclub.gif") no-repeat center center;
+    width: 24px;
+    height: 24px;
+    border: none;
+    vertical-align: middle;
+}
+img.browse-clubs-icon {
+    background: url("/browseclubs.gif") no-repeat center center;
+    width: 24px;
+    height: 24px;
+    border: none;
+    vertical-align: middle;
+}
+img.create-club-icon {
+    background: url("/newclub.gif") no-repeat center center;
+    width: 24px;
+    height: 24px;
+    border: none;
+    vertical-align: middle;
+}
+img.list-search-icon {
+    background: url("/findlist.gif") no-repeat center center;
+    width: 24px;
+    height: 24px;
+    border: none;
+    vertical-align: middle;
+}
+img.poll-search-icon {
+    background: url("/findpoll.gif") no-repeat center center;
+    width: 24px;
+    height: 24px;
+    border: none;
+    vertical-align: middle;
+}
+img.new-poll-icon {
+    background: url("/newpoll.gif") no-repeat center center;
+    width: 24px;
+    height: 24px;
+    border: none;
+    vertical-align: middle;
+}
+img.list-list-icon {
+    background: url("/findlist.gif") no-repeat center center;
+    width: 24px;
+    height: 24px;
+    border: none;
+    vertical-align: middle;
+}
+img.list-message-icon {
+    background: url("/messages.gif") no-repeat center center;
+    width: 24px;
+    height: 24px;
+    border: none;
+    vertical-align: middle;
+}
+img.poll-list-icon {
+    background: url("/polls.gif") no-repeat center center;
+    width: 24px;
+    height: 24px;
+    border: none;
+    vertical-align: middle;
+}
+img.game-list-icon {
+    background: url("/games.gif") no-repeat center center;
+    width: 24px;
+    height: 24px;
+    border: none;
+    vertical-align: middle;
+}
+img.storage-file-icon {
+    background: url("/storage-files.gif") no-repeat center center;
+    width: 24px;
+    height: 24px;
+    border: none;
+    vertical-align: middle;
+}
+img.random-list-icon {
+    background: url("/random.gif") no-repeat center center;
+    width: 24px;
+    height: 24px;
+    border: none;
+    vertical-align: middle;
+}
+img.member-search-icon {
+    background: url("/findmember.gif") no-repeat center center;
+    width: 24px;
+    height: 24px;
+    border: none;
+    vertical-align: middle;
+}
+img.my-profile-icon {
+    background: url("/myprofile.gif") no-repeat center center;
+    width: 24px;
+    height: 24px;
+    border: none;
+    vertical-align: middle;
+}
+img.browse-games-icon {
+    background: url("/browsegames.gif") no-repeat center center;
+    width: 24px;
+    height: 24px;
+    border: none;
+    vertical-align: middle;
+}
+img.browse-lists-icon {
+    background: url("/browselists.gif") no-repeat center center;
+    width: 24px;
+    height: 24px;
+    border: none;
+    vertical-align: middle;
+}
+img.browse-polls-icon {
+    background: url("/browsepolls.gif") no-repeat center center;
+    width: 24px;
+    height: 24px;
+    border: none;
+    vertical-align: middle;
+}
+img.browse-members-icon {
+    background: url("/browsemembers.gif") no-repeat center center;
+    width: 24px;
+    height: 24px;
+    border: none;
+    vertical-align: middle;
+}
+img.personal-page-icon {
+    background: url("/personal.gif") no-repeat center center;
+    width: 24px;
+    height: 24px;
+    border: none;
+    vertical-align: middle;
+}
+img.create-list-icon {
+    background: url("/createlist.gif") no-repeat center center;
+    width: 24px;
+    height: 24px;
+    border: none;
+    vertical-align: middle;
+}
+img.create-game-icon {
+    background: url("/newgame.gif") no-repeat center center;
+    width: 24px;
+    height: 24px;
+    border: none;
+    vertical-align: middle;
+}
+img.create-competition-icon {
+    background: url("/newcompetition.gif") no-repeat center center;
+    width: 24px;
+    height: 24px;
+    border: none;
+    vertical-align: middle;
+}
+img.edit-game-icon {
+    background: url("/editgame.gif") no-repeat center center;
+    width: 24px;
+    height: 24px;
+    border: none;
+    vertical-align: middle;
+}
+img.create-review-icon {
+    background: url("/review.gif") no-repeat center center;
+    width: 24px;
+    height: 24px;
+    border: none;
+    vertical-align: middle;
+}
+img.review-list-icon {
+    background: url("/review.gif") no-repeat center center;
+    width: 24px;
+    height: 24px;
+    border: none;
+    vertical-align: middle;
+}
+img.authored-list-icon {
+    background: url("/authored.gif") no-repeat center center;
+    width: 24px;
+    height: 24px;
+    border: none;
+    vertical-align: middle;
+}
+img.playlists-icon {
+    background: url("/playlists.gif") no-repeat center center;
+    width: 24px;
+    height: 24px;
+    border: none;
+    vertical-align: middle;
+}
+img.style-gallery-icon {
+    background: url("/stylegallery.gif") no-repeat center center;
+    width: 24px;
+    height: 24px;
+    border: none;
+    vertical-align: middle;
+}
+img.empty-button-icon {
+    width: 24px;
+    height: 24px;
+    border: none;
+    vertical-align: middle;
+}
+
+/* checkmark vote */
+img.vote-checkmark {
+    background: url("/vote-checkmark.gif") no-repeat center center;
+    width: 20px;
+    height: 20px;
+    border: none;
+    vertical-align: middle;
+}
+
+/*
+Current Version arrow (for game version list page)
+*/
+img.current-version-marker {
+    background: url("/vsnarrow.gif") no-repeat center center;
+    width: 14px;
+    height: 14px;
+    border: none;
+    vertical-align: middle;
+}
+
+/*
+ZIP/Archive main contents arrow
+*/
+img.zip-contents-arrow {
+    background: url("/zipmain.gif") no-repeat center center;
+    width: 16px;
+    height: 14px;
+    border: none;
+    vertical-align: middle;
+}
+
+/*
+Data entry form status icons
+*/
+img.form-error-icon {
+    background: url("/erricon.gif") no-repeat center center;
+    width: 16px;
+    height: 16px;
+    border: none;
+    vertical-align: middle;
+}
+
+/*
+Auto-install button graphic ("Play It Now")
+*/
+img.auto-install-button {
+    background: url("/autoins.gif") no-repeat center center;
+    width: 100px;
+    height: 23px;
+    vertical-align: middle;
+    border: none;
+}
+
+/*
+Download adviser button ("Show Me How")
+*/
+img.dla-button {
+    background: url("/dlhelpbtn.gif") no-repeat center center;
+    width: 100px;
+    height: 23px;
+    vertical-align: middle;
+    border: none;
+}
+
+/*
+"Play Online" button
+*/
+img.play-online-button {
+    background: url("/playonlinebtn.gif") no-repeat center center;
+    width: 100px;
+    height: 23px;
+    vertical-align: middle;
+    border: none;
+}
+
+/*
+The various images for checkbox and radio button states.  Note that
+these are for our custom controls that we build out of HTML DOM and
+Javascript - these aren't for actual system controls, so we can
+completely customize the appearance.
+*/
+img.ckbox-unchecked {
+    background: url("/ckbox0.gif") no-repeat center center;
+    width: 14px;
+    height: 14px;
+    vertical-align: middle;
+    border: none;
+}
+img.ckbox-hovering {
+    background: url("/ckbox1.gif") no-repeat center center;
+    width: 14px;
+    height: 14px;
+    vertical-align: middle;
+    border: none;
+}
+img.ckbox-checked {
+    background: url("/ckbox2.gif") no-repeat center center;
+    width: 14px;
+    height: 14px;
+    vertical-align: middle;
+    border: none;
+}
+img.radio-unchecked {
+    background: url("/radio0.gif") no-repeat center center;
+    width: 14px;
+    height: 14px;
+    vertical-align: middle;
+    border: none;
+}
+img.radio-hovering {
+    background: url("/radio1.gif") no-repeat center center;
+    width: 14px;
+    height: 14px;
+    vertical-align: middle;
+    border: none;
+}
+img.radio-checked {
+    background: url("/radio2.gif") no-repeat center center;
+    width: 14px;
+    height: 14px;
+    vertical-align: middle;
+    border: none;
+}
+
+
+/*
+The various star images.  The number after "star" gives the number of
+stars to show; an "h" suffix means that it's the number plus a half
+star - e.g., star3h is 3-1/2 stars.  All of the various star graphics
+should be the same width and height.
+*/
+img.star0 {
+    background: url('/star0.gif') no-repeat center center;
+    vertical-align: middle;
+    width: 56px;
+    height: 13px;
+}
+img.star0h {
+    background: url('/star0h.gif') no-repeat center center;
+    vertical-align: middle;
+    width: 56px;
+    height: 13px;
+}
+img.star1 {
+    background: url('/star1.gif') no-repeat center center;
+    vertical-align: middle;
+    width: 56px;
+    height: 13px;
+}
+img.star1h {
+    background: url('/star1h.gif') no-repeat center center;
+    vertical-align: middle;
+    width: 56px;
+    height: 13px;
+}
+img.star2 {
+    background: url('/star2.gif') no-repeat center center;
+    vertical-align: middle;
+    width: 56px;
+    height: 13px;
+}
+img.star2h {
+    background: url('/star2h.gif') no-repeat center center;
+    vertical-align: middle;
+    width: 56px;
+    height: 13px;
+}
+img.star3 {
+    background: url('/star3.gif') no-repeat center center;
+    vertical-align: middle;
+    width: 56px;
+    height: 13px;
+}
+img.star3h {
+    background: url('/star3h.gif') no-repeat center center;
+    vertical-align: middle;
+    width: 56px;
+    height: 13px;
+}
+img.star4 {
+    background: url('/star4.gif') no-repeat center center;
+    vertical-align: middle;
+    width: 56px;
+    height: 13px;
+}
+img.star4h {
+    background: url('/star4h.gif') no-repeat center center;
+    vertical-align: middle;
+    width: 56px;
+    height: 13px;
+}
+img.star5 {
+    background: url('/star5.gif') no-repeat center center;
+    vertical-align: middle;
+    width: 56px;
+    height: 13px;
+}
+
+img.newcomment {
+    background: url('/newcomment.png') no-repeat center center;
+    vertical-align: middle;
+    width: 16px;
+    height: 16px;
+}
+
+img.listarrow {
+    background: url('/list-arrow.gif') no-repeat center center;
+    vertical-align: middle;
+    width: 12px;
+    height: 10px;
+    border: none;
+    margin-right: 0.75ex;
+}
+
+
+
+/*
+For some large tables, we use alternating background colors for rows,
+to make it easier to see the row structure.
+*/
+tr.oddRow {
+    background: #ffffff;
+}
+tr.evenRow {
+    background: #f0f0f0;
+}
+
+
+/* ------------------------------------------------------------------------ */
+/*
+Obsolete styles
+*/
+td.dltext {
+    font-size: 80%;
+    padding-left: 1em;
+}
+
+.forceReflow {
+    border-right: 2px solid transparent;
+}
+
+span.ckmsg {
+    color: #ff0000;
+    font-weight: bold;
+}
+
+span.fileinfo {
+    font-size: 95%;
+}
+
+div.box {
+    border: thin solid #d0d0d0;
+    padding: 0.5em;
+}
+
+div.footer2 {
+    text-align: center;
+    margin-top: 4em;
+    margin-bottom: 3em;
+    font-size: 85%;
+}
+
+div.nav {
+    margin-left: 0px;
+    margin-top: 15px;
+    font-size: 75%;
+    color: #606060;
+}
+
+a.cprlink {
+    text-decoration: none;
+}
+a.cprlink:hover {
+    text-decoration: underline;
+}
+
+img.logo {
+    margin: 0 1em 0.5ex 0;
+}
+
+
+div.sfl-game-header {
+    margin: 1.5ex 0px .25ex 0px;
+    border-top: 1px dotted #808080;
+    padding-top: 1ex;
+}
+span.sfl-game-title {
+    font-size: 105%;
+    font-weight: bold;
+    font-style: italic;
+}
+div.sfl-type-header {
+    font-weight: bold;
+    margin: 1ex 0px;
+}
+div.sfl-type-group {
+    margin: 1ex 0px;
+}
+div.sfl-item {
+    margin: 1ex 0px;
+}
+span.sfl-save-userdesc {
+    font-weight: bold;
+}
+span.sfl-save-date {
+    font-style: italic;
+    padding-left: 1em;
+}
+span.sfl-save-links {
+    padding-left: 1em;
+}
+span.sfl-save-autodesc {
+    font-style: italic;
+    padding-left: 1em;
+}
+

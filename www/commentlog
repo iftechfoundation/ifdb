@@ -1,0 +1,347 @@
+<?php
+
+@session_start();
+
+// make sure we process any persistent login state
+include_once "login-persist.php";
+$curuser = checkPersistentLogin();
+
+// include some utility modules
+include "pagetpl.php";
+include "reviews.php";
+include_once "util.php";
+include_once "commentutil.php";
+include "login-check.php";
+
+// connect to the database
+include_once "dbconnect.php";
+$db = dbConnect();
+
+// check for RSS mode
+$rss = isset($_REQUEST['rss']);
+
+// Check what we're looking for - 'subscribed' means all postings in
+// subscribed discussions (defined as comments for a review, poll,
+// recommended list, or profile page that was written by this user
+// OR for any discussion where this user posted a comment), 'inbox'
+// means all postings in reviews, polls, etc written by this user,
+// 'comments' means postings by this user only.
+$mode = get_req_data('mode');
+if (array_search($mode, array('subscribed', 'inbox', 'comments')) === false)
+    $mode = 'subscribed';
+
+// get the page number
+$pg = get_req_data('pg');
+$pgAll = false;
+$perPage = ($rss ? 50 : 25);
+
+// get the target user - if not specified, use the current user
+$userid = get_req_data('user');
+if (!$userid)
+    $userid = $curuser;
+
+// if there's no user ID, make sure we're logged in
+if (!$userid && !logged_in())
+    exit();
+
+// quote the user ID for queries
+$quid = mysql_real_escape_string($userid, $db);
+
+// get the name of the target user
+$result = mysql_query(
+    "select
+       name, gender, caughtupdate, acctstatus, profilestatus
+     from
+       users
+     where
+       id = '$quid'", $db);
+
+if (!$userid || mysql_num_rows($result) == 0) {
+    pageHeader("Comment History");
+    echo "<h1>Comment History</h1>"
+        . "No user ID was specified. The link that you used to reach "
+        . "this page might be broken.";
+    pageFooter();
+    exit();
+}
+
+// fetch the target user's name
+list($username, $gender, $caughtUpDate, $acctStatus, $profileStatus) =
+   mysql_fetch_row($result);
+$username = htmlspecialcharx($username);
+
+// check for inactive users
+if ($curuser && $curuser == $userid)
+{
+    // we can view our own comments even when pending review
+}
+else if ($acctStatus == 'X' || $acctStatus == 'B' || $profileStatus == 'R')
+{
+    pageHeader("Comment History");
+    echo "<h1>Comment History</h1>";
+    if ($acctStatus == 'X' || $acctStatus == 'B')
+        echo "<span class=\"errmsg\">This user account has been closed."
+            . "</span>";
+    else
+        echo "<i>This user's profile is pending review.</i>";
+    pageFooter();
+    exit();
+}
+
+// if this is the current user, and they're doing a catch-up, apply it
+if ($curuser
+    && $curuser == $userid
+    && isset($_REQUEST['catchUp'])) {
+
+    // get the catch-up date
+    $d = get_req_data('catchUp');
+
+    // validate that it's earlier than 'now'
+    $dd = strtotime($d);
+    if ($dd !== false && $dd < time()) {
+
+        $caughtUpDate = date("Y-m-d H:i:s", $dd);
+        mysql_query(
+            "update users set caughtupdate = '$caughtUpDate'
+             where id = '$curuser'", $db);
+    }
+}
+
+// figure the query limit, if we're showing this in pages
+$limit = "";
+if ($pg != 'all') {
+
+    // make sure the page is valid
+    if ($pg < 1)
+        $pg = 1;
+
+    // figure the first item on the page
+    $firstOnPage = ($pg - 1) * $perPage;
+
+    // build the LIMIT clause
+    $limit = "limit $firstOnPage, $perPage";
+}
+
+// go fetch the comments
+list($comments, $rowcnt) =
+    queryComments($db, $mode, $quid, $limit, false, false);
+
+// if we're showing all pages, up $perPage to the actual count
+if ($pg == 'all') {
+    $pgAll = true;
+    $pg = 1;
+    $perPage = $rowcnt;
+}
+
+// start the listing (RSS or HTML, as appropriate)
+if ($rss) {
+
+    // send the RSS content-type header
+    header("Content-Type: application/rss+xml");
+    header("Expires: Mon, 26 Jul 1997 05:00:00 GMT");
+    header("Cache-Control: no-store, no-cache, must-revalidate");
+    header("Cache-Control: post-check=0, pre-check=0", false);
+    header("Pragma: no-cache");
+
+    // send the channel header
+    echo "<?xml version=\"1.0\"?>\r\n";
+    ?><rss version="2.0">
+       <channel>
+          <title><?php echo $username ?>'s Comment Updates</title>
+          <link>http://ifdb.tads.org/</link>
+          <description>A history of IFDB comments for
+             <?php echo $username ?>.</description>
+          <language>en-us</language>
+    <?php
+
+} else {
+
+    $your = ($curuser == $userid ? "your" : "$username's");
+    $you = ($curuser == $userid ? "your" : "$username's");
+    $uYour = ($curuser == $userid ? "Your" : "$username's");
+    $yourLink = ($curuser == $userid ? "your" :
+                 "<a href=\"showuser?id=$userid\">$username</a>'s");
+    $youLink = ($curuser == $userid ? "you" :
+                "<a href=\"showuser?id=$userid\">$username</a>");
+    $he = ($curuser == $userid ? "you" :
+           ($gender == 'M' ? "he" :
+            ($gender == 'F' ? "she" :
+             "they")));
+    $his = ($curuser == $userid ? "your" :
+            ($gender == 'M' ? "his" :
+             ($gender == 'F' ? "her" :
+              "their")));
+
+    $subscribedLink = "<a href=\"commentlog?user=$userid"
+                      . "&mode=subscribed\">"
+                      . "all of $your subscribed discussions</a>";
+    $reviewsLink = "<a href=\"commentlog?user=$userid&mode=inbox\">"
+                      . "$your comment Inbox</a>";
+    $commentsLink = "<a href=\"commentlog?user=$userid&mode=comments\">"
+                   . "$your comments only</a>";
+
+
+    switch ($mode) {
+    case "subscribed":
+        $title = "$uYour Discussion Updates";
+        $expl = "comments in $yourLink subscribed discussions "
+                . "(comments on $yourLink profile, reviews, lists, and polls, "
+                . "plus comments on any items $he commented on)";
+        $links = "$reviewsLink - $commentsLink";
+        break;
+
+    case "inbox":
+        $title = "$uYour Comment Inbox";
+        $expl = "comments on $yourLink profile, comments on $his "
+                . "reviews, lists, and polls, and replies to $his comments";
+        $links = "$subscribedLink - $commentsLink";
+        break;
+
+    case "comments":
+        $title = "$uYour Comments";
+        $expl = "comments $youLink posted";
+        $links = "$subscribedLink - $reviewsLink";
+        break;
+    }
+
+    pageHeader("$title");
+    echo "<h1>$title</h1>"
+        . "<p>This is a history of $expl."
+        . "<p><span class=details>View $links - "
+        . "<a href=\"commentlog?user=$userid&mode=$mode&rss\">"
+        . "<img src=\"/blank.gif\" class=\"rss-icon\">"
+        . "RSS Feed of this list</a></span>";
+
+    // figure where we are in the list
+    $lastPage = (int)floor(($rowcnt + $perPage - 1)/$perPage);
+    if ($pg > $lastPage)
+        $pg = $lastPage;
+
+    $lastOnPage = $firstOnPage + $perPage - 1;
+    if ($lastOnPage >= $rowcnt)
+        $lastOnPage = $rowcnt - 1;
+
+    // set up the paging controls
+    $pageCtl = "<span class=details>"
+               . makePageControl(
+                   "commentlog?user=$userid&mode=$mode",
+                   $pg, $lastPage, $firstOnPage, $lastOnPage,
+                   $ccnt, true, true, $pgAll)
+               . "</span>";
+
+    if ($rowcnt == 0)
+        echo "<p><i>No comments were found.</i>";
+    else
+        echo "<p>$pageCtl";
+
+}
+
+// if any items are going to be marked as new, show the 'new' icon key
+$showNewIcon = false;
+if ($userid == $curuser
+    && $mode == "inbox"
+    && !$rss
+    && count($comments) > 0) {
+
+    $showNewIcon = false;
+    $newestDate = $comments[0][0][4];
+    $catchup = "commentlog?mode=$mode&catchUp=" . urlencode($newestDate);
+    $dispDate = date("F j, Y", strtotime($caughtUpDate));
+
+    if ($caughtUpDate
+        && $newestDate > $caughtUpDate) {
+
+        $showNewIcon = true;
+        echo "<p><span class=details><i>"
+            . "<img src='blank.gif' class='newcomment'> = this message is new "
+            . "since you last \"caught up\" on $dispDate</i> - "
+            . "<a href=\"$catchup\">Catch up now</a>"
+            . "</span><p>";
+
+    } else if ($caughtUpDate) {
+
+        echo "<p><span class=details><i>You're caught up as of $dispDate</i>"
+            . "</span><p>";
+
+    } else {
+
+        echo "<p><span class=details>"
+            . "<a href=\"$catchup\">I'm caught up on these comments</a>"
+            . " (this lets IFDB alert you to new messages "
+            . "that arrive after these)</span><p>";
+    
+    }
+}
+
+// show the items
+for ($i = 0 ; $i < count($comments) ; $i++) {
+
+    // get this comment
+    list($rec, $link, $title, $ltitle) = $comments[$i];
+
+    // decode the row
+    list($cid, $srcid, $src, $ctxt,
+         $ccreDT, $ccre,
+         $cmodDT, $cmod,
+         $cuid, $cuname) = $rec;
+
+    // send the item in the appropriate format
+    if ($rss) {
+
+        // set up the XML data
+        list($desc, $len, $trunc) = summarizeHtml($ctxt, 210);
+        $desc = fixDesc($desc, FixDescSpoiler | FixDescRSS);
+        $pubDate = date("D, j M Y H:i:s e", strtotime($ccreDT));
+        $link = "http://ifdb.tads.org/$link";
+
+        // if this is the latest item, send its date as the <lastBuildDate>
+        if ($i == 0)
+            echo "<lastBuildDate>$pubDate</lastBuildDate>";
+
+        // send it
+        echo "<item>\r\n"
+            . "<title>" .rss_encode($title)
+            . "</title>\r\n"
+            . "<description>" . rss_encode(htmlspecialcharx($desc))
+            . "</description>\r\n"
+            . "<link>" . rss_encode(htmlspecialcharx($link))
+            . "</link>\r\n"
+            . "<pubDate>$pubDate</pubDate>\r\n"
+            . "<guid>" . rss_encode(htmlspecialcharx($link))
+            . "</guid>\r\n"
+            . "</item>\r\n";
+
+    } else {
+
+        list($ctxt, $len, $trunc) = summarizeHtml($ctxt, 210);
+        $ctxt = fixDesc($ctxt, FixDescSpoiler);
+        $newIcon = ($showNewIcon && $ccreDT > $caughtUpDate ?
+                    "<img src='blank.gif' class='newcomment'> " : "");
+
+        // display it
+        echo "<p>$newIcon$ltitle"
+            . "<span class=details style='padding-left: 3ex;'><i>$ccre"
+            . ($cmod != $ccre ? " (updated $cmod)" : "")
+            . "</i></span><br><div class=indented>$ctxt<br>"
+            . "<span class=details><a href=\"$link\">"
+            . "View discussion</a></span></div>";
+    }
+}
+
+
+// end the page
+if ($rss) {
+
+    // close out the XML
+    echo "\r\n</channel>\r\n</rss>\r\n";
+
+} else {
+
+    // add the page control at the bottom, if there were any rows
+    if ($rowcnt != 0)
+        echo "<p>$pageCtl<br>";
+
+    // add the footer
+    pageFooter();
+}
+

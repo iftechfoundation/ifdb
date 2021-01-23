@@ -1,0 +1,43 @@
+<?php
+@session_start();
+include_once "util.php";
+include "pagetpl.php";
+helpPageHeader("Linking a game to your profile");
+?>
+
+<h1>Linking a game to your profile</h1>
+
+<p>If you're the author of a game listed in IFDB, you can link it to your
+profile.  This will automatically include the game in a list of
+authorship credits on your public profile page, and it will include a
+link to your profile next to your name as it appears in the byline on
+the game's overview page.
+
+<p>To link a game to your profile, follow these steps:
+
+<ul class=doublespace>
+
+   <li>Go to the game's main page
+
+   <li>Click "Edit this page" at the bottom of the game page
+
+   <li>In the Author field, insert your profile ID (the
+   <a href="help-tuid">TUID</a>) in {curly braces} after
+   your name. For example, <b>Arthur Dent {0x098109klasd09313k}</b>.
+   You can find the TUID on your main profile page.
+
+   <li>Save your changes.  A link to your profile will now appear
+   on the game's page after your name in the byline, and the game
+   will be listed in your profile's authorship section.
+
+</ul>
+
+<h2>Unlinking a game</h2>
+
+<p>To remove a profile link from a game, just edit the game's listing
+and remove your profile ID (the <b>{xxxxxxx}</b> code) from the Author
+field.
+
+<?php
+helpPageFooter();
+?>

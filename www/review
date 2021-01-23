@@ -1,0 +1,1005 @@
+<?php
+
+include "pagetpl.php";
+include_once "util.php";
+include_once "dbconnect.php";
+include_once "starctl.php";
+include_once "searchutil.php";
+
+// we have to be logged in to enter/edit a review
+@session_start();
+include "login-check.php";
+if (!logged_in())
+    exit();
+
+// connect to the database
+$db = dbConnect();
+
+$userid = $_SESSION['logged_in_as'];
+$errMsg = false;
+$errDetail = array();
+$missingFields = array();
+
+// presume this will be a new review
+$isOldReview = false;
+
+// get the game ID
+$id = $_REQUEST['id'];
+
+
+// ------------------------------------------------------------------------
+//
+// if we're in Browse mode, show suggestions for games to review, and
+// offer a search box
+//
+if (isset($_REQUEST['browse']))
+{
+    pageHeader("Review a Game", "editSearchForm.searchFor");
+    echo "<h1>Review a Game</h1>";
+
+    // get the search term from a previous iteration, if present
+    $searchFor = get_req_data("searchFor");
+
+    // if they're not searching, show some suggestions
+    $suggcnt = 0;
+    if ($searchFor)
+    {
+        echo "<a href=\"review?browse\">Return to the suggestion list</a><p>";
+    }
+    else
+    {
+        // Look up games the player has (a) rated but not reviewed, and (b)
+        // put on their play list.
+        $result = mysql_query(
+            "select sql_calc_found_rows
+               g.id, g.title, g.author, p.gameid, r.rating
+             from
+               games as g
+               left outer join playedgames as p
+                  on p.gameid = g.id and p.userid = '$userid'
+               left outer join reviews as r 
+                  on r.gameid = g.id and r.userid = '$userid'
+             where
+               (p.gameid is not null or r.rating is not null)
+               and ifnull(r.review, '') = ''
+             order by
+               greatest(ifnull(p.date_added, '1900-01-01'),
+                        ifnull(r.moddate, '1900-01-01')) desc
+             limit 0, 20", $db);
+
+        // if we found any results, show them
+        $suggcnt = mysql_num_rows($result);
+        if ($suggcnt)
+        {
+            echo "<b>Review ideas:</b> Here are a few suggestions for "
+                . "games you might want to review.  These are games that "
+                . "you've either played or rated, but which you haven't "
+                . "reviewed yet.";
+
+            // get the total size of the result set
+            $result2 = mysql_query("select found_rows()", $db);
+            list($totcnt) = mysql_fetch_row($result2);
+
+            // fetch and display the suggestions
+            for ($i = 0 ; $i < $suggcnt ; $i++)
+            {
+                // fetch and decode this row
+                list($id, $title, $author, $pgid, $rating) =
+                    mysql_fetch_row($result);
+
+                $title = htmlspecialcharx($title);
+                $author = htmlspecialcharx($author);
+                $mode = array();
+                if ($pgid) $mode[] = "on your play list";
+                if ($rating) $mode[] = "you rated it " . showStars($rating);
+                $mode = implode(", ", $mode);
+
+                echo "<p><a href=\"review?id=$id\"><i>$title</i></a>"
+                    . ", by $author <span class=details "
+                    . "style='padding-left:1em;'>($mode) - "
+                    . "<a href=\"review?id=$id\">Write a Review</a> - "
+                    . "<a href=\"viewgame?id=$id\">View Listing</a></span>";
+            }
+
+            if ($totcnt > $suggcnt)
+                echo "<p><a href=\"playlist?type=reviewideas\">"
+                    . "See the full list</a>";
+        }
+    }
+
+    ?>
+    <form name="editSearchForm" method="get" action="review">
+       <input type="hidden" name="browse" value="1">
+
+       <?php
+
+          if ($suggcnt) {
+              echo "<p>You can also search for a game to review by name:<br>";
+          } else if (!$searchFor) {
+              echo "Please enter the name of the game you'd like to review. "
+                  . "(You can also use any of the "
+                  . "<a href=\"search?xlink=review\">"
+                  . "advanced search</a> operators.)<p>";
+          } else {
+              echo "Search again:<br>";
+          }
+       ?>
+       <input type="text" name="searchFor" size=60 value="<?php
+          echo htmlspecialcharx($searchFor);
+       ?>">
+       <input type="submit" name="searchGo" value="Search">
+    </form>
+    <?php
+
+    if ($searchFor)
+    {
+        // run the search
+        list($rows, $rowcnt, $sortList, $errMsg) =
+            doSearch($db, $searchFor, "game", "rel", "limit 0, 10", false);
+
+        // show the results
+        $term = htmlspecialcharx($searchFor);
+        if ($errMsg)
+            echo "<span class=errmsg>$errMsg</span>";
+        else if ($rowcnt == 0)
+        {
+            echo "<span class=errmsg>No games were found "
+                . "matching \"$term\".</span>";
+        }
+        else
+        {
+            echo "<p><b>Search results for \"$term\":</b>";
+
+            if ($rowcnt > count($rows)) {
+                echo "<br><span class=details><i>To see all $rowcnt results, "
+                    . "use the <a href=\"search?xlink=review&searchfor="
+                    . urlencode($searchFor) . "\">advanced search</a> tool."
+                    . "</i></span>";
+            }
+    
+            for ($i = 0 ; $i < count($rows) ; $i++)
+            {
+                $row = $rows[$i];
+                $id = $row['id'];
+                $title = htmlspecialcharx($row['title']);
+                $author = htmlspecialcharx($row['author']);
+
+                echo "<p><a href=\"review?id=$id\"><i>$title</i></a>, "
+                    . "by $author <span class=details style='padding-left:1em'>"
+                    . "<a href=\"viewgame?id=$id\">View Listing</a> - "
+                    . "<a href=\"review?id=$id\">Write a Review</a></span>";
+            }
+        }
+    }
+
+    // Browse mode just shows this search page, so we're done
+    exit();
+}
+
+// ------------------------------------------------------------------------
+//
+// make sure a game was specified
+//
+if (is_null($id))
+    errExit("No game was specified in the request.");
+
+// verify that the ID is valid
+$qid = mysql_real_escape_string($id, $db);
+$result = mysql_query("select title, author from games
+    where id = '$qid'", $db);
+if (mysql_num_rows($result) == 0)
+    errExit("The requested game isn't in the database.");
+
+// get the game's title and author
+$title = htmlspecialcharx(mysql_result($result, 0, "title"));
+$author = htmlspecialcharx(mysql_result($result, 0, "author"));
+
+// get the logged-in username
+$result = mysql_query("select name, location, `privileges` from users
+    where id = '$userid'", $db);
+$username = htmlspecialcharx(mysql_result($result, 0, "name"));
+$userloc = htmlspecialcharx(mysql_result($result, 0, "location"));
+$userpriv = mysql_result($result, 0, "privileges");
+
+// clear out some fields
+$special = false;
+$reviewbody = false;
+$summary = false;
+$rating = false;
+$embargoDate = false;
+$tags = false;
+$oldVersion = false;
+$omitAvg = false;
+
+// get the special review type table
+$result = mysql_query("select id, code, name, requiredprivilege
+    from specialreviewers", $db);
+for ($i = 0 ; $i < mysql_num_rows($result) ; $i++) {
+    $s = mysql_fetch_array($result, MYSQL_ASSOC);
+    $specials[] = $s;
+    if ($s['code'] == "author")
+        $specialFromTheAuthor = $s['id'];
+}
+
+// add hidden fields to a form to save the current input values
+function addHiddenItems()
+{
+    global $isOldReview, $rating, $summary, $reviewbody, $special,
+       $embargoDate, $tags, $oldVersion, $omitAvg;
+
+   ?>
+   <input type="hidden" name="isOld" value="<?php
+      echo htmlspecialcharx($isOldReview) ?>">
+   <input type="hidden" name="rating" value="<?php
+      echo htmlspecialcharx($rating) ?>">
+   <input type="hidden" name="summary" value="<?php
+      echo htmlspecialcharx($summary) ?>">
+   <input type="hidden" name="reviewbody" value="<?php
+      echo htmlspecialcharx($reviewbody) ?>">
+   <input type="hidden" name="special" value="<?php
+      echo htmlspecialcharx($special) ?>">
+   <input type="hidden" name="embargoDate" value="<?php
+      echo htmlspecialcharx($embargoDate) ?>">
+   <input type="hidden" name="tags" value="<?php
+      echo htmlspecialcharx($tags) ?>">
+   <input type="hidden" name="oldVersion" value="<?php
+      echo htmlspecialcharx($oldVersion) ?>">
+   <input type="hidden" name="omitAvg" value="<?php
+      echo htmlspecialcharx($omitAvg) ?>">
+   <?php
+}
+
+// check for deletion
+if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_REQUEST['delete'])) {
+    pageHeader("Confirm Deletion");
+    echo "<h1>Confirm Deletion</h1>
+          Do you really want to <b>permanently</b> delete this review?
+          <b>This deletes the entire existing review,</b> not just your
+          current changes.</b><p><div class=indented>";
+
+    $result = mysql_query(
+        "select summary, review, rating, RFlags
+         from reviews
+         where gameid = '$qid' and userid = '$userid'", $db);
+    if (mysql_num_rows($result)) {
+        list($oldsummary, $oldreview, $oldrating, $oldFlags) =
+            mysql_fetch_row($result);
+
+        $oldOldVersion = ($oldFlags & RFLAG_OLD_VERSION);
+        $oldOmitAvg = ($oldFlags & RFLAG_OMIT_AVG);
+    }
+
+    echo "<b>$title</b>, by $author<br>"
+        . showStars($oldrating)
+        . "<b>" . htmlspecialcharx($oldsummary) . "</b><br>"
+        . fixDesc($oldreview, FixDescSpoiler);
+
+    echo "</div><form name=\"confirmdelete\" method=\"post\" "
+        . "action=\"review?id=$id\">"
+        . "<input type=submit value=\"Delete\" name=\"confirmDelete\">"
+        . " &nbsp;&nbsp; "
+        . "<input type=submit value=\"Cancel\" name=\"cancelDelete\">";
+
+    // get the fields from the request, and show them as hidden items -
+    // this will preserve edits in case they cancel the delete
+    $isOldReview = get_req_data("isOld");
+    $rating = get_req_data("rating");
+    $summary = get_req_data("summary");
+    $reviewbody = get_req_data("reviewbody");
+    $special = get_req_data("special");
+    $embargoDate = get_req_data("embargoDate");
+    $tags = get_req_data("tags");
+    $omitAvg = get_req_data("omitAvg");
+    $oldVersion = get_req_data("oldVersion");
+    addHiddenItems();
+    
+    pageFooter();
+    exit();
+}
+
+if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_REQUEST['cancelDelete'])) {
+    // cancel delete - proceed on to the main form
+}
+    
+if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_REQUEST['confirmDelete'])) {
+
+    // confirm delete - proceed with the deletion
+    pageHeader("Delete Review");
+
+    // look up the review ID
+    $result = mysql_query("select id from reviews
+        where gameid = '$qid' and userid = '$userid'", $db);
+    if (mysql_num_rows($result) > 0) {
+        // retrieve the ID
+        $revid = mysql_result($result, 0, "id");
+
+        // delete the review
+        $progress = "DEL1723";
+        $result = mysql_query(
+            "delete from reviews where id='$revid'", $db);
+
+        if ($result) {
+            $progress = "DEL1724";
+            $result = mysql_query(
+                "delete from reviewvotes where reviewid='$revid'", $db);
+        }
+
+        if ($result) {
+            $progress = "DEL1725";
+            $result = mysql_query(
+                "delete from reviewtags where reviewid='$revid'", $db);
+        }
+
+        if ($result) {
+            $progress = "DEL1726";
+            $result = mysql_query(
+                "delete from reviewflags where reviewid='$revid'", $db);
+        }
+
+        if ($result) {
+            $progress = "DEL1727";
+            $result = mysql_query(
+                "delete from ucomments
+                 where source = 'R' and sourceid = '$revid'", $db);
+        }
+
+        if ($result)
+            echo "<h1>Deleted</h1>"
+                . "The review has been deleted as requested.";
+        else
+            echo "<h1>Error</h1>"
+                . "An error occurred deleting the review from the database. "
+                . "the database.  You might want to "
+                . "<a href=\"contact\">contact us</a> to report the "
+                . "problem - if you do, please pass along this error code "
+                . "for reference: $progress.";
+
+        echo "<p><span class=details><a href=\"viewgame?id=$id\">Return "
+            . "to the game overview</a></span>";
+    
+    } else {
+        echo "<h1>Review Not Found</h1>The review you are attempting
+            to delete was not found in the database.";
+    }
+
+    pageFooter();
+    exit();
+}
+    
+
+// if we're posting, save the changes
+if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+
+    // get the fields from the request
+    $isOldReview = get_req_data("isOld");
+    $rating = get_req_data("rating");
+    $summary = get_req_data("summary");
+    $reviewbody = get_req_data("reviewbody");
+    $special = get_req_data("special");
+    $embargoDate = get_req_data("embargoDate");
+    $tags = get_req_data("tags");
+    $oldVersion = get_req_data("oldVersion");
+    $omitAvg = get_req_data("omitAvg");
+
+    // no error yet
+    $errMsg = false;
+
+    // make sure the embargo date is formatted correctly
+    if ($embargoDate != "" && !parseDateVal($embargoDate)) {
+        $errDetail['embargoDate'] = "Please format your date as DD-MON-YYYY; "
+                                    . "for example, 15-Apr-2007.";
+    }
+
+    // get the tag list
+    $tagList = array();
+    if (trim($tags) != "")
+        $tagList = array_map("trim", explode(",", $tags));
+
+    // check the tags to make sure they're within reason, length-wise
+    foreach ($tagList as $t) {
+        if (strlen($t) > 80) {
+            $errDetail['tags'] = "Please limit each tag to 80 characters.";
+            break;
+        }
+    }
+
+    // make sure the summary fits
+    if (strlen($summary) > 80)
+        $errDetail['summary'] = "Please limit the summary to 80 characters.";
+
+    // make sure everything's filled in and valid
+    if (trim($summary) == ""
+        || trim($reviewbody) == ""
+        || ($rating == 0 && $special != $specialFromTheAuthor)) {
+
+        // point out the specific missing fields
+        // -- don't require this any more; allow reviews without ratings
+        // if ($rating == 0 && $special != $specialFromTheAuthor)
+        //     $missingFields['rating'] = true;
+
+        // It's okay to have neither summary nor review, but insist on both
+        // if we have either.  If we have a special review type selected,
+        // we definitely need a review.
+        if (((trim($summary) != "") ^ (trim($reviewbody) != ""))
+            || $special) {
+            if (trim($summary) == "")
+                $missingFields['summary'] = true;
+            if (trim($reviewbody) == "")
+                $missingFields['reviewbody'] = true;
+        }
+    }
+
+    if (count($errDetail) != 0 || count($missingFields) != 0) {
+
+        // set the error message
+        $errMsg = (count($errDetail) != 0)
+                  ? "Please make the corrections noted below."
+                  : "Please fill in the missing information noted below.";
+
+    } else if (isset($_REQUEST['preview'])) {
+
+        // make sure all the fields are filled in
+        pageHeader("Preview");
+        echo "<div class=title>$title</div> by $author<br>"
+            . "<p>Here's how your review will look on the game page."
+            . "<br><br><hr><br>"
+            . showStars($rating)
+            . " <b>" . htmlspecialcharx($summary) . "</b><br>"
+            . "<span class=details>"
+            .   "by <a href=\"showuser?id=$userid\">$username</a>"
+            . ($userloc != "" ? " ($userloc)" : "")
+            . "</span><br>"
+            . fixDesc($reviewbody, FixDescSpoiler);
+
+        if (trim($tags) != "")
+            echo "<p><b>Tags:</b> " . htmlspecialcharx($tags);
+
+        if ($embargoDate) {
+            $dispDate = date("F j, Y", strtotime($embargoDate));
+            echo "<p><b>This review will be hidden from other users "
+                . "until $dispDate.</b>";
+        }
+
+?>
+
+<br><br><br>
+<p>Please check your review carefully for typos and other errors (well-written
+reviews get more Helpful votes!).  If you'd like to revise it before
+continuing, click Continue Editing.  If you're happy with the review, click
+Publish! to post it.
+
+<p>Note that you can revise your reviews at any time.
+Just go to the game's home page and click "Review It," and we'll bring
+up your existing review for further editing.
+
+<form name="review" method="post" action="review?id=<?php echo $id ?>">
+   <input type="submit" value="Continue Editing" name="edit">
+   &nbsp;&nbsp;&nbsp;
+   <input type="submit" value="Publish!" name="save">
+   <?php addHiddenItems(); ?>
+</form>
+
+<?php
+        pageFooter();
+
+        // do not proceed to show the entry form - we're done with this pass
+        exit();
+
+    } else if (isset($_REQUEST['save'])) {
+
+        // if $special is zero, it means "none", so make it null
+        $qspecial = (int)$special;
+        if (is_null($qspecial) || $qspecial == 0)
+            $qspecial = 'NULL';
+
+        // if $embargoDate is empty, it means a null embargo date
+        $qembargoDate =
+            ($embargoDate == "" ? "NULL" :
+             '\''
+             . mysql_real_escape_string(parseDateVal($embargoDate), $db)
+             . '\'');
+
+        // quote the fields - make the text fields null if they're empty
+        $qsummary = mysql_real_escape_string($summary, $db);
+        $qsummary = (trim($qsummary) == "" ? "NULL" : "'$qsummary'");
+        
+        $qreview = mysql_real_escape_string($reviewbody, $db);
+        $qreview = (trim($qreview) == "" ? "NULL" : "'$qreview'");
+
+        // if the rating is zero, it means NULL
+        $qrating = (int)$rating;
+        if ($qrating == 0)
+            $qrating = 'NULL';
+
+        // set up the new flags
+        $qrflags = ($oldVersion ? RFLAG_OLD_VERSION : 0)
+                   | ($omitAvg ? RFLAG_OMIT_AVG : 0);
+
+        // start out with the review table locked, to prevent someone
+        // from sneaking in the same review from another connection
+        $progress = "LKT675A";
+        $result = mysql_query(
+            "lock tables reviews write, reviewtags write", $db);
+
+        // if it contains any links, send an admin email about it for spam detection
+        send_admin_email_if_links($reviewbody, "Review of $title by $author", "viewgame?id=$qid");
+
+        // look up any existing review by the same user for the same game
+        if ($result) {
+            $progress = "SLR675B";
+            $result = mysql_query(
+                "select id, (review is not null) as has_review
+                from reviews
+                where gameid = '$qid' and userid = '$userid'", $db);
+        }
+
+        // if we found an existing review, update it; otherwise, insert
+        // a new row
+        if ($result && mysql_num_rows($result) > 0) {
+
+            // there's an existing review - get its key
+            $reviewID = mysql_result($result, 0, "id");
+
+            // note whether or not we had a review
+            $hadReview = mysql_result($result, 0, "has_review");
+
+            // if we didn't have a review, this was simply a rating, so
+            // we're effectively creating the review even though a record
+            // already exists
+            $setCreateDate = ($hadReview
+                              ? ""
+                              : ", createdate = now()");
+
+            // update the existing review
+            $progress = "UPD675C";
+            $result = mysql_query(
+                "update reviews
+                   set summary=$qsummary, review=$qreview,
+                     rating=$qrating, special=$qspecial,
+                     embargodate=$qembargoDate, RFlags='$qrflags'
+                     $setCreateDate
+                   where id='$reviewID'", $db);
+
+            // if that succeeded, delete any prior tags
+            if ($result) {
+                $progress = "DEL675F";
+                $result = mysql_query(
+                    "delete from reviewtags where reviewid='$reviewID'", $db);
+            }
+
+        } else {
+
+            // no existing review- insert a new row
+            $progress = "INS675D";
+            $result = mysql_query(
+                "insert into reviews
+                   (userid, createdate, moddate, embargodate,
+                    summary, review, rating, special, gameid, RFlags)
+                   values ('$userid', now(), now(), $qembargoDate,
+                      $qsummary, $qreview,
+                      $qrating, $qspecial, '$qid', '$qrflags')", $db);
+
+            // get the new review ID
+            $reviewID = mysql_insert_id($db);
+        }
+
+        // if we were successful so far, add the tags
+        if ($result && $reviewID) {
+            foreach ($tagList as $t) {
+                $progress = "INS675E";
+                $t = mysql_real_escape_string($t, $db);
+                $result = mysql_query(
+                    "insert into reviewtags (reviewid, tag)
+                     values ('$reviewID', '$t')", $db);
+
+                if (!$result)
+                    break;
+            }
+        }
+
+        // unlock the tables
+        mysql_query("unlock tables", $db);
+
+        // clear the recommendation cache, since the new review gives
+        // use new information for calculating user proximity
+        shoot_recommendation_cache();
+        
+        // if that succeeded, redirect back to the game's home page;
+        // otherwise, return to the entry page with an error
+
+        if ($result) {
+
+            // success - redirect back to the game page
+            header("HTTP/1.1 301 Moved Permanently");
+            header("Content-Type: text/html");
+            header("Location: viewgame?id=$id");
+
+            echo "<a href=\"viewgame?id=$id\">Redirecting
+                (click here if your browser doesn't redirect
+                 automatically)</a>";
+
+            // we're done here
+            exit();
+        } else {
+            $errMsg = "An error occurred updating the database with
+               your review. You might want to try again in a little
+               while. If the problem persists, <a href=\"/contact\">
+               contact us</a> to let us know about it - if you do,
+               please tell us <b>exactly</b> what you were trying to
+               do (a screenshot would be helpful), and please tell us
+               the following error code: $progress.";
+        }
+    }
+} else {
+    // showing the form anew - query up any existing review by this user
+    // of this same game
+    $result = mysql_query(
+        "select
+           id, summary, review, rating, special, embargodate, RFlags
+        from reviews
+        where gameid = '$qid' and userid = '$userid'", $db);
+    if (mysql_num_rows($result)) {
+        $rec = mysql_fetch_array($result, MYSQL_ASSOC);
+        $isOldReview = 1;
+        $reviewID = $rec['id'];
+        $summary = $rec['summary'];
+        $reviewbody = $rec['review'];
+        $rating = $rec['rating'];
+        $special = $rec['special'];
+        $embargoDate = $rec['embargodate'];
+        $rflags = $rec['RFlags'];
+        $oldVersion = ($rflags & RFLAG_OLD_VERSION);
+        $omitAvg = ($rflags & RFLAG_OMIT_AVG);
+        if ($embargoDate != "")
+            $embargoDate = date("j-M-Y", strtotime($embargoDate));
+
+        // query the tags
+        $result = mysql_query(
+            "select tag from reviewtags where reviewid='$reviewID'", $db);
+        for ($i = 0, $tags = array() ; $i < mysql_num_rows($result) ; $i++)
+            $tags[] = mysql_result($result, $i, "tag");
+        $tags = implode(", ", $tags);
+    }
+    else {
+        $isOldReview = 0;
+    }
+}
+
+// check for accessible controls
+$result = mysql_query(
+    "select accessibility from users where id='$userid'", $db);
+list($accessibility) = mysql_fetch_row($result);
+$firstCtl = ($accessibility ? "ratingStars" : "summary");
+
+// show the page header
+pageHeader("Write a Review", "review.$firstCtl");
+?>
+
+<div class=title><?php echo $title ?></div>
+by <?php echo $author ?><br>
+
+<p><span class=notes>
+   <a href="viewgame?id=<?php echo htmlspecialcharx($id) ?>">
+      Click here</a> to return to the game's home page (without saving
+      any changes)
+   </span>
+
+<p>Share your thoughts about this game with others in the IF community.
+Please avoid spoilers (or, use the <?php
+echo helpWinLink("help-review#spoilertags", "&lt;spoiler&gt; tag")
+?>).
+If you haven't written reviews here before, please read our <?php
+   echo helpWinLink("help-review", "review guidelines");
+//
+//<a href="needjs" onclick="javascript:helpWin('help-review');return false;">
+//   review guidelines</a>
+?>.
+
+<?php
+// check for flags
+$result = mysql_query(
+    "select
+       f.flagger, u.name, f.flagtype, f.notes,
+       date_format(f.created, '%M %e, %Y'), r.id
+     from
+       games as g
+       join reviews as r on r.gameid = g.id
+       join reviewflags as f on f.reviewid = r.id
+       join users as u on u.id = f.flagger
+     where
+       g.id = '$qid' and r.userid = '$userid'", $db);
+
+$flagRows = false;
+$rowcnt = mysql_num_rows($result);
+if ($rowcnt != 0) {
+    // fetch the rows
+    for ($flagRows = array(), $i = 0 ; $i < $rowcnt ; $i++)
+        $flagRows[] = mysql_fetch_row($result);
+
+    echo "<p><span class=errmsg>"
+        . "<b>Attention!</b> This review has been flagged - see "
+        . "<a href=\"#flags\"> below</a> for details.</span>";
+}
+?>
+
+<hr>
+
+<?php
+if ($errMsg)
+    echo "<span class=errmsg><img src=\"/blank.gif\"
+            class=\"form-error-icon\" id=\"review-save-error\">
+        $errMsg</span><br><br>";
+?>
+
+<form name="review" method="post" action="review?id=<?php echo $id ?>">
+
+<p>
+<?php
+if (isset($missingFields['rating']))
+    echo "<span class=errmsg><i>Please select a rating.</i></span><br>";
+?>
+
+   <b>1. Rate this game on a scale of 1 to 5 stars (5 is best):</b>
+   <?php
+        initStarControls();
+        echo showStarCtl("ratingStars", $rating, "setRating", "null");
+   ?>
+   <span class=details>(<a href="needjs"
+     onclick="setRating(0);return false;">Remove rating</a>)</span>
+<script type="text/javascript">
+<!--
+function setRating(rating)
+{
+    document.getElementById("rating").value = rating;
+    setStarCtlValue("ratingStars", rating);
+}
+//-->
+</script>
+   <input type=hidden name="rating" id="rating" value="<?php echo $rating ?>">
+
+   <br><span class=notes>You don't have to rate the game to
+      write a review. If you don't enter a rating, your review
+      won't affect the game's average rating.
+      <?php echo helpWinLink("help-stars", "Explain star ratings"); ?>
+   </span>
+   <p>
+       Everything below is optional, so if you only want to enter
+	   a star rating, skip to the bottom of the page and click Preview
+	   to continue.  Please consider entering a brief review, though!
+	   Your rating will be even more helpful with some thoughts to
+	   explain it.
+   </p>
+
+   <p>
+<?php
+if (isset($missingFields['summary']))
+    echo "<span class=errmsg><i>Please enter a title.</i></span><br>";
+else if (isset($errDetail['summary']))
+    echo "<span class=errmsg><i>{$errDetail['summary']}</i></span><br>";
+?>
+
+     <b>2. Give your review a title:</b><br>
+        <input type="text" size=80 name="summary" id="summary" value="<?php
+            echo htmlspecialcharx($summary) ?>">
+
+   </p>
+   <p>
+<?php
+if (isset($missingFields['reviewbody']))
+    echo "<span class=errmsg><i>Please enter your review.</i></span><br>";
+?>
+
+   <table border=0 cellspacing=0 cellpadding=0>
+	  <tr><td><b>3. Enter your review:</b></td>
+		 <td align=right>
+			<span class=notes><i><?php
+echo helpWinLink("help-formatting?review", "Formatting Hints");
+echo " - ";
+echo helpWinLink("help-review#spoilertags", "Hiding Spoilers");
+//                 <a href="needjs"
+//                  onclick="javascript:helpWin('help-formatting');return false;">
+//                    Formatting Hints
+//                 </a>
+			?></i></span>
+		 </td>
+	  </tr>
+	  <tr>
+		 <td colspan=2>
+			<textarea name="reviewbody" rows=15 cols=75>
+<?php echo htmlspecialcharx($reviewbody) ?></textarea>
+		 </td>
+	  </tr>
+   </table>
+
+   </p>
+   <p>
+<?php
+if (isset($errDetail['tags']))
+    echo "<span class=errmsg><i>{$errDetail['tags']}</i></span><br>";
+?>
+     <b>4. Tag your review:</b><br>
+     <input type="text" name="tags" size=80 value="<?php
+        echo htmlspecialcharx($tags) ?>"><br>
+     <span class=notes>Optional.
+        Tags let you arrange your reviews into collections
+        that other members can view. For example, you could tag all of
+        your 2007 IF Competition reviews with "IF Comp 2007."  Separate
+        tags with commas. (Note: Review tags are separate from game tags.
+        If you want to tag the game itself, you can do that from the
+        game's main page.)</span>
+
+   </p>
+   <p>
+<?php
+if (isset($errDetail['embargoDate']))
+    echo "<span class=errmsg><i>{$errDetail['embargoDate']}</i></span><br>";
+?>
+     <b>5. Embargo date:</b> 
+        <input type="text" name="embargoDate" length=30 value="<?php
+          echo htmlspecialcharx($embargoDate) ?>"><br>
+     <span class=notes>Optional.
+        Your review and rating will be hidden from everyone
+        else until this date. You can use this to hide your review until a
+        competition is over, for example. If you don't enter a date, your
+        review will be published immediately. Format like this: 15-Apr-2007.
+        </span>
+   </p>
+
+   <p>
+      <b>6. Special review type:</b><br><br>
+	  <div class=indented>
+		 <label><input type="radio" name="special" value="" id="special"
+		 <?php if (is_null($special) || $special == "") echo " checked" ?>>
+		 <label for="special">None</label></label><br>
+<?php
+            // show a radio button for each special review type
+            foreach ($specials as $s) {
+                // if the user has the necessary privileges, or the
+                // review is already of this type, show this item
+                $sid = $s['id'];
+                $sname = $s['name'];
+                $spriv = $s['requiredprivilege'];
+                if (is_null($spriv)
+                    || strpos($userpriv, $spriv) !== false
+                    || $special == $sid) {
+                    echo "<label><input type=\"radio\" name=\"special\"
+                        id=\"special$sid\" value=\"$sid\""
+                        . ($special == $sid ? " checked" : "")
+                        . "> <label for=\"special$sid\">$sname"
+                        . "</label></label>"
+                        . "<br>";
+                }
+            }
+?>
+	  </div>
+   </p>
+
+   <p>
+      <b>7. Other special instructions:</b><br>
+
+	  <div class=indented>
+
+		 <br>
+		 <label><input type="checkbox" id="cbOmitAvg" name="omitAvg" value=1
+		 <?php if ($omitAvg) echo "checked"; ?>><label for="cbOmitAvg">
+			Omit my rating from the game's average</label></label>
+		 
+		 <br><span class=notes>If you check this box, your rating will appear
+			with your review, but it won't be counted in the average member
+			rating for the game.</span>
+		 
+		 <br><br>
+		 
+		 <label><input type="checkbox" id="cbOldVsn" name="oldVersion" value=1 
+		 <?php if ($oldVersion) echo "checked"; ?>><label for="cbOldVsn">
+			This review is for an older version of the game</label></label>
+		 
+		 <br><span class=notes>Checking this box will add a note to this
+			effect when your review is displayed.</span>
+		 
+	  </div>
+   </p>
+
+   <p>
+      <input type="submit" value="Preview" name="preview">
+
+   <?php
+if ($isOldReview)
+    echo " &nbsp;&nbsp; <input type=\"submit\" value=\"Delete This Review\"
+            name=\"delete\">";
+   ?>
+
+      <input type="hidden" name="isOld" value="<?php echo $isOldReview ?>">
+   </p>
+
+</form>
+
+<hr>
+
+<?php
+
+// check for flags
+if ($flagRows) {
+    echo "<a name=\"flags\"></a><b>This review has been flagged.</b><br>";
+
+    echo "<p><b>You may delete flags by clicking the links below.</b> "
+        . "Before you do, please make sure that you've corrected the "
+        . "problem reported in the flag.  You may delete flags that "
+        . "you simply disagree with, but please don't get into a "
+        . "ping-pong match with the flagger - they can always just "
+        . "flag you again if you delete the flag without changing "
+        . "anything."
+        . "<div class=indented>";
+
+    // set up the flag name map
+    $flagNames = array('S' => "Spoilers");
+
+    // list the flags
+    foreach ($flagRows as $row) {
+        // unpack the row
+        list($fUserID, $fUserName, $fType, $fNotes, $fDate, $fRevID) = $row;
+        $fUserName = htmlspecialcharx($fUserName);
+        $fNotes = htmlspecialcharx($fNotes);
+        $fTypeName = $flagNames[$fType];
+
+        // show it
+        echo "<p><a href=\"showuser?id=$fUserID\" target=\"_blank\">"
+                      . "$fUserName</a> "
+            . "flagged this review on $fDate"
+            . " - <a href=\"reviewunflag?review=$fRevID&flagger=$fUserID"
+            . "&type=$fType\" target=\"_blank\">Delete this flag</a><br>"
+            . "Flagged for: <b>$fTypeName</b><br>"
+            . "Explanation:<br><div class=indented>$fNotes</div>";
+    }
+
+    echo "</div>";
+    echo "<p>"
+        . "<span class=details>Clicking a Delete link above will open "
+        . "a new window. Deleted flags won't disappear from the list above "
+        . "until you refresh this window.</span>";
+
+    // explain the flag types that are actually present
+    $flagTypes = '';
+    foreach ($flagRows as $row) {
+        $flag = $row[2];
+        if (strpos($flagTypes, $flag) === false)
+            $flagTypes .= $flag;
+    }
+
+    if (strpos($flagTypes, 'S') !== false) {
+        echo "<p><b>Flagged for spoilers</b> means that another "
+            . "member feels that your review contains unconcealed "
+            . helpWinLink("help-review#spoilers", "spoilers")
+            . ". Spoilers in reviews are allowed, but they should "
+            . "<b>always</b> be hidden using "
+            . helpWinLink("help-review#spoilertags", "&lt;spoiler&gt; tags")
+            . ", to protect readers from inadvertently reading them. "
+            . "When a spoiler flag is in effect, your <b>entire review</b> "
+            . "will be concealed behind a spoiler warning.";
+    }
+
+    echo "<p><hr>";
+}
+
+?>
+
+<p>
+<span class=notes>
+When your review is displayed, it will be attributed to you as "<?php
+    echo $username;
+    if ($userloc != "")
+        echo " ($userloc)";
+?>."  If this isn't you, <a href="<?php echo switchUserAndReturnHRef() ?>">
+click here</a> to log in as a different user (but note that this will
+discard your unsaved changes above).
+</span>
+
+<p><span class=notes>
+Your review is subject to our
+<a target="_blank" href="/tos">Terms of Service</a>.  We reserve
+the right to delete any reviews that don't meet these terms.
+</span>
+
+<?php
+pageFooter();
+?>

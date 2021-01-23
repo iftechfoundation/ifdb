@@ -1,0 +1,52 @@
+<?php
+@session_start();
+include_once "util.php";
+include "pagetpl.php";
+
+include_once "dbconnect.php";
+$db = dbConnect();
+
+helpPageHeader("IF Archive Mirrors");
+?>
+
+<h1>IF Archive Mirrors</h1>
+
+<p>A "mirror" is essentially a backup server for another Internet
+site.  A mirror site duplicates the contents of its main site -
+typically, a mirror takes a snapshot of its main site about once a
+day, so it always has an up-to-date copy of everything on the main
+site.
+
+<p>Mirrors are useful for several reasons:
+
+   <ul>
+
+      <li>They share the file-serving load, so
+        the main server doesn't have to do all the work
+
+      <li>When the main server is off-line, you can usually still
+        reach a mirror site, since mirrors are independent and
+        not affected by outages on the main server
+
+      <li>A mirror might be geographically closer to you than the
+        main site, potentially allowing for faster downloads
+
+   </ul>
+
+<p>Many of the files listed on IFDB are stored on the <a
+href="http://www.ifarchive.org">IF Archive</a>, which has a number
+of mirror sites.  The Archive mirror you
+select in your user preferences will be used for all of the IF Archive
+file links that IFDB displays for you.
+
+<p>You'll probably get better performance from some mirror sites than
+from others, but it's hard to predict which mirrors will work best for
+any given person - that depends on things like geographical proximity,
+network topology, and network traffic volumes.  The best bet is to
+experiment with a few of the mirrors to see which give you the fastest
+downloads.
+
+
+<?php
+helpPageFooter();
+?>

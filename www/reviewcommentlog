@@ -1,0 +1,291 @@
+<?php
+
+@session_start();
+
+// make sure we process any persistent login state
+include_once "login-persist.php";
+$curuser = checkPersistentLogin();
+
+// include some utility modules
+include "pagetpl.php";
+include "reviews.php";
+include_once "util.php";
+
+// connect to the database
+include_once "dbconnect.php";
+$db = dbConnect();
+
+// check for RSS mode
+$rss = isset($_REQUEST['rss']);
+
+// Check what we're looking for - 'subscribed' means all postings in
+// subscribed discussions (defined as comments for a review that was
+// written by this user OR for a review where this user posted a
+// comment), 'reviews' means all postings in reviews written by this
+// user, 'comments' means postings by this user.
+$mode = get_req_data('mode');
+if (array_search($mode, array('subscribed', 'reviews', 'comments')) === false)
+    $mode = 'subscribed';
+
+// get the page number
+$pg = get_req_data('pg');    
+if ($pg < 1)
+    $pg = 1;
+
+// get the target user - if not specified, use the current user
+$userid = get_req_data('user');
+if (!$userid)
+    $userid = $curuser;
+
+// quote the user ID for queries
+$quserid = mysql_real_escape_string($userid, $db);
+
+// get the name of the target user
+$result = mysql_query(
+    "select name, gender from users where id = '$quserid'", $db);
+
+if (!$userid || mysql_num_rows($result) == 0) {
+    pageHeader("Review Comment History");
+    echo "<h1>Review Comment History</h1>"
+        . "No user ID was specified. The link that you used to reach "
+        . "this page might be broken.";
+    pageFooter();
+    exit();
+}
+
+// fetch the target user's name
+list($username, $gender) = mysql_fetch_row($result);
+$username = htmlspecialchars($username);
+
+// set up the query based on the mode
+$modeJoin = "";
+$modeWhere = "";
+$modeGroup = "";
+$modeHaving = "";
+switch ($mode) {
+case 'subscribed':
+    // Add instructions to count the number of posts where this user
+    // commented.  Include comments from any review written by this
+    // user, OR where the count of comments by this user is non-zero.
+    $modeJoin = "join reviewcomments as c2 on c2.reviewid = c.reviewid";
+    $modeWhere = "1";
+    $modeGroup =  "group by c.commentid";
+    $modeHaving = "having sum(c2.userid = '$quserid') <> 0 "
+                  . "or r.userid = '$quserid'";
+    break;
+
+case 'reviews':
+    // we only want comments for reviews written by this user
+    $modeWhere = "r.userid = '$quserid'";
+    break;
+
+case 'comments':
+    // we only want comments written by this user
+    $modeWhere = "c.userid = '$quserid'";
+    break;
+}
+
+// figure the page's starting location
+$perPage = ($rss ? 50 : 25);
+$firstOnPage = ($pg - 1) * $perPage;
+
+// query the comments - fetch comments from any review written by
+// the target user, and from any review that contains comments posted
+// by the target user
+$query =
+    "select sql_calc_found_rows
+       c.commentid, c.reviewid, c.comment,
+       c.created, date_format(c.created, '%M %e, %Y'),
+       c.modified, date_format(c.modified, '%M %e, %Y'),
+       c.userid, u_comment.name,
+       r.userid, u_review.name,
+       g.id, g.title
+     from
+       reviewcomments as c
+       join users as u_comment on u_comment.id = c.userid
+       join reviews as r on r.id = c.reviewid
+       join users as u_review on u_review.id = r.userid
+       join games as g on g.id = r.gameid
+       $modeJoin
+     where
+       $modeWhere
+     $modeGroup
+     $modeHaving
+     order by
+       c.modified desc
+     limit
+       $firstOnPage, $perPage";
+
+// run the query
+$result = mysql_query($query, $db);
+
+// get the count
+$result2 = mysql_query("select found_rows()", $db);
+list($rowcnt) = mysql_fetch_row($result2);
+
+// show the results
+if ($rss) {
+
+    // send the RSS content-type header
+    header("Content-Type: application/rss+xml");
+    header("Expires: Mon, 26 Jul 1997 05:00:00 GMT");
+    header("Cache-Control: no-store, no-cache, must-revalidate");
+    header("Cache-Control: post-check=0, pre-check=0", false);
+    header("Pragma: no-cache");
+
+    // send the channel header
+    echo "<?xml version=\"1.0\"?>\r\n";
+    ?>
+    <rss version="2.0">
+       <channel>
+          <title><?php echo $username ?>'s Comment Updates</title>
+          <link>http://ifdb.tads.org/</link>
+          <description>A history of IFDB review comments for
+             <?php echo $username ?>.</description>
+          <language>en-us</language>
+    <?php
+
+    // show the items
+    for ($i = 0 ; $i < $rowcnt ; $i++) {
+        // fetch the next row
+        list($cid, $rid, $ctxt, $ccreDT, $ccre, $cmodDT, $cmod,
+             $cuid, $cuname,
+             $ruid, $runame,
+             $gid, $gtitle) = mysql_fetch_row($result);
+
+        // html-ify some of the items
+        $cuname = htmlspecialchars($cuname);
+        $runame = htmlspecialchars($runame);
+        $gtitle = htmlspecialchars($gtitle);
+
+        // set up the XML data
+        $title = "$cuname comments on $runame's review of $gtitle";
+        list($desc, $len, $trunc) = summarizeHtml($ctxt, 210);
+        $desc = fixDesc($desc, FixDescSpoiler | FixDescRSS);
+        $pubDate = date("D, j M Y H:i:s e", strtotime($ccreDT));
+        $link = "http://ifdb.tads.org/viewgame?id=$gid&review=$rid";
+
+        // if this is the latest item, send its date as the <lastBuildDate>
+        if ($i == 0)
+            echo "<lastBuildDate>$pubDate</lastBuildDate>";
+
+        // send it
+        echo "<item>\r\n"
+            . "<title>" .rss_encode(htmlspecialchars($title))
+            . "</title>\r\n"
+            . "<description>" .rss_encode(htmlspecialchars($desc))
+            . "</description>\r\n"
+            . "<link>" . rss_encode(htmlspecialchars($link))
+            . "</link>\r\n"
+            . "<pubDate>$pubDate</pubDate>\r\n"
+            . "<guid>" . rss_encode(htmlspecialchars($link))
+            . "</guid>\r\n"
+            . "</item>\r\n";
+    }
+
+    // close out the XML
+    echo "\r\n</channel>\r\n</rss>\r\n";
+
+} else {
+    $your = ($curuser == $userid ? "your" : "$username's");
+    $you = ($curuser == $userid ? "your" : "$username's");
+    $uYour = ($curuser == $userid ? "Your" : "$username's");
+    $yourLink = ($curuser == $userid ? "your" :
+                 "<a href=\"showuser?id=$userid\">$username</a>'s");
+    $youLink = ($curuser == $userid ? "you" :
+                "<a href=\"showuser?id=$userid\">$username</a>'s");
+    $he = ($curuser == $userid ? "you" :
+           ($gender == 'M' ? "he" : ($gender == 'F' ? "she" : "they")));
+
+    $subscribedLink = "<a href=\"reviewcommentlog?user=$userid"
+                      . "&mode=subscribed\">"
+                      . "all of $your subscribed discussions</a>";
+    $reviewsLink = "<a href=\"reviewcommentlog?user=$userid&mode=reviews\">"
+                      . "comments for $your reviews only</a>";
+    $commentsLink = "<a href=\"reviewcommentlog?user=$userid&mode=comments\">"
+                   . "$your comments only</a>";
+
+
+    switch ($mode) {
+    case "subscribed":
+        $title = "$uYour Discussion Updates";
+        $expl = "comments in $yourLink subscribed discussions "
+                . "(comments in reviews $he wrote or commented on)";
+        $links = "$reviewsLink - $commentsLink";
+        break;
+
+    case "reviews":
+        $title = "$uYour Review Updates";
+        $expl = "comments on $yourLink reviews";
+        $links = "$subscribedLink - $commentsLink";
+        break;
+
+    case "comments":
+        $title = "$uYour Comments";
+        $expl = "comments $youLink posted";
+        $links = "$subscribedLink - $reviewsLink";
+        break;
+    }
+
+    pageHeader("$title");
+    echo "<h1>$title</h1>"
+        . "<p>This is a history of $expl."
+        . "<p><span class=details>View $links - "
+        . "<a href=\"reviewcommentlog?user=$userid&mode=$mode&rss\">"
+        . "<img src=\"/blank.gif\" class=\"rss-icon\">RSS Feed</a></span>";
+
+    // figure where we are in the list
+    $lastPage = (int)floor(($rowcnt + $perPage - 1)/$perPage);
+    if ($pg > $lastPage)
+        $pg = $lastPage;
+
+    $lastOnPage = $firstOnPage + $perPage - 1;
+    if ($lastOnPage >= $rowcnt)
+        $lastOnPage = $rowcnt - 1;
+
+    // set up the paging controls
+    $pageCtl = "<span class=details>"
+               . makePageControl(
+                   "reviewcommentlog?user=$userid&mode=$mode",
+                   $pg, $lastPage, $firstOnPage, $lastOnPage,
+                   $ccnt, true)
+               . "</span>";
+
+    if ($rowcnt == 0)
+        echo "<p><i>No comments were found.</i>";
+    else
+        echo "<p>$pageCtl";
+
+    // show the page
+    for ($i = $firstOnPage ; $i <= $lastOnPage ; $i++) {
+        // fetch the next row
+        list($cid, $rid, $ctxt, $ccreDT, $ccre, $cmodDT, $cmod,
+             $cuid, $cuname,
+             $ruid, $runame,
+             $gid, $gtitle) = mysql_fetch_row($result);
+
+        // html-ify some of the items
+        $cuname = htmlspecialchars($cuname);
+        $runame = htmlspecialchars($runame);
+        $gtitle = htmlspecialchars($gtitle);
+
+        list($ctxt, $len, $trunc) = summarizeHtml($ctxt, 210);
+        $ctxt = fixDesc($ctxt, FixDescSpoiler);
+
+        // display it
+        echo "<p><a href=\"showuser?id=$cuid\">$cuname</a>, on "
+            . "<a href=\"viewgame?id=$gid&review=$rid\">"
+            . "$runame's review</a> "
+            . "of <a href=\"viewgame?id=$gid\">$gtitle</a>"
+            . " &nbsp <span class=details><i>$ccre"
+            . ($cmod != $ccre ? " (updated $cmod)" : "")
+            . "</i></span><br><div class=indented>$ctxt<br>"
+            . "<span class=details><a href=\"viewgame?id=$gid&review=$rid"
+            . "#reviewComments\">"
+            . "View comments</a></span></div>";
+    }
+
+    if ($rowcnt != 0)
+        echo "<p>$pageCtl<br>";
+}
+

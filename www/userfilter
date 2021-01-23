@@ -1,0 +1,275 @@
+<?php
+
+// we have to be logged in to do this
+@session_start();
+include "login-check.php";
+if (!logged_in())
+    exit();
+
+$curuser = $_SESSION['logged_in_as'];
+
+// include some utility modules
+include "pagetpl.php";
+include_once "util.php";
+
+// connect to the database
+include_once "dbconnect.php";
+$db = dbConnect();
+
+// get the parameters
+$targetUser = get_req_data('user');
+$action = get_req_data('action');
+$confirm = get_req_data('confirm');
+$srcpage = get_req_data('src');
+$showList = isset($_REQUEST['list']);
+
+// if there's no user or action, assume they want a list
+if (!$targetUser)
+    $showList = true;
+
+// if there's no explicit source page, use the referer
+if (!$srcpage)
+    $srcpage = get_req_data('httpreferer');
+if (!$srcpage)
+    $srcpage = $_SERVER['HTTP_REFERER'];
+
+// get the URL-encoded version for use in parameters
+$srcpageParam = urlencode($srcpage);
+
+// look up the user
+$qTargetUser = mysql_real_escape_string($targetUser, $db);
+$result = mysql_query(
+    "select name, gender from users
+     where id = '$qTargetUser'", $db);
+$foundUser = mysql_num_rows($result);
+list($targetUserName, $gender) = mysql_fetch_row($result);
+
+// check for an existing filter
+$result = mysql_query(
+    "select filtertype from userfilters
+     where userid = '$curuser' and targetuserid = '$qTargetUser'", $db);
+list($oldFilter) = mysql_fetch_row($result);
+$filterNames = array('P' => "promote", 'D' => "demote", 'K' => "plonk");
+$oldFilterName = ($oldFilter ? $filterNames[$oldFilter] : false);
+
+$userl = "<a href=\"showuser?id=$targetUser\">$targetUserName</a>";
+$he = ($gender == 'M' ? "he" : ($gender = 'F' ? "she" : "he/she"));
+$him = ($gender == 'M' ? "him" : ($gender = 'F' ? "her" : "him/her"));
+$his = ($gender == 'M' ? "his" : ($gender = 'F' ? "her" : "his/her"));
+
+$err = false;
+$errMsg = $succMsg = false;
+
+if ($showList) {
+    $title = "Your User Filters";
+    $expl = "";
+} else if (!$qTargetUser || !$foundUser) {
+    $title = "User Filter";
+    $expl = "The specified user is not in the database. The link you "
+            . "clicked to reach this page might be broken.";
+    $err = true;
+} else if ($action == 'promote') {
+    $title = "$targetUserName - Promote User";
+    $newFilter = 'P';
+    $newFilterName = 'promote';
+    $newFiltered = "promoted";
+    $expl = "Promoting $userl will show you $his reviews first when you "
+            . "view game listings.  If you find this person's reviews "
+            . "especially helpful, you can use this option to ensure "
+            . "that you'll see them ahead of other people's reviews."
+            . "<p>Note that this is a personal customization that only "
+            . "affects you (and only when you're logged in).  It won't "
+            . "affect the order of reviews that other users see.";
+} else if ($action == 'demote') {
+    $title = "$targetUserName - Demote User";
+    $newFilter = 'D';
+    $newFilterName = 'demote';
+    $newFiltered = "demoted";
+    $expl = "Demoting $userl will show you $his reviews last when you "
+            . "view game listings.  If you find this person's reviews "
+            . "especially unhelpful, you can use this option to ensure "
+            . "that they'll appear after all other reviews."
+            . "<p>Note that this is a personal customization that only "
+            . "affects you (and only when you're logged in).  It won't "
+            . "affect the order of reviews that other users see.";
+} else if ($action == 'plonk') {
+    $title = "$targetUserName - Plonk User";
+    $newFilter = 'K';
+    $newFilterName = 'plonk';
+    $newFiltered = "plonked";
+    $expl = "Plonking $userl means that you'll <b>never</b> see $his "
+            . "reviews again, for this game or any other game.  They'll "
+            . "be completely hidden from your view - IFDB won't even "
+            . "mention that they exist.  This is the nuclear option, "
+            . "for someone you find so maddening that you don't want "
+            . "to see $his reviews at all any more."
+            . "<p>Note that this is a personal customization that only "
+            . "affects you (and only when you're logged in).  It won't "
+            . "actually delete this person's reviews from the database, "
+            . "and it won't hide $his reviews from anyone else.";
+} else if ($action == 'remove') {
+    $title = "$targetUserName - Remove User Filter";
+    $newFilter = false;
+    $newFilterName = 'reset';
+    $newFiltered = "reset to the default visibility and sorting order";
+    $expl = "This will un-$oldFilterName $userl, returning $his reviews to "
+            . "the normal visibility and sorting order when you view "
+            . "game listings.";
+} else {
+    $title = "User Filter";
+    $expl = "Invalid request - the link you used to reach this page "
+            . "appears to be broken.";
+    $err = true;
+}
+
+pageHeader($title);
+echo "<h1>$title</h1>";
+
+if ($err) {
+    // simply show the error message
+    echo $expl;
+    
+} else if ($showList) {
+    // do nothing just yet - we'll pick this up at the end
+    
+} else if ($confirm == 'Y') {
+
+    // are we returning to the list?
+    $backToList = ($srcpage == "userfilter?list");
+
+    // confirmation - apply the action
+
+    // delete any old filter
+    $progress = "UFD.901";
+    $result = mysql_query(
+        "delete from userfilters
+         where userid = '$curuser' and targetuserid = '$qTargetUser'", $db);
+
+    // insert the new filter, if applicable
+    if ($newFilter && $result) {
+        $progress = "UFI.902";
+        $result = mysql_query(
+            "insert into userfilters (userid, targetuserid, filtertype)
+             values ('$curuser', '$qTargetUser', '$newFilter')", $db);
+    }
+        
+    // formulate the result messages
+    if ($result) {
+        $succMsg = "Your change has been applied - $userl has been "
+                   . "$newFiltered. ";
+
+        if ($newFilter && !$backToList) {
+            $succMsg .=
+                "<p>You can review and change this and other user filter "
+                . "settings via the <a href=\"userfilter?list\">"
+                . "user filter editor</a>. ";
+        }
+
+    } else {
+
+        $errMsg = "An error occurred updating the database (error "
+                  . "code $progress). You might try again in a few "
+                  . "moments; if the error persists, "
+                  . "<a href=\"contact\">contact us</a>.";
+    }
+
+    // If we're going back to the list page, just proceed to show
+    // the list directly; otherwise show a confirmation page.
+    if (!$backToList) {
+
+        echo "$errMsg$succMsg"
+            . "<p><a href=\"$srcpage\">Return</a>";
+
+    }
+    else
+        $showList = true;
+
+} else {
+
+    // ask for confirmation
+    echo $expl;
+
+    if ($newFilter && $oldFilter) {
+        echo "<p>(This will override your current \"$oldFilterName\" "
+            . "setting for this user.)";
+    }
+
+    echo "<p>Do you really want to apply this change?"
+        . "<p><a href=\"userfilter?user=$targetUser&action=$action&confirm=Y"
+        . "&src=$srcpageParam\">Yes - $newFilterName this user</a>"
+        . "<br><a href=\"$srcpage\">No - return with no changes</a>";
+}
+
+// show the list, if applicable
+if ($showList) {
+
+    // show any error/success message from an update
+    if ($errMsg)
+        echo "<span class=errmsg>$errMsg</span><p>";
+    if ($succMsg)
+        echo "<span class=success>$succMsg</span><p>";
+
+    // showing the list - query the current filters
+    $result = mysql_query(
+        "select
+          users.id, users.name, userfilters.filtertype
+         from 
+          userfilters
+          join users on userfilters.targetuserid = users.id
+         where
+          userfilters.userid = '$curuser'", $db);
+
+    // add an explicit link back to the list for Return buttons
+    $from = "&src=userfilter%3Flist";
+
+    // check what we have
+    $rowcnt = mysql_num_rows($result);
+    if ($rowcnt == 0) {
+        echo "User filters let you to control how IFDB displays reviews and "
+            . "comments from members you point out whose contributions "
+            . "you especially like or dislike."
+            . "<p>User filters let you..."
+            . "<ul>"
+            .  "<li>Promote members you like, so their reviews are listed "
+            .    "first when you view game pages"
+            .  "<li>Demote members you don't find helpful, so their "
+            .    "reviews go to the end of the list"
+            .  "<li>\"Plonk\" members who especially annoy you, hiding "
+            .    "their reviews from you entirely"
+            . "</ul>"
+            . "<p>Your filter list is currently empty.  You can add a "
+            . "filter any time you're reading a review - the \"More "
+            . "Options\" menu lets you add a filter for the member "
+            . "who wrote the review you're looking at.";
+    } else {
+        echo "You have created filters for the following members:";
+
+        $typeMap = array('P' => 'Promoted',
+                         'D' => 'Demoted',
+                         'K' => 'Plonked');
+        for ($i = 0 ; $i < $rowcnt ; $i++) {
+            list($fuid, $funame, $ftype) = mysql_fetch_row($result);
+            $funame = htmlspecialcharx($funame);
+            $ftypename = $typeMap[$ftype];
+            
+            echo "<p><a href=\"showuser?id=$fuid\">$funame</a>: $ftypename"
+                . "<br><div class=indented><span class=details>";
+            
+            if ($ftype != 'P')
+                echo "<a href=\"userfilter?user=$fuid&action=promote$from\""
+                    . ">Promote</a> &nbsp; ";
+            if ($ftype != 'D')
+                echo "<a href=\"userfilter?user=$fuid&action=demote$from\""
+                    . ">Demote</a> &nbsp; ";
+            if ($ftype != 'K')
+                echo "<a href=\"userfilter?user=$fuid&action=plonk$from\""
+                    . ">Plonk</a> &nbsp; ";
+            
+            echo "<a href=\"userfilter?user=$fuid&action=remove$from\""
+                . ">Remove filter</a></span></div>";
+        }
+    }
+}
+
+pageFooter();
+?>

@@ -1,0 +1,81 @@
+<?php
+@session_start();
+include_once "util.php";
+include "pagetpl.php";
+helpPageHeader("What's an IFID?");
+?>
+
+<h1>What's an IFID?</h1>
+
+<p>IFID stands for Interactive Fiction IDentifier.  An IFID is a
+serial number that's assigned to each work of Interactive Fiction.
+Each work has its own unique IFID, giving players, authors, and
+archivists a universal, unambiguous way to refer to a given game.
+It's the same idea as the ISBN system for books.  The IFID system is
+defined by the <a href="http://babel.ifarchive.org">Treaty of
+Babel</a>, which was created in 2006.
+
+<h2>How do I determine a game's IFID?</h2>
+
+<p><b>If you're the author</b>, you're responsible for creating an
+IFID for your game.  Most of the current authoring systems have
+built-in tools that do this for you when you create a new project.  If
+you're not sure how this works in your system, the Treaty of Babel has
+the technical details.
+
+<p>If you're not the author, there are software tools that can find
+the IFID for a given story file.  The
+<a href="http://babel.ifarchive.org">Treaty of Babel</a> site has a
+free, portable program that does this.  Some author systems also
+include built-in IFID extraction tools (for example, in TADS Workbench
+on Windows, the <b>Tools &gt; Read IFID From...</b> command can
+extract the IFID from any story file, even for non-TADS games).
+
+
+<h2>Can a game have multiple IFIDs?</h2>
+
+<p>Yes.  The IFID for an older game (written before the IFID system
+was created) is based on the binary contents of the game's published
+story file.  If a pre-IFID game has been released more than once
+- for version updates or ports, for instance - each release will have
+a separate IFID, because each release's binary file contents will be
+at least slightly different.
+
+<p>A newer game with an explicitly assigned IFID should only have one
+IFID for its entire life cycle, no matter how many times it's
+published.  This is because an explicitly assigned IFID is stored
+directly in the story file, so the IFID extraction tool will find the
+assigned IFID and won't have to calculate an implied IFID based on the
+file contents.  So, even when the game has been published in multiple
+forms, it will always have the same IFID.
+
+
+<h2>If a game has multiple IFIDs, which should I use?</h2>
+
+<p>All of them.  IFIDs are intended to permanent, universal
+identifiers, so once a game is released with an IFID, that IFID
+forever refers to that game <i>in all of its versions</i>.
+
+<p>This means that you should generally never delete or change an IFID
+in a game's listing.  The only exception is when an IFID in the
+listing is wrong - if it has a typo, or someone accidentally entered
+an IFID for a different game, then the erroneous entry should be
+corrected or deleted.
+
+<p>But once a game is released with a given IFID, that IFID should
+stay in the game's listing, even if a new release has a different
+IFID.  In this case, you should simply add the new release's IFID to
+the listing, and keep the old one(s).  The reason is that the old
+version won't just disappear from the planet just because a new
+version came out - the old version will still be out there in on-line
+archives, individual hard disks, etc.  Someone who has a copy of the
+old version might someday want to find more information about the
+game.  To do this, they can extract the IFID from their copy using one
+of the Babel tools, then they can come here and look up the IFID in
+our database.  They'll find what they're looking for, so long as the
+game's listing includes all of the game's past and present IFIDs.
+
+
+<?php
+helpPageFooter();
+?>

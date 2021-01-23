@@ -1,0 +1,51 @@
+<?php
+@session_start();
+include_once "util.php";
+include "pagetpl.php";
+helpPageHeader("Guidelines for New Game Listings");
+?>
+
+<h1>What's this "Remarks" field for?</h1>
+
+<p>Quick summary: if you have an advertising link to post, please just
+type it in the box!
+
+<p>Longer explanation: This sounds ridiculous, but there's a whole
+industry devoted to posting spam to collaborative sites like IFDB.
+They employ a workforce whose basic job is to create Web forum
+accounts with spam links for profiles.  The spammers don't expect real
+people to look at the fake profiles, but they do hope that search
+engines will discover the ad links and count them in their page
+ranking statistics.
+
+<p>The Remarks field is part of our latest defense,
+which is to have an actual human review each registration.
+The Remarks field is key to the review: it gives you a chance to
+demonstrate that you're not a spammer.  So what should you type here?
+First off, don't just leave it blank, because that won't help us with
+our review; we'll just have to bounce your request back to you for
+another try.  Second, experience has shown that if you type "I'm not a
+spammer", you almost certainly are.  Third, you don't have to prove
+here that you're not a robot - that's what the squiggly word test
+below the Remarks field is for.
+
+<p>What we are looking for here is some kind of evidence that you know
+something about IFDB's subject matter.  The reason this is helpful in
+weeding out spam is that the spammers spend their wretched days creating
+accounts like this at one site after another.  They have quotas to
+meet, so they can't be bothered to know the details of each site.
+They don't care that a site is about muscle cars or pinball machines -
+they just want to post their Vi@gr@ spam and move on to the next site
+on their list.  So, what we're looking for is something that
+demonstrates that you're actually interested in IFDB, not just in
+creating Web accounts for the sake of creating Web accounts.  For
+example, if this were a site about pinball, something like "I love
+Williams machines from the mid 80s" or "I own a Twilight Zone with the
+blue LED clock mod" would do the trick.  On the other hand, if you're
+<i>not</i> interested in IFDB per se, but you're just looking for a
+place to post spam, please just enter your spam link into the Remarks
+box, and we'll be happy to file it in a suitable location.
+
+<?php
+helpPageFooter();
+?>

@@ -1,0 +1,49 @@
+<?php
+@session_start();
+include_once "util.php";
+include "pagetpl.php";
+helpPageHeader("CSS Help");
+?>
+
+<h1>CSS Help</h1>
+
+<p>CSS (Cascading Style Sheets) is a Web standard, like HTML, so it's
+easy to find documentation about it on the Internet.  Here are a
+couple of pointers to get you started:
+
+<ul>
+   <li><a href="http://en.wikipedia.org/wiki/Cascading_Style_Sheets" target="_blank">
+      Wikipedia: Cascading Style Sheets</a>
+   <li><a href="http://www.w3.org/TR/CSS1" target="_blank">
+      Cascading Style Sheets, Level 1</a>
+      (the official specification from W3C)</a>
+</ul>
+
+<h2>Import the Default Style Sheet</h2>
+
+<p>Here's an important tip: you should always start your custom style sheets
+with this line:
+<p><pre>
+   @import url("/ifdb.css");
+</pre>
+<p>This includes all of the styles from the default IFDB style sheet,
+so that you only have to define <i>exceptions</i> to the standard
+formatting.  Everything you add to your style sheet will override the
+imported defaults, but anything you <i>don't</i> override will fall back
+on the defaults.  This ensures that if any new styles are added in the
+future, they'll be supported automatically in your style sheet by
+virtue of being included from the standard definitions.
+
+<h2>Custom Graphics</h2>
+
+<p>A style sheet can override most of the graphics on IFDB.  To use
+your own custom graphics, you first need to upload your images to IFDB
+using the <a href="/stylepics" target="_blank">Style Sheet Image
+Manager</a>.  Once you've uploaded your images, you can use them in a
+style sheet - look at the standard style sheet (<a href="/ifdb.css"
+target="_blank">ifdb.css</a>) and search for "background:" styles to
+see how it's done.
+
+<?php
+helpPageFooter();
+?>

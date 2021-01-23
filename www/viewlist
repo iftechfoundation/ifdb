@@ -1,0 +1,98 @@
+<?php
+
+@session_start();
+
+include "pagetpl.php";
+include_once "util.php";
+include "lists.php";
+
+include_once "dbconnect.php";
+$db = dbConnect();
+
+include_once "login-persist.php";
+$curuser = checkPersistentLogin();
+
+$listid = $_REQUEST['id'];
+$qlistid = mysql_real_escape_string($listid, $db);
+
+$pageTitle = "View List";
+
+$errMsg = false;
+$result = mysql_query(
+    "select title, `desc`,
+         date_format(reclists.moddate, '%M %e, %Y') as moddate,
+         userid, users.name as username, users.location as location
+    from
+       reclists, users
+    where
+       reclists.id = '$qlistid'
+       and users.id = reclists.userid", $db);
+
+if (mysql_num_rows($result) == 0) {
+    $errMsg = "The requested list was not found in the database.";
+} else {
+    list($title, $desc, $moddate,
+         $ownerID, $ownerName, $ownerLoc) = mysql_fetch_row($result);
+
+    $pageTitle = htmlspecialcharx($title) . " - Recommended List";
+
+    // load the list contents
+    $result = mysql_query(
+        "select gameid as tuid, title, author,
+             date_format(published, '%Y') as pubyear,
+             (coverart is not null) as hasart,
+             comments, displayorder
+         from
+             reclistitems, games
+         where
+             listid = '$qlistid'
+             and games.id = reclistitems.gameid
+         order by displayorder", $db);
+
+    for ($items = array(), $i = 0 ; $i < mysql_num_rows($result) ; $i++) {
+        // fetch the item
+        $item = mysql_fetch_array($result, MYSQL_ASSOC);
+
+        // set up the match-list subarray
+        $match = $item;
+        $match['id'] = $item['tuid'];
+        $item['matches'] = array($match);
+
+        // add this item to the master list
+        $items[] = $item;
+    }
+}
+
+pageHeader($pageTitle);
+
+if ($errMsg) {
+    echo "<span class=errmsg>$errMsg</span><br>";
+} else {
+
+    // show the list
+    showRecList($db, $qlistid, $ownerID, $ownerName, $ownerLoc,
+                $title, $desc, $moddate, $items, "", true);
+
+    // show some options
+    echo "<p><hr class=dots><p>";
+
+    if ($curuser && $ownerID == $curuser) {
+        echo "<a href=\"editlist?id=$listid\">Edit this list</a><br>"
+            . "<a href=\"alllists?user=$ownerID\">"
+            . "See all of your lists</a><br>"
+            . "<a href=\"editlist?id=new\">"
+            . "Create a new list</a><br>";
+    } else {
+        // it's another user's list
+        echo "<a href=\"showuser?id=$ownerID\">"
+            . "View this member's profile</a><br>"
+            . "<a href=\"alllists?user=$ownerID\">"
+            . "See all lists by this member</a><br>"
+            . "<br>"
+            . "<a href=\"editlist?id=new\">"
+            . "Create your own Recommended List</a><br>";
+    }
+}
+
+pageFooter();
+?>

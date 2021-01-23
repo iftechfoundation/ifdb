@@ -1,0 +1,49 @@
+<?php
+
+@session_start();
+include_once "dbconnect.php";
+include_once "util.php";
+include "pagetpl.php";
+include_once "login-persist.php";
+include "newitems.php";
+
+$db = dbConnect();
+
+define("PER_PAGE", 50);
+$pg = isset($_REQUEST['pg']) ? $_REQUEST['pg'] : "";
+if ($pg < 1)
+    $pg = 1;
+
+// calculate where that puts us in the results
+$firstOnPage = ($pg - 1) * PER_PAGE;
+$lastOnPage = $firstOnPage + PER_PAGE - 1;
+
+// query the items
+$items = getNewItems($db, $lastOnPage);
+$tot = count($items);
+
+// set up the page controls
+$pageCtl = "<span class=details>"
+           . makePageControl("allnew?", $pg, $pg + ($tot > PER_PAGE ? 1 : 0),
+                             $firstOnPage, $lastOnPage, -1,
+                             false, false, false)
+           . "</span>";
+
+
+// start the page
+pageHeader("New on IFDB");
+echo "<h1>New on IFDB</h1>";
+
+// show the page controls
+echo "$pageCtl<p><hr class=dots><p>";
+
+// show the new items
+showNewItems($db, $firstOnPage, $lastOnPage, $items);
+
+// show the page controls again at the bottom
+echo "<p><hr class=dots><p>$pageCtl<br>";
+
+// end the page
+pageFooter();
+
+?>

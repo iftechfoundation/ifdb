@@ -1,0 +1,29 @@
+<?php
+@session_start();
+include "pagetpl.php";
+include_once "util.php";
+
+include_once "dbconnect.php";
+$db = dbConnect();
+
+// make sure the client agent knows this is CSS
+header("Content-Type: text/css");
+
+$id = get_req_data('id');
+if ($id) {
+    $id = mysql_real_escape_string($id, $db);
+    $result = mysql_query(
+        "select contents from stylesheets where stylesheetid='$id'", $db);
+    if (mysql_num_rows($result) > 0) {
+        $cont = mysql_result($result, 0, "contents");
+        echo $cont;
+
+        // we've sent the style sheet - we're done
+        return;
+    }
+}
+
+// if we made it this far, we didn't find the requested style sheet -
+// fall back on the fixed default style sheet
+readfile("ifdb.css");
+?>

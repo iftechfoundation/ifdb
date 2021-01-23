@@ -1,0 +1,177 @@
+<?php
+
+// we have to be logged in to do this
+@session_start();
+include "login-check.php";
+if (!logged_in())
+    exit();
+
+$curuser = $_SESSION['logged_in_as'];
+
+// include some utility modules
+include "pagetpl.php";
+include "reviews.php";
+include_once "util.php";
+
+// connect to the database
+include_once "dbconnect.php";
+$db = dbConnect();
+
+// get the parameters
+$reviewID = get_req_data('review');
+$flagType = get_req_data('type');
+$confirm = get_req_data('confirm');
+$notes = get_req_data('notes');
+
+// if there's no return page in the parameters, use the referer
+$srcpage = get_req_data('src');
+if (!$srcpage)
+    $srcpage = get_req_data('httpreferer');
+if (!$srcpage)
+    $srcpage = $_SERVER['HTTP_REFERER'];
+$srcpageParam = urlencode($srcpage);
+
+$flag = false;
+$errMsg = false;
+$succMsg = false;
+
+// query the review
+$result = mysql_query(getReviewQueryByReview($db, $reviewID), $db);
+if (mysql_num_rows($result) == 0) {
+    $errMsg = "The specified review is not in the database.  The review "
+              . "might have been recently deleted, or the link you used "
+              . "to reach this page might be broken.";
+}
+$rec = mysql_fetch_array($result, MYSQL_ASSOC);
+
+// validate the flag type
+if ($flagType == 'spoilers') {
+    $flag = 'S';
+    $title = "Flag Spoilers";
+    $expl = "This will mark the review as containing spoilers that "
+            . "<b>aren't</b> properly hidden behind \"Click to show\" "
+            . "warnings.  After you flag the review, IFDB will hide its "
+            . "<i>entire contents</i> behind a spoiler warning. "
+            . "<i>Everyone</i> will see the warning (but they'll still "
+            . "have the option to click past the warning to see the "
+            . "review).";
+} else {
+    $title = "Flag Review";
+    $errMsg = "Invalid parameters - the link that you used to reach this "
+              . "page appears to be broken.";
+}
+
+pageHeader($title);
+
+// check what we're doing
+if ($confirm == 'Y' && $flag && !$errMsg) {
+
+    // make sure there's an explanation
+    if (strlen($notes) == 0) {
+        $errMsg = "Please enter an explanation, to give the review's author "
+                  . "a better understanding of what you think they should "
+                  . "change.";
+    } else if (strlen($notes) < 15) {
+        $errMsg = "Please enter a longer explanation, so that the review's "
+                  . "author can understand what you think they should "
+                  . "change.";
+    }
+
+    // confirming an action
+    if (!$errMsg) {
+        // quote the parameters
+        $qReviewID = mysql_real_escape_string($reviewID, $db);
+        $qNotes = mysql_real_escape_string($notes, $db);
+
+        // delete any redundant flag
+        $progress = "RFI701";
+        $result = mysql_query(
+            "delete from reviewflags
+             where
+                reviewid = '$qReviewID'
+                and flagger = '$curuser'
+                and flagtype = '$flag'", $db);
+
+        // insert the new flag
+        if ($result) {
+            $progress = "RFD702";
+            $result = mysql_query(
+                "insert into reviewflags
+                 (reviewid, flagger, flagtype, notes, created)
+                 values ('$qReviewID', '$curuser', '$flag',
+                 '$qNotes', now())", $db);
+        }
+
+        // check the results
+        if ($result) {
+
+            // success
+            echo "<h1>$title</h1>"
+                . "<p><span class=success>Your flag has been submitted."
+                . "</span>"
+                . "<p><a href=\"$srcpage\">Return</a>";
+    
+        } else {
+            // set up the error and fall through to the confirmation form
+            $errMsg = "An error occurred updating the database (error "
+                      . "code $progress). You might try again in a few "
+                      . "minutes; if the problem persists, you can "
+                      . "<a href=\"contact\">contact us</a>.";
+        }
+    }
+}
+
+if (!$confirm || $errMsg || $succMsg) {
+    // pre-confirmation - explain the plan and ask for confirmation
+
+    echo "<h1>$title</h1>";
+
+    if ($errMsg)
+        echo "<span class=errmsg>$errMsg</span><p>";
+    if ($succMsg)
+        echo "<span class=success>$succMsg</span><p>";
+
+    echo $expl;
+
+    echo "<p><b>Please flag with care.</b> Flagging is an important part "
+        . "of IFDB's " . helpWinLink("help-comm-mod", "community moderation")
+        . " system; please use this feature "
+        . "responsibly to help improve IFDB for everyone. Note that "
+        . "the review's author will see your screen name as the flagger, "
+        . "and will see the explanation you enter below."
+
+        . "<p>The point of flagging is <b>not</b> to punish anyone - it's "
+        . "to encourage the author to fix a problem that they might not "
+        . "even be aware of.  Please be courteous and helpful in explaining "
+        . "what you think should be changed and why."
+        
+        . "<p><form name=\"flag\" method=\"post\" action=\"reviewflag\">"
+        . "<input type=hidden name=review value=\"$reviewID\">"
+        . "<input type=hidden name=type value=\"$flagType\">"
+        . "<input type=hidden name=src value=\"$srcpage\">"
+        . "<input type=hidden name=confirm value=\"Y\">"
+        
+        . "<b>Explain why you're flagging this review:</b><br> "
+        . "<textarea cols=80 rows=5 name=\"notes\">"
+        . htmlspecialcharx($notes)
+        . "</textarea><br>"
+        . "<p>"
+        . "<input type=submit name=okbutton value=\"Submit flag\">"
+        . "<p><a href=\"$srcpage\">Return without flagging</a>"
+        . "</form>";
+
+    // show the review, if we found it
+    if ($rec) {
+        echo "<p><hr class=dots>"
+            . "For your reference, here's the review you're flagging:<p>";
+
+        // remove the flags for the purposes of showing the review
+        $rec['flags'] = '';
+        showReview($db, $rec['gameid'], $rec, initSpecialNames($db),
+                   SHOWREVIEW_NOVOTECTLS);
+    }
+}
+
+pageFooter();
+
+?>

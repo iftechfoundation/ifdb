@@ -1,0 +1,51 @@
+<?php
+
+include_once "util.php";
+include_once "reviews.php";
+
+$srcCode = 'R';
+$type = "review";
+$typeName = "review";
+$typeTitle = "Review";
+$ownSrc = "a review you wrote";
+$ownerDesc = "author of this review";
+
+$baseUrl = "reviewcomment";
+$srcParamName = "review";
+
+
+include "comment.php";
+
+function getCommentReference($db, $srcID)
+{
+    // query the review
+    $result = mysql_query(getReviewQueryByReview($db, $srcID), $db);
+
+    // if we didn't find a review, it's a fatal error
+    if (mysql_num_rows($result) == 0) {
+        return array(
+            false, false, false, true,
+            "The specified review is not in the database.  The review "
+            . "might have been recently deleted, or the link you used "
+            . "to reach this page might be broken.");
+    }
+
+    // return the record
+    $rec = mysql_fetch_array($result, MYSQL_ASSOC);
+    return array($rec, $rec['userid'], $rec['username']);
+}
+
+function showCommentReference($db, $rec)
+{
+    // show the review, if we found it
+    if ($rec) {
+        echo "<p><hr class=dots>For your reference, here's the "
+            . "review you're commenting on:<p>";
+
+        // remove the flags for the purposes of showing the review
+        $rec['flags'] = '';
+        showReview($db, $rec['gameid'], $rec, initSpecialNames($db),
+                   SHOWREVIEW_NOVOTECTLS);
+    }
+}
+?>

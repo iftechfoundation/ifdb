@@ -1,0 +1,139 @@
+<?php
+
+@session_start();
+include_once "util.php";
+include "pagetpl.php";
+include "login-check.php";
+
+function sendResponse($statmsg, $errmsg, $detail)
+{
+    global $xml;
+    
+    if ($xml)
+    {
+        header("Content-Type: text/xml");
+        header("Expires: Mon, 26 Jul 1997 05:00:00 GMT");
+        header("Cache-Control: no-store, no-cache, must-revalidate");
+
+        echo "<?xml version=\"1.0\" encoding=\"UTF-8\" ?><response>"
+            . ($statmsg ? "<label>$statmsg</label>" : "")
+            . ($errmsg ? "<error>$errmsg</error>" : "")
+            . "</response>";
+    }
+    else
+    {
+        smallPageHeader("Rate a Game");
+        if ($errmsg)
+            echo "<span class=errmsg>$errmsg</span><p>";
+
+        echo $detail;
+        smallPageFooter();
+    }
+
+    exit();
+}
+
+// connect to the database
+include_once "dbconnect.php";
+$db = dbConnect();
+if ($db == false)
+    sendResponse("Not Saved", "An error occurred connecting to the database. "
+                 . "Please try again later.", false);
+
+// get the request parameters
+$game = get_req_data('game');
+$rating = (int)get_req_data('rating');
+$xml = isset($_REQUEST['xml']);
+
+// make sure there's a game
+if ($game == "")
+    sendResponse("Not Saved", "No game was specified.", false);
+
+// make sure we process any persistent login state
+$userid = checkPersistentLogin();
+if (!$userid && !$xml && !logged_in(true))
+    exit();
+
+// make sure we're logged in
+if (!$userid)
+    sendResponse("Not Saved", "To rate a game, please log in.", false);
+
+// make sure the game is valid
+$qgame = mysql_real_escape_string($game, $db);
+$result = mysql_query("select id from games where id = '$qgame'", $db);
+if (mysql_num_rows($result) == 0)
+    sendResponse("Not Saved", "The specified game was not found.", false);
+
+// if there's an existing review for this user for this game, simply update
+// the rating; otherwise insert a new row with an empty review
+$result = mysql_query("lock tables reviews write", $db);
+if ($result) {
+    $result = mysql_query(
+        "select id, review from reviews
+         where gameid='$qgame' and userid='$userid'", $db);
+}
+if ($result && mysql_num_rows($result)) {
+    // get the existing review ID
+    $rid = mysql_result($result, 0, "id");
+    $review = mysql_result($result, 0, "review");
+} else {
+    $rid = false;
+    $review = false;
+}
+
+// make sure the rating is valid
+// a rating of zero deletes the rating, as long as there's no review
+if ($rating == 0 && !$review) {
+    // there's no review, so this is fine
+} else if ($rating == 0) {
+    // we have a review, so we can't clear it
+    sendResponse("Not Saved", "You've written a review for this game. "
+                 . "To remove the rating, you must delete the review."
+                 . " (review text = \"$review\")",
+                 false);
+} else if ($rating < 1 || $rating > 5) {
+    sendResponse("Not Saved", "The rating specified is not valid.", false);
+}
+
+// set the rating:
+//
+// - if there's an existing review and the rating is zero, delete it
+// - if there's an existing review and the rating is non-zero, update it
+// - if there's no existing review, insert it
+if ($rating == 0 && $rid) {
+    // rating to zero -> delete the review
+    $result = mysql_query("delete from reviews where id='$rid'", $db);
+    $ok = "Your rating has been removed.";
+
+} else if ($rating != 0 && $rid) {
+    // there's an existing review - update its rating
+    $result = mysql_query(
+        "update reviews set rating = '$rating' where id='$rid'", $db);
+    $ok = "Your rating has been updated.";
+
+} else if ($rating != 0) {
+    // there's no review there yet for this user, so insert a new one
+    $result = mysql_query(
+        "insert into reviews (userid, gameid, createdate, rating)
+         values ('$userid', '$qgame', now(), '$rating')", $db);
+    $ok = "Your rating has been set.";
+} else {
+    $result = false;
+    $ok = false;
+}
+
+// release the table lock
+mysql_query("unlock tables", $db);
+
+// check the result
+if ($result) {
+    sendResponse("Saved", false, $ok);
+} else if ($ok) {
+    sendResponse("Not Saved", "An error occurred updating the database. "
+                 . "Please try again later.", false);
+} else {
+    sendResponse("Not Saved", "The request was invalid.", false);
+}
+
+smallPageFooter();
+?>

@@ -1,0 +1,873 @@
+<?php
+
+include "pagetpl.php";
+include_once "util.php";
+
+// we have to be logged in to edit a game
+@session_start();
+include_once "login-persist.php";
+$userid = checkPersistentLogin();
+
+include_once "dbconnect.php";
+$db = dbConnect();
+
+// if there's an image upload, process that
+include "imageuploadhandler.php";
+
+// translate image button request parameters to the normal SUBMIT button style
+foreach (array("save") as $b) {
+    if (isset($_REQUEST[$b . "_x"]) && !isset($_REQUEST[$b]))
+        $_REQUEST[$b] = true;
+}
+
+$errMsg = false;
+$errDetail = array();
+$saveErrMsg = false;
+$pagetitle = "Edit Formats";
+
+$fmtclassMap = array(
+    "" => "Unspecified/Other",
+    "X" => "Executable",
+    "G" => "Story File (Requires Interpreter)",
+    "Z" => "Compressed Archive Format");
+
+// check to see if we're editing a particular format
+$fmtid = get_req_data('id');
+$qfmtid = mysql_real_escape_string($fmtid, $db);
+$externid = get_req_data('externid');
+$qexternid = mysql_real_escape_string($externid, $db);
+
+$dlastr = get_req_data('dla');
+if ($dlastr) {
+    list($dlaos, $dlavsn) = explode(".", $dlastr);
+    $dlaos = (int)$dlaos;
+    $dlavsn = ($dlavsn != "" ? (int)$dlavsn : "");
+}
+
+$geticon = mysql_real_escape_string(get_req_data('geticon'), $db);
+
+// assume no privileges
+$thisFmtPriv = $allFmtPriv = false;
+$thisOsPriv = $allOsPriv = false;
+$userprivs = $adminPriv = false;
+
+// check the user for ADMIN and EDIT FORMATS privileges
+if ($userid) {
+    $result = mysql_query(
+        "select `privileges` from users where id='$userid'", $db);
+    $userprivs = mysql_result($result, 0, "privileges");
+    $adminPriv = (strpos($userprivs, "A") !== false);
+    $allFmtPriv = (strpos($userprivs, "F") !== false);
+    $allOsPriv = (strpos($userprivs, "O") !== false);
+}
+
+// check the user for specific format privileges for the target format
+if ($fmtid && $userid) {
+    $result = mysql_query("select fmtid from formatprivs
+        where userid='$userid' and fmtid='$qfmtid'", $db);
+    if (mysql_num_rows($result) > 0)
+        $thisFmtPriv = true;
+}
+
+// check the user for specific OS privileges for the target OS
+if ($dlastr && $userid) {
+    $result = mysql_query("select osid from osprivs
+        where userid='$userid' and osid='$dlaos'", $db);
+    if (mysql_num_rows($result) > 0)
+        $thisOsPriv = true;
+}
+
+
+// determine if editing is authorized based on the data
+$editFmtPriv = ($adminPriv || $allFmtPriv || $thisFmtPriv);
+$editDlaPriv = ($editFmtPriv || $allOsPriv || $thisOsPriv);
+
+// get the request parameters
+$fmtname = get_req_data('fmtname');
+$fmtdesc = get_req_data('desc');
+$fmtwebsite = get_req_data('website');
+$fmticon = get_req_data('icon');
+$fmtclass = get_req_data('fmtclass');
+$fmtext = get_req_data('extension');
+
+// if we just uploaded a picture, select it
+$fmticon = getJustUploadedImage($fmticon);
+
+define("FT_TEXT", 1);
+define("FT_STRING", 2);
+
+define("FGRP_DLA", 1000);
+define("FGRP_AUTOINSTALL", 2000);
+
+if ($dlastr) {
+    $dlafields = array(
+        array('dlinstructions', FT_TEXT, FGRP_DLA,
+              "Instructions for <b>downloading and installing</b> the "
+              . "Interpreter/Player/Viewer application for this format"),
+        array('runinstructions', FT_TEXT, FGRP_DLA,
+              "Instructions for <b>running</b> the Interpreter/Player"
+              . "/Viewer application to run/play/view a local file called "
+              . "<b>{fname}</b> (or a game called <b>{title}</b>)"),
+        array('installer', FT_TEXT, FGRP_AUTOINSTALL,
+              "One or more &lt;interpreter&gt; sections (giving automated "
+              . "install instructions for this format's interpreter(s))"));
+   
+    $dlarec = array();
+    foreach ($dlafields as $f)
+        $dlarec[$f[0]] = get_req_data($f[0]);
+}
+
+function showHiddenFields()
+{
+    global $fmtid, $externid, $fmtname, $fmtdesc, 
+        $fmtwebsite, $fmticon, $fmtclass, $fmtext;
+    
+    echo "<input type=hidden name=id value=\""
+        . htmlspecialcharx($fmtid) . "\">"
+        . "<input type=hidden name=externid value=\""
+        . htmlspecialcharx($externid) . "\">"
+        . "<input type=hidden name=edit value=1>"
+        . "<input type=hidden name=fmtname value=\""
+        . htmlspecialcharx($fmtname) . "\">"
+        . "<input type=hidden name=desc value=\""
+        . htmlspecialcharx($fmtdesc) . "\">"
+        . "<input type=hidden name=website value=\""
+        . htmlspecialcharx($fmtwebsite) . "\">"
+        . "<input type=hidden name=icon value=\""
+        . htmlspecialcharx($fmticon) . "\">"
+        . "<input type=hidden name=extension value=\""
+        . htmlspecialcharx($fmtext) . "\">"
+        . "<input type=hidden name=fmtclass value=\""
+        . htmlspecialcharx($fmtclass) . "\">";
+}
+
+// get the old settings for the selected format
+$oldexternid = $oldname = $olddesc = $oldwebsite =
+    $hasicon = $oldicon = $oldclass = $olddla = $oldext = "";
+if ($fmtid) {
+    // query the database values
+    $result = mysql_query("select externid, fmtname, `desc`, website,
+        (icon is not null) as icon, fmtclass, extension
+        from filetypes where id = '$qfmtid'", $db);
+
+    // load the values
+    if ($result && mysql_num_rows($result)) {
+        $oldexternid = mysql_result($result, 0, "externid");
+        $oldname = mysql_result($result, 0, "fmtname");
+        $olddesc = mysql_result($result, 0, "desc");
+        $oldwebsite = mysql_result($result, 0, "website");
+        $hasicon = mysql_result($result, 0, "icon");
+        $oldicon = ($hasicon ? "old" : "none");
+        $oldclass = mysql_result($result, 0, "fmtclass");
+        $oldext = mysql_result($result, 0, "extension");
+    }
+}
+            
+
+// get the old settings for the selected DLA entry
+if ($dlastr) {
+    // query the database values
+    $dlaWhere = "fmtid = '$qfmtid' and osid = '$dlaos' and osvsnid "
+                . ($dlavsn ? "= '$dlavsn'" : "is null");
+    $result = mysql_query("select * from downloadhelp
+        where $dlaWhere", $db);
+    if (mysql_num_rows($result) > 0)
+        $olddla = mysql_fetch_array($result, MYSQL_ASSOC);
+    else
+        $olddla = false;
+}
+
+// if the current icon setting refers to an uploaded image
+// that's been discarded, revert to the old icon
+if (substr($fmticon, 0, 3) == "tmp" && !findTempImage($fmticon))
+    $fmticon = $oldicon;
+
+// if this isn't a post, use the old values from the database
+if ($_SERVER['REQUEST_METHOD'] != 'POST') {
+    $externid = $oldexternid;
+    $fmtname = $oldname;
+    $fmtdesc = $olddesc;
+    $fmtwebsite = $oldwebsite;
+    $fmticon = $oldicon;
+    $fmtclass = $oldclass;
+    $fmtext = $oldext;
+    $dlarec = $olddla;
+} else {
+    if (!isset($_REQUEST['fmtname']))
+        $fmtname = $oldname;
+}
+
+// show the appropriate screen, depending on what we're doing
+if ($geticon) {
+
+    // ?geticon=xxx - send the icon
+    $result = mysql_query("select icon from filetypes
+        where id='$geticon'", $db);
+    $iconData = ($result && mysql_num_rows($result)
+                 ? mysql_result($result, 0, "icon") : "");
+    sendImage($iconData, "gif", null);
+    exit();
+
+} else if ($dlastr) {
+
+    // ?dla=xxx - view/edit/update the download adviser data for a
+    // format.OS intersection
+
+    $saving = $deleting = false;
+
+    if ($editDlaPriv
+        && $olddla
+        && $_SERVER['REQUEST_METHOD'] == 'GET'
+        && isset($_REQUEST['delete'])) {
+
+        $deleting = true;
+        $result = mysql_query("delete from downloadhelp where $dlaWhere", $db);
+        if (!$result)
+            $saveErrMsg = "A database error occurred deleting the record. "
+                          . "The record was <b>not</b> deleted.";
+
+        $_REQUEST['edit'] = true;
+    }
+
+    if ($editDlaPriv
+        && $_SERVER['REQUEST_METHOD'] == 'POST'
+        && isset($_REQUEST['save'])) {
+
+        $saving = true;
+
+        $vals = array();
+        foreach ($dlafields as $f) {
+            $col = $f[0];
+            $val = $dlarec[$col];
+            $val = ($val == ""
+                    ? "null"
+                    : "'" . mysql_real_escape_string($val, $db) . "'");
+            $vals[$col] = $val;
+        }
+
+        // Saving download adviser updates
+        if ($olddla) {
+            // updating an existing record
+            $progress = "updating DLA record";
+            $sql = "update downloadhelp set ";
+            $collist = array();
+            foreach ($vals as $col=>$val)
+                $collist[] = "$col = $val";
+            $sql .= implode(",", $collist) . " where $dlaWhere";
+        } else {
+            // inserting a new record
+            $progress = "inserting new DLA record";
+            $sql = "insert into downloadhelp (fmtid, osid, osvsnid";
+            foreach ($vals as $col=>$val)
+                $sql .= ", $col";
+            $sql .= ") values ('$qfmtid', '$dlaos', "
+                    . ($dlavsn == "" ? "null" : "'$dlavsn'");
+            foreach ($vals as $val)
+                $sql .= ", $val";
+            $sql .= ")";
+        }
+
+        $result = mysql_query($sql);
+        if ($result) {
+            mysql_query("insert into audit (userid, action)
+               values ('$userid', '" . mysql_real_escape_string($sql, $db)
+                        . "')", $db);
+        }
+        else
+            $saveErrMsg = "A database error occurred (failed operation:
+                $progress) - changes were <b>not</b> saved.";
+    }
+
+    // get the OS name for display purposes
+    $result = mysql_query(
+        "select name from osversions where vsnid='$dlavsn'", $db);
+    $osname = mysql_result($result, 0, "name");
+    if ($osname == "*" || $osname == "*") {
+        $suffix = ($osname == "*" ? " (All Versions)" : "");
+        $result = mysql_query(
+            "select name from operatingsystems where id='$dlaos'", $db);
+        $osname = mysql_result($result, 0, "name") . $suffix;
+    }
+
+    $editing = $editDlaPriv && isset($_REQUEST['edit']);
+
+    pageHeader("Download Adviser",
+               $editing ? "editdla." . $dlafields[0][0] : false);
+
+    echo "<h1>Download Adviser Data - "
+        . htmlspecialcharx($fmtname) . " for "
+        . htmlspecialcharx($osname) . "</h1><p>";
+
+    if ($olddla && !$editing && $editDlaPriv)
+        echo "<a href=\"fileformat?id=$fmtid&dla=$dlastr&edit\">"
+            . "Edit this Download Adviser entry</a><br>";
+
+    if ($olddla && $editing)
+        echo "<a href=\"fileformat?id=$fmtid&dla=$dlastr\">Return to the "
+            . htmlspecialcharx($fmtname) . " for "
+            . htmlspecialcharx($osname) . " Download Adviser overview</a><br>";
+
+    echo "<a href=\"fileformat?id=$fmtid\">Return to the "
+        . htmlspecialcharx($fmtname) . " format overview</a><br>"
+        . "<a href=\"fileformat\">Return to the format list</a>";
+
+    if ($olddla && $editing)
+        echo "<p><a href=\"fileformat?id=$fmtid&dla=$dlastr&delete\">Delete "
+            . "this entire Download Adviser record</a><br>";
+
+    if ($editing) {
+
+        // Editing the Download Adviser entry for a Format.OS combination
+
+        function showDlaFields($grp)
+        {
+            global $dlafields, $dlarec;
+            foreach ($dlafields as $f) {
+                if ($f[2] == $grp) {
+                    echo "<p>{$f[3]}:<br>";
+                    $nm = "name=\"{$f[0]}\" id=\"{$f[0]}\"";
+                    $val = htmlspecialcharx($dlarec[$f[0]]);
+                    switch ($f[1]) {
+                    case FT_TEXT:
+                        echo "<textarea $nm rows=10 cols=60>$val</textarea>";
+                        break;
+
+                    case FT_STRING:
+                        echo "<input type=text $nm size=50 value=\"$val\">";
+                        break;
+                    }
+                }
+            }
+        }
+
+        if ($saveErrMsg)
+            echo "<p><span class=errmsg>$saveErrMsg</span><p>";
+        else if ($saving)
+            echo "<p><span class=success>Your changes were saved.</span><p>";
+        else if ($deleting)
+            echo "<p><span class=success>This record has been deleted. You "
+                . "can reinstate it by clicking Save Changes. If you leave "
+                . "this page without saving, the record will be permanently "
+                . "deleted.</span><p>";
+
+        echo "<form name=\"editdla\" id=\"editdla\" method=\"post\" "
+            . "action=\"fileformat\">"
+            . "<input type=hidden name=id value=\"$fmtid\">"
+            . "<input type=hidden name=dla value=\"$dlastr\">"
+            . "<input type=hidden name=edit value=1>";
+
+        echo "<h2>Instruction Entries</h2>"
+            . "<span class=notes>The Download Adviser constructs its "
+            . "step-by-step instructions from these fields.  The DLA "
+            . "first figures out which file types are available for "
+            . "a selected game on the user's OS, then looks up the "
+            . "DLA records for the relevant File Type/OS combinations, "
+            . "and finally displays the instructions from those records. "
+            . "<p><ul>"
+            . "<li>Full HTML is allowed (make sure it's valid - "
+            . "the system doesn't filter it before display)"
+            . "<li>Leave a field blank to \"inherit\" the value from "
+            . "the next earlier OS version with a non-blank setting"
+            . "<li>Start with the <b>goal</b>: \"If you "
+            . "don't already have a TADS Interpreter, install it as "
+            . "follows...\""
+            . "<li>Use a &lt;UL&gt;...&lt;LI&gt;...&lt;LI&gt;...&lt;/UL&gt; "
+            . "sub-list if you need to display multiple steps.  If the "
+            . "<b>entire</b> entry is a &lt;UL&gt; list, it will be bumped "
+            . "up a level and displayed as steps at the top level of the "
+            . "overall instructions list. If you want a true sublist, just "
+            . "put something before the opening &lt;UL&gt;."
+            . "<li>&lt;download href=\"<i>url</i>\" "
+            . "localref=\"<i>localname</i>\" "
+            . "compression=\"<i>format</i>\" run=\"filename\"&gt; - show "
+            . "instructions for downloading a file; if "
+            . "<i>localref=localname</i> is present, <i>localname</i> is "
+            . "used as the default filename for the downloaded local copy "
+            . "of the file, otherwise the local copy is assumed to be "
+            . "named as the root name from the URL; "
+            . "<i>compression=format</i> is present, adds instructions "
+            . "for unpacking a compressed file (e.g., ZIP); if <i>run</i> "
+            . "is present <i>without</i> a filename, we add instructions "
+            . "for running the downloaded file itself; if <i>run</i> is "
+            . "present <i>with</i> a filename, we add instructions for "
+            . "running the given local file after unpacking it from the "
+            . "compressed archive"
+            . "<li>use &lt;skip&gt; as the <b>entire</b> contents of "
+            . "an instruction field if the step isn't necessary on this "
+            . "OS; for example, on later Windows versions, installing "
+            . "an UNZIP tool isn't necessary because Windows has ZIP "
+            . "tools built in"
+            . "<li>Parameters of the form {xxx}, as listed in a field's "
+            . "description, are substituted for the actual download data "
+            . "before display"
+            . "<li>{lb} produces a left brace '{', {rb} a right brace '}'"
+            . "<li>#include <i>terp-name.terp-version.format-name</i>, "
+            . "on a line by itself, inserts the contents of the "
+            . "corresponding field from the DLA record for the named "
+            . "interpreter (use \"external names\" for all name parts:"
+            . "for example, \"win-gargoyle.*.*\" for the All Formats/All "
+            . "Versions DLA entry for Gargoyle). "
+            . "This allows sharing of DLA records for multi-format "
+            . "interpreters - define the data for the interpreter, then "
+            . "#include it in each format that the interpreter handles."
+            . "</ul>"
+            . "</span>";
+
+        showDlaFields(FGRP_DLA);
+
+        echo "<h2>Automatic Installer Data</h2>"
+            . "<p><span class=notes>This section is used <b>only</b> "
+            . "on systems that have IFDB Meta Installer tools. (These are "
+            . "custom tools written for use with IFDB - we're not talking "
+            . "about installers that come with an OS.) The purpose of this "
+            . "section is to tell an auto-installer how to download and "
+            . "install support for this file format with minimal user "
+            . "intervention. These tools are customized for each OS, so "
+            . "the data format here is OS-dependent. See the Meta Installer "
+            . "documentation for your OS for information."
+            . "</span>";
+
+        showDlaFields(FGRP_AUTOINSTALL);
+
+
+        echo "<p><input type=image name=save value=\"Save Changes\" "
+            . "src=\"/blank.gif\" class=\"save-button\" "
+            . "id=\"fileformat-save-dla-button\">"
+            . "</form>";
+
+    } else if ($olddla) {
+
+        function showDlaValues($grp)
+        {
+            global $dlafields, $dlarec;
+
+            foreach ($dlafields as $f) {
+                if ($f[2] == $grp) {
+                    $val = htmlspecialcharx($dlarec[$f[0]]);
+                    $val = str_replace("\n", "<br>", $val);
+                    if ($val == "")
+                        $val = "<span class=notes><i>(Not set)</i></span>";
+                    echo "<p>{$f[3]}:<br><div class=indented>"
+                        . "<div class=prebox>$val</div></div>";
+                }
+            }
+        }
+
+        // Viewing the Download Adviser entry for a Format.OS combination
+        showDlaValues(FGRP_DLA);
+
+        echo "<p><h2>Automatic Installer Data</h2>"
+            . "<p><span class=notes><i>"
+            . "This information is used by automatic downloaders/"
+            . "installers, only on systems where such a tool is available. "
+            . "The exact requirements for these fields might vary by "
+            . "system."
+            . "</i></span>";
+
+        showDlaValues(FGRP_AUTOINSTALL);
+    } else {
+
+        echo "<p><span class=errmsg>No download adviser record exists "
+            . "for this Format/OS combination.</span>";
+
+    }
+
+} else if ($fmtid) {
+
+    // ?id=xxx - view/edit/update the format
+
+    $saving = false;
+    if ($editFmtPriv
+        && $_SERVER['REQUEST_METHOD'] == 'POST'
+        && isset($_REQUEST['save'])) {
+
+        // note that we're trying to save
+        $saving = true;
+        $saveErrMsg = "";
+        
+        // save the changes
+        $qname = mysql_real_escape_string($fmtname, $db);
+        $qdesc = mysql_real_escape_string($fmtdesc, $db);
+        $qwebsite = ($fmtwebsite == ""
+                     ? "null"
+                     : "'" . mysql_real_escape_string($fmtwebsite, $db) . "'");
+        $qclass = ($fmtclass == ""
+                   ? "null"
+                   : "'" . mysql_real_escape_string($fmtclass, $db) . "'");
+        $qext = ($fmtext == ""
+                 ? "null"
+                 : "'" . mysql_real_escape_string($fmtext, $db) . "'");
+        $seticon = "";
+        $insicon = "null";
+        if (findTempImage($fmticon)) {
+            $img = findTempImage($fmticon);
+            $imgData = mysql_real_escape_string($img[0], $db);
+            if ($img[1] != "gif")
+                $saveErrMsg = "Only GIF images are allowed for format icons -
+                   the icon was <b>not</b> changed.";
+            else {
+                $seticon = ",icon='$imgData'";
+                $insicon = "'$imgData'";
+            }
+        } else if ($fmticon == "none") {
+            $seticon = ",icon=null";
+        }
+
+        // set up a transaction in case we need to lock tables
+        $result = mysql_query("set autocommit=0", $db)
+                  && mysql_query("start transaction", $db);
+
+        if ($qfmtid == 'new') {
+            $sql = "insert into filetypes "
+                   . "(externid, fmtname, `desc`, fmtclass, website, icon, "
+                   .  "extension) "
+                   . "values ('$qexternid', '$qname', '$qdesc', $qclass, "
+                   .          "$qwebsite, $insicon, $qext)";
+        } else {
+            $sql = "update filetypes "
+                   . "set externid='$qexternid', fmtname='$qname', "
+                   .     "`desc`='$qdesc', extension=$qext, "
+                   .     "fmtclass=$qclass, website=$qwebsite  $seticon "
+                   .     "where id='$qfmtid'";
+        }
+
+        // run the query if we're okay so far
+        if ($result)
+            $result = mysql_query($sql, $db);
+
+        if ($result) {
+            // note the new ID if we just inserted a row
+            if ($qfmtid == 'new') {
+                $fmtid = mysql_insert_id($db);
+                $qfmtid = mysql_real_escape_string($fmtid, $db);
+            }
+
+            // save an audit entry for the update
+            mysql_query("insert into audit (userid, action)
+                values ('$userid', '" . mysql_real_escape_string($sql, $db)
+                        . "')", $db);
+        }
+
+        // on error, note database error if we have admin privileges
+        $dbErr = (!$result && $adminPriv
+                  ? " (" . mysql_error($db) . ")" : "");
+
+        // commit the transaction
+        if ($result)
+            $result = mysql_query("commit", $db);
+
+        // provide a generic error message if anything went wrong and
+        // we didn't already provide more specific diagnostics
+        if (!$result && !$saveErrMsg) {
+            $saveErrMsg = "A database error occurred updating the format
+               record - changes were <b>not</b> saved.$dbErr<br>";
+        }
+    }
+
+    if ($editFmtPriv && isset($_REQUEST['edit'])) {
+        // we can edit it - show the editing form
+        pageHeader("Edit Format", "editfmt.fmtname");
+        imageUploadScripts();
+
+        if ($saveErrMsg)
+            echo "<p><span class=errmsg>$saveErrMsg</span><p>";
+        else if ($saving)
+            echo "<p><span class=success>Your changes were saved.</span></p>";
+
+        $pgtitle = ($fmtid == "new"
+                    ? "New Format" : "$fmtname - Edit Format");
+        ?>
+        <h1><?php echo htmlspecialcharx($pgtitle)?></h1>
+
+        <a href="fileformat">Return to File Format List</a><br>
+        <a href="fileformat?id=<?php echo $fmtid ?>">Return to the
+           <?php echo htmlspecialcharx($fmtname) ?> overview</a><br><br><br>
+
+        <form name="editfmt" id="editfmt" method="post"
+              action="fileformat?id=<?php echo $fmtid ?>">
+
+           <input type=hidden name=edit value="1">
+
+           <table class=dataform border=0 cellspacing=0 cellpadding=0>
+              <tr valign=top>
+                 <td align=right>
+                    <nobr>Format name:</nobr>
+                 </td>
+                 <td>
+                     <input type=text name=fmtname id=fmtname
+                         size=50 value="<?php
+                             echo htmlspecialcharx($fmtname) ?>">
+                     <br>
+                     <span class=details>
+                        This is the name of the file format as shown to users:
+                        Text, JPEG, MP3, etc.  For story file formats, use
+                        the name of the virtual machine (Z-machine,
+                        TADS 2, Hugo...).
+                     </span>
+                 </td>
+              </tr>
+
+              <tr><td>&nbsp;<br></td></tr>
+              <tr valign=top>
+                 <td align=right>
+                    <nobr>External ID:</nobr>
+                 </td>
+                 <td>
+                    <input type=text name=externid id=externid value="<?php
+                      echo htmlspecialcharx($externid)?>">
+                    <br>
+                    <span class=details>
+                       Alphanumeric, up to 16 characters. This is the
+                       identifier that external tools (e.g., Meta Installers)
+                       use to identify the format. For Story file formats,
+                       use the Treaty of Babel format code (zcode, glulx,
+                       tads2, etc). For other types the ID is arbitrary
+                       but must be unique. <b>Warning:</b> changing an
+                       existing format's ID could break external tools
+                       that refer to it.
+                    </span>
+                 </td>
+              </tr>
+
+              <tr><td>&nbsp;<br></td></tr>
+              <tr valign=top>
+                 <td align=right>
+                    Extension(s):
+                 </td>
+                 <td>
+                    <input type=text name=extension id=extension value="<?php
+                        echo htmlspecialcharx($fmtext)?>">
+                    <br>
+                    <span class=details>
+                       Space-separated list of filename suffixes commonly
+                       used for this type. The game editor uses this to
+                       guess at the type when a user creates a new download
+                       link, but the user can always override the guess.
+                       Example: ".jpeg .jpg .jpe"
+                    </span>
+                 </td>
+              </tr>
+
+              <tr><td>&nbsp;<br></td></tr>
+              <tr valign=top>
+                 <td align=right>
+                    Description:
+                 </td>
+                 <td>
+                    <textarea name=desc id=desc rows=5 cols=60><?php
+                        echo htmlspecialcharx($fmtdesc)
+                    ?></textarea>
+                    <br>
+                    <span class=details>
+                       This is displayed in the Download box when a file
+                       of this type is listed.
+                    </span>
+                 </td>
+              </tr>
+
+              <tr><td>&nbsp;<br></td></tr>
+              <tr valign=top>
+                 <td align=right>
+                    Web Site:
+                 </td>
+                 <td>
+                    <input type=text name=website id=website
+                      size=50 value="<?php
+                         echo htmlspecialcharx($fmtwebsite) ?>">
+                 </td>
+              </tr>
+
+              <tr><td>&nbsp;<br></td></tr>
+              <tr valign=top>
+                 <td align=right>
+                    Icon:
+                 </td>
+                 <td>
+                    <?php
+                        imageUploadRadio(
+                            $hasicon ? "fileformat?geticon=$fmtid" : false,
+                            "Don't use an icon", "icon", $fmticon, 40);
+                    ?>
+                    <span class=details>Image Format Requirements:
+                       GIF format, 40x40 pixels, transparent background.
+                       This icon is used as a fallback if the File Type
+                       doesn't have an associated icon.  Compression
+                       formats don't need icons.
+                 </td>
+              </tr>
+
+              <tr><td>&nbsp;<br></td></tr>
+              <tr>
+                 <td align=right>
+                    Format Class:
+                 </td>
+                 <td>
+                    <select id=fmtclass name=fmtclass>
+                       <?php
+                           foreach ($fmtclassMap as $k => $name) {
+                               echo "<option value=\"$k\""
+                                   . ($fmtclass == $k ? " selected" : "")
+                                   . ">$name</option>";
+                           }
+                       ?>
+                    </select>
+                 </td>
+              </tr>
+
+              <tr><td>&nbsp;<br></td></tr>
+              <tr>
+                 <td>
+                 </td>
+                 <td>
+                    <input type=image name=save value="Save Changes"
+                     src="/blank.gif" class="save-button"
+                     id="fileformat-save-format-button">
+                 </td>
+              </tr>
+
+           </table>
+
+        </form>
+        <?php
+
+    } else {
+        // not editing - just show the format description
+        pageHeader("Format Details");
+        $pgtitle = "$fmtname - Details";
+        echo "<h1>" . htmlspecialcharx($pgtitle) . "</h1>"
+            . "<b>External ID:</b> " . htmlspecialcharx($externid) . "<br>"
+            . "<b>Format Name:</b> " . htmlspecialcharx($fmtname) . "<br>"
+            . "<b>Extensions:</b> " . htmlspecialcharx($fmtext) . "<br>"
+            . "<b>Description:</b> " . $fmtdesc . "<br>"
+            . "<b>Web Site:</b> " . $fmtwebsite . "<br>"
+            . ($fmtclass != ""
+               ? "<b>Type:</b> {$fmtclassMap[$fmtclass]}<br>"
+               : "")
+            . ($hasicon
+               ? ("<table cellspacing=0 cellpadding=0 border=0>"
+                  . "<tr valign=middle><td><b>Icon:</b>&nbsp;</td>"
+                  . "<td><img src=\"fileformat?geticon=$fmtid\">"
+                  . "</td></tr></table>")
+               : "<b>Icon</b>: None")
+            . "<br>";
+
+        if ($editFmtPriv)
+            echo "<p><a href=\"fileformat?id=$fmtid&edit\">"
+                . "Edit this format</a><br>";
+
+        echo "<p><h2>Download Adviser Entries</h2>";
+
+        $result = mysql_query(
+            "select
+               operatingsystems.id as osid,
+               osversions.vsnid as vsnid,
+               operatingsystems.name as osname,
+               osversions.name as vsnname,
+               osversions.seq as seq
+             from
+               downloadhelp
+               left outer join osversions
+                 on downloadhelp.osvsnid = osversions.vsnid,
+               operatingsystems
+             where
+               downloadhelp.fmtid = '$qfmtid'
+               and operatingsystems.id = downloadhelp.osid
+             order by
+               osname, seq", $db);
+        $rowcnt = mysql_num_rows($result);
+        if ($rowcnt == 0)
+            echo "<i>No entries exist for this format.</i>";
+        else {
+            echo "<div class=indented>";
+            for ($i = 0 ; $i < $rowcnt ; $i++) {
+                list($osid, $vsnid, $osname, $osvsn, $seq) =
+                    mysql_fetch_row($result);
+                $href = "fileformat?id=$fmtid&dla=$osid.$vsnid";
+                echo "<a href=\"$href\">"
+                    . htmlspecialcharx(
+                        $osvsn == "" ? $osname :
+                        $osvsn == "*" ? "$osname (All Versions)" :
+                        $osvsn)
+                    . "</a>";
+
+                if ($editFmtPriv || $editDlaPriv)
+                    echo " - <a href=\"$href&edit\">Edit</a>";
+
+                echo "<br>";
+            }
+
+            echo "</div>";
+        }
+
+        if ($editFmtPriv || $editDlaPriv) {
+            echo "<p><form name=newdlos method=get action=\"fileformat\">"
+                . "<input type=hidden name=id value=\"$fmtid\">"
+                . "<input type=hidden name=edit value=1>"
+                . "Add a new Download Adviser entry: ";
+            showOSPopup($db, "dla", "",
+                        OSPOP_GENERIC_VSNS | OSPOP_DEFOS_OPTION);
+            echo " <input type=image src=\"/blank.gif\" "
+                . "class=\"go-button\" id=\"fileformat-add-dla\" "
+                . "name=\"goAddDLA\"><br><br>"
+                . "<i>Note: when an OS has multiple versions, you only need "
+                . "to define instructions for the earliest compatible "
+                . "version. Later OS versions \"inherit\" the instructions "
+                . "from the highest previous version.</i></form><br>";
+        }
+
+        echo "<br><br><br><a href=\"fileformat\">"
+            . "Return to the format list</a>";
+    }
+
+} else {
+
+    // no format selected yet - show the entire format list
+    pageHeader("File Formats");
+
+    echo "<h1>File Formats</h1>
+      <p>The downloadable file types that IFDB knows about are shown
+      below.  Click on a format for more information about it.
+
+      <p>If you'd like to suggest a new format to add to the list,
+      or to inform us of needed corrections or updates to any format,
+      please <a href=\"contact\">contact us</a>.
+
+      <p><a href=\"opsys\">View the Operating System list</a><p>";
+
+    if ($editFmtPriv)
+        echo "<p><a href=\"fileformat?id=new&edit\">Add a new format</a>";
+
+    echo "<p><table border=0 class=grid>";
+
+    $result = mysql_query(
+        "select id, externid, fmtname, `desc`, extension,
+           (icon is not null) as icon
+         from filetypes order by fmtname", $db);
+    $cnt = mysql_num_rows($result);
+    for ($i = 0 ; $i < $cnt ; $i++) {
+        $id = mysql_result($result, $i, "id");
+        $exts = htmlspecialcharx(mysql_result($result, $i, "extension"));
+        $extid = htmlspecialcharx(mysql_result($result, $i, "externid"));
+        $name = htmlspecialcharx(mysql_result($result, $i, "fmtname"));
+        $desc = mysql_result($result, $i, "desc");
+        $icon = mysql_result($result, $i, "icon");
+
+        echo "<tr><td>";
+        if ($icon)
+            echo "<a href=\"fileformat?id=$id\">"
+                . "<img border=0 src=\"fileformat?geticon=$id\"></a>";
+
+        echo "</td><td style=\"padding-bottom: 1em;\">"
+            . "<a href=\"fileformat?id=$id\">$name</a><br>"
+            . "External ID: $extid<br>"
+            . "Extension(s): $exts<br>"
+            . "Description: $desc<br>";
+
+        echo "</td></tr>";
+    }
+
+    echo "</table>";
+}
+
+pageFooter();
+?>

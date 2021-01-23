@@ -1,0 +1,514 @@
+<?php
+// t3run - launch a TADS Web UI game.
+
+@session_start();
+
+include_once "dbconnect.php";
+include_once "pagetpl.php";
+include_once "util.php";
+include_once "gameinfo.php";
+include_once "login-check.php";
+include_once "storage-util.php";
+
+
+// show an error and quit
+function errorPage($msg)
+{
+    pageHeader("Play Game On-line");
+    echo "<span class=\"errmsg\">$msg</span>";
+    pageFooter();
+
+    exit;
+}
+
+// set up a database session
+$db = dbConnect();
+
+// get the request parameters
+$gameid = get_req_data("id");
+$fusername = get_req_data("username");
+$fpassword = get_req_data("password");
+$persist = get_req_data("persist");
+$goParam = get_req_data("go");
+$gameUrl = get_req_data("storyfile");
+$multi = (get_req_data("multi") == "yes");
+$restore = get_req_data("restore");
+$multiPass = ($multi ? get_req_data("multiPass") : false);
+$serverID = get_req_data("gameserver");
+$debug = (get_req_data("debug") == "Mq6u2");
+
+// filter anything from the game ID that isn't a valid TUID character
+$gameid = preg_replace("/[^a-z0-9]/i", "", $gameid);
+
+// quote the game ID and server ID
+$qgameid = mysql_real_escape_string($gameid, $db);
+$qServerID = mysql_real_escape_string($serverID, $db);
+
+// If we don't already have a GO token for the session, create one.  This
+// is important because it prevents cross-site requests from launching the
+// game.
+if (isset($_SESSION['t3run_go_token'])) {
+    $goToken = $_SESSION['t3run_go_token'];
+} else {
+    $goToken = md5_rand($gameid);
+    $_SESSION['t3run_go_token'] = $goToken;
+}
+
+// set up a link back to this page with the same input parameters
+$params = array("go=$goToken");
+if ($gameid)
+    $params[] = "id=$gameid";
+if ($gameUrl)
+    $params[] = "storyfile=" . urlencode($gameUrl);
+if ($serverID)
+    $params[] = "gameserver=" . urlencode($serverID);
+$t3run = "t3run?" . implode("&", $params);
+
+// no errors yet
+$errMsg = false;
+$loginErrMsg = false;
+
+// if posting, and a username was entered, try logging in
+$userid = false;
+if ($_SERVER['REQUEST_METHOD'] == 'POST' && $fusername)
+{
+    // try logging in with the submitted credentials from the form
+    list ($userid, $errCode, $loginErrMsg) =
+        doLogin($db, $fusername, $fpassword);
+
+    // if that succeeded, and they want to set the cookie, do so now
+    if ($userid && $persist)
+        setLoginCookie($db, $userid, $_SERVER['REMOTE_ADDR']);
+}
+else
+{
+    // check to see if we're logged in
+    $userid = checkPersistentLogin();
+}
+
+// retrieve the game's information
+$result = mysql_query(
+    "select
+       title, author, date_format(published, '%Y'),
+       version, length(coverart)
+     from games
+     where id = '$qgameid'", $db);
+
+// make sure we found it
+if (mysql_num_rows($result) == 0) {
+    errorPage("The requested game is not in the database. The link "
+              . "that you followed to reach this page might be broken.");
+}
+
+// fetch the game row
+list($title, $author, $published, $version, $hasArt) =
+    mysql_fetch_row($result);
+$title = htmlspecialcharx($title);
+$author = htmlspecialcharx($author);
+
+// if there's a valid Go token, launch the game
+if ($goParam == $goToken)
+    launchGame();
+
+// start the page
+pageHeader("Play $title Online", $userid ? false : "login.username");
+
+echo "<h1>Play <i>$title</i> Online</h1>";
+
+$extraInfo = "";
+if ($version)
+    $extraInfo .= "<span class=details>Version $version</span><br>";
+if ($published)
+    $extraInfo .= "<span class=details>$published</span><br>";
+if ($extraInfo)
+    $extraInfo = "<br>$extraInfo";
+
+$mainInfo = "<b><i>$title</i></b><br>"
+            . "by $author<br>"
+            . $extraInfo
+            . "<br><a href=\"viewgame?id=$gameid\">Go to this game's "
+            . "IFDB page</a>";
+
+if ($hasArt)
+{
+    echo "<table border=0 cellspacing=0 cellpadding=0>"
+        . "<tr valign=top><td style=\"padding-right: 1em;\">"
+        . "<img src=\"viewgame?id=$gameid&coverart&thumbnail=175x175\" "
+        . "style=\"border:none;\">"
+        . "</td><td>"
+        . $mainInfo
+        . "</td></tr></table><br><br>";
+}
+else
+    echo "$mainInfo<br><br>";
+
+// show the saved game list, or the login page, as appropriate
+if ($userid)
+{
+    // get the current user info
+    $result = mysql_query(
+        "select name from users where id = '$userid'", $db);
+    list($username) = mysql_fetch_row($result);
+    $username = htmlspecialcharx($username);
+
+    // show that we're logged in
+    echo "<img src=\"/blank.gif\" class=\"listarrow\">"
+        . "You're logged in to IFDB as <b>$username</b>."
+        . "<div class=notes style=\"margin-left: 1.5em;\">"
+        . "Saved game files that you create during this "
+        . "session will be stored on-line on IFDB under your user name."
+        . "</div>";
+
+    // show any error message
+    if ($errMsg)
+        echo "<br><span class=errmsg>$errMsg</span><br>";
+
+    // add the multi-user option
+    echo "<br>"
+        . "<label><input type=\"checkbox\" id=\"ckMulti\" "
+        .    "onclick=\"javascript:ckMultiChange();\">"
+        . "<label for=\"ckMulti\">"
+        .   " Enable multi-user play"
+        . "</label></label>"
+        . "<div class=indented><span class=details>"
+        .   "If you check this box, a link allowing other people to join "
+        .   "the session will appear on your IFDB profile page. This lets "
+        .   "you play the game together with friends. Multi-user "
+        .   "features vary by game."
+        . "</span></div>"
+        . "<div id=\"divSessPass\" style=\"display: none; margin: 1ex 0px;\">"
+        . "Session code word: <input type=\"text\" id=\"txSessPass\" size=25>"
+        . "<div class=indented><span class=details>"
+        .   "Optional.  If you wish to limit the session to invited "
+        .   "guests, enter a word or phrase of your choosing.  Guests "
+        .   "will be required to enter the code word to join the session. "
+        .   "To invite guests, simply send them the code word."
+        . "</span></div>"
+        . "</div>";
+
+    // get a listing of saved game files
+    $savedir = STORAGE_DIR . "$userid/$gameid/save";
+    $savefiles = getStorageFileList($savedir);
+
+    // if we have any saved games, offer the option to restore 
+    if (count($savefiles))
+    {
+        // we have saved games - show a "start a new game" link
+        echo "<br><ul class=doublespace>"
+            . "<li><a href=\"#\" "
+            .   "onclick=\"javascript:launchClick();return false;\">"
+            . "Start a new game</a><br>";
+
+        // show the saved games
+        foreach ($savefiles as $f)
+        {
+            // get the information for this entry
+            $fname = $f["name"];
+            $links = array(
+                "<a href=\"#\" onclick=\"javascript:launchClick("
+                . "'$fname');return false;\">Restore this game</a>");
+            $desc = getSaveFileDesc(
+                $f, array("Saved game #\$: ", "Saved game: "), $links);
+            echo "<li>$desc";
+        }
+
+        echo "<li><a href=\"t3files\">Manage my files</a>"
+            . "</ul>";
+    }
+    else
+    {
+        // no saved games - show a simple "Start the game" link
+        echo "<br>"
+            . "<a href=\"#\" "
+            .   "onclick=\"javascript:launchClick();return false;\">"
+            . "Start the game</a><br>";
+    }
+
+    ?>
+<script type="text/javascript">
+function ckMultiChange()
+{
+    var ck = document.getElementById("ckMulti");
+    var div = document.getElementById("divSessPass");
+    div.style.display = (ck.checked ? "block" : "none");
+
+    if (ck.checked)
+    {
+        setTimeout(function()
+                   { document.getElementById("txSessPass").focus() }, 1);
+    }
+}
+
+function launchClick(savedGame)
+{
+    var ck = document.getElementById("ckMulti");
+    var codeWord = document.getElementById("txSessPass").value;
+    var multi = "";
+    if (ck.checked)
+    {
+        multi += "&multi=yes";
+        if (codeWord)
+            multi += "&multiPass=" + encodeURIComponent(codeWord);
+    }
+    var restore = "";
+    if (savedGame)
+        restore = "&restore=save%2F" + encodeURIComponent(savedGame);
+    window.location = "<?php echo $t3run ?>" + multi + restore;
+}
+</script>
+    <?php
+
+}
+else
+{
+    // not logged in - show the game login page
+    echo "<img src=\"/blank.gif\" class=\"listarrow\">"
+        . "You aren't logged in to IFDB."
+        . "<div class=notes style=\"margin-left: 1.5em;\">"
+        . "If you log in, your saved games and preference settings "
+        . "will be stored on-line on IFDB under your user name. This "
+        . "lets you save the game and continue playing later on a "
+        . "different computer."
+        . "</div>";
+
+    if ($errMsg)
+        echo "<br><span class=errmsg>$errMsg</span><br>";
+
+    if ($loginErrMsg)
+        echo "<br><span class=errmsg>$loginErrMsg</span><br>";
+
+    echo  "<table style=\"margin: 1.5em;\" "
+        .   "border=0 cellpadding=0 cellspacing=0>"
+        . "<tr valign=top>"
+
+        . "<td style=\"padding-right: 2em;\">"
+        . "<form method=\"post\" action=\"t3run\" name=\"login\">"
+        . "<table border=0 cellpadding=0 cellspacing=0>"
+        . "<tr valign=top><td style=\"padding-right: 2em;\"><nobr>"
+        .   "Log in to IFDB</nobr></td>"
+        . "<td style=\"padding-bottom: 1em;\"><span class=details>"
+        .   "<a href=\"newuser\">New user</a> | "
+        .   "<a href=\"lostpass\">Lost password</a>"
+        . "</span></td></tr>"
+        . "<tr><td style=\"padding-right: 2em; text-align:right;\">"
+        .   "Email:</td>"
+        . "<td><input type=\"text\" name=\"username\" size=40 "
+        .   "value=\"$fusername\"></td>"
+        . "</tr><tr>"
+        . "<td style=\"padding-right: 2em; text-align: right;\">"
+        .   "Password:</td>"
+        . "<td><input type=\"password\" name=\"password\" size=40></td>"
+        . "</tr><tr><td>&nbsp;</td><td style=\"padding-top: 1.5ex;\">"
+        .   "<label><input type=\"checkbox\" name=\"persist\" "
+        .      "id=\"ckPersist\" value=\"1\""
+        .      ($persist ? " checked" : "")
+        .   "><label for=\"ckPersist\"> Remember me</label>"
+        .   "</label></td>"
+        . "</tr><tr><td>&nbsp;</td><td style=\"padding-top: 1.5ex;\">"
+        .   "<input type=\"submit\" name=\"login\" value=\"Log In to IFDB\">"
+        . "</td></tr></table>"
+        . "<input type=\"hidden\" name=\"id\" value=\"$gameid\">"
+        . "<input type=\"hidden\" name=\"storyfile\" value=\""
+        .    htmlspecialchars($gameUrl) . "\">"
+        . "</form>"
+        . "</td>"
+
+        . "<td style=\"border-left: 1px dotted #4040ff; padding-left: 2em;\">"
+        . "<a href=\"$t3run\">"
+        . "Play without logging in</a><br>"
+        . "<div class=details style=\"margin-top: 1em;\">"
+        . "If you choose this option, the game won't be able to "
+        . "store saved game files on IFDB.</div><br><br>"
+        . "</td>"
+
+        . "</tr></table>";
+}
+
+// end the page
+pageFooter();
+
+// ------------------------------------------------------------------------
+//
+// Launch the game
+//
+function launchGame()
+{
+    global $db, $title, $author, $gameid, $qgameid, $qServerID,
+           $userid, $errMsg, $gameUrl, $multi, $multiPass, $restore,
+           $debug;
+
+    // get a connection to the storage server
+    $sdb = storageDbConnect();
+
+    // quote SQL parameters
+    $qgameUrl = mysql_real_escape_string($gameUrl, $sdb);
+
+    // pick a server, unless the client specified a particular server
+    $found = 0;
+    $serverInReq = false;
+    if ($qServerID)
+    {
+        // The client specified a server ID via a request parameter.
+        // Make sure it's a valid server by querying it from the db.
+        $result = mysql_query(
+            "select
+               gameserverid, name, url, email, apikey
+             from gameservers
+             where gameserverid = '$qServerID'", $sdb);
+
+        // did we find it?
+        if (mysql_num_rows($result) > 0)
+        {
+            // yes - note it and fetch the server description
+            $found = 1;
+            $serverInReq = true;
+            list($serverID, $serverName, $serverUrl, $serverEmail, $apiKey) =
+                mysql_fetch_row($result);
+        }
+    }
+    else
+    {
+        // Select a game server at random.  This provides a very simple form
+        // of load balancing; over time, the load should be distributed roughly
+        // uniformly over the set of servers.  This is simpler to implement
+        // than round-robin balancing in that we don't have to keep track of
+        // the last server we selected, but it should result in roughly the
+        // same distribution over time.
+        //
+        // Retrieve multiple servers in the query, in case the first one
+        // we select is currently off-line.  We'll ping the first selected
+        // server before referring the player, and if it doesn't respond
+        // within a few seconds we'll move on to the second, and so on until
+        // we find an available server.
+        //
+        // A more intelligent balancing algorithm would be to maintain
+        // current statistics on availability and load on each server, such
+        // as by having the servers send us the information periodically
+        // via a "cron" job or the like.  That would be especially useful
+        // if servers are likely to be off-line with any frequency, since
+        // it would let us avoid delays trying to send connections to
+        // off-line servers.  However, at the moment I don't think this is
+        // worth the added complexity; we can revisit this if necessary.
+        $result = mysql_query(
+            "select
+               gameserverid, name, url, email, apikey
+             from gameservers
+             where enabled
+             order by rand() limit 5", $sdb);
+
+        // Find an available server.  Retrieve the first row in our query
+        // and ping the server; if it responds, we'll send the player to
+        // that server, otherwise we'll fetch the second row and try that
+        // one, and so on until we find a server that's available.
+        for ($i = 0 ; $i < mysql_num_rows($result) ; $i++)
+        {
+            // fetch the next game server row
+            list($serverID, $serverName, $serverUrl, $serverEmail, $apiKey) =
+                mysql_fetch_row($result);
+
+            // ping this server, with a short timeout in case it's down
+            $body = x_http_get("$serverUrl?ping", null, $headers,
+                               $timeout = 2000);
+
+            // if that succeeded, use this server
+            if (preg_match("/^OK /", $body))
+            {
+                // we can stop looking
+                $found = 1;
+            }
+
+            // log the ping
+            mysql_query(
+                "insert into gameserverlog
+                 (gameserverid, gameid, gameurl, success)
+                 values ('$serverID', '$qgameid', '$qgameUrl', '$found')",
+                $sdb);
+
+            // if this answered our ping, hand off the user to this server
+            if ($found)
+                break;
+        }
+    }
+
+    // make sure we found an available server
+    if (!$found)
+    {
+        if ($serverInReq)
+            $errMsg = "The game server ID specified in the request "
+                      . "is invalid.";
+        else
+            $errMsg = "Sorry, but we're having trouble finding an available "
+                      . "server to run this game. Please try again in a few "
+                      . "minutes.";
+
+        return;
+    }
+
+    // build the game server launch URL
+    $dest = "$serverUrl?storyfile=" . urlencode($gameUrl)
+            . "&tuid=$gameid&title=" . urlencodex($title)
+            . "&gsid=" . urlencode($serverID);
+
+    // if we're logged in, set up the storage server session
+    if ($userid)
+    {
+        // Create a storage server session.  The session is maintained
+        // directly with the CLIENT, not with the game server, so we
+        // store the session ID as a transient (session) cookie in the
+        // client browser.
+        $sid = md5_rand("$gameUrl:$gameid:$serverID:$userid");
+
+        // add the session ID to the startup string
+        $dest .= "&storagesid=$sid";
+
+        // add the saved game to restore, if any, to the startup string
+        if ($restore)
+            $dest .= "&restore=" . urlencode($restore);
+
+        // get the user's IFDB username, to use as the default screen name
+        // within a multi-user game
+        $result = mysql_query(
+            "select name from users where id = '$userid'", $db);
+        list($username) = mysql_fetch_row($result);
+        $username = urlencodex($username);
+
+        // add the IFDB screen name for the user
+        $dest .= "&username=$username";
+
+        // figure the game folder
+        $gameFolder = $qgameid;
+
+        // quote the multi-user parameters for the database
+        $qmulti = ($multi ? "Y" : "N");
+        $qmultiPass =
+            ($multi ? mysql_real_escape_string($multiPass, $sdb) : "");
+
+        // record the session in the database
+        $result = mysql_query(
+            "insert into sessions
+             (sessionid, gameserverid, userid, gameid, gamefolder, accessed,
+              multi, multipass)
+             values ('$sid', '$serverID', '$userid', '$qgameid',
+                     '$gameFolder', now(), '$qmulti', '$qmultiPass')",
+            $sdb);
+
+        // set the session cookie in the browser
+        setcookie("TADSStorageSessionID", $sid, 0, "/",
+                  isLocalDev() ? "" : ".tads.org",
+                  false, true);
+    }
+
+    // send the redirect to the game server
+    header("HTTP/1.1 301 Moved Permanently");
+    header("Content-type: text/html");
+    header("Location: $dest");
+
+    echo "Launching <i>$title</i><br>"
+        . "<a href=\"$dest\">Click here</a> if your browser doesn't "
+        . "automatically load the game.";
+
+    // done
+    exit();
+}
+
+?>

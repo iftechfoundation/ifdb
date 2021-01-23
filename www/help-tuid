@@ -1,0 +1,30 @@
+<?php
+@session_start();
+include_once "util.php";
+include "pagetpl.php";
+helpPageHeader("What's a TUID?");
+?>
+
+<h1>What's a TUID?</h1>
+
+<p>A TUID is a "tads.org Unique Identifier" - a serial number that
+uniquely identifies a game listing or member profile in our database.
+A TUID has no meaning outside of our database, but we show them in the
+game listing because you can use them to write permanent, stable
+references to listings in our database.  The database is designed so
+that once a TUID is assigned to a game, that identifier will stick
+with the game for as long as it's in our database.
+
+<p>You can find the TUID for a game on its home page, in the
+Details section.
+
+<p>The format of a TUID is a mix of random letters and numbers, 16
+characters long.  We <i>could</i> have just used a simple sequential
+number as the ID (this is how <a href="http://www.wurb.com/if"><i>Baf's
+Guide</i></a> works), but we decided to use a long string of gibberish
+instead for a reason: these sorts of identifiers easily stand out from
+the crowd in full-text searches.
+
+<?php
+helpPageFooter();
+?>

@@ -1,0 +1,117 @@
+<?php
+
+function err404()
+{
+    // return a 404 and display our custom 404 page
+    header("HTTP/1.0 404 Not Found");
+    include "error404";
+    exit();
+}
+
+@session_start();
+
+include_once "util.php";
+
+include_once "dbconnect.php";
+$db = dbConnect();
+
+// get the user ID and filename from the request parameters
+$userid = get_req_data('u');
+$userid = mysql_real_escape_string($userid, $db);
+$fname = get_req_data('f');
+
+// if there's no user or file, it's not found
+if (!$userid || !$fname)
+    err404();
+
+// get the modification timestamp for ifdb.css
+$itime = filemtime("ifdb.css");
+$itimeStr = date("r", $itime);
+
+// Check for our various naming patterns.  We have a RewriteRule in
+// .htaccess that maps filenames of the form "/users/<tuid>/<subpath>"
+// to "userfile?u=<tuid>f=<subpath>".  So, it's our job here to
+// interpret the subpath:
+//
+//    css/ifdb.css -> /ifdb.css - this is for compatibility with older
+//       custom style sheets, since we originally made it look like
+//       they were being served out of the root directory: so they
+//       could use relative url notation and get files in the root
+//       directory without a leading slash.  We'll eventually delete
+//       this rule, as soon as no style sheets depend on it.
+//
+//    css/<alphanum>.jpg / .gif -> a fixed image from the root directory,
+//       for compatibility with older style sheets that were written
+//       when style sheets looked like they lived in the root
+//       directory
+//
+//    css/<name>.css  -> a custom stylesheet with ID <name> and
+//       owner <tuid>, from table STYLESHEETS
+//
+//    css/images/<name>  -> a custom-style image with name <name>
+//       and owner <tuid>, from table STYLEPICS
+//  
+if (preg_match("/^css\/ifdb\.css$/", $fname, $match)) {
+
+    // it's "ifdb.css" - remap this to the root style sheet
+    header("Content-Type: text/css");
+    header("Last-Modified: $itimeStr");
+    readfile("ifdb.css");
+    exit();
+
+
+} else if (preg_match("/^css\/([-a-zA-Z0-9]+\.(jpg|gif))$/",
+                      $fname, $match)) {
+
+    // treat this as a root directory image item
+    header("Content-Type: image/{$match[2]}");
+    header("Last-Modified: $itimeStr");
+    readfile($match[1]);
+    exit();
+
+} else if (preg_match("/^css\/(.+)\.css$/", $fname, $match)) {
+
+    // it's a custom style sheet - the filename is the style sheet
+    // ID number plus ".css"
+    $ssid = mysql_real_escape_string($match[1], $db);
+    $result = mysql_query(
+        "select contents, unix_timestamp(modified) from stylesheets
+         where userid = '$userid' and stylesheetid = '$ssid'", $db);
+    if (mysql_num_rows($result) != 0) {
+        // fetch the row
+        list($contents, $mtime) = mysql_fetch_row($result);
+
+        // use the later of the stylesheet modified time or the ifdb.css
+        // modified time, since it might include ifdb.css
+        $mtime = max($mtime, $itime);
+
+        // send the data
+        header("Content-Type: text/css");
+        header("Last-Modified: " . date("r", $mtime));
+        echo $contents;
+        exit();
+    }
+
+} else if (preg_match("/^css\/images\/([^\/]+)$/", $fname, $match)) {
+
+    // custom style sheet image - the filename is the user-specified
+    // image name
+    $imgname = mysql_real_escape_string($match[1], $db);
+    $result = mysql_query(
+        "select picture from stylepics
+         where userid = '$userid' and name = '$imgname'", $db);
+    if (mysql_num_rows($result) != 0) {
+        $pic = mysql_result($result, 0, "picture");
+        $ret = fetch_image($pic, true);
+        if ($ret) {
+            sendImage($ret[0], $ret[1], null, SIF_RAW);
+            exit();
+        }
+    }
+}
+
+// if we got this far, it means we didn't find a match for the
+// pattern, so the result is "not found"
+err404();
+
+?>

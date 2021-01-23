@@ -1,0 +1,556 @@
+<?php
+
+@session_start();
+include "pagetpl.php";
+include_once "util.php";
+include_once "news.php";
+include_once "rss.php";
+include_once "login-persist.php";
+
+// connect to the database
+include_once "dbconnect.php";
+$db = dbConnect();
+
+checkPersistentLogin();
+$userid = $_SESSION['logged_in_as'];
+$errMsg = false;
+$pageTitle = "Competition Details";
+
+// get the competition ID
+$compID = mysql_real_escape_string(get_req_data("id"), $db);
+if (!$compID) {
+    $errMsg = "The competition ID is missing from the page request. The "
+              . "link you followed to reach this page might be broken.";
+}
+
+// check for an RSS feed
+$rss = isset($_REQUEST['rss']);
+$rssMode = get_req_data("rss");
+
+// note if we're in history view
+$historyView = !$rss && isset($_REQUEST['history']);
+$pagevsn = ($rss ? false : get_req_data("vsn"));
+
+// clear out the query results
+$rec = false;
+$hID = $hEditorID = $hEditorName = $hModDate = $hVsn = $deltas = false;
+$history = array();
+
+// query the competition's database records
+if (!$errMsg) {
+    $result = mysql_query(
+        "select
+           c.title as title,
+           c.series as series,
+           c.`desc` as `desc`,
+           c.url as url,
+           c.keywords as keywords,
+           c.organizersExt as organizersExt,
+           c.judgesExt as judgesExt,
+           date_format(c.qualopen, '%M %e, %Y') as qualopen,
+           date_format(c.qualclose, '%M %e, %Y') as qualclose,
+           date_format(c.awarddate, '%M %e, %Y') as awarddate,
+           date_format(c.created, '%M %e, %Y') as created,
+           date_format(c.moddate, '%e %M %Y at %h:%i %p') as moddate,
+           date_format(c.moddate, '%e-%b-%Y %H:%i') as histdate,
+           c.moddate as rawModDate,
+           c.editedby as editedby,
+           u.name as editedbyName,
+           c.pagevsn as pagevsn
+         from
+           competitions as c
+           left outer join users as u on u.id = c.editedby
+         where
+           c.compid = '$compID'", $db);
+
+    if (mysql_num_rows($result) > 0) {
+
+        // query the main record
+        $rec = mysql_fetch_array($result, MYSQL_ASSOC);
+
+        // save it as the current version of the page
+        $curRec = $rec;
+
+    } else {
+        $errMsg = "The requested competition page is not in the database. "
+                  . "It might have been deleted, or the link you followed "
+                  . "to reach this page might be broken.";
+    }
+
+    // query the divisions
+    $result = mysql_query(
+        "select
+           divid, divno, divname, divdesc
+         from
+           compdivs
+         where
+           compid = '$compID'
+         order by
+           divno", $db);
+
+    for ($i = 0, $divs = array() ; $i < mysql_num_rows($result) ; $i++)
+        $divs[] = mysql_fetch_array($result, MYSQL_ASSOC);
+
+    // query the games
+    $result = mysql_query(
+        "select
+           c.divid as divid, c.gameid as gameid, c.place as place,
+           g.title as title, g.author as author
+         from
+           compgames as c
+           left outer join games as g on g.id = c.gameid
+         where
+           c.compid = '$compID'
+         order by
+           c.seqno", $db);
+
+    for ($i = 0, $games = array() ; $i < mysql_num_rows($result) ; $i++)
+        $games[] = mysql_fetch_array($result, MYSQL_ASSOC);
+
+    // save the divisions and games in the main record, in case we need
+    // to apply deltas
+    $rec["divisions"] = $divs;
+    $rec["games"] = $games;
+
+    // if we want the version history, or an old page version, get the history
+    if ($rss || $historyView || $pagevsn) {
+
+        // query the history
+        $result = mysql_query(
+            "select
+               h.editedby, u.name,
+               date_format(h.moddate, '%e-%b-%Y %H:%i'),
+               h.pagevsn, h.deltas,
+               h.moddate
+             from
+               comps_history as h
+               left outer join users as u on u.id = h.editedby
+             where
+               h.compid = '$compID'
+             order by
+               h.pagevsn desc", $db);
+
+        // load the history records
+        for ($i = 0 ; $i < mysql_num_rows($result) ; $i++)
+            $history[] = mysql_fetch_row($result);
+    }
+
+    // if we're viewing an old version, apply reverse deltas to get to the
+    // desired page version
+    if ($pagevsn && $pagevsn != $rec["pagevsn"]) {
+
+        // we haven't applied any deltas for the game list yet
+        $gameDeltas = false;
+
+        // keep going until we reach the desired version
+        for ($i = 0 ; $i < count($history) ; $i++)
+        {
+            // decode this history record
+            list($hEditorID, $hEditorName,
+                 $hModDate, $hVsn, $deltas, $hRawModDate) = $history[$i];
+
+            // apply the deltas
+            $deltas = unserialize($deltas);
+            foreach ($deltas as $col => $colval)
+                $rec[$col] = $colval;
+
+            // update the current version information in the record
+            $rec["pagevsn"] = $hVsn;
+            $rec["moddate"] = $hModDate;
+            $rec["editedby"] = $hEditorID;
+            $rec["editedbyName"] = $hEditorName;
+
+            // note if we changed the games list (this is cumulative,
+            // so keep the old value if we're not changing it this time)
+            if (isset($deltas["games"]))
+                $gameDeltas = true;
+    
+            // if this is the target version, we're done
+            if ($pagevsn == $hVsn)
+                break;
+        }
+
+        // if we ran out of history records without finding the desired
+        // page version, it's an error
+        if ($rec["pagevsn"] != $pagevsn) {
+            $errMsg = "The requested version of this page isn't in "
+                      . "the database.";
+        }
+
+        // The history records for games don't include game titles or
+        // authors, so if applied any game deltas, we have to query
+        // the corresponding titles and authors separately.
+        if ($gameDeltas) {
+
+            // run through the game list
+            for ($games = $rec["games"], $i = 0 ; $i < count($games) ; $i++) {
+
+                // pull out this game ID
+                $g = $games[$i];
+                $gameid = mysql_real_escape_string($g["gameid"], $db);
+
+                // look it up
+                $result = mysql_query(
+                    "select title, author from games where id='$gameid'", $db);
+                list($title, $author) = mysql_fetch_row($result);
+
+                // patch up the record
+                $g["title"] = $title;
+                $g["author"] = $author;
+
+                // put it back in the games list
+                $games[$i] = $g;
+            }
+
+            // put the games list back in the main record
+            $rec["games"] = $games;
+        }
+    }
+
+    // set the page title to the comp title
+    $pageTitle = htmlspecialcharx($rec["title"]) . " - Details";
+}
+
+// given a history delta record, generate a printable list of changed items
+function deltaDesc($deltas)
+{
+    // unserialize the deltas
+    $deltas = unserialize($deltas);
+
+    // get a human-readable list of the deltas
+    $deltaNames = array(
+        "title" => "name",
+        "series" => "series name",
+        "desc" => "description",
+        "url" => "Web site (URL)",
+        "organizersExt" => "organizers",
+        "judgesExt" => "judges",
+        "qualopen" => "qualification opening date",
+        "qualclose" => "qualification closing date",
+        "awarddate" => "award date",
+        "divisions" => "divisions",
+        "games" => "list of games"
+    );
+
+    // build the list of names
+    $dn = array();
+    foreach ($deltaNames as $col => $name)
+    {
+        // if this column is set in the deltas, add it to the name list
+        if (isset($deltas[$col]))
+            $dn[] = $name;
+    }
+
+    // collapse the deltas into a comma list
+    return implode(", ", $dn);
+}
+
+// generate the title for an RSS new item
+function compNewsTitle($ctx, $headline)
+{
+    return "News: $headline";
+}
+
+// if this is an RSS feed, generate the feed
+if ($rss)
+{
+    // start with an empty result list
+    $items = array();
+
+    // add history updates
+    for ($i = 0 ; $i < count($history) ; $i++)
+    {
+        // decode this history row
+        list($hEd, $hEdName, $hMod, $hVsn, $deltas, $hModRaw) = $history[$i];
+        $hEdName = htmlspecialcharx($hEdName);
+        $rssdate = date("D, j M Y H:i:s e", strtotime($hModRaw));
+        $dn = deltaDesc($deltas);
+        $nlink = htmlspecialcharx(
+            "http://ifdb.tads.org/viewcomp?id=$compID&vsn=$hVsn");
+
+        // generate this item
+        $item = "<item>"
+                . "<title>Page update$to by $hEdName</title>"
+                . "<description>New $dn</description>"
+                . "<pubDate>$rssdate</pubDate>"
+                . "<guid>$nlink</guid>"
+                . "</item>";
+
+        // add it to the item list
+        $items[] = array($hModRaw, $item);
+    }
+
+    // add the news items
+    queryNewsRss($items, $db, "C", $compID, 50, "compNewsTitle", false);
+
+    // send the data
+    sendRSS($rec["title"],
+            "http://ifdb.tads.org/viewcomp?id=$compID",
+            $rec["title"] . " - Competition news &amp; updates from IFDB.",
+            $items, 50);
+
+    // that's it
+    exit();
+}
+
+// start the page
+pageHeader($pageTitle);
+
+// if we have an error, show an error page and give up
+if ($errMsg) {
+    echo "<span class=errmsg>$errMsg</span>";
+    echo "<p><a href=\"home\">IFDB Home</a>";
+    pageFooter();
+    exit();
+}
+
+// pull out the display fields
+$title = htmlspecialcharx($rec["title"]);
+$series = htmlspecialcharx($rec["series"]);
+$desc = fixDesc($rec["desc"], FixDescSpoiler);
+$keywords = htmlspecialcharx($rec["keywords"]);
+$organizersExt = htmlspecialcharx($rec["organizersExt"]);
+$judgesExt = htmlspecialcharx($rec["judgesExt"]);
+$qualopen = $rec["qualopen"];
+$qualclose = $rec["qualclose"];
+$awarddate = $rec["awarddate"];
+$editorID = $rec["editedby"];
+$editorName = htmlspecialcharx($rec["editedbyName"]);
+$moddate = $rec["moddate"];
+
+$href = preg_replace("/\"/", "%22", $rec["url"]);
+$url = htmlspecialcharx($rec["url"]);
+if (!preg_match("/^[a-z]{3,10}:\/\//i", $href))
+    $href = "http://$href";
+
+function decodeProfiles($t)
+{
+    global $db;
+
+    // scan for profile insertions
+    for ($ofs = 0 ;
+         preg_match("/\{([a-z0-9]+)\}/i", $t, $match,
+                    PREG_OFFSET_CAPTURE, $ofs) ; )
+    {
+        // pull out this profile ID
+        $pid = mysql_real_escape_string($match[1][0], $db);
+        
+        // look up this user ID
+        $result = mysql_query(
+            "select name from users where id = '$pid'", $db);
+        list($pname) = mysql_fetch_row($result);
+
+        // make it into a profile link, if we found a match
+        if ($pname) {
+            $pname = htmlspecialcharx($pname);
+            $pname = "<a href=\"showuser?id=$pid\" class=authorProfileLink "
+                     . "title=\"View $pname's profile\">profile</a>";
+        }
+
+        // replace it in the string
+        $t = substr($t, 0, $match[0][1])
+             . $pname
+             . substr($t, $match[0][1] + strlen($match[0][0]));
+
+        // adjust the offset to just past the replacement
+        $ofs = $match[0][1] + strlen($pname);
+    }
+
+    // return the result
+    return $t;
+}
+
+// show the page
+echo "<h1>$title</h1>"
+   . "$desc"
+   . "<p><span class=details><a href=\"viewcomp?id=$compID&rss\">"
+   .   "<img src='blank.gif' class='rss-icon'>News &amp; updates (RSS)</a>"
+   . "</span>"
+   . "<h2>Details</h2>"
+   . "<div class=\"hangindentedMore notes\">";
+
+if ($series)
+    echo "<p class=nosp>Series: <a class=silent "
+        . "href=\"search?comp&sortby=awn&searchfor="
+        . urlencode("series:" . $rec["series"]) . "\">$series</a></p>";
+if ($url)
+    echo "<p class=nosp>Official Web site: <a href=\"$href\">$url</a></p>";
+
+if ($organizersExt)
+    echo "<p class=nosp>Organizer(s): "
+        . decodeProfiles($organizersExt) . "</p>";
+
+if ($judgesExt)
+    echo "<p>Judge(s): " . decodeProfiles($judgesExt) . "</p>";
+
+if ($qualopen || $qualclose || $awarddate) {
+    echo "<p></p>";
+    if ($awarddate)
+        echo "<p class=nosp>Award date: $awarddate</p>";
+    if ($qualopen) {
+        echo "<p class=nosp>Qualification opening date: $qualopen</p>";
+        if ($qualclose)
+            echo "<p class=nosp>Qualification closing date: $qualclose</p>";
+    } else if ($qualclose) {
+        echo "<p class=nosp>Submission deadline: $qualclose</p>";
+    }
+}
+
+if ($historyView && $keywords)
+    echo "<p>Search Keywords: $keywords</p>";
+
+echo "</div>";
+
+// show news, if there is any
+newsSummary($db, "C", $compID, 3,
+            "<h2>News</h2><div class=indented>",
+            "</div>");
+
+// show the games, by division
+echo "<h2>Games and Awards</h2><div class=indented>";
+
+$divs = $rec["divisions"];
+$games = $rec["games"];
+for ($i = 0 ; $i < count($divs) ; $i++) {
+
+    // decode the division record
+    $div = $divs[$i];
+    $divid = $div["divid"];
+    $divname = htmlspecialcharx($div["divname"]);
+    $divdesc = fixDesc($div["divdesc"], FixDescSpoiler);
+
+    // show the division header, unless it's "Main"
+    if ($divname != "Main")
+        echo "<h3>$divname</h3>$divdesc<p><div class=indented>";
+
+    // show the games in this division
+    for ($j = 0 ; $j < count($games) ; $j++)
+    {
+        // get this game record
+        $game = $games[$j];
+
+        // if this game isn't in the current division, skip it
+        if ($game["divid"] != $divid)
+            continue;
+
+        // decode this game record
+        $gameid = $game["gameid"];
+        $gameplace = htmlspecialcharx($game["place"]);
+        $gametitle = htmlspecialcharx($game["title"]);
+        $gameauthor = htmlspecialcharx($game["author"]);
+
+        // display it
+        echo "$gameplace: <a href=\"viewgame?id=$gameid\">"
+            . "<b><i>$gametitle</i></b></a>, by $gameauthor<br>";
+    }
+
+    // end the indented division section, if applicable
+    if ($divname != "Main")
+        echo "</div>";
+}
+
+// end the indented section for the games
+echo "</div>";
+
+
+// if we're showing the full history, add it
+if ($historyView) {
+
+    echo "<h2>Update History</h2>"
+        . "<div class=indented>"
+        . "<table cellspacing=0 cellpadding=0 border=0>"
+        . "<tr valign=baseline><td>";
+
+    $curVsnMarker = "<img src=\"/blank.gif\" class=\"current-version-marker\">"
+                    . "&nbsp;";
+
+    // start with the current database version of the page
+    $curEd = $curRec["editedby"];
+    $curEdName = htmlspecialcharx($curRec["editedbyName"]);
+    $curVsn = $curRec["pagevsn"];
+    $curMod = $curRec["histdate"];
+
+    if (!$pagevsn || $pagevsn == $curVsn)
+        echo $curVsnMarker;
+
+    echo "</td><td><a href=\"viewcomp?id=$compID&vsn=$curVsn&history\">"
+        . "v.$curVsn: $curMod</a> - "
+        . "<a href=\"showuser?id=$curEd\">$curEdName</a> "
+        . "(Current Version) - "
+        . "<a href=\"editcomp?id=$compID\">Edit Page</a> - "
+        . "<a href=\"viewcomp?id=$compID\">Normal View</a><br>";
+
+    // run through the history (reverse-delta) list
+    for ($i = 0 ; $i < count($history) ; $i++)
+    {
+        // decode this row
+        list($hEd, $hEdName, $hMod, $hVsn, $deltas, $hModRaw) = $history[$i];
+        $hEdName = htmlspecialcharx($hEdName);
+        $dn = deltaDesc($deltas);
+
+        // Show the updates.  Each history item records the OLD data for
+        // changes made in the NEXT version, so the current history changes
+        // actually appear visually as part of the chronologically next
+        // item, which we displayed on the previous iteration.
+        echo "<div class=indented><span class=details>"
+            . "<i>Changed $dn</i></span></div>";
+
+        // Okay, we've finished the previous item (previously displayed =
+        // chronologically next), so we can start the next history row.
+        echo "</td></tr><tr valign=baseline><td>";
+
+        // show the current version marker, if appropriate
+        if ($pagevsn == $hVsn)
+            echo $curVsnMarker;
+
+        // show this history item
+        echo "</td><td><a href=\"viewcomp?id=$compID&vsn=$hVsn&history\">"
+            . "v.$hVsn: $hMod</a> - "
+            . "<a href=\"showuser?id=$hEd\">$hEdName</a><br>";
+    }
+
+    // show the "deltas" for the last (oldest) item - this is always
+    // simply "created page"; then end the table and division
+    echo "<div class=indented><span class=details><i>Created page"
+        . "</i></span></div>"
+        . "</td></tr></table>"
+        . "</div>";
+}
+
+// if not in history view mode, show the version footer
+if (!$historyView) {
+
+    // if this is our page, and we own all the versions, offer
+    // deletion
+    $deletePageLink = "";
+    if ($userid && $userid == $editorID)
+    {
+        // look for other users in the version history
+        $qedby = mysql_real_escape_string($editorID, $db);
+        $result = mysql_query(
+            "select count(*) from comps_history
+             where compid = '$compID'
+             and ifnull(editedby, '') <> '$qedby'", $db);
+        list($edcnt) = mysql_fetch_row($result);
+        if ($edcnt == 0) {
+            $deletePageLink =
+                "<a href=\"delcomp?id=$compID\">Delete This Page</a> - ";
+        }
+    }
+
+    echo "<p><span class=notes>"
+        . "<i>This is version {$rec['pagevsn']} of this page, "
+        . "edited by <a href=\"showuser?id=$editorID\">$editorName</a> "
+        . " on $moddate. "
+        
+        . "</i> - <a href=\"viewcomp?id=$compID&history&vsn=$pagevsn\">"
+        . "View Update History</a> - "
+        . "<a href=\"editcomp?id=$compID\">Edit This Page</a> - "
+        . $deletePageLink
+        . "<a href=\"editnews?type=C&source=$compID\">Add a News Item</a>"
+        . "</span><p>";
+}
+
+pageFooter();
+
+?>

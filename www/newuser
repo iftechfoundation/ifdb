@@ -1,0 +1,590 @@
+<?php
+
+@session_start();
+
+include "pagetpl.php";
+include_once "dbconnect.php";
+include_once "util.php";
+include_once "captcha.php";
+include_once "useractivation.php";
+include_once "akismet.php";
+
+$errFlagged = false;
+
+// check for successful CAPTCHA
+$capKey = "newuser";
+list($ok, $capErrMsg) = captchaCheckPost($capKey);
+
+// If the code is okay, process the post, and redisplay the form if
+// that returns true.  Otherwise, just show the form.
+$showForm = ($ok ? handlePost() : true);
+
+// if we're not showing the form, we're done
+if (!$showForm)
+    exit();
+
+// ------------------------------------------------------------------------
+//
+// Main form display
+//
+
+pageHeader("New User Registration", "newuser.userid", false,
+           "<script src=\"xmlreq.js\"></script>");
+?>
+
+<h1>New User Registration</h1>
+
+<p><b>Already registered?</b> <a href="login">Click here to log in</a>
+
+<p><b>To create an account, please fill out this form:</b>
+
+<?php
+
+if ($errFlagged != false) {
+    echo "<p><span class=errmsg>"
+        . "<img src=\"/blank.gif\" class=\"form-error-icon\"> "
+        . $errFlagged
+        . "</span>";
+}
+
+?>
+
+<p>
+<form method=post action="newuser" name="newuser">
+
+   <span class=details>
+   Your email address is your IFDB user ID:  you'll use it to log
+   in when you visit.  Be sure to enter a working address, since we have
+   to send you an activation email before you can use the new account.
+   Your email address won't be displayed to other users by default.
+   </span>
+   <br>
+   <table border=0 cellpadding=0 cellspacing=0
+          style="margin-top: 1ex; margin-left: 2em;">
+      <tr>
+         <td style="padding-right: 1em;" width=0>
+            Email Address:
+         <td>
+            <input type="text" name="userid" id="userid" size=30
+                  value="<?php echo get_req_data("userid")?>">
+
+      <tr>
+         <td style="padding-right: 1em;" width=0>
+            Confirm Email:
+         <td>
+            <input type="text" name="userid2" id="userid2" size=30
+                  value="<?php echo get_req_data("userid2") ?>">
+   </table>
+
+   <p>
+   <span class=details>
+    Select your new password.  It's <b>case sensitive</b> and must be
+    at least six characters long.  For a stronger password, make it
+    eight or more characters, using a mix
+    of capital letters, lower-case letters, and digits or punctuation marks.
+   </span>
+   <br>
+   <table border=0 cellpadding=0 cellspacing=0
+          style="margin-top: 1ex; margin-left: 2em;">
+      <tr>
+         <td style="padding-right: 1em;" width=0>
+            Password:
+         <td>
+            <input type="password" name="password" id="password" size=30
+               value="<?php echo get_req_data('password') ?>"
+               onpropertychange="javascript:onPasswordChange(this);return true;"
+               oninput="javascript:onPasswordChange(this);return true;">
+            <span style='font-size: 80%; padding-left:2em;'>Strength:
+               <span id="pswStrength">&nbsp;</span>
+            </span>
+
+      <tr>
+         <td style="padding-right: 1em;" width=0>
+            Confirm Password:
+         <td>
+            <input type="password" name="password2" id="password2" size=30
+               value="<?php echo get_req_data('password2') ?>"
+               onpropertychange="javascript:onPassConfChange(this);return true;"
+               oninput="javascript:onPassConfChange(this);return true;">
+            <span style='font-size: 80%; padding-left:2em;'>Match:
+               <span id="confMatch">&nbsp;</span>
+            </span>
+   </table>
+<script type="text/javascript" src="passwords.js">
+</script>
+
+<p>
+<span class=details>
+   Your Screen Name will appear with any comments, reviews, or other
+information you post on IFDB.  You don't have to use your real name,
+but if you're active in the <a
+href="news:rec.arts.int-fiction">rec.arts.int-fiction newsgroup</a> or
+other IF forums, we recommend using the same name you're known
+by there.</span><br>
+
+   <table border=0 cellpadding=0 cellspacing=0
+          style="margin-top: 1ex; margin-left: 2em;">
+      <tr>
+         <td style="padding-right: 1em;" width=0>
+            Screen Name:
+         <td>
+            <input type="text" name="dname" id="dname" size=30
+                  value="<?php echo get_req_data('dname') ?>">
+   </table>
+
+<!--
+   <p>
+   Remarks: <span class=details><i>Please enter a brief comment here
+      showing you know something about IFDB's subject matter.  This
+      is to help keep spammers away, and won't be shown to other users.
+      <?php echo helpWinLink("help-new-user-remarks", "Help with this") ?>
+      </i></span>
+   <br>
+   <textarea name="remarks" id="remarks" rows=5 cols=80
+      style="margin-left: 2em;"><?php
+      echo htmlspecialcharx(get_req_data('remarks')) ?></textarea>
+-->
+
+   <p>
+   <div style="margin-left: 2em;">
+   <?php
+      captchaSupportScripts($capKey);
+      captchaSubForm($capKey, $capErrMsg, "");
+      captchaFinish($capKey);
+   ?>
+   </div>
+
+   <br><br>
+
+   <br><br>
+   <b>Important:</b> by registering, you confirm that you agree to
+      our <?php
+         echo helpWinLink("/privacy?helpwin=1", "Privacy Policy");
+//<a href="needjs"
+//        onclick="javascript:helpWin('/privacy?helpwin=1');return false;">
+//         Privacy Policy</a>
+      ?> and <?php
+         echo helpWinLink("/tos?helpwin=1", "Terms of Service");
+//<a href="needjs"
+//        onclick="javascript:helpWin('/tos?helpwin=1');return false;">
+//         Terms of Service</a>
+      ?>.
+
+   <br><br>
+   <input type=submit value="Submit">
+
+</form>
+
+<?php
+pageFooter();
+
+
+// ------------------------------------------------------------------------
+//
+// Run an IP address and email through stopforumspam.com to check for
+// known spammers
+//
+function sfsCheck($ip, $email, $username, &$banned)
+{
+    // url-encode the parameters
+    $email = urlencode($email);
+    $username = urlencode($username);
+
+    // run the query through stopforumspam.com
+    $info = array();
+    $result = x_http_get("http://www.stopforumspam.com/api?"
+                         . "ip=$ip&email=$email&username=$username");
+
+    // parse the results
+    $result = explode("\n", $result);
+    $type = false;
+    foreach ($result as $r) {
+        if (preg_match("/<type>([a-z]+)<\/type>/", $r, $match))
+            $type = $match[1];
+        else if (preg_match("/<appears>yes<\/appears>/", $r))
+            $info[$type]['appears'] = true;
+        else if (preg_match("/<lastseen>([-: 0-9]+)<\/lastseen>/", $r, $m))
+            $info[$type]['lastseen'] = substr($m[1], 0, 10);
+        else if (preg_match("/<frequency>([0-9]+)<\/frequency>/", $r, $m))
+            $info[$type]['frequency'] = $m[1];
+    }
+
+    // assemble the results into a printable string
+    $ret = false;
+    $typeMap = array('ip' => 'IP', 'email' => 'Email',
+                     'username' => 'Name');
+    foreach (array('ip', 'email', 'username') as $t) {
+        $i = $info[$t];
+        if ($i['appears']) {
+            $t = $typeMap[$t];
+            $ret []= "$t ({$i['lastseen']}, {$i['frequency']}x)";
+        }
+    }
+    if ($ret)
+        $ret = implode(", ", $ret);
+
+    // figure if we want to ban them
+    $banned = false;
+    if (isset($info['ip'])) {
+        $i = $info['ip'];
+        if ($i['appears'] && $i['frequency'] >= 5)
+            $banned = true;
+    }
+    if (isset($info['email'])) {
+        $i = $info['email'];
+        if ($i['appears'] && $i['frequency'] > 2)
+            $banned = true;
+    }
+
+    // return the results
+    return $ret;
+}
+
+
+// ------------------------------------------------------------------------
+//
+// Handle form submission
+//
+function handlePost()
+{
+    global $errFlagged;
+
+    // get the parameters
+    $email = get_req_data('userid');
+    $email2 = get_req_data('userid2');
+    $psw = get_req_data('password');
+    $psw2 = get_req_data('password2');
+    $dname = get_req_data('dname');
+    $remarks = get_req_data('remarks');
+    //$clickwrap = $_REQUEST['clickwrap'];
+
+    // if any are blank, flag the error and show the page again
+    if (strlen($email) == 0 || strlen($email2) == 0
+        || strlen($psw) == 0 || strlen($dname) == 0) {
+        $errFlagged = "Please fill in all of the fields.";
+        return true;
+    }
+
+    // make sure they checked the clickwrap box
+    //if ($clickwrap != "1") {
+    //    $errFlagged = "You must confirm that you have read and
+    //       accept our user agreements.";
+    //    return true;
+    //}
+
+    // make sure the two copies of the email address match
+    if (strcmp($email, $email2) != 0) {
+        $errFlagged = "Email address mismatch - The two copies of the email
+            address you entered don't match. You must enter your email
+            twice, <b>identically</b>, to protect against typing mistakes.
+            Please check your entries.";
+        return true;
+    }
+
+    // verify that the email address looks like an email address
+    if (!preg_match("/^.+@[^.]+(\.[^.]+)+$/", $email)
+        || preg_match("/.*@.*@/", $email)) {
+        $errFlagged = "Please enter a valid email address.";
+        return true;
+    }
+
+    // make sure that the two copies of the password match
+    if (strcmp($psw, $psw2) != 0) {
+        $errFlagged = "Password mismatch - The two copies of the password
+            you entered don't match. The password must be entered twice
+            <b>identically</b> to protect against typing mistakes. Please
+            re-enter your password.";
+        return true;
+    }
+
+    // make sure the password is strong enough
+    if (strlen($psw) < 6) {
+        $errFlagged = "Your password is too short - please use at least
+            six characters.";
+        return true;
+    }
+    
+    // set up the database connection
+    $db = dbConnect();
+    if ($db == false)
+    {
+        $errFlagged = "An error occurred accessing the user database. Please
+            try again. If the problem persists, please
+            <a href='/contact'>contact us</a> to let us know about the
+            problem.";
+        return true;
+    }
+
+    // escape the parameters that we'll be storing in the database directly
+    $qemail = mysql_real_escape_string($email, $db);
+    $qdname = mysql_real_escape_string($dname, $db);
+    $qremarks = mysql_real_escape_string($remarks, $db);
+
+    // do a one-way hash on the password to store it in encrypted form
+    $salt = md5_rand($email . $dname);
+    $psw = sha1($salt . $psw);
+
+    // verify that the email address is unique
+    $result = mysql_query("select id from users where email = '$qemail'", $db);
+    if (mysql_num_rows($result) != 0) {
+        $errFlagged = "This email address is already registered.  If you've
+            already registered this address, and you've forgotten your
+            password, <a href='lostpsw'>click here</a>.";
+        return true;
+    }
+
+    // verify that the display name is unique
+    $result = mysql_query("select id from users where name = '$qdname'", $db);
+    if (mysql_num_rows($result) != 0) {
+        $errFlagged = "This display name is already taken by another user -
+            please choose a different name.";
+        return true;
+    }
+
+    // generate a TUID to identify the user
+    $userid = generateTUID($db, "users.id", 10);
+    if (!$userid) {
+        $errFlagged = "The system was unable to generate the new user
+            record. This might be a temporary database problem - please
+            try again later.";
+        return true;
+    }
+
+    // Assume the new account status will be 'D' (pending activation), and
+    // that the profile status is 'R' (pending review).  The user activates
+    // the account by confirming the email address; the administrator
+    // approves the profile.
+    $acctStatus = "D";
+    $profileStatus = "R";
+
+    // Check with Akismet for a spam mail judgment
+    $ak = akNew();
+    $ak->setCommentAuthorEmail($email);
+    $akIsSpam = $ak->isCommentSpam;
+
+    // Check with stopforumspam as well
+    $ip = $_SERVER['REMOTE_ADDR'];
+    $sfsIsSpam = sfsCheck($ip, $email, $dname, $sfsBanned);
+
+    // Check for users with free email accounts (hotmail, gmail, yahoo, etc)
+    // and email domains where we've seen spammers in the past.  Also get
+    // spam judgments from Akisment and stopforumspam.  If any of these
+    // tests are positive, flag the email for extra admin scrutiny.
+    // This doesn't change how we handle the account activation; it simply
+    // puts a note in the administrator email notification that this account
+    // should be checked more thoroughly.
+    $emailFlagged = preg_match(
+        "/@.*\b(yahoo|ymail|gmail|hotmail|live|aol|gether-back|interlog"
+        . "|siteoptima|googlemail|rediffmail|windowslive|renook"
+        . "|gailmproductions|i-s-i|mail15|smoke911"
+        . "|greenfroginteractive|bigmir)\b/i",
+        $email);
+
+    // certain email domains are so popular with spammers that we can just
+    // presume this will be a spammer
+    $domainBanned = false;
+    if (preg_match(
+        "/@.*\b(mail15|mail333|gailmproductions|siteoptima|bigmir"
+        . "|rediffmail|renook|i-s-i|smoke911|greenfroginteractive)\b/i",
+        $email))
+        $domainBanned = true;
+
+    // Check for TRULY banned domains.  Certain domains are basically
+    // 100% spammers, so we can just ignore them out of hand.
+    if (preg_match("/@.*\b(bigmir)\b/i", $email)
+        || $ip == "93.75.129.252") // big spam source on 6/21/11
+    {
+        $errFlagged = "We're sorry, but a problem occurred adding the new "
+                      . "user record. Please wait a few minutes and "
+                      . "try again, or "
+                      . "<a href=\"contact\">contact us</a> if the "
+                      . "problem persists. (Error code: NWI3712)";
+        return true;
+    }
+    
+    // If the stopforumspam check turned up an obvious spammer, or the
+    // email domain is one that we know from our own experience to be
+    // mostly used by spammers, don't even allow the user to activate
+    // the account until we can review it.
+    if ($sfsBanned || $domainBanned)
+    {
+        // use account statue 'R' - review needed
+        $acctStatus = "R";
+        
+        pageHeader("Registration Completed");
+        ?>
+        <h1>Registration Completed</h1>
+        <p>You've successfully registered!
+
+        <p>Your registration must now be reviewed by
+        a site administrator.  This extra step is needed
+        due to the large number of fake accounts that spam operators
+        have been creating on the site.
+        
+        <p>Once your registration is approved, you'll receive email
+        with instructions on activating your account.  Due to the need
+        for human review, please allow a day or two for the email to
+        arrive.  We apologize for the delay,
+        but trust you'll understand our efforts to keep the site as
+        spam-free as possible.
+        <?php
+
+        pageFooter();
+    }
+
+    // It all looks good - add the record.  The account status is
+    // initially 'D' for deactivated - login is disabled until the
+    // activation process has been completed.
+    $actcode = sha1(md5_rand($userid) . md5_rand($email));
+    $tosver = TOS_VERSION;
+    $sql = "insert into users
+        (id, email, name, `password`, pswsalt, activationcode,
+         acctstatus, profilestatus, created, `privileges`, remarks,
+         tosversion)
+        values ('$userid', '$qemail', '$qdname',
+                '$psw', '$salt', '$actcode',
+                '$acctStatus', '$profileStatus', now(), '',
+                '$qremarks', '$tosver')";
+    
+    // generate a nonce for the admin approve/reject operations
+    $task = "review user profile $userid";
+    $nonce = create_nonce($db, $task);
+    if (!$nonce)
+    {
+        $errFlagged = "An error occurred updating the database. This might "
+                      . "be a temporary database problem - please try again "
+                      . "later.";
+        return true;
+    }
+
+    // generate the admin url base
+    $adminUrl = "https://ifdb.tads.org/userconfirm"
+                . "?nonce=$nonce"
+                . "&userid=$userid"
+                . "&reviewProfile=";
+
+    // add the user record
+    $result = mysql_query($sql, $db);
+    $proPage = "https://ifdb.tads.org/showuser?id=$userid";
+
+    // add a login record to record the user's IP address
+    mysql_query("insert into logins (uid, ip, `when`)
+        values ('$userid', '$ip', now())", $db);
+
+    // send notification to the ifdb administrator
+    $msg = "IFDB new user registration\r\n"
+
+           . "<p>New user email: " . htmlspecialcharx($email)
+           . "<br>Screen name: " . htmlspecialchars($dname)
+           . "<br>IP address: " . $ip
+           . "<br>Account status: "
+           .   ($acctStatus == "R" ? "<b>Pending review</b>" :
+                "Pending activation")
+           . "<br>Profile page: <a href=\"$proPage&unlock=$nonce\">"
+           .    "$proPage</a>"
+
+           . "<p>Akisment judgment: " . ($akIsSpam ? "<b>Spam</b>" : "Okay")
+           . "<br>StopForumSpam.com: " . $sfsIsSpam
+           . "<br>Suspicious email domain: "
+           .     ($emailFlagged ? "<b>Yes</b>" : "No")
+
+           . "<br><br><a href=\"http://www.google.com/search?q=%22"
+           .    urlencode($email) . "%22\">Search for email</a>"
+           . "<br><a href=\"http://www.google.com/search?q=%22"
+           .    urlencode($dname) . "%22\">Search for screen name</a>"
+
+           . "<p><a href=\"{$adminUrl}A\">Approve the new account</a>"
+           . "<br><a href=\"{$adminUrl}T\">Set user to \"trusted\"</a>"
+           . "<br><a href=\"{$adminUrl}B\">Ban the user</a>"
+
+           . "<br><a href=\"http://localhost/mjrnet/sfs-report.php"
+           .     "?email=" . urlencode($email)
+           .     "&ip=" . $_SERVER['REMOTE_ADDR']
+           .     "&username=" . urlencode($dname)
+           .     "\">Report this user to StopForumSpam</a>"
+
+           . "<br>";
+
+    $hdrs = "From: IFDB <noreply@ifdb.tads.org>\r\n"
+            . "Content-type: Text/HTML\r\n";
+
+    mail("ifdbadmin@ifdb.tads.org",
+         "IFDB new user registration", $msg, $hdrs);
+
+    // if the account is pending review, we're done, since we've already
+    // shown the response and we don't want to send activation email
+    if ($acctStatus == "R")
+        return false;
+
+    // generate the confirmation
+    if (isset($_SESSION['sent_activation_to'])
+        && strcasecmp($_SESSION['sent_activation_to'], $email) == 0) {
+        pageHeader("Registration Confirmed");
+?>
+<h1>Registration Confirmed</h1>
+
+<p>A confirmation email has already been sent to your account.  To
+activate your account, you must follow the instructions in the email.
+
+<?php
+        pageFooter();
+    } else {
+        // note that we've sent the activation so we don't do it again on refresh
+        $_SESSION['sent_activation_to'] = $email;
+
+        // build the message body
+        if (sendActivationEmail($email, $actcode)) {
+            pageHeader("Registration Confirmed");
+?>
+<h1>Registration Confirmed</h1>
+
+<p>You've successfully registered!  Your user ID for future log-ins
+is <b><?php echo get_req_data('userid') ?></b>.
+
+<p>Before you can use your new account, you must activate it.  We
+just sent you email at <?php echo get_req_data('userid') ?> with
+your activation instructions.  When you receive this message, simply
+follow the instructions in the email to complete your registration.
+
+<p>If you don't receive your confirmation email shortly, you might
+want to check your Junk Mail folder, in case your spam filter mistook
+the activation message for spam.  If you think the message got lost,
+you can have it re-sent by going to the <a href="lostpass">Lost
+Password</a> page and requesting a new password.
+
+<?php
+            pageFooter();
+
+        } else {
+            pageHeader("Registration Error");
+?>
+<h1>Registration Email Error</h1>
+
+<p>
+<span class=errmsg>An error occurred sending your confirmation email.</span>
+
+<p>The confirmation email is required as part of the activation process,
+to verify that you own the email account you supplied.  We just attempted
+to send you this message, but unfortunately the attempt failed.  Please
+check that the email address you supplied is formatted correctly.  If
+you need to make any changes, use your browser's Back button to return
+to the registration page.
+
+<p>If the email address you entered looks right, the problem might be
+something wrong at our end.  You might want to wait a little while and
+try again.  If that doesn't help, please <a
+href="/contact">contact us</a> to let us know about the problem.
+
+<?php
+            pageFooter();
+        }
+    }
+
+    // no need to show the rest of the registration page
+    return false;
+
+} // function handlePost()
+
+?>
+
+

@@ -1,0 +1,1929 @@
+<?php
+
+include "pagetpl.php";
+include_once "util.php";
+include_once "combobox.php";
+include_once "starctl.php";
+include_once "profilelink.php";
+include_once "gamesearchpopup.php";
+include_once "searchutil.php";
+include_once "editgame-util.php";
+
+@session_start();
+
+// we have to be logged in to edit a game
+include "login-check.php";
+if (!logged_in())
+    exit();
+
+$userid = $_SESSION['logged_in_as'];
+$errMsg = false;
+$errDetail = array();
+$saveErrMsg = false;
+$pagetitle = "Edit Game Details";
+
+// connect to the database
+include_once "dbconnect.php";
+$db = dbConnect();
+
+// can't be a troll, an unapproved new user, a banned user, or a closed account
+if (!check_editing_privileges($db))
+    exit();
+
+// ------------------------------------------------------------------------
+//
+// if we're doing an Edit/Search, show a search box
+if (isset($_REQUEST['search']))
+{
+    pageHeader("Edit a Game Listing", "editSearchForm.searchFor");
+    echo "<h1>Edit a Game Listing</h1>";
+        
+    $searchFor = get_req_data("searchFor");
+
+    ?>
+    <form name="editSearchForm" method="get" action="editgame">
+       <input type="hidden" name="search" value="1">
+
+       <?php
+
+          if (!$searchFor) {
+              echo "Please enter the name of the game you'd like to edit. "
+                  . "(You can also use any of the "
+                  . "<a href=\"search?xlink=edit\">"
+                  . "advanced search</a> operators.)<p>";
+          } else {
+              echo "Search again:<br>";
+          }
+       ?>
+       <input type="text" name="searchFor" size=60 value="<?php
+          echo htmlspecialcharx($searchFor);
+       ?>">
+       <input type="submit" name="searchGo" value="Search">
+    </form>
+    <?php
+
+    if ($searchFor)
+    {
+        // run the search
+        list($rows, $rowcnt, $sortList, $errMsg) =
+            doSearch($db, $searchFor, "game", "rel", "limit 0, 10", false);
+
+        // if the top result matches the title exactly, consider it a
+        // one-row match, even if we found other less relevant titles
+        if ($rowcnt >= 1
+            && strcasecmp($rows[0]['title'], $searchFor) == 0)
+            $rowcnt = 1;
+
+        // show the results
+        $term = htmlspecialcharx($searchFor);
+        if ($errMsg)
+        {
+            echo "<span class=errmsg>$errMsg</span>";
+        }
+        else if ($rowcnt == 0)
+        {
+            // no results
+            echo "<span class=errmsg>No games were found "
+                . "matching \"$term\".</span>";
+        }
+        else if ($rowcnt == 1)
+        {
+            // one result - go directly there
+            $row = $rows[0];
+            $id = $row['id'];
+
+            header("HTTP/1.1 301 Moved Permanently");
+            header("Content-Type: text/html");
+            header("Location: editgame?id=$id");
+
+            echo "<a href=\"editgame?id=$id\">Redirecting
+                (click here if your browser doesn't redirect
+                 automatically)</a>";
+
+            // we're done; the browser will handle the rest via
+            // the redirect
+            exit();
+            
+        }
+        else
+        {
+            // multiple results - show the list
+            $toplbl = ($rowcnt > count($rows) ? "Top Search" : "Search");
+            echo "<p><b>$toplbl results for \"$term\":</b>";
+
+            if ($rowcnt > count($rows)) {
+                echo "<br><span class=details><i>These are the top results, "
+                    . "sorted by relevance. To see all $rowcnt results, "
+                    . "use the <a href=\"search?xlink=edit&searchfor="
+                    . urlencode($searchFor) . "\">advanced search</a> tool."
+                    . "</i></span>";
+            }
+    
+            for ($i = 0 ; $i < count($rows) ; $i++)
+            {
+                $row = $rows[$i];
+                $id = $row['id'];
+                $title = htmlspecialcharx($row['title']);
+                $author = htmlspecialcharx($row['author']);
+
+                echo "<p><a href=\"editgame?id=$id\"><i>$title</i></a>, "
+                    . "by $author <span class=details style='padding-left:1em'>"
+                    . "<a href=\"viewgame?id=$id\">View Listing</a> - "
+                    . "<a href=\"editgame?id=$id\">Edit</a></span>";
+            }
+        }
+    }
+    else
+    {
+        echo "<p>Tip: If you happen to spot an error or omission while "
+            . "viewing a game's listing page, there's no need to go "
+            . "through this extra search step.  You can always reach "
+            . "the listing editor directly from a game's main page "
+            . "by clicking the \"Edit this page\" link near the "
+            . "bottom of the page.";
+    }
+
+    // Edit/Search just shows the search page, so we're done
+    exit();
+}
+
+// ------------------------------------------------------------------------
+
+// check for special privileges
+$result = mysql_query(
+    "select `privileges` from users where id='$userid'", $db);
+$adminPriv =
+    $result
+    && strpos(mysql_result($result, 0, "privileges"), "A") !== false;
+
+// translate image button request parameters to the normal SUBMIT button style
+foreach (array("save", "discard") as $b) {
+    if (isset($_REQUEST[$b . "_x"]) && !isset($_REQUEST[$b]))
+        $_REQUEST[$b] = true;
+}
+
+// if there's an image upload, process that
+include "imageuploadhandler.php";
+
+
+// --------------------------------------------------------------------------
+function init()
+{
+    global $id, $qid, $errMsg, $errDetail, $rec, $oslist, $osmap, $db;
+
+    // make sure we're connected
+    if ($db == false) {
+        $errMsg = "An error occurred connecting to the game database. Please
+          try refreshing the page. If the error persists, feel free to
+          <a target=\"_blank\" href=\"/contact\">contact us</a>
+          to let us know about the problem.";
+        return;
+    }
+
+    // make sure the request comes with a game ID
+    if (!isset($_REQUEST['id'])) {
+        $errMsg = "No game ID was specified with the page request. If you
+            reached this page through a link from another site, please
+            notify the maintainer of the other site of the broken link.";
+        return;
+    }
+
+    // editing an existing game - get the game ID
+    $id = $_REQUEST['id'];
+
+    // quote the ID string for use in database queries
+    $qid = mysql_real_escape_string($id, $db);
+
+    // check to see if we're editing an existing game or adding a new one
+    if ($id == "new")
+    {
+        // there's no existing game data yet, obviously
+        $rec = array();
+    }
+    else
+    {
+        // we're editing an existing game - look it up
+        list($rec, $errMsg) = loadGameRecord($db, $qid);
+    }
+
+    // initialize the link format list and map
+    init_link_formats($db);
+
+    // fetch the operating system list
+    $result = mysql_query("select id, operatingsystems.name as osname,
+           vsnid, osversions.name as vsnname, seq
+        from operatingsystems
+           left outer join osversions
+             on operatingsystems.id = osversions.osid
+               and osversions.name != '*'
+        order by
+           osname, seq", $db);
+    $rows = mysql_num_rows($result);
+    $oslist = array();
+    for ($i = 0 ; $i < $rows ; $i++)
+        $oslist[] = mysql_fetch_array($result, MYSQL_ASSOC);
+
+    // build a map for the OSes keyed by "osid.osversion"
+    $osmap = array();
+    foreach ($oslist as $os)
+        $osmap[$os['id'] . '.' . $os['vsnid']] =
+            ($os['vsnname'] == "" ? $os['osname'] : $os['vsnname']);
+}
+
+// --------------------------------------------------------------------------
+// add hidden fields to a form, to save the current values being edited
+//
+function addHiddenFields()
+{
+    global $req, $fields;
+
+    // add hidden fields for the main field list
+    for ($i = 0 ; $i < count($fields) ; $i++) {
+        $col = $fields[$i][1];
+        $val = htmlspecialcharx($req[$col]);
+        echo "<input type=\"hidden\" name=\"$col\" value=\"$val\">";
+    }
+
+    // add the original page version
+    echo "<input type=\"hidden\" name=\"pagevsn\" value=\""
+        . htmlspecialcharx($req['pagevsn']) . "\">";
+
+    // add the download links
+    $links = $req['links'];
+    for ($i = 0 ; $i < count($links) ; $i++) {
+        $link = $links[$i];
+        $url = htmlspecialcharx($link['url']);
+        $attrs = htmlspecialcharx($link['attrs']);
+        $title = htmlspecialcharx($link['title']);
+        $desc = htmlspecialcharx($link['desc']);
+        $fmt = htmlspecialcharx($link['fmtid']);
+        $os = htmlspecialcharx($link['osid']);
+        $vsn = htmlspecialcharx($link['osvsn']);
+        $cmp = htmlspecialcharx($link['compression']);
+        $cmppri = htmlspecialcharx($link['compressedprimary']);
+        echo "<input type=\"hidden\" name=\"linkurl$i\"
+                value=\"$url\">
+              <input type=\"hidden\" name=\"linktitle$i\"
+                value=\"$title\">
+              <input type=\"hidden\" name=\"linkdesc$i\"
+                value=\"$desc\">
+              <input type=\"hidden\" name=\"linkattrs$i\"
+                value=\"$attrs\">
+              <input type=\"hidden\" name=\"linkfmt$i\"
+                value=\"$fmt\">
+              <input type=\"hidden\" name=\"linkos$i\"
+                value=\"$os\">
+              <input type=\"hidden\" name=\"linkosvsn$i\"
+                value=\"$vsn\">
+              <input type=\"hidden\" name=\"linkcomp$i\"
+                value=\"$cmp\">
+              <input type=\"hidden\" name=\"linkcomppri$i\"
+                value=\"$cmppri\">";
+    }
+
+    // add the review links
+    $revs = $req['extreviews'];
+    for ($i = 0 ; $i < count($revs) ; $i++) {
+        $r = $revs[$i];
+        $rurl = htmlspecialcharx($r['url']);
+        $rsrc = htmlspecialcharx($r['sourcename']);
+        $rsrcurl = htmlspecialcharx($r['sourceurl']);
+        $rrating = htmlspecialcharx($r['rating']);
+        $rhead = htmlspecialcharx($r['headline']);
+        $rsum = htmlspecialcharx($r['summary']);
+
+        echo "<input type=\"hidden\" name=\"extrevUrl$i\" value=\"$rurl\">"
+            . "<input type=\"hidden\" name=\"extrevSource$i\" value=\"$rsrc\">"
+            . "<input type=\"hidden\" name=\"extrevSourceUrl$i\" "
+            .    "value=\"$rsrcurl\">"
+            . "<input type=\"hidden\" name=\"extrevRating$i\" value=\"$rrating\">"
+            . "<input type=\"hidden\" name=\"extrevHeadline$i\" value=\"$rhead\">"
+            . "<input type=\"hidden\" name=\"extrevSummary$i\" value=\"$rsum\">";
+    }
+
+    // add the cross-references
+    $xrefs = $req['xrefs'];
+    for ($i = 0 ; $i < count($xrefs) ; $i++) {
+        $x = $xrefs[$i];
+        $rtype = htmlspecialcharx($x['reftype']);
+        $rid = htmlspecialcharx($x['toID']);
+        $rtitle = htmlspecialcharx($x['toTitle']);
+
+        echo "<input type=\"hidden\" name=\"xrefReftype$i\" value=\"$rtype\">"
+            . "<input type=\"hidden\" name=\"xrefID$i\" value=\"$rid\">"
+            . "<input type=\"hidden\" name=\"xrefTitle$i\" value=\"$rtitle\">";
+    }
+}
+
+// --------------------------------------------------------------------------
+// show field-specific error messages in the form
+//
+function showFieldErrorDetail($col)
+{
+    global $errDetail;
+    
+    if (isset($errDetail[$col]) && count($errDetail[$col]) != 0) {
+        echo "<table border=0 cellspacing=0 cellpadding=0>
+              <tr valign=top>
+              <td><img src=\"/blank.gif\" class=\"form-error-icon\"
+                  id=\"editgame-form-field-error\">&nbsp;&nbsp;</td>
+              <td><span class=errmsg><i>";
+
+        foreach ($errDetail[$col] as $txt)
+            echo "$txt<br>";
+
+        echo "</i></span></td></tr></table>";
+
+        return true;
+    }
+    else
+        return false;
+}
+
+// --------------------------------------------------------------------------
+
+// get the username
+$result = mysql_query("select name, location from users 
+    where id = '$userid'", $db);
+$username = mysql_result($result, 0, "name");
+$userloc = mysql_result($result, 0, "location");
+
+// retrieve the data for the page
+init();
+
+if ($errMsg) {
+    pageHeader($pagetitle);
+    echo "<span class=errmsg>
+       <img src=\"/blank.gif\" class=\"form-error-icon\"
+         id=\"editgame-form-error\">
+       <b>Error: $errMsg</b></span>";
+
+} else {
+
+    // assume we're going to show the form
+    $showform = true;
+
+    // add the game's name to the page title
+    if ($id == "new")
+        $pagetitle = "New Game Listing";
+    else
+        $pagetitle = htmlspecialcharx($rec['title']) . " - Edit Details";
+
+    // if we're saving or adding a new link, load $rec from the request -
+    // we have updates that we want to keep
+    if ($_SERVER['REQUEST_METHOD'] == 'POST'
+        && !isset($_REQUEST['discard'])) {
+
+        // loop over the field descriptors and reload each from the request
+        $req = array();
+        for ($i = 0 ; $i < count($fields) ; $i++) {
+            // get this field descriptor
+            $field = $fields[$i];
+            $colname = $field[1];
+
+            // load the value from the request; note that we use the same
+            // name for each column for the on-form <input> field and the
+            // SELECT list column, so this is just a matter of copying
+            // the $_POST element with the current field's column name
+            // to the corresponding $rec element.
+            $req[$colname] = get_req_data($colname);
+        }
+
+        // the page version is a hidden field
+        $req['pagevsn'] = get_req_data("pagevsn");
+
+        // if we just uploaded a new image, make it the new selection
+        $req['coverart'] = getJustUploadedImage($req['coverart']);
+
+        // copy the download links from the request - this is a little more
+        // complicated because we have an array of these, which we name
+        // (linkurl0, linkfmt0, linkos0, linkosvsn0,...), (linkurl1, ...), etc
+        for ($links = array(), $i = 0 ; ; $i++) {
+            // if we've run out of linkurlN values, there are no more rows
+            if (!isset($_POST["linkurl$i"]))
+                break;
+            
+            // load up this record
+            $link = array();
+            $link['url'] = get_req_data("linkurl$i");
+            $link['title'] = get_req_data("linktitle$i");
+            $link['desc'] = get_req_data("linkdesc$i");
+            $link['attrs'] = get_req_data("linkattrs$i");
+            $link['fmtid'] = get_req_data("linkfmt$i");
+            $link['osid'] = get_req_data("linkos$i");
+            $link['osvsn'] = get_req_data("linkosvsn$i");
+            $link['compression'] = get_req_data("linkcomp$i");
+            $link['compressedprimary'] = get_req_data("linkcomppri$i");
+
+            // store it
+            $links[] = $link;
+        }
+
+        // store the new links array back in the record list
+        $req['links'] = $links;
+
+        // copy the review links from the request
+        for ($revs = array(), $i = 0 ; ; $i++) {
+            // if we've run out of extrevUrlN values, there are no more rows
+            if (!isset($_POST["extrevUrl$i"]))
+                break;
+
+            // load up this record
+            $rev = array();
+            $rev['url'] = get_req_data("extrevUrl$i");
+            $rev['sourcename'] = get_req_data("extrevSource$i");
+            $rev['sourceurl'] = get_req_data("extrevSourceUrl$i");
+            $rev['rating'] = get_req_data("extrevRating$i");
+            $rev['headline'] = get_req_data("extrevHeadline$i");
+            $rev['summary'] = get_req_data("extrevSummary$i");
+
+            $revs[] = $rev;
+        }
+
+        // add it to the request record
+        $req['extreviews'] = $revs;
+
+        // copy the cross-references from the request
+        for ($xrefs = array(), $i = 0 ; ; $i++) {
+            // if we're out of xrefReftype values, we're done
+            if (!isset($_POST["xrefReftype$i"]))
+                break;
+
+            // load this record
+            $x = array();
+            $x['reftype'] = get_req_data("xrefReftype$i");
+            $x['toID'] = get_req_data("xrefID$i");
+            $x['toTitle'] = get_req_data("xrefTitle$i");
+
+            $xrefs[] = $x;
+        }
+
+        // add it to the request record
+        $req['xrefs'] = $xrefs;
+
+        // if the current cover art setting refers to an uploaded image
+        // that's been discarded, revert to the current game image
+        if (substr($req['coverart'], 0, 3) == "tmp") {
+            // look for the image
+            if (!findTempImage($req['coverart'])) {
+                // can't find it - revert to the original database setting
+                $req['coverart'] = $rec['coverart'];
+            }
+        }
+
+        // if this is a SAVE operation, keep both the database and request
+        // arrays; otherwise, forget the database values and keep only
+        // the new request array (but keep the original cover art value,
+        // since we always want to offer reverting back to the old cover
+        // art as an option)
+        if (!isset($_REQUEST['save']))
+        {
+            // preserve the original cover art reference
+            if (isset($rec['orig:coverart']))
+                $req['orig:coverart'] = $rec['orig:coverart'];
+
+            // display the posted data
+            $rec = $req;
+        }
+    }
+
+    // if we're posting updates, process the request; otherwise just
+    // show the form
+    if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+
+        // check which request we're performing
+        if (isset($_REQUEST['discard'])) {
+
+            // this is basically just a refresh, so proceed on to the form
+
+        } else if (isset($_REQUEST['save'])) {
+
+            // save the data
+            saveUpdates($db, $adminPriv, false,
+                        $id, $rec, $req,
+                        $saveErrMsg, $saveErrCode, $errDetail);
+
+            // unlock tables
+            mysql_query("unlock tables", $db);
+        }
+    }
+
+    // if we decided to show the form, proceed
+    if ($showform) {
+        // start the page
+        pageHeader($pagetitle, "editgame.title",
+                   "gfGenForm('linkModel');gfGenForm('reviewModel');"
+                   . "gfGenForm('xrefModel');",
+                   "<script src=\"gridform.js\"></script>"
+                   . "<script src=\"xmlreq.js\"></script>",
+                   false,
+                   "onmousedown=\"checkClosePopup(event,true);\"");
+
+        initStarControls();
+        imageUploadScripts();
+?>
+
+<h1><?php echo $pagetitle ?></h1>
+
+<?php
+if ($id == "new")
+    echo "<p><span class=notes><i>Before adding a new listing, <b>please
+       check carefully</b> (by <a href=\"search\">searching</a>) that the
+       game isn't already in the database, so that you don't create
+       a duplicate entry.</i>
+       <br><br>"
+        . helpWinLink("help-add-game", "Guidelines for adding new games")
+        . " - "
+        . helpWinLink("help-edit-game", "Guidelines for game listing")
+//       <a href=\"needjs\"
+//         onclick=\"javascript:helpWin('help-add-game');return false;\">
+//          Guidelines for adding new games</a> -
+//       <a href=\"needjs\"
+//          onclick=\"javascript:helpWin('help-edit-game');return false;\">
+//          Guidelines for game listings</a>"
+        . "</span><br><br>";
+else
+    echo "<p><span class=notes> "
+        . helpWinLink("help-edit-game", "Guidelines for game listings")
+//          <a href=\"needjs\"
+//           onclick=\"javascript:helpWin('help-edit-game');return false;\">
+//           Guidelines for game listings</a>
+        . "</span><br><br>";
+
+if ($saveErrMsg) {
+    echo "<span class=errmsg><img src=\"/blank.gif\"
+              class=\"form-error-icon\" id=\"editgame-save-error\">
+          $saveErrMsg</span><br><br>";
+}
+?>
+
+<!-------------------------------------------------------------------------->
+<script type="text/javascript">
+<!--
+function helpWin(url) {
+    win = window.open(url, null,
+        'width=400,height=400,left=10,top=10,scrollbars=yes,resizable=yes,location=yes');
+}
+
+function confirmReset() {
+    return confirm("Do you really want to abandon your changes?");
+}
+
+//-->
+</script>
+
+<?php
+   comboSupportFuncs();
+   profileLinkSupportFuncs();
+   gameSearchPopupSupportFuncs();
+?>
+
+<!-------------------------------------------------------------------------->
+<script type="text/javascript">
+<!--
+var formatPopupOpen = false;
+var overReviewPopup = false;
+var activeReviewPopup;
+var activeReviewNum = false;
+var reviewPopupOpen = false;
+var activeLinkPopup = false;
+var activeLinkNum = false;
+var overLinkPopup = false;
+var linkPopupHeight = 0;
+var GAMELINK_IS_GAME = <?php echo GAMELINK_IS_GAME ?>;
+var GAMELINK_PENDING = <?php echo GAMELINK_PENDING ?>;
+
+var fmtmap = {
+    <?php
+    foreach ($linkfmts as $lf) {
+        echo "\"{$lf['id']}\": "
+            . "{\"name\": \"{$lf['fmtname']}\","
+            . "\"externid\": \"{$lf['externid']}\","
+            . "\"exe\": " . ($lf['fmtclass'] == 'X' ? "1" : "0") . ","
+            . "\"isgame\": " . ($lf['fmtclass'] == 'G' ? "1" : "0") . ","
+            . "\"zip\": " . ($lf['fmtclass'] == 'Z' ? "1" : "0"). ","
+            . "\"extension\": \"{$lf['extension']}\" "
+            . "},";
+    }
+    ?>
+    " ":""
+};
+var revfmtmap = {
+    <?php
+    foreach ($linkfmts as $lf) {
+        echo "\"{$lf['externid']}\": \"{$lf['id']}\", ";
+    }
+    ?>
+    " ":""
+};
+var extensionMap = {
+    <?php
+    foreach ($linkfmts as $lf) {
+        $exts = explode(" ", $lf['extension']);
+        foreach ($exts as $ext) {
+            if ($ext)
+                echo "\"{$ext}\": \"{$lf['id']}\", ";
+        }
+    }
+    ?>
+    " ":""
+}
+var osmap = {
+    <?php
+    foreach ($oslist as $os) {
+        echo "\"{$os['id']}.{$os['vsnid']}\": "
+            . "\""
+            . ($os['vsnname'] == "" ? $os['osname'] : $os['vsnname'])
+            . "\",";
+    }
+    ?>
+    " ":""
+};
+
+function checkClosePopup(e, byMouse)
+{
+    var targ = comboTarget(e);
+
+    // first check for a combo
+    if (!checkCloseCombo(e, byMouse))
+        return false;
+
+    // check for a profile link popup
+    if (activeLinkPopup && !overLinkPopup)
+    {
+        while (targ != null && targ != activeLinkPopup)
+            targ = targ.parentNode;
+        if (targ == null)
+        {
+            justDismissed = "link" + activeLinkNum;
+            closeLinkPopup();
+            return false;
+        }
+    }
+
+    // check for a review popup
+    if (activeReviewPopup && !overReviewPopup)
+    {
+        while (targ != null && targ != activeReviewPopup)
+            targ = targ.parentNode;
+        if (targ == null)
+        {
+            justDismissed = "review" + activeReviewNum;
+            closeReviewPopup();
+            return false;
+        }
+    }
+
+    // didn't find anything to dismiss
+    justDismissed = false;
+    return true;
+}
+
+function showLinkPopup(event,linkNum)
+{
+    var oDiv = document.getElementById("linkpopup");
+
+    // if this popup is open, simply close it and stop; if another one
+    // is open, close the other one and continue on to opening this one
+    if (activeLinkPopup && activeLinkNum == linkNum)
+    {
+        closeLinkPopup();
+        return true;
+    }
+    else if (activeLinkPopup)
+    {
+        closeLinkPopup();
+    }
+
+    if (justDismissed == "link" + linkNum)
+        return false;
+
+    var hiddenUrl = document.getElementById("linkurl" + linkNum);
+    var hiddenFmt = document.getElementById("linkfmt" + linkNum);
+    var hiddenOs = document.getElementById("linkos" + linkNum);
+    var hiddenVsn = document.getElementById("linkosvsn" + linkNum);
+    var hiddenComp = document.getElementById("linkcomp" + linkNum);
+    var hiddenCompPri = document.getElementById("linkcomppri" + linkNum);
+    var hiddenAttrs = document.getElementById("linkattrs" + linkNum);
+    var isGame = ((hiddenAttrs.value & GAMELINK_IS_GAME) != 0);
+    var pending = ((hiddenAttrs.value & GAMELINK_PENDING) != 0);
+    var hiddenTitle = document.getElementById("linktitle" + linkNum);
+    var hiddenDesc = document.getElementById("linkdesc" + linkNum);
+
+    document.getElementById("linkurl").value = hiddenUrl.value;
+    document.getElementById("linkfmtG").value = hiddenFmt.value;
+    document.getElementById("linkfmtNG").value = hiddenFmt.value;
+    document.getElementById("linkos").value =
+        hiddenOs.value + "." + hiddenVsn.value;
+    document.getElementById("linkcomp").value =
+        (hiddenComp.value ? hiddenComp.value : "");
+    document.getElementById("linkcomppri").value =
+        (hiddenCompPri.value ? hiddenCompPri.value : "");
+    document.getElementById("linkisgame").checked = isGame;
+    document.getElementById("linkpending").checked = pending;
+    document.getElementById("linktitle").value =
+        (hiddenTitle.value ? hiddenTitle.value : "");
+    document.getElementById("linkdesc").value =
+        (hiddenDesc.value ? hiddenDesc.value : "");
+
+    var oSpan = document.getElementById("linkdisp" + linkNum);
+    var nTop = oSpan.offsetTop + oSpan.offsetHeight;
+    var nLeft = oSpan.offsetLeft;
+    while (oSpan.offsetParent != document.body)
+    {
+        oSpan = oSpan.offsetParent;
+        nTop += oSpan.offsetTop;
+        nLeft += oSpan.offsetLeft;
+    }
+    oDiv.style.top = (nTop - oDiv.offsetHeight) + "px";
+    oDiv.style.left = nLeft + "px";
+    if (linkPopupHeight == 0) {
+        setTimeout(function() {
+            var oDiv = document.getElementById("linkpopup");
+            linkPopupHeight = oDiv.offsetHeight;
+            oDiv.style.top = (nTop - linkPopupHeight) + "px";
+        }, 1);
+    } else
+        oDiv.style.top = (nTop - linkPopupHeight) + "px";
+        
+    oDiv.style.display = "";
+
+    formatPopupOpen = true;
+
+    document.getElementById("linkurl").focus();
+
+    activeLinkPopup = oDiv;
+    activeLinkNum = linkNum;
+
+    updateIsGame();
+    updateFormatUI(false);
+
+    return false;
+}
+
+function updateFormatUI(byUser)
+{
+    var ele, vis;
+    
+    var selFmtG = document.getElementById("linkfmtG");
+    var selFmtNG = document.getElementById("linkfmtNG");
+    var selCmp = document.getElementById("linkcomp");
+    var priFld = document.getElementById("linkcomppri");
+    var priNA = document.getElementById("linkcomppriNA");
+    var selOs = document.getElementById("linkos");
+    var selIsg = document.getElementById("linkisgame");
+    var selPend = document.getElementById("linkpending");
+    var fmt = fmtmap[selIsg.checked ? selFmtG.value : selFmtNG.value];
+
+    selOs.style.display = ((fmt && fmt["exe"]) ? "" : "none");
+    if (selCmp.value == "") {
+        priFld.style.display = "none";
+        priNA.style.display = "";
+    } else {
+        priFld.style.display = "";
+        priNA.style.display = "none";
+    }
+
+    if (byUser && fmt && fmt.externid == "tads3web")
+    {
+        alert("Note: TADS 3 Web Play will work only if the game was COMPILED "
+              + "for Web UI mode. This requires version 3.1 or later of "
+              + "the TADS compiler, with the Web UI library options selected "
+              + "at compile time.");
+    }
+}
+
+function updateIsGame()
+{
+    var selG = document.getElementById("linkfmtG");
+    var selNG = document.getElementById("linkfmtNG");
+    if (document.getElementById("linkisgame").checked) {
+        selG.style.display = "";
+        selNG.style.display = "none";
+    } else {
+        selG.style.display = "none";
+        selNG.style.display = "";
+    }
+    updateFormatUI(false);
+}
+
+function saveLinkPopup()
+{
+    if (activeLinkPopup)
+    {
+        linkNum = activeLinkNum;
+
+        var selUrl = document.getElementById("linkurl");
+        var selFmtG = document.getElementById("linkfmtG");
+        var selFmtNG = document.getElementById("linkfmtNG");
+        var selOs = document.getElementById("linkos");
+        var selComp = document.getElementById("linkcomp");
+        var selCompPri = document.getElementById("linkcomppri");
+        var selIsGame = document.getElementById("linkisgame");
+        var selPending = document.getElementById("linkpending");
+        var selTitle = document.getElementById("linktitle");
+        var selDesc = document.getElementById("linkdesc");
+
+        var hiddenUrl = document.getElementById("linkurl" + linkNum);
+        var hiddenFmt = document.getElementById("linkfmt" + linkNum);
+        var hiddenOs = document.getElementById("linkos" + linkNum);
+        var hiddenVsn = document.getElementById("linkosvsn" + linkNum);
+        var hiddenComp = document.getElementById("linkcomp" + linkNum);
+        var hiddenCompPri = document.getElementById("linkcomppri" + linkNum);
+        var hiddenAttrs = document.getElementById("linkattrs" + linkNum);
+        var hiddenTitle = document.getElementById("linktitle" + linkNum);
+        var hiddenDesc = document.getElementById("linkdesc" + linkNum);
+        
+        var inpDisp = document.getElementById("linkdisp" + linkNum);
+
+        var os = selOs.value;
+        var osdot = os.indexOf(".");
+
+        hiddenUrl.value = selUrl.value;
+        hiddenFmt.value = (selIsGame.checked ? selFmtG.value : selFmtNG.value);
+        hiddenOs.value = os.substr(0,osdot);
+        hiddenVsn.value = os.substr(osdot+1);
+        hiddenComp.value = selComp.value;
+        hiddenCompPri.value = selCompPri.value;
+        hiddenAttrs.value = (selIsGame.checked ? GAMELINK_IS_GAME : 0)
+                            | (selPending.checked ? GAMELINK_PENDING : 0);
+        hiddenTitle.value = selTitle.value;
+        hiddenDesc.value = selDesc.value;
+
+        inpDisp.value = (selTitle.value && selUrl.value
+                         ? selTitle.value + " (" + selUrl.value + ")"
+                         : selTitle.value
+                         ? selTitle.value
+                         : selUrl.value
+                         ? selUrl.value
+                         : "");
+
+        updateFormatUI(false);
+    }
+}
+
+function closeLinkPopup()
+{
+    if (activeLinkPopup)
+    {
+        formatPopupOpen = false;
+        saveLinkPopup();
+        activeLinkPopup.style.display = "none";
+        activeLinkPopup = false;
+    }
+}
+
+var showReviewPopupQueue = [];
+function postShowReviewPopup(revNum)
+{
+    if (showReviewPopupQueue.length == 0)
+    {
+        showReviewPopupQueue.push(revNum);
+        setTimeout(function() {
+            showReviewPopupQueue.pop();
+            showReviewPopup(revNum);
+        }, 1);
+    }
+}
+
+var reviewPopupHeight = 0;
+function showReviewPopup(revNum)
+{
+    var oDiv = document.getElementById("reviewpopup");
+    if (activeReviewPopup && activeReviewNum == revNum)
+    {
+        closeReviewPopup();
+        return true;
+    }
+    else if (activeReviewPopup)
+    {
+        closeReviewPopup();
+    }
+
+    if (justDismissed == "review" + revNum)
+        return false;
+
+    var hiddenUrl = document.getElementById("extrevUrl" + revNum);
+    var hiddenSrc = document.getElementById("extrevSource" + revNum);
+    var hiddenSrcUrl = document.getElementById("extrevSourceUrl" + revNum);
+    var hiddenRating = document.getElementById("extrevRating" + revNum);
+    var hiddenHead = document.getElementById("extrevHeadline" + revNum);
+    var hiddenSum = document.getElementById("extrevSummary" + revNum);
+
+    document.getElementById("extrevUrl").value = hiddenUrl.value;
+    document.getElementById("extrevSource").value = hiddenSrc.value;
+    document.getElementById("extrevSourceUrl").value = hiddenSrcUrl.value;
+    document.getElementById("extrevRating").value = hiddenRating.value;
+    document.getElementById("extrevHeadline").value = hiddenHead.value;
+    document.getElementById("extrevSummary").value = hiddenSum.value;
+
+    var rating = parseInt(hiddenRating.value);
+
+    var oSpan = document.getElementById("extrevDisp" + revNum);
+    var nTop = oSpan.offsetTop + oSpan.offsetHeight;
+    var nLeft = oSpan.offsetLeft;
+    while (oSpan.offsetParent != document.body)
+    {
+        oSpan = oSpan.offsetParent;
+        nTop += oSpan.offsetTop;
+        nLeft += oSpan.offsetLeft;
+    }
+    oDiv.style.top = (nTop - oDiv.offsetHeight) + "px";
+    oDiv.style.left = nLeft + "px";
+    if (reviewPopupHeight == 0) {
+        setTimeout(function() {
+            var oDiv = document.getElementById("reviewpopup");
+            reviewPopupHeight = oDiv.offsetHeight;
+            oDiv.style.top = (nTop - reviewPopupHeight) + "px";
+        }, 1);
+    } else
+        oDiv.style.top = (nTop - reviewPopupHeight) + "px";
+        
+    oDiv.style.display = "";
+
+    reviewPopupOpen = true;
+
+    document.getElementById("extrevUrl").focus();
+    setStarCtlValue("extrevStarCtl", rating ? rating : 0);
+
+    activeReviewPopup = oDiv;
+    activeReviewNum = revNum;
+
+    return false;
+}
+function closeReviewPopup()
+{
+    if (activeReviewPopup)
+    {
+        reviewPopupOpen = false;
+        saveReviewPopup();
+        activeReviewPopup.style.display = "none";
+        activeReviewPopup = false;
+    }
+}
+function saveReviewPopup()
+{
+    if (activeReviewPopup)
+    {
+        var revNum = activeReviewNum;
+
+        var selUrl = document.getElementById("extrevUrl");
+        var selSrc = document.getElementById("extrevSource");
+        var selSrcUrl = document.getElementById("extrevSourceUrl");
+        var selRating = document.getElementById("extrevRating");
+        var selHead = document.getElementById("extrevHeadline");
+        var selSum = document.getElementById("extrevSummary");
+
+        var hiddenUrl = document.getElementById("extrevUrl" + revNum);
+        var hiddenSrc = document.getElementById("extrevSource" + revNum);
+        var hiddenSrcUrl = document.getElementById("extrevSourceUrl" + revNum);
+        var hiddenRating = document.getElementById("extrevRating" + revNum);
+        var hiddenHead = document.getElementById("extrevHeadline" + revNum);
+        var hiddenSum = document.getElementById("extrevSummary" + revNum);
+
+        hiddenUrl.value = selUrl.value;
+        hiddenSrc.value = selSrc.value;
+        hiddenSrcUrl.value = selSrcUrl.value;
+        hiddenRating.value = selRating.value;
+        hiddenHead.value = selHead.value;
+        hiddenSum.value = selSum.value;
+
+        var rowDisp = document.getElementById("extrevDisp" + revNum);
+        var src = selSrc.value;
+        var hd = selHead.value;
+        if (src != "" && hd != "")
+            rowDisp.value = src + " - \"" + hd + "\"";
+        else if (src != "")
+            rowDisp.value = src;
+        else if (hd != "")
+            rowDisp.value = hd;
+        else
+            rowDisp = "";
+    }
+}
+function setExtRevRating(rating)
+{
+    document.getElementById("extrevRating").value = rating;
+}
+
+// -->
+</script>
+
+<noscript>
+   <style type="text/css">
+      #editGameForm {
+          display: none;
+      }
+   </style>
+   <span class="errmsg">
+      This page requires Javascript.  Please enable Javascript in your
+      browser if you wish to access this function.
+   </span>
+</noscript>
+
+<form id="editGameForm" name="editgame" method="post"
+    action="editgame?id=<?php echo $id ?>">
+
+   <input type="hidden" name="pagevsn" value="<?php
+      echo htmlspecialcharx($rec['pagevsn']) ?>">
+
+   <table class="gamedataform" border=0>
+
+      <?php
+
+for ($i = 0 ; $i < count($fields) ; $i++) {
+    // get this field descriptor
+    $field = $fields[$i];
+    $title = $field[0];
+    $colname = $field[1];
+    $len = $field[2];
+    $help = $field[3];
+    $vals = $field[4];
+
+    // skip fields without names - these are in the field list for
+    // the data handling only, and have custom UI handling
+    if ($title == "")
+        continue;
+    
+    // draw the label
+    echo "<tr valign=top>
+        <td align=right><b>$title:&nbsp;&nbsp;</b></td>
+        <td>";
+
+    // get the current value of the field
+    $curval = isset($rec[$colname]) ? $rec[$colname] : "";
+
+    // check for special fields
+    if ($colname == "coverart") {
+        // show the radio buttons for the current cover art
+        $art = (isset($rec['orig:coverart']) ? $rec['orig:coverart'] : null);
+        $pagevsn = isset($rec['pagevsn']) ? $rec['pagevsn'] : "";
+        imageUploadRadio(
+            ((is_null($art) || strlen($art) == 0)
+             ? false
+             : "viewgame?id=$id&coverart&thumbnail=90x90&version=$pagevsn"),
+            "This game has no cover art",
+            "coverart", $curval, 90);
+
+    } else if ($colname == "desc") {
+        // multiline field for description
+        echo "<textarea name=\"$colname\" id=\"$colname\"
+            rows=15 cols=$len>" . htmlspecialcharx($curval)
+            . "</textarea>";
+
+    } else if (!is_null($vals)) {
+        // write the combo box
+        echo makeComboBox($colname, $len, $curval, $vals);
+    } else {
+        // ordinary text input field - draw it
+        echo "<input type=\"text\" name=\"$colname\" id=\"$colname\"
+               size=$len value=\"" . htmlspecialcharx($curval) . "\">";
+    }
+
+    // add the error details, if applicable
+    $br = (showFieldErrorDetail($colname) ? "" : "<br>");
+
+    // for the author field, add the profile-link popup
+    if ($colname == "eAuthor") {
+        echo $br;
+        $br = "";
+        profileLinkDiv();
+    }
+
+    // add the help text if applicable
+    if (!is_null($help))
+        echo "$br<span class=details><i>$help</i></span>";
+
+    // end the row
+    echo "</td></tr>";
+}
+
+// ---------------  time for the download link section ---------------------
+//echo "<tr><td>&nbsp;<br></td></tr>";
+echo "<tr valign=top>
+   <td align=right><b>Download Links:&nbsp;&nbsp;</b></td><td>";
+
+// show the help for links above the list
+echo "<span class=details><i>List downloads for the game itself
+         (if available), hints, walkthroughs, etc. - "
+   . helpWinLink("help-link-policy", "Link Policy")
+   . "</i></span>"
+   . "<br>"
+   . "<div style=\"margin-top: 1ex; margin-bottom: 1ex;\">"
+   . "<b>Are you the author of this game?</b> "
+   . "<a href=\"needjs\" onclick=\"javascript:uploadWindow();return false;\">"
+   . "Upload it to the IF Archive</a></div>";
+
+
+// show the error information above the list
+showFieldErrorDetail('links');
+
+function echoGridField($link, $fld, $isFirst = false)
+{
+    $txt = jsSpecialChars($link[$fld]);
+    echo ($isFirst ? "" : ",") . "\"$txt\"";
+}
+
+// ---------------  display the hidden download-link editor ----------------
+?>
+<div id="linkpopup" class="edit-popup-frame"
+     style="position:absolute;display:none;top:0px;left:0px;z-index:10000;"
+     onmouseover="javascript:overLinkPopup=true;return true;"
+     onmouseout="javascript:overLinkPopup=false;return true;"
+     onkeydown="javascript:return linkPopupKey(event);"
+     onkeypress="javascript:return linkPopupKey(event);">
+   <div style="position:relative;" class="edit-popup-title">
+      <div style="text-align:center;"><b>Edit Link</b></div>
+      <span style="position:absolute;top:2px;right:4px;">
+         <?php
+           echo helpWinLink("help-links", "Help");
+//         <a href="needjs"
+//          onclick="javascript:helpWin('help-links');return false;">
+//            Help</a>
+         ?>
+         &nbsp;&nbsp;
+         <a href="needjs" onclick="javascript:closeLinkPopup();return false;">
+            Close<img src="/blank.gif" class="popup-close-button"></a>
+         </span>
+   </div>
+   <div class="edit-popup-win">
+
+   <table style="font-size:100%;" border=0 cellspacing=0 cellpadding=0>
+      <tr valign=top>
+         <td>
+
+            <table style="font-size:100%;"
+                   class=dataform border=0 cellspacing=0 cellpadding=0>
+               <tr valign=top>
+                  <td align=right>
+                     <b>URL:</b>
+                  </td>
+                  <td>
+                     <input type="text" name="linkurl" id="linkurl"
+                            size=80><br><span class=details>
+                        The full URL, linking directly to the downloadable
+                        file. For IF Archive links, use the <b>main</b> Archive
+                        only (http://www.ifarchive.org/if-archive/...) -
+                        <b>don't</b> link to mirrors.
+                     </span>
+                  </td>
+               </tr>
+
+               <tr><td>&nbsp;<br></td></tr>
+               <tr valign=top>
+                  <td align=right>
+                     <b>Title:</b>
+                  </td>
+                  <td>
+                     <input type="text" name="linktitle" id="linktitle"
+                            size=40>
+                     <br>
+                     <span class=details>
+                        A short title for the link: "Story File", "User's
+                        Manual", "Hints"...
+                     </span>
+                  </td>
+               </tr>
+
+               <tr><td>&nbsp;<br></td></tr>
+               <tr valign=top>
+                  <td align=right>
+                     <b>Description:</b>
+                  </td>
+                  <td>
+                     <textarea name="linkdesc" id="linkdesc"
+                               rows=3 cols=60></textarea><br>
+                     <span class=details>
+                        A brief description to display in the Download box.
+                        Optional.
+                     </span>
+                  </td>
+               </tr>
+
+               <tr><td>&nbsp;<br></td></tr>
+               <tr valign=top>
+                  <td align=right>
+                  </td>
+                  <td>
+                     <label>
+                     <input type="checkbox" value="1"
+                         name="linkisgame" id="linkisgame"
+                         onclick="javascript:updateIsGame();return true;">
+                     <label for="linkisgame"> This is a playable game file
+                        <i><b>or</b></i> it <b>contains</b> a playable game
+                        </label></label>
+                     <br>
+                     <span class=details>
+                        Check this box if the file is a directly playable
+                        game file (such as an executable, Z-Machine
+                        .z3-.z8, TADS .gam, etc), <b>or</b> it's a ZIP
+                        file that contains a playable file.
+                     </span>
+                  </td>
+               </tr>
+
+               <tr><td>&nbsp;<br></td></tr>
+               <tr valign=top>
+                  <td align=right>
+                  </td>
+                  <td>
+                     <label>
+                     <input type="checkbox" value="1"
+                         name="linkpending" id="linkpending">
+                     <label for="linkpending"> This file is pending
+                        </label></label>
+                     <br>
+                     <span class=details>
+                        Check this box if this is a "pending" upload, meaning
+                        that this URL is not yet working but will be soon.
+                        For example, you can use this if you just uploaded
+                        the file to the IF Archive and it hasn't been moved
+                        to its final location yet.
+                        <?php
+                           echo helpWinLink("help-pending-link", "More Info");
+                        ?>
+                     </span>
+                  </td>
+               </tr>
+
+               <tr><td>&nbsp;<br></td></tr>
+               <tr valign=top>
+                  <td align=right>
+                     <b>File Type:</b>
+                  </td>
+                  <td>
+                     <select name="linkfmtG" id="linkfmtG"
+                             onchange="javascript:updateFormatUI(true)">
+                        <?php
+// write out the GAME formats
+foreach ($linkfmts as $lf) {
+    $fmtid = $lf['id'];
+    $fmtname = htmlspecialcharx($lf['fmtname']);
+    $fmtclass = $lf['fmtclass'];
+    if ($fmtclass == 'G' || $fmtclass == 'X')
+        echo "<option value=\"$fmtid\">$fmtname</option>";
+}
+                        ?>
+                     </select>
+                     <select name="linkfmtNG" id="linkfmtNG"
+                             style="display:none;"
+                             onchange="javascript:updateFormatUI(true)">
+                        <?php
+// write out the NON-GAME formats
+foreach ($linkfmts as $lf) {
+    $fmtid = $lf['id'];
+    $fmtname = htmlspecialcharx($lf['fmtname']);
+    $fmtclass = $lf['fmtclass'];
+    if ($fmtclass != 'G' && $fmtclass != 'Z')
+        echo "<option value=\"$fmtid\">$fmtname</option>";
+}
+                        ?>
+                     </select>
+                     &nbsp;&nbsp;&nbsp;
+                     <select name="linkos" id="linkos">
+                        <?php
+foreach ($oslist as $os) {
+    $osid = $os['id'] . '.' . $os['vsnid'];
+    $osname = htmlspecialcharx(
+        $os['vsnname'] == "" ? $os['osname'] : $os['vsnname']);
+    echo "<option value=\"$osid\">$osname</option>";
+}
+                        ?>
+                     </select>
+                     <br>
+                     <span class=details>
+                        If this is a ZIP or other compressed file that
+                        contains a playable game file, <b>select the
+                        type of the playable file</b>.
+                     </span>
+                  </td>
+               </tr>
+
+               <tr><td>&nbsp;<br></td></tr>
+               <tr>
+                  <td colspan=2>
+                     <hr>
+                  </td>
+               </tr>
+               <tr valign=top>
+                  <td align=right>
+                     <b><nobr>Compression:</nobr></b>
+                  </td>
+                  <td>
+                     <select name="linkcomp" id="linkcomp"
+                        onchange="javascript:updateFormatUI(false)">
+                        <option value="">None</option>
+                        <?php
+// write out the compression formats
+foreach ($linkfmts as $lf) {
+    $fmtid = $lf['id'];
+    $fmtname = htmlspecialcharx($lf['fmtname']);
+    $fmtclass = $lf['fmtclass'];
+    if ($fmtclass == 'Z')
+        echo "<option value=\"$fmtid\">$fmtname</option>";
+}
+                        ?>
+                     </select>
+                  </td>
+               </tr>
+               <tr valign=top>
+                  <td align=right>
+                     <b><nobr>Main File:</nobr></b>
+                  </td>
+                  <td>
+                     <input type="text" name="linkcomppri" id="linkcomppri"
+                            size=40>
+                     <input type="text" id="linkcomppriNA" value="N/A"
+                            readonly size=40
+                           style="background:#e0e0e0;color:#404040;">
+                     <br>
+                     <span class=details>
+                        For a game, this is the name of the Story File or
+                        application within the compressed file. Choose the
+                        most important file for other types, or just
+                        leave it blank.
+                     </span>
+                  </td>
+               </tr>
+            </table>
+         </td>
+      </tr>
+   </table>
+</div>
+</div>
+            
+<?php      
+
+
+// --------------------- add the download-link grid -----------------------
+?>
+
+<script type="text/javascript">
+<!--
+
+function uploadWindow()
+{
+    var title = document.getElementById("title").value;
+    var devsys = document.getElementById("system").value;
+    var license = document.getElementById("license").value;
+    var author = document.getElementById("eAuthor").value;
+    var version = document.getElementById("version").value;
+    window.open("ifarchive-upload?"
+                + "title=" + encodeURIComponent(title)
+                + "&system=" + encodeURIComponent(devsys)
+                + "&license=" + encodeURIComponent(license)
+                + "&author=" + encodeURIComponent(author)
+                + "&version=" + encodeURIComponent(version));
+}
+
+function submitUpload(id, fname, fmtid, osid, compression, pri)
+{
+    var v = linkModel.vals;
+    if (fname)
+    {
+        var idx;
+        if (idx = fname.lastIndexOf("/"))
+            fname = fname.substr(idx+1);
+        if (idx = fname.lastIndexOf("\\"))
+            fname = fname.substr(idx+1);
+    }
+    var url = 'http://ifdb.tads.org/ifarchive-pending?ifdbid=' + id;
+
+    gfInsRow("linkModel", v.length,
+             [fname + ' (' + url + ')',
+              url, fname, '',
+              '3', // GAMELINK_IS_GAME | GAMELINK_IS_PENDING
+              fmtid, osid, null,
+              compression, pri]);
+}
+
+function linkPopupKey(event)
+{
+    event = (event ? event : window.event);
+    var ch = (window.event || event.keyCode ? event.keyCode : event.which);
+    var targ = (event.target || event.srcElement);
+    if (ch == 13 || ch == 10 || ch == 27)
+    {
+        if (targ.tagName != "SELECT")
+        {
+            var f = document.getElementById("linkEditBtn" + activeLinkNum);
+            closeLinkPopup();
+            f.focus();
+        }
+        return false;
+    }
+    return true;
+}
+function linkEditBtnKey(event,id)
+{
+    var ch = (window.event || event.keyCode ? event.keyCode : event.which);
+    if (ch == 13 || ch == 10 || ch == 32)
+    {
+        postLinkPopup(event,id);
+        return false;
+    }
+    return true;
+}
+var linkPopupQueue = [];
+function postLinkPopup(event,id)
+{
+    if (linkPopupQueue.length == 0)
+    {
+        linkPopupQueue.push(id);
+        setTimeout(function() {
+            showLinkPopup(event,id);
+            linkPopupQueue.pop();
+        }, 1);
+    }
+}
+var linkModel = {
+    "name": "linkGridDiv",
+    "vals": "linkVals",
+
+    "addbutton": "add-link-button",
+
+    "rowheadattr": "style=\"font-size:85%;\"",
+
+    "fields": ["linkdisp", "linkurl", "linktitle", "linkdesc", "linkattrs",
+               "linkfmt", "linkos", "linkosvsn",
+               "linkcomp", "linkcomppri"],
+
+    "rowtpl": "<nobr><input type=\"text\" readonly #1 size=100>"
+        + " <a href=\"needjs\" onkeydown=\"javascript:return linkEditBtnKey("
+        + "event,'##');\" id=\"linkEditBtn##\">"
+        + "<img alt=\"Edit this link\" "
+        + "border=0 src=\"/blank.gif\" class=\"grid-edit-button\" "
+        + "style=\"cursor:pointer;\" "
+        + "onclick=\"javascript:postLinkPopup(event,'##');return false;\"></a>"
+        + "<input type=hidden #2>"
+        + "<input type=hidden #3>"
+        + "<input type=hidden #4>"
+        + "<input type=hidden #5>"
+        + "<input type=hidden #6>"
+        + "<input type=hidden #7>"
+        + "<input type=hidden #8>"
+        + "<input type=hidden #9>"
+        + "<input type=hidden #10>"
+        + "</nobr>"
+};
+var linkVals = [
+    <?php
+    $links = isset($rec['links']) ? $rec['links'] : array();
+    for ($i = 0 ; $i < count($links) ; $i++) {
+        // get the link data
+        $link = $links[$i];
+
+        // start the value row
+        echo "[";
+
+        // the display name is the title plus URL
+        $title = jsSpecialChars($link['title']);
+        $url = jsSpecialChars($link['url']);
+        if ($title != "" && $url != "")
+            echo "\"$title ($url)\"";
+        else if ($title != "")
+            echo "\"$title\" (<i>url not set</i>)";
+        else
+            echo "\"$url\"";
+
+        // write out the other raw fields
+        echoGridField($link, 'url');
+        echoGridField($link, 'title');
+        echoGridField($link, 'desc');
+        echoGridField($link, 'attrs');
+        echoGridField($link, 'fmtid');
+        echoGridField($link, 'osid');
+        echoGridField($link, 'osvsn');
+        echoGridField($link, 'compression');
+        echoGridField($link, 'compressedprimary');
+
+        // end the row
+        echo "]" . ($i + 1 < count($links) ? "," : "");
+    }
+    ?>
+];
+//-->
+</script>
+
+            <div id="linkGridDiv">
+               <noscript>
+                  <i>JavaScript must be enabled to edit the download links.</i>
+               </noscript>
+            </div>
+         </td>
+      </tr>
+
+
+      <?php
+// -----------------------  off-site review section --------------------
+      ?>
+      <tr valign=top>
+         <td align=right><b>Off-Site Reviews:&nbsp;&nbsp;</b></td><td>
+            <span class=details><i>Use this section to link
+               to full-length reviews on other sites
+               (e.g., <a href="http://sparkynet.com/spag/">SPAG</a>,
+               <a href="http://www.xyzzynews.com/">Xyzzy News</a>,
+               <a href="http://www.brasslantern.org">Brass Lantern</a>...)
+            </i></span>
+
+            <?php
+
+            // show the error information above the list
+            showFieldErrorDetail('extreviews');
+
+// -----------------------  off-site review pop-up -------------------------
+            ?>
+            <div id="reviewpopup" class="edit-popup-frame"
+                 style="position:absolute; display:none; top:0px; left:0px;
+                        z-index:10000;"
+                 onmouseover="javascript:overReviewPopup=true;return true;"
+                 onmouseout="javascript:overReviewPopup=false;return true;"
+                 onkeypress="javascript:return reviewPopupKey(event);"
+                 onkeydown="javascript:return reviewPopupKey(event);">
+               <div style="position:relative;" class="edit-popup-title">
+                  <div style="text-align:center;">
+                     <b>Edit Review Link</b>
+                  </div>
+                  <span style="position:absolute;top:2px;right:4px;
+                        text-align:right;">
+                     <?php
+//                         echo helpWinLink("help-ext-reviews", "Help");
+//                     <a href="needjs"
+//                        onclick="javascript:helpWin('help-ext-reviews');return false;">
+//                        Help</a> &nbsp;&nbsp;
+                     ?>
+                     <a href="needjs"
+                        onclick="javascript:closeReviewPopup();return false;">
+                        Close<img src="/blank.gif" class="popup-close-button"></a>
+                  </span>
+               </div> 
+               <div class="edit-popup-win">
+                  <b>Full URL to the review:</b><br>
+                  <input id="extrevUrl" type=text size=80><br><br>
+
+                  <b>Name of the source site:</b><br>
+                  <span class=details>For example, Xyzzy News, SPAG...</span>
+                  <br>
+                  <?php
+                      $reviewSites = array(
+                          "Brass Lantern" => "www.brasslantern.org",
+                          "IF-Review"
+                              => "http://www.ministryofpeace.com/if-review/",
+                          "Interactive Fiction Reviews Organization"
+                              => "http://www.ifreviews.org/",
+                          "SPAC" => "http://www.caad.es/spac/",
+                          "SPAG" => "http://www.sparkynet.com/spag/",
+                          "Xyzzy News" => "http://www.xyzzynews.com/");
+                      echo makeComboBox(
+                         "extrevSource", 80, "", array_keys($reviewSites),
+                         "onComboSelectReviewSite");
+                  ?>
+<script type="text/javascript">
+<!--
+var revSiteMap = {
+    <?php
+    foreach ($reviewSites as $key=>$val)
+        echo "'" . jsSpecialChars($key) . "':'" .jsSpecialChars($val) . "', ";
+    echo "0:0";
+    ?>
+};
+function onComboSelectReviewSite(val)
+{
+    var url = revSiteMap[val];
+    if (url)
+        document.getElementById("extrevSourceUrl").value = url;
+}
+//-->
+</script>
+                  <br><br>
+
+                  <b>Main URL for the source site:</b><br>
+                  <span class=details>The URL for the site's front page
+                     (optional).</span><br>
+                  <input id="extrevSourceUrl" type=text size=80><br><br>
+
+                  <b>Rating:</b> <?php
+                      echo showStarCtl("extrevStarCtl", 0,
+                                       "setExtRevRating", "null");
+                  ?> <a href="needjs" onclick="javascript:setExtRevRating(0);
+                      setStarCtlValue('extrevStarCtl',0);return false;"
+                      >Remove rating</a><br>
+                  <input type=hidden name=extrevRating id=extrevRating value=0>
+                  <span class=details>If the site uses a different rating
+                     system, pick the closest equivalent star rating (e.g.,
+                     on a 1-10 scale, 1-2 is 1 star, 3-4 is 2 stars, etc).
+                     Leave blank if the site doesn't assign ratings.</span>
+                  <br><br>
+
+                  <b>Title:</b><br>
+                  <span class=details>A headline summing
+                     up the review (optional)</span><br>
+                  <input id="extrevHeadline" type=text size=80><br><br>
+
+                  <b>Summary:</b><br>
+                  <span class=details>Summarize the review in your
+                     own words, or enter a brief excerpt from the
+                     full review (a paragraph or two). - <?php
+                       echo helpWinLink("help-formatting", "Formatting hints");
+//                     <a href="needjs" onclick="javascript:helpWin(
+//                        'help-formatting');return false;">Formatting hints</a>
+                     ?>
+                  </span><br>
+                  <textarea id="extrevSummary" rows=5 cols=80></textarea>
+               </div>
+            </div>
+
+            <?php
+// -----------------------  off-site review grid -------------------------
+            ?>
+            <div id="reviewGridDiv">
+               <noscript>
+                  <i>JavaScript must be enabled to edit the review links.</i>
+               </noscript>
+            </div>
+
+         </td>
+      </tr>
+
+<script type="text/javascript">
+<!--
+function reviewPopupKey(event)
+{
+    var ch = (window.event || event.keyCode ? event.keyCode : event.which);
+    var targ = (event.target || event.srcElement);
+    if (ch == 13 || ch == 10 || ch == 27)
+    {
+        if (targ.tagName != "SELECT")
+        {
+            var f = document.getElementById("reviewEditBtn" + activeReviewNum);
+            closeReviewPopup();
+            f.focus();
+        }
+        return false;
+    }
+    return true;
+}
+function reviewEditBtnKey(event, id)
+{
+    var ch = (window.event || event.keyCode ? event.keyCode : event.which);
+    if (ch == 13 || ch == 10 || ch == 32)
+    {
+        postShowReviewPopup(id);
+        return false;
+    }
+    return true;
+}
+var reviewModel = {
+    "name": "reviewGridDiv",
+    "vals": "reviewVals",
+    "addbutton": "add-link-button",
+    "rowheadattr": "style=\"font-size:85%;\"",
+
+    "fields": ["extrevDisp", "extrevUrl", "extrevSource", "extrevSourceUrl",
+                "extrevRating", "extrevHeadline", "extrevSummary"],
+
+    "rowtpl": "<nobr><input type=text readonly #1 size=100>"
+        + " <a href=\"needjs\" onkeypress=\"javascript:return "
+        + "reviewEditBtnKey(event,'##');\" onkeydown=\"javascript:return "
+        + "reviewEditBtnKey(event,'##');\" id=\"reviewEditBtn##\">"
+        + "<img alt=\"Edit this review\" "
+        + "border=0 src=\"/blank.gif\" class=\"grid-edit-button\" "
+        + "style=\"cursor:pointer;\" "
+        + "onclick=\"javascript:postShowReviewPopup('##');return false;\"></a>"
+        + "<input type=hidden #2>"
+        + "<input type=hidden #3>"
+        + "<input type=hidden #4>"
+        + "<input type=hidden #5>"
+        + "<input type=hidden #6>"
+        + "<input type=hidden #7>"
+        + "</nobr>"
+};
+var reviewVals = [
+    <?php
+    $reviews = isset($rec['extreviews']) ? $rec['extreviews'] : array();
+    for ($i = 0 ; $i < count($reviews) ; $i++ ) {
+        $r = $reviews[$i];
+        echo "[";
+
+        if ($r['sourcename'] != "" && $r['headline'] != "")
+            $title = "{$r['sourcename']} - \"{$r['headline']}\"";
+        else if ($r['sourcename'] != "")
+            $title = $r['sourcename'];
+        else if ($r['headline'] != "")
+            $title = $r['headline'];
+        else
+            $title = "";
+        echo "'" . jsSpecialChars($title) . "'";
+
+        echoGridField($r, 'url');
+        echoGridField($r, 'sourcename');
+        echoGridField($r, 'sourceurl');
+        echoGridField($r, 'rating');
+        echoGridField($r, 'headline');
+        echoGridField($r, 'summary');
+        echo "]";
+        if ($i + 1 < count($reviews))
+            echo ",";
+    }
+    ?>
+];
+//-->
+</script>
+
+
+    <?php
+// -----------------------  cross-reference section --------------------
+
+    ?>
+
+      <tr valign=top>
+         <td align=right><b>Cross-References:&nbsp;&nbsp;</b></td><td>
+            <span class=details><i>Use this section to link this game to
+               its family tree: translations, ports, adaptations...
+            </i></span>
+
+            <?php
+            // show the error information above the list
+            showFieldErrorDetail('xrefs');
+            ?>
+            <div id="xrefGridDiv">
+               <noscript>
+                  <i>JavaScript must be enabled to edit the review links.</i>
+               </noscript>
+            </div>
+         </td>
+      </tr>
+      <?php
+
+// ----------- cross-reference game selection form ---------
+
+           // generate HTML for the search popup
+           gameSearchPopupDiv();
+      ?>
+
+<script type="text/javascript">
+<!--
+
+function xrefEditBtnKey(event, n)
+{
+    var ch = (window.event || event.keyCode ? event.keyCode : event.which);
+    if (ch == 13 || ch == 10 || ch == 32)
+        editXRef(n);
+}
+
+function editXRef(rownum)
+{
+    openGameSearchPopup("xrefDispTitle" + rownum,
+                        function(id, title, author) {
+
+        document.getElementById("xrefID" + rownum).value = id;
+        document.getElementById("xrefTitle" + rownum).value = title;
+        document.getElementById("xrefDispTitle" + rownum).innerHTML =
+            "<a href=\"viewgame?id=" + id
+            + "\" class=\"silent\" target=\"_blank\"><i>"
+            + title + "</i></a>";
+
+        gameSearchPopupClose();
+
+    }, '', "xrefEditBtn" + rownum);
+}
+
+var xrefModel = {
+    name: "xrefGridDiv",
+    vals: "xrefVals",
+    addbutton: "add-link-button",
+    rowheadattr: "style=\"font-size:85%;\"",
+    fields: ["xrefReftype", "xrefID", "xrefTitle"],
+    popups: ["xrefReftype"],
+    rowtpl: function(rownum)
+    {
+        return "<nobr><select @1><?php
+
+// populate the xref options from the database 
+$result = mysql_query(
+    "select reftype, fromname from gamexreftypes", $db);
+$reftypes = array();
+for ($i = 0 ; $i < mysql_num_rows($result) ; ++$i) {
+    list($rid, $rname) = mysql_fetch_row($result);
+    $rname = preg_replace("/\s+<\w+>$|<\w+>\s+/", "", $rname);
+    $rname = strtoupper(substr($rname, 0, 1)) . substr($rname, 1);
+    $reftypes[] = array($rid, $rname);
+}
+function xrefSorter($a, $b) { return strcasecmp($a[1], $b[1]); }
+usort($reftypes, "xrefSorter");
+for ($i = 0 ; $i < count($reftypes) ; ++$i) {
+    $r = $reftypes[$i];
+    $rid = $r[0];
+    $rname = $r[1];
+    echo "<option value=\\\"$rid\\\">$rname</option>";
+}
+?></select> <input type=\"hidden\" #2><input type=\"hidden\" #3>"
+       + "<span id=\"xrefDispTitle##\" style=\"padding: 0 1em 0 1em;\">"
+       + (xrefVals[rownum][1] == ""
+          ? "<a href=\"needjs\" onclick=\"javascript:editXRef('##');"
+          + "return false;\"><i>Not set - click to select a game</i></a>"
+          : "<a href=\"viewgame?id=$2\" class=\"silent\" target=\"_blank\">"
+          + "<i>$3</i></a>")
+       + "</td><td>"
+       + "<a href=\"#\" onkeypress=\"javascript:return "
+       + "xrefEditBtnKey(event,'##');\" onkeydown=\"javascript:return "
+       + "xrefEditBtnKey(event,'##');\" "
+       + "id=\"xrefEditBtn##\"><img alt=\"Edit this reference\" "
+       + "border=0 src=\"/blank.gif\" class=\"grid-edit-button\" "
+       + "style=\"cursor:pointer;\" onclick=\"javascript:editXRef('##');"
+       + "return false;\"></a></nobr>";
+    },
+    onAddRow: function(rownum) {
+        editXRef(rownum);
+    }
+   
+};
+<?php
+    echo "var xrefVals = [";
+    $xrefs = isset($rec['xrefs']) ? $rec['xrefs'] : array();
+    for ($i = 0 ; $i < count($xrefs) ; $i++) {
+        $x = $xrefs[$i];
+        echo ($i > 0 ? ",[" : "[");
+
+        echoGridField($x, 'reftype', true);
+        echoGridField($x, 'toID');
+
+        if (!$x['toTitle'])
+            $xtitle = "<i>Click Edit to select a game...</i>";
+        else
+            $xtitle = jsSpecialChars($x['toTitle']);
+
+        echo ",\"$xtitle\"]";
+    }
+    echo "];";
+?>
+//-->
+</script>
+
+<?php
+// ----------- end cross reference section ---------
+?>
+
+      <tr valign=top>
+         <td align=right><b>Awards:&nbsp;&nbsp;</b></td><td>
+            <span class=details><i>If this game won awards or participated
+               in a competition or award event, you can enter that information
+               on the event's IFDB page, and it'll automatically be reflected
+               in the game's listing.</i>
+               <br>
+               <a href="search?comp" target="_blank">
+                  Search for a competition page</a> |
+               <a href="editcomp?id=new" target="_blank">
+                  Create a new competition page</a>
+            </span>
+         </td>
+      </tr>
+
+
+      <tr>
+         <td>
+         </td>
+         <td>
+            <br><br>
+            <input type=image alt="Save Changes"
+                   value="Save Changes" name="save"
+                   src="/blank.gif" class="save-button"
+                   id="editgame-save-button">
+            &nbsp;
+            <input type=image alt="Reset Form (Discard Changes)"
+                   value="Reset Form (Discard Changes)"
+                   name="discard" onclick="javascript:return confirmReset();"
+                   src="/blank.gif" class="reset-form-button"
+                   id="editgame-reset-button">
+            &nbsp;
+            <a href="<?php
+                echo ($id == "new" ? "home" : "viewgame?id=$id");
+                ?>"><img alt="Cancel" src="/blank.gif" class="cancel-button"
+                     id="editgame-cancel-button"></a>
+
+            <br><br><span class=details>
+               <i>Your changes will be attributed to you as
+                  "<?php 
+                      echo htmlspecialcharx($username);
+                      if (!is_null($userloc))
+                          echo " (" . htmlspecialcharx($userloc) . ")"
+                   ?>."
+                   <a href="<?php echo switchUserAndReturnHRef() ?>">
+                      Click here</a> to log in as a different user
+                   (but note that this will discard your unsaved changes
+                   above).
+               </i>
+            </span>
+         </td>
+      </tr>
+         
+   </table>
+</form>
+
+<?php
+    } // if $showform
+} // if $errMsg
+
+pageFooter();
+
+?>

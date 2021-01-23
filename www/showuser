@@ -1,0 +1,1007 @@
+<?php
+@session_start();
+
+include "pagetpl.php";
+include_once "util.php";
+include_once "dbconnect.php";
+include_once "commentutil.php";
+include_once "captcha.php";
+
+$db = dbConnect();
+$sdb = storageDbConnect();
+
+// get the user ID from the request
+$uid = isset($_REQUEST['id']) ? $_REQUEST['id'] : null;
+
+// check for an unlock override - this allows the administrator to
+// view a new account's page even when it's hidden for review
+$unlock = false;
+$unlockNonce = get_req_data("unlock");
+if ($unlockNonce)
+{
+    // validate the unlock code - it's a nonce keyed to this user's TUID
+    if (validate_nonce($db, "review user profile $uid",
+                       $unlockNonce, $errmsg, false))
+	{
+        $unlock = true;
+		$_SESSION['admin_for_user_review'] = true;
+	}
+	else if ($_SESSION['admin_for_user_review'])
+	{
+		$unlock = true;
+	}
+}
+
+// check for persistent login
+include "login-check.php";
+$curuser = checkPersistentLogin();
+
+// if no user was specified, default to the current user
+if ($uid == "")
+    $uid = $curuser;
+
+// quote the user ID for SQL use
+$quid = mysql_real_escape_string($uid, $db);
+$errMsg = false;
+
+// check for plonking
+$plonked = false;
+if ($curuser) {
+    $result = mysql_query(
+        "select 1
+         from userfilters
+         where
+           userid = '$curuser'
+           and targetuserid = '$quid'
+           and filtertype = 'K'", $db);
+    $plonked = (mysql_num_rows($result) > 0);
+    if ($plonked)
+    {
+        // check for a plonk override
+        $plonkOverride = isset($_REQUEST['plonkOverride']);
+        if (!$plonkOverride) {
+            $errMsg = "You've plonked this member, which means that you've "
+                      . "asked for IFDB to hide all of this user's reviews, "
+                      . "comments, and other information. If you'd like to "
+                      . "view this profile anyway, <a href=\"showuser?"
+                      . "id=$uid&plonkOverride\">click here</a>.";
+        }
+    }
+}
+
+// if this is a photo request, show the photo
+if (isset($_REQUEST['pic'])) {
+    // query the image
+    $result = mysql_query("select picture from users where id='$quid'", $db);
+    if (mysql_num_rows($result) == 0)
+        exit("No picture found for this user.");
+
+    // get the image name
+    $imgname = mysql_result($result, 0, "picture");
+
+    // get the thumbnail request if present
+    $thumb = isset($_REQUEST['thumbnail']) ? $_REQUEST['thumbnail'] : null;
+    
+    // send the image
+    if (isset($_REQUEST['ldesc'])) {
+        // send it as the full description page
+        sendImageLdesc("Profile Image", $imgname);
+    } else {
+        // retrieve the data
+        list($img, $fmt) = fetch_image($imgname, true);
+        sendImage($img, $fmt, $thumb);
+    }
+
+    // that's all for this request
+    exit();
+}
+
+$pageTitle = "Member Profile";
+
+if ($uid == "") {
+    if (!logged_in(false)) {
+        exit();
+    }
+}
+
+// look up the user record
+$result = mysql_query(
+    "select
+        name, location, publicemail,
+        profile, profilestatus,
+        (picture is not null),
+        date_format(created, '%M %e, %Y'),
+        date_format(lastlogin, '%M %e, %Y'),
+        publiclists, gender, emailflags, acctstatus, email
+     from users where id='$quid'", $db);
+if (mysql_num_rows($result) == 0) {
+    $errMsg = "The requested member was not found in the database.";
+} else {
+    list($username, $location, $pubemail, $profile, $proStat, $haspic,
+         $created, $lastlogin, $publiclists, $gender, $emailflags,
+         $acctstatus, $realEmail) =
+         mysql_fetch_row($result);
+
+    $username = htmlspecialcharx($username);
+    $location = htmlspecialcharx($location);
+    $profile = fixDesc($profile);
+    $pubemail = htmlspecialcharx($pubemail);
+    $playlistPub = (strpos($publiclists, "P") !== false);
+    $wishlistPub = (strpos($publiclists, "W") !== false);
+    $unwishlistPub = (strpos($publiclists, "U") !== false);
+
+    $emailcaptcha = ($emailflags & EMAIL_CAPTCHA);
+    $emailcloaked = ($emailflags & EMAIL_CLOAKED);
+
+    $heShe = ($gender == "M" ? "he" : ($gender == "F" ? "she" : "they"));
+    $himHer = ($gender == "M" ? "him" : ($gender == "F" ? "her" : "them"));
+    $hisHer = ($gender == "M" ? "his" : ($gender == "F" ? "her" : "their"));
+
+    $pageTitle = "$username - Member Profile";
+
+    // figure their score system ranking
+    list($score, $rank, $rankName) = userScore($uid);
+
+    // check for closed accounts
+    if ($acctstatus == 'X' || $acctstatus == 'B') {
+        $errMsg = "This member account has been closed.";
+    }
+    if ($acctstatus == 'R') {
+        $errMsg = "This account is pending review.";
+    }
+    if ($acctstatus == 'D') {
+        $errMsg = "This account has not yet been activated.";
+    }
+}
+
+// check for an RSS feed
+$rss = get_req_data('rss');
+if ($rss == 'gamenews')
+{
+    include_once "gameinfo.php";
+    include_once "game-rss.php";
+    include_once "rss.php";
+
+    // start with an empty items list
+    $items = array();
+
+    // get the list of games linked to my profile
+    $result = mysql_query(
+        "select
+           l.gameid, ifnull(l.moddate, g.created), g.title
+         from
+           gameprofilelinks as l
+           join games as g on g.id = l.gameid
+         where
+           l.userid='$quid'", $db);
+
+    // fetch the list
+    for ($games = array(), $i = 0 ; $i < mysql_num_rows($result) ; $i++)
+        $games[] = mysql_fetch_row($result);
+
+    // add news for each game in the list
+    foreach ($games as $g) {
+
+        // decode this row
+        list($gameid, $moddate, $gtitle) = $g;
+        $rssdate = date("D, j M Y H:i:s e", strtotime($moddate));
+        $gtitle = htmlspecialcharx($gtitle);
+
+        // First, add a news item for the creation of the profile link.
+        $item = "<item>"
+                . "<title>$gtitle linked to profile</title>"
+                . "<description><i>$gtitle</i> has been newly "
+                . "linked to this author's profile.</description>"
+                . "<pubDate>$rssdate</pubDate>"
+                . "<guid>http://ifdb.tads.org/viewgame?id=$gameid</guid>"
+                . "</item>";
+        $items[] = array($moddate, $item);
+
+        // Now add news updates for the game itself.
+        list($ifids, $title, $author, $authorExt,
+             $pubYear, $pubFull, $license,
+             $system, $desc, $rawDesc,
+             $hasart, $genre, $seriesname, $seriesnum,
+             $forgiveness, $bafsid, $version,
+             $language, $languageNameOnly,
+             $website, $links,
+             $ratingcountavg, $ratingcounttot, $ratingavg, $memberReviewCnt,
+             $currentUserRating, $currentUserReview,
+             $editedbyid, $editedbyname, $moddate, $moddate2, $pagevsn,
+             $historyView,
+             $dlnotes, $extReviews, $extRevDisplayRank,
+             $ratingHisto, $xrefs, $inrefs) =
+                 getGameInfo($db, $gameid, $curuser, false,
+                             $gameErrMsg, $gameErrCode);
+
+        // add the RSS items for this game to the master list
+        if (!$gameErrMsg) {
+            $gameItems = getGameRssItems(
+                $db, $gameid, GAME_RSS_ALL, $gtitle, $links, true);
+            $items = array_merge($items, $gameItems);
+        }
+    }
+
+    // send the list
+    sendRSS("$username's game updates",
+            "http://ifdb.tads.org/showuser?id=$uid",
+            "News about games linked to $username's IFDB profile.",
+            $items, 50);
+
+    // done
+    exit();
+}
+
+// if this is an admin view with a request for an email address search,
+// generate the search results - this is used inside an iframe, so it's
+// the only thing we want on the page in this case
+if ($unlock && get_req_data("search") == "email")
+{
+    // set up a search for the email address
+	$engine = "http://www.bing.com";
+	$uuemail = urlencode($realEmail);
+    $searchUrl = "$engine/search?q=\"$uuemail\"";
+
+    // pass along the client browser string header so that the engine sends
+    // us the right style sheet for the client device
+    $searchHeaders = "";
+    $ua = $_SERVER["HTTP_USER_AGENT"];
+    if ($ua)
+        $searchHeaders .= "User-Agent: $ua\r\n";
+
+    // run the search
+    $searchbody = x_http_get($searchUrl, $searchHeaders);
+    if ($searchbody)
+    {
+        $searchbody = preg_replace(
+            "/<head[^>]*>/i", "$0<base href=\"$engine\">",
+            $searchbody);
+        echo $searchbody;
+    }
+    else
+        echo "Email search failed";
+
+    exit();
+}
+
+pageHeader($pageTitle, false, false, "<script src=\"xmlreq.js\"></script>");
+
+$captchaKey = "showuser.$uid";
+captchaSupportScripts($captchaKey);
+
+// check to see if this profile is pending review - show limited information
+// if so
+$pendingReview = ($proStat == 'R');
+
+if ($errMsg) {
+    echo "<span class=errmsg>$errMsg</span><br><br>";
+} else {
+    // if this is the current user's profile, offer editing
+    if ($uid == $curuser)
+    {
+        if ($pendingReview)
+            echo "<i>Your profile is pending review, and won't be visible "
+                . "to other users until approved";
+        else
+            echo "<i>This is your public profile as it appears to other users";
+
+        echo " - <a href=\"editprofile\">Edit</a></i>"
+            . "<p><hr class=dots><br>";
+    }
+
+    // ignore the picture if the account is pending review (except
+    // in administrative viewing "unlock" mode)
+    if ($pendingReview && !$unlock)
+        $haspic = false;
+
+    // show the picture, if present
+    if ($haspic)
+        echo "<table class=grid cellspacing=0 cellpadding=0 border=0>"
+            . "<tr><td><a href=\"showuser?id=$uid&pic&ldesc\" "
+            . "title=\"View image at full size\">"
+            . "<img src=\"showuser?id=$uid&pic&thumbnail=250x250\" border=0>"
+            . "</a></td><td>";
+
+    echo "<h1 style=\"margin-bottom:0.1em;\">$username</h1>";
+
+    echo "<span class=details>";
+
+    if ($location != "" && !$pendingReview)
+        echo "$location";
+
+    echo "<p>";
+
+    if ($rankName)
+        echo "<b>$rankName</b><br>";
+
+    echo "Member since $created<br>";
+    if ($lastlogin != "")
+        echo "Last visited $lastlogin<br>";
+
+    echo "Profile ID (<a class=silent " . helpWinHRef("help-tuid")
+//        . "<a href=\"needjs\" onclick=\"javascript:helpWin("
+//        . "'help-tuid');return false;\" class=silent"
+        . ">TUID</a>): $uid<br>";
+
+    if ($pubemail != "" && !$pendingReview) {
+        if (!$emailcaptcha) {
+            echo "<p>E-mail: <a href=\"mailto:$pubemail\">$pubemail</a><br>";
+
+            if ($emailcloaked) {
+                echo "<i>Note: this address might be "
+                    . "\"cloaked\" against spam - "
+                    . helpWinLink("help-spamcloaking", "Help")
+//                    . "<a href=\"needjs\" "
+//                    . "onclick=\"javascript:helpWin('help-spamcloaking');"
+//                    . "return false;\">"
+//                    . "Help</a>"
+                    . "</i><br>";
+            }
+        }
+        else {
+            echo "<p>E-mail: " . captchaMaskEmail(
+                $pubemail, "[<a><i>click to reveal</i></a>]") . "<br>";
+            captchaAjaxForm($captchaKey);
+            captchaFinish($captchaKey);
+        }
+    }
+
+    echo "</span>";
+
+    // if the profile is pending review, stop here
+    if ($pendingReview && $uid != $curuser && !$unlock)
+    {
+        echo "<p><i>This user's profile is pending review.</i>";
+        pageFooter();
+        exit();
+    }
+
+    if ($haspic)
+        echo "</td></tr></table>";
+
+    echo "<p>$profile";
+
+    // add the RSS feed for this member's linked games
+    echo "<div style='margin-top: 1.5ex;'><span class=details>"
+        . "<a href=\"showuser?id=$uid&rss=gamenews\">"
+        . "<img src=\"blank.gif\" class=\"rss-icon\">"
+        . "News about games authored by $username</a> (RSS Feed)</span></div>";
+
+    // check for comments
+    $reqComments = isset($_REQUEST['comments']);
+    $commentCtl = "";
+    $commentCnt = countComments($db, "U", $quid);
+
+    if ($reqComments) {
+        // already viewing comments - show a control to return to the profile
+        $commentCtl .= "<a href=\"showuser?id=$uid\">"
+                       . "Return to the profile</a> - ";
+    } else if ($commentCnt > 0) {
+        // we have comments to view
+        $commentCtl .= "<a href=\"showuser?id=$uid&comments\">"
+                       . "View comments ($commentCnt)</a> - ";
+    }
+
+    // always allow adding a comment
+    $commentCtl .= "<a href=\"usercomment?user=$uid\">"
+                   . "Add a comment on this profile</a>";
+
+    // show the controls
+    echo "<div style='margin-top: 1.5ex;'><span class=details>$commentCtl"
+        . "</span></div>";
+
+    // if we're showing comments, show them in lieu of the full page
+    if ($reqComments) {
+
+        // show the comments
+        showCommentPage($db, $quid, $quid, "U",
+                        "showuser?id=$uid", "usercomment?user=$uid",
+                        25, "Comments on this profile", "comments");
+
+        // that's it for the page in comment mode
+        pageFooter();
+        exit();
+    }
+
+    // ------- Active online sessions -------
+
+    // look up the active publicly visible sessions for this user
+    $mresult = mysql_query(
+        "select
+           extid, gameid,
+           if (date(started) <> date(now()),
+             if (date_add(date(started), interval 1 day) = date(now()),
+               'yesterday',
+               if (date_add(started, interval 7 day) > now(),
+                 concat('on ', date_format(started, '%W')),
+                 concat('on ', date_format(started, '%M %e, %Y')))),
+             concat('at ', date_format(started, '%l:%i %p')))
+         from
+           sessions
+         where
+           userid = '$quid'
+           and multi = 'Y'",
+        $sdb);
+
+    // if we got any results, build the session section
+    if (($count = mysql_num_rows($mresult)) > 0)
+    {
+        // add the section as hidden, in case all of the sessions turn
+        // out to be dead, and write the script to ping a session
+        ?>
+
+        <div id="multiUserSessions" style="display: none;">
+           <h2><?php echo $username ?>'s multi-user game sessions</h2>
+           <div class=indented id="multiUserSessionList">
+           </div>
+        </div>
+<script>
+function pingMultiUserSession(sid, gameid, title, author, started)
+{
+    xmlSend("t3ping?id=" + sid, null, function(doc) {
+
+        if (xmlChildText(doc, "status") == "active")
+        {
+            document.getElementById("multiUserSessions").style.display = "block";
+            document.getElementById("multiUserSessionList").innerHTML +=
+                "<a href=\"viewgame?id=" + gameid + "\"><i>" + title
+                + "</i></a>, by " + author
+                + " (started " + started + ") - <a href=\"t3join?id="
+                + sid + "\">Join this game</a><br>";
+        }
+    
+    }, null, true);
+}
+        <?php
+    
+        // run through the result set
+        for ($i = 0 ; $i < $count ; $i++)
+        {
+            // fetch this row
+            list($mxid, $mgid, $mstart) = mysql_fetch_row($mresult);
+            $mxid = htmlspecialcharx($mxid);
+            $mtime = htmlspecialcharx($mstart);
+
+            // look up the game name in IFDB
+            $mgid = mysql_real_escape_string($mgid, $db);
+            $r2 = mysql_query(
+                "select title, author from games
+                 where id = '$mgid'", $db);
+
+            list($title, $author) = mysql_fetch_row($r2);
+            $title = htmlspecialcharx($title);
+            $author = htmlspecialcharx($author);
+
+            // generate javascript to ping this session and display it if
+            // it's still active
+            echo "pingMultiUserSession(\"$mxid\", \"$mgid\", "
+                . "\"$title\", \"$author\", \"$mstart\");\n";
+        }
+
+        // done with the script for the section
+        echo "<" . "/script>";
+    }
+
+    // ------- Authored Games -------
+	$gameRatingsView = getGameRatingsView($db);
+    $result = mysql_query(
+        "select
+           games.id as id, games.title as title, games.author as author,
+           date_format(games.published, '%Y') as year,
+           games.`desc` as `desc`,
+           (coverart is not null) as hasart,
+		   grv.avgRating as rating,
+           grv.numRatingsInAvg as ratingCnt
+         from
+           games
+           join gameprofilelinks
+             on games.id = gameprofilelinks.gameid
+           left outer join $gameRatingsView as grv
+             on grv.gameid = games.id
+         where
+           gameprofilelinks.userid = '$quid'
+         group by games.id
+         order by games.sort_title", $db);
+
+    if (($cnt = mysql_num_rows($result)) > 0) {
+        echo "<h2>Interactive Fiction by $username</h2>"
+            . "<div class=indented>";
+
+        for ($i = 0 ; $i < $cnt ; $i++) {
+            $rec = mysql_fetch_array($result, MYSQL_ASSOC);
+            $gid = urlencode($rec['id']);
+            $title = htmlspecialcharx($rec['title']);
+            $author = htmlspecialcharx($rec['author']);
+            $art = $rec['hasart'];
+            $descInfo = summarizeHtml($rec['desc'], 200);
+            $desc = fixDesc($descInfo[0]);
+            $stars = showStars($rec['rating']);
+            $ratingCnt = $rec['ratingCnt'];
+            $year = $rec['year'];
+
+            if ($ratingCnt != 0)
+                $stars .= " ($ratingCnt rating"
+                          . ($ratingCnt == 1 ? "" : "s") . ")<br>";
+
+            echo "<p>";
+            if ($art) {
+                echo "<table class=grid border=0 cellspacing=0 cellpadding=0>"
+                    . "<tr><td>"
+                    . "<a href=\"viewgame?id=$gid\">"
+                    . "<img src=\"viewgame?id=$gid&coverart&thumbnail=80x80\" "
+                    . "border=0></a></td><td>"
+                    . "<a href=\"viewgame?id=$gid\"><b>$title</b></a>, "
+                    . "by $author"
+                    . ($year ?
+                       " <span class=details>($year)</span><br>" : "")
+                    . "<span class=details>$stars</span>"
+                    . "<span class=details><i>$desc</i></span>"
+                    . "</td></tr></table>";
+            }
+            else {
+                echo "<a href=\"viewgame?id=$gid\"><b>$title</b></a>, "
+                    . "by $author"
+                    . ($year ? " ($year)" : ""). "<br>"
+                    . "<span class=details>$stars</span>"
+                    . "<div class=indented><span class=details>"
+                    . "<i>$desc</i></span></div>";
+            }
+        }
+        echo "</div>";
+    }
+           
+
+    // ------- Lists -------
+
+    echo "<h2>Recommended Lists by $username</h2><div class=indented>";
+
+    $result = mysql_query("select count(*) as c from reclists
+        where userid = '$quid'", $db);
+    $listcnt = mysql_result($result, 0, "c");
+
+    if ($listcnt == 0) {
+        echo "<i>This member hasn't created any lists yet.</i><br>";
+    } else {
+        $result = mysql_query(
+            "select id, title, `desc`, date_format(moddate, '%M %e, %Y'),
+                count(reclistitems.gameid)
+            from reclists, reclistitems
+            where
+                userid = '$quid'
+                and reclistitems.listid = reclists.id
+            group by reclistitems.listid
+            order by moddate desc
+            limit 0, 5", $db);
+
+        for ($i = 0 ; $i < mysql_num_rows($result) ; $i++) {
+            // fetch the next row
+            list($listid, $title, $desc, $moddate, $itemcnt) =
+                mysql_fetch_row($result);
+
+            // fix up fields for display
+            $title = htmlspecialcharx($title);
+            list($desc, $desclen, $desctrunc) = summarizeHtml($desc, 140);
+            $desc = fixDesc($desc);
+
+            // show the summary
+            echo "<a href=\"viewlist?id=$listid\">$title</a>"
+                . " - $itemcnt item" . ($itemcnt > 1 ? "s" : "")
+                . " &nbsp; <span class=details><i>$moddate</i></span><br>"
+                . "<div class=indented><span class=details>"
+                . "<i>$desc</i></span></div><br>";
+        }
+
+        echo "<p><span class=details><a href=\"alllists?user=$uid\">"
+            . "See all of this member's lists</a></span>";
+    }
+
+    echo "</div>";
+
+
+    // ------- Polls -------
+
+    echo "<h2>Polls by $username</h2><div class=indented>";
+
+    $result = mysql_query(
+        "select count(*) as c from polls
+         where userid = '$quid'", $db);
+    $pollcnt = mysql_result($result, 0, "c");
+
+    if ($pollcnt == 0) {
+        echo "<i>This member hasn't created any polls yet.</i><br>";
+    } else {
+        $result = mysql_query(
+            "select p.pollid, p.title, p.`desc`,
+               date_format(p.created, '%M %e, %Y'),
+               count(v.gameid) as votecount,
+               count(distinct v.gameid) as gamecount
+            from
+               polls as p
+               left outer join pollvotes as v on v.pollid = p.pollid
+            where
+               p.userid = '$quid'
+            group by
+               p.pollid
+            order by
+               p.created desc
+            limit
+               0, 5", $db);
+
+        for ($i = 0 ; $i < mysql_num_rows($result) ; $i++) {
+            // fetch the next row
+            list($pollid, $title, $desc, $created, $votecnt, $gamecnt) =
+                mysql_fetch_row($result);
+
+            // fix up fields for display
+            $title = htmlspecialcharx($title);
+            list($desc, $desclen, $desctrunc) = summarizeHtml($desc, 140);
+            $desc = fixDesc($desc);
+
+            // show the summary
+            echo "<a href=\"poll?id=$pollid\">$title</a> - "
+                . "<span class=details><i>"
+                . ($votecnt == 0 ? "No votes" :
+                   ($votecnt == 1 ? "1 vote" :
+                    ("$votecnt votes for $gamecnt game"
+                     . ($gamecnt == 1 ? "" : "s"))))
+                . "; created $created</i></span><br>"
+                . "<div class=indented><span class=details>"
+                . "<i>$desc</i></span></div><br>";
+        }
+
+        echo "<p><span class=details><a href=\"allpolls?user=$uid\">"
+            . "See all of this member's polls</a></span>";
+    }
+
+    echo "</div>";
+
+    // ------- Reviews --------
+
+    echo "<h2>Reviews by $username</h2><div class=indented>";
+
+    $result = mysql_query(
+        "select count(*) as c from reviews
+         where userid = '$quid'
+           and review is not null
+           and ifnull(now() >= embargodate, 1)", $db);
+    $revcnt = mysql_result($result, 0, "c");
+
+    $result = mysql_query(
+        "select count(*) as c from reviews
+         where userid = '$quid'
+           and review is null
+           and ifnull(now() >= embargodate, 1)", $db);
+    $ratingcnt = mysql_result($result, 0, "c");
+
+    if ($revcnt == 0) {
+        echo "<i>This member hasn't written any reviews yet.</i><br>";
+        if ($ratingcnt != 0) {
+            echo "<span class=details>"
+                . "<a href=\"allreviews?id=$uid&ratings=yes\">"
+                . "See all ratings by this member</a></span>";
+        }
+    } else {
+        $result = mysql_query(
+            "select
+               games.id, games.title, games.author,
+               reviews.id, reviews.rating, reviews.summary,
+               reviews.review, date_format(reviews.moddate, '%M %e, %Y')
+             from
+               games, reviews
+             where
+               reviews.userid = '$quid'
+               and reviews.review is not null
+               and games.id = reviews.gameid
+               and ifnull(now() >= reviews.embargodate, 1)
+             order by reviews.moddate desc
+             limit 0, 5", $db);
+
+        for ($i = 0 ; $i < mysql_num_rows($result) ; $i++) {
+            // retrieve the result
+            list($gameid, $title, $author, $revid, $rating,
+                 $summary, $review, $moddate) = mysql_fetch_row($result);
+
+            // fix up fields for display
+            $title = htmlspecialcharx($title);
+            $author = htmlspecialcharx($author);
+            $summary = htmlspecialcharx($summary);
+            list($review, $revlen, $revtrunc) = summarizeHtml($review, 140);
+            $review = fixDesc($review);
+
+            // show the summary
+            echo "<a href=\"viewgame?id=$gameid\">$title</a>, by $author"
+                . " &nbsp; <span class=details><i>$moddate</i></span><br>"
+                . "<div class=indented><span class=details>"
+                . ($rating ? showStars($rating) . " " : "")
+                . ($revlen ? "<i>\"$review\"</i>" : "");
+
+            if ($revtrunc)
+                echo " - <a href=\"viewgame?id=$gameid&review=$revid\">"
+                    . "See the full review</a>";
+
+            echo "</span></div><br>";
+        }
+
+        echo "<p><span class=details><a href=\"allreviews?id=$uid\">"
+            . "See all reviews by this member</a></span>";
+
+        echo "<br><span class=details>"
+            . "<a href=\"allreviews?id=$uid&ratings=yes\">"
+            . "See all ratings and reviews by this member</a></span>";
+    }
+
+    echo "</div>";
+
+    // ------- Play Lists --------
+    if ($playlistPub || $wishlistPub || $unwishlistPub) {
+
+        $pubcnt = ($playlistPub ? 1 : 0)
+                  + ($wishlistPub ? 1 : 0)
+                  + ($unwishlistPub ? 1 : 0);
+
+        $pubdisp = 0;
+        if ($pubcnt > 1) {
+            echo "<h2>$username's Play Lists</h2><div class=indented>";
+            $plHead = "<h3>Played Games</h3>";
+            $wlHead = "<h3>Wish List</h3>";
+            $uwHead = "<h3>\"Not Interested\" List</h3>";
+            $sep = "<p>";
+        } else {
+            $plHead = "<h2>$username's Played Games List</h2>"
+                    . "<div class=indented>";
+            $wlHead = "<h2>$username's Wish List</h2>"
+                    . "<div class=indented>";
+            $uwHead = "<h2>$username's \"Not Interested\" List</h2>"
+                    . "<div class=indented>";
+            $sep = "";
+        }
+
+        if ($playlistPub) {
+
+            if ($pubdisp++ > 0) echo $sep;
+            echo $plHead;
+
+            $result = mysql_query(
+                "select games.id, games.title, games.author
+                 from games, playedgames
+                 where games.id = playedgames.gameid
+                 and playedgames.userid = '$quid'
+                 order by playedgames.date_added desc
+                 limit 0, 6", $db);
+
+            if (mysql_num_rows($result) == 0)
+                echo "<i>This member hasn't marked any games as played.</i>";
+
+            for ($i = 0 ; $i < 5 && $i < mysql_num_rows($result) ; $i++) {
+                list($gid, $title, $author) = mysql_fetch_row($result);
+                $title = htmlspecialcharx($title);
+                $author = htmlspecialcharx($author);
+                echo "<a href=\"viewgame?id=$gid\"><i>$title</i></a>, "
+                    . "by $author<br>";
+            }
+
+            if (mysql_num_rows($result) > 5)
+                echo "<p><span class=details><a href=\"playlist?id=$uid\">"
+                    . "View the entire list</a></span><br>";
+        }
+
+        if ($wishlistPub) {
+
+            if ($pubdisp++ > 0) echo $sep;
+            echo $wlHead;
+                    
+            $result = mysql_query(
+                "select games.id, games.title, games.author
+                 from games, wishlists
+                 where games.id = wishlists.gameid
+                 and wishlists.userid = '$quid'
+                 order by wishlists.date_added desc
+                 limit 0, 6", $db);
+
+            if (mysql_num_rows($result) == 0)
+                echo "<i>This member hasn't added any games to
+                      $hisHer wish list yet.</i>";
+
+            for ($i = 0 ; $i < 5 && $i < mysql_num_rows($result) ; $i++) {
+                list($gid, $title, $author) = mysql_fetch_row($result);
+                $title = htmlspecialcharx($title);
+                $author = htmlspecialcharx($author);
+                echo "<a href=\"viewgame?id=$gid\"><i>$title</i></a>, "
+                    . "by $author<br>";
+            }
+
+            if (mysql_num_rows($result) > 5)
+                echo "<p><span class=details>"
+                    . "<a href=\"playlist?id=$uid&type=wishlist\">"
+                    . "View the entire list</a></span><br>";
+        }
+
+        if ($unwishlistPub) {
+
+            if ($pubdisp++ > 0) echo $sep;
+            echo $uwHead;
+                    
+            $result = mysql_query(
+                "select games.id, games.title, games.author
+                 from games, unwishlists
+                 where games.id = unwishlists.gameid
+                 and unwishlists.userid = '$quid'
+                 order by unwishlists.date_added desc
+                 limit 0, 6", $db);
+
+            if (mysql_num_rows($result) == 0)
+                echo "<i>This member hasn't added any games to
+                      $hisHer \"Not Interested\" list yet.</i>";
+
+            for ($i = 0 ; $i < 5 && $i < mysql_num_rows($result) ; $i++) {
+                list($gid, $title, $author) = mysql_fetch_row($result);
+                $title = htmlspecialcharx($title);
+                $author = htmlspecialcharx($author);
+                echo "<a href=\"viewgame?id=$gid\"><i>$title</i></a>, "
+                    . "by $author<br>";
+            }
+
+            if (mysql_num_rows($result) > 5)
+                echo "<p><span class=details>"
+                    . "<a href=\"playlist?id=$uid&type=unwishlist\">"
+                    . "View the entire list</a></span><br>";
+        }
+
+        echo "</div>";
+    }
+
+    // --------------- Club Memberships --------------------
+
+    // if we're logged in, we can view memberships of clubs we belong to
+    $orMyClub = $joinMyClubs = "";
+    if ($curuser) {
+        $joinMyClubs = "left outer join clubmembers as mcur "
+                       .  "on mcur.clubid = m.clubid "
+                       .  "and mcur.userid = '$curuser'";
+        $orMyClub = "or mcur.clubid is not null";
+    }
+
+    // query clubs
+    $result = mysql_query(
+        "select
+           c.clubid, c.name,
+           date_format(m.joindate, '%M %e, %Y')
+         from
+           clubmembers as m
+           join clubs as c on c.clubid = m.clubid
+           $joinMyClubs
+         where
+           m.userid = '$quid'
+           and (c.members_public = 'Y' $orMyClub)
+         order by
+           lower(c.name)", $db);
+    echo mysql_error($db);
+
+    // if we found anything, show the club memberships section
+    if (($rowcnt = mysql_num_rows($result)) > 0)
+    {
+        echo "<h2>$username's Club Memberships</h2><div class=indented>";
+
+        for ($i = 0 ; $i < $rowcnt ; $i++)
+        {
+            list($clubid, $clubname, $joindate) = mysql_fetch_row($result);
+            $clubname = htmlspecialcharx($clubname);
+            echo "<a href=\"club?id=$clubid\">$clubname</a>"
+                . " <span style=\"margin-left: 2em\" class=details><i>"
+                . "joined $joindate</i></span><br>";
+        }
+
+        echo "</div>";
+    }
+}
+
+// ------------------------------------------------------------------------
+// if we're in administrative viewing "unlock" mode, aggregate the
+// various approval/ban links, and a search for the email address
+//
+if ($unlock)
+{
+    // admin details
+    $adminUrl = "userconfirm?nonce=$unlockNonce&userid=$uid&reviewProfile=";
+	$hhemail = htmlspecialcharx($realEmail);
+	$uuemail = urlencode($realEmail);
+    echo "<br><hr class=dots>"
+		. "User email: <b>$hhemail</b>"
+		. "<div style=\"margin: 0px 2em 1em 2em;\">"
+		. "<a href=\"https://www.google.com/search?q=%22{$uuemail}%22\" target=\"_blank\">Search Google</a><br>"
+		. "<a href=\"https://www.bing.com?q=%22{$uuemail}%22\" target=\"_blank\">Search Bing</a><br>"
+		. "</div>";
+
+    // Generate a list of other users who have logged in from the
+    // same IP addresses as this user.  We've had occasional trouble
+    // with trolls creating numerous "sock puppet" accounts, that is,
+    // one person with many pseudonyms.  Most sock puppet cases have
+    // been an author creating multiple accounts in order to add
+    // multiple positive reviews of their own work.  Many people
+    // find this annoying, but we usually tolerate it unless it gets
+    // out of hand, since there really aren't any stakes here, and
+    // anyway, it's usually so obvious that it only makes the author
+    // doing it look bad.  However, in some cases we've had to ban
+    // trolls, and the obvious thing for an active troll to do upon
+    // being banned is to create ten new fake accounts to replace
+    // their closed account.  So I wanted a heads-up when this
+    // might be happening.  This might also help in cases where a
+    // spammer is creating a bunch of accounts at the same time.
+    // A serious troll or spammer could circumvent this check by
+    // using an anomymizer proxy or VPN or the like, but that
+    // tends to cost money, which seems to be a pretty effective
+    // barrier to most trolls.  This could also incorrectly flag
+    // innocent users with dynamic IP addresses assigned from a
+    // pool by their ISP, since an unlucky neighbor might be
+    // assigned the same dynamic IP previously assigned to a
+    // troll, but the recency of the other login should be
+    // helpful at discerning that.
+    $result = mysql_query(
+        "select u.id, u.name, u.email, b.ip, date_format(b.`when`, '%M %e, %Y')
+        from logins as a
+          join logins as b on a.ip = b.ip and a.uid != b.uid
+          join users as u on u.id = a.uid
+        where b.uid = '$quid'
+        group by u.id
+        order by b.`when` desc", $db);
+
+    $nRows = mysql_num_rows($result);
+    if ($nRows > 0)
+    {
+        echo "Other users who have logged in from the same IP address:"
+            . "<div style=\"margin: 0px 2em 1em 2em;\">"
+            . "<style type=\"text/css\">"
+            . "#otherLoginTab td { padding: 0px 1ex; }"
+            . "</style>"
+            . "<table id=\"otherLoginTab\">";
+        for ($i = 0; $i < $nRows; $i++)
+        {
+            list($uid2, $uname2, $email2, $ip2, $when2) = mysql_fetch_row($result);
+            $uname2 = htmlspecialcharx($uname2);
+            $email2 = htmlspecialcharx($email2);
+            echo "<tr>"
+                . "<td><a href=\"showuser?id=$uid2\">$uname2</a></td>"
+                . "<td>$email2</td>"
+                . "<td>$ip2</td>"
+                . "<td>$when2</td>"
+                . "</tr>";
+        }
+        echo "</table></div>";
+    }
+    
+
+    // add the admin links
+    echo "Administrative actions:<br>"
+        . "<div style=\"margin: 1ex 2em;\">"
+        . "<a href=\"{$adminUrl}A\">Approve</a> - "
+        . "<a href=\"{$adminUrl}T\">Trust</a> - "
+        . "<a href=\"{$adminUrl}B\">Ban</a>"
+        . "</div>";
+
+    // add the email search
+	// (remove this for now - the search engines seem to reject framed searches now)
+	//echo "<div style=\"margin: 1em 0px;\">"
+    //    . "<iframe src=\"showuser?id=$uid&search=email&unlock=$unlockNonce\" "
+    //    . "frameborder=0 style=\"width: 100%; overflow: auto;\" "
+    //    . "onload=\"javascript:onLoadEmailSearchFrame(this)\">"
+    //    . "</iframe>"
+    //    . "</div>";
+    ?>
+    <script>
+    function onLoadEmailSearchFrame(fr)
+    {
+        fr.style.height = "" + getDocHeight(fr.contentWindow.document) + "px";
+    }
+    function getDocHeight(doc)
+    {
+        return Math.max(
+            Math.max(doc.body.scrollHeight, doc.documentElement.scrollHeight),
+            Math.max(doc.body.offsetHeight, doc.documentElement.offsetHeight),
+            Math.max(doc.body.clientHeight, doc.documentElement.clientHeight));
+    }
+    </script>
+    <?php
+}
+
+pageFooter();
+?>

@@ -1,0 +1,34 @@
+<?php
+@session_start();
+include_once "util.php";
+include "pagetpl.php";
+helpPageHeader("Community Moderation");
+?>
+
+<h1>What is community moderation?</h1>
+
+<p>IFDB doesn't have formal moderators or censors who decide what you
+can and can't see in terms of reviews, game listings, and
+recommendations.  Instead, we use <b>community moderation</b>, which
+means that we rely on IFDB's whole membership to provide guidance
+about which reviews are useful and which aren't.
+
+<p>Community moderation works by letting everyone provide
+<i>guidance</i> instead of censorship.  It obviously wouldn't work if
+everyone could veto anything they didn't like - pretty soon there'd be
+nothing left on the site except material so bland and uninteresting
+that no one could disagree with it (and probably not even that, since
+someone would undoubtedly veto it for being too bland and
+uninteresting).
+
+<p>So instead of a veto, everyone gets a vote.  The chief tool for
+community moderation of reviews on IFDB is the Helpfulness vote.  As
+votes accumulate, the reviews that members collectively deem to be the
+best (however they choose to define "best") will move to the top of
+the list, and less helpful reviews will move to the bottom.  This
+makes it easier to set your own threshold for quality when you're
+browsing, since you know the good stuff will be listed first.
+
+<?php
+helpPageFooter();
+?>

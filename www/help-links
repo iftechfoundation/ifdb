@@ -1,0 +1,116 @@
+<?php
+@session_start();
+include_once "util.php";
+include "pagetpl.php";
+
+include_once "dbconnect.php";
+$db = dbConnect();
+
+helpPageHeader("Download Links");
+?>
+
+<h1>Download Links</h1>
+
+<p><b>URL:</b> Enter the full URL to the downloadable file.
+
+<ul>
+
+   <li>Link directly to the file, rather than to a separate "gateway"
+page.  The Download Adviser generates its instructions assuming that
+links lead directly to downloadable files.
+
+   <li>If the game's author doesn't allow you to link directly to the
+file, don't add it as a download link; instead, link to the author's
+site via the Web Site field on the game's main page.
+
+   <li>For files stored at the IF Archive, link to the <b>main</b> IF
+Archive site (http://www.ifarchive.org/...), <b>not</b> to a mirror.
+IFDB will automatically substitute a mirror site based on the user's
+preferences, but it can only do this with links that start off pointing
+to the main IF Archive URL.
+
+</ul>
+
+<p><b>Title:</b> Enter a short title for the link, for display in
+the Download box on the game's page.
+
+<p><b>Description:</b> If the file's purpose isn't obvious enough
+from the title, you can add a brief description here.
+This is optional.  <b>Don't</b> use this to describe the game itself,
+since that belongs in the main game description.
+
+<p><b>"This is a playable game file":</b> This tells the Download
+Adviser and other tools whether or not this file contains the actual
+game program.
+
+<ul>
+
+   <li>Check the box if the file contains a playable version of
+the game, in the form of a native executable program (such as a
+Windows .EXE file) or a Story File for one of the interpreter-based
+systems (Z-Machine, TADS, etc).
+
+   <li>Leave the box unchecked for collateral files like
+documentation, walk-throughs, and so on.
+
+   <li><b>Don't</b> check this box for source-code files - even though
+that <i>is</i> one form of a game program, it's usually not a
+<i>readily playable</i> form, since a player would need to set up a
+whole build environment.  (We'd make an exception if source code is
+the <i>only</i> form in which the game is distributed, though.)
+
+</ul>
+
+<p><b>File Type:</b> Use the list to select the data format of the
+file:
+
+<ul>
+
+   <li>If you checked the "game file" box, the list shows the various
+interpreter formats, along with "Executable" and "Installer."
+"Installer" means that the file is an executable SETUP program that
+you run once to install the game on your system; "Executable" means
+that the file is simply the game program itself, and you simply run it
+directly to play the game.
+
+   <li>For a game file, if you can't find the game's specific format
+in the list, choose "Story File."  This is the generic file type for
+interpreter-based games.  Always choose the specific type if the
+right one is in the list, though, since the Download Adviser can't
+offer any help for the generic Story File type.
+
+   <li>For non-game files, the list offers a selection of common
+file formats.  There are so many file formats in the world that the
+list simply can't be exhaustive, so it shows only the most common
+formats for IF collateral material.  If you can't find the right
+format, choose the generic "Document."
+
+   <li>If the file is packaged using a compression format or a special
+file-transfer encoding (ZIP, StuffIt, hqx, tar, .tar.gz, etc), pick
+the format of the <b>main file</b> within the compressed/encoded file
+(see below).
+
+</ul>
+
+<p><b>Compression:</b> If the file is compressed (ZIP, StuffIt),
+specially encoded for file transfers (hqx, tar), or both (.tar.gz,
+.sit.hqx), pick the packaging format here.  Note that there are
+separate entries for the common compound formats (tarball, .sit.hqx) -
+pick the one that represents the full set of wrappers, if possible, so
+that automated tools will be able to apply all of the necessary
+unpacking steps.
+
+<p><b>Main File:</b> For a compressed game file, enter the filename of
+the actual game file within the compressed file. Use Unix-style
+relative paths if necessary (ZIP uses "/" to separate directory names).
+For example, if you're linking to a ZIP file that contains a folder
+called Games and a Z-Machine file called MyGame.z5 within the folder,
+you'd enter "Games/MyGame.z5".  This lets the Download Adviser and
+other automated tools find the playable game file after unpacking the
+compressed file.  For non-game files, enter the filename of the most
+important file, as you see fit; you can leave this blank if "most
+important" isn't meaningful for this link.
+
+<?php
+helpPageFooter();
+?>

@@ -1,0 +1,40 @@
+<?php
+@session_start();
+
+include_once "util.php";
+
+    // check to see if there are any images set
+    if (!isset($_SESSION['temp_images']))
+        exit("No images have been uploaded for this session.");
+
+    // make sure we have an image ID from 1 to 5
+    $id = $_REQUEST['id'];
+    if (is_null($id))
+        exit("No temporary image ID was specified.");
+
+    // get the image array
+    $arr = $_SESSION['temp_images'];
+
+    // find the image with the requested ID
+    $image = false;
+    for ($i = 0 ; $i < count($arr) ; $i++) {
+        if ($arr[$i][2] == (int)$id) {
+            $image = $arr[$i];
+            break;
+        }
+    }
+
+    // make sure we found the image
+    if (!$image)
+        exit("The requested image is not available. The image ID might
+          be invalid, or the image might not have been uploaded, or a
+          previously uploaded image might have been discarded due to
+          session expiration.  You should try uploading the image again.");
+
+    // get the image data and format string
+    $imgdata = $image[0];
+    $imgfmt = $image[1];
+
+    // send the image
+    sendImage($imgdata, $imgfmt, $_REQUEST['thumbnail']);
+?>

@@ -1,0 +1,32 @@
+<?php
+@session_start();
+include_once "util.php";
+include "pagetpl.php";
+helpPageHeader("What's a tag?");
+?>
+
+<h1>What's a tag?</h1>
+
+<p>A tag is a search keyword that you can associate with a game.
+It can be any word or phrase that's relevant to the game.  The
+most helpful tags describe things like the game's subject matter,
+style, tone - the kinds of things you might want to search for
+when looking for a game to play.
+
+<p>Whenever you search for a game, the results will include any games
+tagged with one or more of the words you're searching for.
+
+<p>Tags are helpful because they let you tell the search engine what
+concepts and subjects are related to the game.  This makes searching
+easier by letting you find games that are conceptually similar to what
+you're looking for, rather than searching strictly by the literal
+title and author.
+
+<p>Tags are also helpful for finding other games related to the ones
+you like.  People are likely to use the same tags for closely related
+games, so if you start with a game you like, you can look at its tags
+and search for other games with the same tags.
+
+<?php
+helpPageFooter();
+?>

@@ -1,0 +1,287 @@
+<?php
+//
+// allreviews - show all reviews by a given user.
+
+// Note that we ignore the user filters (promoted, demoted, plonked) here,
+// because those are meant to sort and filter reviews by user.   Since all
+// of the reviews we show here are by a single user, there's no need to
+// sort relative to other users; and since the only purpose of this page
+// is to show a given users's reviews, it doesn't make any sense to pay
+// attention to plonking here.
+
+@session_start();
+
+// note if we're logged in
+include_once "login-persist.php";
+$curuser = checkPersistentLogin();
+
+include "pagetpl.php";
+include_once "util.php";
+include_once "dbconnect.php";
+$db = dbConnect();
+
+include "reviews.php";
+$specialNames = initSpecialNames($db);
+
+$uid = get_req_data('id');
+$quid = mysql_real_escape_string($uid, $db);
+$errMsg = false;
+$ratings = get_req_data('ratings');
+
+$reqTag = get_req_data('tag');
+$qtag = mysql_real_escape_string($reqTag, $db);
+
+$perPage = 10;
+$pgAll = false;
+$pg = get_req_data('pg');
+$sortReq = get_req_data('sortby');
+
+$sortList = array(
+    'new' => array('moddate desc', 'Newest First'),
+    'old' => array('moddate', 'Oldest First'),
+    'hlp' => array('netHelpful desc', 'Most Helpful First'),
+    'unh' => array('netHelpful', 'Least Helpful First'),
+    'hi' => array('rating desc', 'Highest Ratings First'),
+    'lo' => array('rating', 'Lowest Ratings First'),
+    'ttl' => array('sort_title', 'Sort by Game Title'),
+    'auth' => array('sort_author', 'Sort by Game Author'));
+
+// look up the user record
+$pageTitle = ($ratings == "only" ? "Ratings" :
+              ($ratings == "yes" ? "Ratings and Reviews" :
+               "Reviews"));
+$result = mysql_query(
+    "select name, location from users where id='$quid'", $db);
+if (mysql_num_rows($result) == 0) {
+    $errMsg = "The requested user was not found in the database.";
+} else {
+    list($username, $location) = mysql_fetch_row($result);
+
+    $pageTitle .= " by ". htmlspecialcharx($username);
+}
+
+pageHeader($pageTitle, false, false, "<script src=\"xmlreq.js\"></script>");
+initReviewVote();
+
+if ($errMsg) {
+    echo "<span class=errmsg>$errMsg</span><br><br>";
+} else {
+    echo "<h1>$pageTitle</h1>";
+
+    if ($reqTag)
+        echo "<h2>" . htmlspecialcharx($reqTag) . "</h2>";
+
+    echo "<a href=\"showuser?id=$uid\">View this member's profile</a><br><br>";
+
+    echo "<div style=\"margin-bottom:0.5ex;\"><span class=details>Show ";
+    $hrefReviews = "<a href=\"allreviews?id=$uid\">reviews only</a>";
+    $hrefRatings = "<a href=\"allreviews?id=$uid&ratings=only\">"
+                   . "ratings only</a>";
+    $hrefBoth = "<a href=\"allreviews?id=$uid&ratings=yes\">"
+                . "both reviews and ratings</a>";
+    if ($ratings == "only")
+        echo "$hrefReviews | $hrefBoth";
+    else if ($ratings == "yes")
+        echo "$hrefReviews | $hrefRatings";
+    else
+        echo "$hrefRatings | $hrefBoth";
+    echo "</span></div>";
+
+    // query this user's review tags
+    $result = mysql_query(
+        "select distinct tag
+         from reviewtags
+         join reviews on reviewtags.reviewid = reviews.id
+         where reviews.userid = '$quid'
+         order by tag", $db);
+    if (($rowcnt = mysql_num_rows($result)) > 0) {
+        // fetch the tags
+        for ($tags = array(), $i = 0 ; $i < $rowcnt ; $i++)
+            $tags[] = mysql_result($result, $i, "tag");
+
+        // display the tag list
+        echo "<span class=details>View this member's reviews by tag: ";
+        foreach ($tags as $t) {
+            $tu = urlencode($t);
+            $td = htmlspecialcharx($t);
+            echo "<span style=\"margin: 0 0.5ex 0 0.5ex;\">"
+                . "<a href=\"allreviews?id=$uid&tag=$tu\">$td</a></span> ";
+        }
+
+        if ($qtag)
+            echo "<br>...or see <a href=\"allreviews?id=$uid\">"
+                . "all reviews</a> by this member";
+
+        echo "</span>";
+    }
+
+    // show embargoed reviews if we're viewing our own reviews, otherwise
+    // hide them
+    $whereEmbargo = ($curuser && $curuser == $uid ? "" :
+                     "and ifnull(now() >= embargodate, 1)");
+
+    $joinTag = $whereTag = "";
+    if ($qtag) {
+        $joinTag = "join reviewtags on reviewtags.reviewid = reviews.id";
+        $whereTag = "and reviewtags.tag = '$qtag'";
+    }
+
+    // determine whether we're showing reviews, ratings, or both
+    $whereReview = ($ratings == "only" ? "and reviews.review is null" :
+                    ($ratings == "yes" ? "" :
+                     "and reviews.review is not null"));
+
+    // determine the total number of reviews this user has written
+    // matching our criteria
+    $result = mysql_query(
+       "select count(*) as c
+       from reviews $joinTag
+       where userid = '$quid'
+         $whereReview $whereEmbargo $whereTag", $db);
+    $revcnt = mysql_result($result, 0, "c");
+
+    if ($pg == 'all') {
+        $pgAll = true;
+        $perPage = $revcnt;
+        $pg = 1;
+    }
+
+    // figure how many pages that makes
+    $lastPage = (int)floor(($revcnt + $perPage - 1)/$perPage);
+
+    // limit the page request to existing pages
+    if ($pg < 1)
+        $pg = 1;
+    else if ($pg > $lastPage)
+        $pg = $lastPage;
+
+    // calculate our position in the list
+    $firstOnPage = ($pg - 1) * $perPage;
+    $lastOnPage = $firstOnPage + $perPage - 1;
+    if ($lastOnPage > $revcnt - 1)
+        $lastOnPage = $revcnt - 1;
+
+    // determine the sorting order
+    $ord = isset($sortList[$sortReq]) ? $sortList[$sortReq] : $sortList['new'];
+
+    // query the reviews
+    $sql = "select
+           games.id as gameid,
+           games.title as title,
+           games.author as author,
+           reviews.userid as userid,
+           reviews.id as reviewid,
+           reviews.rating as rating,
+           reviews.summary as summary,
+           reviews.review as review,
+           reviews.moddate as moddate,
+           if (reviews.embargodate > now(),
+             date_format(reviews.embargodate, '%M %e, %Y'),
+             null) as embargodate,
+           reviews.special as special,
+           date_format(reviews.moddate, '%M %e, %Y') as moddatefmt,
+           sum(reviewvotes.vote = 'Y') as helpful,
+           sum(reviewvotes.vote = 'N') as unhelpful,
+           ifnull(sum(reviewvotes.vote = 'Y'), 0)
+              - ifnull(sum(reviewvotes.vote = 'N'), 0)
+              as netHelpful,
+           games.sort_title as sort_title,
+           games.sort_author as sort_author,
+           group_concat(distinct reviewflags.flagtype separator '') as flags
+         from games
+           join reviews
+           left outer join reviewvotes
+              on reviewvotes.reviewid = reviews.id
+           $joinTag
+           left outer join reviewflags on reviewflags.reviewid = reviews.id
+         where
+           reviews.userid = '$quid'
+           and games.id = reviews.gameid
+           $whereReview
+           $whereTag
+           $whereEmbargo
+         group by reviews.id
+         order by {$ord[0]}
+         limit $firstOnPage," . $perPage;
+
+    $result = mysql_query($sql, $db);
+
+    if (mysql_num_rows($result) == 0) {
+        echo "<p><i>This member hasn't written any reviews yet.</i><br>";
+    } else {
+        // show the sorting controls
+        showSortingControls("rvworder", "sortby", $sortList, $sortReq,
+                            array("id" => $uid, "ratings" => $ratings,
+                                  "tag" => $reqTag),
+                            "allreviews");
+
+        // show where we are in the list
+        $pageCtl = "<span class=details>"
+                   . makePageControl(
+                       "allreviews?id=$uid&sortby=$sortReq"
+                       . ($ratings != "" ? "&ratings=$ratings" : "")
+                       . ($reqTag != "" ? "&tag=$reqTag" : ""),
+                       $pg, $lastPage,
+                       $firstOnPage, $lastOnPage, $revcnt,
+                       false, true, $pgAll)
+                   . "</span>";
+
+        echo "$pageCtl<br><br><br>";
+
+        // fetch and display each review
+        for ($i = 0 ; $i < mysql_num_rows($result) ; $i++) {
+            // retrieve the result
+            $rec = mysql_fetch_array($result, MYSQL_ASSOC);
+
+            // fill in some extra data we need
+            $rec['username'] = $username;
+            $rec['location'] = $location;
+
+            // get the tags for the review
+            $rec['tags'] = queryReviewTags($db, $rec['reviewid']);
+
+            // add some spacing between the headline and the review, but
+            // only if there's going to be a review
+            if ($rec['review'] != "")
+                $headlineDiv = "<div style=\"margin-bottom:0.5em;\">";
+            else
+                $headlineDiv = "<div>";
+
+            // display the game information
+            $gameid = $rec['gameid'];
+            $title = htmlspecialcharx($rec['title']);
+            $author = htmlspecialcharx($rec['author']);
+            echo $headlineDiv
+                . "<a href=\"viewgame?id=$gameid\"><b><i>$title</i></b></a>"
+                . ", by $author</div>";
+
+            if ($rec['embargodate'])
+                echo "$headlineDiv<span class=details>"
+                    . "<i>This review is hidden until "
+                    . "{$rec['embargodate']}.</i></span></div>";
+
+            echo "<div class=indented>";
+            
+            // display it
+            if ($rec['review'] != "") {
+                // we have a full review
+                showReview($db, $gameid, $rec, $specialNames);
+            } else {
+                // we have a rating only
+                echo "$username's Rating: " . showStars($rec['rating'])
+                    . "<p>";
+            }
+
+            // end the listing
+            echo "</div>";
+        }
+
+        // add the page controls at the bottom of the page
+        echo "<br>$pageCtl<br><br><br>";
+    }
+}
+
+pageFooter();
+
+
+?>

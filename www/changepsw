@@ -1,0 +1,155 @@
+<?php
+@session_start();
+include "login-check.php";
+if (provisionally_logged_in())
+    $usernum = $_SESSION['provisional_logged_in_as'];
+else if (logged_in())
+    $usernum = $_SESSION['logged_in_as'];
+else
+    exit();
+
+include "pagetpl.php";
+include_once "dbconnect.php";
+
+// start the page
+pageHeader("Change Password", "changepsw.oldpsw");
+
+// read the request parameters
+$oldpsw = $_REQUEST['oldpsw'];
+$psw = $_REQUEST['password'];
+$psw2 = $_REQUEST['password2'];
+
+// no errors yet
+$errFlagged = false;
+
+// verifier function
+function verify() {
+    global $usernum, $psw, $psw2, $oldpsw, $errFlagged;
+    
+    // connect to the database
+    $db = dbConnect();
+    if ($db == false) {
+        $errFlagged = "An error occurred accessing the user database. Please
+            try again. If the problem persists, please
+            <a href='/contact'>contact us</a> to let us know about the
+            problem.";
+        return true;
+    }
+
+    // look up the current password data, for validation
+    $result = mysql_query("select `password`, pswsalt from users
+        where id = '$usernum'", $db);
+
+    // abort if we can't look it up
+    if (mysql_num_rows($result) == 0) {
+        $errFlagged = "Your user account could not be accessed in the
+            user database. You might want to try the operation again -
+            <a href=\"/contact\">contact us</a> if the problem persists.";
+        return true;
+    }
+
+    // get the old password data
+    $dbpsw = mysql_result($result, 0, "password");
+    $dbsalt = mysql_result($result, 0, "pswsalt");
+
+    // check for updates
+    if (strlen($oldpsw) != 0 || strlen($psw) != 0 || strlen($psw2) != 0) {
+        // validate the OLD password against what's stored in the database
+        $hasholdpsw = sha1($dbsalt . $oldpsw);
+        if (strcmp($hasholdpsw, $dbpsw) != 0) {
+            $errFlagged = "Incorrect password - the <b>current</b> password
+                entered doesn't match the password stored in your account.";
+            return true;
+        }
+
+        // validate the NEW password
+        if (strlen($psw) < 6) {
+            $errFlagged = "The password is too short - it must be at least
+                six characters long.";
+            return true;
+        }
+        if (strcmp($psw, $psw2) != 0) {
+            $errFlagged = "Password mismatch - you must enter the
+                <b>identical</b> password two times to ensure that you
+                didn't make any mistakes typing it.";
+            return true;
+        }
+
+        // looks good - make the updates; first, calculate the hashed password
+        $salt = md5(rand());
+        $hashpsw = sha1($salt . $psw);
+
+        // update the database
+        if (mysql_query("update users
+                set `password` = '$hashpsw', pswsalt = '$salt'
+                where id = '$usernum'", $db) == false) {
+            $errFlagged = "An error occurred updating the database. You might
+                want to try again - if the problem persists,
+                <a href=\"/contact\">contact us</a> to let us know
+                about it.";
+            return true;
+        }
+
+        // all is well
+?>
+<h1>Password Changed</h1>
+
+<p>You have successfully updated your password.  Please make a note of
+the new password.
+
+<?php
+
+        // no need to show the rest of the page again
+        return false;
+    }
+
+    // no updates yet - proceed with displaying the blank entry form
+    return true;
+}
+
+// run the verification
+if (!verify())
+    exit();
+?>
+
+<h1>Change Password</h1>
+
+<?php
+    if ($errFlagged) {
+        echo "<p><font color=red><b>Error:</b> $errFlagged</font>";
+    }
+?>
+
+<p>To edit your profile, <a href="editprofile">click here</a>.
+
+<p>
+<form method=post action="changepsw" name="changepsw">
+   
+   <table border=0>
+      <tr>
+         <td>
+            <b>Current</b> Password:
+         <td>
+            <input type="password" name="oldpsw" id="oldpsw" size=30
+                  value="<?php echo $oldpsw ?>">
+
+      <tr>
+         <td>
+            <b>New</b> Password:
+         <td>
+            <input type="password" name="password" id="password" size=30
+                  value="<?php echo $psw ?>">
+
+      <tr>
+         <td>
+            Repeat New Password:
+         <td>
+            <input type="password" name="password2" id="password2" size=30
+                  value="<?php echo $psw2 ?>">
+
+   </table>
+
+   <br><br>
+   <input type=submit value="Submit">
+    
+<?php pageFooter(); ?>

@@ -1,0 +1,24 @@
+<?php
+@session_start();
+include_once "util.php";
+include "pagetpl.php";
+helpPageHeader("Why is there an image limit?");
+?>
+
+<h1>Why is there an image limit?</h1>
+
+<p>The limit on image uploads for style sheets is to ensure there's
+enough space on our server for everyone who wants to use this
+feature.
+
+<p>Our server resources are limited, so we unfortunately can't offer
+an infinite, general-purpose image hosting service for your vacation
+photos, eBay listings, etc.  We created the Style Sheet Image Manager
+specifically to give you more control when customizing IFDB, by making
+it easier to add your own images to your custom style sheets.  The
+limits should be more than adequate for this purpose, but if you do
+find yourself running out of space, <a href="contact">contact us</a>.
+
+<?php
+helpPageFooter();
+?>

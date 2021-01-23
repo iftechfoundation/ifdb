@@ -1,0 +1,42 @@
+<?php
+@session_start();
+include_once "util.php";
+include "pagetpl.php";
+helpPageHeader("E-Mail Spam Cloaking");
+?>
+
+<h1>E-Mail Spam Cloaking</h1>
+
+<p>Before sending email to another member, you should check their
+profile address to make sure it's not "cloaked."  Some people
+intentionally obscure their email addresses to escape the notice of
+spam robots, which constantly scan the web looking for fresh victims.
+Look for these signs of a cloaked address:
+
+<ul>
+
+<li><b>SPAM</b> or <b>NOSPAM</b> embedded in the address.  For
+example, someone might write <tt>johnNOSPAMdoe@myisp.com</tt> -
+you'd just remove the word NOSPAM from the middle of the address,
+and what's left over is the actual address.
+
+<li><b>Other ALL-CAPITAL words</b> besides SPAM or NOSPAM can be
+used the same way.
+
+<li><b>Spelled-out punctuation</b> usually needs to be changed to
+the actual punctuation marks.  For instance, <tt>john hyphen doe at
+myisp dot com</tt> would have to be changed to <tt>john-doe@myisp.com</tt>.
+
+</ul>
+
+<p>Note that this list isn't exhaustive - if it were, the spammers
+would just program their robots with everything on the list, defeating
+the entire purpose!  The idea is that everyone does something a little
+different, choosing a scheme that's self-explanatory to real humans,
+but inscrutable to robots.  So use your real-human common sense, and
+look at each address to see if it looks like it's cloaked in some way.
+
+
+<?php
+helpPageFooter();
+?>

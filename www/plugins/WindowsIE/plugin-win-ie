@@ -1,0 +1,135 @@
+<?php
+
+$rootdir = "../..";
+include_once "$rootdir/pagetpl.php";
+include_once "$rootdir/util.php";
+
+pageHeader("IFDB Installer - Windows Internet Explorer");
+
+?>
+
+<object
+ classid="clsid:67BAF0C9-D511-4925-A796-3F7BB19726EE"
+ codebase="http://ifdb.tads.org/plugins/IFDBInstaller-Windows-IE.CAB"
+ style="display:none">
+</object>
+
+<h1>IFDB Installer - Windows Internet Explorer</h1>
+
+<p>This page will automatically install the IFDB Installer plug-in
+for <b>Internet Explorer on Windows</b>.
+
+<p>If you're using a browser or operating system other than IE on
+Windows, this page probably won't work, since most other browsers use
+different plug-in technologies.  Check the main <a
+href="../index">installer plug-in page</a> to find the right
+plug-in for your system.
+
+
+<h2>Current Status</h2>
+
+<script type="text/vbscript">
+function detectPlugin()
+   fExists = 0
+   if scriptEngineMajorVersion > 1 then
+      on error resume next
+      fExists = IsObject(CreateObject("IfdbTadsOrg.IfdbMetaInstaller.1"))
+   end if
+   detectPlugin = fExists
+end function
+//-->
+</script>
+
+<script type="text/javascript">
+<!--
+var fExists = false;
+var fHaveVB = true;
+try {
+    var fExists = detectPlugin();
+} catch (e) {
+    fHaveVB = false;
+}
+    
+if (fExists)
+{
+    document.write("<span class=success>Success! The plug-in is ready to use!</span>");
+    document.write("<p><span class=details id=\"show-instr-btn\"><a href=\"javascript:fullInstructions();\">Show full installation instructions</a></span>");
+}
+else
+{
+    document.write("<span class=errmsg>The plug-in is not yet installed on this computer. "
+                   + "If you saw a dialog saying that Windows blocked installation "
+                   + "because it couldn't \"verify the publisher\", see the instructions "
+                   + "below for the <b>second</b> version of the error dialog.</span>");
+    if (!fHaveVB)
+        document.write(" <span class=errmsg>(This browser does not appear to support ActiveX controls - you might need one of our other plug-ins instead.)</span>")
+}
+
+function fullInstructions()
+{
+    document.getElementById("full-instructions-div").style.display = "";
+    document.getElementById("show-instr-btn").style.display = "none";
+}
+//-->
+</script>
+
+
+<div id="full-instructions-div" style="display:none;">
+
+<h2>Installation Instructions</h2>
+
+<p>Installation should be <i>almost</i> automatic - Internet Explorer
+will attempt to install the plug-in as soon as you view this page.
+However, depending on your browser security settings, IE will probably
+prompt you a couple of times for permission.
+
+<p>When you load this page for the first time, you'll probably see
+a warning bar like this at the top of the page:
+
+<p><center><img src="IE-security-bar.jpg"></center>
+
+<p>To download the plug-in, click on the message bar and select
+"Install ActiveX Control..." from the pop-up menu.  IE will download
+the control, and will then usually show another dialog warning that
+the download comes from an "unknown publisher."  This is normal for
+our plug-in.  The warning dialog comes in two varieties:
+
+<p><table border=0>
+   <tr valign=top>
+      <td style="padding-right:1em;"><img border=0 src="IE-warning-1.jpg"></td>
+      <td>
+         This version lets you decide on the spot whether to proceed
+         or not.  Click Install to complete the installation.
+      </td>
+   </tr>
+
+   <tr><td><br></td></tr>
+   <tr valign=top>
+      <td style="padding-right:1em;"><img border=0 src="IE-warning-2.jpg"></td>
+      <td>
+         This version doesn't give you any options - IE is telling you
+         that your current security settings don't allow IE to install
+         unsigned controls, even with your permission.  In this case,
+         you'll have to change your security settings if you want to
+         continue with the install.  Click OK to dismiss the dialog,
+         then go to the Tools
+         menu, select Internet Options, select the Security tab, and
+         click the Custom Level button.  Find the section in the list
+         labeled "ActiveX controls and plug-ins," then look for the
+         sub-section "Download unsigned ActiveX controls."  Change this
+         to "Prompt" - this will make IE prompt you for permission
+         whenever a web page attempts to install a control from an
+         "unknown publisher."  
+      </td>
+   </tr>
+</table>
+
+</div>
+
+<script type="text/javascript">
+document.getElementById("full-instructions-div").style.display = (fExists ? "none" : "");
+</script>
+   
+<?php
+pageFooter();
+?>

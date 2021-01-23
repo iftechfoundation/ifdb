@@ -1,0 +1,58 @@
+<?php
+@session_start();
+include_once "util.php";
+include "pagetpl.php";
+helpPageHeader("Review Guidelines");
+?>
+
+<h1>Review Guidelines</h1>
+
+<p>A good review is more than just a one-liner saying how much you
+liked (or didn't like) the game.  Think about it from the perspective
+of someone <i>reading</i> the review - they want to know <i>why</i>
+you feel the way you do about the game.
+
+<p><b>Describe your own tastes.</b> A reader who hasn't played the
+game yet would like to know if it's the sort of thing they'd enjoy.
+It helps to know if a reviewer has similar taste, so
+describe how the game measures up to your specific likes and dislikes.
+
+<p><b>Be specific.</b> Readers like concrete details: things like the
+the difficulty level, playing time, writing style and quality, tone,
+how much the focus is on puzzles vs. story, and so on.
+
+<p><a name="spoilers"></a><b>Avoid spoilers.</b> A spoiler is
+information that gives away one of the game's secrets - the solution
+to a puzzle, a plot twist, etc.  Many people who read your review
+won't have played the game yet - don't take away their chance to
+discover the game's secrets on their own.
+
+<p><a name="spoilertags"></a>
+<b>If you can't avoid spoilers, mark them.</b> Sometimes it's
+difficult to entirely avoid spoilers.  If you really feel it's
+important to include something spoilery in your review, mark it
+like so:
+<p><pre>
+  &lt;spoiler&gt;This is a spoiler!&lt;/spoiler&gt;
+</pre>
+<p>IFDB will hide the text within the &lt;spoiler&gt;...&lt;/spoiler&gt;
+section until the reader clicks a button to explicitly reveal it.
+
+<p><b>Avoid referring to other member reviews on the page.</b> The
+order and placement of reviews can change, and people can edit their
+reviews, so any references you make could lose their context and
+become confusing as the game's page evolves.
+
+<p><b>Be courteous.</b> Please don't use profanity, attack other users, or
+stray off the topic - try to keep the focus on the game.
+
+<p><b>Keep the length reasonable.</b>  We recommend in the neighborhood
+of two or three paragraphs: long enough to give a detailed review, but
+respectful of the reader's time.  That said, it's fine to go longer,
+even much longer, if you have a lot to say about a game.  We just
+don't want you to feel like you have to fill up pages for a homework
+assignment.
+
+<?php
+helpPageFooter();
+?>

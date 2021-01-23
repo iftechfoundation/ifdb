@@ -1,0 +1,351 @@
+<?php
+
+@session_start();
+include "pagetpl.php";
+include_once "dbconnect.php";
+include_once "util.php";
+include_once "useractivation.php";
+
+// start the page
+pageHeader("New Account Activation");
+
+// read the activation code
+$errFlagged = false;
+$altMsg = false;
+$actcode = get_req_data('a');
+$reqsalt = get_req_data('s');
+$action = get_req_data('c');
+$usernum = get_req_data("userid");
+$nonce = get_req_data("nonce");
+$reviewProfile = get_req_data("reviewProfile");
+$reqEmail = get_req_data("email");
+
+    $db = dbConnect();
+
+// verifier function
+function verify() {
+    global $actcode, $errFlagged, $altMsg, $reqsalt, $action,
+           $nonce, $reviewProfile, $usernum, $reqEmail, $email, $db;
+    
+    // connect to the database
+    if ($db == false) {
+        $errFlagged = "An error occurred accessing the user database. Please
+            try again. If the problem persists, please
+            <a href='/contact'>contact us</a> to let us know about the
+            problem.";
+        return;
+    }
+
+    // check for new-style admin operations
+    if ($nonce)
+    {
+        // determine the task
+        if ($usernum && $reviewProfile)
+            $task = "review user profile $usernum";
+        else {
+            $errFlagged = "Invalid request (no task specified).";
+            return;
+        }
+
+        // quote the user ID
+        $usernum = mysql_real_escape_string($usernum, $db);
+
+        // validate the nonce; failing that, check for the session admin flag
+		if (!validate_nonce($db, $task, $nonce, $errFlagged, true))
+		{
+			// not authorized
+			$errFlagged = "Error validating nonce: $errFlagged";
+            return;
+        }
+
+        // apply the change according to the task
+        if ($reviewProfile)
+        {
+            // profile review task - check which action to take
+            switch ($reviewProfile)
+            {
+            case "A":
+            case "T":
+                // query the account status
+                $result = mysql_query(
+                    "select acctstatus, email from users
+                     where id = '$usernum'", $db);
+                list($acctStatus, $email) = mysql_fetch_row($result);
+
+                // approve the profile once, or set it to trusted
+                if (mysql_query(
+                    "update users set profilestatus = "
+                    . ($reviewProfile == "A" ? "null" : "'T'")
+                    . " where id = '$usernum'", $db))
+                {
+                    $altMsg = "Profile approved; status set to "
+                              . ($reviewProfile == "A" ? "Normal" : "Trusted")
+                              . ".";
+                }
+                else
+                {
+                    $errFlagged = "Database error updating profile status: "
+                                  . mysql_error($db);
+                }
+
+                // if that succeeded, and the account is pending review,
+                // allow activation
+                if (!$errFlagged && $acctStatus == 'R')
+                {
+                    // pick a new activation code
+                    $newcode = sha1(md5_rand($usernum) . md5_rand($nonce));
+                    $newcode = mysql_real_escape_string($newcode, $db);
+    
+                    // update the code and set status to 'pending activation'
+                    if (mysql_query(
+                        "update users
+                         set acctstatus = 'D', activationcode = '$newcode'
+                         where id = '$usernum'", $db) == false) {
+                        $errFlagged = "Database error updating account "
+                                      . "status: " . mysql_error($db);
+                    }
+
+                    // send the activation email
+                    if (!sendActivationEmail($email, $newcode))
+                        $errFlagged .= "Error sending activation email.";
+
+                    // add this to the status update
+                    $altMsg .= "<br>Account status changed to "
+                               . "Pending Activation; email sent to "
+                              . htmlspecialcharx($email) . ".";
+                }
+
+                // done
+                break;
+
+            case "B":
+                // ban the user
+                if (close_user_acct($db, $usernum, "B", $progress))
+                    $altMsg = "Account successfully banned.";
+                else
+                    $errFlagged = "Error banning user: $progress";
+                break;
+
+            default:
+                $errFlagged = "Invalid profile review action specified.";
+                break;
+            }
+        }
+
+        // done
+        return;
+    }
+
+    // look up the activation code
+    $qcode = mysql_real_escape_string($actcode, $db);
+    $result = mysql_query(
+        "select id, acctstatus, pswsalt, email
+        from users
+        where activationcode = '$qcode'", $db);
+    if (mysql_num_rows($result) == 0)
+    {
+        // The activation code doesn't exist - if there's an email ID,
+        // look it up that way to see if the account has already been
+        // activated.  Some users have had problems where their email
+        // program apparently does a double GET on the link, so the
+        // one-use-only feature of the activation code makes it look
+        // like the code failed: the first GET activates the account
+        // and changes the activation code, but the user only sees the
+        // reply to the second GET, which says that the activation code
+        // is invalid (because of the first GET).  A simple solution is
+        // to check to see if the account is already activated, and if
+        // so just report success regardless of the activation code.
+        $ok = false;
+        if ($reqEmail)
+        {
+            // look up the account information
+            $email = $reqEmail;
+            $qemail = mysql_real_escape_string($reqEmail, $db);
+            $result = mysql_query(
+                "select acctstatus from users where email = '$qemail'", $db);
+            if ($result)
+            {
+                list($stat) = mysql_fetch_row($result);
+                if ($stat == 'A')
+                {
+                    // the account is already active - report success
+                    $ok = true;
+                }
+            }
+        }
+
+        // if still not active, report an error
+        if (!$ok)
+            $errFlagged = "The activation code wasn't found in the user
+                database. Please check that you copied the link correctly
+                from the confirmation email.";
+    }
+    else
+    {
+        // success - clear the activation code to flag the account as active
+        $usernum = mysql_result($result, 0, "id");
+        $stat = mysql_result($result, 0, "acctstatus");
+        $dbsalt = mysql_result($result, 0, "pswsalt");
+        $email = mysql_result($result, 0, "email");
+        if (!$reqsalt && ($stat == 'A' || $stat == 'D')) {
+
+            // activation codes are single-use, so scramble it
+            $newcode = sha1(md5_rand($usernum));
+            $newcode = mysql_real_escape_string($newcode, $db);
+
+            // update the status and activation code
+            if (mysql_query(
+                "update users
+                 set acctstatus = 'A', activationcode = '$newcode'
+                 where id = '$usernum'", $db) == false) {
+                $errFlagged = "An error occurred updating the user database.
+                    Please try again. If the problem persists, please
+                    <a href='/contact'>contact us</a> to let us know
+                    about it.";
+            }
+        } else if ($reqsalt || $stat == 'R') {
+
+            // presume failure
+            $errFlagged = "This account is pending review, and is not "
+                          . "yet eligible for activation. Activation "
+                          . "instructions will be sent to the registered "
+                          . "email address for the account when the review "
+                          . "has been completed.";
+
+            // if the salt is correct, this is an admin approval/deletion
+            if ($reqsalt == $dbsalt) {
+
+                // check the action code
+                if ($action == 'approve') {
+
+                    // presume success
+                    $errFlagged = false;
+
+                    // pick a new activation code
+                    $newcode = sha1(md5_rand($usernum) . md5_rand($reqsalt));
+                    $newcode = mysql_real_escape_string($newcode, $db);
+    
+                    // update the code and set status to 'pending activation'
+                    if (mysql_query(
+                        "update users
+                         set acctstatus = 'D', activationcode = '$newcode'
+                         where id = '$usernum'", $db) == false) {
+                        $errFlagged = "Error updating database. ";
+                    }
+
+                    if (!sendActivationEmail($email, $newcode))
+                        $errFlagged .= "Error sending activation email.";
+
+                    $altMsg = "Account status changed to Pending Activation; "
+                              . "email sent to "
+                              . htmlspecialcharx($email) . ".";
+    
+                } else if ($action == 'delete') {
+
+					$errFlagged = "\"Delete with notice\" is no longer supported.";
+                    $altMsg = "Account deleted; email sent to "
+                              . htmlspecialcharx($email) . ".";
+
+                } else if ($action == 'flush') {
+
+                    // presume success
+                    $errFlagged = false;
+
+					// close the account
+					if (!close_user_acct($db, $usernum, "B", $progress)) {
+						$errFlagged = "Error updating database: $progress";
+					}
+
+                    // delete the user
+					if (!$errFlagged) {
+						if (mysql_query(
+							"delete from users
+						 where id = '$usernum'", $db) == false) {
+							$errFlagged = "Error updating database. ";
+						}
+					}
+
+                    $altMsg = "Account deleted.";
+                }
+            }
+
+            
+        } else {
+            $errFlagged = "This account has been disabled, and
+                is not currently eligible for activation. Please contact
+                the IFDB administrators for assistance.";
+        }
+    }
+}
+
+// make sure the activation code is well formed
+if (strlen($actcode) != 40 && !$nonce) {
+?>
+
+<h1>Account Activation</h1>
+
+<p><font color=red><b>Error: Invalid activation code</b></font>
+
+<p>This page is for activation of new user accounts.  You should only
+   have reached this page via a confirmation email you received after
+   registering a new account.  If you're here because you're following
+   the instructions in a confirmation email, make sure that you correctly
+   copied the <b>entire</b> link, <b>exactly</b> as shown in the email.
+
+
+<?php
+
+} else {
+    // run the verification
+    verify();
+
+    if ($altMsg) {
+
+        echo "<h1>Account Administration</h1>"
+            . $altMsg;
+
+        if ($errFlagged)
+            echo "<p><span class=errmsg><b>Error:</b> $errFlagged</span>";
+
+		// if authorized for further user review, show other pending records
+		if ($_SESSION['admin_for_user_review'])
+		{
+			echo "<br><hr class=dots>"
+				. "More users pending review:"
+				. "<div style=\"margin: 1em 2em;\">";
+			new_user_review_list($db);
+			echo "</div>";	
+		}
+    
+    } else if ($errFlagged) {
+?>
+
+<h1>Activation Failed</h1>
+
+<p>Thank you for using the account activation system. Unfortunately,
+your account has not yet been activated due to the following error:
+
+<p><span class=errmsg><b>Error: <?php echo $errFlagged ?></b></span>
+
+
+<?php
+    } else {
+?>
+
+<h1>Account Activated</h1>
+
+<p>Your new user account has been successfully activated!  You can now
+<a href="login?userid=<?php echo $email ?>">log in</a> using your email
+address to access our members-only features.
+
+<p>Now that you've established your new account, you might want to
+take a few moments to
+<a href="login?userid=<?php echo $email ?>&dest=editprofile">fill in your
+profile</a>.
+
+<?php
+    }
+}
+
+pageFooter();
+?>

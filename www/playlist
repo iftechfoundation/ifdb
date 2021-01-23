@@ -1,0 +1,277 @@
+<?php
+@session_start();
+
+// note if we're logged in
+include "login-check.php";
+$curuser = checkPersistentLogin();
+
+include "pagetpl.php";
+include_once "util.php";
+include_once "dbconnect.php";
+$db = dbConnect();
+
+include "reviews.php";
+$specialNames = initSpecialNames($db);
+
+// get the user ID specified in the request
+$uid = get_req_data('id');
+if (!$uid) {
+    // no user ID in the request, so we're looking at the current user's
+    // list - make sure we're logged in
+    if (!logged_in())
+        exit();
+
+    // use the current user ID
+    $uid = $curuser = $_SESSION['logged_in_as'];
+}
+
+$quid = mysql_real_escape_string($uid, $db);
+$errMsg = false;
+$listtype = get_req_data('type');
+
+$pgAll = false;
+$perPage = 25;
+$pg = get_req_data('pg');
+$sortReq = get_req_data('sortby');
+
+// look up the user record
+$result = mysql_query(
+    "select name, location, publiclists from users where id='$quid'", $db);
+if (mysql_num_rows($result) == 0) {
+    $errMsg = "The requested user was not found in the database.";
+    $usernamePoss = "";
+    $his = "";
+    $publiclists = "";
+} else {
+    list($username, $location, $publiclists) = mysql_fetch_row($result);
+    $usernamePoss = $username . "'s";
+    $his = "this member's";
+    $pageTitle = " for ". htmlspecialcharx($username);
+
+    if ($uid == $curuser)
+        $usernamePoss = $his = "Your";
+}
+
+$listJoin = $listTable = $listCols = "";
+$listWhere = "1";
+$listDate = "date_added";
+
+if ($listtype == "reviewideas") {
+    $listName = "review suggestion list";
+    $listJoin = "left outer join playedgames as p"
+                . "  on p.gameid = games.id and p.userid = '$quid'"
+                . "left outer join reviews as r"
+                . "  on r.gameid = games.id and r.userid = '$quid'";
+    $listWhere = "(p.gameid is not null or r.rating is not null)"
+                 . "and ifnull(r.review, '') = ''";
+    $listDate = "greatest(ifnull(p.date_added, '1900-01-01'), "
+                .        "ifnull(r.moddate, '1900-01-01'))";
+    $listCols = ", p.gameid is not null as onPlayList";
+    $privcode = 'P';
+    $title = trim(htmlspecialcharx("$usernamePoss Review Suggestions"));
+
+    if ($uid != $curuser)
+        $errMsg = "Sorry, you can't view this information for other users.";
+
+} else if ($listtype == "wishlist") {
+    $listTable = "wishlists";
+    $listName = "wish list";
+    $title = trim(htmlspecialcharx("$usernamePoss Wish List"));
+    $privcode = "W";
+} else if ($listtype == "unwishlist") {
+    $listTable = "unwishlists";
+    $listName = "\"Not Interested\" list";
+    $title = trim(htmlspecialcharx("$usernamePoss \"Not Interested\" List"));
+    $privcode = "U";
+} else {
+    $listTable = "playedgames";
+    $listName = "play list";
+    $title = trim(htmlspecialcharx("$usernamePoss Played Games"));
+    $privcode = "P";
+}
+
+if ($listTable && !$listJoin) {
+    $listJoin = "join $listTable"
+                .  " on $listTable.gameid = games.id"
+                .  " and $listTable.userid = '$quid'";
+}
+
+$sortList = array(
+    'ttl' => array('sort_title', 'Sort by Title'),
+    'auth' => array('sort_author', 'Sort by Author'),
+    'hiu' => array('urating desc', "$usernamePoss Highest Rating First"),
+    'lou' => array('urating', "$usernamePoss Lowest Rating First"),
+    'hi' => array('rating desc', 'Highest Average Rating First'),
+    'lo' => array('rating', 'Lowest Average Rating First'),
+    'new' => array("$listDate desc", 'Newest Additions First'),
+    'old' => array("$listDate", 'Oldest Additions First'));
+
+// make sure the member allows other members to see this type of list
+if (!$errMsg && $uid && $uid != $curuser
+    && strpos($publiclists, $privcode) === false)
+    $errMsg = "Sorry, but this member's $listName is private.";
+
+pageHeader($title);
+
+if ($errMsg) {
+    echo "<span class=errmsg>$errMsg</span><br><br>";
+} else {
+    echo "<h1>$title</h1>";
+
+    echo "<a href=\"showuser?id=$uid\">View $his profile</a><br><br>";
+
+    if ($pg == 'all') {
+        $pgAll = true;
+        $pg = 1;
+    } else {
+        $pg = (int)$pg;
+    }
+
+    // limit the page request to existing pages
+    if ($pg < 1)
+        $pg = 1;
+
+    // calculate our position in the list
+    $firstOnPage = ($pg - 1) * $perPage;
+    $lastOnPage = $firstOnPage + $perPage - 1;
+
+    $limit = "";
+    if (!$pgAll)
+        $limit = "limit $firstOnPage, $perPage";
+
+    // determine the sorting order
+    $ord = isset($sortList[$sortReq]) ? $sortList[$sortReq] : $sortList['ttl'];
+
+    // query the reviews
+    $sql = "select sql_calc_found_rows
+           games.id as gameid,
+           games.title as title,
+           games.author as author,
+           games.`desc` as `desc`,
+           (games.coverart is not null) as hasart,
+           avg(r3.rating) as rating,
+           count(r3.rating) as numratings,
+           games.sort_title as sort_title,
+           games.sort_author as sort_author,
+           r2.rating as urating
+           $listCols
+         from
+           games
+           $listJoin
+           left outer join reviews as r2
+             on r2.gameid = games.id
+                and r2.userid = '$quid'
+                and not (r2.RFlags & " . RFLAG_OMIT_AVG . ")
+                and ifnull(now() >= r2.embargodate, 1)
+           left outer join reviews as r3
+             on r3.gameid = games.id
+                and not (r3.RFlags & " . RFLAG_OMIT_AVG . ")
+                and ifnull(now() >= r3.embargodate, 1)
+         where
+           $listWhere
+         group by games.id
+         order by {$ord[0]}
+         $limit";
+
+    $result = mysql_query($sql, $db);
+
+    // get the total size of the result set
+    $result2 = mysql_query("select found_rows()", $db);
+    list($cnt) = mysql_fetch_row($result2);
+
+    // figure how many pages that makes
+    $lastPage = (int)floor(($cnt + $perPage - 1)/$perPage);
+
+    // limit the page list based on the available row count
+    if ($pg > $lastPage)
+        $pg = $lastPage;
+    if ($lastOnPage > $cnt - 1)
+        $lastOnPage = $cnt - 1;
+
+    if (mysql_num_rows($result) == 0) {
+        echo "<i>This user's $listName is empty.</i><br>";
+    } else {
+        // show the sorting controls
+        showSortingControls("rvworder", "sortby", $sortList, $sortReq,
+                            array("id" => $uid, "type" => $listtype),
+                            "playlist");
+
+        // show where we are in the list
+        $pageCtl = "<span class=details>"
+                   . makePageControl(
+                       "playlist?id=$uid&type=$listtype&sortby=$sortReq",
+                       $pg, $lastPage,
+                       $firstOnPage, $lastOnPage, $cnt, true, true, $pgAll)
+                   . "</span>";
+
+        echo "$pageCtl<br><br><br>";
+
+        // fetch and display each game on the list
+        for ($i = 0 ; $i < mysql_num_rows($result) ; $i++) {
+            // retrieve the result
+            $rec = mysql_fetch_array($result, MYSQL_ASSOC);
+
+            // display the game information
+            $gameid = $rec['gameid'];
+            $title = htmlspecialcharx($rec['title']);
+            $author = htmlspecialcharx($rec['author']);
+            list($desc, $desclen, $desctrun) = summarizeHtml($rec['desc'], 210);
+            $desc = fixDesc($desc);
+            $rating = $rec['rating'];
+            $urating = $rec['urating'];
+            $numratings = $rec['numratings'];
+            $hasart = $rec['hasart'];
+            $onPlayList = ($listtype == "reviewideas" && $rec['onPlayList']);
+
+            if ($hasart)
+                echo "<p><table border=0 cellspacing=0 cellpadding=0>"
+                    . "<tr valign=top><td style=\"padding-right: 1em;\">"
+                    . "<a href=\"viewgame?id=$gameid\">"
+                    . "<img src=\"viewgame?id=$gameid&coverart"
+                    . "&thumbnail=100x100\" border=0></a></td>"
+                    . "<td>";
+            
+            echo "<p><a href=\"viewgame?id=$gameid\"><i>$title</i></a>, "
+                . "by $author";
+
+            if ($listtype == "reviewideas")
+                echo "<span class=details style='padding-left: 3ex;'>"
+                    . "<a href=\"review?id=$gameid\">Write a review</a>"
+                    . "</span>";
+
+            echo "<br>";
+
+            if ($urating) {
+                echo "<span class=details>$usernamePoss rating: "
+                    . showStars($urating);
+                if ($onPlayList)
+                    echo "; on your play list";
+                echo "</span><br>";
+            } else if ($onPlayList) {
+                echo "<span class=details>On your play list</span><br>";
+            }
+
+            if ($rating) {
+                echo "<span class=details>Average member rating: "
+                    . showStars($rating) . " ($numratings rating"
+                    . ($numratings == 1 ? "" : "s") . ")</span><br>";
+            }
+
+            if ($hasart)
+                echo "<p>$desc";
+            else
+                echo "<div class=indented>$desc</div>";
+
+            if ($hasart)
+                echo "</td></tr></table>";
+        }
+
+        // add the page controls at the bottom of the page
+        echo "<br>$pageCtl<br><br><br>";
+    }
+}
+
+pageFooter();
+
+
+?>

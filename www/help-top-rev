@@ -1,0 +1,32 @@
+<?php
+@session_start();
+include_once "util.php";
+include "pagetpl.php";
+helpPageHeader("Who Qualifies for Top Reviewer Status?");
+?>
+
+<h1>Who Qualifies for Top Reviewer Status?</h1>
+
+<p>The top reviewer list is determined by who writes the most
+reviews - and the most helpful reviews, as judged by other IFDB
+members.
+
+<p>Top Reviewer status is a ranking of who has the most <a
+href="help-ff">Frequent Fiction</a> points.  The Top 10 Reviewers are
+the ten members with the most points, and likewise for the Top 25, Top
+50, and Top 100.
+
+<p>IFDB is a community enterprise.  There's no elite group of
+appointed experts who get to decide which games are good and which
+aren't.  Everyone can contribute, and Frequent Fiction points are
+meant to provide some small recognition for that.
+
+<p>Note that Top Reviewer status is dynamic, because
+the status is always relative to other members.  You and others can
+earn more points any time.  The site calculates your
+points and keeps them up to date automatically, so you don't have to
+do anything special to make sure your points are counted.
+
+<?php
+helpPageFooter();
+?>

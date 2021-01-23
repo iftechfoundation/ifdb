@@ -1,0 +1,303 @@
+<?php
+
+@session_start();
+
+include_once "util.php";
+include_once "pagetpl.php";
+include_once "dbconnect.php";
+
+// we have to be logged in to upload a game
+include "login-check.php";
+if (!logged_in())
+    exit();
+$userid = $_SESSION['logged_in_as'];
+
+pageHeader("IF Archive File Upload", false, false,
+           "<script src=\"xmlreq.js\"></script>");
+
+include_once "captcha.php";
+$capkey = "archive-upload";
+captchaSupportScripts($capkey);
+
+$db = dbConnect();
+$result = mysql_query(
+    "select name, email from users where id = '$userid'", $db);
+list($username, $email) = mysql_fetch_row($result);
+$title = get_req_data("title");
+$system = get_req_data("system");
+$license = get_req_data("license");
+$author = get_req_data("author");
+$version = get_req_data("version");
+$fmtmap = array(
+    "TADS 2" => "tads2", "TADS 3" => "tads3",
+    "Inform 6" => "zcode", "Inform 7" => "zcode",
+    "ADRIFT" => "adrift", "AdvSys" => "advsys", "AGT" => "agt",
+    "Alan" => "alan2", "Alan 3" => "alan3",
+    "Hugo" => "hugo");
+    
+$fmt = $fmtmap[$system];
+
+if ($author)
+    $author = preg_replace("/\{[a-z0-9]+\}/i", "", $author);
+
+$desc = "$title\r\n";
+if ($version || $license || $author)
+    $desc .= "\r\n";
+if ($author)
+    $desc .= "Author: $author\r\n";
+if ($version)
+    $desc .= "Version: $version\r\n";
+if ($license)
+    $desc .= "License: $license\r\n";
+
+$uploadID = generateTUID(false, false, 1);
+
+$result = mysql_query(
+    "select id, fmtname, externid, fmtclass
+     from filetypes
+     order by fmtname", $db);
+echo "<script type=\"text/javascript\">\r\n<!--\r\n"
+   . "var fmtExtMap = { ";
+for ($rowcnt = mysql_num_rows($result), $fmts = false, $i = 0 ;
+     $i < $rowcnt ; $i++) {
+    $f = mysql_fetch_row($result);
+    $fmts[] = $f;
+    echo "\"${f[2]}\": \"{$f[0]}\", ";
+}
+echo "\" \": 0 };\r\n";
+
+echo "var osExtMap = { ";
+$result = mysql_query(
+    "select id, name, externid, displaypriority
+     from operatingsystems order by name", $db);
+for ($rowcnt = mysql_num_rows($result), $oses = false, $i = 0 ;
+     $i < $rowcnt ; $i++) {
+    $o = mysql_fetch_row($result);
+    $oses[] = $o;
+    echo "\"${o[2]}\": \"${o[0]}\", ";
+}
+echo "\" \": 0 };\r\n";
+
+echo "</script>\r\n";
+
+?>
+<script type="text/javascript">
+var pathmap = {
+    "tads2" : "/tads",
+    "tads3" : "/tads",
+    "zcode" : "/zcode",
+    "blorb/zcode" : "/zcode",
+    "glulx" : "/glulx",
+    "blorb/glulx" : "/glulx",
+    "adrift38" : "/adrift",
+    "adrift39" : "/adrift",
+    "adrift" : "/adrift",
+    "advsys" : "/advsys",
+    "agt" : "/agt",
+    "alan2" : "/alan",
+    "alan3" : "/alan",
+    "hugo" : "/hugo"
+};
+var osmap = {
+    "Windows": "/pc",
+    "MacOS": "/mac",
+    "MSDOS": "/pc",
+    "MacOSX": "/mac",
+    "Amiga": "/amiga",
+    "AtariST": "/atari-ST",
+    "Linux": "/linux",
+    "Unix": "/linux",
+    "BeOS": "/beos",
+    "PalmOS": "/palm",
+    "AppleII": "/appleII",
+    "zxspectrum": "/zx81"
+};
+function setArchivePath(fmt, typ)
+{
+    var path = "games";
+    if (typ == "fmt" && pathmap[fmt])
+        path += pathmap[fmt];
+    if (typ == "os" && osmap[fmt])
+        path += osmap[fmt];
+    
+    document.getElementById("archiveDir").value = path;
+
+    if (typ == "fmt")
+        document.getElementById("opsys").style.display =
+            (fmt == "executable" ? "inline" : "none");
+}
+</script>
+<div id="uploadpage" class="Page">
+
+<div class="Header">
+<h1>Upload to the IF Archive</h1>
+</div>
+
+<p>This form uploads to the <a target="_blank" href="http://www.ifarchive.org/">IF
+Archive</a> (ifarchive.org).  IFDB itself doesn't host any uploaded
+game files.  ifarchive.org is the leading repository of current and
+historical IF works, so most authors of new works like to upload their
+games there, to reach players and for historical preservation.</p>
+
+<p><b>Before you upload:</b></p>
+
+<ul class="doublespace">
+
+   <li>Be aware that your file will be uploaded the ifarchive.org, <b>not</b> IFDB.
+
+   <li>You must read and agree to the <a target="_blank" href="http://ifarchive.org/misc/license.html">IF Archive Terms of Use</a>
+   before uploading.
+
+   <li>Your file won't be available for download until an Archive maintainer
+   has reviewed it, which usually takes a few days.  The Archive review is
+   separate from IFDB and we don't have any control over that process or
+   its timing.  IFDB will automatically enable the download link when the
+   Archive review is complete.
+
+   <li>Please check that your email address is correct, in case the Archive
+   maintainers need to contact you about this upload.
+
+   <li>If you run into any technical problems or error messages, please be
+   aware that they might be coming from ifarchive.org rather than IFDB.  If you
+   can't get the upload to work via this form, you might want to try
+   uploading directly via their form at <a target="_blank" href="http://upload.ifarchive.org/cgi-bin/upload.py">http://upload.ifarchive.org/cgi-bin/upload.py</a>.
+
+</ul>
+
+<script type="text/javascript">
+function doSubmit()
+{
+    var fname = document.getElementById("uploadFileName").value;
+    var fmt = document.getElementById("gameFormat").value;
+    if (fmt)
+        fmt = fmtExtMap[fmt];
+
+    var os = document.getElementById("opsys").value;
+    if (os)
+        os = osExtMap[os];
+
+    var pri = document.getElementById("zipPrimary").value;
+    if (!fname)
+    {
+        alert("Please select a file to upload.");
+        return false;
+    }
+    var compression = fname.match(/.*\.zip$/i);
+    if (compression)
+        compression = fmtExtMap["zip"];
+
+    window.opener.submitUpload("<?php echo $uploadID ?>",
+                               fname, fmt, os, compression, pri);
+
+    return true;
+}
+function setFileName()
+{
+    var fname = document.getElementById("uploadFileName").value;
+    var vis = (fname && fname.match(/.*\.zip/i)) ? "" : "none";
+    document.getElementById("zipPrimaryRow").style.display = vis;
+}
+</script>
+
+<form action="http://upload.ifarchive.org/cgi-bin/upload.py"
+      method="POST" enctype="multipart/form-data"
+      onsubmit="javascript:return doSubmit();">
+
+ <input type="hidden" name="ifdbid" value="<?php echo $uploadID ?>"/>
+
+<table border="0" cellspacing="5">
+  <tr><td align=right>Filename:</td><td>&nbsp;</td>
+    <td><input type="file" name="file.1" size="35" maxlength="100"
+         id="uploadFileName" onchange="javascript:setFileName();" /></td></tr>
+  <tr><td align=right>Game file format:</td><td>&nbsp;</td>
+     <td><select name="gameFormat" id="gameFormat"
+         onchange="javascript:setArchivePath(document.getElementById('gameFormat').value,'fmt');">
+        <option id="storyfile"<?php if (!$fmt) echo " selected";
+        ?>>Please Select</option><?php
+        foreach ($fmts as $f) {
+            list($fmtID, $fmtName, $fmtExt) = $f;
+            if ($f[3] == 'G' && $f[2] != 'storyfile') {
+                echo "<option value=\"$fmtExt\" ";
+                if ($fmtExt == $fmt)
+                    echo " selected";
+                echo ">$fmtName</option>";
+            }
+        }
+        ?>
+        <option value="storyfile">Other System</option>
+        <option value="executable">None - Native Application</option>
+      </select>
+        
+      <select style="margin-left: 1ex;" id="opsys" name="opsys"
+           onchange="javascript:setArchivePath(document.getElementById('opsys').value,'os');">
+        <option id=""<?php if(!$os) echo " selected";
+        ?>>Please Select</option><?php
+        foreach ($oses as $o) {
+            list($osid, $osname, $osext, $ospri) = $o;
+            if ($osext != '*' && $ospri >= 0) {
+                echo "<option value=\"$osext\" ";
+                if ($osext == $os)
+                    echo " selected";
+                echo ">$osname</option>";
+            }
+        }
+        ?>
+        <option value="">Other</option>
+      </select>
+     </td></tr>
+  <tr style="display:none;" valign=top id="zipPrimaryRow">
+     <td align=right>Name of game file in ZIP:</td>
+     <td>&nbsp;</td>
+     <td><input type="text" name="zipPrimary" size=35 maxlength="100"
+          id="zipPrimary"/ >
+        <br><span class=details><i>Please enter the name
+           of the main game file within the ZIP file above.
+           <?php echo helpWinLink("help-zip-primary", "Help"); ?><br><br>
+     </td></tr>
+  <tr><td align=right>Your name:</td><td>&nbsp;</td>
+    <td><input type="text" name="name" size="35" maxlength="50"
+         value="<?php echo htmlspecialcharx($username) ?>"/></td></tr>
+  <tr><td align=right>Your email address:</td><td>&nbsp;</td>
+    <td><input type="text" name="email" size="35" maxlength="50"
+         value="<?php echo htmlspecialcharx($email) ?>"/></td></tr>
+  <tr><td align=right>About this file<br />(including version, license, etc.):</td><td>&nbsp;</td>
+    <td><textarea name="filedesc" rows="5" cols="35"><?php
+        echo htmlspecialcharx($desc);
+    ?></textarea></td></tr>
+  <tr><td align="right">Right to use:</td><td>&nbsp;</td>
+    <td><input type="radio" name="rights" value="author">
+        I am the author of this file and I give permission for the IF Archive to host and distribute it.</td></tr>
+  <tr><td></td><td>&nbsp;</td>
+    <td><input type="radio" name="rights" value="tried">
+        I am not the author, but to the best of my knowledge the author is okay with this.</td></tr>
+  <tr><td align=right>Suggested directory:</td><td><nobr>if-archive/</nobr></td>
+    <td><input type="text" name="directory" size="35" maxlength="100"
+         id="archiveDir" value="<?php echo $path ?>"/></td></tr>
+
+  <tr><td align=right>Agreement:</td><td>&nbsp;</td>
+     <td><input type="checkbox" name="tos">I agree to the
+        <a target="_blank" href="http://www.ifarchive.org/misc/license.html">IF Archive Terms of Use</a>
+     </td></tr>
+
+ <tr><td>&nbsp;</td><td>&nbsp;</td><td>
+    <br><input name="submit" type="submit" value="Upload File"></p>
+
+ </td></tr>
+</table>
+</form>
+
+<script type="text/javascript">
+setArchivePath("<?php echo $fmt ?>", "fmt");
+</script>
+
+
+Comments or questions? <?php
+   echo captchaMaskEmail("submissions@ifarchive.org",
+                         "Click here for IF Archive contact information");
+   captchaFinish($capkey);
+   captchaAjaxForm($capkey);
+?>
+
+<?php
+pageFooter();
+?>

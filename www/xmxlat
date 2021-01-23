@@ -1,0 +1,95 @@
+<?php
+
+function connect($dom, $uid, $psw, $infoMode)
+{
+    $u = "http://xmro.$dom/xstream/login_servlet.jsp";
+    $r = new HttpRequest($u, HttpRequest::METH_POST);
+    $r->addPostFields(array("user_id" => $uid, "pword" => $psw, "go" => 1));
+    $r->enableCookies();
+    try {
+
+        $r->send();
+
+        if ($infoMode)
+            echo "login:<br>" . htmlspecialcharx($r->getResponseBody()) . "<hr>";
+
+        return true;
+
+    } catch (HttpException $ex) {
+        return false;
+    }
+}
+
+function chanLookup($dom, $ch, $infoMode)
+{
+    $u = "http://player.$dom/player/2ft/playMedia.jsp?ch="
+         . $ch . "&speed=high";
+
+    $r = new HttpRequest($u, HttpRequest::METH_GET);
+    $r->enableCookies();
+    try {
+        $r->send();
+    } catch (HttpException $ex) {
+        return false;
+    }
+
+    $body = $r->getResponseBody();
+    if ($infoMode)
+        echo "lookup(1):<br>" . htmlspecialcharx($body) . "<hr>";
+
+    if (preg_match("/xmmediaplayer\.URL = '([^']+)'/", $body, $m)
+        || preg_match("/<PARAM NAME=\"FileName\" VALUE=\"([^\"]+)\"/", $body, $m))
+        $u = $m[1];
+    else
+        return false;
+
+    $r = new HttpRequest($u, HttpRequest::METH_GET);
+    $r->enableCookies();
+    try {
+        $r->send();
+        $body = $r->getResponseBody();
+
+        if ($infoMode)
+            echo "lookup(2):<br>" . htmlspecialcharx($body) . "<hr>";
+
+        return $body;
+    } catch (HttpException $ex) {
+        return false;
+    }
+
+}
+
+$dom = str_rot13($_REQUEST['dom']);
+$uid = $_REQUEST['u'];
+$psw = $_REQUEST['p'];
+$ch = $_REQUEST['ch'];
+$mode = $_REQUEST['mode'];
+
+if (!preg_match("/^[a-z0-9@.]+$/i", $uid)
+    || !preg_match("/^[a-z0-9]+$/i", $psw)
+    || !preg_match("/^[a-z0-9.]+$/i", $dom)
+    || !preg_match("/^[0-9]+$/i", $ch)) {
+    echo "<html><title>Bad parameters</title>Bad parameters</html>";
+    exit();
+}
+        
+
+if (!connect($dom, $uid, $psw, $mode == 'info')) {
+    echo "<html><title>Unable to connect</title>Unable to connect</html>";
+    exit();
+}
+
+$a = chanLookup($dom, $ch, $mode == 'info');
+
+if (!$a) {
+    echo "<html><title>Channel not found</title>Channel not found</html>";
+    exit();
+}
+
+if ($mode == 'info')
+    exit();
+    
+header("Content-Type: video/x-ms-asf");
+echo $a;
+
+?>

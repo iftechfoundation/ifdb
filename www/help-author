@@ -1,0 +1,43 @@
+<?php
+@session_start();
+include_once "util.php";
+include "pagetpl.php";
+helpPageHeader("Tips for the Author Field");
+?>
+
+<h1>Tips for the Author Field</h1>
+
+<h2>Linking to a profile</h2>
+
+<p>If the game's author is an IFDB member, you can link the game to
+the author's profile by putting the profile <a
+href="help-tuid">TUID</a> in {curly braces} after the author's name.
+For example, <b>Arthur Dent {a10x00139ke9041j}</b>.  You can find the
+TUID on the profile page.
+
+<h2>Identifying the author</h2>
+
+<p>Most freeware IF shows the author's byline as part of its introductory
+text, so you can usually find the author by running the game and scanning
+the first screen or two of output.
+
+<p>For a commercial game, enter the author's or designer's name rather
+than a company name.  If the author isn't credited anywhere, you can
+enter the name of the company that developed or published the game.
+
+<p>If the game was released without any author or publisher credits,
+enter "Anonymous" as the author.
+
+<p>If you think the game has an author credit, but you can't actually
+find the information for some reason (for example, your only copy is
+for an obsolete hardware platform, or you simply don't have a copy of
+the game), enter "Unknown."
+
+<p>For a game with multiple authors, simply enter them the way they're
+shown in the game's byline: "Julia Smithers and Orson D. Bisonhonker,"
+for example.  For a commercial game with a lengthy list of credits, enter
+the primary author or authors.
+
+<?php
+helpPageFooter();
+?>

@@ -1,0 +1,209 @@
+<?php
+
+@session_start();
+include "pagetpl.php";
+include_once "util.php";
+include_once "dbconnect.php";
+include_once "captcha.php";
+
+$errFlagged = false;
+
+
+// validate captcha
+$capKey = "lostpass";
+list($ok, $capErrMsg) = captchaCheckPost($capKey);
+
+// If we have a valid captcha, try processing the submitted data; if
+// handlePost returns true, proceed to show the form.  If captcha
+// failed or this isn't a post, just show the form.
+$showForm = ($ok ? handlePost() : true);
+
+// if we're not showing the form, we're done
+if (!$showForm)
+    exit();
+
+// ------------------------------------------------------------------------
+//
+// Main form display
+//
+pageHeader("Lost Password", "lostpass.userid", false,
+           "<script src=\"xmlreq.js\"></script>");
+
+?>
+
+<h1>Lost Password</h1>
+
+If you've forgotten your password, enter your registered email
+address below, and we'll send you instructions for resetting it.
+
+<p><a href="login">Click here to go to the login page</a>
+
+<?php
+
+global $errFlagged;
+if ($errFlagged != false) {
+    echo "<p><font color=red><b>";
+    echo $errFlagged;
+    echo "</b></font>";
+}
+
+?>
+
+<p>
+<form method=post action="lostpass" name="lostpass" id="lostpass">
+
+   <table border=0>
+      <tr>
+         <td>
+            Email address:
+         <td>
+            <input type="text" name="userid" id="userid" size=30
+                  value="<?php echo get_req_data('userid')?>">
+   </table>
+
+   <br><br>
+   <?php
+       captchaSupportScripts($capKey);
+       captchaSubForm($capKey, $capErrMsg, false);
+       captchaFinish($capKey);
+   ?>
+   
+   <br><br>
+   <input type=submit value="Submit">
+
+</form>
+
+<?php
+pageFooter();
+
+
+// ------------------------------------------------------------------------
+//
+// Handle posted data
+//
+function handlePost()
+{
+    global $errFlagged;
+    
+    // get the email address
+    $email = $_REQUEST['userid'];
+
+    // if it's empty, show the page again
+    if (strlen($email) == 0) {
+        return true;
+    }
+
+    // set up the database connection
+    $db = dbConnect();
+    if ($db == false) {
+        $errFlagged = "An error occurred accessing the user database. Please
+            try again. If the problem persists, please
+            <a href='/contact'>contact us</a> to let us know about the
+            problem.";
+        return true;
+    }
+
+    // escape parameters
+    $qemail = mysql_real_escape_string($email, $db);
+
+    // look up the email address
+    $result = mysql_query("select id, acctstatus from users
+                           where email = '$qemail'", $db);
+    if (mysql_num_rows($result) == 0) {
+        $errFlagged = "The email address you entered is not registered.
+            Please check the address and try again. If you haven't yet
+            signed up, <a href=\"newuser\">click here</a> to register.";
+        return true;
+    }
+
+    // get the user ID
+    $usernum = mysql_result($result, 0, "id");
+    $stat = mysql_result($result, 0, "acctstatus");
+
+    // check for accounts with invalid status
+    $statErr = false;
+    switch ($stat)
+    {
+    case 'R':
+        $statErr = "This account is still pending review. Activation "
+                   . "instructions will be sent to the registered "
+                   . "email address when the review is completed.";
+        break;
+
+    case 'X':
+    case 'B':
+        $statErr = "This account has been closed.";
+        break;
+    }
+
+    if ($statErr) {
+        pageHeader("Password Reset Failed");
+        ?>
+        <h1>Password Reset Failed</h1>
+        <span class=errmsg><?php echo $statErr ?></span>
+        <?php
+        pageFooter();
+        return false;
+    }
+
+
+    // select a new activation code for the new request
+    $actcode = sha1($usernum . md5(rand()) . md5(rand()). md5(rand()));
+
+    // udpate the database
+    mysql_query("update users set activationcode = '$actcode'
+        where id = '$usernum'", $db);
+
+    // assemble the message body
+    $href = "http://ifdb.tads.org/resetpsw?a=$actcode";
+
+    $msg = "This message is in response to your request to reset your forgotten\n";
+    $msg .= "IFDB password. If you didn't make this request, you can simply\n";
+    $msg .= "discard this message - your password won't be changed unless\n";
+    $msg .= "you follow the instructions below.\n\n";
+    $msg .= "<p>To select a new password, click on the link below:\n\n";
+    $msg .= "<p><a href=\"$href\">$href</a>\n\n";
+    $msg .= "<p>If your email program doesn't let you open the link by\n";
+    $msg .= "clicking on it, copy and paste the entire link into your Web\n";
+    $msg .= "browser's Address bar.\n\n";
+    $msg .= "<p>Follow the instructions on the page linked above to\n";
+    $msg .= "select a new password to replace the one you forgot.";
+    
+
+    // build the headers
+    $hdrs = "From: IFDB <noreply@ifdb.tads.org>\r\n";
+    $hdrs .= "Content-type: Text/HTML\r\n";
+
+    // send it
+    if (!mail($email, "IFDB password reset", $msg, $hdrs)) {
+        $errFlagged = "An error occurred sending your reset instructions
+            to your email address. If you don't know of a problem with your
+             email address, the problem might be at our end - if so, you
+             might want to try again later, or
+             <a href=\"/contact\">contact us</a> if the problem
+             persists.";
+        return true;
+    }
+
+    // success - build the confirmation screen
+    pageHeader("Password Reset");
+?>
+
+<h1>Reset Instructions</h1>
+<p>We have just sent a message to your registered email address
+with instructions for selecting a new password.  Your password will
+<b>not</b> be changed until you follow the instructions in the email.
+If you don't receive the instructions within an hour or so, you might
+want to check your Junk Mail folder, in case your spam filter mistook
+the message for spam.
+
+<p><a href="login">Click here to log in</a>
+
+<?php
+
+    // no need to show the rest of the page
+    pageFooter();
+    return false;
+}
+
+?>

@@ -1,0 +1,729 @@
+<?php
+
+@session_start();
+include_once "login-persist.php";
+$userid = checkPersistentLogin();
+
+define("MaxSheets", 10);
+
+include_once "util.php";
+include_once "pagetpl.php";
+
+include_once "dbconnect.php";
+$db = dbConnect();
+
+$setID = get_req_data('set');
+$editID = get_req_data('edit');
+$copyFromID = get_req_data('copyfrom');
+$deleteID = get_req_data('delete');
+$isGallery = isset($_REQUEST['gallery']);
+$isConfirmed = isset($_REQUEST['confirm']);
+
+$showBasicPage = false;
+$errMsg = false;
+$succMsg = false;
+
+if ($setID) {
+    // ---------------------- select new style in profile ------------------
+
+    // make sure we're logged in
+    if ($userid) {
+    
+        if ($setID == 'default') {
+            $setVal = 'null';
+            $newDesc = "the IFDB default";
+        } else {
+            $setID = mysql_real_escape_string($setID, $db);
+            $setVal = "'" . $setID . "'";
+
+            // make sure the style sheet actually exists
+            $result = mysql_query(
+                "select
+                   s.title, u.id, u.name
+                 from
+                   stylesheets as s
+                   left join users as u on u.id = s.userid
+                 where s.stylesheetid = '$setID'", $db);
+            if (mysql_num_rows($result) > 0) {
+
+                // get the style sheet information
+                list($title, $authorID, $author) = mysql_fetch_row($result);
+                $title = htmlspecialcharx($title);
+                $author = htmlspecialcharx($author);
+                $newDesc = "\"$title\", by "
+                           . "<a href=\"showuser?id=$authorID\">$author</a>";
+            } else {
+                $errMsg = "The selected style doesn't exist (it might have "
+                          . "deleted just now by its owner).";
+            }
+        }
+
+        // update the profile data, if we haven't encountered an error already
+        if (!$errMsg) {
+            $result = mysql_query(
+                "update users set stylesheetid = $setVal
+                where id = '$userid'", $db);
+            if ($result)
+                $succMsg = "Your profile has been updated - your new "
+                           . "style sheet is now $newDesc.";
+            else
+                $errMsg = "An error occurred updating your profile - the "
+                          . "style sheet selection has not been changed.";
+        }
+
+    } else {
+        $errMsg = "To set a style in your profile, you must "
+                  . "<a href=\"login?dest=styles%3Fset%3D$setID\">"
+                  . "log in</a> first.";
+    }
+
+} else if ($editID) {
+    // ------------------- edit one of my style sheets ----------------------
+    $editID = mysql_real_escape_string($editID, $db);
+    $formErrCode = $formErrMsg = false;
+
+    // if this is a POST, get the values from the request parameters
+    $reqTitle = false;
+    $reqDesc = false;
+    $reqContents = false;
+    if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+        $reqTitle = get_req_data('title');
+        $reqDesc = get_req_data('desc');
+        $reqContents = get_req_data('contents');
+    }
+
+    $dbTitle = false;
+    $dbDesc = false;
+    $dbContents = false;
+    if ($editID == 'new') {
+        // creating a new one - no need to check for an existing copy
+        $authorID = $userid;
+        $userCnt = 0;
+    } else {
+        // make sure it exists, and that it's really mine
+        $result = mysql_query(
+            "select
+               s.stylesheetid, s.userid, count(u.id),
+               s.title, s.`desc`, s.contents
+             from stylesheets as s
+               left join users as u
+                 on u.stylesheetid = s.stylesheetid and u.id != '$userid'
+             where s.stylesheetid = '$editID'
+             group by s.stylesheetid",
+            $db);
+        $authorID = false;
+        if (mysql_num_rows($result) > 0)
+            list($ssid, $authorID, $userCnt,
+                 $dbTitle, $dbDesc, $dbContents) = mysql_fetch_row($result);
+    }
+
+    if (!$userid) {
+        $errMsg = "You must <a href=\"login?dest=styles%3Fedit%3D$editID\">"
+                  . "log in</a> to edit a style sheet.";
+    } else if ($authorID != $userid) {
+        $errMsg = "Sorry, you can only edit style sheets you created. "
+                  . "If you want to create your own new style sheet "
+                  . "by starting with a copy of this one, "
+                  . "<a href=\"styles?edit=new&copyfrom=$editID\">"
+                  . "click here</a>.";
+    }
+
+    // if this is a POST, show the request data on the form; otherwise
+    // show the database data we fetched
+    if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+
+        // use the request data to populate the form
+        $formTitle = $reqTitle;
+        $formDesc = $reqDesc;
+        $formContents = $reqContents;
+
+        // note if it's a Save operation of some kind
+        $isSave = isset($_REQUEST['saveStyle'])
+                  || isset($_REQUEST['saveSetStyle']);
+
+        // if this is a SAVE, try posting the update
+        if ($isSave && !$errMsg) {
+
+            // quote the values for SQL
+            $qTitle = mysql_real_escape_string($formTitle, $db);
+            $qDesc = mysql_real_escape_string($formDesc, $db);
+            $qContents = mysql_real_escape_string($formContents, $db);
+
+            // lock the style sheet table
+            $progress = "SLC001";
+            $result = mysql_query(
+                "lock tables stylesheets write, users write", $db);
+
+            // make sure we have a title
+            if ($qTitle == '') {
+                $formErrMsg = "Please enter a title for the style sheet.";
+                $result = false;
+            }
+
+            if ($result) {
+                // if this is new, we'll insert a row; otherwise we'll update
+                if ($editID == 'new') {
+
+                    // make sure this wouldn't create too many entries for
+                    // this user
+                    $progress = "SCM002";
+                    $result = mysql_query(
+                        "select count(*) from stylesheets
+                         where userid = '$userid'", $db);
+                    list($scnt) = mysql_fetch_row($result);
+
+                    if ($result && $scnt >= MaxSheets) {
+                        $result = false;
+                        $formErrMsg = "Sorry, but the system can only store "
+                                      . MaxSheets . " style sheets for each "
+                                      . "user.  You've already reached the "
+                                      . "limit, so this new sheet cannot "
+                                      . "be saved.";
+                    }
+                    
+                    // if we're okay, do the update
+                    if ($result) {
+                        // add the row
+                        $progress = "SIN003";
+                        $result = mysql_query(
+                            "insert into stylesheets
+                             (title, userid, `desc`, contents, created)
+                             values ('$qTitle', '$userid', '$qDesc',
+                                     '$qContents', now())", $db);
+
+                        // if we succeeded, note the new ID
+                        if ($result)
+                            $editID = mysql_insert_id($db);
+                    }
+
+                } else {
+
+                    // it's an existing row - update it
+                    $progress = "SUP004";
+                    $result = mysql_query(
+                        "update stylesheets
+                         set
+                           title = '$qTitle', `desc` = '$qDesc',
+                           contents = '$qContents'
+                         where stylesheetid = '$editID'", $db);
+                }
+            }
+
+            // if desired, activate the style
+            if ($result && isset($_REQUEST['saveSetStyle'])) {
+                mysql_query(
+                    "update users set stylesheetid = '$editID'
+                     where id = '$userid'", $db);
+            }
+
+            // done with our table lock
+            mysql_query("unlock tables", $db);
+
+            // if we failed without a detailed error message, use the
+            // current progress point as the error code
+            if (!$result && !$formErrMsg)
+                $formErrCode = $progress;
+
+            // if we succeeded, note it
+            if ($result)
+                $formSuccMsg = "Your changes have been saved.";
+        }
+    
+    } else {
+        // this isn't a POST - use the database values to populate the form
+        $formTitle = $dbTitle;
+        $formDesc = $dbDesc;
+        $formContents = $dbContents;
+    }
+
+    // quote all of the form values
+    $formTitle = htmlspecialcharx($formTitle);
+    $formDesc = htmlspecialcharx($formDesc);
+    $formContents = htmlspecialcharx($formContents);
+
+    // set the default initial contents for a new style sheet
+    if ($editID == 'new'
+        && $_SERVER['REQUEST_METHOD'] != 'POST'
+        && $formContents == "")
+        $formContents = "@import url(\"/ifdb.css\");\n\n";
+
+    // if we're okay so far, show the editing form
+    if (!$errMsg) {
+        pageHeader("Custom Style Sheet Editor");
+        echo "<h1>Custom Style Sheet Editor</h1>";
+
+        // check to see if this is the current style sheet
+        $result = mysql_query(
+            "select stylesheetid from users where id='$userid'", $db);
+        list($curssid) = mysql_fetch_row($result);
+
+        // show error/success messages, if any
+        if ($formErrCode)
+            $formErrMsg = "A database error occurred saving the changes "
+                          . "(error code $formErrCode). Please try again, "
+                          . "or <a href=\"contact\">contact us</a> if "
+                          . "the problem persists.";
+        
+        if ($formErrMsg)
+            echo "<span class=errmsg><b>$formErrMsg</b></span><p>";
+
+        if ($formSuccMsg)
+            echo "<span class=success>$formSuccMsg</b></span><p>";
+
+        if ($userCnt != 0) {
+            $usersWord = "user" . ($userCnt > 1 ? "s" : "");
+            $usersAre = ($userCnt > 1 ? "are" : "is");
+            echo "<b><span class=warning>Please be aware that $userCnt "
+                . "other $usersWord $usersAre currently using this style "
+                . "sheet. Any changes you make will affect everyone "
+                . "using the style sheet.</span>";
+        }
+
+        echo "<form name=\"editstyle\" method=\"post\" "
+            . "action=\"styles?edit=$editID\">"
+            . "<input type=hidden name=edit value=\"$editID\">"
+
+            . "<b>1. Give your style sheet a title:</b><br>"
+            . "<input type=text name=title id=title size=60 "
+            .    " value=\"$formTitle\">"
+            . "<p><b>2. Enter a brief description:</b><br>"
+            . "<textarea name=desc id=desc rows=3 cols=60>$formDesc"
+            .    "</textarea>"
+            . "<p>"
+
+            . "<b>3. Enter the CSS for the style sheet:</b><br>"
+
+            . "<div class=tipbox>"
+            . helpWinLink("help-css", "Click here")
+            . " for general CSS help."
+            . "<p>We recommend starting every style sheet with "
+            . "<tt>@import url(\"/ifdb.css\");</tt><p>"
+            . "The best way to learn about how IFDB uses styles is "
+            . "to study the default style sheet - "
+            . "<a href=\"/ifdb.css\" target=\"_blank\">"
+            . "view the CSS source here</a>."
+            . "<p>We recommend conforming to the CSS Level 1 standard. "
+            . "(Newer versions are not yet as widely supported in "
+            . "Web browsers.)"
+            . "</div>"
+
+            . "<textarea name=contents id=contents rows=20 cols=80>"
+            .    "$formContents</textarea>"
+            . "<p>"
+            . "<input type=submit name=saveStyle id=saveStyle "
+            . " value=Save>";
+
+        if ($curssid != $editID)
+            echo "<input type=submit name=saveSetStyle id=saveSetStyle "
+                . "value=\"Save and Select as current style\">";
+        
+        echo "<p><a href=\"styles\">Return to the main Custom Styles page "
+            . " - discard changes</a>"
+            . "</form>";
+            
+    }
+
+} else if ($deleteID) {
+    // ------------------- delete one of my style sheets --------------------
+    $deleteID = mysql_real_escape_string($deleteID, $db);
+
+    // make sure it exists, and that it's really mine
+    $result = mysql_query(
+        "select s.stylesheetid, s.userid, count(u.id)
+         from stylesheets as s
+           left join users as u
+             on u.stylesheetid = s.stylesheetid and u.id != '$userid'
+         where s.stylesheetid = '$deleteID'
+         group by s.stylesheetid",
+        $db);
+    $ssid = false;
+    $authorID = false;
+    if (mysql_num_rows($result) > 0)
+        list($ssid, $authorID, $userCnt) = mysql_fetch_row($result);
+
+    if (!$userid) {
+        $errMsg = "You must <a href=\"login?dest=styles%3Fedit%3D$editID\">"
+                  . "log in</a> to edit a style sheet.";
+    } else if ($authorID != $userid) {
+        $errMsg = "Sorry, you can only delete style sheets you created. ";
+    } else if (!$isConfirmed) {
+
+        pageHeader("Please Confirm Deletion");
+        echo "<h1>Please Confirm Deletion</h1>";
+        
+        if ($userCnt > 0) {
+            $usersWord = "user" . ($userCnt > 1 ? "s" : "");
+            $usersAre = ($userCnt > 1 ? "are" : "is");
+            echo "<a span=warning>Please be aware that $userCnt other "
+                . "$usersWord $usersAre currently using this style "
+                . "sheet. Deleting this style sheet will affect "
+                . "everyone using it.</span>";
+        }
+
+        echo "<p><b>Please confirm that you'd really like to delete "
+            . "this style sheet.</b>"
+            . "<p><a href=\"styles?delete=$deleteID&confirm\">Yes, I'd "
+            . "really like to delete it</a><br>"
+            . "<a href=\"styles\">No, don't delete it</a>";
+
+    } else {
+        // we got confirmation, so delete it
+        $result = mysql_query(
+            "delete from stylesheets where stylesheetid = '$ssid'", $db);
+
+        if ($result)
+            $succMsg = "The style sheet has been deleted.";
+        else
+            $errMsg = "An error occurred deleting the style sheet from "
+                      . "the database.";
+    }
+
+} else if ($isGallery) {
+    // --------------------------- show the gallery -------------------------
+
+    pageHeader("Style Sheet Gallery");
+
+    echo "<h1>Style Sheet Gallery</h1>"
+        . "<p><a href=\"styles\">Return to the main Custom Styles page</a>"
+        . "<p>";
+
+    // make a note of my current selection, if we're logged in
+    $curssid = false;
+    if ($userid) {
+        // get my current selection
+        $result = mysql_query(
+            "select stylesheetid from users where id='$userid'", $db);
+        $curssid = mysql_result($result, 0, "stylesheetid");
+    }
+
+    $sortBy = get_req_data('sort');
+    $pg = get_req_data('pg');
+
+    // set up the sorting list
+    $sortList = array(
+        'pop' => array('popularity desc', 'Most Popular First'),
+        'unpop' => array('popularity', 'Least Popular First'),
+        'title' => array('title', 'Title'),
+        'auth' => array('author', 'Author'),
+        'new' => array('created desc', 'Newest First'),
+        'old' => array('created', 'Oldest First'));
+
+    // get the sorting type from the request
+    if (!isset($sortList[$sortBy]))
+        $sortBy = 'pop';
+    $orderBy = $sortList[$sortBy][0];
+
+    // set up our page bounds
+    if ($pg < 1)
+        $pg = 1;
+    $perPage = 20;
+    $firstOnPage = ($pg - 1) * $perPage;
+    $lastOnPage = $firstOnPage + $perPage - 1;
+
+    $query = "select sql_calc_found_rows
+                s.stylesheetid as ssid, s.title as title, s.`desc` as `desc`,
+                count(u1.id) as popularity,
+                s.userid as authorID, u2.name as author,
+                s.created as created,
+                date_format(s.created, '%M %e, %Y') as createdFmt,
+                date_format(s.modified, '%M %e, %Y') as modifiedFmt
+              from
+                stylesheets as s
+                left outer join users as u1 on u1.stylesheetid = s.stylesheetid
+                left join users as u2 on u2.id = s.userid
+              group by s.stylesheetid
+              order by $orderBy
+              limit $firstOnPage, $perPage";
+
+    $result = mysql_query($query, $db);
+    $rowcnt = mysql_num_rows($result);
+    if ($rowcnt == 0) {
+        echo "There are currently no member-created style sheets available. "
+            . "Be the first - <a href=\"styles?edit=new\">create your own "
+            . "custom style sheet</a>.";
+    } else {
+
+        // fetch the results
+        for ($rows = array(), $i = 0 ; $i < $rowcnt ; $i++)
+            $rows[] = mysql_fetch_array($result, MYSQL_ASSOC);
+
+        // note the total number of rows
+        $result = mysql_query("select found_rows()", $db);
+        list($totrowcnt) = mysql_fetch_row($result);
+
+        // calculate the page position
+        $lastPage = (int)floor(($totrowcnt + $perPage - 1) / $perPage);
+        if ($lastOnPage > $totrowcnt - 1)
+            $lastOnPage = $totrowcnt - 1;
+
+        // make the paging controls
+        $pageCtl = "<span class=details>"
+                   . "(" . ($firstOnPage+1)
+                   . "-" . ($lastOnPage+1) . " of $totrowcnt) &nbsp; "
+                   . makePageControl(
+                       "styles?gallery&sort=$sortBy",
+                       $pg, $lastPage, $firstOnPage, $lastOnPage,
+                       $totrowcnt, true, false, false)
+                   . "</span>";
+
+        // show the top-of-page controls
+        echo $pageCtl;
+        showSortingControls("searchOrder", "sort", $sortList, $sortBy,
+                            array('gallery' => '1'), "styles");
+        echo "<hr class=dots>";
+
+        // display the current results
+        for ($i = 0 ; $i < $rowcnt ; $i++) {
+            $row = $rows[$i];
+            $ssid = $row['ssid'];
+            $title = htmlspecialcharx($row['title']);
+            $desc = fixDesc($row['desc']);
+            $pop = $row['popularity'];
+            $authorID = $row['authorID'];
+            $author = htmlspecialcharx($row['author']);
+            $created = $row['createdFmt'];
+            $modified = $row['modifiedFmt'];
+
+            echo "<p>";
+
+            $zorkTUID = "0dbnusxunq7fw5ro";
+            if (isLocalDev())
+                $zorkTUID = "qzll6te6xriyv11x";
+            $thumbSrc = "viewgame?id=$zorkTUID&cssOverride=$ssid";
+//                      "cssthumb?css=$ssid";
+
+            echo "<table style=\"float: right; width:45%;\"><tr><td>";
+
+            echo "<iframe src=\"iframe?w=55em&h=30em&t="
+                . urlencode($thumbSrc) . "\" type=\"text/html\" "
+                . "style=\"width: 100%; height: 12em;\" scrolling=yes>"
+                . "</iframe><br>";
+            
+            echo "<span class=details>"
+                . "<a href=\"css?id=$ssid\" target=\"_blank\">"
+                . "View Source</a>"
+                . " - <a href=\"stylepics?user=$authorID\">"
+                . "View Author's Images</a>"
+                . " - <a href=\"$thumbSrc\" target=\"_blank\">"
+                . "Full-Page Sample</a><br>";
+
+            if ($curssid == $ssid)
+                echo "<i>This is your current active style</i>";
+            else
+                echo "<a href=\"styles?set=$ssid\">"
+                    . "Set as my active style</a>";
+
+            echo "</span></td></tr></table>";
+
+            echo "<b>$title</b> &nbsp; "
+                . "<span class=details>";
+
+            echo "</span><br><span class=details>"
+                . "by <a href=\"showuser?id=$authorID\">$author</a>"
+                . " (<i>created $created";
+
+            if ($modified != $created)
+                echo "; last modified $modified";
+
+            if ($pop != 0)
+                echo "; currently in use by $pop member"
+                    . ($pop > 1 ? "s" : "");
+    
+            echo "</i>)</span><br>$desc<br><br clear=all><hr class=dots>";
+        }
+
+        echo $pageCtl;
+    }
+                
+
+} else {
+    // ------ no other operation, so just show the basic profile page -------
+    $showBasicPage = true;
+}
+
+
+if ($errMsg || $succMsg) {
+    pageHeader("Custom Styles");
+
+    if ($errMsg)
+        echo "<span class=errmsg>$errMsg</span><br>";
+    if ($succMsg)
+        echo "<span class=success>$succMsg</span><br>";
+
+    echo "<p><a href=\"styles\">Return to the main Custom Styles page</a>";
+}
+
+
+
+if ($showBasicPage) {
+    // --------------------- current profile display ---------------------
+
+    pageHeader("Custom Styles");
+?>
+<table class=rightbar cellpadding=0 cellspacing=0 align=right
+       style="width:25ex;">
+   <tr align=center>
+      <td><h3>Quick Links</h3></td>
+   </tr>
+   <tr align=center>
+      <td>
+         <a href="styles?gallery">Stylesheet Gallery</a><br>
+         <a href="stylepics">Image Manager</a><br>
+         <a href="styles?edit=new">Create Stylesheet</a>
+      </td>
+   </tr>
+</table>
+
+<h1>Custom Styles</h1>
+
+<p>You can customize the way IFDB looks by choosing a different
+style.  You can pick from a variety of style sheets created by
+other members in the <a href="styles?gallery">Style Sheet Gallery</a>.
+
+<p>You can even create your own completely custom look from
+scratch.  If you're familiar with the standard CSS style sheet
+language, you can take control of almost all of the visual
+appearance of the site.
+
+<h2>Your Current Style</h2>
+
+<p>
+<?php
+$curssid = false;
+if ($userid) {
+    // get my current selection
+    $result = mysql_query(
+        "select stylesheetid from users where id='$userid'", $db);
+    $ssid = mysql_result($result, 0, "stylesheetid");
+    $title = false;
+    $author = false;
+    $authorID = false;
+
+    // if there's a selection, look it up
+    if ($ssid) {
+        $result = mysql_query(
+            "select s.title, s.userid, u.name
+             from
+               stylesheets as s
+               left join users as u on u.id = s.userid
+             where s.stylesheetid = '$ssid'", $db);
+
+        if (mysql_num_rows($result) > 0) {
+            list($title, $authorID, $author) = mysql_fetch_row($result);
+            $title = htmlspecialcharx($title);
+            $author = htmlspecialcharx($author);
+        }
+    }
+    
+    if ($ssid && $authorID) {
+        $curssid = $ssid;
+        echo "Your current style sheet is \"$title\", by "
+            . "<a href=\"showuser?id=$authorID\">$author</a>."
+            . "<p><a href=\"styles?gallery\">Style Sheet Gallery</a>"
+            . "<br><a href=\"styles?set=default\">Switch to the "
+            . "IFDB default style</a>";
+    } else if ($ssid) {
+        echo "Unfortunately, the style sheet you selected most recently "
+            . "has been deleted by its author, so you're currently "
+            . "using the IFDB default style instead."
+            . "<p><a href=\"styles?set=default\">Explicitly switch back "
+            . "to the IFDB default</a>";
+    } else {
+        echo "You're currently using the default IFDB style sheet."
+            . "<p><a href=\"styles?gallery\">Style Sheet Gallery</a>";
+    }
+} else {
+    echo "You're not currently logged in, so you're using the "
+        . "default IFDB style. You can select a custom style "
+        . "after you <a href=\"login?dest=styles\">log in</a>.";
+}
+?>
+
+
+<h2>Your Style Creations</h2>
+
+<p>You can create your own custom look using CSS, which is the
+Web standard for controlling the way HTML pages are formatted.
+If you're not familiar with CSS, you can find lots of
+documentation on the Web - here are a couple of good places
+to start:
+
+<ul>
+   <li><a href="http://en.wikipedia.org/wiki/Cascading_Style_Sheets">
+      Wikipedia: Cascading Style Sheets</a>
+   <li><a href="http://www.w3.org/TR/CSS1">Cascading Style Sheets, Level 1</a>
+      (the official specification from W3C)</a>
+</ul>
+
+<p>You can store up to <?php echo MaxSheets ?> style sheets of your
+   own on IFDB.  When you create a style sheet, it will automatically be made
+   available to other users in the <a href="styles?gallery">gallery</a>.
+
+<p><b>Graphics:</b> CSS lets you incorporate custom graphics, which
+means your style sheets can override many of the default IFDB graphics.
+IFDB provides limited image-file hosting for this purpose -
+<a href="stylepics">manage your style-sheet graphics here</a>.
+
+<p>
+
+<?php
+
+if ($userid) {
+
+    $result = mysql_query(
+        "select
+          stylesheetid, title, `desc`,
+          date_format(modified, '%M %e, %Y')
+        from stylesheets
+        where userid='$userid'", $db);
+
+    if (mysql_num_rows($result) > 0) {
+
+        echo "Here are the style sheets you've created:"
+            . "<p><div class=indented>";
+
+        for ($i = 0 ; $i < mysql_num_rows($result) ; $i++) {
+            list($ssid, $title, $desc, $moddate) = mysql_fetch_row($result);
+            $title = htmlspecialcharx($title);
+            $desc = fixDesc($desc);
+
+            echo "<p><b>$title</b> &nbsp; "
+                . "<span class=details>"
+                . "(<i>last modified $moddate</i>)"
+                . " - <a href=\"styles?edit=$ssid\">Edit</a>"
+                . " &nbsp; <a href=\"styles?delete=$ssid\">Delete</a>"
+                . " &nbsp; ";
+
+            if ($ssid == $curssid)
+                echo "<i>This is your current active style</i>";
+            else
+                echo "<a href=\"styles?set=$ssid\">Set as my "
+                    . "current style</a>";
+
+            echo " - <a href=\"css?id=$ssid\" target=\"_blank\">"
+                . "View Source</a>";
+
+            echo "</span><br>$desc";
+        }
+
+        echo "</div><p>";
+
+        if ($i < MaxSheets)
+            echo "<a href=\"styles?edit=new\">Create a new style sheet</a>";
+        else
+            echo "(You already have the maximum number of style sheets "
+                . "allowed, so you can't create another until you delete "
+                . "an existing one.)";
+    } else {
+        echo "You currently have no style sheets of your own - "
+            . "<a href=\"styles?edit=new\">click here to create a new one</a>.";
+    }
+    
+} else {
+    echo "(To view or create your own stylesheets, you need to "
+        . "<a href=\"login?dest=styles\">Log in</a> first.)";
+}
+
+}
+
+pageFooter();

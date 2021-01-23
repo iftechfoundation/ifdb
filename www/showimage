@@ -1,0 +1,10 @@
+<?php
+
+include_once "util.php";
+include_once "dbconnect.php";
+
+list($imgdata, $fmt) = fetch_image(get_req_data("id"), true);
+$thumb = isset($_REQUEST['thumbnail']) ? $_REQUEST['thumbnail'] : null;
+sendImage($imgdata, $fmt, $thumb);
+
+?>

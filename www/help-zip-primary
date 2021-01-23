@@ -1,0 +1,30 @@
+<?php
+@session_start();
+include_once "util.php";
+include "pagetpl.php";
+
+include_once "dbconnect.php";
+$db = dbConnect();
+
+helpPageHeader("Game File in a ZIP");
+?>
+
+<h1>Game file in a ZIP</h1>
+
+<p>For a compressed game file, it's helpful for IFDB to know the
+name of the main game file <i>within</i> the ZIP file.  This lets
+download tools automatically extract the file and run the game.
+
+<p>For example, if you're uploading a ZIP file that contains a Z-code
+".z5" story file, along with some other supporting files
+(documentation, for example), you'd enter the name of the .z5 file.
+
+<p>Use Unix-style relative paths if necessary - ZIP always uses "/" to
+separate directory names, even on operating systems with different
+path separators.  For example, if you're linking to a ZIP file that
+contains a folder called Games and a Z-Machine file called MyGame.z5
+within the folder, you'd enter "Games/MyGame.z5".
+
+<?php
+helpPageFooter();
+?>

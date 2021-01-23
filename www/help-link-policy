@@ -1,0 +1,31 @@
+<?php
+@session_start();
+include_once "util.php";
+include "pagetpl.php";
+helpPageHeader("Policy for Download Links");
+?>
+
+<h1>Policy for Download Links</h1>
+
+<p>Please link only to <b>legal</b> downloads.  This means that
+the copyright owner must explicitly allow the download.
+
+<p>Our Terms of Use prohibit uploading material that violates anyone's
+copyrights or other intellectual property rights.  This prohibition
+includes merely <b>linking</b> to illegal material or to sites that
+traffic in illegal material, such as "warez" or "abandonware" sites.
+Such linking can be considered "contributory infringement," which
+means that it's essentially as illegal as offering the unauthorized
+content directly.
+
+<p>Violating this policy could seriously damage IFDB, both legally
+and in terms of its reputation.  Please do your best to comply to
+help ensure that the site can continue operating.
+
+<p>It's always acceptable to link to sites that maintain and enforce
+similar policies of diligent copyright compliance, such as the <a
+href="http://www.ifarchive.org">IF Archive</a>.
+
+<?php
+helpPageFooter();
+?>

@@ -1,0 +1,22 @@
+<?php
+include_once "pagetpl.php";
+pageHeader("File Pending Review")
+?>
+
+<h1>File Pending Review</h1>
+
+This file has been uploaded to the <a href="http://www.ifarchive.org">IF
+Archive</a> and is still pending review.  Please allow a couple of days
+for the Archive to review the file.  If it's been more than a week or
+so and this file is still showing as "pending", you might want to contact
+the Archive maintainers to check on the file's status.
+
+<p>This link will be automatically updated to point to the file's
+final location on the Archive when the review has been completed.
+
+<p>If necessary, you can manually edit the game's listing to correct this
+link by clicking "Edit this page" at the bottom of the game's main page.
+
+<?php
+pageFooter();
+?>

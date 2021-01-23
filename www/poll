@@ -1,0 +1,1338 @@
+<?php
+
+@session_start();
+include "login-check.php";
+
+include "pagetpl.php";
+include_once "util.php";
+include "lists.php";
+include_once "commentutil.php";
+
+include_once "dbconnect.php";
+$db = dbConnect();
+
+// get the poll ID, if provided
+$id = mysql_real_escape_string(get_req_data('id'), $db);
+
+// we have to be logged in to create, edit, or vote
+$userid = false;
+checkPersistentLogin();
+if (($id == 'new'
+     || isset($_REQUEST['newPollGo'])
+     || isset($_REQUEST['editPoll'])
+     || isset($_REQUEST['delPoll'])
+     || isset($_REQUEST['submitVote'])
+     || isset($_REQUEST['delVote'])
+     || isset($_REQUEST['addVote'])
+     || isset($_REQUEST['comment']))
+    && !logged_in())
+    exit();
+
+// note the user ID, if available
+$userid = $_SESSION['logged_in_as'];
+
+// no error or success messages yet
+$formErrMsg = false;
+$formSuccMsg = false;
+
+// check for poll deletion
+if ($userid && isset($_REQUEST['delPoll'])) {
+    
+    // retrieve the poll data
+    $result = mysql_query(
+        "select title, `desc`, userid from polls where pollid = '$id'", $db);
+
+    if (mysql_num_rows($result) > 0) {
+        list($title, $desc, $authid) = mysql_fetch_row($result);
+        $title = htmlspecialcharx($title);
+        $desc = htmlspecialcharx($desc);
+        if ($authid == $userid) {
+
+            // start the page
+            pageHeader("Delete Poll");
+
+            // check for confirmation
+            if (get_req_data('confirm') == $id) {
+
+                // lock the related tables
+                $progress = "LKT6101";
+                $result = mysql_query(
+                    "lock tables
+                       polls write,
+                       pollvotes write,
+                       ucomments write", $db);
+
+                // try deleting the poll itself
+                if ($result) {
+                    $progress = "DEL6102";
+                    $result = mysql_query(
+                        "delete from polls where pollid = '$id'", $db);
+                }
+
+                // delete the votes
+                if ($result) {
+                    $progress = "DEL6103";
+                    $result = mysql_query(
+                        "delete from pollvotes where pollid = '$id'", $db);
+                }
+
+                // delete comments on the poll
+                if ($result) {
+                    $progress = "DEL6104";
+                    $result = mysql_query(
+                        "delete from ucomments
+                         where source = 'P' and sourceid = '$id'", $db);
+                }
+
+                // done with the table locks
+                mysql_query("unlock tables", $db);
+
+                // check for success
+                if ($result) {
+                    echo "<h1>Poll Deleted</h1>"
+                        . "The poll has been successfully deleted.";
+                    pageFooter();
+                    exit();
+                } else {
+                    $formErrMsg = "A database error occurred deleting "
+                                  . "the poll (error code $progress). "
+                                  . "You might try again in a few minutes, "
+                                  . "or <a href=\"contact\">contact us</a> "
+                                  . "if the problem persists.";
+                }
+            } 
+
+            // if we got here, we haven't deleted yet, so ask for confirmation
+            echo "<h1>Confirm Deletion</h1>";
+
+            if ($formErrMsg) {
+                echo "<p><span class=errmsg>"
+                    . "<img src=\"/blank.gif\" class=\"form-error-icon\"> "
+                    . "$formErrMsg</span></p>";
+            }
+
+            echo "Are you absolutely sure you want to <b>permanently "
+                . "delete</b> this poll?  Doing so will delete all of the "
+                . "votes that other members have submitted."
+                . "<p>"
+                . "We recommend deleting a poll <b>only</b> if you haven't "
+                . "gotten any useful suggestions with it.  We suggest that "
+                . "you <b>don't</b> delete a poll if it's been useful to "
+                . "you - even "
+                . "if you've learned everything you can through the poll, "
+                . "remember that other people might be looking for the same "
+                . "sorts of recommendations, so this poll could be a "
+                . "valuable resource to someone else at some point."
+                . "<p><div class=indented>"
+                . "Poll: <b>$title</b><br>"
+                . "Details: $desc</br>"
+                . "</div>"
+                . "<p><a href=\"poll?id=$id&delPoll&confirm=$id\">"
+                . "Permanently delete this poll</a>"
+                . "<p><a href=\"poll?id=$id\">Return the poll page</a> "
+                . "(without deleting anything)";
+
+            pageFooter();
+            exit();
+        }
+    }
+}
+
+// check for poll updates
+if ($userid && isset($_REQUEST['editPoll'])) {
+
+    // retrieve the poll data
+    $result = mysql_query(
+        "select title, keywords, `desc`, userid
+         from polls where pollid = '$id'", $db);
+
+    if (mysql_num_rows($result) > 0) {
+        list($title, $keywords, $desc, $authid) = mysql_fetch_row($result);
+        $title = htmlspecialcharx($title);
+        $keywords = htmlspecialcharx($keywords);
+        $desc = htmlspecialcharx($desc);
+        if ($authid == $userid) {
+
+            // if this is a Save Changes request, apply the changes
+            if (isset($_REQUEST['editPollGo'])) {
+                // get the updates from the request
+                $title = get_req_data('title');
+                $keywords = get_req_data('keywords');
+                $desc = get_req_data('desc');
+
+                // quote them for SQL
+                $qtitle = mysql_real_escape_string($title, $db);
+                $qkeywords = mysql_real_escape_string($keywords, $db);
+                $qdesc = mysql_real_escape_string($desc, $db);
+
+                // try applying changes
+                $result = mysql_query(
+                    "update polls
+                     set
+                       title = '$qtitle',
+                       `desc` = '$qdesc',
+                       keywords = '$qkeywords'
+                     where
+                       pollid = '$id'", $db);
+
+                if ($result) {
+                    $formSuccMsg = "Your changes were successfully saved.";
+                } else {
+                    $formErrMsg = "An error occurred saving your updates. "
+                                  . "You might want to wait a few minutes "
+                                  . "and try again; if the problem persists, "
+                                  . "<a href=\"contact\">contact us</a> "
+                                  . "for assistance.";
+                }
+            }
+
+            // if we didn't just (successfully) save updates, show the form
+            if (!$formSuccMsg) {
+                pageHeader("Edit Poll");
+
+                if ($formErrMsg) {
+                    echo "<p><span class=errmsg>"
+                        . "<img src=\"/blank.gif\" class=\"form-error-icon\"> "
+                        . "$formErrMsg</span></p>";
+                }
+            
+                echo "<form name=\"editPoll\" method=\"post\" action=\"poll\">"
+                    . "<h1>Edit Poll</h1>"
+                    . "<b>Poll title:</b>  Complete the thought, \"I'm "
+                    . "looking for...\""
+                    . "<br><input type=\"text\" size=70 name=\"title\" "
+                    . "value=\"$title\">"
+                    . "<p><b>Details:</b> Explain what kind of game "
+                    . "you're looking for, to help voters fine-tune their "
+                    . "suggestions."
+                    . " &nbsp; <span class=details>(<a "
+                    . helpWinHRef("help-formatting"). ">Formatting Hints</a>)"
+                    . "</span>"
+                    . "<br><textarea name=\"desc\" rows=4 cols=70>"
+                    . "$desc</textarea>"
+                    . "<p>"
+                    . "<b>Search Keywords:</b> The search engine will "
+                    . "match these terms in searches."
+                    . "<br><input type=\"text\" size=70 name=\"keywords\" "
+                    . "value=\"$keywords\">"
+                    . "<p>"
+                    . "<input type=hidden name=id value=\"$id\">"
+                    . "<input type=hidden name=editPoll value=1>"
+                    . "<input type=hidden name=editPollGo value=1>"
+                    . "<input type=submit name=editPollBtn "
+                    . "value=\"Save Changes\">"
+                    . "<p><a href=\"poll?id=$id\">Return to the poll page</a> "
+                    . "(without saving any changes)"
+                    . "</form>";
+
+                pageFooter();
+                exit();
+            }
+        }
+    }
+}
+
+// check for a New Poll form submission
+$newTitle = false;
+$newKeywords = false;
+$newDesc = false;
+$newErrMsg = false;
+if (isset($_REQUEST['newPollGo'])) {
+
+    // get the fields
+    $newTitle = trim(get_req_data('title'));
+    $newKeywords = trim(get_req_data('keywords'));
+    $newDesc = get_req_data('desc');
+    $title = mysql_real_escape_string($newTitle, $db);
+    $keywords = mysql_real_escape_string($newKeywords, $db);
+    $desc = mysql_real_escape_string($newDesc, $db);
+
+    // validate the form data
+    $progress = false;
+    $result = true;
+    if (strlen($newTitle) < 6 || strlen($newDesc) < 1) {
+        $newErrMsg = "Please enter a title (of at least 6 characters) "
+                     . "and a description.";
+        $result = false;
+    }
+    if (strlen($newTitle) > 128) {
+        $newErrMsg = "The title is too long - please limit it to 150 "
+                     . "characters.";
+        $result = false;
+    }
+
+    // lock tables
+    if ($result) {
+        $progress = "LKT8101";
+        $result = mysql_query("lock tables polls write", $db);
+    }
+
+    // generate a TUID
+    if ($result) {
+        $progress = "TUI8102";
+        $tuid = generateTUID($db, "polls.pollid", 10);
+
+        if (!$tuid)
+            $result = false;
+    }
+
+    // create the poll row
+    if ($result) {
+        $progress = "INS8103";
+        $result = mysql_query(
+            "insert into polls
+             (pollid, title, keywords, `desc`, created, userid)
+             values ('$tuid', '$title', '$keywords', '$desc',
+                     now(), '$userid')", $db);
+    }
+
+    // unlock tables
+    mysql_query("unlock tables", $db);
+
+    if ($result) {
+        pageHeader("New Poll");
+
+        // get the new poll ID, and generate the URL
+        $url = "http://ifdb.tads.org/poll?id=$tuid";
+
+        // get my user name
+        $result = mysql_query("select name from users where id='$userid'", $db);
+        list($username) = mysql_fetch_row($result);
+        
+        echo "<h1>New poll created!</h1>"
+            . "<p>Your poll has been successfully created as follows:</p>"
+            . "<div class=indented>"
+            . "<a href=\"showuser?id=$userid\">$username</a> is looking for "
+            . "<b>" . htmlspecialcharx($newTitle) . "</b><br>"
+            . htmlspecialcharx($newDesc)
+            . "<br><b>Keywords:</b> " . htmlspecialcharx($newKeywords)
+            . "</div>"
+            . "<p>Your new poll will appear on the IFDB home page, "
+            . "inviting members to offer their suggestions.</p>"
+            . "<p>If you'd like to post a note about your poll to "
+            . "<a href=\"news:rec.arts.int-fiction\">rec.arts.int-fiction</a> "
+            . "or to any other IF discussion groups, you can "
+            . "include this Web link (URL) to your poll's main page: "
+            . "</p><div class=indented>"
+            . "<a href=\"$url\"><tt>$url</tt></a>"
+            . "</div>"
+            . "<p>If you'd like to use your browser's RSS feature "
+            . "to receive updates when votes come in, here's the "
+            . "subscription link:<br>"
+            . "<a href=\"$url&rss\">"
+            . "<img src=\"blank.gif\" class=\"rss-icon\">RSS Feed</a></p>";
+
+        pageFooter();
+        exit();
+
+    } else {
+
+        // error - proceed to the form
+        $id = 'new';
+
+        // use the generic database error message if we didn't generate
+        // something more specific already
+        if (!$newErrMsg)
+            $newErrMsg = "A database error occurred creating your new poll "
+                         . "(error code $progress). You might want to wait "
+                         . "a few minutes and trying again, or "
+                         . "<a href=\"contact\">contact us</a> if the "
+                         . "problem persists.";
+    }
+}
+
+function makeQuickQuote($notes)
+{
+    $s = summarizeHtml($notes, 20);
+    return $s[0];
+}
+
+function prependPlus($str) { return "+" . $str; }
+
+// check for a final vote form submission
+$voteQuote = false;
+$voteDesc = false;
+if ($userid && $id && isset($_REQUEST['submitVote'])) {
+
+    // final submission form
+
+    // get the parameters
+    $gameID = mysql_real_escape_string(get_req_data('gameID'), $db);
+    $voteQuote = get_req_data('quickQuote');
+    $voteDesc = get_req_data('voteDesc');
+
+    // generate quoted versions
+    $qquote = mysql_real_escape_string($voteQuote, $db);
+    $qdesc = mysql_real_escape_string($voteDesc, $db);
+
+    // lock tables so we can verify everything
+    $progress = "LKT7601";
+    $result = mysql_query(
+        "lock tables polls read, pollvotes write, games read", $db);
+
+    // check that the game exists
+    if ($result) {
+        $progress = "VGM7602";
+        $result = mysql_query(
+            "select id from games where id = '$gameID'", $db);
+        if (mysql_num_rows($result) == 0) {
+            $formErrMsg = "The game ID in the request is invalid. This could "
+                          . "indicate a database problem, or a network "
+                          . "error sending the Web request.";
+            $result = false;
+        }
+    }
+
+    // check that the poll exists
+    if ($result) {
+        $progress = "VPL7603";
+        $result = mysql_query(
+            "select pollid from polls where pollid = '$id'", $db);
+        if (mysql_num_rows($result) == 0) {
+            $formErrMsg = "The poll ID in the request is invalid. This could "
+                          . "indicate that the poll's creator has deleted "
+                          . "the poll, or could be due to a database or "
+                          . "network problem.";
+            $result = false;
+        }
+    }
+
+    // if there's already a vote for this user+poll+game, delete it,
+    // so that the new vote replaces the old one
+    if ($result) {
+        $progress = "RDL7604";
+        $result = mysql_query(
+            "delete from pollvotes
+             where
+                pollid = '$id'
+                and userid = '$userid'
+                and gameid = '$gameID'", $db);
+    }
+
+    // if we're good so far, insert the new row
+    if ($result) {
+        $progress = "INS7605";
+        $result = mysql_query(
+            "insert into pollvotes
+               (pollid, gameid, userid, quickquote, notes, votedate)
+             values
+               ('$id', '$gameID', '$userid', '$qquote', '$qdesc', now())",
+            $db);
+    }
+
+    // unlock tables
+    mysql_query("unlock tables", $db);
+
+    // if that failed, re-show the voting form with the error message;
+    // otherwise return to the polling page
+    if ($result) {
+        // success - show the success message
+        $formSuccMsg = "Thanks for voting! Your vote has been recorded "
+                       . "in this poll's results.";
+    } else {
+        // error - if we didn't already fill in an error message, generate
+        // the default database error message
+        if (!$formErrMsg)
+            $formErrMsg = "A database error occurred recording your "
+                          . "vote (error code $progress).";
+
+        // return to the vote form
+        $_REQUEST['addVote'] = 'synthesized due to error';
+        $_REQUEST['gameid'] = $gameID;
+    }
+}
+
+// check for a delete-vote request
+if ($userid && $id && isset($_REQUEST['delVote'])) {
+    // get the vote information
+    $gameID = mysql_real_escape_string(get_req_data('delVote'), $db);
+    $result = mysql_query(
+        "select v.quickquote, v.notes, p.title, g.title, g.author
+         from
+           pollvotes as v
+           join polls as p on p.pollid = v.pollid
+           join games as g on g.id = v.gameid
+         where
+           v.userid = '$userid'
+           and v.pollid = '$id'
+           and v.gameid = '$gameID'", $db);
+
+    if (mysql_num_rows($result) > 0) {
+        list($quickQuote, $notes, $pollTitle, $gameTitle, $gameAuthor) =
+            mysql_fetch_row($result);
+        $quickQuote = htmlspecialcharx($quickQuote);
+        $notes = htmlspecialcharx($notes);
+        $pollTitle = htmlspecialcharx($pollTitle);
+        $gameTitle = htmlspecialcharx($gameTitle);
+        $gameAuthor = htmlspecialcharx($gameAuthor);
+    } else {
+        $formErrMsg = "Your voting information for this game was not "
+                      . "found in the database. If you haven't already "
+                      . "deleted your vote, this might be a temporary "
+                      . "server problem, so you might want to try again "
+                      . "in a few minutes.";
+    }
+    
+    // if this is a confirmation request, delete the row, otherwise prompt
+    if (!$formErrMsg && get_req_data('confirm') == $gameID) {
+
+        $result = mysql_query(
+            "delete from pollvotes
+             where
+               userid = '$userid'
+               and pollid = '$id'
+               and gameid = '$gameID'", $db);
+
+        if ($result)
+            $formSuccMsg = "Your vote for <i>$gameTitle</i> has been deleted.";
+    }
+
+    // if we didn't successfully confirm, show the delete confirmation form
+    if (!$formSuccMsg) {
+
+        pageHeader("Delete Vote");
+
+        if ($formErrMsg) {
+            echo "<p><span class=errmsg>"
+                . "<img src=\"/blank.gif\" class=\"form-error-icon\"> "
+                . "$formErrMsg</span></p>"
+                . "<p><a href=\"poll?id=$id\">Return to the poll page</a>";
+        } else {
+            echo "<h1>Delete Vote</h1>"
+                . "Please confirm that you really want to delete the "
+                . "following vote:<div class=indented>"
+                . "<p>Poll: <b>$pollTitle</b><br>"
+                . "Game: <b>$gameTitle</b>, by $gameAuthor<br>"
+                . "<p>"
+                . "Quick quote: \"$quickQuote\"<br>"
+                . "$notes"
+                . "</div><p>"
+                . "<a href=\"poll?id=$id&delVote=$gameID&confirm=$gameID\">"
+                . "<b>Yes</b>, really delete my vote</a>"
+                . "<a href=\"poll?id=$id\"><br>"
+                . "<b>No</b>, keep my vote and return to the poll page</a>";
+        }
+        
+        pageFooter();
+        exit();
+    }
+}
+
+
+// check for a vote title search submission
+if ($userid && $id && isset($_REQUEST['addVote'])) {
+
+    // add a game or vote for a game - get the poll info
+    $result = mysql_query(
+        "select title from polls where pollid = '$id'", $db);
+    if (mysql_num_rows($result) == 0) {
+        pageHeader("Poll not found");
+        echo "<h1>Poll not found</h1>"
+            . "Sorry, but the poll no longer exists.  (The poll's author "
+            . "might have deleted it.)";
+        pageFooter();
+        exit();
+    }
+    list($title) = mysql_fetch_row($result);
+
+    // check for an explicit game TUID in the request
+    if (isset($_REQUEST['game'])) {
+        // get the game TUID from the request
+        $gameid = mysql_real_escape_string(get_req_data('game'), $db);
+
+        // look up the game
+        $result = mysql_query(
+            "select title, author, coverart from games
+             where id = '$gameid'", $db);
+        if (mysql_num_rows($result) > 0) {
+            list($gameTitle, $gameAuthor, $gArt) = mysql_fetch_row($result);
+            $gameTitle = htmlspecialcharx($gameTitle);
+            $gameAuthor = htmlspecialcharx($gameAuthor);
+        } else {
+            pageHeader("Game Not Found");
+            echo "The selected game was not found in the database.<p>"
+                . "<a href=\"poll?id=$id\">Return to the poll page</a>";
+            pageFooter();
+            exit();
+        }
+
+        // look up the existing vote
+        $result = mysql_query(
+            "select
+               quickquote, notes
+             from
+               pollvotes
+             where
+               pollid = '$id'
+               and gameid = '$gameid'
+               and userid = '$userid'", $db);
+
+        if (mysql_num_rows($result) != 0) {
+            // found it - we're editing an existing vote
+            list($voteQuote, $voteDesc) = mysql_fetch_row($result);
+            $noChangeMsg = "without updating your vote";
+        } else {
+            // there's no existing vote
+            $voteQuote = false;
+            $voteDesc = false;
+            $noChangeMsg = "without submitting a vote";
+        }
+
+        pageHeader("Vote for $gameTitle", "voteForm.quickQuote");
+        echo "<h1>Vote for $gameTitle</h1>";
+
+        if ($formErrMsg) {
+            echo "<p><span class=errmsg>"
+                . "<img src=\"/blank.gif\" class=\"form-error-icon\"> "
+                . "$formErrMsg You might want to try again in "
+                . "a few minutes, or <a href=\"contact\">contact us</a> "
+                . "if the problem persists.</span><p>";
+        }
+        
+        echo "<b>Poll: " . htmlspecialcharx($title) . "</b><br>"
+            . "<b>Game: <i>$gameTitle</i>, by $gameAuthor</b>"
+            . "<form name=\"voteForm\" method=\"post\" action=\"poll\">"
+            . "<input type=hidden name=id value=\"$id\">"
+            . "<input type=hidden name=gameID value=\"$gameid\">"
+            . "<input type=hidden name=submitVote value=1>"
+            . "<p><b>Quick Quote:</b> A very short summary of why you like "
+            . "like this game - like the kind of review quote they'd "
+            . "put on a movie poster. <i>Optional</i><br>"
+            . "<input type=text name=quickQuote size=50 value=\""
+            . htmlspecialcharx($voteQuote). "\">"
+            . "<p><b>Details:</b> Explain why you think this is a good "
+            . "recommendation for the poll.  Just a sentence or two - "
+            . "no need to write a full review here. <i>Optional</i>"
+            . " &nbsp; <span class=details>(<a "
+            . helpWinHRef("help-formatting"). ">Formatting Hints</a>)"
+            . "</span>"
+            . "<br><textarea name=voteDesc rows=3 cols=70>"
+            . htmlspecialcharx($voteDesc) . "</textarea>"
+            . "<p><input type=submit name=voteButton value=\"Submit My Vote!\">"
+            . "<p><a href=\"poll?id=$id\">Return to the poll's main page</a> "
+            . "($noChangeMsg)"
+            . "</form>";
+
+    } else {
+        // there's no TUID in the request, so we're looking up a title
+        $matches = array();
+        $gameTitle = get_req_data('addTitle');
+        $qTitle = mysql_real_escape_string($gameTitle, $db);
+    
+        // try looking up the title as a TUID first
+        $result = mysql_query(
+            "select id, title, author, coverart from games
+             where id='$qTitle'", $db);
+        if (mysql_num_rows($result) != 0)
+            $matches[] = mysql_fetch_array($result, MYSQL_ASSOC);
+
+        // if that didn't work, try it as an IFID
+        if (count($matches) == 0) {
+            $result = mysql_query(
+                "select
+                   games.id as games, games.title as title,
+                   games.author as author, games.coverart as coverart
+                 from
+                   ifids
+                   join games on games.id = ifids.gameid
+                 where
+                   ifids.ifid = '$qTitle'", $db);
+
+            if (mysql_num_rows($result) != 0)
+                $matches[] = mysql_fetch_array($result, MYSQL_ASSOC);
+        }
+
+        // if that still didn't work, try it as a full-text search, using the
+        // words in the title as a list of mandatory boolean-search terms
+        $titleMatch = mysql_real_escape_string(
+            implode(" ", array_map("prependPlus", explode(" ", $gameTitle))),
+            $db);
+        $titleLike = mysql_real_escape_string(quoteSqlLike($gameTitle), $db);
+
+        $result = mysql_query(
+            "select
+               id, title, author, coverart
+             from games
+             where
+               title like '%$titleLike'
+               or match (title) against ('$titleMatch' in boolean mode)
+             order by
+               if(title like '$titleLike', 0, 1),
+               if(title like '%$titleLike%', 0, 1),
+               match (title) against ('$titleMatch' in boolean mode) desc",
+            $db);
+
+        $cnt = mysql_num_rows($result);
+        for ($i = 0 ; $i < $cnt ; $i++)
+            $matches[] = mysql_fetch_array($result, MYSQL_ASSOC);
+
+        // if we found any matches, show the matches for disambiguation
+        // and confirmation
+        $cnt = count($matches);
+
+        pageHeader("Vote for a game", "addVoteForm.addTitle");
+        echo "<h1>Vote for a game</h1>";
+        echo "<b>Poll: " . htmlspecialcharx($title) . "</b><p>";
+        
+        // title match - present the list of matches for confirmation (in
+        // the case of a single match) or selection (if multiple matches)
+        echo "Title search for <b>" . htmlspecialcharx($gameTitle)
+            . "</b><br>";
+
+        if ($cnt == 0) {
+            echo "Sorry, there are no games in the database matching \""
+                . htmlspecialcharx($gameTitle)
+                . "\". You might try checking the spelling and searching "
+                . "again.<p>";
+        } else if ($cnt == 1)
+            echo "One matching title found:<p>";
+        else {
+            echo "$cnt matching titles found:<p>";
+        }
+    
+        for ($i = 0 ; $i < count($matches) ; $i++) {
+            $match = $matches[$i];
+            echo "<p><a href=\"poll?addVote&id=$id&game={$match['id']}\">"
+                . "Vote</a> =&gt; "
+                . "<a href=\"viewgame?id={$match['id']}\" "
+                . "target=\"_blank\">" . htmlspecialcharx($match['title'])
+                . "</a>, by " . htmlspecialcharx($match['author']);
+        }
+
+        if ($cnt == 1) {
+            echo "<p>Is this the game you meant? If so, click the "
+                . "Vote link to continue, otherwise you can try "
+                . "editing the title and searching again. ";
+        } else if ($cnt > 1) {
+            echo "<p>Is one of these the game you meant? If so, click "
+                . "its Vote link.  Otherwise, you can try editing "
+                . "the title and searching again. ";
+        }
+
+        echo "<p>(If you still can't find the game you're looking for "
+            . "after repeated attempts, you might try "
+            . "<a href=\"search\" target=\"_blank\">Advanced Search</a>. "
+            . "And remember, if you determine that the game "
+            . "simply isn't in IFDB yet, you can always "
+            . "<a href=\"editgame?id=new\" target=\"_blank\">"
+            . "add it</a> yourself.) ";
+
+        echo "<p><form name=\"addVoteForm\" method=\"get\" action=\"poll\">"
+            . "<input type=hidden name=id value=\"$id\">"
+            . "<input type=hidden name=addVote value=1>"
+            . "Search again for: <input type=text name=addTitle size=60 "
+            . "value=\"" . htmlspecialcharx($gameTitle) . "\"> "
+            . "<input type=submit value=\"Search\" name=\"addVoteBtn\">"
+            . "</form>"
+            . "<p><a href=\"poll?id=$id\">Return to the poll's main page</a> "
+            . "(without submitting a vote)";
+    }
+
+    pageFooter();
+    exit();
+}
+
+// check for a comment update
+if ($userid && isset($_REQUEST['comment'])) {
+
+    // retrieve the poll and game data
+    $gameid = mysql_real_escape_string(get_req_data('game'), $db);
+    $result = mysql_query(
+        "select
+           p.title, p.`desc`, p.userid, g.title, g.author, c.comments
+         from
+           polls as p
+           join games as g on g.id = '$gameid'
+           left outer join pollcomments as c
+             on c.pollid = p.pollid and c.gameid = '$gameid'
+         where p.pollid = '$id'", $db);
+
+    if (mysql_num_rows($result) > 0) {
+        list($title, $desc, $authid, $gameTitle, $gameAuthor, $comment) =
+            mysql_fetch_row($result);
+        $title = htmlspecialcharx($title);
+        $desc = htmlspecialcharx($desc);
+        $gameTitle = htmlspecialcharx($gameTitle);
+        $gameAuthor = htmlspecialcharx($gameAuthor);
+        $comment = htmlspecialcharx($comment);
+
+        if ($authid == $userid) {
+
+            // check for a submission
+            if (isset($_REQUEST['commentSave'])) {
+
+                // use the updated comment from the request
+                $comment = get_req_data('commentText');
+
+                // quote it for SQL
+                $qcomment = mysql_real_escape_string($comment, $db);
+
+                // first, delete any existing comment for this poll+game
+                $result = mysql_query(
+                    "delete from pollcomments
+                     where pollid = '$id' and gameid = '$gameid'", $db);
+
+                // now add the new comment, if it's non-empty
+                if ($qcomment) {
+                    $result = mysql_query(
+                        "insert into pollcomments
+                           (pollid, gameid, comments)
+                         values
+                           ('$id', '$gameid', '$qcomment')", $db);
+                }
+
+                if ($result) {
+                    $formSuccMsg = "Your changes were successfully saved.";
+                } else {
+                    $formErrMsg = "An error occurred saving your updates. "
+                                  . "You might want to wait a few minutes "
+                                  . "and try again; if the problem persists, "
+                                  . "<a href=\"contact\">contact us</a> "
+                                  . "for assistance.";
+                }
+            }
+
+            // if we didn't just (successfully) save updates, show the form
+            if (!$formSuccMsg) {
+                pageHeader("Edit Comment");
+
+                if ($formErrMsg) {
+                    echo "<p><span class=errmsg>"
+                        . "<img src=\"/blank.gif\" class=\"form-error-icon\"> "
+                        . "$formErrMsg</span></p>";
+                }
+            
+                echo "<form name=\"editCmt\" method=\"post\" action=\"poll\">"
+                    . "<h1>Comment on $gameTitle</h1>"
+                    . "Enter any comments you have about the game "
+                    . "<i>$gameTitle</i>, by $gameAuthor.  You can use "
+                    . "this to give voters feedback about how well you "
+                    . "think this game fits what you're looking for, or "
+                    . "just to share your own thoughts about the game. "
+                    . "(<span class=details><a "
+                    . helpWinHRef("help-formatting")
+                    . ">Formatting Hints</a>)</span><br>"
+                    . "<textarea rows=4 cols=70 name=\"commentText\">"
+                    . "$comment</textarea>"
+                    . "<p><input type=submit name=commentBtn "
+                    . "value=\"Save Changes\">"
+                    . "<p><a href=\"poll?id=$id\">Return to the poll page</a> "
+                    . "(without saving any changes)"
+                    . "<input type=hidden name=id value=\"$id\">"
+                    . "<input type=hidden name=game value=\"$gameid\">"
+                    . "<input type=hidden name=comment value=1>"
+                    . "<input type=hidden name=commentSave value=1>"
+                    . "</form>";
+
+                pageFooter();
+                exit();
+            }
+        }
+    }
+}
+
+// Check for a New Poll request
+if ($id == 'new') {
+
+    // Create a new poll
+    pageHeader("Create a New Poll", "newPollForm.title");
+?>
+
+<h1>Create a New Poll</h1>
+<p>Are you looking for recommendations for a particular type of IF
+to play?  Ask the IFDB community for ideas by creating a public poll.
+Just describe what kind of game you're looking for.  The poll will
+appear on the IFDB home page, inviting members to offer their
+suggestions.
+
+<p>You'll get better recommendations if you're relatively specific
+about what you're looking for.  For example, you could ask about games
+in a particular genre, or in a particular style, or for a particular
+kind of audience - or even combinations of these ("science fiction
+games for 8th graders").  For very general recommendations ("the best
+IF ever"), you're probably better off using IFDB's <a
+href="search">advanced search features</a>, such as searching by
+rating, genre, or tags.
+
+<?php
+if ($newErrMsg) {
+    echo "<p><span class=errmsg>"
+        . "<img src=\"/blank.gif\" class=\"form-error-icon\"> $newErrMsg"
+        . "</span></p>";
+}
+?>
+
+<form name="newPollForm" method="post" action="poll">
+
+<p><b>1. Give your poll a title.</b>  Enter a brief phrase that
+completes the thought, "I'm looking for..."
+<br><span class=details>For example, "Games with cool magic systems",
+"Cave-crawl puzzle fests"</span>
+
+<br><input type="text" size=70 name="title" value="<?php
+    echo htmlspecialcharx($newTitle)?>">
+
+<p><b>2. Explain in a little more detail what you're looking for.</b>
+Tell everyone in a couple of sentences more specifically what you're
+interested in, to help respondents fine-tune their suggestions.
+&nbsp; <span class=details>(<a <?php echo helpWinHRef("help-formatting")
+?>>Formatting Hints</a>)</span>
+<br><textarea name="desc" rows=4 cols=70><?php
+    echo htmlspecialcharx($newDesc)
+?></textarea>
+
+<p><b>3. Add search keywords.</b> You can make it easier for other
+people to find your poll by entering some keywords for the search
+engine to match.
+
+<br><input type="text" size=70 name="keywords" value="<?php
+    echo htmlspecialcharx($newKeywords)?>">
+
+<p><input type="submit" value="Create It!" name="newPollGo">
+</form>
+
+<?php
+
+} else if ($id) {
+
+    // View a poll (either human-readable or as RSS)
+    
+    // look up the poll information
+    $result = mysql_query(
+        "select
+           p.title, p.`desc`,
+           date_format(p.created, '%M %e, %Y'), p.userid, u.name
+         from
+           polls as p
+           left outer join users as u on u.id = p.userid
+         where p.pollid = '$id'", $db);
+
+    if (mysql_num_rows($result) == 0) {
+        pageHeader("Poll not found");
+        echo "<h1>Poll not found</h1>"
+            . "The requested IFDB poll has been deleted or is invalid.";
+        pageFooter();
+        exit();
+    }
+
+    // fetch the poll row
+    list($title, $desc, $created, $authid, $authname) =
+        mysql_fetch_row($result);
+    $title = htmlspecialcharx($title);
+    $authname = htmlspecialcharx($authname);
+
+    if (isset($_REQUEST['rss'])) {
+        // RSS mode
+
+        // set UTF-8 for RSS
+        iconv_set_encoding("output_encoding", "UTF-8");
+
+        // send the RSS content header
+        header("Content-Type: application/rss+xml");
+        header("Expires: Mon, 26 Jul 1997 05:00:00 GMT");
+        header("Cache-Control: no-store, no-cache, must-revalidate");
+        header("Cache-Control: post-check=0, pre-check=0", false);
+        header("Pragma: no-cache");
+
+        // send the channel header
+        echo "<?xml version=\"1.0\"?>\r\n";
+?>
+<rss version="2.0">
+   <channel>
+      <title><?php echo $title ?>: an IFDB poll by <?php echo $authname ?></title>
+      <link>http://ifdb.tads.org/</link>
+      <description>The latest reviews and listings on IFDB, the
+         Interactive Fiction DataBase.</description>
+      <language>en-us</language>
+<?php
+
+        // retrieve the votes, newest first
+        $result = mysql_query(
+            "select
+               v.userid, u.name,
+               v.gameid, g.title, g.author,
+               v.quickquote, v.notes,
+               v.votedate
+             from
+               pollvotes as v
+               join users as u on u.id = v.userid
+               join games as g on g.id = v.gameid
+             where
+               v.pollid = '$id'
+             order by
+               v.votedate desc", $db);
+
+        $pollUrl = rss_encode(htmlspecialcharx(
+            "http://ifdb.tads.org/poll?id=$id"));
+
+        // send the rows
+        for ($i = 0, $cnt = mysql_num_rows($result) ; $i < $cnt ; $i++) {
+            // fetch the data
+            list($authID, $authName, $gameID, $gameTitle, $gameAuthor,
+                 $quickQuote, $notes, $voteDate) = mysql_fetch_row($result);
+
+            $authName = rss_encode(htmlspecialcharx($authName));
+            $gameTitle = rss_encode(htmlspecialcharx($gameTitle));
+            $gameAuthor = rss_encode(htmlspecialcharx($gameAuthor));
+            $quickQuote = rss_encode(htmlspecialcharx($quickQuote));
+            $notes = rss_encode(htmlspecialcharx($notes));
+            $voteDate = rss_encode(
+                date("D, j M Y H:i:s e", strtotime($voteDate)));
+
+            echo "<item>\r\n"
+                . "<title>$gameTitle"
+                . ($quickQuote ? " - &#34;$quickQuote&#34;" : "")
+                . "</title>\r\n"
+                . "<description>$authName voted for $gameTitle, "
+                . "by $gameAuthor."
+                . ($notes ? " &#34;$notes&#34;" : "")
+                . "</description>\r\n"
+                . "<link>$pollUrl</link>\r\n"
+                . "<pubDate>$voteDate</pubDate>\r\n"
+                . "</item>\r\n";
+        }
+
+        // end the XML packet
+        echo "</channel></rss>";
+
+        // we don't want any HTML footers in the XML version
+        exit();
+
+    } else {
+
+        // Normal (human-readable, not RSS) view
+        pageHeader("$title - an IFDB Poll");
+
+        // show the vote success message if applicable
+        if ($formSuccMsg) {
+            echo "<p><span class=success>$formSuccMsg</span></p>"
+                . "<hr class=dots><p>";
+        }
+?>
+<script type="text/javascript">
+<!--
+function expandVote(id)
+{
+    document.getElementById('voteF' + id).style.display = "";
+    document.getElementById('voteQ' + id).style.display = "none";
+}
+//-->
+</script>
+<?php
+
+        // check for comments
+        $commentCnt = countComments($db, "P", $id);
+
+        // build the comment controls
+        $viewComments = isset($_REQUEST['comments']);
+        $commentCtl = "";
+        if ($viewComments) {
+
+            // already viewing comment - show a link to return to the poll
+            $commentCtl = "<a href=\"poll?id=$id\">Return to the poll</a> - ";
+
+        } else if ($commentCnt != 0) {
+
+            // there are comments - show the number and a link to view them
+            if ($commentCnt != 0)
+                $commentCtl = "<a href=\"poll?id=$id&comments\">"
+                              . "View Comments ($commentCnt)</a> - ";
+        }
+
+        // always include an "Add Comment" link
+        $commentCtl .= "<a href=\"pollcomment?poll=$id\">Add a comment</a>";
+
+        // describe the poll
+        echo "<h1>$title - an IFDB Poll</h1>"
+            . "by <a href=\"showuser?id=$authid\">$authname</a>"
+            . "<br><a href=\"poll?id=$id&rss\">"
+            . "<img border=0 src=\"/blank.gif\" class=\"rss-icon\"></a> "
+            . "<span class=details><a href=\"poll?id=$id&rss\">"
+            . "RSS Feed</a></span>"
+            . "<p>" . fixDesc($desc)
+            . "<p><span class=details>$commentCtl</span><p>"
+            . "<hr class=dots><p>";
+
+        // add a join for votes by the current user, if there is one
+        $curUserVoteExpr = ($userid ? "sum(v2.userid = '$userid')" : "0");
+
+        if (isset($_REQUEST['comments'])) {
+
+            // show the comments
+            showCommentPage($db, $authid, $id, "P",
+                            "poll?id=$id", "pollcomment?poll=$id",
+                            25, "Comments on the poll", "comments");
+
+            pageFooter();
+            exit();
+        }
+
+        // query the votes
+        $result = mysql_query(
+            "select
+               v.userid, u.name, $curUserVoteExpr,
+               v.gameid, g.title, g.author, count(v2.gameid) as votecount,
+               g.coverart,
+               v.quickquote, v.notes,
+               date_format(v.votedate, '%M %e, %Y'),
+               c.comments,
+               r.id, ifnull(r.review, '') <> '', r.rating
+             from
+               pollvotes as v
+               left outer join pollcomments as c
+                 on c.pollid = v.pollid and c.gameid = v.gameid
+               join users as u on u.id = v.userid
+               left outer join reviews as r
+                 on r.userid = v.userid and r.gameid = v.gameid
+               join games as g on g.id = v.gameid
+               join pollvotes as v2
+                 on v2.pollid = v.pollid and v2.gameid = v.gameid
+             where
+               v.pollid = '$id'
+             group by
+               v.gameid, v.userid
+             order by
+               votecount desc,
+               v.gameid,
+               if(ifnull(v.quickquote, '') <> '', 1, 2),
+               v.votedate", $db);
+
+        // fetch all the votes
+        for ($i = 0, $cnt = mysql_num_rows($result), $rows = array() ;
+             $i < $cnt ; $i++)
+            $rows[] = mysql_fetch_row($result);
+
+        // Add any games without votes that have comment records.  It's
+        // possible for a comment record to exist for a game with no votes,
+        // since there might once have been a vote (which allowed the
+        // comment to be added) that has been subsequently deleted.
+        // Structure the query so that the fields are the same as in the
+        // vote query, so that we can essentially 'union' the results
+        // into the vote results.
+        $result = mysql_query(
+            "select
+               null, null, 0,
+               c.gameid, g.title, g.author, 0,
+               null,
+               null, null,
+               '',
+               c.comments,
+               null, null, null
+             from
+               pollcomments as c
+               join games as g on g.id = c.gameid
+               left outer join pollvotes as v
+                 on v.pollid = c.pollid and v.gameid = c.gameid
+             where
+               c.pollid = '$id'
+               and v.pollid is null", $db);
+
+        // fetch all the voteless comments
+        for ($i = 0, $cnt2 = mysql_num_rows($result) ; $i < $cnt2 ; $i++)
+            $rows[] = mysql_fetch_row($result);
+
+        // get the combination list size
+        $cnt += $cnt2;
+
+        // display the list
+        $curGameID = '[start]';
+        for ($i = 0 ; ; $i++) {
+            if ($i < $cnt) {
+                // fetch the next row
+                list($voteUserID, $voteUserName, $curUserVote,
+                     $gameID, $gameTitle, $gameAuthor, $voteCount,
+                     $coverArt,
+                     $quickQuote, $notes,
+                     $voteDateFmt,
+                     $comments,
+                     $reviewID, $hasReviewText, $rating) = $rows[$i];
+
+                $voteUserName = htmlspecialcharx($voteUserName);
+                $gameTitle = htmlspecialcharx($gameTitle);
+                $gameAuthor = htmlspecialcharx($gameAuthor);
+                $quickQuote = htmlspecialcharx($quickQuote);
+                $notes = fixDesc($notes);
+                $comments = fixDesc($comments);
+            } else {
+                // last row
+                $gameID = '[end]';
+            }                
+
+            // if we're on to a new game, start the new game listing
+            if ($gameID != $curGameID) {
+
+                // start the table, or end the previous cell and row,
+                // if applicable
+                if ($i == 0) {
+                    // start the table
+                    echo "<div style=\"width: 100%;\">"
+                        . "<table cellpadding=0 cellspacing=0 "
+                        . "border=0 width=\"100%\">";
+                } else {
+                    // add some space
+                    echo "<br><br>";
+
+                    // show the comments, if any
+                    if ($prvComments) {
+                        // show the comments
+                        echo "$authname says: $prvComments";
+
+                        // if they're mine, allow editing
+                        if ($authid == $userid) {
+                            echo "<br><span class=details>"
+                                . "<a href=\"poll?id=$id&game=$prvGameID"
+                                . "&comment\">Edit comment</a></span>";
+                        }
+
+                        // add some spacing
+                        echo "<br><br>";
+
+                    } else if ($userid == $authid) {
+                        echo "<span class=details>"
+                            . "<a href=\"poll?id=$id&game=$prvGameID"
+                            . "&comment\">Add your own comment about "
+                            . "this game</a>"
+                            . "</span><br>";
+                    }
+
+                    // if the current user voted for this game, offer
+                    // edit/delete links for their vote; otherwise, offer
+                    // an Add My Vote link
+                    echo "<span class=details>";
+                    if ($prvUserVote) {
+                        echo " (You voted for this game - "
+                            . "<a href=\"poll?id=$prvID&addVote"
+                            . "&game=$prvGameID\">"
+                            . "Edit</a> | "
+                            . "<a href=\"poll?id=$prvID&delVote=$prvGameID\">"
+                            . "Delete</a> your vote)";
+                    } else {
+                        $aVote = "<a href=\"poll?id=$id&addVote"
+                                 . "&game=$prvGameID\">";
+                        echo " $aVote<img class=\"vote-checkmark\" "
+                            . "border=0 src=\"blank.gif\"></a> "
+                            . "{$aVote}Vote for this game</a>";
+                    }
+                    echo "</span>";
+
+                    // end the table row
+                    echo "</td></tr><tr>"
+                        . "<td colspan=2 style=\"padding-bottom: 1em;\">"
+                        . "<hr class=dots></td></tr>";
+                }
+    
+                // if we've reached the last row, we're done
+                if ($i >= $cnt) {
+                    // end the table
+                    echo "</td></tr></table></div>";
+
+                    // terminate the loop
+                    break;
+                }
+
+                // start the new row
+                echo "<tr style=\"padding-bottom: 1em; vertical-align:top;\">";
+
+                // show the cover art if available
+                if ($coverArt) {
+                    echo "<td style=\"padding-right: 2em; width: 80px;\">"
+                        . "<a href=\"viewgame?id=$gameID\">"
+                        . "<img border=0 src=\"viewgame?id=$gameID&coverart"
+                        . "&thumbnail=80x80\"></a></td>";
+                } else {
+                    echo "<td style=\"width: 1px;\"></td>";
+                }
+
+                // show the basic game listing
+                echo "<td><a href=\"viewgame?id=$gameID\">"
+                    . "<b>$gameTitle</b></a>, by $gameAuthor<br>"
+                    . "<i>$voteCount vote" . ($voteCount != 1 ? "s" : "")
+                    . "</i>";
+
+                // start a new line only if this is an actual vote row
+                if ($voteUserID)
+                    echo "<br>";
+
+                // this is the current game now
+                $curGameID = $gameID;
+
+                // remember the comments and current-user vote information
+                $prvComments = $comments;
+                $prvUserVote = $curUserVote;
+                $prvID = $id;
+                $prvGameID = $gameID;
+            }
+
+            // if this is a vote (as opposed to a voteless comment),
+            // show the quick quote, with a link to show the full
+            // description and voter
+            if ($voteUserID) {
+                $qq = ($quickQuote ? "\"$quickQuote\"" :
+                       ($notes ? '"' . makeQuickQuote($notes) . '"' :
+                        "<span class=details><i>(No comment)</i></span>"));
+                $expQ = ($quickQuote && $notes ? "\"$quickQuote: $notes\"" :
+                         ($quickQuote ? "\"$quickQuote\"" :
+                          ($notes ? "\"$notes\"" :
+                           "<span class=details><i>(No comment)</i></span>")));
+                $rv = ($rating && $reviewID && $hasReviewText ?
+                       " (" . showStars($rating)
+                       . " - <a href=\"viewgame?id=$gameID&review=$reviewID\">"
+                       . "Full review</a>)" :
+                       ($rating ? " (" . showStars($rating) . ")" :
+                        ""));
+                
+                echo "<span id=\"voteQ$i\">$qq "
+                    . "<span class=details>["
+                    . "<a title=\"Click to see more details\" href=\"needjs\" "
+                    . "onclick=\"javascript:expandVote('$i');return false;\">"
+                    . "+</a>]</span></span>"
+                    . "<span id=\"voteF$i\" style=\"display:none;\">"
+                    . "$expQ $rv <i>--<a href=\"showuser?id=$voteUserID\">"
+                    . "$voteUserName</a></i></span>... ";
+            }
+        }
+
+        if ($cnt == 0) {
+            // use a special description when there's nothing to list
+            echo "There are no votes for games in this poll yet.  You "
+                . "can be the first voter! ";
+        } else {
+            // introduce the add-a-game form
+            echo "Is there another game that you think should be "
+                . "on this list? ";
+        }
+
+        echo "Just fill in the title of a game you'd like to vote for.";
+    
+        // show the add-a-game form
+        echo "<form name=\"addVoteForm\" method=\"get\" action=\"poll\">"
+            . "<input type=hidden name=id value=\"$id\">"
+            . "<input type=hidden name=addVote value=1>"
+            . "<b>Game Title</b> (<i>or</i> <a class=silent "
+            . helpWinHRef("help-tuid") . " title=\"What's a TUID?\">"
+            . "TUID</a> or <a class=silent " . helpWinHRef("help-ifid")
+            . " title=\"What's an IFID?\">IFID</a>): "
+            . "<input type=text size=60 name=\"addTitle\">"
+            . " <input type=submit value=\"Vote!\" "
+            . "name=\"addVoteBtn\">"
+            . "</form>";
+
+        if ($userid == $authid) {
+            echo "<p><hr class=dots><p>"
+                . "<i>You created this poll on $created</i> - "
+                . "<a href=\"poll?id=$id&editPoll\">Modify</a> | "
+                . "<a href=\"poll?id=$id&delPoll\">Delete</a></p>";
+        }
+    }
+
+} else {
+
+    // No ID specified - error page
+    pageHeader("ID Missing");
+    echo "<h1>ID Missing</h1>"
+        . "<p>No poll ID was specified in the link to this page.";
+}
+
+pageFooter();
+
+?>

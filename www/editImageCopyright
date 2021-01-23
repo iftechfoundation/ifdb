@@ -1,0 +1,81 @@
+<?php
+
+include "pagetpl.php";
+include_once "util.php";
+include_once "images.php";
+include "imageuploadhandler.php";
+
+// we have to be logged in to edit a game
+@session_start();
+include "login-check.php";
+if (!logged_in())
+    exit();
+
+$userid = $_SESSION['logged_in_as'];
+
+pageHeader("Image Copyright Information");
+
+$id = get_req_data("id");
+if ($id == "") {
+    echo "The image parameter is missing.";
+    pageFooter();
+    exit();
+}
+
+// get the image's current settings
+list($imgData, $imgFmt, $copyStat, $copyMsg, $imguser) =
+    fetch_image($id, false);
+
+// make sure this is really our image
+if ($imguser != $userid) {
+    echo "This image was uploaded by another user. The copyright "
+        . "attributes can only be edited by the user who originally "
+        . "uploaded the image.";
+    pageFooter();
+    exit();
+}
+    
+
+// use the current database settings for any missing request settings
+if (!isset($_REQUEST['imgcopyright']))
+    $_REQUEST['imgcopyright'] = $copyStat;
+if (!isset($_REQUEST['imgcopyrighttag']))
+    $_REQUEST['imgcopyrighttag'] = $copyMsg;
+
+$copyStat = $_REQUEST['imgcopyright'];
+$copyMsg = $_REQUEST['imgcopyrighttag'];
+
+// no update status yet
+$statMsg = false;
+
+// check for saving updates
+if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_REQUEST['update'])) {
+
+    // do the update
+    if (update_image_copyright($id, false, false, $copyStat, $copyMsg, $errMsg))
+        $statMsg = "<span class=success>Your changes were saved.</span><p>";
+    else
+        $statMsg = "<span class=errmsg>$errMsg "
+                   . "Your changes were not saved.</span><p>";
+}
+
+?>
+<h1>Image Copyright Information</h1>
+<?php echo $statMsg ?>
+<img src="showimage?id=<?php echo $id ?>&thumbnail=250x250"><p>
+<form method=post action="editImageCopyright"
+   name="imageupload" id="imageupload">
+   <input type=hidden name="id" value="<?php echo $id ?>">
+
+   <p>Please select the image copyright status:
+
+   <?php showImageCopyrightForm($copyStat, "") ?>
+
+   <p><input type=submit name=update value="Save Changes">
+
+</form>
+
+
+<?php
+pageFooter();
+?>

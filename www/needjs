@@ -1,0 +1,37 @@
+<?php
+include "pagetpl.php";
+
+pageHeader("JavaScript Required");
+?>
+
+<h1>JavaScript Required</h1>
+
+<p>The function you're attempting to use requires JavaScript.  If your
+browser is JavaScript-capable but you've disabled scripting in your
+preference settings, you'll have to re-enable it to access this
+feature.
+
+<h2>If JavaScript is enabled...</h2>
+
+<p>If you have a JavaScript-capable browser, and scripting is already
+enabled, here are a couple of possibilities for what went wrong...
+
+<p><b>Did you open a link in a new tab or window?</b> If you reached
+this page by trying to open a hyperlink in a new tab or a new window
+(by Shift-Clicking or Ctrl-Clicking on the link, for example), try
+going back and clicking on the link normally.  <b>Tip:</b> many of our
+"Help" links automatically open a pop-up window, to avoid interrupting
+what you were doing, so there's no need to explicitly open a new
+tab/window for these.
+
+<p><b>There might be an error in one of our scripts.</b> If a
+JavaScript error occurs in a script link, the browser will sometimes
+act as though there's no script at all, which has the effect of taking
+you to this page as though JavaScript weren't enabled.  This might
+indicate a bug in the page.  You might try going back and reloading
+the page, in case it didn't load properly; if the problem persists,
+you can <a href="contact">contact us</a> to let us know about it.
+
+<?php
+pageFooter();
+?>

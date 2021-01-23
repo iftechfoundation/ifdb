@@ -1,0 +1,97 @@
+<?php
+
+@session_start();
+include_once "util.php";
+include "pagetpl.php";
+include "login-check.php";
+
+function sendResponse($statmsg, $errmsg, $detail)
+{
+    global $xml;
+    
+    if ($xml)
+    {
+        header("Content-Type: text/xml");
+        header("Expires: Mon, 26 Jul 1997 05:00:00 GMT");
+        header("Cache-Control: no-store, no-cache, must-revalidate");
+
+        echo "<?xml version=\"1.0\" encoding=\"UTF-8\" ?><response>"
+            . ($statmsg ? "<label>$statmsg</label>" : "")
+            . ($errmsg ? "<error>$errmsg</error>" : "")
+            . "</response>";
+    }
+    else
+    {
+        smallPageHeader("Review Vote");
+        if ($errmsg)
+            echo "<span class=errmsg>$errmsg</span><p>";
+
+        echo $detail;
+        smallPageFooter();
+    }
+
+    exit();
+}
+
+// connect to the database
+include_once "dbconnect.php";
+$db = dbConnect();
+if ($db == false)
+    sendResponse("Not Saved", "An error occurred connecting to the database. "
+                 . "Please try again later.", false);
+
+// get the request parameters
+$id = $_REQUEST['id'];
+$vote = $_REQUEST['vote'];
+$xml = isset($_REQUEST['xml']);
+
+// make sure we process any persistent login state
+$userid = checkPersistentLogin();
+if (!$userid && !$xml && !logged_in(true))
+    exit();
+
+if (!$userid)
+    sendResponse("Not Saved", "To vote on a reviews, please log in.", false);
+
+if (isEmpty($id) || isEmpty($vote) || strstr("YN", $vote) == false)
+    sendResponse("Not Saved", "This voting link is not valid.", false);
+
+// make sure the game is valid
+$qid = mysql_real_escape_string($id, $db);
+$result = mysql_query("select id from reviews where id = '$qid'", $db);
+if (mysql_num_rows($result) == 0)
+    sendResponse("Not Saved",
+                 "This voting link refers to a non-existent review.",
+                 false);
+
+// check for any past review for the same game by the same user
+$result = mysql_query("select vote from reviewvotes
+    where reviewid = '$qid' and userid = '$userid'", $db);
+if (mysql_num_rows($result) > 0)
+    $oldvote = mysql_result($result, 0, "vote");
+
+// delete any past vote by the same user for the same review
+mysql_query("delete from reviewvotes
+    where reviewid = '$qid' and userid = '$userid'", $db);
+
+// insert a new vote
+$result = mysql_query("insert into reviewvotes
+    (reviewid, userid, vote) values ('$qid', '$userid', '$vote')", $db);
+
+// explain what happened
+if ($result) {
+    sendResponse("Vote Recorded - Thanks!", false,
+                 "Thanks for voting! Your vote has been recorded."
+                 . (!isEmpty($oldvote)
+                    ? "<p>This replaces your previous vote for this review. "
+                    . "(Everyone gets one vote, so this doesn't count as an "
+                    . "extra vote, but you <i>can</i> switch your vote at any "
+                    . "time.)"
+                    : ""));
+} else {
+    sendResponse("Not Saved", "An error occurred updating the database. "
+                 . "Please try again later.", false);
+}
+
+smallPageFooter();
+?>

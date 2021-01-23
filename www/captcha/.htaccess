@@ -1,0 +1,18 @@
+#<FilesMatch ".*">
+#  Order Deny,Allow
+#  Deny from All
+#</FilesMatch>
+
+RewriteEngine on
+Options FollowSymLinks
+RewriteBase /
+
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteRule (.*) /error404 [L]
+
+RewriteCond %{REQUEST_FILENAME} -f
+RewriteRule (.*) /error403 [L]
+
+RewriteCond %{REQUEST_FILENAME} -d
+RewriteRule (.*) /error403 [L]
+

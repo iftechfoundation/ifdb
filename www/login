@@ -1,0 +1,284 @@
+<?php
+
+include "pagetpl.php";
+include_once "util.php";
+include_once "login-check.php";
+include_once "dbconnect.php";
+
+@session_start();
+
+$errFlagged = false;
+
+// get the request parameters, if present
+$username = get_req_data('userid');
+$psw = get_req_data('password');
+$persist = get_req_data('persist');
+$smallPage = get_req_data('small');
+$dest = get_req_data('dest');
+
+include_once "login-persist.php";
+
+function login()
+{
+    global $db, $errFlagged, $errCode, $uid, $username, $psw, $persist, $dest,
+       $smallPage;
+
+    // note the client IP address
+    $ip = $_SERVER['REMOTE_ADDR'];
+
+    // set up the database connection
+    $db = dbConnect();
+    if ($db == false)
+    {
+        $errFlagged = "An error occurred accessing the user database. Please
+            try again. If the problem persists, please
+            <a href='/contact'>contact us</a> to let us know about
+            the problem.";
+        return true;
+    }
+
+    // If we're just opening the page for the first time (not responding
+    // to a form), check for an existing login.
+    if ($_SERVER['REQUEST_METHOD'] == 'GET') {
+        // if 'switch' is set, this counts as a logout
+        if (isset($_REQUEST['switch']) && $_SESSION['logged_in']) {
+            // not the UID
+            $uid = $_SESSION['logged_in_as'];
+
+            // clear the session login status
+            $_SESSION['logged_in'] = false;
+            $_SESSION['logged_in_as'] = null;
+            unset($_SESSION['provisional_logged_in_as']);
+
+            // clear the recommendation cache
+            shoot_recommendation_cache();
+
+            // delete any persistent session keys for the user
+            mysql_query("delete from persistentsessions
+                where userid = '$uid'", $db);
+        }
+
+        // check for a persistent connection
+        $usernum = checkPersistentLogin();
+
+        // check to see if we're already logged in - if we are, confirm the
+        // logged-in user and show how to log out.
+        if ($usernum) {
+            $result = mysql_query("select email from users
+                where id = '$usernum'", $db);
+            if (mysql_num_rows($result) > 0) {
+                $username = mysql_result($result, 0, "email");
+
+                // start the page
+                varPageHeader("Logged In", false, $smallPage);
+?>
+
+<h1>Logged In</h1>
+
+<p>You are currently logged in as <?php echo htmlspecialcharx($username) ?>.
+<a href="logout">Click here to log out</a>.
+
+<?php
+                varPageFooter($smallPage);
+                return false;
+            }
+        }
+    }
+
+    // if the user ID is empty, no need to bother going futher
+    if (strlen($username) == 0) {
+        // simply return without an error - this is probably a first visit
+        // to the page, so we simply want to show the entry form
+        return true;
+    }
+
+    // if this is a GET with a username but no password, assume that
+    // another page has pre-populated the user ID field rather than that
+    // this is an actual login attempt
+    if ($_SERVER['REQUEST_METHOD'] == 'GET'
+        && !isset($_REQUEST['password']))
+        return true;
+
+    // if there's no '@' in the user ID, flag an error
+    if (strstr($username, '@') == false) {
+        $errFlagged = "Please enter a valid email address (there must "
+                      . "be an '@' sign in the address).";
+        return true;
+    }
+
+    // try logging in
+    list($userid, $errCode, $errFlagged) = doLogin($db, $username, $psw);
+
+    // if that failed, return and tell the caller to show the login form again
+    if (!$userid)
+        return true;
+
+    // if there's a redirect page, go there
+    if (strlen($dest) != 0) {
+        // go to the redirect page
+        header("HTTP/1.1 301 Moved Permanently");
+        header("Content-Type: text/html");
+        header("Location: $dest");
+
+        // set the persistent session cookie, if desired
+        if ($persist)
+            setLoginCookie($db, $userid, $ip);
+
+        echo("Redirecting to $dest<br><br><a href=\"$dest\">");
+        echo("(Click here if your browser doesn't redirect automatically)");
+        echo("</a>");
+
+        // no need to continue with the rest of the page
+        return false;
+
+    } else {
+        // there's no redirect, so simply show a confirmation screen; first,
+        // though, set the persistent session cookie if desired
+        if ($persist)
+            setLoginCookie($db, $userid, $ip);
+
+        // start the page
+        varPageHeader("Login Successful", false, $smallPage);
+?>
+
+<h1>Login Successful</h1>
+
+<p>Welcome!
+
+<p>You are now logged in as <?php echo htmlspecialcharx($username) ?>.
+<a href="/index">Click here</a> to go to the IFDB home page.
+
+<?php
+      varPageFooter($smallPage);
+   }
+
+   // we're now logged in, so don't show the user/password entry form
+   return false;
+}
+
+// try logging in - if that returns false, our work here is done
+if (!login())
+    exit();
+    
+// Figure the initial focus: if this is a GET with a user ID but no
+// password, assume the user ID field was pre-populated by the referring
+// page, so start in the password field.  Otherwise start in the user ID
+// field.
+$initField = (($_SERVER['REQUEST_METHOD'] == 'GET'
+               && $username && !$psw) ? "login.password" : "login.userid");
+
+// start the page
+varPageHeader("Log in", $initField, $smallPage);
+
+if ($smallPage) {
+?>
+
+<form method="post" action="login" name="login">
+   <?php
+if ($errFlagged != false)
+    echo "<font color=red><b>$errFlagged</b></font><p><br>";
+else
+    echo "<b>You must sign in to access this feature.</b><br>";
+   ?>
+
+   <table border=0>
+      <tr>
+         <td>
+            Email:
+         </td>
+         <td>
+            <input type="text" name="userid" id="userid" size=20
+                   value="<?php echo $username ?>" tabindex=0>
+         </td>
+      <tr>
+         <td>
+            Password:
+         </td>
+         <td>
+            <input type="password" name="password" id="password" size=20>
+         </td>
+      </tr>
+   </table>
+
+   <label><input type="checkbox" name="persist" id="persist" value=1
+      <?php if ($persist) echo "checked"?>>
+      <label for="persist">Remember me (requires cookies)</label></label>
+
+   <br>
+   <input type=submit value="Submit">
+   <input type=hidden name="dest" id="dest" value="<?php
+       echo htmlspecialcharx($dest) ?>">
+</form>
+
+<?php
+} else {
+?>
+
+<h1>Sign In</h1>
+
+<?php
+if (isset($_REQUEST['dest'])) {
+    echo "<p>Please log in to access this feature.";
+}
+else {
+    echo "<p>Logging in gives you access to collaborative and
+      customization features, such as editing game listings, posting
+      reviews, and creating lists.";
+}
+echo " If you don't already have an account, signing up only takes "
+   . "a few minutes, and it's free.";
+?>
+
+<form method=post
+   action="login" name="login">
+
+   <?php
+if ($errFlagged != false)
+    echo "<font color=red><b>$errFlagged</b></font><p>";
+   ?>
+
+   <table border=0>
+      <tr>
+         <td>&nbsp;</td>
+         <td  style="padding-bottom: 1em;">
+            <span class=details>
+               <a href="newuser">New user</a> |
+               <a href="lostpass">Lost password</a> |
+               <a href="lostact"">Lost activation email</a>
+            </span>
+         </td>
+      <tr>
+         <td>
+            Email address:
+         </td>
+         <td>
+            <input type="text" name="userid" id="userid" size=30
+                   value="<?php echo $username ?>" tabindex=0>
+         </td>
+      </tr>
+
+      <tr>
+         <td>
+            Password:
+         <td>
+            <input type="password" name="password" id="password" size=30>
+         </td>
+      </tr>
+   </table>
+
+   <br><label><input type="checkbox" name="persist" id="persist" value=1
+      <?php if ($persist) echo "checked"?>>
+      <label for="persist">Remember me on this computer (your browser
+         must accept "cookies")</label></label>
+
+   <br><br>
+   <input type=submit value="Submit">
+   <input type=hidden name="dest" id="dest" value="<?php
+      echo htmlspecialcharx($dest) ?>">
+
+</form>
+
+<?php
+}
+varPageFooter($smallPage);
+?>

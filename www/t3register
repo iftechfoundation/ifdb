@@ -1,0 +1,24 @@
+<?php
+
+include_once "util.php";
+include_once "dbconnect.php";
+
+// connect to the storage server database
+$sdb = storageDbConnect();
+
+// get the session parameters
+$qsid = mysql_real_escape_string(get_req_data("session"), $sdb);
+$qaddr = mysql_real_escape_string(get_req_data("addr"), $sdb);
+
+// update the session record with the game server root URL
+$result = mysql_query(
+    "update sessions
+     set url='$qaddr'
+     where sessionid='$qsid'", $sdb);
+
+if ($result)
+    echo "OK";
+else
+    echo "ERROR";
+
+?>

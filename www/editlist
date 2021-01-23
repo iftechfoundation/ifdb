@@ -1,0 +1,967 @@
+<?php
+
+include "pagetpl.php";
+include_once "util.php";
+include "lists.php";
+include_once "gamesearchpopup.php";
+
+// we have to be logged in to edit a game
+@session_start();
+include "login-check.php";
+if (!logged_in())
+    exit();
+
+$userid = $_SESSION['logged_in_as'];
+$errMsg = false;
+$errItems = false;
+$saveErrMsg = false;
+$pagetitle = "Edit Recommended List";
+
+include_once "dbconnect.php";
+$db = dbConnect();
+
+$listid = $_REQUEST['id'];
+$qlistid = mysql_real_escape_string($listid, $db);
+
+$result = mysql_query("select name, location from users
+    where id='$userid'", $db);
+list($username, $userloc) = mysql_fetch_row($result);
+
+$listTitle = get_req_data("title");
+$listDesc = get_req_data("desc");
+$listKeywords = get_req_data("keywords");
+$listItems = array();
+
+$errDetails = false;
+
+function addHiddenItems()
+{
+    global $listTitle, $listDesc, $listKeywords, $listItems;
+
+    $qtitle = htmlspecialcharx($listTitle);
+    $qdesc = htmlspecialcharx($listDesc);
+    $qkeywords = htmlspecialcharx($listKeywords);
+    echo "<input type=\"hidden\" name=\"title\" value=\"$qtitle\">"
+        . "<input type=\"hidden\" name=\"desc\" value=\"$qdesc\">"
+        . "<input type=\"hidden\" name=\"keywords\" value=\"$qkeywords\">";
+
+    for ($i = 0 ; $i < count($listItems) ; $i++) {
+        $item = $listItems[$i];
+        $tuid = htmlspecialcharx($item['tuid']);
+        $title = isset($item['title']) ? htmlspecialcharx($item['title']) : "";
+        $comments = htmlspecialcharx($item['comments']);
+
+        if ($tuid != "")
+            echo "<input type=\"hidden\" name=\"tuid$i\" value=\"$tuid\">";
+        else
+            echo "<input type=\"hidden\" name=\"title$i\" value=\"$title\">";
+
+        echo "<input type=\"hidden\" name=\"comments$i\" value=\"$comments\">";
+    }
+}
+
+function prependPlus($str)
+{
+    return "+" . $str;
+}
+
+if ($listid == 'new') {
+    // it's a new list
+    $pagetitle = "New Recommended List";
+
+} else {
+    $result = mysql_query("select title, userid, `desc`, keywords
+        from reclists
+        where id = '$qlistid'", $db);
+    if (mysql_num_rows($result) == 0) {
+        $errMsg = "The requested list was not found in the database.";
+    } else {
+        $listTitle = mysql_result($result, 0, "title");
+        $listOwner = mysql_result($result, 0, "userid");
+        $listDesc = mysql_result($result, 0, "desc");
+        $listKeywords = mysql_result($result, 0, "keywords");
+        if ($listOwner != $userid) {
+            $errMsg = "The requested list was created by another user. You
+                 can only edit lists that you created.";
+        } else {
+            // we can edit it - set the page title to include the list name
+            $pagetitle = "$listTitle - Edit List";
+
+            // load the list contents
+            $result = mysql_query(
+                "select
+                  gameid as tuid, title, author, comments, displayorder
+                from
+                  reclistitems, games
+                where
+                  listid = '$qlistid'
+                  and games.id = reclistitems.gameid
+                order by displayorder", $db);
+
+            for ($listItems = array(), $i = 0 ;
+                 $i < mysql_num_rows($result) ; $i++)
+                $listItems[] = mysql_fetch_array($result, MYSQL_ASSOC);
+        }
+    }
+}
+
+if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+    $newtitle = get_req_data('title');
+    $newdesc = get_req_data('desc');
+    $newkeywords = get_req_data('keywords');
+
+    for ($i = 0, $newitems = array() ; ; $i++) {
+        // if we're out of items, stop looking
+        if (!isset($_REQUEST["comments$i"]))
+            break;
+
+        // read this item
+        $item = array();
+        $item['tuid'] = get_req_data("tuid$i");
+        $item['title'] = get_req_data("title$i");
+        $item['comments'] = get_req_data("comments$i");
+
+        // if the TUID is "(deleted)", it means that the row was deleted,
+        // so skip it
+        if ($item['tuid'] == "(deleted)")
+            continue;
+
+        // add it to the list
+        $newitems[] = $item;
+    }
+}
+
+// check for a deletion request
+if ($listid != 'new' && isset($_REQUEST['delete'])) {
+
+    // ask for confirmation, showing what's stored in the database
+    pageHeader("Confirm Deletion");
+    echo "<h1>Confirm Deletion</h1>"
+        . "Do you really want to <b>permanently</b> delete this "
+        . "Recommended List? <b>This deletes the entire existing list,</b> "
+        . "not just your current changes."
+        . "<p><div class=indented><b>"
+        . htmlspecialcharx($listTitle)
+        . "</b><br>"
+        . fixDesc($listDesc)
+        . "</div><p>"
+        . "<form name=\"confirmdelete\" id=\"confirmdelete\" method=\"post\" "
+        . "action=\"editlist?id=$listid\">"
+        . "<input type=submit value=\"Delete List\" name=\"confirmDelete\">"
+        . " &nbsp;&nbsp; "
+        . "<input type=submit value=\"Cancel\" name=\"cancelDelete\">";
+
+    // save the updated items on the form in case they cancel
+    $listTitle = $newtitle;
+    $listDesc = $newdesc;
+    $listKeywords = $newkeywords;
+    $listItems = $newitems;
+    addHiddenItems();
+
+    echo "</form>";
+
+    pageFooter();
+    exit();
+}
+
+// check for delete confirm/cancel
+if ($listid != 'new' && $_SERVER['REQUEST_METHOD'] == 'POST'
+    && isset($_REQUEST['cancelDelete'])) {
+
+} else if ($listid != 'new' && $_SERVER['REQUEST_METHOD'] == 'POST'
+    && isset($_REQUEST['confirmDelete'])) {
+
+    // that's a go on delete - delete the list and confirm
+
+    // lock tables
+    $progress = "LCK6034";
+    $result = mysql_query(
+        "lock tables
+            reclists write,
+            reclistitems write,
+            ucomments write", $db);
+
+    if ($result) {
+        $progress = "DEL6035";
+        $result = mysql_query(
+            "delete from reclists where id = '$qlistid'", $db);
+    }
+    
+    if ($result) {
+        $progress = "DEL6036";
+        $result = mysql_query(
+            "delete from reclistitems  where listid = '$qlistid'", $db);
+    }
+
+    if ($result) {
+        $progress = "DEL6037";
+        $result = mysql_query(
+            "delete from ucomments
+             where source = 'L' and sourceid = '$qlistid'", $db);
+    }
+
+    // indicate what happened
+    pageHeader($result ? "List Deleted" : "Error");
+
+    if ($result)
+        echo "<h1>List Deleted</h1>The list has been deleted.";
+    else
+        echo "<h1>Error</h1>"
+            . "A database error occurred deleting the list. You "
+            . "might want to <a href='contact'>contact us</a> to report "
+            . "the problem - if you do, please pass along this error "
+            . "code for reference: $progress.";
+
+    pageFooter();
+    exit();
+}
+
+// copy over the request values as the new display values
+if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+    $listTitle = $newtitle;
+    $listDesc = $newdesc;
+    $listKeywords = $newkeywords;
+    $listItems = $newitems;
+}
+
+// If we're confirming matches, process each selected match, then either
+// continue on to the preview or return to the editing form, depending
+// on whether we have anything still left to resolve.
+if ($_SERVER['REQUEST_METHOD'] == 'POST'
+    && isset($_REQUEST['selectmatches'])) {
+
+    // run through the item list and apply the user's selections
+    for ($i = 0, $deferred = false, $missing = false ;
+         $i < count($listItems) ; $i++) {
+
+        // get this item
+        $item = $listItems[$i];
+        $tuid = mysql_real_escape_string($item['tuid'], $db);
+        $title = mysql_real_escape_string($item['title'], $db);
+
+        // skip blank items
+        if (($tuid == "" && $title == "") || $tuid == "(deleted)")
+            continue;
+
+        // if this item hasn't been resolved yet, check the radio button
+        // setting for the item to see if the user resolved it for us
+        if ($tuid == "") {
+            // determine which radio button the user selected for the item
+            $sel = $_REQUEST["selectmatch$i"];
+            if ($sel == "(nota)") {
+                // this item was referred back for more editing
+                $deferred = true;
+            } else {
+                // we have a resolution - set the resolved TUID in the item
+                $tuid = $item['tuid'] = $sel;
+
+                // we no longer need the title, as we've resolved it to
+                // a specific listing
+                unset($item['title']);
+            }
+        }
+
+        // if this item has been resolved, just check to make sure its
+        // database entry still exists
+        if ($tuid != "") {
+            // look it up
+            $result = mysql_query("select id from games
+                where id='$tuid'", $db);
+
+            // if we didn't find it, flag that we 
+            if (mysql_num_rows($result) == 0) {
+                // flag it as missing
+                $missing = true;
+
+                // switch its TUID to a title
+                $item['title'] = $item['tuid'];
+                unset($item['tuid']);
+            }
+        }
+        
+        // put the item back in the master list, in case we modified it
+        $listItems[$i] = $item;
+    }
+
+    // If we have no missing or deferred items, proceed to the preview;
+    // otherwise, return to the main form.
+    if (!($missing || $deferred))
+        $_REQUEST['preview'] = 1;
+}
+
+if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_REQUEST['preview'])) {
+    // our common select list
+    $sel = "select games.id, games.title, games.author,
+              (games.coverart is not null) as hasart,
+              date_format(games.published, '%Y') as pubyear";
+
+    // run through the new items and resolve each title/TUID
+    for ($i = 0, $numfound = 0, $resolved = false ;
+         $i < count($listItems) ; $i++)
+    {
+        // get the item
+        $item = $listItems[$i];
+
+        // no matches yet
+        $matches = array();
+
+        // pull out the search terms
+        $tuid = mysql_real_escape_string($item['tuid'], $db);
+        $title = isset($item['title'])
+                 ? mysql_real_escape_string($item['title'], $db) : "";
+
+        // skip empty and deleted items
+        if (($title == "" && $tuid == "") || $tuid == "(deleted)")
+            continue;
+
+        // if there's no explicit tuid, use the title as the effective tuid
+        $efftuid = ($tuid != "" ? $tuid : $title);
+
+        // first, try looking up the item as a TUID
+        $result = mysql_query("$sel from games where id='$efftuid'", $db);
+        if (mysql_num_rows($result) > 0)
+            $matches[] = mysql_fetch_array($result, MYSQL_ASSOC);
+        else if ($tuid) {
+            // we had a pre-resolved item, but it's not in the database -
+            // maybe it got deleted; in any case, revert to a title for
+            // this tuid
+            $title = $item['title'] = $item['tuid'];
+            unset($item['tuid']);
+        }
+
+        // now look up the title in full-text mode, if a title was given
+        if ($title != "") {
+            // note that we had to look up a title
+            $resolved = true;
+
+            // try it as an IFID
+            $ifid = strtoupper($title);
+            $result = mysql_query("$sel from games, ifids
+                where games.id=ifids.gameid and ifids.ifid='$ifid'", $db);
+            if (mysql_num_rows($result) > 0)
+                $matches[] = mysql_fetch_array($result, MYSQL_ASSOC);
+
+            // build the title as a list of mandatory words for boolean search
+            $titleMatch = mysql_real_escape_string(
+                implode(" ", array_map("prependPlus", explode(" ", $title))),
+                $db);
+            $title = mysql_real_escape_string(quoteSqlLike($title), $db);
+
+            // do a full-text search against titles
+            $result = mysql_query(
+                "$sel from games
+                where
+                  title like '%$title%'
+                  or match (title) against ('$titleMatch' in boolean mode)
+                order by
+                  if(title like '$title',0,1),
+                  if(title like '$title%',0,1),
+                  if(title like '%$title%',0,1),
+                  match (title) against ('$titleMatch' in boolean mode) desc",
+                  $db);
+            $rowcnt = mysql_num_rows($result);
+            for ($j = 0 ; $j < $rowcnt ; $j++)
+                $matches[] = mysql_fetch_array($result, MYSQL_ASSOC);
+        }
+
+        // if this is empty, flag it as an error
+        if (count($matches) == 0)
+            $errDetails[$i] = "No games were found matching this title.";
+        else
+            $numfound++;
+
+        // add the matches to the item, and update the item in the array
+        $item['matches'] = $matches;
+        $listItems[$i] = $item;
+    }
+
+    // If we have any items with errors, stop and return to the entry
+    // form for corrections.  If we had to resolve any items, show each
+    // selection, and give the user a chance to (a) select from multiple
+    // matches, (b) confirm single matches, and (c) reject any matches
+    // and make further edits.
+    if ($errDetails) {
+
+        // note that we have unmatched items, and return to the main form
+        $saveErrMsg = "One or more of the titles you entered were not found
+            in the database. Check the titles marked below and make any
+            necessary corrections. If any of the games you're looking for
+            aren't listed in IFDB yet, we encourage you to
+            <a href=\"editgame?id=new\" target=\"_blank\">add them</a>.";
+
+    } else if ($numfound == 0) {
+
+        // note that they haven't entered any games yet
+        $saveErrMsg = "You haven't added any games to your list yet.";
+
+    } else if ($listTitle == "") {
+
+        // we need a name
+        $saveErrMsg = "Please give your list a name.";
+
+    } else if ($resolved) {
+
+        // show each resolved item
+        pageHeader("Preview List");
+        ?>
+
+        <h1>Title Lookup - Confirm Matches</h1>
+
+        <p>We found the following matches for the titles that you
+        entered.  Please confirm that these are the items you intended.
+        If any of the games you're looking for aren't listed in IFDB
+        yet, we encourage you to
+        <a href="editgame?id=new" target="_blank">add them</a>.
+
+        <p>
+        <form name="previewlist" id="previewlistForm" method="post"
+              action="editlist?id=<?php echo $listid ?>">
+
+           <?php
+               // add hidden items to maintain our state
+               addHiddenItems();
+           ?>
+
+           <table class="dataform" border=0 cellspacing=0 cellpadding=0>
+
+              <?php
+               for ($i = 0 ; $i < count($listItems) ; $i++) {
+                   // get this item and its match list
+                   $item = $listItems[$i];
+                   $tuid = $item['tuid'];
+                   $title = htmlspecialcharx($item['title']);
+                   $match = $item['matches'];
+
+                   // skip empty items
+                   if (($title == "" && $tuid == "") || $tuid == "(deleted)")
+                       continue;
+
+                   // add a blank row if not on the first row
+                   if ($i != 0)
+                       echo "</td><tr><td>&nbsp;<br></td></tr>";
+
+                   // start the item
+                   echo "<tr><td><b>" . ($i+1) . ". </b></td><td>";
+
+                   // if it's already resolved, just show the resolved item
+                   if ($tuid != "") {
+                       // show the item
+                       listMatchItem($match[0], false, true, false);
+                   } else {
+                       // show the original user entry for the item
+                       echo "\"$title\"</td></tr>";
+
+                       // show the options for this item
+                       for ($j = 0 ; $j < count($match) ; $j++) {
+
+                           // start a new row 
+                           echo "<tr><td></td><td>";
+
+                           // get the match
+                           $m = $match[$j];
+                           $tuid = htmlspecialcharx($m['id']);
+
+                           // show a radio button for the match
+                           echo "<label><input type=\"radio\" "
+                               . "id=\"matchradio{$i}-{$j}\" "
+                               . "name=\"selectmatch$i\" value=\"$tuid\">"
+                               . "<label for=\"matchradio{$i}-{$j}\"> ";
+
+                           // show the item
+                           listMatchItem($m, false, false, false, false);
+
+                           // end the radio button
+                           echo "</label></label><br>";
+
+                           // end the table row
+                           echo "</td></tr>";
+                       }
+
+                       // add the "none of these" button
+                       echo "<tr><td></td><td>"
+                           . "<label><input type=\"radio\" checked=1 "
+                           . "id=\"matchradio{$i}-nota\" "
+                           . "name=\"selectmatch$i\" value=\"(nota)\">"
+                           . "<label for=\"matchradio{$i}-nota\">"
+                           . " None of the above"
+                           . "</label></label>"
+                           . "</td></tr>";
+                   }
+               }
+
+               // close out the last row
+               echo "</td></tr>";
+              ?>
+
+           </table>
+
+           <p>
+           <input type="submit" value="Continue" name="selectmatches">
+        </form>
+        <?php
+        pageFooter();
+
+        // we're done - do not show the main form
+        exit();
+
+    } else {
+        // show what we found
+        pageHeader("Preview List");
+        ?>
+
+        <h1>Preview "<?php echo htmlspecialcharx($listTitle) ?>"</h1>
+
+        <p>Your list is shown below as it will appear when it's published.
+        If you're satisfied with the list, click Publish (you can always
+        revise it further after it's published).  If you want to make
+        changes, click Continue Editing.
+
+        <form name="previewlist" id="previewlistForm" method="post"
+              action="editlist?id=<?php echo $listid ?>">
+
+           <p>
+           <input type="submit" value="Publish" name="publish"> &nbsp;&nbsp;
+           <input type="submit" value="Continue Editing" name="edit">
+
+           <p>
+           <hr class=dots>
+           <p>
+           <?php
+               $now = date("M j, Y");
+               showRecList($db, $qlistid, $userid, $username, $userloc,
+                           $listTitle, $listDesc, $now, $listItems,
+                           "_blank", false);
+           ?>
+
+           <p><hr class=dots><p>
+
+           <?php
+               // add hidden items for the entries, in case we need to go back
+               addHiddenItems();
+           ?>
+           
+           <p>
+           <input type="submit" value="Publish" name="publish"> &nbsp;&nbsp;
+           <input type="submit" value="Continue Editing" name="edit">
+           
+        </form>
+
+        <?php
+
+        pageFooter();
+
+        // done - don't show the normal form
+        exit();
+    }
+}
+
+// if we're ready to publish, go ahead with that
+if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_REQUEST['publish'])) {
+
+    // we haven't added a new row for the list yet
+    $insertedList = false;
+
+    // start a transaction
+    $progress = "BTX7411";
+    $result = mysql_query("set autocommit=0", $db);
+    if ($result)
+        $result = mysql_query("start transaction", $db);
+
+    // lock the tables that will be involved in the transaction
+    if ($result) {
+        $progress = "LKT7412";
+        $result = mysql_query("lock tables reclists write,
+            reclistitems write", $db);
+    }
+
+    // if this is a new list, assign an ID for it
+    if ($listid == 'new') {
+        // it's a new list - generate a TUID for it
+        if ($result) {
+            $progress = "TUI7413";
+            $tuid = generateTUID($db, "reclists.id", 10);
+        }
+
+        // if we didn't manage to generate a random ID, give up
+        if (!$tuid)
+            $result = false;
+
+    } else {
+        // it's an existing list - use the existing TUID
+        $tuid = $listid;
+    }
+
+    // get escaped versions of the list row data
+    $qtuid = mysql_real_escape_string($tuid, $db);
+    $qtitle = mysql_real_escape_string($listTitle, $db);
+    $qdesc = mysql_real_escape_string($listDesc, $db);
+    $qkw = mysql_real_escape_string($listKeywords, $db);
+
+    // insert or update the main list table row
+    if ($result) {
+        if ($listid == 'new') {
+            // new list - insert a row
+            $progress = "INL7414";
+            $result = mysql_query("insert into reclists
+                (id, userid, title, `desc`, keywords, createdate)
+                values ('$qtuid', '$userid', '$qtitle',
+                        '$qdesc', '$qkw', now())", $db);
+
+            // if this was a successful insert, note it
+            if ($result)
+                $insertedList = true;
+        } else {
+            // existing list - update it
+            $progress = "UPL7415";
+            $result = mysql_query("update reclists
+                set title='$qtitle', `desc`='$qdesc', keywords='$qkw'
+                where id='$qtuid'", $db);
+        }
+    }
+
+    // if we're updating an existing list, delete any old items in the list
+    if ($result && $listid != 'new') {
+        $progress = "DLI7416";
+        $result = mysql_query("delete from reclistitems
+            where listid = '$qtuid'", $db);
+    }
+
+    // insert the item rows
+    for ($i = 0 ; $i < count($listItems) ; $i++) {
+        // get the item fields
+        $item = $listItems[$i];
+        $gameid = mysql_real_escape_string($item['tuid'], $db);
+        $comments = mysql_real_escape_string($item['comments'], $db);
+        $ord = $i+1;
+
+        // skip empty rows
+        if ($gameid == "" || $gameid == "(deleted)")
+            continue;
+
+        // insert the row
+        if ($result) {
+            $progress = "INI7417.$i";
+            $result = mysql_query("insert into reclistitems
+                (listid, gameid, comments, displayorder)
+                values ('$qtuid', '$gameid', '$comments', '$ord')", $db);
+        }
+    }
+
+    // unlock the tables
+    mysql_query("unlock tables", $db);
+
+    // if successful so far, commit; otherwise roll back
+    if ($result) {
+        $progress = "CTX7418";
+        $result = mysql_query("commit", $db);
+    }
+    else {
+        //if (!mysql_query("rollback", $db)) {
+            // no transactions - do an ad hoc rollback of whatever we can
+            if ($insertedList) {
+                mysql_query("delete from reclists where id = '$qtuid'", $db);
+                mysql_query("delete from reclistitems
+                   where listid = '$qtuid'", $db);
+            }
+        //}
+    }
+
+    // restore auto-commit mode
+    mysql_query("set autocommit=1", $db);
+
+    // if we were successful, redirect to the new list page
+    if ($result) {
+        header("HTTP/1.1 301 Moved Permanently");
+        header("Content-Type: text/html");
+        header("Location: viewlist?id=$tuid");
+
+        echo "<a href=\"viewlist?id=$tuid\">Redirecting
+            (click here if your browser doesn't redirect
+             automatically)</a>";
+
+        exit();
+    }
+
+    // we ran into a problem - explain the error and proceed to redisplay
+    // the editor form
+    $saveErrMsg = "An error occurred saving the list in the database.
+       You might want to wait a little while and try again. If the problem
+       persists, <a href=\"/contact\">contact us</a> - please include
+       this error code in your correspondence: $progress.";
+}
+
+// for each item given as a TUID, look up the TUID; if we can find it,
+// resolve it to the actual game; otherwise put the TUID in the title
+// field for later resolution
+for ($i = 0 ; $i < count($listItems) ; $i++) {
+    // get this item
+    $item = $listItems[$i];
+
+    // if we have a tuid, look it up
+    if (isset($item['tuid']) && $item['tuid'] != "") {
+        // look up the TUID
+        $qtuid = mysql_real_escape_string($item['tuid'], $db);
+        $result = mysql_query("select title, author,
+            (coverart is not null) as hasart,
+            date_format(published, '%Y') as pubyear
+            from games where id = '$qtuid'", $db);
+        if (mysql_num_rows($result) > 0) {
+            // got it - use the resolved game information
+            $item['title'] = mysql_result($result, 0, "title");
+            $item['author'] = mysql_result($result, 0, "author");
+            $item['hasart'] = mysql_result($result, 0, "hasart");
+            $item['pubyear'] = mysql_result($result, 0, "pubyear");
+        } else {
+            // invalid tuid - send it back to the title field for
+            // resolution at Preview time
+            $item['title'] = $item['tuid'];
+            unset($item['tuid']);
+        }
+    }
+
+    // put the updated item back in the array
+    $listItems[$i] = $item;
+}
+
+pageHeader($pagetitle, $errMsg ? false : "editlist.title",
+           "gfGenForm('listModel');",
+           "<script src=\"gridform.js\"></script>"
+          . "<script src=\"xmlreq.js\"></script>");
+echo "<h1>$pagetitle</h1>";
+
+gameSearchPopupSupportFuncs();
+gameSearchPopupDiv();
+
+if ($errMsg) {
+    echo "<span class=errmsg>$errMsg</span>";
+} else {
+
+    if ($saveErrMsg) {
+        echo "<span class=errmsg>$saveErrMsg</span>";
+    }
+?>
+
+<p>You can use a Recommended List to tell people about games you like.
+
+<p>A List is especially useful if it has a theme.  The theme is simply
+the common thread that connects the games on your list.  It can be
+anything you like - a genre, a difficulty level, a style...  Here
+are a few examples:
+
+<ul>
+   <li>My favorite games of all time
+   <li>Puzzle-free science fiction
+   <li>Children's fantasy
+   <li>Games for beginners
+   <li>Games for word-puzzle fans
+   <li>Games for math majors
+</ul>
+
+<p>Be creative - think of some of your favorite games, and see if you
+can find a common thread that explains what you like about them.
+Remember, you can create multiple lists, so you can be as specific
+as you want in each one.
+
+<form name="editlist" id="editlistForm" method="post"
+    action="editlist?id=<?php echo $listid ?>">
+
+
+   <p>
+   <table class="dataform" border=0 cellspacing=0 cellpadding=0>
+
+      <tr>
+         <td></td>
+         <td><input type="submit" value="Preview" name="preview">
+<?php
+if ($listid != 'new')
+    echo " &nbsp;&nbsp; <input type=submit value=\"Delete This List\"
+              name=\"delete\">";
+?>
+         </td>
+      </tr>
+
+
+      <tr><td>&nbsp;</td></tr>
+      <tr valign=top>
+         <td align=right><span style="white-space: nowrap">
+            <b>Name the list:</b>
+         </span></td>
+         <td>
+            <input type="text" name="title" id="title" size=40
+                  value="<?php echo htmlspecialcharx($listTitle) ?>">
+            <br><span class=notes>Describe the list's theme:
+               "Hardest puzzle games," "Best of the Comps," ...</span>
+         </td>
+      </tr>
+
+      <tr><td>&nbsp;</td></tr>
+      <tr valign=top>
+         <td align=right><b>Overview:</b></td>
+         <td>
+            <textarea name="desc" id="desc" rows=5 cols=60><?php
+                echo htmlspecialcharx($listDesc)
+            ?></textarea>
+            <br>
+            <span class=notes>Optional -
+               <span class=notes>
+                  <?php
+                    echo helpWinLink(
+                        "help-formatting", "<i>Formatting hints</i>");
+                  ?>
+               </span>
+            </span>
+         </td>
+      </tr>
+
+      <tr><td>&nbsp;</td></tr>
+      <tr valign=top>
+         <td align=right><b>Keywords:</b></td>
+         <td>
+            <input type="text" name="keywords" id="keywords" size=60
+                   value="<?php echo htmlspecialcharx($listKeywords) ?>">
+            <br><span class=notes>These help with searches. For
+               example, for a "Children's fantasy" list, you could add
+               "kids" and "magic" here.</span>
+         </td>
+      </tr>
+
+      <tr><td>&nbsp;</td></tr>
+
+      <tr valign=top>
+         <td align=right><b>Games:</b></td>
+         <td>
+            Use the "Add a Game" button to add a new game to the list.
+            The finished list will be displayed in the order shown here;
+            you can rearrange the entries using the arrow buttons
+            to the left of the games.
+
+            <p>For each game, you can add a brief comment explaining
+            why you think this game belongs on this list, or why you're
+            recommending it.
+            
+            <p>
+
+<script type="text/javascript">
+<!--
+var listModel = {
+    "emptylabel": "<i>This list doesn't have any entries yet.</i>",
+    "controlVertAlign": "top",
+    "addbutton": "add-game-button",
+    "name": "listGridDiv",
+    "vals": "listVals",
+    "fields": ["title", "hasart", "errmsg", "tuid",
+               "author", "pubyear","comments"],
+    "onAddRow": function(n) {
+        openGameSearchPopup("disptitle"+n, function(tuid,t,a) {
+            setGameItem(n,tuid,t,a); }, '') },
+    "rowfunc": function(row)
+    {
+        var s = "";
+        var v = listVals[row];
+        if (v[2] != "")
+            s += "<span class=errmsg>" + v[2] + "</span><br>";
+
+        if (v[3] != "")
+        {
+            s += "<input type=hidden name=\"tuid" + row
+                 + "\" id=\"tuid" + row + "\" value=\""
+                 + v[3].replace(/"/g, "&#34;") + "\">";
+            s += (row+1) + ". "
+                 + "<a href=\"viewgame?id=" + v[3] + "\" target=\"_blank\">"
+                 + "<i>" + v[0] + "</i></a>"
+                 + ", by " + v[4]
+                 + (v[5] != "" ? " (" + v[5] + ")" : "");
+        }
+        else
+        {
+            var iid = "disptitle" + row;
+            s += (row+1) + ". <span id=\"" + iid + "\"><a href=\"needjs\" "
+                 + "onclick=\"javascript:openGameSearchPopup('" + iid
+                 + "', function(tuid,t,a) { setGameItem('" + row
+                 + "',tuid,t,a); },'');return false;\">"
+                 + "<i>Click to select a game</i></a></span>";
+        }
+        s += "<br><table border=0 cellspacing=0 cellpadding=0>"
+             + "<tr><td><b>Your comments:</b><br></td><td align=right>"
+             + "<span class=notes><?php
+                            echo jsSpecialChars(helpWinLink(
+                                "help-formatting", "<i>Formatting hints</i>"));
+               ?></span></td></tr>"
+             + "<tr><td colspan=2><textarea name=\"comments" + row
+             + "\" id=\"comments" + row + "\" rows=3 cols=60>"
+             + v[6].replace(/"/g, "&#34;") + "</textarea></td></tr></table>";
+
+        if (row + 1 < listVals.length)
+            s += "<br>&nbsp;<br>";
+
+        return s;
+    }
+};
+var listVals = [
+    <?php
+        for ($i = 0 ; $i < count($listItems) ; $i++) {
+
+            $item = $listItems[$i];
+
+            $tuid = $author = $pubyear = "";
+            $hasart = false;
+            if (isset($item['tuid']) && $item['tuid'] != "") {
+                $tuid = jsSpecialChars($item['tuid']);
+                $author = jsSpecialChars($item['author']);
+                $pubyear = jsSpecialChars($item['pubyear']);
+                $hasart = $item['hasart'];
+            }
+            $comments = jsSpecialChars($item['comments']);
+            $title = jsSpecialChars($item['title']);
+            $errDet = (isset($errDetails[$i])
+                       ? $errDet = jsSpecialChars($errDetails[$i]) : "");
+
+            echo "["
+                . "\"$title\", "
+                . ($hasart ? "true" : "false") . ", "
+                . "\"$errDet\", \"$tuid\", \"$author\", \"$pubyear\", "
+                . "\"$comments\"]";
+
+            if ($i + 1 < count($listItems))
+                echo ",\n";
+        }
+    ?>
+];
+function setGameItem(row, tuid, title, author)
+{
+    document.getElementById("disptitle" + row).innerHTML =
+        "<i><a href=\"viewgame?id=" + tuid + "\" target=\"_blank\">"
+        + title.replace(/"/g, "&#34;")
+        + "</i></a>, by " + author.replace(/"/g, "&#34;")
+        + "<input type=hidden name=\"tuid" + row + "\" id=\"tuid" + row
+        + "\" value=\"" + tuid.replace(/"/g, "&#34;") + "\">";
+    listVals[row] = [title, false, false, tuid, author, false, false];
+    gameSearchPopupClose();
+}
+//-->
+</script>
+
+         <div id="listGridDiv">
+            <noscript>
+               JavaScript must be enabled to edit the items in the list.
+            </noscript>
+         </div>
+
+         <br><br>
+         <input type="submit" value="Preview" name="preview">
+         <?php
+if ($listid != 'new')
+    echo " &nbsp;&nbsp; <input type=submit value=\"Delete This List\"
+               name=\"delete\">";
+         ?>
+      </td>
+   </tr>
+
+   </table>
+
+</form>
+
+<?php
+}
+pageFooter();
+?>

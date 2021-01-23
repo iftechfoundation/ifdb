@@ -1,0 +1,620 @@
+<?php
+
+@session_start();
+
+// connect to the database
+include_once "dbconnect.php";
+$db = dbConnect();
+
+// make sure we process any persistent login state
+include_once "login-check.php";
+include_once "login-persist.php";
+$curuser = checkPersistentLogin();
+
+include "pagetpl.php";
+include_once "util.php";
+include "plugin-detect.php";
+include "starctl.php";
+
+// get the parameters
+$gameID = get_req_data('game');
+$editMode = isset($_REQUEST['edit']);
+$edit = get_req_data('edit');
+$targetID = get_req_data('targ');
+$confirm = get_req_data('confirm');
+
+// quote parameters for SQL
+$qGameID = mysql_real_escape_string($gameID, $db);
+$qTargetID = mysql_real_escape_string($targetID, $db);
+
+// no errors yet
+$errMsg = false;
+$succMsg = false;
+
+// look up the 'from' game
+$gTitle = false;
+$gAuthor = false;
+if ($gameID) {
+    $result = mysql_query(
+        "select title, author from games where id = '$qGameID'", $db);
+    if ($result) {
+        list($gTitle, $gAuthor) = mysql_fetch_row($result);
+        $gTitle = htmlspecialcharx($gTitle);
+        $gAuthor = htmlspecialcharx($gAuthor);
+    }
+}
+
+// make sure we found a matching game for the 'from' game
+if (!$gTitle) {
+    pageHeader("Suggest Similar Games");
+    $errMsg = "The specified game was not found in the database. The "
+              . "link you used to reach this page might be broken.";
+    echo "<span class=errmsg>$errMsg</span>";
+    pageFooter();
+    exit();
+}
+
+// look up the 'to' game
+$targetTitle = false;
+$targetAuthor = false;
+if ($targetID) {
+    $result = mysql_query(
+        "select title, author from games where id = '$qTargetID'", $db);
+    if ($result) {
+        list($targetTitle, $targetAuthor) = mysql_fetch_row($result);
+        $targetTitle = htmlspecialcharx($targetTitle);
+        $targetAuthor = htmlspecialcharx($targetAuthor);
+    }
+}
+
+if ($targetID && !$targetTitle) {
+    pageHeader("Suggest Similar Games");
+    $errMsg = "The suggested game was not found in the database.";
+    echo "<span class=errmsg>$errMsg</span>";
+    pageFooter();
+    exit();
+}    
+
+// check the mode
+if ($editMode) {
+
+    // edit mode - we must be logged in to use this mode
+    if (!logged_in())
+        exit();
+
+    // update the user ID, in case we just filled it in
+    $curuser = $_SESSION['logged_in_as'];
+
+    // get the search title from the parameters
+    $searchFor = get_req_data('searchfor');
+    $qSearchFor = mysql_real_escape_string($searchFor, $db);
+
+    // presume we won't show the main overview page
+    $showMain = false;
+
+    // set up the search form
+    $searchForm =
+        "<form id=recform name=recform "
+        . "method=post action=\"crossrec\">"
+        . "<input type=hidden name=game value=\"$gameID\">"
+        . "<input type=hidden name=edit value=search>"
+        . "<p><b>Search for:</b> "
+        . "<input type=text size=80 name=searchfor id=searchfor "
+        . "value=\"$searchFor\">"
+        . " <input type=submit name=submit value=\"Search\"><br>"
+        . "<span class=microhelp>Enter a game title or <a class=silent "
+        . helpWinHRef("help-tuid") . ">TUID</a></span>"
+        . "</form>";
+
+    $returnLink = "<a href=\"viewgame?id=$gameID\">"
+                  . "Return to <i>$gTitle</i>'s page"
+                  . "</a>";
+
+    // check the process step
+    if ($edit == 'search') {
+        // search step - they submitted the search form with a title
+
+        // start the page
+        pageHeader("Suggest Similar Games", "recform.searchfor");
+        echo "<h1>Suggest Similar Games</h1>";
+
+        // show the search form
+        echo $searchForm;
+
+        // show the matches
+        echo "<p>Search matches for \"" . htmlspecialcharx($searchFor)
+            . "\":<br><div class=indented>";
+
+        // build the title as a list of mandatory words for boolean search
+        $titleMatch = mysql_real_escape_string(
+            implode(" ", array_map("prependPlus", explode(" ", $searchFor))),
+            $db);
+
+        // build a LIKE title as well
+        $titleLike = mysql_real_escape_string(quoteSqlLike($searchFor), $db);
+        
+        // do a full-text search against titles
+        $sql =
+            "select
+               id, title, author
+             from
+               games
+             where
+               id = '$qSearchFor'
+               or title like '%$titleLike%'
+               or match (title) against ('$titleMatch' in boolean mode)
+             order by
+               if(id = '$qSearchFor',0,1),
+               if(title like '$titleLike',0,1),
+               if(title like '$titleLike%',0,1),
+               if(title like '%$titleLike%',0,1),
+               match (title) against ('$titleMatch' in boolean mode) desc";
+        $result = mysql_query($sql, $db);
+
+        // fetch the rows, if we found any matches
+        $rowcnt = mysql_num_rows($result);
+        if ($rowcnt == 0) {
+            echo "<p>Sorry, no matching titles or TUIDs were found. "
+                . "You might try an <a href=\"search?searchfor="
+                . urlencode($searchFor) . "\">advanced search</a> - "
+                . "remember, if you find a match, you can enter it "
+                . "here by " . helpWinLink("help-tuid", "TUID") . ".";
+        } else {
+            // show the results
+            for ($i = 0 ; $i < $rowcnt ; $i++) {
+                list($sid, $stitle, $sauthor) = mysql_fetch_row($result);
+                $stitle = htmlspecialcharx($stitle);
+                $sauthor = htmlspecialcharx($sauthor);
+
+                echo "<p><a href=\"viewgame?id=$sid\"><i>$stitle</i></a>, "
+                    . "by $sauthor - "
+                    . "<a href=\"crossrec?game=$gameID&edit=add&targ=$sid\">"
+                    . "Select</a>";
+            }
+        }
+
+        echo "</div>"
+            . "<p>If you see the game you had in mind listed above, "
+            . "click its Select link to continue.  If not, you can "
+            . "edit the search term below and try again.  If you're "
+            . "having trouble finding what you're looking for, you "
+            . "might want to try an "
+            . "<a href=\"search?searchfor=" . urlencode($searchFor)
+            . "\">advanced search</a>."
+            . "<p>$returnLink";
+
+    } else if ($edit == 'add' || $edit == 'save' || $edit == 'delete') {
+
+        // presume no existing record
+        $tTitle = false;
+        $tAuthor = false;
+        $tNotes = false;
+        $tCreated = false;
+        $oldRec = false;
+
+        // query the existing recommendation, if any
+        $result = mysql_query(
+            "select
+               g.title, g.author, c.notes,
+               date_format(c.created, '%M %e, %Y')
+             from
+               crossrecs as c
+               join games as g on g.id = c.togame
+             where
+               c.fromgame = '$qGameID'
+               and c.togame = '$qTargetID'
+               and c.userid = '$curuser'", $db);
+
+
+        // check for a match
+        if (mysql_num_rows($result) != 0) {
+
+            // found one - fetch it
+            list($tTitle, $tAuthor, $tNotes, $tCreated) =
+                mysql_fetch_row($result);
+
+            // quote it for display
+            $tTitle = htmlspecialcharx($tTitle);
+            $tAuthor = htmlspecialcharx($tAuthor);
+            $tNotes = htmlspecialcharx($tNotes);
+
+            // format it for display
+            $oldRec = "<a href=\"viewgame?id=$targetID\"><i>$tTitle</i></a>"
+                      . ", by $tAuthor &nbsp; <span class=details>"
+                      . "$tCreated</span><br><div class=indented>"
+                      . "$tNotes</div>";
+        }
+
+        if ($edit == 'add') {
+
+            // Add or modify a suggestion - data entry step
+            $title = ($oldRec ? "Edit" : "Add") . " Suggestion";
+            pageHeader($title, "editform.notes");
+            echo "<h1>$title</h1>"
+                . "<p>Your recommendation: \"People who liked "
+                . "<a href=\"viewgame?id=$gameID\"><i>$gTitle</i></a> "
+                . "might also enjoy <a href=\"viewgame?id=$qTargetID\">"
+                . "<i>$targetTitle</i></a>, by $targetAuthor.\""
+                . "<form name=editform id=editform method=post "
+                . "action=\"crossrec\">"
+                . "<input type=hidden name=game value=\"$gameID\">"
+                . "<input type=hidden name=targ value=\"$targetID\">"
+                . "<input type=hidden name=edit value=\"save\">"
+                . "<p><b>Comments:</b> briefly explain the "
+                . "connection you see between these two games:"
+                . "<br><textarea name=notes id=notes rows=3 cols=80>"
+                . "$tNotes</textarea>"
+                . "<p><input type=submit name=submit value=\"Save\">"
+                . "<p><a href=\"crossrec?game=$gameID&edit\">"
+                . "Discard changes</a>"
+                . "</form>";
+
+        } else if ($edit == 'save') {
+
+            // Save changes from an add/edit
+
+            // get the notes
+            $qNotes = mysql_real_escape_string(get_req_data('notes'), $db);
+            
+            // insert or update, as applicable
+            if ($oldRec) {
+                // record exists - just update the comment
+                $result = mysql_query(
+                    "update crossrecs
+                     set notes = '$qNotes'
+                     where
+                       fromgame = '$qGameID'
+                       and togame = '$qTargetID'
+                       and userid = '$curuser'", $db);
+            } else {
+                // new record - insert it
+                $result = mysql_query(
+                    "insert into crossrecs
+                     (fromgame, togame, userid, notes, created)
+                     values ('$qGameID', '$qTargetID', '$curuser',
+                             '$qNotes', now())", $db);
+            }
+
+            if ($result) {
+                // success - return to the main page
+                $showMain = true;
+            } else {
+                $errMsg = "An error occurred deleting the suggestion "
+                          . "from the database. You might try the "
+                          . "operation again in a few minutes, "
+                          . "or <a href=\"contact\">contact us</a> "
+                          . "if the problem persists.";
+            }
+
+        } else if ($edit == 'delete' && $confirm == 'Y') {
+
+            // confirming deletion - do it
+
+            $result = mysql_query(
+                "delete from crossrecs
+                 where
+                   fromgame = '$qGameID'
+                   and togame = '$qTargetID'
+                   and userid = '$curuser'", $db);
+
+            if ($result) {
+                // success - return to the main page
+                $showMain = true;
+            } else {
+                $errMsg = "An error occurred deleting the suggestion "
+                          . "from the database. You might try the "
+                          . "operation again in a few minutes, "
+                          . "or <a href=\"contact\">contact us</a> "
+                          . "if the problem persists.";
+            }
+
+
+        } else if ($edit == 'delete') {
+
+            // deleting - prompt for confirmation
+            if ($oldRec) {
+                pageHeader("Delete Suggestion");
+                echo "<h1>Delete Suggestion</h1>"
+                    . "<p>You are about to delete the following suggestion "
+                    . "for people who like <a href=\"viewgame?id=$gameID\">"
+                    . "<i>$gTitle</i></a> (by $gAuthor):<p>$oldRec"
+
+                    . "<p>Are you sure you want to permanently delete this "
+                    . "suggestion?"
+                    . "<p><a href=\"crossrec?game=$gameID&edit=delete"
+                    . "&targ=$targetID&confirm=Y\">Yes, delete it</a>"
+                    . "<br><a href=\"crossrec?game=$gameID&edit\">"
+                    . "No, keep it</a>";
+            } else {
+                $errMsg = "The suggestion you are trying to delete "
+                          . "no longer exists.";
+            }
+        }
+
+        if ($errMsg) {
+            pageHeader("Suggest Similar Games");
+            echo "<span class=errmsg>$errMsg</span>"
+                . "<p><a href=\"crossrec?game=$gameID&edit\">Go to the "
+                . "main Suggestions page</a><br>"
+                . "<a href=\"viewgame?id=$gameID\">Return to "
+                . "<i>$gTitle</i>'s page</a>";
+        }
+
+    } else {
+        // no edit action specified, so we're at the overview step
+        $showMain = true;
+    }
+
+    if ($showMain) {
+
+        // first step - show the overview, show the search form
+        pageHeader("Suggest Similar Games", "recform.searchfor");
+        echo "<h1>Suggest Similar Games</h1>";
+
+        // check for existing recommendations from this user
+        $result = mysql_query(
+            "select
+               c.togame, g.title, g.author, c.notes,
+               date_format(c.created, '%M %e, %Y')
+             from
+               crossrecs as c
+               join games as g on g.id = c.togame
+             where
+               c.userid = '$curuser'
+               and fromgame = '$qGameID'
+             order by
+               c.created desc", $db);
+
+        $cnt = mysql_num_rows($result);
+        if ($cnt == 0)
+        {
+            echo "<p>Are there other games you'd recommend to people who "
+                . "like <a href=\"viewgame?id=$gameID\"><i>$gTitle</i></a>? "
+                . "If you enter them here, IFDB can show them to "
+                . "people who view <i>$gTitle</i>'s page.";
+        }
+        else
+        {
+            echo "You have suggested the following "
+                . "game" . ($cnt == 1 ? "" : "s")
+                . " to people who like <a href=\"viewgame?id=$gameID\">"
+                . "<i>$gTitle</i></a>:"
+                . "<div class=indented>";
+
+            // fetch the rows
+            for ($i = 0 ; $i < $cnt ; $i++) {
+
+                // fetch and unpack this row
+                list($sid, $stitle, $sauthor, $notes, $created) =
+                    mysql_fetch_row($result);
+
+                $stitle = htmlspecialcharx($stitle);
+                $sauthor = htmlspecialcharx($sauthor);
+                $notes = htmlspecialcharx($notes);
+    
+                // show it
+                echo "<p><a href=\"viewgame?id=$sid\"><i>$stitle</i></a>, "
+                    . "by $sauthor &nbsp; <span class=details>"
+                    . "$created &nbsp; - "
+                    . "<a href=\"crossrec?game=$gameID&edit=add&targ=$sid\">"
+                    . "Edit</a> - "
+                    . "<a href=\"crossrec?game=$gameID&edit=delete"
+                    . "&targ=$sid\">Delete</a>"
+                    . "</span><br>"
+                    . "<div class=indented><span class=details>"
+                    . "$notes</span></div>";
+            }
+
+            echo "</div>"
+                . "<p>You can edit or delete an item above by clicking "
+                . "the link after the game title. To add more suggestions, "
+                . "use the search box below.";
+
+            echo "<p><span class=details><i>Note: You won't see your own "
+                . "suggestions in the Related Games list when you view this "
+                . "game's page while you're logged in.  We figure you "
+                . "already know which games you'd recommend, so the page "
+                . "hides your own suggestions to make more room to show "
+                . "you what other people recommend.</i></span>";
+        }
+
+                
+        echo "<h2>Guidelines</h2>"
+            . "The key feature of a suggestion is "
+            . "that you think <b>people who like <i>$gTitle</i></b> would "
+            . "<b>also</b> like the other game.  Don't just list other "
+            . "games you like in general - there should be some "
+            . "common thread that connects the two games in your "
+            . "mind.  That doesn't mean they have to share "
+            . "the same subject matter or other obvious similarities; "
+            . "in fact, the most interesting suggestions are the ones "
+            . "that aren't obvious. "
+            . "What matters is that both games have a similar appeal "
+            . "at some level, so that a person who likes one would "
+            . "probably like the other as well.";
+
+        // show the form for adding a new item
+        echo "<h3>Suggest a game</h3>$searchForm<p>$returnLink";
+    }
+    
+} else {
+
+    // view mode - list all cross-recommendations for the game
+
+    // get the page to view
+    $pgAll = false;
+    $pg = get_req_data('pg');
+
+	// get the game ratings table, taking into account the user's sandbox
+	$gameRatingsView = getGameRatingsView($db);
+
+    // query the recommendations
+    $result = mysql_query(
+        "select
+           c.togame, g.title as title, g.author, g.`desc`, g.coverart,
+           r.avgRating as rating,
+           c.userid, u.name,
+           c.notes, date_format(c.created, '%M %e, %Y'),
+           (select count(*) from crossrecs as c2
+            where c2.fromgame = c.fromgame and c2.togame = c.togame)
+            as votes
+         from
+           crossrecs as c
+           join games as g on g.id = c.togame
+           join users as u on u.id = c.userid
+           left outer join $gameRatingsView as r
+               on r.gameid = c.togame
+         where
+           c.fromgame = '$qGameID'
+         order by
+           votes desc, title, c.created", $db);
+
+    // get the number of results
+    $cnt = mysql_num_rows($result);
+
+    // figure how many to show
+    $perPage = 25;
+    if ($pg == 'all') {
+        $pgAll = true;
+        $perPage = $cnt;
+        $pg = 1;
+    }
+
+    // make sure the page is within range
+    if ($pg < 1)
+        $pg = 1;
+
+    // get the page range
+    $firstOnPage = ($pg - 1) * $perPage;
+    $lastOnPage = $firstOnPage + $perPage - 1;
+
+    // load the matches
+    for ($recs = array(), $cur = false, $i = 0 ; $i < $cnt ; $i++) {
+        // fetch the next row
+        $row = mysql_fetch_row($result);
+
+        // if this isn't the same game as the last row, flush the last row
+        if ($cur && $row[0] != $cur[0])
+            $recs[] = $cur;
+
+        // if this is a new game, make it current
+        if (!$cur || $row[0] != $cur[0])
+            $cur = $row;
+
+        // add this to the current game's instance list
+        $cur['instances'][] = $row;
+    }
+
+    // flush out the last row
+    if ($cur)
+        $recs[] = $cur;
+
+    // we now know how many game matches we have
+    $cnt = count($recs);
+
+    // figure the last page
+    $lastPage = (int)floor(($cnt + $perPage - 1)/$perPage);
+
+    // limit the page to the available range
+    if ($pg > $lastPage)
+        $pg = $lastPage;
+
+    // limit the last-on-page to the available range
+    if ($lastOnPage >= $cnt)
+        $lastOnPage = $cnt - 1;
+
+    // set up the paging controls
+    $pageCtl = "<span class=details>"
+               . makePageControl(
+                   "crossrec?game=$gameID", $pg, $lastPage,
+                   $firstOnPage, $lastOnPage, $cnt, true, true, $pgAll)
+               . "</span>";
+
+    // start the page
+    pageHeader("Recommendations for $gTitle");
+    echo "<h1>Recommendations for <i>$gTitle</i></h1>"
+        . "<p>IFDB members recommend the following to people who "
+        . "liked <a href=\"viewgame?id=$gameID\"><i>$gTitle</i></a>, "
+        . "by $gAuthor:"
+        . "<p>$pageCtl<p><hr class=dots>"
+        . "<div style=\"width: 100%;\">"
+        . "<table border=0 cellspacing=0 cellpadding=0 width=\"100%\">";
+
+    for ($i = $firstOnPage ; $i <= $lastOnPage ; $i++) {
+        // unpack the game record
+        $rec = $recs[$i];
+        list($toID, $toTitle, $toAuthor, $toDesc, $toArt, $toRating) = $rec;
+
+        $toTitle = htmlspecialcharx($toTitle);
+        $toAuthor = htmlspecialcharx($toAuthor);
+        list($toDesc, $len, $trunc) = summarizeHtml($toDesc, 210);
+        $toDesc = fixDesc($toDesc);
+
+        // show the game listing
+        echo "<tr valign=top style=\"padding: 1ex 0 1ex 0;\">";
+
+        if ($toArt) {
+            echo "<td style=\"padding-right: 2em; width: 80px;\">"
+                . "<a href=\"viewgame?id=$toID\">"
+                . "<img border=0 src=\"viewgame?id=$toID&coverart"
+                . "&thumbnail=80x80\">(toArt=$toArt)</a></td>";
+        } else {
+            echo "<td style=\"width: 1px;\"></td>";
+        }
+
+        echo "<td><a href=\"viewgame?id=$toID\"><b>$toTitle</b></a>, "
+            . "by $toAuthor<br>";
+
+        if ($toRating) {
+            echo "<span class=details>Average member rating: "
+                . showStars($toRating) . "</span><br>";
+        }
+
+        echo $toDesc;
+
+        // show the individual user recommendations
+        $urecs = $rec['instances'];
+        $ucnt = count($urecs);
+        echo "<p><span class=details>$ucnt member recommendation"
+            . ($ucnt == 1 ? "" : "s")
+            . ":</span><br><div class=indented>";
+
+        // run through the list
+        $unum = 0;
+        foreach ($urecs as $u) {
+            // unpack the record
+            list ($id2, $ttl2, $auth2, $dsc2, $art2, $rtng2,
+                  $toUserID, $toUserName, $toNotes, $toCreated) = $u;
+
+            // quote things
+            $toUserName = htmlspecialcharx($toUserName);
+            $toNotes = htmlspecialcharx($toNotes);
+
+            // get the condensed notes
+            list($toNotesS, $len, $trunc) = summarizeHtml($toNotes, 20);
+
+            // show the recommendation
+            if ($unum++ != 0)
+                echo "; ";
+
+            echo "<a href=\"showuser?id=$toUserID\">$toUserName</a>";
+            if ($toNotes)
+                echo " - <i>$toNotes</i>";
+        }
+
+        // done with the row
+        echo "</td></tr><tr><td colspan=2><hr class=dots></td></tr>";
+    }
+
+    echo "</table></div>"
+        . "<p>$pageCtl<br><br>";
+}
+
+pageFooter();
+
+function prependPlus($str)
+{
+    return "+" . $str;
+}
+
+?>

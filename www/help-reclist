@@ -1,0 +1,34 @@
+<?php
+@session_start();
+include_once "util.php";
+include "pagetpl.php";
+helpPageHeader("What's a Recommended List?");
+?>
+
+<h1>What's a Recommended List?</h1>
+
+<p>A Recommended List lets you share your suggestions with other
+users.  Each list has a category, so a list lets you recommend a
+specific kind of game.
+
+<p>The category of a list can be anything you want.  It can range from
+something very general, such as your top 10 games overall, to very
+specific: your favorite one-room games set in medieval castles, say,
+or the hardest puzzle games you've played.  You can base categories on
+things like subject matter, genre, setting, time to play, difficulty,
+intended audience... any set of criteria that you think would make a
+good list.
+
+<p>You can create as many lists as you like, so there's no need to fit
+all of your favorites into a single list.
+
+<p>If you're looking for recommendations from other users, you can
+look for a Recommended List using IFDB's Search feature.  If you can't
+find any lists with the sorts of games you're looking for, you can
+create a <a href="help-polls">Poll</a>, which is the reverse of a
+list: it lets you ask other IFDB members to recommend games in
+whatever category you describe.
+
+<?php
+helpPageFooter();
+?>

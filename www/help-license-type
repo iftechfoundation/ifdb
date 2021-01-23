@@ -1,0 +1,67 @@
+<?php
+@session_start();
+include_once "util.php";
+include "pagetpl.php";
+helpPageHeader("IF License Types");
+?>
+
+<h1>IF License Types</h1>
+
+<p>The License Type field isn't meant to spell out the game's exact
+licensing terms - it's just meant to give people a general idea of the
+category the license fits into.  Most IF fits one of these common
+categories:
+
+<p><b>Freeware:</b> Software that's copyrighted, but which the author
+allows you to use without charge.  There might be some restrictions;
+for example, users might not be allowed to modify the software.  This
+is the most common license type for games in the <a
+href="http://www.ifarchive.org">IF Archive</a>.
+
+<p><b>Public Domain:</b> The author has explicitly renounced all
+rights to the software, allowing anyone to use it or modify it in any
+way they like.  (Public Domain isn't the same as Freeware - a work
+isn't in the public domain unless its author specifically says it is.)
+This is uncommon in IF.
+
+<p><b>GPL, Apache, BSD, Creative Commons:</b> If the work is published
+under one of these well-known "Open Source" licenses, you can put the
+license's name in the License Type field.
+
+<p><b>Shareware:</b> The software is distributed for free, but
+the author asks that you pay a registration fee if you like it.
+Shareware operates under the honor system, so there are no technical
+limitations in the software that would force you to pay.
+
+<p><b>Former shareware:</b> The software was once distributed as
+Shareware, but the author has since made it free.
+
+<p><b>Demo:</b> This is similar to shareware, but instead of relying
+on the honor system, the publisher puts technical limitations in the
+free version.  For a game, this usually means that only a portion of
+the storyline is included - you can play up to a certain point, but
+you have to buy the full version to go on.  Alternatively, a demo
+version might have some critical features disabled, or might have a
+timer that disables the whole program after a trial period expires.
+
+<p><b>Commercial:</b> The software is available only to paying customers.
+
+<p><b>Former commercial:</b> The software was once sold commercially,
+but the copyright holder has since officially re-released it as free
+software.
+
+<p><b>Commercial (out of print):</b> A product that was once published
+commercially, but is no longer being sold and has never been officially
+re-released for free.
+
+<p><b><s>Abandonware:</s></b> A loaded term that we ask you not to use
+here.  The word can spark heated arguments about copyright politics,
+and this isn't the place for that.  For a title that was once
+published commercially and is no longer available for sale, please
+enter "Commercial (out of print)" instead.
+
+
+<?php
+helpPageFooter();
+?>
+

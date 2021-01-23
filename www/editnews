@@ -1,0 +1,625 @@
+<?php
+
+// we have to be logged in to do this
+@session_start();
+include "login-check.php";
+if (!logged_in())
+    exit();
+
+$curuser = $_SESSION['logged_in_as'];
+
+$srcpage = get_req_data("srcpage");
+if (!$srcpage)
+    $srcpage = $_SERVER['HTTP_REFERER'];
+
+include_once "pagetpl.php";
+include_once "util.php";
+include_once "dbconnect.php";
+$db = dbConnect();
+
+// no error yet
+$errMsg = false;
+$succMsg = false;
+
+// get the request parameters
+$newsID = mysql_real_escape_string(get_req_data('newsid'), $db);
+$reinstateID = mysql_real_escape_string(get_req_data('reinstate'), $db);
+$sourceType = mysql_real_escape_string(get_req_data('type'), $db);
+$sourceID = mysql_real_escape_string(get_req_data('source'), $db);
+$headline = get_req_data('headline');
+$body = get_req_data('body');
+
+$supersedes = false;
+$original = false;
+$status = 'A';  // active
+$created = false;
+$modified = false;
+$authorID = $curuser;
+
+$publish = isset($_REQUEST['publish']);
+$preview = isset($_REQUEST['preview']);
+$delete = $newsID && isset($_REQUEST['delete']);
+$deleteConfirm = $newsID && get_req_data('delete') == "Y$sourceID";
+
+// note whether we're submitting a form
+$submit = ($publish || $preview);
+
+// note the mode for the title
+$Mode = ($newsID ? "Edit" : "Add a");
+
+// Post-Retry protection.  If there's a transaction ID, and it's the same
+// as a transaction we already submitted, clear out the form and start
+// fresh.
+$xactid = get_req_data('xactid');
+if (($publish || $delete)
+    && $xactid && $xactid == $_SESSION['editnews.xactid']) {
+    $publish = $preview = $delete = $submit = false;
+    $newsID = false;
+    $headline = $body = false;
+    $xactid = false;
+}
+
+// generate a new transaction ID if we don't have one yet
+if (!$xactid)
+    $xactid = time() . rand();
+
+// assume we'll show the form, rather than the status screen
+$show = 'form';
+
+// check the source type
+$sourceInfo = false;
+if ($sourceType == 'G') {
+
+    // game source
+    $hrefCancel = "viewgame?id=$sourceID";
+
+    // look up the game
+    $result = mysql_query(
+        "select title, author from games where id = '$sourceID'", $db);
+
+    if (mysql_num_rows($result) > 0) {
+
+        // build the source item reference
+        list($gtitle, $gauthor) = mysql_fetch_row($result);
+        $gtitle = htmlspecialcharx($gtitle);
+        $gauthor = htmlspecialcharx($gauthor);
+
+        $sourceInfo = ($newsID ? "This news item is" :
+                       "You're adding a news item")
+                      . " for the game "
+                      . "<a href=\"viewgame?id=$sourceID\"><i>$gtitle</i><a>"
+                      . ", by $gauthor.";
+
+        if (!$newsID)
+            $sourceInfo .= " Use news to report events and updates "
+                           . "related to this game that would be of interest "
+                           . "to its fans, current players, "
+                           . "and people who might want to play the game "
+                           . "in the future. If the update affects the "
+                           . "game's bibliography, you might also want to "
+                           . "<a href=\"editgame?id=$sourceID\">edit the "
+                           . "game's listing</a> to reflect the new "
+                           . "information.";
+
+        if (!$delete) {
+            $sourceInfo .=
+                "<h2>Guidelines</h2>"
+                . "<ul class=doublespace>"
+                
+                . "<li>The item should relate <b>directly</b> to "
+                . "this game"
+                
+                . "<li>It should be <b>news</b>, such as a "
+                . "release announcement, an alert on bugs "
+                . "or compatibility, word of upcoming "
+                . "developments, etc.";
+
+            if ($newsID)
+                $sourceInfo .=
+                    "<li><b>Edit</b> an old item <b>only</b> to make corrections "
+                    . "or add more details. If you have new developments "
+                    . "to report, <a href=\"editnews?type=$sourceType"
+                    . "&source=$sourceID\">add a new item</a> instead.";
+
+            $sourceInfo .= "</ul>";
+        }
+
+    } else {
+        $errMsg = "The game you're attempting to post about is no longer "
+                  . "in the database.";
+    }
+
+} else if ($sourceType == 'C') {
+
+    // competition source
+    $hrefCancel = "viewcomp?id=$sourceID";
+
+    // look up the comp
+    $result = mysql_query(
+        "select title from competitions where compid = '$sourceID'", $db);
+
+    if (mysql_num_rows($result) > 0) {
+
+        // build the source item reference
+        list($ctitle) = mysql_fetch_row($result);
+        $ctitle = htmlspecialcharx($ctitle);
+
+        $sourceInfo = ($newsID ? "This news item is" :
+                       "You're adding a news item")
+                      . " for the competition "
+                      . "<a href=\"$hrefCancel\"><b>$ctitle</b></a>.";
+
+        if (!$newsID)
+            $sourceInfo .= " Use news to report events and updates "
+                           . "related to this competition that would be "
+                           . "of interest to entrants, judges, and "
+                           . "fans. If the update affects the overview "
+                           . "information recorded on the competition's "
+                           . "IFDB page, you might also want to "
+                           . "<a href=\"editcomp?id=$sourceID\">edit "
+                           . "the competition page</a> to reflect the "
+                           . "update.";
+
+        if (!$delete) {
+            $sourceInfo .=
+                "<h2>Guidelines</h2>"
+                . "<ul class=doublespace>"
+                
+                . "<li>The item should relate <b>directly</b> to "
+                . "this competition"
+                
+                . "<li>It should be <b>news</b>, such as a notice or "
+                . "reminder to entrants or judges, a date change, etc.";
+
+            if ($newsID)
+                $sourceInfo .=
+                    "<li><b>Edit</b> an old item <b>only</b> to make corrections "
+                    . "or add more details. If you have new developments "
+                    . "to report, <a href=\"editnews?type=$sourceType"
+                    . "&source=$sourceID\">add a new item</a> instead.";
+
+            $sourceInfo .= "</ul>";
+        }
+    } else {
+        $errMsg = "The competition you're attempting to post about "
+                  . "is no longer in the database.";
+    }
+
+} else if ($sourceType == 'U') {
+
+    // club source
+    $hrefCancel = "club?id=$sourceID";
+
+    // look up the club
+    $result = mysql_query(
+        "select name from clubs where clubid = '$sourceID'", $db);
+
+    if (mysql_num_rows($result) > 0)
+    {
+        // build the source item reference
+        list($ctitle) = mysql_fetch_row($result);
+        $ctitle = htmlspecialcharx($ctitle);
+
+        $sourceInfo = ($newsID ? "This news item is" :
+                       "You're adding a new item")
+                      . " for the club "
+                       . "<a href=\"$hrefCancel\"><b>$ctitle</b></a>.";
+
+        if (!$newsID)
+            $sourceInfo .= "Use news to report events of interest "
+                           . "to the club membership. If you're not "
+                           . "a club administrator, we recommend that "
+                           . "you verify the information with club "
+                           . "officials before posting.";
+
+        if (!$delete) {
+            $sourceInfo .=
+                "<h2>Guidelines</h2>"
+                . "<ul class=doublespace>"
+                . "<li>The item should relate <b>directly</b> to this club"
+                . "<li>It should be <b>news</b>, such as an announcement "
+                . "of a club event";
+
+            if ($newsID)
+                $sourceInfo .= "<li><b>Edit</b> an old item <b>only</b> "
+                               . "to make corrections or add details. "
+                               . "Report a new development by posting a new "
+                               . "item instead.";
+
+            $sourceInfo .= "</ul>";
+        }
+    }
+    else
+    {
+        $errMsg = "The club you're attempting to edit is no longer "
+                  . "in the database.";
+    }
+
+} else {
+
+    // missing or unknown source
+    $errMsg = "The page parameters are incorrect. The link "
+              . "that you followed to reach this page might be broken.";
+}
+
+function hiddenFields($all)
+{
+    global $newsID, $reinstateID, $sourceType, $sourceID, $headline, $body,
+           $xactid, $srcpage;
+
+    // add the main fields
+    $str = "<input type=\"hidden\" name=\"newsid\" value=\""
+           . htmlspecialcharx($newsID)
+           . "\"><input type=\"hidden\" name=\"reinstate\" value=\""
+           . htmlspecialcharx($reinstateID)
+           . "\"><input type=\"hidden\" name=\"type\" value=\""
+           . htmlspecialcharx($sourceType)
+           . "\"><input type=\"hidden\" name=\"source\" value=\""
+           . htmlspecialcharx($sourceID)
+           . "\"><input type=\"hidden\" name=\"xactid\" value=\""
+           . htmlspecialcharx($xactid)
+           . "\"><input type=\"hidden\" name=\"srcpage\" value=\""
+           . htmlspecialcharx($srcpage)
+           . "\">";
+
+    // if desired, add the headline and body as well
+    if ($all)
+        $str .= "<input type=\"hidden\" name=\"headline\" value=\""
+                . htmlspecialcharx($headline)
+                . "\"><input type=\"hidden\" name=\"body\" value=\""
+                . htmlspecialcharx($body)
+                . "\">";
+
+    return $str;
+}
+
+function showItem()
+{
+    global $db, $newsID, $sourceType, $sourceID, $headline, $body,
+           $authorID, $origUserName, $origUserID, $curuser;
+
+    // query the updater's username
+    $result = mysql_query(
+        "select name from users where id = '$curuser'", $db);
+    list($curuserName) = mysql_fetch_row($result);
+
+    // if we're the original author, set the 'original' variables
+    if (!$origUserID) {
+        $origUserID = $curuser;
+        $origUserName = $curuserName;
+        $created = date("M j, Y");
+    }
+
+    // figure the byline
+    $byline = "Posted by <a href=\"showuser?id=$origUserID\">"
+              . htmlspecialcharx($origUserName)
+              . "</a> on $created";
+
+    if ($origUserID != $curuser)
+        $byline .= " (edited by <a href=\"showuser?id=$curuser\">"
+                   . htmlspecialcharx($curuserName)
+                   . "</a> on " . date("M j, Y") . ")";
+    
+
+    // show it
+    echo "<b>" . htmlspecialcharx($headline) . "</b><br>"
+        . fixDesc($body, FixDescSpoiler)
+        . "<div class=smallfoot><span class=details>$byline</span></div>";
+
+}
+
+// if we're editing an existing item, query the old item
+if ($newsID && !$errMsg) {
+
+    $result = mysql_query(
+        "select
+           n.newsid, n.source, n.sourceid, n.created, n.modified,
+           n.userid, n.supersedes, ifnull(n.original, n.newsid),
+           n.status, n.headline, n.body,
+           n2.newsid as superseder,
+           norig.userid, uorig.name
+         from
+           news as n
+           join news as norig on norig.newsid = ifnull(n.original, n.newsid)
+           join users as uorig on uorig.id = norig.userid
+           left outer join news as n2 on n2.supersedes = n.newsid
+         where
+           n.newsid = '$newsID'", $db);
+
+    if (mysql_num_rows($result) > 0) {
+
+        // fetch the old information
+        list($newsID, $sourceType, $sourceID, $created, $modified,
+             $authorID, $supersedes, $original, $status,
+             $oldHeadline, $oldBody, $superseder,
+             $origUserID, $origUserName) =
+                 mysql_fetch_row($result);
+
+        // if we're not submitting a form, use the old data to populate
+        // the new form
+        if (!$submit) {
+
+            if ($status == 'A') {
+                $headline = $oldHeadline;
+                $body = $oldBody;
+            } else if ($status == 'D') {
+                $headline = "Deleted";
+                $body = "This item has been deleted.";
+            }
+        }
+
+        // if there's a superseder, we can't edit this item
+        if ($superseder) {
+            $errMsg = "The news item you're working on is no longer "
+                      . "current - another user might have recently "
+                      . "edited or deleted the item. "
+                      . "<a href=\"editnews?newsid=$superseder"
+                      . "&type=$sourceType&source=$sourceID"
+                      . ($delete ? "&delete" : "")
+                      . "\">Edit the updated item</a>";
+        }
+
+        // can't delete an item that's already been deleted
+        if ($status == 'D' && $delete) {
+            $errMsg = "This news item has already been deleted.";
+            $show = "status";
+        }
+
+    } else {
+        // no old article found
+        $errMsg = "The specified news item isn't in the database. The "
+                  . "link that you used to reach this page might be "
+                  . "broken.";
+    } 
+}
+
+// if we're reinstating an older item, query it
+if ($reinstateID && !$errMsg && !$submit) {
+
+    // query the old item
+    $result = mysql_query(
+        "select
+           n.headline, n.body
+         from
+           news as n
+           join news as ncur
+         where
+           n.newsid = '$reinstateID'
+           and ncur.newsid = '$newsID'
+           and ifnull(ncur.original, ncur.newsid)
+               = ifnull(n.original, n.newsid)", $db);
+
+    if (mysql_num_rows($result) > 0) {
+        list($headline, $body) = mysql_fetch_row($result);
+    } else {
+        $errMsg = "The item you're attempting to reinstate is no longer "
+                  . "in the database.";
+    }
+}
+
+// if we have a source page, use it as the cancellation link
+if ($srcpage)
+    $hrefCancel = $srcpage;
+
+$srcpageUrl = urlencode($srcpage);
+
+// if we've already failed, show an error page and give up
+if ($errMsg) {
+    pageHeader("$Mode News Item");
+    echo "<span class=errmsg>$errMsg</span>"
+        . "<p><a href=\"$hrefCancel\">Return</a>";
+    pageFooter();
+    exit();
+}
+
+// check for form submissions of the various types
+if ($delete && $deleteConfirm) {
+
+    // Deleting an item doesn't really delete anything from the database,
+    // since we want to keep a full history.  Instead, it inserts a new
+    // item that supersedes the item being deleted, and sets the new item's
+    // status to 'D' to indicate that it's a deletion.
+    $result = mysql_query(
+        "insert into news
+           (source, sourceid, created, modified, userid,
+            supersedes, original, status)
+         values
+           ('$sourceType', '$sourceID', '$created', now(), '$curuser',
+            '$newsID', '$original', 'D')", $db);
+
+    $show = "status";
+    if ($result) {
+        $succMsg = "The news item has been deleted.";
+        $_SESSION['editnews.xactid'] = $xactid;
+    } else
+        $errMsg = "A database error occurred deleting the new item.";
+
+} else if ($delete) {
+
+    pageHeader("Delete News Item");
+
+    echo "<h1>Delete News Item</h1>"
+        . "<p>You are deleting the following news item:<p><hr class=dots><p>"
+        . "$sourceInfo<p>";
+
+    showItem();
+
+    echo "<p><hr class=dots><p>"
+        . "You can delete an article if it was entered in error, or "
+        . "contains outdated information that's misleading. "
+        . "However, you shouldn't necessarily delete an item just because "
+        . "it's no longer current, since some people might find the record of "
+        . "past developments useful.  If this item has merely been superseded "
+        . "by more recent events, consider adding news to cover "
+        . "the new events instead."
+
+        . "<p>Deleting the item will remove it from the current news list, "
+        . "but the item's history will be kept (so it can be "
+        . "reinstated later if necessary).  The deletion will be "
+        . "logged under your user ID."
+        . "<p>Are you sure you want to delete this item?"
+        . "<p><a href=\"editnews?newsid=$newsID"
+        . "&type=$sourceType&source=$sourceID"
+        . "&delete=Y$sourceID&xactid=$xactid&srcpage=$srcpageUrl\">"
+        . "Yes, delete it</a><br>"
+        . "<p><a href=\"$hrefCancel\">No, keep it</a>";
+
+    pageFooter();
+    exit();
+
+} else if (($publish || $preview) && ($body == "" || $headline == "")) {
+    
+    $errMsg = "Please fill in the headline and body.";
+    
+} else if ($preview) {
+
+    // show the preview
+    pageHeader("Preview News Item");
+
+    echo "<h1>Preview News Item</h1>"
+        . "This is how your news item will appear when published. "
+        . "<p><hr class=dots><p>";
+
+    showItem();
+
+    echo "<p><hr class=dots><p>"
+        . "If you're happy with the way this looks, click Publish to "
+        . "post the item.  Click Edit if you want to revise it further "
+        . "before publishing."
+
+        . "<p><form name=\"editnews\" method=\"post\" action=\"editnews\">"
+        . hiddenFields(true)
+        . "<input type=\"submit\" name=\"publish\" value=\"Publish\">"
+        . " &nbsp; "
+        . "<input type=\"submit\" name=\"edit\" value=\"Edit\">"
+        . "</form>";
+
+    // there's nothing else to show
+    $show = false;
+
+} else if ($publish) {
+
+    // quote the body and headline for insertion
+    $qHeadline = mysql_real_escape_string($headline, $db);
+    $qBody = mysql_real_escape_string($body, $db);
+
+    // If this is a new item, insert it as a new item, with no superseded
+    // item.  If this is an edit to an existing item, it's still a new
+    // row, but it's marked as superseding the item we're editing.
+    if ($newsID) {
+
+        // We're editing an existing item.  Set the 'supersedes' field
+        // to the old item's ID, and copy its sequence number.
+        $progress = "INS5421";
+        $result = mysql_query(
+            "insert into news
+              (source, sourceid, created, modified, userid,
+               supersedes, original, status,
+               headline, body)
+             values
+              ('$sourceType', '$sourceID', '$created', now(), '$curuser',
+               '$newsID', '$original', 'A',
+               '$qHeadline', '$qBody')", $db);
+
+    } else {
+
+        // We're adding a new item.  Give it the next higher sequence
+        // number for its source.
+        $progress = "INS5523";
+        $result = mysql_query(
+            "insert into news
+              (source, sourceid, created, modified, userid,
+               supersedes, original, status,
+               headline, body)
+             values
+              ('$sourceType', '$sourceID', now(), now(), '$curuser',
+               null, null, 'A',
+               '$qHeadline', '$qBody')", $db);
+
+    }
+
+    if ($result) {
+        $succMsg = "The news item has been successfully added.";
+        $_SESSION['editnews.xactid'] = $xactid;
+        $show = "status";
+    } else {
+        $errMsg = "An error occurred adding the news item. You might "
+                  . "try again in a few minutes, or <a href='contact'>"
+                  . "contact us</a> if the problem persists (for reference, "
+                  . "please pass along this error code: $progress).";
+    }
+    
+}
+
+// show the page header and status, if desired
+if ($show == "form" || $show == "status") {
+
+    pageHeader("$Mode News Item",
+               $show == "form" ? "editnews.headline" : false);
+
+    echo "<h1>$Mode News Item</h1>";
+
+    if ($succMsg)
+        echo "<p><span class=success>$succMsg</span>";
+    if ($errMsg)
+        echo "<p><span class=errmsg>$errMsg</span>";
+
+}
+
+// show the editing form if desired
+if ($show == "form") {
+
+    echo "<p>$sourceInfo<p>";
+
+//    if ($newsID) {
+//        echo "<div class=warningBox>"
+//            . "<b>Note:</b>  You're editing an existing item.  You should "
+//            . "do this only to make corrections or add more detail about "
+//            . "the original story, because an edited item appears "
+//            . "under its <b>original</b> publication date.  If you have "
+//            . "new developments to report, you should "
+//            . "<a href=\"editnews?type=$sourceType&source=$sourceID\">"
+//            . "add a new item</a> instead.</div>";
+//    }
+
+    ?>
+    <form id="editnews" name="editnews" method="post" action="editnews">
+       <?php echo hiddenFields(false); ?>
+
+       <b>Headline:</b><br>
+       <input type="text" size=100 name="headline" id="headline" value="<?php
+           echo htmlspecialcharx($headline) ?>">
+
+       <p>
+       <table border=0 cellspacing=0 cellpadding=0>
+          <tr><td><b>Body:</b></td>
+             <td align=right><span class=details><?php
+               echo helpWinLink("help-formatting", "Formatting Tips")
+             ?></span></td>
+          </tr>
+          <tr>
+             <td colspan=2>
+                <textarea rows=15 cols=80 name="body"><?php
+                   echo htmlspecialcharx($body);
+                ?></textarea>
+             </td>
+          </tr>
+       </table>
+
+       <p>
+       <input type="submit" name="preview" value="Preview">
+       <p>
+       <a href="<?php echo $hrefCancel ?>">Discard changes</a>
+
+    </form>
+    <?php
+    
+} else if ($show == "status") {
+
+    echo "<p><a href=\"$hrefCancel\">Return</a>";
+    
+}
+
+pageFooter();
+
+?>

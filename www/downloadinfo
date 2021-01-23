@@ -1,0 +1,102 @@
+<?php
+@session_start();
+include_once "util.php";
+include "pagetpl.php";
+
+include_once "dbconnect.php";
+$db = dbConnect();
+
+function getHelp($db, $fmtid, $osname)
+{
+    // make sure we have a valid request
+    if ($fmtid == "" || $osname == "")
+        return "<error><id>BAD REQUEST</id>"
+            . "<message>Invalid network request - missing format or "
+            . "OS parameters</message></error>";
+
+    // look up the available help for this format
+    $result = mysql_query("select osid, installer, version
+        from downloadhelp where fmtid = '$fmtid'", $db);
+    if (mysql_num_rows($result) == 0)
+        return "<error><id>FORMAT NOT FOUND</id>"
+            . "<message>No download information is available for this "
+            . "format.</message></error>";
+
+    // retrieve the available information
+    for ($i = 0, $helplist = array() ; $i < mysql_num_rows($result) ; $i++) {
+
+        // fetch this item
+        list($os, $inst, $ver) = mysql_fetch_row($result);
+
+        // add it to our list, keyed by OS ID
+        $helplist[$os] = array($inst, $ver);
+    }
+
+    // fetch the operating system list
+    $result = mysql_query("select id, parent, name from operatingsystems", $db);
+    for ($i = 0, $oslist = array(), $targetos = false ;
+         $i < mysql_num_rows($result) ; $i++) {
+
+        // fetch this OS
+        list($id, $parent, $name) = mysql_fetch_row($result);
+
+        // add it to our OS list, keyed by OS ID
+        $oslist[$id] = array($parent, $name);
+
+        // if it's the one we're looking for, note it
+        if ($name == $osname)
+            $targetos = $id;
+    }
+
+    // Starting with the exact target OS, walk up the OS parent tree
+    // until we find an OS in our help list.  Stop at the first match
+    // we find.  This will give us the most specific help available
+    // for the OS/format combination, but will let us find generic
+    // help for a more general parent class of OS, if that's all
+    // that's available.  For example, the parent tree for Windows 98 SR2
+    // might go Windows 98 SR2 - Windows 98 - Win 9x - Win32 - Windows,
+    // so we'd find help for Win32 in general if that's all that's
+    // available, or for the Win 9x branch if there's something for
+    // that branch, etc.
+    for ($os = $targetos ; $os ; $os = $parent) {
+        // look up the current OS in the OS list
+        $osInfo = $oslist[$os];
+    
+        // pull out the fields from this OS list entry
+        $parentId = $osInfo[0];
+        $name = $osInfo[1];
+
+        // look up the parent ID in the table
+        $parent = ($parentId ? $oslist[$parentId] : false);
+
+        // look for a help list entry for the current OS
+        if (isset($helplist[$os])) {
+            // this is it - return our the format information
+            $help = $helplist[$os];
+            $inst = htmlspecialcharx($help[0]);
+            $ver = htmlspecialcharx($help[1]);
+            return "<download><installer>$inst</installer>"
+                . "<version>$ver</version></download>";
+        }
+    }
+
+    // we didn't find any help for the requested OS
+    return "<error><id>OS NOT FOUND</id>"
+        . "<message>No information is available for your operating "
+        . "system.</message></error>";
+}
+
+// get the request parameters
+$fmtid = mysql_real_escape_string(get_req_data('fmt'), $db);
+$osname = get_req_data('os');
+$compression = mysql_real_escape_string(get_req_data('compression'), $db);
+
+// get the help data in XML format
+$xml = getHelp($db, $fmtid, $osname);
+
+// return the information
+header("Content-length: " . strlen($xml));
+header("Content-type: text/xml");
+echo $xml;
+
+?>

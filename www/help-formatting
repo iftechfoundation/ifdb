@@ -1,0 +1,67 @@
+<?php
+@session_start();
+include_once "util.php";
+include "pagetpl.php";
+$review = isset($_REQUEST['review']);
+$comment = isset($_REQUEST['comment']);
+helpPageHeader("Formatting Hints");
+?>
+
+<h1>Formatting Hints</h1>
+
+<p>You can use some limited HTML-style formatting code in this field:
+
+<?php if ($review || $comment) { ?>
+
+<p><a name="spoilertags"></a><b>&lt;SPOILER&gt; ...
+&lt;/SPOILER&gt;</b> - marks everything between the tags as "spoilers"
+- information that reveals the game's secrets.  A reader who hasn't
+played the game might not want to see this, since it would spoil the
+fun of discovery when they play.  IFDB will hide this text until the
+reader clicks a button saying they want to see it.
+
+<?php } ?>
+
+<p><b>&lt;B&gt; ... &lt;/B&gt;</b> - the text between the &lt;B&gt; and
+   &lt;/B&gt; is shown in <b>boldface</b>.
+
+<p><b>&lt;I&gt; ... &lt;/I&gt;</b> - the text between the &lt;I&gt; and
+   &lt;/I&gt; is shown in <i>italics</i>.
+
+<p><b>&lt;BR&gt;</b> - line break: ends the current line and starts a new
+   one, with no extra space between the lines.
+
+<p><b>&lt;P&gt;</b> - paragraph break: shows a blank line between the paragraphs.
+
+<p><b>&lt;BR/&gt;</b> - paragraph break (this is provided so that you can
+   copy text from an <a href="http://babel.ifarchive.org">iFiction</a>
+   XML file - the iFiction format uses &lt;BR/&gt; for paragraph breaks)
+
+<p><b>&lt;A GAME="<i>tuid</i>"&gt; ... &lt;/A&gt;</b> - hyperlink the text
+between the &lt;A&gt; and &lt;/A&gt; to a game.  <i>tuid</i> is the
+<a href="help-tuid">TUID</a> identifying the game.  Rather than writing
+this out by hand, you can use our
+<a href="gamelink">game hyperlink generator</a>.
+
+<p><b>&lt;A HREF="<i>url</i>"&gt; ... &lt;/A&gt;</b> - hyperlink the
+text between the &lt;A&gt; and &lt;/A&gt; to any Web site.  (For
+safety reasons, Javascript isn't allowed.  The URL must start with
+<tt>http://</tt>, <tt>ftp://</tt>, or <tt>news:</tt>.)
+
+<p><b>&amp;lt;</b> - a less-than sign (&lt;)
+
+<p><b>&amp;gt;</b> - a greater-than sign (&gt;)
+
+<p><b>&amp;amp;</b> - an ampersand (&amp;)
+
+<p>If you use any of the line or paragraph break codes, then any
+newlines in your text will be ignored - we'll assume that you wanted
+to control the line formatting entirely with the HTML-style codes.
+On the other hand, if you <b>don't</b> use any break codes at all,
+we'll assume that you wanted any newlines in the text to show up
+literally as line breaks in the displayed version.
+
+<?php
+helpPageFooter();
+?>
+

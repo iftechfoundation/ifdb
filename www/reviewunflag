@@ -1,0 +1,127 @@
+<?php
+
+// we have to be logged in to do this
+@session_start();
+include "login-check.php";
+if (!logged_in())
+    exit();
+
+$curuser = $_SESSION['logged_in_as'];
+
+// include some utility modules
+include "pagetpl.php";
+include "reviews.php";
+include_once "util.php";
+
+// connect to the database
+include_once "dbconnect.php";
+$db = dbConnect();
+
+// get the parameters
+$reviewID = get_req_data('review');
+$flagger = get_req_data('flagger');
+$flagType = get_req_data('type');
+$confirm = get_req_data('confirm');
+
+$qReviewID = mysql_real_escape_string($reviewID, $db);
+$qFlagger = mysql_real_escape_string($flagger, $db);
+$qFlagType = mysql_real_escape_string($flagType, $db);
+
+// query the flag
+$result = mysql_query(
+    "select
+       u.name, f.notes, r.userid
+     from
+       reviewflags as f
+       join users as u on u.id = f.flagger
+       join reviews as r on r.id = f.reviewid
+     where
+       f.reviewid = '$qReviewID'
+       and f.flagger = '$qFlagger'
+       and f.flagtype = '$qFlagType'", $db);
+
+pageHeader("Delete Flag");
+
+if (mysql_num_rows($result) == 0) {
+    echo "This flag has already been deleted."
+        . "<p><a href=\"needjs\" onclick=\"javascript:window.close();"
+        . "return false;\">Close window</a>";
+
+    pageFooter();
+    exit();
+}
+
+list($flaggerName, $notes, $reviewOwner) = mysql_fetch_row($result);
+$flaggerName = htmlspecialcharx($flaggerName);
+$notes = htmlspecialcharx($notes);
+
+$flagNames = array('S' => "Spoilers");
+$flagName = $flagNames[$flagType];
+
+// we can only delete flags on our own reviews
+if ($reviewOwner != $curuser)
+{
+    echo "You can only delete flags on your own reviews."
+        . "<p><a href=\"needjs\" onclick=\"javascript:window.close();"
+        . "return false;\">Close window</a>";
+
+    pageFooter();
+    exit();
+}
+
+
+// check what we're doing
+if ($confirm == 'Y' && !$errMsg) {
+
+    echo "<h1>Delete Review Flag</h1>";
+
+    // delete the flag
+    $result = mysql_query(
+        "delete from reviewflags
+         where
+           reviewid = '$qReviewID'
+           and flagger = '$qFlagger'
+           and flagtype = '$qFlagType'", $db);
+
+    if ($result) {
+
+        echo "<span class=success>This flag has been successfully "
+            . "deleted.</span>"
+
+            . "<p><a href=\"needjs\" onclick=\"javascript:window.close();"
+            . "return false;\">Close window</a>";
+
+    } else {
+
+        $errMsg = "An error occurred updating the database.  You might "
+                  . "try again in a few minutes, or <a href=\"contact\">"
+                  . "contact us</a> if the problem persists.";
+
+    }
+}
+
+if (!$confirm || $errMsg) {
+    // pre-confirmation - explain the plan and ask for confirmation
+
+    echo "<h1>Delete Flag</h1>";
+
+    if ($errMsg)
+        echo "<span class=errmsg>$errMsg</span><p>";
+
+    echo "<p>You are about to delete this flag:<p><div class=indented>"
+        . "Flagged by: <a href=\"$flagger\">$flaggerName</a><br>"
+        . "Flagged for: <b>$flagName</b><br>"
+        . "Explanation:<br><div class=indented>$notes</div>"
+        . "</div><p><b>Do you really want to delete this flag?</b><br>"
+        . "Please act in good faith: only delete the flag if you've "
+        . "adequately addressed it by changing your review, or "
+        . "you honestly feel the flag is not warranted."
+        . "<p><a href=\"reviewunflag?review=$reviewID&flagger=$flagger"
+        . "&type=$flagType&confirm=Y\">Yes, delete this flag</a><br>"
+        . "<a href=\"needjs\" onclick=\"javascript:window.close();"
+        . "return false;\">No, keep flag and close window</a>";
+}
+
+pageFooter();
+
+?>

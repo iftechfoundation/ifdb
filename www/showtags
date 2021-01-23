@@ -1,0 +1,154 @@
+<?php
+
+@session_start();
+
+// make sure we process any persistent login state
+include_once "login-persist.php";
+checkPersistentLogin();
+
+include "pagetpl.php";
+include_once "util.php";
+
+include_once "dbconnect.php";
+$db = dbConnect();
+
+$limit = (int)get_req_data('limit');
+if ($limit == 0) {
+    $limitClause = "";
+    $limitName = "all of the tags";
+    $title = "All Game Tags";
+}
+else {
+    $limitClause = "limit 0, $limit";
+    $limitName = "the top $limit tag" . ($limit > 1 ? "s" : "");
+    $title = "Top $limit Tags";
+}
+
+pageHeader($title);
+
+// get the top (most frequently used) $limit tags
+$result = mysql_query(
+    "select
+       tag, count(tag) as freq,
+       (unix_timestamp(now()) - unix_timestamp(max(moddate))) as age
+     from gametags
+     group by tag
+     order by freq desc
+     $limitClause", $db);
+for ($i = 0, $tags = array(), $cnt = mysql_num_rows($result) ;
+     $i < $cnt ; $i++) {
+    $tags[] = mysql_fetch_array($result, MYSQL_ASSOC);
+}
+
+function sortByTagName($a, $b)
+{
+    return strcasecmp($a['tag'], $b['tag']);
+}
+function sortByTagAge($a, $b)
+{
+    return $a['age'] - $b['age'];
+}
+function sortByTagFreq($a, $b)
+{
+    return $a['freq'] - $b['freq'];
+}
+function mapFreqBin($idx)
+{
+    global $tags;
+    return $tags[$idx]['freq'];
+}
+function mapAgeBin($idx)
+{
+    global $tags;
+    return $tags[$idx]['age'];
+}
+
+function buildBins($cbSort, $cbMap)
+{
+    global $tags, $bins;
+
+    // sort into the desired order for the bins
+    usort($tags, $cbSort);
+
+    // build the frequency map
+    $ret = array_map($cbMap, $bins);
+
+    // make sure we distinguish adjacent bins - to the extent bins are
+    // the same, move towards the center
+    for ($i = 4 ; $i <= 6 ; $i++) {
+        if ($ret[$i] <= $ret[$i-1])
+            $ret[$i] = $ret[$i-1] + 1;
+    }
+    for ($i = 2 ; $i >= 0 ; $i--) {
+        if ($ret[$i] >= $ret[$i+1])
+            $ret[$i] = $ret[$i+1] - 1;
+    }
+
+    // return the result
+    return $ret;
+}
+
+// calculate the normal distribution bin - this find the highest bin number
+// (1-7) where the given value is less than the bin's top element.
+function calcDistBin($val, $bins)
+{
+    for ($i = 0 ; $i < count($bins) && $val >= $bins[$i] ; $i++) ;
+    return $i;
+}
+
+if (count($tags) == 0) {
+    echo "<i>There are currently no tags in the database</i>";
+} else {
+
+    $i = $cnt - 1;
+    $bins = array((int)($i * 0.02),  // bottom 2% in bin 1
+                  (int)($i * 0.07),  // next 5% in bin 2
+                  (int)($i * 0.22),  // next 15% in bin 3
+                  (int)($i * 0.78),  // middle 56% in bin 4
+                  (int)($i * 0.93),  // next 15% in bin 5
+                  (int)($i * 0.98),  // next 5% in bin 6
+                  $i);               // top 2% in bin 7
+
+    // calculate the normal distribution bins for the frequencies
+    $freqBins = buildBins("sortByTagFreq", "mapFreqBin");
+
+    // calculate the distribution bins for the ages
+    $ageBins = buildBins("sortByTagAge", "mapAgeBin");
+
+    // re-sort by tag name for display order
+    usort($tags, "sortByTagName");
+
+    echo "<h1>$title</h1>"
+        . "<p>Here are $limitName associated with games in IFDB. "
+        . "Tags that are used more frequently are shown in larger type, and "
+        . "newer tags are in darker colors. "
+        . "Click on a tag to list games associated with the tag."
+        . "<p><div class=indented><center>";
+
+    // show the tags
+    foreach ($tags as $t) {
+        $freq = $t['freq'];
+        $tag = $t['tag'];
+        $age = $t['age'];
+        $td = htmlspecialcharx($tag);
+        $tu = urlencode($tag);
+        $siz = calcDistBin($freq, $freqBins);
+        $color = calcDistBin($age, $ageBins);
+
+        echo "<span style=\"margin: 0 1em 0 1em; white-space: nowrap;\">"
+            . "<a class=silent href=\"search?searchfor=tag:$tu\">"
+            . "<font size=$siz><span class=\"tagAge$color\">"
+            . "$td</span></font></a></span> ";
+    }
+    
+}
+
+echo "</center></div><p>"
+   . "Show <a href=\"showtags?limit=20\">the top 20</a> / "
+   . "<a href=\"showtags?limit=50\">the top 50</a> / "
+   . "<a href=\"showtags?limit=100\">the top 100</a> / "
+   . "<a href=\"showtags\">all</a> game tags.<br>";
+
+
+pageFooter();
+?>

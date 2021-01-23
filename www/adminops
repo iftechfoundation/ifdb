@@ -1,0 +1,2158 @@
+<?php
+
+@session_start();
+
+// make sure we process any persistent login state
+include_once "login-persist.php";
+$userid = checkPersistentLogin();
+
+include_once "util.php";
+include "pagetpl.php";
+include_once "useractivation.php";
+
+include_once "dbconnect.php";
+$db = dbConnect();
+
+// assume no privileges
+$userprivs = $adminPriv = false;
+
+// check the user for ADMIN privileges
+if ($userid) {
+    $result = mysql_query(
+        "select `privileges` from users where id='$userid'", $db);
+    $userprivs = mysql_result($result, 0, "privileges");
+    $adminPriv = (strpos($userprivs, "A") !== false);
+}
+
+// if this isn't an ADMIN user, send back an error
+if (!$adminPriv) {
+    pageHeader("Unuthorized Access Prohibited");
+    echo "<h1>Unauthorized Access Prohibited</h1>
+        <p>Access to this page is restricted to authorized users.";
+    pageFooter();
+    exit();
+}
+
+if (isset($_REQUEST['showimage'])) {
+    list($imgdata, $fmt) = fetch_image($_REQUEST['showimage'], true);
+    if (is_null($imgdata))
+        exit("Non-existent image ID");
+    $thumbnail = isset($_REQUEST['thumbnail']) ? $_REQUEST['thumbnail'] : null;
+    sendImage($imgdata, $fmt, $thumbnail);
+    exit();
+}
+
+$filterTypeMap = array(
+    "A" => "Adult Content",
+    "R" => "Review Embargo");
+
+pageHeader("Maintenance Operations");
+
+// check for requests
+if (isset($_REQUEST['osvercheck'])) {
+    echo "<h1>OS Version Integrity Check</h1>";
+
+    $apply = isset($_REQUEST['apply']);
+    $errCnt = 0;
+
+    $result = mysql_query("select id, name from operatingsystems
+         order by name", $db);
+    for ($i = 0 ; $i < mysql_num_rows($result) ; $i++) {
+        list($id, $name) = mysql_fetch_row($result);
+        echo "<b>OS ID=$id, name=" . htmlspecialcharx($name)
+            . "</b><br><div class=indented>";
+
+        $id = mysql_real_escape_string($id, $db);
+        $res2 = mysql_query("select vsnid, seq, name
+           from osversions where osid='$id' order by seq", $db);
+        for ($foundstar = false, $j = 0 ;
+             $j < mysql_num_rows($res2) ; $j++) {
+            list($vsnid, $seq, $vsnname) = mysql_fetch_row($res2);
+            echo "Version ID=$vsnid, name=" . htmlspecialcharx($vsnname)
+                . ", sequence number=$seq<br>";
+            if ($vsnname == '*')
+                $foundstar = true;
+        }
+
+        if (!$foundstar) {
+            $errCnt++;
+            echo "<span class=errmsg>'*' All-Versions row not found";
+
+            if ($apply) {
+                echo "- inserting</span><br>";
+                $res2 = mysql_query("insert into osversions
+                   (osid, seq, name) values ('$id', 0, '*')", $db);
+                if (!$res2) {
+                    echo "<span class=errmsg>'*' insertion failed - "
+                        . mysql_error($db) . "</span><br>";
+                }
+            }
+            else
+                echo "</span><br>";
+        }
+        echo "</div>";
+    }
+
+    echo "<p>";
+
+    // check for orphaned versions
+    $result = mysql_query("select id, vsnid, osid, osversions.name
+        from osversions
+        left outer join operatingsystems
+           on osversions.osid = operatingsystems.id
+        where id is null", $db);
+    if (mysql_num_rows($result) == 0) {
+        echo "No orphaned OS version entries found<br>";
+    } else {
+        for ($i = 0 ; $i < mysql_num_rows($result) ; $i++) {
+            $errCnt++;
+            list ($nullid, $vsnid, $osid, $name) = mysql_fetch_row($result);
+            echo "<span class=errmsg>Orphaned version: vsnid=$vsnid, "
+                . "osid=$osid, name=" . htmlspecialcharx($name);
+
+            if ($apply) {
+                echo " - deleting</span><br>";
+
+                $osid = mysql_real_escape_string($osid, $db);
+                $vsnid = mysql_real_escape_string($vsnid, $db);
+                $res2 = mysql_query("delete from osversions
+                    where vsnid='$vsnid' and osid='$osid'", $db);
+                if (!$res2)
+                    echo "<span class=errmsg>Deletion failed - "
+                        . mysql_error($db) . "</span><br>";
+            }
+            else
+                echo "</span><br>";
+        }
+    }
+
+    // check for orphaned file format entries
+    $result = mysql_query(
+        "select
+           downloadhelp.fmtid, filetypes.id,
+           downloadhelp.osid, operatingsystems.id,
+           downloadhelp.osvsnid, osversions.vsnid
+         from
+           downloadhelp
+           left outer join filetypes
+             on downloadhelp.fmtid = filetypes.id
+           left outer join operatingsystems
+             on downloadhelp.osid = operatingsystems.id
+           left outer join osversions
+             on downloadhelp.osvsnid = osversions.vsnid
+         where
+           filetypes.id is null
+           or operatingsystems.id is null
+           or osversions.vsnid is null", $db);
+    if (mysql_num_rows($result) != 0) {
+        echo "<h2>DOWNLOADHELP table integrity check</h2>";
+
+        for ($i = 0 ; $i < mysql_num_rows($result) ; $i++) {
+            list($fmtidref, $fmtid, $osidref, $osid, $osvsnref, $osvsn) =
+                mysql_fetch_row($result);
+            
+            echo "downloadhelp (format=$fmtidref, osid=$osidref, "
+                . "osvsnid=$osvsnref): "
+                . ($fmtid == "" ? "[broken FILETYPE reference]" : "")
+                . ($osid == "" ? "[broken OS reference] " : "")
+                . ($osvsn == "" ? "[broken OS VERSION reference] " : "")
+                . "<br>";
+        }
+        echo "<p><span class=errmsg><b>The downloadhelp error(s) above must "
+            . "be fixed manually.</b></span><p>";
+    }
+
+    // check for orphaned formatprivs rows
+    $result = mysql_query(
+        "select
+            formatprivs.fmtid, filetypes.id,
+            formatprivs.userid, users.id
+         from
+            formatprivs
+            left outer join filetypes on fmtid = filetypes.id
+            left outer join users on userid = users.id
+         where
+            filetypes.id is null
+            or users.id is null", $db);
+    if (mysql_num_rows($result) != 0) {
+        echo "<h2>FORMATPRIVS table integrity check</h2>";
+
+        for ($i = 0 ; $i < mysql_num_rows($result) ; $i++) {
+            list($fmtidref, $fmtid, $uidref, $uid) =
+                mysql_fetch_row($result);
+            
+            echo "formatprivs (format=$fmtidref, user=$uidref): "
+                . ($fmtid == "" ? "[broken FILETYPE reference]" : "")
+                . ($uid == "" ? "[broken USERS reference] " : "")
+                . "<br>";
+        }
+        echo "<p><span class=errmsg><b>The formatprivs error(s) above must "
+            . "be fixed manually.</b></span><p>";
+    }
+
+    // check for orphaned osprivs rows
+    $result = mysql_query(
+        "select
+            osprivs.osid, operatingsystems.id,
+            osprivs.userid, users.id
+         from
+            osprivs
+            left outer join operatingsystems on osid = operatingsystems.id
+            left outer join users on userid = users.id
+         where
+            operatingsystems.id is null
+            or users.id is null", $db);
+    if (mysql_num_rows($result) != 0) {
+        echo "<h2>OSPRIVS table integrity check</h2>";
+
+        for ($i = 0 ; $i < mysql_num_rows($result) ; $i++) {
+            list($osidref, $osid, $uidref, $uid) =
+                mysql_fetch_row($result);
+            
+            echo "osprivs (OS=$osidref, user=$uidref): "
+                . ($osid == "" ? "[broken OS reference]" : "")
+                . ($uid == "" ? "[broken USERS reference] " : "")
+                . "<br>";
+        }
+        echo "<p><span class=errmsg><b>The osprivs error(s) above must "
+            . "be fixed manually.</b></span><p>";
+    }
+
+
+    // check for orphaned gamelinks rows (with broken FMTID or OSID refs)
+    $result = mysql_query(
+        "select
+            gamelinks.gameid, games.id,
+            gamelinks.fmtid, filetypes.id,
+            gamelinks.osid, operatingsystems.id,
+            gamelinks.osvsn, osversions.vsnid
+         from
+            gamelinks
+            left outer join games
+              on gamelinks.gameid = games.id
+            left outer join filetypes
+              on gamelinks.fmtid = filetypes.id
+            left outer join operatingsystems
+              on gamelinks.osid = operatingsystems.id
+            left outer join osversions
+              on gamelinks.osvsn = osversions.vsnid
+         where
+            games.id is null
+            or filetypes.id is null
+            or (gamelinks.osid is not null and operatingsystems.id is null)
+            or (gamelinks.osvsn is not null and osversions.vsnid is null)",
+        $db);
+    if (mysql_num_rows($result) != 0) {
+        echo "<h2>GAMELINKS table integrity check</h2>";
+
+        for ($i = 0 ; $i < mysql_num_rows($result) ; $i++) {
+            list($gameidref, $gameid, $fmtidref, $fmtid,
+                 $osidref, $osid, $vsnidref, $vsnid) =
+                mysql_fetch_row($result);
+            
+            echo "gamelinks (game=$gameidref, format=$fmtidref, "
+                . "OS=$osidref, OS version=$vsnidref): "
+                . ($gameid == "" ? "[broken GAME reference]" : "")
+                . ($fmtid == "" ? "[broken FILETYPE reference]" : "")
+                . ($osidref != "" && $osid == ""
+                   ? "[broken OS reference]" : "")
+                . ($vsnidref != "" && $vsnid == ""
+                   ? "[broken OS VERSION reference] " : "")
+                . "<br>";
+        }
+        echo "<p><span class=errmsg><b>The gamelinks error(s) above must "
+            . "be fixed manually.</b></span><p>";
+    }
+
+    // check for orphaned game tags
+    $result = mysql_query(
+        "select
+           gametags.gameid, gametags.userid, gametags.tag,
+           games.id, users.id
+         from
+           gametags
+           left outer join games on gametags.gameid = games.id
+           left outer join users on gametags.userid = users.id
+         where
+           games.id is null
+           or (users.id is null and users.id <> '\$system')", $db);
+    if (mysql_num_rows($result) != 0) {
+        echo "<h2>GAMETAGS table integrity check</h2>";
+        for ($i = 0 ; $i < mysql_num_rows($result) ; $i++) {
+            list($idg, $idu, $tag, $gidg, $uidu) = mysql_fetch_row($result);
+            $tag = htmlspecialcharx($tag);
+            echo "gametags (gameid=$idg, userid=$idu, tag=$tag): "
+                . ($gidg == "" ? "[broken GAMEID link] " : "")
+                . ($uidu == "" ? "[broken USERID link] " : "")
+                . "<br>";
+        }
+    }
+    else
+        echo "<p>No orphaned GAMETAGS entries found";
+
+    // check for orphaned review tags
+    $result = mysql_query(
+        "select
+           reviewtags.reviewid, reviewtags.tag, reviews.id
+         from
+           reviewtags
+           left outer join reviews on reviewtags.reviewid = reviews.id
+         where
+           reviews.id is null", $db);
+    if (mysql_num_rows($result) != 0) {
+        echo "<h2>REVIEWTAGS table integrity check</h2>";
+        for ($i = 0 ; $i < mysql_num_rows($result) ; $i++) {
+            list($idr, $tag, $ridr) = mysql_fetch_row($result);
+            $tag = htmlspecialcharx($tag);
+            echo "reviewtags (reviewid=$idr, tag=$tag): "
+                . "[broken REVIEWID link]<br>";
+        }
+    }
+    else
+        echo "<p>No orphaned REVIEWTAGS entries found";
+
+    // check for orphaned review flags
+    $result = mysql_query(
+        "select
+           reviewflags.reviewid, reviews.id
+         from
+           reviewflags
+           left outer join reviews on reviewflags.reviewid = reviews.id
+         where
+           reviews.id is null", $db);
+    if (mysql_num_rows($result) != 0) {
+        echo "<h2>REVIEWFLAGS table integrity check</h2>";
+        for ($i = 0 ; $i < mysql_num_rows($result) ; $i++) {
+            list($idr, $ridr) = mysql_fetch_row($result);
+            echo "reviewflags (reviewid=$idr): "
+                . "[broken REVIEWID link]<br>";
+        }
+    }
+    else
+        echo "<p>No orphaned REVIEWFLAGS entries found";
+
+    // check for orphaned comments
+    $result = mysql_query(
+        "select
+           c.sourceid,
+           c.source,
+           (case c.source
+             when 'R' then r.id
+             when 'U' then u.id
+             when 'L' then l.id
+             when 'P' then p.pollid
+            end)
+             as xid
+         from
+           ucomments as c
+           left outer join reviews as r
+             on (c.source = 'R' and c.sourceid = r.id)
+           left outer join users as u
+             on (c.source = 'U' and c.sourceid = u.id)
+           left outer join reclists as l
+             on (c.source = 'L' and c.sourceid = l.id)
+           left outer join polls as p
+             on (c.source = 'P' and c.sourceid = p.pollid)
+         where
+           r.id is null
+           and u.id is null
+           and l.id is null
+           and p.pollid is null", $db);
+    if (mysql_num_rows($result) != 0) {
+        echo "<h2>UCOMMENTS table integrity check</h2>";
+        for ($i = 0 ; $i < mysql_num_rows($result) ; $i++) {
+            list($idr, $src, $ridr) = mysql_fetch_row($result);
+            echo "ucomments (source type=$src, source ID=$idr): "
+                . "[broken SOURCEID link]<br>";
+        }
+    }
+    else
+        echo "<p>No orphaned UCOMMENTS entries found";
+
+    // check for orphaned recommended list items
+    $result = mysql_query(
+        "select
+           i.listid, i.gameid, i.comments,
+           l.id, l.title,
+           g.id, g.title
+         from
+           reclistitems as i
+           left outer join reclists as l on l.id = i.listid
+           left outer join games as g on g.id = i.gameid
+         where
+           l.id is null or g.id is null", $db);
+    if (mysql_num_rows($result) != 0) {
+        echo "<h2>RECLISTITEMS table integrity check</h2>";
+        for ($i = 0 ; $i < mysql_num_rows($result) ; $i++) {
+            list($idl, $idg, $icmt, $idl2, $lttl, $idg2, $gttl) =
+                mysql_fetch_row($result);
+            $icmt = htmlspecialcharx($icmt);
+            $lttl = htmlspecialcharx($lttl);
+            $gttl = htmlspecialcharx($gttl);
+            echo "reclistitem (listid=$idi ["
+                . ($idl2
+                   ? "<a href=\"viewlist?id=$idl\" target=\"_blank\">$lttl</a>"
+                   : "<b>orphaned list ref</b>")
+                . "], comment=\"$icmt\", gameID=$idg ["
+                . ($idg2
+                   ? "<a href=\"viewgame?id=$idg\" target=\"_blank\">$gttl</a>"
+                   : "<b>orphaned game ref</b>")
+                . "])<br>";
+        }
+    } else
+        echo "<p>No orphaned RECLISTITEMS entries found";
+
+    // check for orphaned poll votes
+    $result = mysql_query(
+        "select
+           v.pollid, v.gameid, v.userid, v.quickquote, v.notes,
+           p.pollid, p.title,
+           g.id, g.title
+         from
+           pollvotes as v
+           left outer join polls as p on p.pollid = v.pollid
+           left outer join games as g on g.id = v.gameid
+         where
+           p.pollid is null or g.id is null", $db);
+    if (mysql_num_rows($result) != 0) {
+        echo "<h2>POLLVOTES table integrity check</h2>";
+        for ($i = 0 ; $i < mysql_num_rows($result) ; $i++) {
+            list($idp, $idg, $idu, $qq, $desc, $idp2, $pttl, $idg2, $gttl) =
+                mysql_fetch_row($result);
+            $qq = htmlspecialcharx($qq);
+            $desc = htmlspecialcharx($desc);
+            $pttl = htmlspecialcharx($pttl);
+            $gttl = htmlspecialcharx($gttl);
+            echo "pollvotes (pollid=$idp ["
+                . ($idp2
+                   ? "<a href=\"poll?id=$idp\" target=\"_blank\">$pttl</a>"
+                   : "<b>orphaned poll ref</b>")
+                . "], quickquote=\"$qq\", notes=\"$desc\", gameID=$idg ["
+                . ($idg2
+                   ? "<a href=\"viewgame?id=$idg\" target=\"_blank\">$gttl</a>"
+                   : "<b>orphaned game ref</b>")
+                . "])<br>";
+        }
+    } else
+        echo "<p>No orphaned POLLVOTES entries found";
+
+
+    if (!$apply && $errCnt)
+        echo "<p><a href=\"adminops?osvercheck&apply\">"
+            . "<b>$errCnt error(s) found - fix now</b></a>";
+
+    echo "<br><br><hr class=dots><br>";
+}
+else if (isset($_REQUEST['users'])) {
+
+    $sortList = array(
+        'nm' => array('name', 'By Screen Name'),
+        'em' => array('email', 'By Email'),
+        'new' => array('created desc', 'Newest First'),
+        'old' => array('created', 'Oldest First'),
+        'newlog' => array('lastlogin desc', 'Recent Logins First'),
+        'oldlog' => array('lastlogin', 'Oldest Logins First'));
+
+    $sortby = get_req_data('sortby');
+    $orderBy = isset($sortList[$sortby])
+               ? $sortList[$sortby][0]
+               : $sortList['nm'][0];
+
+    $result = mysql_query("select count(*) as c from users", $db);
+    $cnt = mysql_result($result, 0, "c");
+
+    $perPage = 50;
+    $pgAll = false;
+    $pg = get_req_data('pg');
+    if ($pg == 'all') {
+        $pgAll = true;
+        $perPage = $cnt;
+        $pg = 1;
+    }
+
+    $lastPage = (int)floor(($cnt + $perPage - 1)/$perPage);
+    if ($pg < 1)
+        $pg = 1;
+    else if ($pg > $lastPage)
+        $pg = $lastPage;
+
+    $firstOnPage = ($pg - 1) * $perPage;
+    $lastOnPage = $firstOnPage + $perPage - 1;
+    if ($lastOnPage > $cnt - 1)
+        $lastOnPage = $cnt - 1;
+
+    $statMap = array("A" => "Active", "D" => "Pending Activation",
+                     "B" => "Banned", "X" => "Closed",
+                     "R" => "Pending Review");
+    $proStatMap = array("T" => "Trusted", "R" => "Pending Review",
+                        "" => "Normal");
+
+    $result = mysql_query("select code, name from `privileges`", $db);
+    for ($i = 0, $privMap = array() ; $i < mysql_num_rows($result) ; $i++) {
+        list($code, $name) = mysql_fetch_row($result);
+        $privMap[$code] = $name;
+    }
+
+    $result = mysql_query(
+        "select
+           id, name, email, publicemail, acctstatus, profilestatus,
+           `privileges`,
+           date_format(created, '%d-%b-%Y'),
+           date_format(lastlogin, '%d-%b-%Y')
+        from users
+        order by $orderBy, name
+        limit $firstOnPage, $perPage", $db);
+
+	echo "<div style=\"margin: 1ex 0px;\">"
+		. "<form>"
+		. "Search by name or email: <input name=\"finduser\" type=\"text\" length=60 value=\"$fldval\">"
+		. "  <input type=\"submit\" name=\"go\" value=\"Find\">"
+		. "</form>"
+		. "</div>";
+
+    echo "<table><tr><th>User Name</th><th>Email</th><th>Public Email</th>"
+        . "<th>Status</th><th>Profile Status</th>"
+        . "<th>Privileges</th><th>Created</th><th>Last Login</th>"
+        . "</tr>";
+
+    // show the sorting controls
+    showSortingControls("usersort", "sortby", $sortList, $sortby,
+                        array("users" => "1"), "adminops");
+
+    // show where we are in the list
+    $pageCtl = "<span class=details>"
+               . makePageControl(
+                   "adminops?users&sortby=$sortby",
+                   $pg, $lastPage, $firstOnPage, $lastOnPage,
+                   $cnt, true, true, $pgAll)
+               . "</span>";
+
+    echo "$pageCtl<br><br><br>";
+
+    for ($i = 0 ; $i < mysql_num_rows($result) ; $i++) {
+        list($id, $name, $email, $pubmail, $statCode, $proStat, $privcode,
+             $created, $login) =  mysql_fetch_row($result);
+        $name = htmlspecialcharx($name);
+        $email = htmlspecialcharx($email);
+        $pubmail = htmlspecialcharx($pubmail);
+        $stat = isset($statMap[$statCode]) ? $statMap[$statCode] : "";
+        $proStat = isset($proStatMap[$proStat]) ? $proStatMap[$proStat] : "";
+        for ($priv = array(), $c = 0 ; $c < strlen($privcode) ; $c++) {
+            $priv[] = isset($privMap[$privcode{$c}])
+                      ? $privMap[$privcode{$c}]
+                      : "??? '{$privcode{$c}}'";
+        }
+        $priv = implode(", ", $priv);
+
+        if ($statCode == 'B' || $statCode == 'X')
+            $proStat = '-';
+
+        $bg = (($i % 2) == 0) ? "evenRow" : "oddRow";
+        echo "<tr class=\"$bg\">"
+            . "<td><a href=\"adminops?user=$id\">$name</a></td>"
+            . "<td>$email</td><td>$pubmail</td><td>$stat</td>"
+            . "<td>$proStat</td>"
+            . "<td>$priv</td><td>$created</td><td>$login</td></tr>";
+    }
+
+	echo "</table><br><br><br>$pageCtl<br><br>"
+		. "<hr class=dots><br>";
+	
+} else if (isset($_REQUEST['loginsfrom']) && $_REQUEST['loginsfrom'] != "") {
+
+	$qip = mysql_real_escape_string($_REQUEST['loginsfrom'], $db);
+	$result = mysql_query(
+		"select
+			u.id, u.name, u.email,
+			date_format(max(l.`when`), '%d-%b-%Y %H:%i')
+		 from
+			logins as l
+			join users as u
+			   on u.id = l.uid
+		 where
+			l.ip = '$qip'
+		 group by
+			u.id
+		 order by
+			l.`when` desc", $db);
+
+	echo "<h1>Logins from $qip</h1>"
+		. "<div style=\"margin: 1em 2em;\">"
+		. "<table>";
+	
+	for ($i = 0 ; $i < mysql_num_rows($result) ; $i++)
+	{
+		list($uid, $uname, $umail, $udate) = mysql_fetch_row($result);
+		$uname = htmlspecialcharx($uname);
+		$uamil = htmlspecialcharx($umail);
+		echo "<tr>"
+			. "<td style=\"padding: 0px 1ex\"><a href=\"adminops?user=$uid\">$uname</a></td>"
+			. "<td style=\"padding: 0px 1ex\">$umail</td>"
+			. "<td style=\"padding: 0px 1ex\">$udate</td>"
+			. "</tr>";
+	}
+	echo "</table></div><hr class=dots>";
+
+} else if (isset($_REQUEST['finduser'])) {
+
+	echo "<h1>Search for user</h1>";
+	$fldlbl = "Name or email:";
+	$fldval = "";
+
+	if ($_REQUEST['finduser'] != "")
+	{
+		$upat = mysql_real_escape_string($_REQUEST['finduser'], $db);
+		$hupat = htmlspecialcharx($upat);
+		$upat = str_replace('*', '%', $upat);
+		if (!preg_match('/%/', $upat)) $upat = "%{$upat}%";
+
+		$result = mysql_query(
+			"select
+               id, name, email, 
+		       date_format(created, '%d-%b-%Y'),
+		       date_format(lastlogin, '%d-%b-%Y')
+             from
+               users
+             where
+               name like '$upat'
+               or email like '$upat'
+             order by
+			   name asc", $db);
+
+		echo "Users matching \"$hupat\":"
+			. "<div style=\"margin: 1ex 2em 2em 2em;\">"
+			. "<table>"
+			.  "<tr>"
+			.   "<th style=\"padding: 1ex 0px;\">User Name</th><th>Email</th><th>Created</th><th>Last Login</th>"
+			.  "</tr>";
+
+		for ($i = 0 ; $i < mysql_num_rows($result) ; $i++)
+		{
+			list($uid, $uname, $umail, $ucre, $ulogin) = mysql_fetch_row($result);
+			$uname = htmlspecialcharx($uname);
+			$umail = htmlspecialcharx($umail);
+			echo "<tr>"
+				.   "<td style=\"padding: 0px 1ex\"><a href=\"adminops?user=$uid\">$uname</a></td>"
+				.   "<td style=\"padding: 0px 1ex\">$umail</td>"
+				.   "<td style=\"padding: 0px 1ex\">$ucre</td>"
+				.   "<td style=\"padding: 0px 1ex\">$ulogin</td>"
+				. "</tr>";
+		}
+
+		echo "</table></div>";
+		$fldlbl = "New search: ";
+		$fldval = str_replace("\"", "&34;", $_REQUEST['finduser']);
+	}
+
+	echo "<form>"
+		. "$fldlbl <input name=\"finduser\" type=\"text\" length=60 value=\"$fldval\">"
+		. "  <input type=\"submit\" name=\"go\" value=\"Find\">"
+		. "</form>"
+		. "<hr class=dots>";
+
+} else if (isset($_REQUEST['user']) && $_REQUEST['user'] != "") {
+
+    $uid = $_REQUEST['user'];
+    $quid = mysql_real_escape_string($uid, $db);
+
+    echo "<form name=\"edituser\" id=\"edituser\" method=\"post\" "
+        . "action=\"adminops\">"
+        . "<input type=hidden name=\"user\" value=\"$uid\">";
+
+    $result = mysql_query(
+        "select email, name, acctstatus, profilestatus,
+            created, lastlogin, `privileges`,
+            activationcode, pswsalt, remarks, sandbox
+         from users where id = '$quid'", $db);
+    list($email, $name, $stat, $proStat, $created, $login, $privcode,
+         $actcode, $pswsalt, $remarks, $sandbox)
+        = mysql_fetch_row($result);
+
+    $email = htmlspecialcharx($email);
+    $name = htmlspecialcharx($name);
+    $remarks = htmlspecialcharx($remarks);
+
+    $acturl = "http://ifdb.tads.org/userconfirm?a=$actcode";
+
+    $statMap = array("A" => "Active", "D" => "Pending Activation",
+                     "B" => "Banned", "X" => "Closed",
+                     "R" => "Pending Review");
+    $statName = $statMap[$stat];
+
+    $proStatMap = array("T" => "Trusted", "R" => "Pending Review",
+                        "" => "Normal");
+    $proStatName = $proStatMap[$proStat];
+
+	$sandboxMap = array(0 => "0 (Normal users)", 1 => "1 (Trolls)");
+
+    $result = mysql_query(
+        "select code, name from `privileges` order by name", $db);
+    for ($i = 0, $privMap = array() ; $i < mysql_num_rows($result) ; $i++) {
+        list($pcode, $pname) = mysql_fetch_row($result);
+        $privMap[$pcode] = $pname;
+    }
+
+    for ($priv = array(), $c = 0 ; $c < strlen($privcode) ; $c++)
+        $priv[] = $privMap[$privcode{$c}];
+    $privNames = implode(", ", $priv);
+
+    $result = mysql_query(
+        "select id, fmtname, userid
+         from filetypes
+           left outer join formatprivs
+             on formatprivs.fmtid = filetypes.id
+             and formatprivs.userid = '$quid'
+         order by fmtname", $db);
+    for ($formats = array(), $i = 0 ; $i < mysql_num_rows($result) ; $i++)
+        $formats[] = mysql_fetch_array($result, MYSQL_ASSOC);
+
+    $result = mysql_query(
+        "select id, name, userid
+         from operatingsystems
+           left outer join osprivs
+             on osprivs.osid = operatingsystems.id
+             and osprivs.userid = '$quid'
+         order by name", $db);
+    for ($oses = array(), $i = 0 ; $i < mysql_num_rows($result) ; $i++)
+        $oses[] = mysql_fetch_array($result, MYSQL_ASSOC);
+
+    // check if we're logging in as the user
+    if (isset($_REQUEST['su'])) {
+        $_SESSION['logged_in_as'] = $quid;
+        shoot_recommendation_cache();
+        echo "<p><span class=success>setuser successful</span><p>";
+    }
+
+
+    // check if we're applying changes from the form
+    if ($_SERVER['REQUEST_METHOD'] == 'POST'
+           && $_REQUEST['user'] != ""
+           && $_REQUEST['apply'] != "") {
+
+        // get the request parameters
+
+        $oldstat = $stat;
+        $newstat = $_REQUEST['acctstat'];
+        if (isset($statMap[$newstat]))
+            $stat = $newstat;
+
+        $oldProStat = $proStat;
+        $newProStat = $_REQUEST['prostat'];
+        if (isset($proStatMap[$newProStat]))
+            $proStat = $newProStat;
+
+        $privcode = "";
+        foreach ($privMap as $k => $v) {
+            if ($_REQUEST["priv-$k"] == $k)
+                $privcode .= $k;
+        }
+        $privcode = mysql_real_escape_string($privcode, $db);
+
+		$oldSandbox = $sandbox;
+		$newSandbox = $_REQUEST['sandbox'];
+		if (isset($sandboxMap[$newSandbox]))
+			$sandbox = $newSandbox;
+
+        for ($i = 0 ; $i < count($formats) ; $i++) {
+            $f = $formats[$i];
+            $k = $f['id'];
+            $formats[$i]['userid'] = ($_REQUEST["fmt-$k"] == $k ? $uid : "");
+        }
+
+        for ($i = 0 ; $i < count($oses) ; $i++) {
+            $o = $oses[$i];
+            $k = $o['id'];
+            $oses[$i]['userid'] = ($_REQUEST["os-$k"] == $k ? $uid : "");
+        }
+
+        // update the user table
+        $progress = "updating USERS";
+        $result = mysql_query(
+            "update users
+             set acctstatus = '$stat',
+               profilestatus = '$proStat',
+               `privileges` = '$privcode',
+               sandbox = '$sandbox'
+             where id = '$quid'", $db);
+
+        // close or ban the account, if desired
+        if ($result && ($stat == 'B' || $stat == 'X'))
+            $result = close_user_acct($db, $uid, $stat, $progress);
+
+        // delete the old format privileges, and insert the new ones
+        if ($result) {
+            $progress = "deleting old format privileges";
+            $result = mysql_query(
+                "delete from formatprivs where userid='$quid'", $db);
+        }
+        foreach ($formats as $f) {
+            if ($f['userid'] && $result) {
+                $progress = "inserting format privilege {$f['fmtname']}";
+                $result = mysql_query(
+                    "insert into formatprivs (fmtid, userid)
+                     values ('{$f['id']}', '$quid')", $db);
+            }
+        }
+
+        // delete the old OS privileges, and insert the new ones
+        if ($result) {
+            $progress = "deleting old OS privileges";
+            $result = mysql_query(
+                "delete from osprivs where userid='$quid'", $db);
+        }
+        foreach ($oses as $o) {
+            if ($o['userid'] && $result) {
+                $progress = "inserting OS privilege {$o['name']}";
+                $result = mysql_query(
+                    "insert into osprivs (osid, userid)
+                     values ('{$o['id']}', '$quid')", $db);
+            }
+        }
+
+        // show the results
+        if ($result)
+            echo "<span class=success>The user record has been updated in "
+                . "the database.</span>";
+        else
+            echo "<span class=errmsg>Error updating database "
+                . "(failed operation: $progress)</span>";
+        echo "<p>";
+    }
+
+    echo "Name: $name<br>"
+        . "Email: $email<br>"
+        . "Created: $created<br>"
+        . "Last login: $login<br>"
+        . "Activation code: $actcode<br>"
+        . "Profile page: <a href=\"showuser?id=$quid\" target=\"_blank\">"
+        . "showuser?id=$quid</a><br>"
+        . "<span class=details>Activation URL: $acturl</span><br>"
+        . "<p>Remarks: $remarks<br>"
+        . "<p>" . genNewUserAdminLinks(false, $actcode, $pswsalt);
+
+    echo "<p><table width='90%' cellspacing=0 cellpadding=0 border=0>"
+        . "<tr valign=top><td align=left>";
+    
+    echo "Account status:<br><div class=indented>";
+    foreach ($statMap as $k => $v) {
+        echo "<label><input type=\"radio\" name=\"acctstat\" "
+            . ($stat == $k ? "checked " : "")
+            . "id=\"acctstat-$k\" value=\"$k\"> <label for=\"acctstat-$k\">"
+            . "$v</label></label><br>";
+    }
+    echo "</div>";
+
+    echo "Profile status:<br><div class=indented>";
+    foreach ($proStatMap as $k => $v) {
+        echo "<label><input type=\"radio\" name=\"prostat\" "
+            . ($proStat == $k ? "checked " : "")
+            . "id=\"prostat-$k\" value=\"$k\"> <label for=\"prostat-$k\">"
+            . "$v</label></label><br>";
+    }
+    echo "</div>";
+
+    echo "Privileges:<br><div class=indented>";
+    foreach ($privMap as $k => $v) {
+        echo "<label><input type=\"checkbox\" name=\"priv-$k\" "
+            . (strpos($privcode, $k) !== false ? "checked " : "")
+            . "id=\"priv-$k\" value=\"$k\"> <label for=\"priv-$k\">"
+            . "$v</label></label><br>";
+    }
+    echo "</div>";
+
+	echo "Sandbox:<br>"
+		. "<div class=indented>";
+	for ($sb = 0 ; $sb <= 1 ; $sb++) {
+		echo "<label><input type=\"radio\" name=\"sandbox\" "
+			. ($sandbox == $sb ? "checked " : "")
+			. "id=\"sandbox-$sb\" value=\"$sb\"> <label for=\"sandbox-$sb\">"
+			. $sandboxMap[$sb]
+			. "</label></label><br>";
+	}
+	echo "</div>";
+
+    echo "Format Editing Privileges:<br><div class=indented>";
+
+    foreach ($formats as $f) {
+        $k = $f['id'];
+        $v = $f['fmtname'];
+        $ck = ($f['userid'] != "" ? "checked" : "");
+        echo "<label><input type=\"checkbox\" name=\"fmt-$k\" $ck "
+            . "id=\"fmt-$k\" value=\"$k\"> <label for=\"fmt-$k\">"
+            . "$v</label></label><br>";
+    }
+    echo "</div>";
+
+    echo "OS Privileges:<br><div class=indented>";
+    foreach ($oses as $o) {
+        $k = $o['id'];
+        $v = $o['name'];
+        $ck = ($o['userid'] != "" ? "checked" : "");
+        echo "<label><input type=\"checkbox\" name=\"os-$k\" $ck "
+            . "id=\"os-$k\" value=\"$k\"> <label for=\"os-$k\">"
+            . "$v</label></label><br>";
+    }
+    echo "</div>";
+
+
+    echo "</td><td width='30%'>"
+        . "<b>Login history:</b><br>"
+        . "<table>";
+
+    $result = mysql_query(
+        "select ip, date_format(`when`, '%d-%b-%Y %H:%i')
+         from logins
+         where uid = '$quid'
+         order by `when` desc", $db);
+
+    $n = mysql_num_rows($result);
+    for ($i = 0 ; $i < $n ; $i++) {
+        list($lip, $lwhen) = mysql_fetch_row($result);
+		$lipLink = "<a href=\"adminops?loginsfrom=$lip\">$lip</a>";
+        echo "<tr><td style='padding-right: 1em;'>$lwhen<td>$lipLink</td></tr>";
+    }
+
+    echo "</table>"
+        . "</td></tr></table>";
+    
+    echo "<p><a href=\"adminops?user=$uid&su\">Log in as $name</a>";
+
+    echo "<p><input type=\"submit\" name=\"apply\" value=\"Apply\">"
+        . "</form>";
+
+    echo "<br><br><br><hr class=dots><br><br>";
+
+} else if (isset($_REQUEST['userSelfComments'])) {
+
+    $result = mysql_query(
+        "select
+           c.userid, u.name, c.comment, date_format(c.modified, '%d-%b-%Y'),
+           c.private
+         from
+           ucomments as c
+           join users as u on u.id = c.userid
+         where
+           c.source = 'U'
+           and c.sourceid = c.userid", $db);
+
+    echo "<h1>Comments by users on their own profile</h1>";
+
+    $cnt = mysql_num_rows($result);
+    if ($cnt == 0)
+        echo "<i>No self-comments found</i>";
+
+    for ($i = 0 ; $i < mysql_num_rows($result) ; $i++)
+    {
+        list($cuid, $cuname, $ctxt, $cmod, $cprivate) =
+            mysql_fetch_row($result);
+
+        $cuname = htmlspecialcharx($cuname);
+        $ctxt = htmlspecialcharx($ctxt);
+
+        echo "<p><a href=\"showuser?id=$cuid\">$cuname</a> "
+            . "(<a href=\"adminops?user=$cuid\">user admin</a>) "
+            . "<span class=details>$cmod"
+            .    ($cprivate ? "; private" : "")
+            . "</span>"
+            . "<div class=\"indented details\">$ctxt</div>";
+    }
+
+} else if (isset($_REQUEST['reaper'])) {
+
+    $limit = (int)$_REQUEST['reaper'];
+    if ($limit < 0)
+        $limit = 30;
+
+    $result = mysql_query(
+        "select persistentsessions.id, userid, persistentsessions.lastlogin,
+           name, email,
+           to_days(now()) - to_days(persistentsessions.lastlogin)
+         from persistentsessions, users
+         where
+           persistentsessions.lastlogin <= date_sub(now(), interval $limit day)
+            and users.id = persistentsessions.userid", $db);
+
+    if (mysql_num_rows($result) == 0)
+        echo "No sessions were found that have been inactive for "
+            . "$limit day(s) or more.";
+    else {
+        echo "<table><tr><th>User Name</th><th>Email</th>"
+            . "<th>Last Login</th><th>Days Inactive</th></tr>";
+
+        for ($i = 0 ; $i < mysql_num_rows($result) ; $i++) {
+            list($sid, $uid, $login, $name, $email, $days) =
+               mysql_fetch_row($result);
+
+            $sid = mysql_real_escape_string($sid, $db);
+            $name = htmlspecialcharx($name);
+            $email = htmlspecialcharx($email);
+
+            $bg = (($i % 2) == 0) ? "evenRow" : "oddRow";
+            echo "<tr class=\"$bg;\">"
+                . "<td><a href=\"showuser?id=$uid\">$name</a></td>"
+                . "<td>$email</td>"
+                . "<td>$login</td>"
+                . "<td>$days</td>"
+                . "</tr>";
+        }
+
+        echo "</table>";
+
+        if (isset($_REQUEST['delete'])) {
+            $result = mysql_query(
+                "delete from persistentsessions
+                 where lastlogin <= date_sub(now(), interval $limit day)",
+                $db);
+
+            if ($result)
+                echo "<span class=success>The sessions above have been "
+                    . "deleted.</span>";
+            else
+                echo "<span class=errmsg>An error occurred deleting inactive "
+                    . "sessions.</span>";
+
+            echo "<p><a href=\"adminops?reaper=$limit\">Refresh the list</a>";
+
+        } else {
+
+            echo "<p><a href=\"adminops?reaper=$limit&delete\">"
+                . "Delete these sessions</a>";
+
+        }
+
+        echo "<br><br><hr class=dots><br><br>";
+    }
+
+} else if (isset($_REQUEST['fixsortkeys'])) {
+
+    $errMsg = false;
+    $rebuild = isset($_REQUEST['rebuild']);
+    $where = ($rebuild
+              ? ""
+              : "where sort_title is null or sort_title = ''
+                 or sort_author is null or sort_author = ''");
+
+    $result = mysql_query(
+        "select id, title, author, sort_title, sort_author
+         from games $where", $db);
+    if (!$result)
+        $errMsg = "Query failed: " . mysql_error($db);
+
+    for ($rows = array(), $i = 0 ; $i < mysql_num_rows($result) ; $i++)
+        $rows[] = mysql_fetch_array($result, MYSQL_ASSOC);
+
+    foreach ($rows as $r) {
+        $gameid = mysql_real_escape_string($r['id'], $db);
+        $title = $r['title'];
+        $author = $r['author'];
+        $sortTitle = $r['sort_title'];
+        $sortAuthor = $r['sort_author'];
+
+        $setVars = array();
+
+        if ($rebuild || $sortTitle == "")
+            $setVars[] = "sort_title = '"
+                         . mysql_real_escape_string(strtoupper(
+                             getSortingTitle($title))) . "'";
+
+        if ($rebuild || $sortAuthor == "")
+            $setVars[] = "sort_author = '"
+                         . mysql_real_escape_string(strtoupper(
+                             getSortingPersonalNameList($author))) . "'";
+
+        $setVars = implode(",", $setVars);
+        $result = mysql_query(
+            "update games set $setVars where id='$gameid'", $db);
+        if (!$result) {
+            $errMsg = "Update failed: id=$gameid; " . mysql_error($db);
+            break;
+        }
+    }
+
+    echo "<h1>Fix/Rebuild GAMES table SORT keys</h1>";
+    if ($errMsg)
+        echo "<span class=errmsg>$errMsg</span>";
+    else
+        echo "<span class=success>Success: " . count($rows) . " row(s) updated
+              in GAMES table</span>";
+
+        echo "<br><br><hr class=dots><br><br>";
+
+} else if (isset($_REQUEST['fixbafs'])) {
+
+    // query up the Baf's reviews that contain tags
+    $result = mysql_query(
+        "select
+           reviews.id as id, reviews.review as review, games.title as title
+         from
+           reviews, specialreviewers, games
+         where
+           reviews.special = specialreviewers.id
+           and specialreviewers.code = 'bafs'
+           and games.id = reviews.gameid
+           and reviews.review like '%<%'", $db);
+
+    // note if we're in APPLY mode
+    $applyMode = isset($_REQUEST['apply']);
+
+    // allowed tags - we keep these tags without modification
+    $allowedTags = valuesToKeys(
+        array('p', 'br',
+              'i', 'b', 'u', 'strong', 'em',
+              'big', 'small', 'tt', 'sup', 'sub',
+              'cite', 'blockquote',
+              'ul', 'ol', 'li', 'dl', 'dt', 'dd'), 1);
+
+    $updateCount = 0;
+    $errRows = false;
+    $allBadTags = array();
+
+    while (($row = mysql_fetch_array($result, MYSQL_ASSOC)) != false) {
+
+        // decode the row
+        $title = $row['title'];
+        $rid = $row['id'];
+        $txt = $origTxt = $row['review'];
+
+        // no unknown tags for this row yet
+        $badTags = array();
+
+        // scan it for tags we actually need to fix
+        $inAnchor = false;
+        for ($ofs = 0 ; ($ofs = strpos($txt, '<', $ofs)) !== false ; ) {
+            // remember where the tag starts
+            $tagOfs = $ofs;
+
+            // find the end of the tag
+            if (($gt = strpos($txt, '>', $ofs+1)) === false) {
+                ++$ofs;
+                continue;
+            }
+
+            // note the length of the full tag from < to >
+            $tagLen = $gt + 1 - $ofs;
+
+            // pull out the tag name
+            $tagName = trim(substr($txt, $ofs + 1, $gt - $ofs - 1));
+
+            // if it's a close tag, drop the slash
+            $isClose = false;
+            if (substr($tagName, 0, 1) == '/') {
+                $isClose = true;
+                $tagName = trim(substr($tagName, 1));
+            }
+
+            // check for auto-closing tags
+            $isAutoClose = false;
+            if (substr($tagName, -1, 1) == '/') {
+                $isAutoClose = true;
+                $tagName = trim(substr($tagName, 0, -1));
+            }
+
+            // if we have parameters, pull them out
+            $tagAttr = false;
+            $sp = strpos($tagName, ' ');
+            if ($sp !== false) {
+                $tagAttr = trim(substr($tagName, $sp + 1));
+                $tagName = substr($tagName, 0, $sp);
+            }
+
+            // canonicalize the case
+            $tagName = strtolower($tagName);
+
+            // check what we have
+            if (isset($allowedTags[$tagName])) {
+                // this one goes through unchanged - just skip it
+                $ofs = $gt + 1;
+            } else if ($tagName == 'a') {
+                // Anchor tag - check for open/close
+                if ($isClose) {
+                    // close - if we're in an anchor, keep it; otherwise
+                    // delete it
+                    if ($inAnchor) {
+                        $inAnchor = false;
+                        $ofs = $gt;
+                    } else {
+                        $txt = substr_replace($txt, "", $tagOfs, $tagLen);
+                    }
+                } else {
+                    // Open anchor - check the href.  If it looks like
+                    // a baf's game reference, change it to an IFDB
+                    // game reference.  Otherwise just delete it, since
+                    // we don't allow off-site references in reviews.
+                    $keepA = false;
+
+                    // $$$ special cases just for our initial import - these
+                    // fix a couple of items that are broken in the Baf's data
+                    if ($tagAttr == "href=game/1822")
+                        $tagAttr = "href=game/2277";
+                    else if ($tagAttr == "hre=game/1")
+                        $tagAttr = "href=game/1";
+
+                    if (preg_match("/^href=([\"']?)game\/([0-9]+)\\1$/i",
+                                   $tagAttr, $match, 0, 0)
+                        || preg_match("/^href=([\"'])http:\/\/"
+                                      . "(?:www\.)?wurb\.com"
+                                      . "\/if\/game\/([0-9]+)\\1$/i",
+                                      $tagAttr, $match, 0, 0)) {
+
+                        // it's a Baf's game reference - look up the game
+                        $qbafsID = mysql_real_escape_string($match[2], $db);
+                        $result2 = mysql_query(
+                            "select id from games where bafsid='$qbafsID'",
+                            $db);
+
+                        // if we found a match, rewrite it
+                        if (mysql_num_rows($result2) > 0) {
+                            $keepA = true;
+                            $gameID = mysql_result($result2, 0, "id");
+                            $newTag = "<a game=\"$gameID\">";
+
+                            $txt = substr_replace(
+                                $txt, $newTag, $tagOfs, $tagLen);
+                            $ofs += strlen($newTag);
+
+                            $inAnchor = true;
+                        }
+                    } else if (preg_match("/^game=([\"'])([a-z0-9]+)\\1$/i",
+                                          $tagAttr, $match, 0, 0)) {
+
+                        // it's already in our own format - keep it as-is
+                        $keepA = true;
+                        $ofs = $gt;
+                        $inAnchor = true;
+                    }
+
+                    // if we're not keeping the tag, delete it
+                    if (!$keepA) {
+                        $badTags["a($tagAttr)"] = true;
+                        $txt = substr_replace($txt, "", $tagOfs, $tagLen);
+                    }
+                }
+            } else {
+                // it's not an allowed tag - note it and keep going
+                $badTags[$tagName] = true;
+                $txt = substr_replace($txt, "", $tagOfs, $tagLen);
+            }
+        }
+
+        // check for changes
+        if (count($badTags) != 0 || $txt != $origTxt) {
+            // count it
+            $updateCount++;
+
+            // note any bad tags
+            echo "<p><b>Review ID=$rid (title=$title):</b><br>"
+                . "<div class=indented>";
+            if (count($badTags) != 0) {
+                echo  "Bad tags found:<br><div class=indented>"
+                    . implode("<br>", array_keys($badTags))
+                    . "</div>";
+            }
+            echo "Updated review text:<div class=indented>"
+                . fixDesc($txt)
+                . "</div></div>";
+
+            foreach ($badTags as $k=>$v)
+                $allBadTags[$k] = true;
+        }
+
+        // if we're in APPLY mode, apply the changes
+        if ($applyMode) {
+            $qtxt = mysql_real_escape_string($txt, $db);
+            $result2 = mysql_query(
+                "update reviews set review='$qtxt' where id='$rid'", $db);
+
+            if (!$result2) {
+                $errRows[] = $rid;
+                echo "<span class=errmsg>Error updating row ("
+                    . mysql_error($db) . ")</span><br>";
+            }
+        }
+    }
+
+    if (count($allBadTags) != 0) {
+        echo "<hr>Summary of bad tags found:<br><div class=indented>"
+            . implode("<br>", array_keys($allBadTags))
+            . "</div><p>";
+    }
+
+    if ($errRows) {
+        echo "<p><span class=errmsg>Database update errors occurred for "
+            . "the following review IDs:</span><br><div class=indented>";
+        foreach ($errRows as $er)
+            echo "<span class=errmsg>$er</span><br>";
+        echo "</div>";
+    }
+
+    if ($updateCount == 0)
+        echo "<p><b>No errors were found - no rows need to be updated</b>";
+    else if (!$applyMode)
+        echo "<p><b><a href=\"adminops?fixbafs&apply\">Apply these updates</a><p>";
+
+} else if (isset($_REQUEST['rebuildgametags'])) {
+
+    // run through the GAMES table and rebuild each TAGS field
+    $okCnt = 0;
+    $result = mysql_query("select id from games", $db);
+    for ($cnt = mysql_num_rows($result), $i = 0 ; $i < $cnt ; $i++) {
+
+        // get this game ID
+        $gameid = mysql_result($result, $i, "id");
+
+        // load its tag list
+        $tresult = mysql_query(
+            "select tag from gametags where gameid = '$gameid'", $db);
+        for ($tags = array(), $j = 0, $tcnt = mysql_num_rows($tresult) ;
+             $j < $tcnt ; $j++)
+            $tags[] = mysql_result($tresult, $j, "tag");
+
+        // turn it into a flat string list
+        if ($tcnt == 0)
+            $tags = "null";
+        else
+            $tags = "'"
+                    . mysql_real_escape_string(implode(",", $tags), $db)
+                    . "'";
+
+        // update the game's TAGS field
+        $uresult = mysql_query(
+            "update games set tags = $tags where id = '$gameid'", $db);
+        if ($uresult)
+            $okCnt++;
+        else
+            echo "<span class=errmsg>Error updating game $gameid, tags=$tags"
+                . "</span><br>";
+    }
+
+    echo "<p>Rows successfully updated: $okCnt<br>";
+
+} else if (isset($_REQUEST['rebuildgametags2'])) {
+
+    // run through GAMES and look for missing GAMETAGS entries
+    // run through the GAMES table and rebuild each TAGS field
+    $okCnt = 0;
+    $result = mysql_query(
+        "select id, title, tags from games where tags <> ''", $db);
+    for ($cnt = mysql_num_rows($result), $i = 0 ; $i < $cnt ; $i++) {
+
+        // get this game ID and tag list
+        $gameid = mysql_result($result, $i, "id");
+        $tags = explode(",", mysql_result($result, $i, "tags"));
+        $title = htmlspecialcharx(mysql_result($result, $i, "title"));
+
+        // load the corresponding GAMETAGS list
+        $tresult = mysql_query(
+            "select tag from gametags where gameid = '$gameid'", $db);
+        for ($gametags = array(), $j = 0, $tcnt = mysql_num_rows($tresult) ;
+             $j < $tcnt ; $j++)
+            $gametags[] = mysql_result($tresult, $j, "tag");
+
+        // look for missing gametags entries
+        $missingTags = array();
+        foreach ($tags as $t) {
+            if (!in_array($t, $gametags))
+                $missingTags[] = $t;
+        }
+
+        if (count($missingTags) != 0) {
+            echo "$title ($gameid): missing tags { "
+                . htmlspecialcharx(implode(",", $missingTags))
+                . " }<br>";
+        }
+    }
+
+    echo "<p>Rows successfully updated: $okCnt<br>";
+    
+} else if (isset($_REQUEST['cleanpix'])) {
+
+    function adjustImageName($name)
+    {
+        if (isLocalDev()
+            && strpos($name, ":") !== false)
+        {
+            $name = explode(":", $name);
+            $name[0] = "0";
+            $name = implode(":", $name);
+        }
+        return $name;
+    }
+    echo "<h1>Scanning for unreferenced images</h1>"
+        . "<form name=\"fixpix\" method=post action=\"adminops\">"
+        . "<input type=hidden name=cleanpix value=1>";
+
+    $ignoreVsnNull = !isset($_REQUEST['showVsnNull']);
+    $vsnNullCnt = 0;
+    $missingImageCnt = 0;
+
+    if (!$ignoreVsnNull)
+        echo "<input type=hidden name='showVsnNull' value=1>";
+    
+    // fetch all the picture IDs
+    $numImageDBs = (isLocalDev() ? 1 : 5);
+    for ($pix = array(), $i = 0 ; $i < $numImageDBs ; $i++) {
+        $dbpix = imageDbConnect($i);
+        $result = mysql_query("select id from images", $dbpix);
+        for ($j = 0 ; $j < mysql_num_rows($result) ; $j++) {
+            $id = $i . ":" . mysql_result($result, $j, "id");
+            $pix[$id] = 0;
+        }
+    }
+
+    // now mark all of the referenced images
+    $fldcnt = 0;
+    $result = mysql_query(
+        "select id, coverart from games where coverart is not null", $db);
+    for ($i = 0 ; $i < mysql_num_rows($result) ; $i++) {
+        $id = mysql_result($result, $i, "id");
+        $art = adjustImageName(mysql_result($result, $i, "coverart"));
+        if (isset($pix[$art]))
+            $pix[$art] += 1;
+        else {
+            echo "missing image $art for game <a href=\"viewgame?id=$id\">"
+                . "$id</a> ";
+
+            $fld = "missing-game-$id";
+            if (isset($_REQUEST['fixempties'])
+                && isset($_REQUEST[$fld])
+                && ($newpix = $_REQUEST[$fld]) != ""
+                && (strcasecmp($newpix, "none") == 0 || isset($pix[$newpix])))
+            {
+                $pix[$newpix] += 1;
+                $newpix = mysql_real_escape_string($newpix, $db);
+                $newpix = (strcasecmp($newpix, "none") == 0
+                           ? "NULL" : "'$newpix'");
+                $result2 = mysql_query(
+                    "update games set coverart = $newpix where id='$id'",
+                    $db);
+                if ($result2)
+                    echo " - successfully updated to $newpix<br>";
+                else
+                    echo " - error updating: " . mysql_error($db) . "<br>";
+
+            } else {
+                echo " - set image to: "
+                    . "<input type=text name=\"$fld\" size=50><br>";
+                $missingImageCnt += 1;
+                $fldcnt += 1;
+            }
+        }
+    }
+
+    $result = mysql_query(
+        "select
+           games_history.id as id, games_history.deltas as deltas,
+           games_history.pagevsn as pagevsn, games.title as title
+         from
+           games_history
+           join games on games_history.id = games.id
+         order by
+           games.title, games_history.pagevsn", $db);
+
+    for ($i = 0 ; $i < mysql_num_rows($result) ; $i++) {
+        $id = mysql_result($result, $i, "id");
+        $vsn = mysql_result($result, $i, "pagevsn");
+        $title = htmlspecialcharx(mysql_result($result, $i, "title"));
+        $deltas = unserialize(mysql_result($result, $i, "deltas"));
+        $art = (isset($deltas["coverart"])
+                ? adjustImageName($deltas["coverart"]) : "");
+        if (isset($deltas["coverart"])
+            && strlen($art) != 0
+            && isset($pix[$art]))
+        {
+            $pix[$art] += 1;
+        }
+        else if (isset($deltas["coverart"]))
+        {
+            $errtype = (strlen($art) ? "missing" : "null");
+            if (strlen($art) == 0)
+            {
+                if ($ignoreVsnNull)
+                    continue;
+                $vsnNullCnt += 1;
+            }
+            echo "$errtype image $art for game <a href=\"viewgame?"
+                . "id=$id&version=$vsn\">$title ($id) v.$vsn</a> ";
+
+            $fld = "empty-$id-$vsn";
+            if (isset($_REQUEST['fixempties'])
+                && isset($_REQUEST[$fld])
+                && ($newpix = $_REQUEST[$fld]) != ""
+                && (strcasecmp($newpix, "none") == 0 || isset($pix[$newpix])))
+            {
+                $pix[$newpix] += 1;
+                $deltas["coverart"] = (strcasecmp($newpix, "none") == 0
+                                       ? "" : $newpix);
+                $sd = mysql_real_escape_string(serialize($deltas), $db);
+                $result2 = mysql_query(
+                    "update games_history set deltas='$sd'
+                     where id='$id' and pagevsn='$vsn'", $db);
+                if ($result2)
+                    echo " - successfully updated to {$newpix}<br>";
+                else
+                    echo " - error updating: " . mysql_error($db) . "<br>";
+
+            } else {
+                echo " - set image to: "
+                    . "<input type=text name=\"$fld\" size=50><br>";
+                $missingImageCnt += 1;
+                $fldcnt += 1;
+            }
+        }
+    }
+
+    $result = mysql_query(
+        "select id, picture from users where picture is not null", $db);
+    for ($i = 0 ; $i < mysql_num_rows($result) ; $i++) {
+        $id = mysql_result($result, $i, "id");
+        $art = adjustImageName(mysql_result($result, $i, "picture"));
+        if (isset($pix[$art]))
+            $pix[$art] += 1;
+        else
+            echo "missing image $art for user <a href=\"viewuser?id=$id\">$id</a><br>";
+    }
+
+    $result = mysql_query(
+        "select p.userid, u.name, p.name, p.picture
+        from stylepics as p
+          join users as u on p.userid = u.id
+        where p.picture is not null", $db);
+    for ($i = 0 ; $i < mysql_num_rows($result) ; $i++) {
+        list($picuid, $picuname, $picfname, $picid) = mysql_fetch_row($result);
+        $art = adjustImageName($picid);
+        if (isset($pix[$art]))
+            $pix[$art] += 1;
+        else
+            echo "missing image $art for user <a href=\"viewuser?id=$picuid\">"
+                . "$picuname</a>, filename \"$picfname\"<br>";
+    }
+
+    $cnt = 0;
+    foreach ($pix as $id => $refs) {
+        if ($refs == 0) {
+            $cnt++;
+            echo "<a href=\"adminops?showimage=$id\">"
+                . "<img border=0 align=left "
+                . "src=\"adminops?showimage=$id&thumbnail=100x100\"></a> "
+                . "unreferenced image <a href=\"adminops?showimage=$id\">"
+                . "$id</a><br clear=all>";
+            
+            if (isset($_REQUEST['delete'])) {
+                if (delete_image($id))
+                    echo " - deleted";
+                else
+                    echo " - error: not deleted";
+            }
+            echo "<br>";
+        }
+    }
+
+    echo "<br><br>";
+
+    if ($missingImageCnt)
+        echo "<br>(Enter NONE to set a missing image link to no image.)";
+
+    if (!isset($_REQUEST['delete']) && $cnt != 0) {
+        echo "<br><a href=\"adminops?cleanpix&delete\">Delete all "
+            . "unreferenced images</a>";
+    } else {
+        echo "<br><br><br>No unreferenced images found.";
+    }
+
+    if ($ignoreVsnNull)
+        echo "<br><a href=\"adminops?cleanpix&showVsnNull\">Show "
+            . "null image warnings for old versions</a>";
+    
+    if ($fldcnt != 0)
+        echo "<p><input type=submit name=fixempties value=\"Apply Updates\">";
+
+    echo "</form>";
+    echo "<p><hr class=dots><br><br>";
+
+} else if (isset($_REQUEST['filters'])) {
+
+    echo "<h1>Game Filters</h1>";
+
+    $result = mysql_query(
+        "select
+           filterID, filterName, ckBoxName, showName, endDate,
+           filterType, explanation
+         from filters", $db);
+    echo mysql_error($db);
+    for ($i = 0 ; $i < mysql_num_rows($result) ; $i++) {
+        list($filterID, $filterName, $ckBoxName, $showName,
+             $endDate, $filterType, $explanation) = mysql_fetch_row($result);
+
+        echo "<p><hr class=dots>"
+            . "<b>Name:</b> $filterName<br>"
+            . "<b>\"Set\" checkbox label:</b> $ckBoxName<br>"
+            . "<b>\"Opt out\" checkbox label:</b> $showName<br>"
+            . "<b>\"End date:</b> " . ($endDate ? $endDate : "None") . "<br>"
+            . "<b>Filter type:</b> " . $filterTypeMap[$filterType] . "<br>"
+            . "<b>Explanation:</b> " . $explanation . "<br>";
+
+        echo "<br><a href=\"adminops?editFilter&filterID=$filterID\">Edit</a>"
+            . " - <a href=\"adminops?delFilter=$filterID\">Delete</a><br>";
+    }
+
+    echo "<p><hr class=dots><p>"
+        . "<a href=\"adminops?addFilter\">Add a new filter</a>"
+        . "<p><hr class=dots><p>";
+
+} else if (isset($_REQUEST['delFilter'])) {
+
+    $qFilterID = mysql_real_escape_string(get_req_data('delFilter'), $db);
+    if (isset($_REQUEST['delFilterConfirm'])) {
+
+        echo "*** not yet implemented ***<p><hr class=dots><p>";
+
+    } else {
+        
+        $result = mysql_query(
+            "select
+               filterID, filterName, ckBoxName, showName, endDate,
+               filterType, explanation
+             from filters
+             where filterid = '$qFilterID'");
+        if (mysql_num_rows($result) > 0) {
+            list($filterID, $filterName, $ckBoxName, $showName, $endDate,
+                 $filterType, $explanation) = mysql_fetch_row($result);
+
+            echo "<p><b>Do you really want to delete this filter?</b><br><br>"
+                . "<b>Name:</b> $filterName<br>"
+                . "<b>\"Set\" checkbox label:</b> $ckBoxName<br>"
+                . "<b>\"Opt out\" checkbox label:</b> $showName<br>"
+                . "<b>\"End date:</b> " . ($endDate ? $endDate : "None") . "<br>"
+                . "<b>Filter type:</b> " . $filterTypeMap[$filterType] . "<br>"
+                . "<b>Explanation:</b> " . $explanation . "<br>";
+
+            echo "<br><a href=\"adminops?delFilter=$filterID&delFilterConfirm\">"
+                . "Yes, really delete it</a>"
+                . "<p><hr class=dots><p>";
+        }
+    }
+
+} else if (isset($_REQUEST['addFilter'])
+           || isset($_REQUEST['editFilter'])
+           || isset($_REQUEST['addfilterGo'])) {
+
+    $filterID = get_req_data('filterID');
+    $qFilterID = mysql_real_escape_string($filterID, $db);
+    $filterName = get_req_data('filterName');
+    $ckBoxName = get_req_data('ckBoxName');
+    $showName = get_req_data('showName');
+    $explanation = get_req_data('explanation');
+    $endDate = get_req_data('endDate');
+    $filterType = get_req_data('filterType');
+    if ($filterType == '')
+        $filterType = 'R';
+
+    $errMsg = false;
+    $showForm = true;
+    
+    if ($filterID && !isset($_REQUEST['filterName'])) {
+        $result = mysql_query(
+            "select
+               filterName, ckBoxName, showName, endDate,
+               filterType, explanation
+             from filters
+             where filterid = '$qFilterID'", $db);
+        if (mysql_num_rows($result) > 0) {
+            list($filterName, $ckBoxName, $showName, $endDate, $filterType,
+                 $explanation) = mysql_fetch_row($result);
+        } else {
+            $errMsg = "Filter not found.";
+        }
+    }
+
+    if (isset($_REQUEST['addfilterGo'])) {
+
+        $qFilterName = mysql_real_escape_string($filterName, $db);
+        $qShowName = mysql_real_escape_string($showName, $db);
+        $qCkBoxName = mysql_real_escape_String($ckBoxName, $db);
+        $qExplanation = mysql_real_escape_string($explanation, $db);
+        $qEndDate = ($endDate == ""
+                     ? "NULL"
+                     : "'" . parseDateVal($endDate) . "'");
+
+        if ($endDate == "''")
+            $errMsg .= "Invalid end date - use DD-MON-YYYY format. ";
+        
+        if (strpos("AC", $filterType) === false)
+            $errMsg .= "Please select a filter type. ";
+
+        if (!$errMsg) {
+            if ($filterID) {
+                $result = mysql_query(
+                    "update filters
+                     set
+                       filterName = '$qFilterName',
+                       ckBoxName = '$qCkBoxName',
+                       showName = '$qShowName',
+                       endDate = $qEndDate,
+                       filterType = '$filterType',
+                       explanation = '$qExplanation'
+                     where filterid = '$qFilterID'", $db);
+            } else {
+                $result = mysql_query(
+                    "insert into filters
+                     (filterName, ckBoxName, showName, endDate, filterType,
+                      explanation)
+                     values ('$qFilterName', '$qCkBoxName', '$qShowName',
+                             $qEndDate, '$filterType', '$qExplanation')",
+                    $db);
+            }
+            if ($result) {
+                $showForm = false;
+                echo "<span class=success>Filter successfully updated.</span>";
+            } else {
+                $errMsg = "Database error: " . mysql_error($db);
+            }
+        }
+    }
+
+    if ($showForm) {
+    ?>
+
+    <form name="addfilter" action="adminops" method="post">
+
+       <h1>Add a game filter</h1>
+
+       <?php
+          if ($errMsg)
+              echo "<p><span class=errmsg>$errMsg</span><p>";
+       ?>
+
+       <p>Name of the filter:<br>
+       <input type=text size=80 name=filterName
+             value="<?php echo $filterName ?>">
+
+       <p>Checkbox label for <b>setting filter</b> on game page:<br>
+       <input type=text size=80 name=ckBoxName
+             value="<?php echo $ckBoxName ?>">
+
+       <p>Checkbox label for <b>opting out</b> of the filter in a user profile:<br>
+       <input type=text size=80 name=showName
+              value="<?php echo $showName ?>">
+       <input type=hidden name=filterID value="<?php echo $filterID ?>">
+
+       <p>Explanation when the filter hides content on the game page:<br>
+       <textarea name=explanation rows=5 cols=80><?php
+          echo $explanation ?></textarea>
+
+       <p>End date, if applicable:<br>
+       <input type=text size=20 name=endDate value="<?php echo $endDate ?>">
+
+       <p>Filter type:<br>
+       <div class=indented>
+          <label><input type=radio name=filterType value=A id=filterTypeA
+             <?php if ($filterType == 'A') echo "checked" ?>>
+             <label for=filterTypeA> Adult content</label></label><br>
+          <label><input type=radio name=filterType value=R id=filterTypeR
+             <?php if ($filterType == 'R') echo "checked" ?>>
+             <label for=filterTypeR> Review embargo</label></label>
+       </div>
+
+       <p><input type=submit name=addfilterGo value="Save">
+
+    </form>
+    
+    <?php
+    }
+
+    echo "<p><hr class=dots><p>";
+
+} else if (isset($_REQUEST['unicodeCheck'])) {
+
+    echo "<h2>UTF-8 Scan</h2><br>";
+    iconv_set_encoding("output_encoding", "ISO-8859-1");
+
+    check_table_utf8("extreviews", "gameid",
+                     array("url", "sourcename", "sourceurl"));
+    check_table_utf8("gamelinks", "gameid",
+                     array("title", "desc", "url"));
+    check_table_utf8("games", "id",
+                     array("title", "author", "authorExt",
+                           "sort_title", "sort_author",
+                           "tags", "version", "license",
+                           "system", "language", "desc",
+                           "seriesname", "genre", "forgiveness",
+                           "website", "downloadnotes"));
+    check_table_utf8("gametags", "gameid",
+                     array("tag"));
+    check_table_utf8("reclistitems", "listid",
+                     array("comments"));
+    check_table_utf8("reclists", "id",
+                     array("title", "keywords", "desc"));
+    check_table_utf8("reviews", "id",
+                     array("summary", "review"));
+    check_table_utf8("reviewtags", "reviewid",
+                     array("tag"));
+    check_table_utf8("users", "id",
+                     array("email", "name", "publicemail",
+                           "location", "profile"));
+
+    echo "<p><hr class=dots><p>";
+
+} else if (isset($_REQUEST['cleanUTF'])) {
+
+    echo "<h1>Cleaning corrupted 8859-1 value</h1>";
+    
+    $table = mysql_real_escape_string(get_req_data('table'), $db);
+    $idcol = mysql_real_escape_string(get_req_data('idcol'), $db);
+    $idval = mysql_real_escape_string(get_req_data('idval'), $db);
+    $col = mysql_real_escape_string(get_req_data('col'), $db);
+    $colval = mysql_real_escape_string(get_req_data('colval'), $db);
+    $rownum = isset($_REQUEST['rownum']) ? get_req_data('rownum') : 0;
+    $xform = get_req_data('xform');
+
+    $result = mysql_query(
+        "select `$col` from `$table` where `$idcol` = '$idval' "
+        . "and substring(`$col`, 1, 32) = '$colval' "
+        . "order by `$col`", $db);
+
+    if (mysql_num_rows($result) == 0)
+        echo "<span class=errmsg>No matching rows found</span>";
+    if (mysql_num_rows($result) == 1)
+        $rownum = 1;
+
+    if (mysql_num_rows($result) > 1 && $rownum == 0) {
+        echo "<span class=errmsg>Multiple rows found:</span><br><br>";
+        for ($i = 0 ; $i < mysql_num_rows($result) ; $i++) {
+            list($val) = mysql_fetch_row($result);
+            echo "Row " . ($i+1) . ": $val"
+                . "<br><a href=\"adminops?cleanUTF"
+                . "&table=" . urlencode($table)
+                . "&idcol=" . urlencode($idcol)
+                . "&idval=" . urlencode($idval)
+                . "&col=" . urlencode($col)
+                . "&colval=" . urlencode(substr($val, 0, 32))
+                . "&rownum=" . ($i+1)
+                . "&xform=" . $xform
+                . "\">Fix this row</a><br><br>";
+        }
+    }
+
+    if (mysql_num_rows($result) != 0 && $rownum != 0) {
+        for ($i = 0 ; $i < mysql_num_rows($result) ; $i++) {
+            list($val) = mysql_fetch_row($result);
+            if ($i+1 == $rownum) {
+
+                switch ($xform) {
+                case 'cleanutf8':
+                    $newval = cleanutf8($val);
+                    break;
+
+                case 'oacute':
+                    $newval = str_replace(
+                        array("\xEF\xBF\xBD"), array("\xF3"), $val);
+                    break;
+
+                case 'ouml':
+                    $newval = str_replace(
+                        array("\xEF\xBF\xBD"), array("\xF6"), $val);
+                    break;
+
+                case 'to8859':
+                    $newval = iconv("UTF-8", "ISO-8859-1//IGNORE",
+                                    approx_utf8($val));
+                    break;
+                    
+                default:
+                    $newval = $val;
+                    break;
+                }
+
+                $newval = mysql_real_escape_string($newval, $db);
+                $val = mysql_real_escape_string($val, $db);
+
+                $query = "update `$table` set `$col` = '$newval' "
+                    . "where `$idcol` = '$idval' and `$col` = '$val'";
+                echo "$query<p>";
+                $result = mysql_query(
+                    "select `$col` from `$table` "
+                    . "where `$idcol` = '$idval' and `$col` = '$val'", $db);
+                echo "(Rows matched for update = " . mysql_num_rows($result)
+                    . ")<br>";
+
+                $result = mysql_query($query, $db);
+                if ($result)
+                    echo "<span class=success>Row successfully updated</span>";
+                else
+                    echo "<span class=errmsg>Error updating row: "
+                        . mysql_error($db) . "</span>";
+
+                break;
+            }
+        }
+    }
+
+    echo "<p><hr class=dots><p>";
+
+} else if (isset($_REQUEST['sysinfo'])) {
+
+    $phpVsn = phpversion();
+
+    $result = mysql_query("select version();", $db);
+    list($mysqlVsn) = mysql_fetch_row($result);
+    
+    echo "System information:"
+        . "<p>php version = $phpVsn"
+        . "<br>MySQL version = $mysqlVsn";
+
+    echo "<p><hr class=dots><p>";
+    
+}
+
+else if (isset($_REQUEST['addnews'])) {
+
+    echo "<h1>Add a Site News item</h1>";
+
+    if (isset($_REQUEST['go'])) {
+
+        // apply the insert
+        $title = mysql_real_escape_string(get_req_data('title'), $db);
+        $ldesc = mysql_real_escape_string(get_req_data('ldesc'), $db);
+
+        $result = mysql_query(
+            "insert into sitenews (title, ldesc, posted)
+             values ('$title', '$ldesc', now())", $db);
+
+        if ($result) {
+            echo "<span class=success>The item was successfully added.</span>";
+            $title = "";
+            $ldesc = "";
+        } else {
+            echo "<span class=errmsg>Error inserting item: "
+                . mysql_error($db) . "</span>";
+            
+            $title = htmlspecialcharx(get_req_data('title'));
+            $ldesc = htmlspecialcharx(get_req_data('ldesc'));
+        }
+    }
+    
+    // show the form
+    echo "<p><form name=\"newsform\" method=post action=\"adminops\">"
+        . "<input type=hidden name=addnews value=1>"
+        . "<input type=hidden name=go value=1>"
+        . "<p><b>Item Title:</b><br>"
+        . "<input type=text size=80 name=title value=\"$title\">"
+        . "<p><b>Description:</b><br>"
+        . "<textarea rows=10 cols=80 name=ldesc>"
+        . "$ldesc</textarea>"
+        . "<p><input type=submit name=submit value=\"Add Item\">"
+        . "</form>"
+        . "<p><hr class=dots><p>";
+    
+} else if (isset($_REQUEST['osfmtprivs'])) {
+
+    // retrieve file format privileges
+    $result = mysql_query(
+        "select
+           u.id, u.name as username, 'fmt', f.id, f.fmtname
+         from
+           formatprivs as p
+           join users as u on u.id = p.userid
+           join filetypes as f on f.id = p.fmtid
+         union all
+         select
+           u.id, u.name as username, 'os', o.id, o.name
+         from
+           osprivs as p
+           join users as u on u.id = p.userid
+           join operatingsystems as o on o.id = p.osid
+         order by username", $db);
+
+    // show the data
+    echo "<p><h1>File format and operating system editor privilege list</h1>"
+        . "<style type='text/css'>\r\n"
+        . "table.osfmtprivs td {"
+        . "padding: 0px 1em; }"
+        . "\r\n</style>\r\n"
+        . "<p><table class=osfmtprivs>";
+
+    for ($i = 0 ; $i < mysql_num_rows($result) ; $i++)
+    {
+        list($uid, $uname, $objtype, $objid, $objname) =
+            mysql_fetch_row($result);
+
+        if ($objtype == 'fmt') {
+            $objurl = "fileformat?id=$objid";
+            $objtype = "File Format";
+        } else {
+            $objurl = "opsys?id=$objid";
+            $objtype = "OS";
+        }
+
+        echo "<tr>"
+            . "<td><a href=\"showuser?id=$uid\">"
+            . htmlspecialcharx($uname) . "</a>"
+            . "<td><a href=\"$objurl\">$objname</a> ($objtype)</td>"
+            . "</tr>";
+    }
+
+    echo "</table>";
+}
+
+function check_table_utf8($table, $idcol, $cols)
+{
+    global $db;
+    
+    echo "<h3>Checking table $table...</h3><div class=indented>";
+
+    $cols = implode(",", array_map("backquote", $cols));
+    $result = mysql_query("select `$idcol`, $cols from `$table`", $db);
+    if (!$result) {
+        echo "<span class=errmsg>Invalid query (mysql error: "
+            . mysql_error($db) . ")</span><br></div>";
+        return;
+    }
+
+    $cnt = mysql_num_rows($result);
+    for ($i = 0 ; $i < $cnt ; $i++) {
+        $row = mysql_fetch_array($result, MYSQL_ASSOC);
+        $id = $row[$idcol];
+        foreach ($row as $col => $val) {
+            if (is_utf8($val)) {
+
+                $baseHref = "adminops?cleanUTF"
+                            . "&table=" . urlencode($table)
+                            . "&idcol=" . urlencode($idcol)
+                            . "&idval=" . urlencode($id)
+                            . "&col=" . urlencode($col)
+                            . "&colval=" . urlencode(substr($val, 0, 32));
+
+                $cleanHref = "<a href=\"$baseHref&xform=cleanutf8\">"
+                           . "Apply this change</a>";
+                $clean2Href = "<a href=\"$baseHref&xform=oacute\">"
+                           . "Apply with EF BF BD &rarr; &oacute;</a>";
+                $clean3Href = "<a href=\"$baseHref&xform=ouml\">"
+                           . "Apply with EF BF BD &rarr; &ouml;</a>";
+                $to8859Href = "<a href=\"$baseHref&xform=to8859\">"
+                           . "Apply this change</a>";
+                    
+                echo "<span class=errmsg>$col [id=$id]</span><br><br>"
+                    . "<span class=errmsg>Raw:</span> "
+                    . hilitemarks(htmlspecialcharx($val), true)
+                    . "<br><br>"
+                    . "<span class=errmsg>UTF-8 -> 8859-1:</span> "
+                    . hilitemarks(htmlspecialcharx(
+                        iconv("UTF-8", "ISO-8859-1//IGNORE",
+                              approx_utf8($val))), true)
+                    . "<br><i>$to8859Href</i>"
+                    . "<br><br>"
+                    . "<span class=errmsg>Cleaned -> 8859-1:</span> "
+                    . hilitemarks(htmlspecialcharx(
+                        cleanutf8($val)), false)
+                    . "<br><i>$cleanHref - $clean2Href - $clean3Href</i>"
+                    . "<hr>";
+            }
+        }
+    }
+
+    echo "</div>";
+}
+
+function backquote($str) { return "`$str`"; }
+function hilitemarks($str, $showcodes)
+{
+    $ret = '';
+    $lst = array();
+    $inMark = false;
+    for ($i = 0 ; $i < strlen($str) ; $i++) {
+        $c = ord($str{$i});
+        if ($c >= 0x80)
+            $lst[] = $c;
+        if ($c >= 0x80 && !$inMark) {
+            $ret .= "<span style=\"background: #FFFF00\">";
+            $inMark = true;
+        }
+        else if ($c < 0x80 && $inMark) {
+            $ret .= "</span>";
+            if ($showcodes)
+                $ret .= listmarks($lst);
+            $lst = array();
+            $inMark = false;
+        }
+        $ret .= $str{$i};
+    }
+
+    if ($inMark) {
+        $ret .= "</span>";
+        if ($showcodes)
+            $ret .= listmarks($lst);
+    }
+
+    return $ret;
+}
+function listmarks($lst)
+{
+    return "<span style=\"font-size: 80%; font-style: italic;"
+        . "background: #80FFFF; color: #808080;\">"
+        . implode(" ", array_map("dechex", $lst))
+        . "</span>";
+}
+function cleanutf8($str)
+{
+    $ret = '';
+    for ($i = 0 ; $i < strlen($str) ; $i++) {
+        $c = $str{$i};
+        $n = ord($c);
+        $ret .= $c;
+        if ($n >= 0x80 && $i+1 < strlen($str)) {
+            $i++;
+            $c = $str{$i};
+            $n = ord($c);
+            if (($n & 0xC0) == 0x80) {
+                $n &= 0x3F;
+                if ($n != 0x20)
+                    $n |= 0x40;
+            }
+            $ret .= chr($n);
+            if ($i+1 < strlen($str) && ((ord($str{$i+1}) & 0xC0) == 0x80)) {
+                $i++;
+                $c = $str{$i};
+                $n = ord($c);
+                $n &= 0x3F;
+                if ($n != 0x20)
+                    $n |= 0x40;
+                $ret .= chr($n);
+            }
+        }
+    }
+    return $ret;
+}
+
+
+
+// show the options
+?>
+<h1>Maintenance Operations</h1>
+
+<a href="adminops?osvercheck">OS versions integrity check</a><br>
+<a href="adminops?cleanpix">Delete orphaned images</a><br>
+<a href="adminops?users&sortby=new">User list</a><br>
+<a href="adminops?finduser">User search</a><br>
+<a href="adminops?userSelfComments">User self-comments</a><br>
+<a href="adminops?reaper=30">Persistent session reaper</a><br>
+<a href="adminops?fixsortkeys">
+   Fix NULL author/title sort keys in GAMES table</a><br>
+<a href="adminops?fixsortkeys&rebuild">
+   Rebuild ALL author/title sort keys in GAMES table</a><br>
+<a href="adminops?rebuildgametags">
+   Rebuild GAMES.TAGS from GAMETAGS contents</a><br>
+<a href="adminops?rebuildgametags2">
+   Rebuild GAMETAGS from GAMES.TAGS</a><br>
+<a href="adminops?fixbafs">
+   Fix &lt;A HREF&gt; tags in Baf's Guide reviews</a><br>
+<a href="opsys">Edit OS list</a><br>
+<a href="fileformat">Edit file format list</a><br>
+<a href="adminops?osfmtprivs">Show OS/file format editors</a><br>
+<a href="adminops?filters">View/edit game filter list</a><br>
+<a href="adminops?unicodeCheck">Check for Unicode encodings in database</a><br>
+<a href="adminops?sysinfo">Show server software versions</a><br>
+<a href="adminops?addnews">Add a Site News item</a><br>
+
+<?php
+pageFooter();
+?>

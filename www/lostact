@@ -1,0 +1,202 @@
+<?php
+
+@session_start();
+include "pagetpl.php";
+include_once "util.php";
+include_once "dbconnect.php";
+include_once "captcha.php";
+include_once "useractivation.php";
+
+$errFlagged = false;
+
+// validate captcha
+$capKey = "lostact";
+list($ok, $capErrMsg) = captchaCheckPost($capKey);
+
+// If we have a valid captcha, try processing the submitted data; if
+// handlePost returns true, proceed to show the form.  If captcha
+// failed or this isn't a post, just show the form.
+$showForm = ($ok ? handlePost() : true);
+
+// if we're not showing the form, we're done
+if (!$showForm)
+    exit();
+
+// ------------------------------------------------------------------------
+//
+// Main form display
+//
+pageHeader("Missing Activation Email", "lostact.userid", false,
+           "<script src=\"xmlreq.js\"></script>");
+
+?>
+
+<h1>Missing Activation Email</h1>
+
+If you signed up for a new account, and you haven't received email
+from IFDB with activation instructions, enter your registered email
+address below and we'll send another copy of the message.  You might
+want to check your Spam or Junk Mail folder first, to make sure the
+message wasn't deleted by your spam filter.
+
+
+<p><a href="login">Click here to go to the login page</a>
+
+<?php
+
+global $errFlagged;
+if ($errFlagged != false) {
+    echo "<p><font color=red><b>";
+    echo $errFlagged;
+    echo "</b></font>";
+}
+
+?>
+
+<p>
+<form method=post action="lostact" name="lostact" id="lostact">
+
+   <table border=0>
+      <tr>
+         <td>
+            Email address:
+         <td>
+            <input type="text" name="userid" id="userid" size=30
+                  value="<?php echo get_req_data('userid')?>">
+   </table>
+
+   <br><br>
+   <?php
+       captchaSupportScripts($capKey);
+       captchaSubForm($capKey, $capErrMsg, false);
+       captchaFinish($capKey);
+   ?>
+   
+   <br><br>
+   <input type=submit value="Submit">
+
+</form>
+
+<?php
+pageFooter();
+
+
+// ------------------------------------------------------------------------
+//
+// Handle posted data
+//
+function handlePost()
+{
+    global $errFlagged;
+    
+    // get the email address
+    $email = $_REQUEST['userid'];
+
+    // if it's empty, show the page again
+    if (strlen($email) == 0) {
+        return true;
+    }
+
+    // set up the database connection
+    $db = dbConnect();
+    if ($db == false) {
+        $errFlagged = "An error occurred accessing the user database. Please
+            try again. If the problem persists, please
+            <a href='/contact'>contact us</a> to let us know about the
+            problem.";
+        return true;
+    }
+
+    // escape parameters
+    $qemail = mysql_real_escape_string($email, $db);
+
+    // look up the email address
+    $result = mysql_query("select id, acctstatus from users
+                           where email = '$qemail'", $db);
+    if (mysql_num_rows($result) == 0) {
+        $errFlagged = "The email address you entered is not registered.
+            Please check the address and try again. If you haven't yet
+            signed up, <a href=\"newuser\">click here</a> to register.";
+        return true;
+    }
+
+    // get the user ID
+    $usernum = mysql_result($result, 0, "id");
+    $stat = mysql_result($result, 0, "acctstatus");
+
+    // check for accounts with invalid status
+    $statErr = false;
+    switch ($stat)
+    {
+    case 'A':
+        $statErr = "You've already successfully activated this account, "
+                   . "so you can simply <a href=\"login\">log in</a>. "
+                   . "If you don't remember your password, "
+                   . "<a href=\"lostpass\">click here to reset it</a>.";
+        break;
+    
+    case 'R':
+        $statErr = "This account is pending review. Sorry for the delay. "
+                   . "Activation instructions will be sent to your registered "
+                   . "email address when the review is completed.";
+        break;
+
+    case 'X':
+    case 'B':
+        $statErr = "This account has been closed.";
+        break;
+    }
+
+    if ($statErr) {
+        pageHeader("Missing Activation Email");
+        ?>
+        <h1>Unable to re-send activation code</h1>
+        <span class=errmsg><?php echo $statErr ?></span>
+        <?php
+        pageFooter();
+        return false;
+    }
+
+
+    // select a new activation code for the new request
+    $actcode = sha1($usernum . md5(rand()) . md5(rand()). md5(rand()));
+
+    // udpate the database
+    mysql_query("update users set activationcode = '$actcode'
+        where id = '$usernum'", $db);
+
+    // assemble the message body
+    if (!sendActivationEmail($email, $actcode)) {
+        $errFlagged = "An error occurred sending your new activation "
+                      . "email. If you don't know of a problem with your "
+                      . "email address, the problem might be at our end - "
+                      . "if so, you might want to try again later, or "
+                      . "<a href=\"/contact\">contact us</a> if the problem "
+                      . "persists.";
+        return true;
+    }
+
+    // success - build the confirmation screen
+    pageHeader("Missing Activation Email");
+?>
+
+<h1>Resend Successful</h1>
+
+<p>We've just sent a new copy of the activation instructions to your
+registered email address.  In most cases the message should reach you
+within a few minutes, but that can vary quite a bit depending on
+network traffic and email server loads, so don't give up if the
+message doesn't arrive immediately.  Also, you might want to
+double-check your Spam or Junk Mail folder, in case your spam filter
+deletes the message.
+
+<p><a href="login">Click here to log in</a>
+
+<?php
+
+    // no need to show the rest of the page
+    pageFooter();
+    return false;
+}
+
+?>

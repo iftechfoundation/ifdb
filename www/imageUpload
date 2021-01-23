@@ -1,0 +1,137 @@
+<?php
+
+@session_start();
+include_once "util.php";
+include_once "images.php";
+
+// check for a copyright status update
+if (isset($_REQUEST['setCopyright']))
+{
+    // get the request parameters
+    $id = get_req_data('imageID');
+    $cptype = get_req_data('imgcopyright');
+    $cpstr = get_req_data('imgcopyrighttag');
+
+    // update the status
+    $errmsg = setTempImageCopyright($id, $cptype, $cpstr);
+
+    ?>
+<html>
+<body>
+<script type="text/javascript">
+<!--
+window.parent.imageCopyrightUpdated("<?php echo $errmsg ?>");
+//-->
+</script>
+</body>
+</html>
+    <?php
+
+    // that's it for this service
+    exit();
+}
+
+// get the file upload request parameters
+$btn = $_REQUEST['btn'];
+$fr = $_REQUEST['fr'];
+$thumbSize = $_REQUEST['thumbSize'];
+$radio = $_REQUEST['radio'];
+$tab = $_REQUEST['tab'];
+$col0 = $_REQUEST['col0'];
+
+?>
+<html>
+<title>Image Upload</title>
+<head>
+   <?php echoStylesheetLink(); ?>
+</head>
+<body style="margin:0; padding:0; border:none;">
+<script type="text/javascript">
+<!--
+<?php
+
+if (isset($_FILES['uplFile']))
+{
+    $fname = $_FILES['uplFile']['tmp_name'];
+    if (strlen($fname) > 0 && is_uploaded_file($fname))
+    {
+        list($errMsg, $errShortMsg, $errCode, $imgName) =
+            addTempImageFile($fname, "", false);
+    }
+    else
+    {
+        $imgName = "";
+        $errMsg = "A network error occurred uploading the file.";
+    }
+
+    $errMsg = preg_replace(array("/\"/", "/[\s\n\r]+/"),
+                           array("&34;", " "),
+                           $errMsg);
+    ?>
+window.parent.imageUploadDone("<?php echo $radio ?>", "<?php
+   echo $btn ?>", "<?php echo $fr ?>", "<?php echo $tab ?>", "<?php
+   echo $imgName ?>", "<?php echo $errMsg ?>", [<?php
+
+   if (isset($_SESSION['temp_images']))
+   {
+       // get the image array
+       $images = $_SESSION['temp_images'];
+
+       // build the image list
+       for ($i = 0, $iarr = array() ; $i < count($images) ; $i++)
+           $iarr[] = "\"{$images[$i][2]}\"";
+
+       // show the list
+       echo implode(",", $iarr);
+   }
+
+   ?>], <?php echo $col0 ?>, <?php echo $thumbSize ?>);
+    <?php
+}
+else
+{
+    ?>
+window.parent.imageUploadReady("<?php echo $btn ?>");
+    <?php
+}
+?>
+//-->
+</script>
+
+<form id="uplUploadForm" name="uplUploadForm" method="post"
+      enctype="multipart/form-data" action="imageUpload">
+   <input type="hidden" name="btn" value="<?php echo $btn ?>">
+   <input type="hidden" name="fr" value="<?php echo $fr ?>">
+   <input type="hidden" name="thumbSize" value="<?php echo $thumbSize ?>">
+   <input type="hidden" name="radio" value="<?php echo $radio ?>">
+   <input type="hidden" name="tab" value="<?php echo $tab ?>">
+   <input type="hidden" name="col0" value="<?php echo $col0 ?>">
+   <span id="uplFileSpan" class="details">
+      Select an image file: <input type="file" name="uplFile" id="uplFile"
+         onchange="javascript:uplStart();">
+   </span>
+</form>
+
+<script type="text/javascript">
+<!--
+function uplStart()
+{
+    setTimeout(function() {
+        document.uplUploadForm.submit();
+
+        var ele = document.getElementById("uplFileSpan");
+        ele.innerHTML = "<input type=\"file\" name=\"uplFile\" id=\"uplFile\" "
+                        + "onchange=\"javascript:uplStart();\">";
+    }, 100);
+}
+function uplSelect()
+{
+    var ele = document.getElementById("uplFile");
+    ele.click();
+    document.getElementById("uplUploadForm").submit();
+}
+//-->
+</script>
+
+</body>
+</html>

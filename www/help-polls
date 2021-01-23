@@ -1,0 +1,33 @@
+<?php
+@session_start();
+include_once "util.php";
+include "pagetpl.php";
+helpPageHeader("What's an IFDB Poll?");
+?>
+
+<h1>What's an IFDB Poll?</h1>
+
+<p>A poll is essentially a <a href="help-reclist">Recommended List</a>
+in reverse.  A Recommended
+List lets you create a list of your favorite games in a particular
+category, to share with the rest of IFDB.  A poll turns the tables: it
+lets you ask everyone for recommendations for some particular kind of
+game you're looking for.
+
+<p>The category can be anything you want it to be.  Just describe what
+kind of game you're looking for.
+
+<p>Once you create a poll, it will appear on the IFDB home page,
+inviting other members to submit their "votes" - suggestions for games
+that fit the category.  As the votes come in, they'll show up
+automatically on the poll's page, so you can check back from time to
+time to learn which games people have recommended.
+
+<p>A nice feature of polls is that anyone can see the results, so
+everyone can benefit from the recommendations.  So a poll essentially
+becomes a collaborative Recommended List built by the whole IFDB
+community.
+
+<?php
+helpPageFooter();
+?>

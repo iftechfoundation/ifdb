@@ -1,0 +1,31 @@
+<?php
+@session_start();
+include_once "util.php";
+include_once "dbconnect.php";
+
+// connect to the database
+$db = dbConnect();
+if ($db == false)
+    exit("Unable to connect to database");
+
+// get the user ID
+$id = $_REQUEST['id'];
+if (is_null($id))
+    exit("No user ID was specified in the request.");
+
+// look up the game
+$qid = mysql_real_escape_string($id, $db);
+$result = mysql_query("select picture from users where id = '$qid'", $db);
+if (mysql_num_rows($result) == 0)
+    exit("No picture found for user ID");
+
+// retrieve the image
+list($imgdata, $fmt) = fetch_image(mysql_result($result, 0, "picture"), true);
+
+// make sure there's an image
+if (is_null($imgdata))
+    exit("No image is stored for this user.");
+
+// send the image
+sendImage($imgdata, $fmt, $_REQUEST['thumbnail']);
+?>

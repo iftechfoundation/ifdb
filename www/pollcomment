@@ -1,0 +1,56 @@
+<?php
+
+include_once "util.php";
+
+$srcCode = 'P';
+$type = "poll";
+$typeName = "poll";
+$typeTitle = "Poll";
+$ownSrc = "a poll you created";
+$ownerDesc = "creator of this poll";
+
+$baseUrl = "pollcomment";
+$srcParamName = "poll";
+
+include "comment.php";
+
+function getCommentReference($db, $pollID)
+{
+    // query the review
+    $qpid = mysql_real_escape_string($pollID, $db);
+    $result = mysql_query(
+        "select
+           p.pollid, p.title, p.desc, p.userid, u.name
+         from
+           polls as p
+           join users as u on u.id = p.userid
+         where
+           p.pollid = '$qpid'", $db);
+
+    // if we didn't find a review, it's a fatal error
+    if (mysql_num_rows($result) == 0) {
+        return array(false, false, false, true,
+                     "The specified poll is not in the database.");
+    }
+
+    // return the full record, plus the poll owner's user ID
+    $rec = mysql_fetch_row($result);
+    return array($rec, $rec[3], $rec[4]);
+}
+
+function showCommentReference($db, $rec)
+{
+    // show the review, if we found it
+    if ($rec) {
+
+        list($id, $title, $desc, $uid, $uname) = $rec;
+        $title = htmlspecialcharx($title);
+        $desc = fixDesc($desc);
+        $uname = htmlspecialcharx($uname);
+    
+        echo "<p><hr class=dots>You are commenting on "
+            . "<a href=\"poll?id=$id\"><b>$title</b></a>, a poll "
+            . "by <a href=\"showuser?id=$uid\">$uname</a>.";
+    }
+}
+?>

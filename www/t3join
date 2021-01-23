@@ -1,0 +1,392 @@
+<?php
+// t3join - join a multi-user TADS Web UI session
+
+@session_start();
+
+include_once "dbconnect.php";
+include_once "pagetpl.php";
+include_once "util.php";
+include_once "gameinfo.php";
+include_once "login-check.php";
+
+// show an error and quit
+function errorPage($msg)
+{
+    pageHeader("Join Game On-line");
+    echo "<span class=\"errmsg\">$msg</span>";
+    pageFooter();
+
+    exit;
+}
+
+// set up the database sessions
+$db = dbConnect();
+$sdb = storageDbConnect();
+
+// get the request parameters
+$sid = get_req_data("id");
+$fusername = get_req_data("username");
+$fpassword = get_req_data("password");
+$persist = get_req_data("persist");
+$goParam = get_req_data("go");
+$multiPassParam = get_req_data("sessionCodeWord");
+
+
+// quote parameters
+$qsid = mysql_real_escape_string($sid, $sdb);
+
+// If we don't already have a GO token for the session, create one.  This
+// prevents cross-site requests from launching the game.
+if (isset($_SESSION['t3join_go_token'])) {
+    $goToken = $_SESSION['t3join_go_token'];
+} else {
+    $goToken = md5_rand($sid);
+    $_SESSION['t3join_go_token'] = $goToken;
+}
+
+// set up a link back to this page with the same input parameters
+$params = array("go=$goToken");
+if ($sid)
+    $params[] = "id=$sid";
+$t3join = "t3join?" . implode("&", $params);
+
+// no errors yet
+$errMsg = false;
+$pswErr = false;
+$pswErrMsg = false;
+$loginErrMsg = false;
+
+// if posting, and a username was entered, try logging in
+$userid = false;
+if ($_SERVER['REQUEST_METHOD'] == 'POST' && $fusername)
+{
+    // try logging in with the submitted credentials from the form
+    list ($userid, $errCode, $loginErrMsg) =
+        doLogin($db, $fusername, $fpassword);
+
+    // if that succeeded, and they want to set the cookie, do so now
+    if ($userid && $persist)
+        setLoginCookie($db, $userid, $_SERVER['REMOTE_ADDR']);
+}
+else
+{
+    // check to see if we're logged in
+    $userid = checkPersistentLogin();
+}
+
+// query the session record - only consider public sessions
+$result = mysql_query(
+    "select
+       userid, gameid, guesturl, multipass, sessionid, gameserverid
+     from
+       sessions
+     where
+       extid = '$qsid'
+       and multi = 'Y'",
+    $sdb);
+
+// retrieve the row
+$nrows = mysql_num_rows($result);
+$guestUrl = false;
+if ($nrows > 0) {
+    list($suserid, $sgameid, $guestUrl, $multiPass, $baseSID, $serverID)
+        = mysql_fetch_row($result);
+    $qgameid = mysql_real_escape_string($sgameid, $db);
+}
+
+// if there's no session password, ignore any password in the parameters
+if (!$multiPass)
+    $multiPassParam = "";
+
+// make sure we have a session
+if (!$sid || $nrows == 0 || !$guestUrl)
+{
+    pageHeader("Join Game On-line");
+    echo "<h1>Join Game On-line</h1>"
+        . "Sorry, but the game session you're trying to join "
+        . "is no longer running.";
+    pageFooter();
+
+    exit();
+}
+
+// look up the game
+$result = mysql_query(
+    "select
+       title, author, date_format(published, '%Y'),
+       version, length(coverart)
+     from games
+     where id = '$qgameid'", $db);
+
+// make sure we found it
+if (mysql_num_rows($result) == 0) {
+    errorPage("The requested game is not in the database. The link "
+              . "that you followed to reach this page might be broken.");
+}
+
+// fetch the game row
+list($title, $author, $published, $version, $hasArt) =
+    mysql_fetch_row($result);
+$title = htmlspecialcharx($title);
+$author = htmlspecialcharx($author);
+
+// look up the user information
+$result = mysql_query(
+    "select name from users where id = '$suserid'", $db);
+list($susername) = mysql_fetch_row($result);
+$susername = htmlspecialcharx($susername);
+
+// if there's a valid Go token and session password, launch the game
+if ($goParam == $goToken && $multiPassParam == $multiPass)
+    joinGame();
+
+// if there's a Go token, this is a submission rather than an initial page
+// fetch, so flag an error if the password is missing or wrong
+if ($goParam) {
+    $pswErr = true;
+    if ($multiPassParam) {
+        $pswErrMsg = "Sorry, the session code word you entered is incorrect. "
+                     . "Please double-check with the session owner if you're "
+                     . "not sure of the code word.";
+    }
+}
+
+// start the page
+pageHeader("Play $title Online", $userid ? false : "login.username");
+
+echo "<h1>Join $susername in <i>$title</i> Online</h1>";
+
+$extraInfo = "";
+if ($version)
+    $extraInfo .= "<span class=details>Version $version</span><br>";
+if ($published)
+    $extraInfo .= "<span class=details>$published</span><br>";
+if ($extraInfo)
+    $extraInfo = "<br>$extraInfo";
+
+$mainInfo = "<b><i>$title</i></b><br>"
+            . "by $author<br>"
+            . $extraInfo
+            . "<br><a href=\"viewgame?id=$sgameid\">Go to this game's "
+            . "IFDB page</a>";
+
+if ($hasArt)
+{
+    echo "<table border=0 cellspacing=0 cellpadding=0>"
+        . "<tr valign=top><td style=\"padding-right: 1em;\">"
+        . "<img src=\"viewgame?id=$sgameid&coverart&thumbnail=175x175\" "
+        . "style=\"border:none;\">"
+        . "</td><td>"
+        . $mainInfo
+        . "</td></tr></table><br><br>";
+}
+else
+    echo "$mainInfo<br><br>";
+
+// add the multi-user password field if applicable
+if ($multiPass)
+{
+    if ($pswErrMsg)
+        echo "<span class=errmsg>$pswErrMsg</span><br>";
+
+    echo "<img src=\"/blank.gif\" class=\"listarrow\">"
+        . ($pswErr ? "<span class=errmsg>" : "<span>")
+        . "This is a private session - only invited guests can join. "
+        . "Please enter the session code word: "
+        . "<input type=text id=sessionCodeWord size=25 value=\""
+        . htmlspecialchars($multiPassParam)
+        . "\">"
+        . "</span>"
+        . "<br><br>";
+}
+
+// show the saved game list, or the login page, as appropriate
+if ($userid)
+{
+    // get the current user info
+    $result = mysql_query(
+        "select name from users where id = '$userid'", $db);
+    list($username) = mysql_fetch_row($result);
+    $username = htmlspecialcharx($username);
+
+    // show that we're logged in
+    echo "<img src=\"/blank.gif\" class=\"listarrow\">"
+        . "You're logged in to IFDB as <b>$username</b>."
+        . "This lets the game save and restore personalized "
+        . "display preference settings for you on IFDB.";
+
+    // show any error message
+    if ($errMsg)
+        echo "<br><br><span class=errmsg>$errMsg</span><br>";
+
+    // show the launch link
+    echo "<br><br>"
+        . "<a href=\"#\" onclick=\"javascript:launchClick();return false;\">"
+        . "Start the game</a><br>";
+
+    ?>
+<script type="text/javascript">
+function launchClick()
+{
+    var codeWord = document.getElementById("sessionCodeWord");
+    var multi = "";
+    if (codeWord && codeWord.value)
+        multi += "&sessionCodeWord=" + encodeURIComponent(codeWord.value);
+    window.location = "<?php echo $t3join ?>" + multi;
+}
+</script>
+    <?php
+
+}
+else
+{
+    // not logged in - show the game login page
+    echo "<img src=\"/blank.gif\" class=\"listarrow\">"
+        . "You aren't logged in to IFDB."
+        . "<div class=notes style=\"margin-left: 1.5em;\">"
+        . "If you log in, your saved games and preference settings "
+        . "will be stored on-line on IFDB under your user name. This "
+        . "lets you save the game and continue playing later on a "
+        . "different computer."
+        . "</div>";
+
+    if ($errMsg)
+        echo "<br><span class=errmsg>$errMsg</span><br>";
+
+    if ($loginErrMsg)
+        echo "<br><span class=errmsg>$loginErrMsg</span><br>";
+
+    echo  "<table style=\"margin: 1.5em;\" "
+        .   "border=0 cellpadding=0 cellspacing=0>"
+        . "<tr valign=top>"
+
+        . "<td style=\"padding-right: 2em;\">"
+        . "<form method=\"post\" action=\"t3join\" name=\"login\">"
+        . "<table border=0 cellpadding=0 cellspacing=0>"
+        . "<tr valign=top><td style=\"padding-right: 2em;\"><nobr>"
+        .   "Log in to IFDB</nobr></td>"
+        . "<td style=\"padding-bottom: 1em;\"><span class=details>"
+        .   "<a href=\"newuser\">New user</a> | "
+        .   "<a href=\"lostpass\">Lost password</a>"
+        . "</span></td></tr>"
+        . "<tr><td style=\"padding-right: 2em; text-align:right;\">"
+        .   "Email:</td>"
+        . "<td><input type=\"text\" name=\"username\" size=40 "
+        .   "value=\"$fusername\"></td>"
+        . "</tr><tr>"
+        . "<td style=\"padding-right: 2em; text-align: right;\">"
+        .   "Password:</td>"
+        . "<td><input type=\"password\" name=\"password\" size=40></td>"
+        . "</tr><tr><td>&nbsp;</td><td style=\"padding-top: 1.5ex;\">"
+        .   "<label><input type=\"checkbox\" name=\"persist\" "
+        .      "id=\"ckPersist\" value=\"1\""
+        .      ($persist ? " checked" : "")
+        .   "><label for=\"ckPersist\"> Remember me</label>"
+        .   "</label></td>"
+        . "</tr><tr><td>&nbsp;</td><td style=\"padding-top: 1.5ex;\">"
+        .   "<input type=\"submit\" name=\"login\" value=\"Log In to IFDB\" "
+        .     "onclick=\"javascript:return clickLogInButton();\">"
+        . "</td></tr></table>"
+        . "<input type=\"hidden\" name=\"id\" value=\"$sid\">"
+        . "<input type=\"hidden\" name=\"storyfile\" value=\""
+        .    htmlspecialchars($gameUrl) . "\">"
+        . "<input type=\"hidden\" name=\"sessionCodeWord\" "
+        .   "id=\"sessionCodeWordH\" value=\""
+        .   htmlspecialchars($multiPassParam) . "\">"
+        . "</form>"
+        . "</td>"
+
+        . "<td style=\"border-left: 1px dotted #4040ff; padding-left: 2em;\">"
+        . "<a href=\"#\" "
+        .    "onclick=\"javascript:playWithoutLogin();return false;\">"
+        . "Play without logging in</a><br>"
+        . "<div class=details style=\"margin-top: 1em;\">"
+        . "If you choose this option, the game won't be able to "
+        . "store saved game files on IFDB.</div><br><br>"
+        . "</td>"
+
+        . "</tr></table>";
+}
+
+// end the page
+pageFooter();
+
+?>
+<script type="text/javascript">
+function playWithoutLogin()
+{
+    var mp = document.getElementById("sessionCodeWord").value;
+    if (mp)
+        mp = "&sessionCodeWord=" + mp;
+    window.location = "<?php echo $t3join ?>" + mp;
+}
+function clickLogInButton()
+{
+    document.getElementById("sessionCodeWordH").value =
+        document.getElementById("sessionCodeWord").value;
+    return true;
+}
+</script>
+<?php
+
+// ------------------------------------------------------------------------
+//
+// Join the game
+//
+function joinGame()
+{
+    global $db, $sdb, $guestUrl, $baseSID, $serverID, $userid, $qgameid;
+
+    // start with the base guest URL
+    $dest = $guestUrl;
+
+    // if we're logged in, add the guest user ID parameters to the URL
+    if ($userid)
+    {
+        // Create a storage server session for this user.
+        $sid = md5_rand("$guestUrl:$userid");
+
+        // add the session ID to the startup string
+        $dest .= "&storagesid=$sid";
+
+        // figure the game folder
+        $gameFolder = $qgameid;
+
+        // look up the user's name
+        $result = mysql_query(
+            "select name from users where id = '$userid'", $db);
+        list($username) = mysql_fetch_row($result);
+        $username = urlencode($username);
+
+        // add the user name to the URL
+        $dest .= "&username=$username";
+
+        // record the guest session in the database
+        $result = mysql_query(
+            "insert into sessions
+             (sessionid, gameserverid, userid, gameid, gamefolder, accessed,
+              multi, multipass)
+             values ('$sid', '$serverID', '$userid', '$qgameid',
+                     '$gameFolder', now(), 'G', null)",
+            $sdb);
+
+        // set the session cookie in the browser
+        setcookie("TADSStorageSessionID", $sid, 0, "/",
+                  $_SERVER['SERVER_NAME'] == "localhost" ? "" : ".tads.org",
+                  false, true);
+    }
+
+    // send the redirect to the game server
+    header("HTTP/1.1 301 Moved Permanently");
+    header("Content-type: text/html");
+    header("Location: $dest");
+
+    echo "Joining <i>$title</i><br>"
+        . "<a href=\"$dest\">Click here</a> if your browser doesn't "
+        . "automatically load the game.";
+
+    // done
+    exit();
+}
+
+?>

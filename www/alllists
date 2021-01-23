@@ -1,0 +1,184 @@
+<?php
+@session_start();
+
+
+
+include "pagetpl.php";
+include_once "util.php";
+include_once "dbconnect.php";
+$db = dbConnect();
+
+// note if we're logged in
+include_once "login-persist.php";
+$curuser = checkPersistentLogin();
+
+$uid = $_REQUEST['user'];
+$quid = mysql_real_escape_string($uid, $db);
+
+$gameid = get_req_data('game');
+$qgameid = mysql_real_escape_string($gameid, $db);
+
+$perPage = 10;
+$pgAll = false;
+$pg = get_req_data('pg');
+$sortReq = get_req_data('sortby');
+
+$errMsg = false;
+
+$sortList = array(
+    'new' => array('l.moddate desc', 'Newest First'),
+    'old' => array('l.moddate', 'Oldest First'),
+    'nm' => array('l.title', 'By List Name'));
+
+// look up the game or user record
+if ($gameid) {
+    $result = mysql_query(
+        "select title from games where id='$qgameid'", $db);
+    if (mysql_num_rows($result) == 0) {
+        $errMsg = "The requested game was not found in the database.";
+    } else {
+        list($gameTitle) = mysql_fetch_row($result);
+        $gameTitle = htmlspecialcharx($gameTitle);
+
+        $pageTitle = "Recommended Lists with $gameTitle";
+    }
+
+    // search the database for lists that include this game
+    $joinList = ", reclistitems as rli_filter";
+    $whereList = "rli_filter.listid = l.id "
+                 . "and rli_filter.gameid = '$qgameid'";
+
+} else {
+    $result = mysql_query(
+        "select name from users where id='$quid'", $db);
+    if (mysql_num_rows($result) == 0) {
+        $errMsg = "The requested user was not found in the database.";
+    } else {
+        list($username) = mysql_fetch_row($result);
+        $username = htmlspecialcharx($username);
+
+        $pageTitle = "All Recommended Lists by $username";
+    }
+
+    // we just need to search for lists owned by this user ID
+    $joinList = "";
+    $whereList = "l.userid = '$quid'";
+}
+
+pageHeader($pageTitle);
+
+if ($errMsg) {
+    echo "<span class=errmsg>$errMsg</span><br><br>";
+} else {
+    if ($gameid != "") {
+        echo "<h1>Recommended Lists mentioning $gameTitle</h1>"
+            . "<a href=\"viewgame?id=$gameid\">Go to this game's overview</a>"
+            . "<br><br>";
+    } else if ($uid == $curuser) {
+        echo "<h1>Your Recommended Lists</h1>"
+            . "<a href=\"editlist?id=new\">Create a new list</a><br><br>";
+    } else {
+        echo "<h1>Recommended Lists by $username</h1>"
+            . "<a href=\"showuser?id=$uid\">"
+            . "View this member's profile</a><br><br>";
+    }
+
+    // count up how many lists we have total
+    $result = mysql_query(
+        "select count(*) as c
+         from reclists as l $joinList
+         where $whereList", $db);
+    $lstcnt = mysql_result($result, 0, "c");
+
+    if ($pg == 'all') {
+        $pgAll = true;
+        $perPage = $lstcnt;
+        $pg = 1;
+    }
+
+    // figure how many pages that makes
+    $lastPage = (int)floor(($lstcnt + $perPage - 1)/$perPage);
+
+    // limit the page request to existing pages
+    if ($pg < 1)
+        $pg = 1;
+    else if ($pg > $lastPage)
+        $pg = $lastPage;
+
+    // calculate our position in the list
+    $firstOnPage = ($pg - 1) * $perPage;
+    $lastOnPage = $firstOnPage + $perPage - 1;
+    if ($lastOnPage > $lstcnt - 1)
+        $lastOnPage = $lstcnt - 1;
+
+    // determine the sorting order
+    $ord = isset($sortList[$sortReq]) ? $sortList[$sortReq] : $sortList['new'];
+
+    // query the lists
+    $result = mysql_query(
+        "select l.id, l.title, l.`desc`, date_format(l.moddate, '%M %e, %Y'),
+            u.id, u.name,
+            count(reclistitems.gameid)
+        from reclists as l, users as u, reclistitems $joinList
+        where
+            reclistitems.listid = l.id
+            and u.id = l.userid
+            and $whereList
+        group by reclistitems.listid
+        order by {$ord[0]}
+        limit $firstOnPage," . $perPage, $db);
+
+    if (mysql_num_rows($result) == 0) {
+        if ($gameid)
+            echo "<i>This game isn't mentioned on any lists.</i><br>";
+        else
+            echo "<i>This member hasn't created any lists yet.</i><br>";
+    } else {
+
+        // show the sorting controls
+        showSortingControls("lstorder", "sortby", $sortList, $sortReq,
+                            array("user" => $uid, "game" => $gameid),
+                            "alllists");
+
+        // show where we are in the list
+        $pageCtl = "<span class=details>"
+                   . makePageControl(
+                       "alllists?user=$uid&game=&gameid&sortby=$sortReq",
+                       $pg, $lastPage, $firstOnPage, $lastOnPage, $lstcnt,
+                       true, true, $pgAll)
+                   . "</span>";
+
+        echo "$pageCtl<br><br><br>";
+
+        // show each list
+        for ($i = 0 ; $i < mysql_num_rows($result) ; $i++) {
+            // fetch the next row
+            list($listid, $title, $desc, $moddate, $authid, $authname,
+                 $itemcnt) = mysql_fetch_row($result);
+
+            // fix up fields for display
+            $title = htmlspecialcharx($title);
+            list($desc, $desclen, $desctrunc) = summarizeHtml($desc, 140);
+            $desc = fixDesc($desc);
+            $authname = htmlspecialcharx($authname);
+
+            // show the summary
+            echo "<a href=\"viewlist?id=$listid\">$title</a>"
+                . " - $itemcnt item" . ($itemcnt > 1 ? "s" : "")
+                . " &nbsp; <span class=details><i>$moddate</i></span><br>"
+                . ($gameid ?
+                   "A list by <a href=\"showuser?id=$authid\">"
+                   . "$authname</a><br>" : "")
+                . "<div class=indented><span class=details>"
+                . "<i>$desc</i></span></div><br>";
+        }
+
+        // add the page controls at the bottom of the page
+        echo "<br>$pageCtl<br><br><br>";
+    }
+}
+
+pageFooter();
+
+
+?>

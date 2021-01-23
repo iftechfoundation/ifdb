@@ -1,0 +1,309 @@
+<?php
+
+@session_start();
+include_once "api.php";
+
+apiPageHeader("search");
+
+?>
+
+The IFDB search API provides programmatic access to IFDB's full-text
+and structured-data search capabilities.  The API replicates the
+functionality of IFDB's main Search Web interface.
+
+<h2>Protocol</h2>
+
+<p>The search API is implemented as a simple http XML service.
+Parameters are encoded into a URL query string, and the URL is sent to
+IFDB as an http GET request.  The server replies with an XML content
+body that contains the search results.
+
+<p>The root of the URL is <tt>http://ifdb.tads.org/search?xml</tt>.
+
+<p>The search term and object type are added to the root URL as query
+parameters, using standard URL encoding.  That is, each parameter is
+appended as <tt>&amp;<i>paramName</i>=<i>paramValue</i></tt>.  Each
+parameter value is encoded with spaces converted to "+" signs, and
+"unsafe" characters converted to the "%xx" notation (where xx is the
+hexadecimal value of the ASCII code for the character).  The exact
+sets of "safe" and "unsafe" characters can be found in the <a
+href="http://www.w3.org/Addressing/URL/url-spec.txt">W3C URL spec</a>,
+but generally, alphanumerics are safe and most punctuation marks
+aren't.  When in doubt, you can always %-encode a character, even
+when you don't have to.
+
+<p>The first parameter is the object type to search for.  A search
+operators on one type of object; this must be one of the following:
+
+<ul>
+   <li><b>game</b> - search for a game listing
+   <li><b>list</b> - search for a Recommended List
+   <li><b>poll</b> - search for a poll
+   <li><b>comp</b> - search for a competition/award event
+   <li><b>club</b> - search for a club listing
+   <li><b>member</b> - search the member directory
+</ul>
+
+<p>The object type parameter requires no value, so simply tack it onto
+the URL as <tt>&amp;game</tt>, <tt>&amp;list</tt>, etc.
+
+<p>The additional query parameters are:
+
+<p><b>searchfor</b>: The search term, including full-text search
+keywords and search operators.  This is the same string you'd type
+into the regular IFDB search user interface.
+
+<h3>Search operators</h3>
+
+<p>The format of the search string used in the API, including the
+search operators, is the same as for the regular IFDB user interface
+for search.  That's beyond the scope of this documentation; simply
+refer to the regular Search help page for details.  The API uses the
+same underlying search engine that the user interface does, so any new
+operators added in the future will be available through the API as
+soon as they're available in the UI.
+
+<h3>Example</h3>
+
+<p>To search for a game listing for <tt>Deep Space Drifter</tt>:
+
+<p><pre>http://ifdb.tads.org/search?xml&amp;game&amp;searchfor=Deep+Space+Drifter
+</pre>
+
+<h2>Reply</h2>
+
+<p>The reply is an XML file with this enclosing structure:
+
+<p><pre>
+   &lt;?xml version="1.0" encoding="UTF-8" ?&gt; 
+   &lt;searchReply xmlns="http://ifdb.tads.org/api/xmlns"&gt;
+      <i>reply-data</i>
+   &lt;/searchReply&gt;
+</pre>
+
+<p>If an error occurs, the <i>reply-data</i> will be an &lt;error&gt; tag
+   containing a human-readable text error message:
+
+<p><pre>
+   &lt;error&gt;
+      <i>error message text</i>
+   &lt;/error&gt;
+</pre>
+
+<p>On success, the <i>reply-data</i> will be a "group" tag for the object
+type, containing a list of zero or more "item" tags for the individual
+results.
+
+<p>
+<style type="text/css">
+<!--
+table.typemap {
+    border: 1px solid #808080;
+    border-collapse: collapse;
+    margin: 1em 2em 1em 2em;
+}
+table.typemap th {
+    border: 1px solid #808080;
+}
+table.typemap td {
+    border: 1px solid #808080;
+    padding: 0 1em 0 1em;
+    text-align: left;
+}
+//-->
+</style>
+<table class="typemap" cellspacing=0 cellpadding=0>
+   <tr> <th>Type</th> <th>Group Tag</th> <th>Item Tag</th> </tr>
+
+   <tr> <td>Game</td> <td>&lt;games&gt;</td> <td>&lt;game&gt;</td> </tr>
+   <tr> <td>Recommended List</td> <td>&lt;lists&gt;</td> <td>&lt;list&gt;</td> </tr>
+   <tr> <td>Poll</td> <td>&lt;polls&gt;</td> <td>&lt;poll&gt;</td> </tr>
+   <tr> <td>Competition/Awards</td> <td>&lt;comps&gt;</td> <td>&lt;comp&gt;</td> </tr>
+   <tr> <td>Club</td> <td>&lt;clubs&gt;</td> <td>&lt;club&gt;</td> </tr>
+   <tr> <td>Member</td> <td>&lt;members&gt;</td> <td>&lt;member&gt;</td> </tr>
+</table>
+
+<p>For example, for a Poll search yielding three results, the
+<i>reply-data</i> section would look like this:
+
+<p><pre>
+   &lt;polls&gt;
+     &lt;poll&gt;
+       <i>first item</i>
+     &lt;/poll&gt;
+     &lt;poll&gt;
+       <i>second item</i>
+     &lt;/poll&gt;
+     &lt;poll&gt;
+       <i>third item</i>
+     &lt;/poll&gt;
+   &lt;/polls&gt;
+</pre>
+
+<p>A search that yields no results will simply return an empty "group"
+tag.  (A search with zero results isn't an error; it's a search that
+successfully determined that there were no items in the database
+matching the search terms.)
+
+<p>The contents of the item tags vary according to the object type.  The
+following sections describe the results for the different object types.
+
+<p>Most of the item replies include a "TUID" value ("tads.org Unique
+Identifier").  This the internal ID for the object assigned by IFDB
+when the object's IFDB listing was originally created.  A TUID
+uniquely identifies the object on IFDB, and it never changes for a
+given object, so it will always identify the same object as long as
+the listing exists on IFDB.  The TUID can be used in various IFDB URLs
+to access pages related to the object.  A TUID has no significance
+outside of IFDB, and has no internal structure; it's just a string of
+16 random letters and numbers.  This format was chosen because (a) it
+reliably yields gibberish strings without word breaks, which makes it
+an excellent key for a generic Web text search, (b) it's
+<i>effectively</i> a sort of UUID, since the range is so large
+(there are about 8 trillion trillion possible combinations) that
+collisions with similarly formatted ID keys in other databases will
+essentially never happen, and (c) it doesn't <i>look</i> like a
+standard UUID, which might have been somewhat confusing given that the
+Babel spec uses standard UUIDs for IFIDs
+
+<p>(It might seem strange that IFDB doesn't just use Babel IFIDs as
+primary identifiers, but there are good reasons: (a) Babel only
+applies IFIDs to games, whereas IFDB needs primary identifiers for
+other kinds of entities, such as recommended lists, user profiles, and
+polls; and (b) a single game can have multiple Babel IFIDs, so even
+for games there'd still be a need in the database structure for a
+single unique identifier per game.)
+
+<h3>Games</h3>
+
+<pre>
+  &lt;game&gt;
+    &lt;tuid&gt;<i>TUID</i>&lt;/tuid&gt;
+    &lt;title&gt;<i>Title of the game</i>&lt;/title&gt;
+    &lt;link&gt;<i>URL to game's main listing page</i>&lt;/link&gt;
+    &lt;author&gt;<i>Author(s)</i>&lt;/author&gt;
+    &lt;averageRating&gt;<i>Raw "star" rating average</i>&lt;/averageRating&gt;
+    &lt;numRatings&gt;<i>Number of ratings in the average</i>&lt;/numRatings&gt;
+    &lt;starRating&gt;<i>Rounded "star" rating average</i>&lt;/starRating&gt;
+    &lt;hasCoverArt&gt;<i>Cover art exists: yes or no</i>&lt;/hasCoverArt&gt;
+    &lt;devsys&gt;<i>Name of development system</i>&lt;/devsys&gt;
+    &lt;published&gt;
+      &lt;machine&gt;<i>Publication date in YYYY or YYYY-MM-DD format</i>&lt;/machine&gt;
+      &lt;printable&gt;<i>Publication date in English format</i>&lt;/printable&gt;
+    &lt;/published&gt;
+    &lt;coverArtLink&gt;<i>URL to cover art</i>&lt;/coverArtLink&gt;
+  &lt;/game&gt;
+</pre>
+
+<p>The "star" rating average is given in two forms.  The "raw" average
+is the arithmetic average of the ratings, as a decimal floating point
+value (e.g., "3.3333").  The "rounded" average is the average value
+rounded to the nearest half-star (e.g., "3.5").  IFDB itself generally
+displays the rounded value, since it uses a graphical image with
+half-star resolution.
+
+<p>The hasCoverArt value is simply "yes" or "no", indicating whether
+or not the game has cover art.  If this is "yes", the coverArtLink
+element will also be present, and will contain a URL to the cover art
+image.  This URL will yield an image file (currently, this can be a
+JPEG, PNG, or GIF file) containing the full-sized image.  You can get
+a "thumbnail" - i.e., the image at a reduced size - by appending
+<tt>&amp;thumbnail=WxH</tt> to the URL, where W is the desired width
+in pixels, and H is the desired height.  The thumbnailer maintains the
+original image's aspect ratio by treating the request size as a
+bounding rectangle, and reducing the display size as needed to fit
+this bounding box.
+
+<p>The publication date is provided in two separate formats for the
+client's convenience.  The "machine" version is a standard numeric
+YYYY-MM-DD format, such as "2009-09-14" for September 14, 2009, or
+simply the four-digit year if the full date isn't available.  The
+"printable" version is the equivalent date with the full month name
+spelled out in English, such as "September 14, 2009", or again just
+the four-digit year if that's all that's available.  These will be
+present as empty tags if the publication date isn't in the database.
+
+<h3>Lists</h3>
+
+<pre>
+  &lt;list&gt;
+    &lt;tuid&gt;<i>TUID</i>&lt;/tuid&gt;
+    &lt;title&gt;<i>Title of the list</i>&lt;/title&gt;
+    &lt;link&gt;<i>URL to list's main display page</i>&lt;/link&gt;
+    &lt;desc&gt;<i>List's description</i>&lt;/desc&gt;
+    &lt;creatorID&gt;<i>Member TUID of list's author</i>&lt;/creatorID&gt;
+    &lt;creatorName&gt;<i>Name of list's author</i>&lt;/creatorName&gt;
+    &lt;numItems&gt;<i>Number of games in the list</i>&lt;/numItems&gt;
+  &lt;/list&gt;
+</pre>
+
+<h3>Polls</h3>
+
+<pre>
+  &lt;poll&gt;
+    &lt;tuid&gt;<i>TUID</i>&lt;/tuid&gt;
+    &lt;title&gt;<i>Title of the poll</i>&lt;/title&gt;
+    &lt;link&gt;<i>URL to poll's main display page</i>&lt;/link&gt;
+    &lt;desc&gt;<i>Poll description</i>&lt;/desc&gt;
+    &lt;creatorID&gt;<i>Member TUID of poll's creator</i>&lt;/creatorID&gt;
+    &lt;creatorName&gt;<i>Name of poll's creator</i>&lt;/creatorName&gt;
+    &lt;numGames&gt;<i>Number of distinct games with votes</i>&lt;/numGames&gt;
+    &lt;numVotes&gt;<i>Number of votes</i>&lt;/numVotes&gt;
+  &lt;/poll&gt;
+</pre>
+
+<h3>Competitions/Awards</h3>
+
+<pre>
+  &lt;comp&gt;
+    &lt;tuid&gt;<i>TUID</i>&lt;/tuid&gt;
+    &lt;title&gt;<i>Title of the competition</i>&lt;/title&gt;
+    &lt;link&gt;<i>URL to competition's main display page</i>&lt;/link&gt;
+    &lt;desc&gt;<i>Description</i>&lt;/desc&gt;
+    &lt;numGames&gt;<i>Number of games listed</i>&lt;/numGames&gt;
+    &lt;numDivisions&gt;<i>Number of divisions</i>&lt;/numDivisions&gt;
+  &lt;/comp&gt;
+</pre>
+
+<h3>Clubs</h3>
+
+<pre>
+  &lt;club&gt;
+    &lt;tuid&gt;<i>TUID</i>&lt;/tuid&gt;
+    &lt;name&gt;<i>Club name</i>&lt;/name&gt;
+    &lt;link&gt;<i>URL to club's main display page</i>&lt;/link&gt;
+    &lt;desc&gt;<i>Description</i>&lt;/desc&gt;
+    &lt;numMembers&gt;<i>Number of members</i>&lt;/numMembers&gt;
+  &lt;/club&gt;
+</pre>
+
+<h3>Members</h3>
+
+<pre>
+  &lt;member&gt;
+    &lt;tuid&gt;<i>TUID</i>&lt;/tuid&gt;
+    &lt;name&gt;<i>Display name</i>&lt;/name&gt;
+    &lt;link&gt;<i>URL to member's public profile page</i>&lt;/link&gt;
+    &lt;loc&gt;<i>Location</i>&lt;/loc&gt;
+    &lt;hasPicture&gt;<i>Member photo present: yes or no</i>&lt;/hasPicture&gt;
+    &lt;pictureLink&gt;<i>URL to member photo</i>&lt;/pictureLink&gt;
+    &lt;badge&gt;<i>"Top N Reviewer" badge, if any</i>&lt;/badge&gt;
+  &lt;/member&gt;
+</pre>
+
+<p>The location is usually a city or country name; the exact format is
+unpredictable because it's simply whatever the user entered in her
+profile.
+
+<p>The hasPicture value is "yes" or "no", indicating whether or not
+the user has a profile photo.  If this is "yes", the pictureLink value
+will be a URL to the image; this will yield an image file, currently
+of type JPEG, PNG, or GIF.  You can get a thumbnail just as for game
+cover art images, by appending <tt>&amp;thumbnail=WxH</tt> to the
+URL.
+
+<?php
+
+apiPageFooter();
+
+?>
