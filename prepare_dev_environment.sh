@@ -7,7 +7,9 @@ if [ ! -f $FILENAME ]; then
 fi
 unzip -o $FILENAME
 
-mkdir -p initdb
-cat create_db.sql ifdb-archive.sql patch-schema.sql > initdb/init.sql
+rm -rf initdb
+mkdir initdb
+cat create_db.sql ifdb-archive.sql > initdb/init.sql
+cp patch-schema.sql initdb
 
 sed 's/"127.0.0.1", "username", "password"/"db", "root", "secret"/' local-credentials.php.template > www/local-credentials.php

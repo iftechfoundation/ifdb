@@ -2,8 +2,11 @@
 
 IFDB_FULL_EXPORT=$1
 
-mkdir -p initdb
-echo "create database if not exists ifdb; use ifdb;\n" | cat - $IFDB_FULL_EXPORT/ifdb.sql > initdb/init.sql
+rm -rf initdb
+mkdir initdb
+echo "create database if not exists ifdb; use ifdb;\n" > initdb/init.sql
+# remove bogus definers to fix views
+grep -v 'DEFINER=' $IFDB_FULL_EXPORT/ifdb.sql >> initdb/init.sql
 echo "create database if not exists ifdb_images0; use ifdb_images0;\n" | cat - $IFDB_FULL_EXPORT/pics1.sql > initdb/pics1.sql
 echo "create database if not exists ifdb_images1; use ifdb_images1;\n" | cat - $IFDB_FULL_EXPORT/pics2.sql > initdb/pics2.sql
 echo "create database if not exists ifdb_images2; use ifdb_images2;\n" | cat - $IFDB_FULL_EXPORT/pics3.sql > initdb/pics3.sql
