@@ -50,6 +50,6 @@ We hope to provide a Docker-based mechanism for launching and running IFDB local
 
 ## Known Issues with the Development Environment
 
-* Game box-art images won't load. IFDB uses a separate "images" database that isn't part of the IFArchive backup. We'll need to generate a backup of that database and make it available on IFArchive, or, at the very least, provide a way for developers to download images from the real IFDB, instead of trying to load them locally.
+* Game box-art images load from the production IFDB site, not the dev environment. IFDB uses a separate "images" database that isn't part of the IFArchive backup. We'll need to generate a backup of that database and make it available on IFArchive, or, at the very least, provide a way for developers to download images from the real IFDB.
 * Some searches don't work. IFDB assumes old-style [Henry Spencer regexes](https://dev.mysql.com/doc/refman/8.0/en/regexp.html#regexp-compatibility) that probably won't work on whatever version of MySQL you have installed. A number of search-based features won't work as a result, including the Reviewer Trophy Room on the home page.
 * Character encoding issues. Some of these issues appear to be genuine bugs in production IFDB, some of them appear to be issues with the development environment.

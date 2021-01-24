@@ -26,6 +26,7 @@ function mysql_insert_id($linkid) { return mysqli_insert_id($linkid); }
 define("MYSQL_ASSOC", MYSQLI_ASSOC);
 define("MYSQL_BOTH",  MYSQLI_BOTH);
 
+define("PRODUCTION_SERVER_NAME", "ifdb.tads.org");
 
 // --------------------------------------------------------------------------
 //
@@ -3079,8 +3080,12 @@ function send_admin_email_if_links($txt, $context, $contextLink)
     }
 }
 
+function isProduction() {
+    return $_SERVER['SERVER_NAME'] === PRODUCTION_SERVER_NAME;
+}
+
 function isLocalDev() {
-    return preg_match('/^(ifdbdev|localhost|192\.168\.1\.\d+)$/', $_SERVER['SERVER_NAME']);
+    return !isProduction();
 }
 
 ?>
