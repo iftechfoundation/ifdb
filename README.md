@@ -29,4 +29,10 @@ The IFDB web app is a LAMP app (Linux, Apache, MySQL, PHP). The development envi
 
 To reset the Docker environment, stop `docker-compose` with Ctrl-C, then run `docker-compose down` to delete the images. If you're modifying the `Dockerfile`, you might also need to `docker rmi ifdb_web` to clean out state.
 
-If you see `Warning: include_once(local-credentials.php): failed to open stream: No such file or directory`, then something went wrong during the `./prepare_dev_environment.sh` step. Reset the Docker environment (see above), then run `./prepare_dev_environment.sh` and `docker-compose up` again.
+If you see a 500 error loading `http://localhost:8080`, check the Docker logs. If you see one of these errors, then something went wrong during the `./prepare_dev_environment.sh` step.
+
+* `PHP Warning:  include_once(local-credentials.php): failed to open stream: No such file or directory`
+* `PHP Warning:  include_once(): Failed opening 'local-credentials.php' for inclusion`
+* `PHP Fatal error:  Uncaught Error: Call to undefined function localCredentials()`
+
+If you see this, reset the Docker environment (see above), then run `./prepare_dev_environment.sh` and `docker-compose up` again.
