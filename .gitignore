@@ -1,1 +1,4 @@
 www/local-credentials.php
+ifdb-archive.sql
+ifdb-archive.zip
+initdb
