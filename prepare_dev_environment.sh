@@ -1,8 +1,11 @@
 #!/bin/bash -ex
 
 # TODO: detect latest archive
-curl -o ifdb-archive.zip https://ifarchive.org/if-archive/info/ifdb/ifdb-archive-20210117.zip
-unzip ifdb-archive.zip
+FILENAME=ifdb-archive-20210117.zip
+if [ ! -f $FILENAME ]; then
+    curl -o $FILENAME https://ifarchive.org/if-archive/info/ifdb/$FILENAME
+fi
+unzip -o $FILENAME
 
 mkdir -p initdb
 cat create_db.sql ifdb-archive.sql patch-schema.sql > initdb/init.sql
