@@ -1,4 +1,4 @@
-#/bin/bash -ex
+#!/bin/bash -ex
 
 # TODO: detect latest archive
 curl -o ifdb-archive.zip https://ifarchive.org/if-archive/info/ifdb/ifdb-archive-20210117.zip
