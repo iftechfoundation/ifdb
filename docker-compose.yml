@@ -3,6 +3,7 @@ version: '3'
 services:
   db:
     image: mysql:5
+    command: mysqld --sql_mode=""
     volumes:
       - ./initdb:/docker-entrypoint-initdb.d
     environment:
