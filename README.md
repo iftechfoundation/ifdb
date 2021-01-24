@@ -21,7 +21,7 @@ The IFDB web app is a LAMP app (Linux, Apache, MySQL, PHP). The development envi
 ## Known Issues with the Development Environment
 
 * Sending email doesn't work. That's unfortunate, because if you want to create a user, you'll need to login with an activation code. You can `select activationcode from users where email='you@example.com';` to see your activation code. Then you can navigate to `http://localhost:8080/userconfirm?a=YOURACTIVATIONCODE&email=you@example.com` to activate your user.
-* Game box-art images won't load. IFDB uses a separate "images" database that isn't part of the IFArchive backup. We'll need to generate a backup of that database and make it available on IFArchive, or, at the very least, provide a way for developers to download images from the real IFDB, instead of trying to load them locally.
+* Game box-art images load from the production IFDB site, not the dev environment. IFDB uses a separate "images" database that isn't part of the IFArchive backup. We'll need to generate a backup of that database and make it available on IFArchive, or, at the very least, provide a way for developers to download images from the real IFDB.
 * Some searches don't work.
 * Character encoding issues. Some of these issues appear to be genuine bugs in production IFDB, some of them appear to be issues with the development environment.
 
