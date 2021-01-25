@@ -36,3 +36,10 @@ If you see a 500 error loading `http://localhost:8080`, check the Docker logs. I
 * `PHP Fatal error:  Uncaught Error: Call to undefined function localCredentials()`
 
 If you see this, reset the Docker environment (see above), then run `./prepare_dev_environment.sh` and `docker-compose up` again.
+
+## PhpMyAdmin Settings
+
+`http://localhost:8081`\
+Server : `db`\
+Username : `root`\
+Password : `secret`
