@@ -43,7 +43,6 @@ function getNewItems($db, $limit)
          from games
          order by created desc
          $limit", $db);
-    echo mysql_error($db)."<br>";
     $gamecnt = mysql_num_rows($result);
     for ($i = 0 ; $i < $gamecnt ; $i++) {
         $row = mysql_fetch_array($result, MYSQL_ASSOC);
