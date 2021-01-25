@@ -298,7 +298,7 @@ if (isset($_REQUEST['join']))
 
     // get the current user's wish list privacy
     $result = mysql_query(
-        "select publiclists from users where id = '$userid'");
+        "select publiclists from users where id = '$userid'", $db);
     list($userPublicLists) = mysql_fetch_row($result);
 
     // lock tables
