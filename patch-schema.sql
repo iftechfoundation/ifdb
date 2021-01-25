@@ -1,3 +1,5 @@
+USE ifdb;
+
 DROP TABLE IF EXISTS `audit`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
@@ -204,3 +206,185 @@ CREATE TABLE `userfilters` (
   KEY `targetuserid` (`targetuserid`)
 ) ENGINE=MyISAM DEFAULT CHARSET=latin1 COLLATE=latin1_german2_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Temporary table structure for view `userscoreitems`
+--
+
+DROP TABLE IF EXISTS `userscoreitems`;
+/*!50001 DROP VIEW IF EXISTS `userscoreitems`*/;
+SET @saved_cs_client     = @@character_set_client;
+SET character_set_client = utf8;
+/*!50001 CREATE TABLE `userscoreitems` (
+  `userid` tinyint NOT NULL,
+  `score` tinyint NOT NULL,
+  `isReview` tinyint NOT NULL
+) ENGINE=MyISAM */;
+SET character_set_client = @saved_cs_client;
+
+--
+-- Temporary table structure for view `visreviews`
+--
+
+DROP TABLE IF EXISTS `visreviews`;
+/*!50001 DROP VIEW IF EXISTS `visreviews`*/;
+SET @saved_cs_client     = @@character_set_client;
+SET character_set_client = utf8;
+/*!50001 CREATE TABLE `visreviews` (
+  `id` tinyint NOT NULL,
+  `summary` tinyint NOT NULL,
+  `review` tinyint NOT NULL,
+  `rating` tinyint NOT NULL,
+  `userid` tinyint NOT NULL,
+  `createdate` tinyint NOT NULL,
+  `moddate` tinyint NOT NULL,
+  `embargodate` tinyint NOT NULL,
+  `special` tinyint NOT NULL,
+  `gameid` tinyint NOT NULL,
+  `RFlags` tinyint NOT NULL
+) ENGINE=MyISAM */;
+SET character_set_client = @saved_cs_client;
+
+--
+-- Final view structure for view `gameRatings`
+--
+
+/*!50001 DROP TABLE IF EXISTS `gameRatings`*/;
+/*!50001 DROP VIEW IF EXISTS `gameRatings`*/;
+/*!50001 SET @saved_cs_client          = @@character_set_client */;
+/*!50001 SET @saved_cs_results         = @@character_set_results */;
+/*!50001 SET @saved_col_connection     = @@collation_connection */;
+/*!50001 SET character_set_client      = utf8 */;
+/*!50001 SET character_set_results     = utf8 */;
+/*!50001 SET collation_connection      = utf8_general_ci */;
+/*!50001 CREATE ALGORITHM=UNDEFINED */
+/*!50001 VIEW `gameRatings` AS select `reviews`.`gameid` AS `gameid`,avg(if((`reviews`.`RFlags` & 2),NULL,`reviews`.`rating`)) AS `avgRating`,std(if((`reviews`.`RFlags` & 2),NULL,`reviews`.`rating`)) AS `stdDevRating`,count(if((`reviews`.`RFlags` & 2),NULL,`reviews`.`rating`)) AS `numRatingsInAvg`,count(`reviews`.`rating`) AS `numRatingsTotal`,count(if(isnull(`reviews`.`special`),`reviews`.`review`,NULL)) AS `numMemberReviews` from `reviews` where ifnull((now() > `reviews`.`embargodate`),1) group by `reviews`.`gameid` */;
+/*!50001 SET character_set_client      = @saved_cs_client */;
+/*!50001 SET character_set_results     = @saved_cs_results */;
+/*!50001 SET collation_connection      = @saved_col_connection */;
+
+--
+-- Final view structure for view `gameRatingsSandbox0`
+--
+
+/*!50001 DROP TABLE IF EXISTS `gameRatingsSandbox0`*/;
+/*!50001 DROP VIEW IF EXISTS `gameRatingsSandbox0`*/;
+/*!50001 SET @saved_cs_client          = @@character_set_client */;
+/*!50001 SET @saved_cs_results         = @@character_set_results */;
+/*!50001 SET @saved_col_connection     = @@collation_connection */;
+/*!50001 SET character_set_client      = utf8 */;
+/*!50001 SET character_set_results     = utf8 */;
+/*!50001 SET collation_connection      = utf8_general_ci */;
+/*!50001 CREATE ALGORITHM=UNDEFINED */
+/*!50001 VIEW `gameRatingsSandbox0` AS select `reviews`.`gameid` AS `gameid`,avg(if((ifnull(`reviews`.`RFlags`,0) & 2),NULL,`reviews`.`rating`)) AS `avgRating`,std(if((`reviews`.`RFlags` & 2),NULL,`reviews`.`rating`)) AS `stdDevRating`,count(if((`reviews`.`RFlags` & 2),NULL,`reviews`.`rating`)) AS `numRatingsInAvg`,count(`reviews`.`rating`) AS `numRatingsTotal`,count(if(isnull(`reviews`.`special`),`reviews`.`review`,NULL)) AS `numMemberReviews` from (`reviews` left join `users` on((`users`.`id` = `reviews`.`userid`))) where (ifnull((now() > `reviews`.`embargodate`),1) and (ifnull(`users`.`Sandbox`,0) = 0)) group by `reviews`.`gameid` */;
+/*!50001 SET character_set_client      = @saved_cs_client */;
+/*!50001 SET character_set_results     = @saved_cs_results */;
+/*!50001 SET collation_connection      = @saved_col_connection */;
+
+--
+-- Final view structure for view `gameRatingsSandbox01`
+--
+
+/*!50001 DROP TABLE IF EXISTS `gameRatingsSandbox01`*/;
+/*!50001 DROP VIEW IF EXISTS `gameRatingsSandbox01`*/;
+/*!50001 SET @saved_cs_client          = @@character_set_client */;
+/*!50001 SET @saved_cs_results         = @@character_set_results */;
+/*!50001 SET @saved_col_connection     = @@collation_connection */;
+/*!50001 SET character_set_client      = utf8 */;
+/*!50001 SET character_set_results     = utf8 */;
+/*!50001 SET collation_connection      = utf8_general_ci */;
+/*!50001 CREATE ALGORITHM=UNDEFINED */
+/*!50001 VIEW `gameRatingsSandbox01` AS select `reviews`.`gameid` AS `gameid`,avg(if((ifnull(`reviews`.`RFlags`,0) & 2),NULL,`reviews`.`rating`)) AS `avgRating`,std(if((ifnull(`reviews`.`RFlags`,0) & 2),NULL,`reviews`.`rating`)) AS `stdDevRating`,count(if((ifnull(`reviews`.`RFlags`,0) & 2),NULL,`reviews`.`rating`)) AS `numRatingsInAvg`,count(`reviews`.`rating`) AS `numRatingsTotal`,count(if(isnull(`reviews`.`special`),`reviews`.`review`,NULL)) AS `numMemberReviews` from (`reviews` left join `users` on((`users`.`id` = `reviews`.`userid`))) where (ifnull((now() > `reviews`.`embargodate`),1) and (`users`.`Sandbox` in (0,1))) group by `reviews`.`gameid` */;
+/*!50001 SET character_set_client      = @saved_cs_client */;
+/*!50001 SET character_set_results     = @saved_cs_results */;
+/*!50001 SET collation_connection      = @saved_col_connection */;
+
+--
+-- Final view structure for view `gamelinkstats`
+--
+
+/*!50001 DROP TABLE IF EXISTS `gamelinkstats`*/;
+/*!50001 DROP VIEW IF EXISTS `gamelinkstats`*/;
+/*!50001 SET @saved_cs_client          = @@character_set_client */;
+/*!50001 SET @saved_cs_results         = @@character_set_results */;
+/*!50001 SET @saved_col_connection     = @@collation_connection */;
+/*!50001 SET character_set_client      = utf8 */;
+/*!50001 SET character_set_results     = utf8 */;
+/*!50001 SET collation_connection      = utf8_general_ci */;
+/*!50001 CREATE ALGORITHM=UNDEFINED */
+/*!50001 VIEW `gamelinkstats` AS select `games`.`id` AS `gameid`,count(`gamelinks`.`url`) AS `numLinks`,ifnull(sum((`gamelinks`.`attrs` & 1)),0) AS `numGameLinks` from (`games` left join `gamelinks` on((`gamelinks`.`gameid` = `games`.`id`))) group by `games`.`id` */;
+/*!50001 SET character_set_client      = @saved_cs_client */;
+/*!50001 SET character_set_results     = @saved_cs_results */;
+/*!50001 SET collation_connection      = @saved_col_connection */;
+
+--
+-- Final view structure for view `gameratings`
+--
+
+/*!50001 DROP TABLE IF EXISTS `gameratings`*/;
+/*!50001 DROP VIEW IF EXISTS `gameratings`*/;
+/*!50001 SET @saved_cs_client          = @@character_set_client */;
+/*!50001 SET @saved_cs_results         = @@character_set_results */;
+/*!50001 SET @saved_col_connection     = @@collation_connection */;
+/*!50001 SET character_set_client      = utf8 */;
+/*!50001 SET character_set_results     = utf8 */;
+/*!50001 SET collation_connection      = utf8_general_ci */;
+/*!50001 CREATE ALGORITHM=UNDEFINED */
+/*!50001 VIEW `gameratings` AS select `reviews`.`gameid` AS `gameid`,avg(if((ifnull(`reviews`.`RFlags`,0) & 2),NULL,`reviews`.`rating`)) AS `avgRating`,std(if((ifnull(`reviews`.`RFlags`,0) & 2),NULL,`reviews`.`rating`)) AS `stdDevRating`,count(if((ifnull(`reviews`.`RFlags`,0) & 2),NULL,`reviews`.`rating`)) AS `numRatingsInAvg`,count(`reviews`.`rating`) AS `numRatingsTotal`,count(if(isnull(`reviews`.`special`),`reviews`.`review`,NULL)) AS `numMemberReviews`,`users`.`Sandbox` AS `sandbox` from (`reviews` left join `users` on((`users`.`id` = `reviews`.`userid`))) where ifnull((now() > `reviews`.`embargodate`),1) group by `reviews`.`gameid` */;
+/*!50001 SET character_set_client      = @saved_cs_client */;
+/*!50001 SET character_set_results     = @saved_cs_results */;
+/*!50001 SET collation_connection      = @saved_col_connection */;
+
+--
+-- Final view structure for view `userScores`
+--
+
+/*!50001 DROP TABLE IF EXISTS `userScores`*/;
+/*!50001 DROP VIEW IF EXISTS `userScores`*/;
+/*!50001 SET @saved_cs_client          = @@character_set_client */;
+/*!50001 SET @saved_cs_results         = @@character_set_results */;
+/*!50001 SET @saved_col_connection     = @@collation_connection */;
+/*!50001 SET character_set_client      = utf8 */;
+/*!50001 SET character_set_results     = utf8 */;
+/*!50001 SET collation_connection      = utf8_general_ci */;
+/*!50001 CREATE ALGORITHM=UNDEFINED */
+/*!50001 VIEW `userScores` AS select `userscoreitems`.`userid` AS `userid`,sum(`userscoreitems`.`score`) AS `score`,(max(`userscoreitems`.`isReview`) * sum(`userscoreitems`.`score`)) AS `rankingScore`,sum(`userscoreitems`.`isReview`) AS `reviewCount` from `userscoreitems` group by `userscoreitems`.`userid` */;
+/*!50001 SET character_set_client      = @saved_cs_client */;
+/*!50001 SET character_set_results     = @saved_cs_results */;
+/*!50001 SET collation_connection      = @saved_col_connection */;
+
+--
+-- Final view structure for view `userscoreitems`
+--
+
+/*!50001 DROP TABLE IF EXISTS `userscoreitems`*/;
+/*!50001 DROP VIEW IF EXISTS `userscoreitems`*/;
+/*!50001 SET @saved_cs_client          = @@character_set_client */;
+/*!50001 SET @saved_cs_results         = @@character_set_results */;
+/*!50001 SET @saved_col_connection     = @@collation_connection */;
+/*!50001 SET character_set_client      = utf8 */;
+/*!50001 SET character_set_results     = utf8 */;
+/*!50001 SET collation_connection      = utf8_general_ci */;
+/*!50001 CREATE ALGORITHM=UNDEFINED */
+/*!50001 VIEW `userscoreitems` AS select `reviews`.`userid` AS `userid`,(max(if(isnull(`reviews`.`review`),10,100)) + (5 * greatest(-(100),least(100,(ifnull(sum((`reviewvotes`.`vote` = _latin1'Y')),0) - ifnull(sum((`reviewvotes`.`vote` = _latin1'N')),0)))))) AS `score`,max(if(isnull(`reviews`.`review`),0,1)) AS `isReview` from ((`reviews` left join `reviewvotes` on((`reviewvotes`.`reviewid` = `reviews`.`id`))) left join `specialreviewers` on((`reviews`.`special` = `specialreviewers`.`id`))) where ((isnull(`reviews`.`special`) or (not(`specialreviewers`.`editorial`))) and ifnull((now() >= `reviews`.`embargodate`),1)) group by `reviews`.`id` union all select `reviewvotes`.`userid` AS `userid`,count(`reviewvotes`.`vote`) AS `score`,0 AS `isReview` from `reviewvotes` group by `reviewvotes`.`userid` union all select `l`.`userid` AS `userid`,if((count(`i`.`gameid`) >= 5),25,0) AS `score`,0 AS `isReview` from (`reclists` `l` left join `reclistitems` `i` on((`i`.`listid` = `l`.`id`))) group by `l`.`userid` */;
+/*!50001 SET character_set_client      = @saved_cs_client */;
+/*!50001 SET character_set_results     = @saved_cs_results */;
+/*!50001 SET collation_connection      = @saved_col_connection */;
+
+--
+-- Final view structure for view `visreviews`
+--
+
+/*!50001 DROP TABLE IF EXISTS `visreviews`*/;
+/*!50001 DROP VIEW IF EXISTS `visreviews`*/;
+/*!50001 SET @saved_cs_client          = @@character_set_client */;
+/*!50001 SET @saved_cs_results         = @@character_set_results */;
+/*!50001 SET @saved_col_connection     = @@collation_connection */;
+/*!50001 SET character_set_client      = utf8 */;
+/*!50001 SET character_set_results     = utf8 */;
+/*!50001 SET collation_connection      = utf8_general_ci */;
+/*!50001 CREATE ALGORITHM=UNDEFINED */
+/*!50001 VIEW `visreviews` AS select `reviews`.`id` AS `id`,`reviews`.`summary` AS `summary`,`reviews`.`review` AS `review`,`reviews`.`rating` AS `rating`,`reviews`.`userid` AS `userid`,`reviews`.`createdate` AS `createdate`,`reviews`.`moddate` AS `moddate`,`reviews`.`embargodate` AS `embargodate`,`reviews`.`special` AS `special`,`reviews`.`gameid` AS `gameid`,`reviews`.`RFlags` AS `RFlags` from `reviews` where ifnull((now() > `reviews`.`embargodate`),1) */;
+/*!50001 SET character_set_client      = @saved_cs_client */;
+/*!50001 SET character_set_results     = @saved_cs_results */;
+/*!50001 SET collation_connection      = @saved_col_connection */;

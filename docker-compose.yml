@@ -1,0 +1,18 @@
+version: '3'
+
+services:
+  db:
+    image: mysql:5
+    command: mysqld --sql_mode=""
+    volumes:
+      - ./initdb:/docker-entrypoint-initdb.d
+    environment:
+      MYSQL_ROOT_PASSWORD: secret
+  web:
+    build: .
+    ports:
+      - 8080:80
+    links:
+      - db
+    volumes:
+      - ./www:/var/www/html
