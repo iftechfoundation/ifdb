@@ -16,7 +16,7 @@ The IFDB web app is a LAMP app (Linux, Apache, MySQL, PHP). The development envi
 
 4. Go to `http://localhost:8080` on your machine. You should see IFDB running.
 
-5. Optionally, you can `docker exec -it ifdb_db_1 mysql -psecret ifdb` to query the MySQL database.
+5. Optionally, you can query the database using phpMyAdmin at `http://localhost:8081` or run `docker exec -it ifdb_db_1 mysql -psecret ifdb` to use the MySQL command-line interface.
 
 ## Known Issues with the Development Environment
 
@@ -36,10 +36,3 @@ If you see a 500 error loading `http://localhost:8080`, check the Docker logs. I
 * `PHP Fatal error:  Uncaught Error: Call to undefined function localCredentials()`
 
 If you see this, reset the Docker environment (see above), then run `./prepare_dev_environment.sh` and `docker-compose up` again.
-
-## PhpMyAdmin Settings
-
-`http://localhost:8081`\
-Server : `db`\
-Username : `root`\
-Password : `secret`
