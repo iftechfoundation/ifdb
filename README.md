@@ -14,13 +14,13 @@ The IFDB web app is a LAMP app (Linux, Apache, MySQL, PHP). The development envi
 
 3. Run `docker-compose up`. That will launch a MySQL Docker container and an Apache container with PHP, available on port 8080.
 
-4. Go to `http://localhost:8080` on your machine. You should see IFDB running.
+4. Go to `http://localhost:8080` on your machine. You should see IFDB running. You can login as `ifdbadmin` at `ifdb.org` with the password `secret` to sign in as an administrator. The administrator has access to the "system maintenance panel" at `http://localhost:8080/adminops`
 
 5. Optionally, you can query the database using phpMyAdmin at `http://localhost:8081` or run `docker exec -it ifdb_db_1 mysql -psecret ifdb` to use the MySQL command-line interface.
 
 ## Known Issues with the Development Environment
 
-* Sending email doesn't work. That's unfortunate, because if you want to create a user, you'll need to login with an activation code. You can `select activationcode from users where email='you@example.com';` to see your activation code. Then you can navigate to `http://localhost:8080/userconfirm?a=YOURACTIVATIONCODE&email=you@example.com` to activate your user.
+* Sending email doesn't work. That's unfortunate, because if you want to create a user, you'll need to login with an activation code. After you try to create a new user, you'll see an error that the activation code couldn't be sent. Login as `ifdbadmin` at `ifdb.org` / `secret`, navigate to `http://localhost:8080/adminops?finduser` and search for the user you created. There, you can activate the account, mark its profile as "trusted," and, if you scroll down, you can impersonate the user with the "Log in as" link.
 * Game box-art images load from the production IFDB site, not the dev environment. IFDB uses a separate "images" database that isn't part of the IFArchive backup. We'll need to generate a backup of that database and make it available on IFArchive, or, at the very least, provide a way for developers to download images from the real IFDB.
 * Some searches don't work.
 * Character encoding issues. Some of these issues appear to be genuine bugs in production IFDB, some of them appear to be issues with the development environment.
