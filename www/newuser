@@ -508,7 +508,7 @@ function handlePost()
     $hdrs = "From: IFDB <noreply@ifdb.org>\r\n"
             . "Content-type: Text/HTML\r\n";
 
-    mail("ifdbadmin@ifdb.org",
+    send_mail("ifdbadmin@ifdb.org",
          "IFDB new user registration", $msg, $hdrs);
 
     // if the account is pending review, we're done, since we've already
