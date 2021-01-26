@@ -41,7 +41,7 @@ listing with excellent fidelity.
 <h2>Basic protocol</h2>
 
 <p>The putific API is exposed as an HTTP POST request to a particular
-URL on the IFDB Web site.  The URL is <tt>http://ifdb.tads.org/putific</tt>.
+URL on the IFDB Web site.  The URL is <tt>http://ifdb.org/putific</tt>.
 
 <p>All parameters are passed as POST data with the HTTP request.  As
 typical for HTTP, there's no session state or context; the entire

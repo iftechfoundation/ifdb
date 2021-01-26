@@ -53,13 +53,13 @@ iFiction elements, plus some custom IFDB-specific extensions.
 <p>To retrieve data by TUID, use this URL:
 
 <p><pre>
-  http://ifdb.tads.org/viewgame?ifiction&amp;id=<i>TUID</i>
+  https://ifdb.org/viewgame?ifiction&amp;id=<i>TUID</i>
 </pre>
 
 <p>To retrieve data by IFID, use this URL:
 
 <p><pre>
-  http://ifdb.tads.org/viewgame?ifiction&amp;ifid=<i>IFID</i>
+  https://ifdb.org/viewgame?ifiction&amp;ifid=<i>IFID</i>
 </pre>
 
 

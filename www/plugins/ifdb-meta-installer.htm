@@ -115,7 +115,7 @@ Adviser expert:
 
 <ul>
 
-   <li>Create a user account on <a href="http://ifdb.tads.org">IFDB</a>.
+   <li>Create a user account on <a href="https://ifdb.org">IFDB</a>.
    (Use an email address that's recognizably you - we want users to be
    able to trust that the download instructions won't be hijacked to
    point to malware, so we want to keep write access limited to
@@ -125,8 +125,8 @@ Adviser expert:
    OS/format combinations you want to manage, so that I
    can give you write access to the relevant entries.
 
-   <li>Go to the <a href="http://ifdb.tads.org/fileformat">File Format list</a>
-   and/or the <a href="http://ifdb.tads.org/opsys">OS list</a>, depending
+   <li>Go to the <a href="https://ifdb.org/fileformat">File Format list</a>
+   and/or the <a href="https://ifdb.org/opsys">OS list</a>, depending
    on your area of expertise.  Click through to the formats or OSes of
    interest.
 
@@ -168,7 +168,7 @@ Adviser expert:
 <h2>Background</h2>
 
 <p>I've been working on a new IF catalog and recommendation site that
-I'm calling <a href="http://ifdb.tads.org/">IFDB</a> (for Interactive
+I'm calling <a href="https://ifdb.org/">IFDB</a> (for Interactive
 Fiction DataBase).  The main thrust of the site is to try some new
 approaches to community recommendations for IF, but I felt it was
 important for the sake of user experience to provide integrated
@@ -303,7 +303,7 @@ work.
 <h2>Download Adviser Algorithm</h2>
 
 <p>Note: To see an example of the DLA in action, go to <a
-href="http://ifdb.tads.org"> ifdb.tads.org</a>, search for Deep Space
+href="https://ifdb.org">ifdb.org</a>, search for Deep Space
 Drifter (or any other TADS 2 game), click "Show Me How" in the
 Download box, and make sure that you have a Windows OS version
 selected in the OS list.  I haven't loaded instructions for most of
@@ -345,7 +345,7 @@ does include all of the actively used Story File formats, plus native
 Executables and Installers, plus a number of other common formats used
 frequently in the IF Archive (plain text, HTML, PDF, various image
 types, executables, installers...).  The current list is
-<a href="http://ifdb.tads.org/fileformat">here</a>.
+<a href="https://ifdb.org/fileformat">here</a>.
 
    <li>For the Executable and Installer formats, the file information
 is further qualified by the operating system ID <a
@@ -503,7 +503,7 @@ selector dialog - select {fname} to start the game.
 </blockquote>
 
 <p>To see how these entries look once formatted, go to
-<a href="http://ifdb.tads.org">IFDB</a>, search for Deep Space
+<a href="https://ifdb.org">IFDB</a>, search for Deep Space
 Drifter, click through to the game page, click the
 "Show Me How" button near the top right; if necessary,
 select a Windows version from the OS list and click Go.
@@ -603,7 +603,7 @@ more suitable for a particular client.
    sends an HTTP GET to the following URL (this is a fixed URL
    that can simply be hard-coded into the plug-in):
    <p>
-   <pre>  http://ifdb.tads.org/dladviser?id=<i>TUID</i>&amp;os=<i>OSID</i>&amp;xml</pre>
+   <pre>  https://ifdb.org/dladviser?id=<i>TUID</i>&amp;os=<i>OSID</i>&amp;xml</pre>
 
    <p>where <i>TUID</i> is the game identifier passed in from the hosting
    web page, and <i>OSID</i> is an identification code that specifies
@@ -1620,7 +1620,7 @@ information at all.
    <li>The <b>only</b> information that a web page passes to the
 plug-in is an ID string of the game to be installed.  This ID string
 contains no URL information - it's simply a <a
-href="http://ifdb.tads.org/help-tuid">TUID</a>, which is an
+href="https://ifdb.org/help-tuid">TUID</a>, which is an
 alphanumeric serial number identifying the game in the database.  This
 number has no meaning to a web browser or any network software, so
 it's not possible to use a spoofed TUID to misdirect the plug-in to a
@@ -1720,7 +1720,7 @@ malicious hidden in the plug-in itself.
 user's express permission.
 
    <li>If possible, the plug-in should verify that the browser is
-displaying a page within the ifdb.tads.org site.  This should largely
+displaying a page within the ifdb.org site.  This should largely
 eliminate the possibility that a malicious web site could re-purpose the
 plug-in to install a malicious game program - if a non-IFDB site can't
 invoke the plug-in at all, it can't use it to install anything

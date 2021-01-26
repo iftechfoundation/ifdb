@@ -16,7 +16,7 @@ function sendActivationEmail($email, $actcode)
         clicking on it, copy and paste the entire link into your Web\n
         browser's Address bar.\n\n
         <p>Thank you for registering your new user account.  If you need to\n
-        contact us, please see the Contact page at ifdb.tads.org.  Please do\n
+        contact us, please see the Contact page at ifdb.org.  Please do\n
         not reply to this email - replies to this address are not monitored.\n\n";
 
     // build the headers
