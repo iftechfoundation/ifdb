@@ -444,10 +444,10 @@ function saveChanges()
             $ak->setCommentAuthor($dname);
             $ak->setCommentAuthorEmail($email);
             $ak->setCommentAuthorURL(
-                "http://ifdb.tads.org/showuser?id=$usernum");
+                get_root_url() . "showuser?id=$usernum");
             $ak->setCommentContent($profile);
             $ak->setPermalink(
-                "http://ifdb.tads.org/showuser?id=$usernum");
+                get_root_url() . "showuser?id=$usernum");
 
             $akIsSpam = $ak->isCommentSpam();
             if ($akIsSpam)
@@ -474,7 +474,7 @@ function saveChanges()
             // Send email to the IFDB admin on any profile change.  Even
             // if the profile doesn't require review, we want to take a
             // look anyway just to be sure.
-            $adminUrl = "http://ifdb.tads.org/userconfirm"
+            $adminUrl = get_root_url() . "userconfirm"
                         . "?nonce=$nonce"
                         . "&userid=$usernum"
                         . "&reviewProfile=";
@@ -484,9 +484,9 @@ function saveChanges()
                       "<b>*** Review required ***</b>" :
                       "(No review required - advisory only)")
                    . "<p>Profile page: "
-                   . "<a href=\"http://ifdb.tads.org/showuser"
+                   . "<a href=\"". get_root_url() . "showuser"
                    . "?id=$usernum&unlock=$nonce\">"
-                   .     "http://ifdb.tads.org/showuser?id=$usernum</a>"
+                   .     get_root_url() . "showuser?id=$usernum</a>"
                    . "<br>User email: " . htmlspecialcharx($email)
                    . "<br>Screen name: " . htmlspecialcharx($dname)
                    . "<br>Location: " . htmlspecialcharx($loc)
@@ -511,10 +511,10 @@ function saveChanges()
 
                    . "<br><br>";
 
-            $hdrs = "From: IFDB <noreply@ifdb.tads.org>\r\n"
+            $hdrs = "From: IFDB <noreply@ifdb.org>\r\n"
                     . "Content-type: Text/HTML\r\n";
 
-            mail("ifdbadmin@ifdb.tads.org",
+            mail("ifdbadmin@ifdb.org",
                  "IFDB profile change", $msg, $hdrs);
         }
 
@@ -556,7 +556,7 @@ complete the re-activation process.</b>
             $actcode = sha1(md5_rand($usernum) . md5_rand($email));
 
             // build the activation link
-            $actlink = "http://ifdb.tads.org/userconfirm?a=$actcode";
+            $actlink = get_root_url() . "userconfirm?a=$actcode";
 
             // build the message body
             $msg = "Welcome to IFDB!\n\n
@@ -567,11 +567,11 @@ complete the re-activation process.</b>
                 clicking on it, copy and paste the entire link into your Web\n
                 browser's Address bar.\n\n
                 <p>Thank you for registering your new user account.  If you need to\n
-                contact us, please see the Contact page at ifdb.tads.org.  Please do\n
+                contact us, please see the Contact page at ifdb.org.  Please do\n
                 not reply to this email - replies to this address are not monitored.\n\n";
 
             // build the headers
-            $hdrs = "From: IFDB <noreply@ifdb.tads.org>\r\n"
+            $hdrs = "From: IFDB <noreply@ifdb.org>\r\n"
                     . "Content-type: Text/HTML\r\n";
 
             // send the message

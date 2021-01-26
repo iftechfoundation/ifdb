@@ -193,7 +193,7 @@ if ($rss == 'gamenews')
                 . "<description><i>$gtitle</i> has been newly "
                 . "linked to this author's profile.</description>"
                 . "<pubDate>$rssdate</pubDate>"
-                . "<guid>http://ifdb.tads.org/viewgame?id=$gameid</guid>"
+                . "<guid>" . get_root_url() . "viewgame?id=$gameid</guid>"
                 . "</item>";
         $items[] = array($moddate, $item);
 
@@ -224,7 +224,7 @@ if ($rss == 'gamenews')
 
     // send the list
     sendRSS("$username's game updates",
-            "http://ifdb.tads.org/showuser?id=$uid",
+            get_root_url() . "showuser?id=$uid",
             "News about games linked to $username's IFDB profile.",
             $items, 50);
 

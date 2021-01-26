@@ -458,14 +458,14 @@ function handlePost()
     }
 
     // generate the admin url base
-    $adminUrl = "https://ifdb.tads.org/userconfirm"
+    $adminUrl = get_root_url() . "userconfirm"
                 . "?nonce=$nonce"
                 . "&userid=$userid"
                 . "&reviewProfile=";
 
     // add the user record
     $result = mysql_query($sql, $db);
-    $proPage = "https://ifdb.tads.org/showuser?id=$userid";
+    $proPage = get_root_url() . "showuser?id=$userid";
 
     // add a login record to record the user's IP address
     mysql_query("insert into logins (uid, ip, `when`)
@@ -505,10 +505,10 @@ function handlePost()
 
            . "<br>";
 
-    $hdrs = "From: IFDB <noreply@ifdb.tads.org>\r\n"
+    $hdrs = "From: IFDB <noreply@ifdb.org>\r\n"
             . "Content-type: Text/HTML\r\n";
 
-    mail("ifdbadmin@ifdb.tads.org",
+    mail("ifdbadmin@ifdb.org",
          "IFDB new user registration", $msg, $hdrs);
 
     // if the account is pending review, we're done, since we've already

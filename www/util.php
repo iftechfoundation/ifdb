@@ -27,6 +27,7 @@ define("MYSQL_ASSOC", MYSQLI_ASSOC);
 define("MYSQL_BOTH",  MYSQLI_BOTH);
 
 define("PRODUCTION_SERVER_NAME", "ifdb.tads.org");
+define("STAGING_SERVER_NAME", "dev.ifdb.org");
 
 // --------------------------------------------------------------------------
 //
@@ -3069,11 +3070,11 @@ function send_admin_email_if_links($txt, $context, $contextLink)
     if (preg_match("/https?:\/\//i", $txt))
     {
         $userid = $_SESSION['logged_in_as'];
-        $hdrs = "From: IFDB <noreply@ifdb.tads.org>\r\n"
+        $hdrs = "From: IFDB <noreply@ifdb.org>\r\n"
                 . "Content-type: Text/HTML\r\n";
-        mail("ifdbadmin@ifdb.tads.org", "IFDB hyperlink review",
-             "User: <a href=\"https://ifdb.tads.org/showuser?id=$userid\">$userid</a><br>\n"
-             . "Context: <a href=\"https://ifdb.tads.org/{$contextLink}\">$context</a><br>\n"
+        mail("ifdbadmin@ifdb.org", "IFDB hyperlink review",
+             "User: <a href=\"" . get_root_url() . "showuser?id=$userid\">$userid</a><br>\n"
+             . "Context: <a href=\"" . get_root_url() . "{$contextLink}\">$context</a><br>\n"
              . "Text:<br>\n<br>\n"
              . $txt,
              $hdrs);
@@ -3084,8 +3085,22 @@ function isProduction() {
     return $_SERVER['SERVER_NAME'] === PRODUCTION_SERVER_NAME;
 }
 
+function isStaging() {
+    return $_SERVER['SERVER_NAME'] === STAGING_SERVER_NAME;
+}
+
 function isLocalDev() {
-    return !isProduction();
+    return !isProduction() && !isStaging();
+}
+
+function get_root_url() {
+    if (isProduction()) {
+        return "https://ifdb.org/";
+    } else if (isStaging()) {
+        return "https://dev.ifdb.org/";
+    } else {
+        return (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http") . "://$_SERVER[HTTP_HOST]/";
+    }
 }
 
 ?>

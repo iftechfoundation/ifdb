@@ -3,7 +3,7 @@
 function sendActivationEmail($email, $actcode)
 {
     // build the activation link
-    $actlink = "http://ifdb.tads.org/userconfirm?a=$actcode&email="
+    $actlink = get_root_url() . "userconfirm?a=$actcode&email="
                . urlencode($email);
 
     // build the message
@@ -16,11 +16,11 @@ function sendActivationEmail($email, $actcode)
         clicking on it, copy and paste the entire link into your Web\n
         browser's Address bar.\n\n
         <p>Thank you for registering your new user account.  If you need to\n
-        contact us, please see the Contact page at ifdb.tads.org.  Please do\n
+        contact us, please see the Contact page at ifdb.org.  Please do\n
         not reply to this email - replies to this address are not monitored.\n\n";
 
     // build the headers
-    $hdrs = "From: IFDB <noreply@ifdb.tads.org>\r\n"
+    $hdrs = "From: IFDB <noreply@ifdb.org>\r\n"
             . "Content-type: Text/HTML\r\n";
 
     // send the message
@@ -30,15 +30,15 @@ function sendActivationEmail($email, $actcode)
 function genNewUserAdminLinks($verbose, $actcode, $salt)
 {
     $br = ($verbose ? "<p>" : "<br>");
-    return "<a href=\"http://ifdb.tads.org/userconfirm?"
+    return "<a href=\"" . get_root_url() . "userconfirm?"
         . "a=$actcode&s=$salt&c=approve\">"
         . ($verbose ? "<b>Approve</b> - " : "")
         . "Activate account and send email notice</a>"
-        . "$br<a href=\"http://ifdb.tads.org/userconfirm?"
+        . "$br<a href=\"" . get_root_url() . "userconfirm?"
         . "a=$actcode&s=$salt&c=delete\">"
         . ($verbose ? "<b>Reject</b> - " : "")
         . "Delete account and send notice by email</a>"
-        . "$br<a href=\"http://ifdb.tads.org/userconfirm?"
+        . "$br<a href=\"" . get_root_url() . "userconfirm?"
         . "a=$actcode&s=$salt&c=flush\">"
         . ($verbose ? "<b>Flush</b> - " : "")
         . "Delete without notice</a>";

@@ -27,7 +27,7 @@ function basePageHeader($title, $focusCtl, $extraOnLoad, $extraHead,
    <link rel="shortcut icon" href="/favicon.ico">
    <link rel="search" type="application/opensearchdescription+xml"
          title="IFDB Search Plugin"
-         href="http://ifdb.tads.org/plugins/ifdb-opensearchdesc.xml">
+         href="<?php echo get_root_url() ?>plugins/ifdb-opensearchdesc.xml">
    <script src="ifdbutil.js"></script>
    <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
    <meta name="description" content="IFDB is a game catalog and recommendation engine for Interactive Fiction, also known as Text Adventures. IFDB is a collaborative, wiki-style community project.  Members can contribute game listings, reviews, recommendations, and more.">

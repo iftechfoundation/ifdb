@@ -71,7 +71,7 @@ function sendXml($contents)
     header("Content-Type: text/xml");
     
     echo "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
-        . "<autoinstall xmlns=\"http://ifdb.tads.org/xmlns/autoinstall\">\n";
+        . "<autoinstall xmlns=\"http://ifdb.org/xmlns/autoinstall\">\n";
 
     sendXmlContents($contents);
 

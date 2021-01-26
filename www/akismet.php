@@ -4,7 +4,7 @@ include_once "Akismet.class.php";
 
 function akNew()
 {
-    return new Akismet("http://ifdb.tads.org", localAkismetKey());
+    return new Akismet(get_root_url(), localAkismetKey());
 }
 
 function akSpamError($objname)

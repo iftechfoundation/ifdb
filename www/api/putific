@@ -41,7 +41,7 @@ listing with excellent fidelity.
 <h2>Basic protocol</h2>
 
 <p>The putific API is exposed as an HTTP POST request to a particular
-URL on the IFDB Web site.  The URL is <tt>http://ifdb.tads.org/putific</tt>.
+URL on the IFDB Web site.  The URL is <tt>http://ifdb.org/putific</tt>.
 
 <p>All parameters are passed as POST data with the HTTP request.  As
 typical for HTTP, there's no session state or context; the entire
@@ -328,7 +328,7 @@ request via the <b>links</b> parameter.  The XML content is formatted
 as follows:
 
 <p><pre>
-   &lt;downloads xmlns="http://ifdb.tads.org/api/xmlns"&gt;
+   &lt;downloads xmlns="http://ifdb.org/api/xmlns"&gt;
       &lt;links&gt;
         link 1
         link 2
@@ -587,7 +587,7 @@ result.  The response has this tag structure for a successful
 transaction:
 
 <p><pre>
-   &lt;putific xmlns="http://ifdb.tads.org/api/xmlns"&gt;
+   &lt;putific xmlns="http://ifdb.org/api/xmlns"&gt;
       &lt;ok/&gt;
       &lt;ACTION-NAME/&gt;
       &lt;tuid&gt;TUID (IFDB's internal ID) of the listing&lt;/tuid&gt;

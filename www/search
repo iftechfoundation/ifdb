@@ -153,7 +153,7 @@ if ($xml && $enum)
     header("Cache-Control: no-store, no-cache, must-revalidate");
 
     echo "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
-        . "<searchEnum xmlns=\"http://ifdb.tads.org/api/xmlns\">"
+        . "<searchEnum xmlns=\"http://ifdb.org/api/xmlns\">"
         . rss_encode($errmsg)
         . "<itemType>$enum</itemType>"
         . "<items>";
@@ -1071,7 +1071,7 @@ if ($xml) {
     header("Cache-Control: no-store, no-cache, must-revalidate");
 
     echo "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
-        . "<searchReply xmlns=\"http://ifdb.tads.org/api/xmlns\">";
+        . "<searchReply xmlns=\"http://ifdb.org/api/xmlns\">";
 
     // check for errors
     if ($errMsg)
@@ -1099,7 +1099,6 @@ if ($xml) {
     for ($i = 0 ; $i < count($rows) ; $i++)
     {
         $row = $rows[$i];
-        $site = "http://ifdb.tads.org";
         switch($searchType)
         {
         case "game":
@@ -1113,13 +1112,13 @@ if ($xml) {
             list($stars) = roundStars($rating);
             $ratingCnt = $row['ratingcnt'];
             $art = ($row['hasart'] ? "yes" : "no");
-            $link = htmlspecialcharx("$site/viewgame?id=$id");
+            $link = htmlspecialcharx(get_root_url() . "viewgame?id=$id");
 
             $coverArtLink = "";
             if ($art == "yes") {
                 $coverArtLink =
                     "<coverArtLink>"
-                    . htmlspecialcharx("$site/viewgame?id=$id&coverart")
+                    . htmlspecialcharx(get_root_url() . "viewgame?id=$id&coverart")
                     . "</coverArtLink>";
             }
 
@@ -1149,7 +1148,7 @@ if ($xml) {
             $userid = $row['userid'];
             $username = htmlspecialcharx($row['username']);
             $items = $row['itemcount'];
-            $link = htmlspecialcharx("$site/viewlist?id=$id");
+            $link = htmlspecialcharx(get_root_url() . "viewlist?id=$id");
 
             echo rss_encode(
                 "<list>"
@@ -1171,7 +1170,7 @@ if ($xml) {
             $username = htmlspecialcharx($row['username']);
             $votecnt = $row['votecnt'];
             $gamecnt = $row['gamecnt'];
-            $link = htmlspecialcharx("$site/poll?id=$id");
+            $link = htmlspecialcharx(get_root_url() . "poll?id=$id");
 
             echo rss_encode(
                 "<poll>"
@@ -1192,7 +1191,7 @@ if ($xml) {
             $desc = fixDesc($row['desc']);
             $gamecnt = $row['gamecnt'];
             $divcnt = $row['divcnt'];
-            $link = htmlspecialcharx("$site/viewcomp?id=$id");
+            $link = htmlspecialcharx(get_root_url() . "viewcomp?id=$id");
 
             echo rss_encode(
                 "<competition>"
@@ -1210,7 +1209,7 @@ if ($xml) {
             $title = htmlspecialcharx($row['name']);
             $desc = fixDesc($row['desc']);
             $membercnt = $row['membercnt'];
-            $link = htmlspecialcharx("$site/club?id=$id");
+            $link = htmlspecialcharx(get_root_url() . "club?id=$id");
 
             echo rss_encode(
                 "<club>"
@@ -1229,13 +1228,13 @@ if ($xml) {
             $pic = ($row['haspic'] ? "yes" : "no");
             $badgeInfo = $badges ? $badges[$id] : false;
             $badge = ($badgeInfo ? $badgeInfo[1] : false);
-            $link = htmlspecialcharx("$site/showuser?id=$id");
+            $link = htmlspecialcharx(get_root_url() . "showuser?id=$id");
 
             $picLink = "";
             if ($pic == "yes") {
                 $picLink =
                     "<pictureLink>"
-                    . htmlspecialcharx("$site/showuser?id=$id&pic")
+                    . htmlspecialcharx(get_root_url() . "showuser?id=$id&pic")
                     . "</pictureLink>";
             }
 

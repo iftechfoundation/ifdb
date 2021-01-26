@@ -54,7 +54,7 @@ function getGameRssItems($db, $id, $feedType, $gameTitle, $links, $extFeed)
             $rtitle = htmlspecialcharx($r['summary']);
             $rid = $r['reviewid'];
             $rlink = htmlspecialcharx(
-                "http://ifdb.tads.org/viewgame?id=$id&review=$rid");
+                get_root_url() . "viewgame?id=$id&review=$rid");
             $rdate = date("D, j M Y H:i:s e", strtotime($r['moddate']));
             list($rdesc, $len, $trunc) = summarizeHtml($r['review'], 210);
             $rdesc = htmlspecialcharx(fixDesc($rdesc));
@@ -120,7 +120,7 @@ function getGameRssItems($db, $id, $feedType, $gameTitle, $links, $extFeed)
             $nuser = htmlspecialcharx($nuser);
             $rssdate = date("D, j M Y H:i:s e", strtotime($ndate));
             $nlink = htmlspecialcharx(
-                "http://ifdb.tads.org/viewgame?id=$id&version=$nvsn");
+                get_root_url() . "viewgame?id=$id&version=$nvsn");
             $deltas = unserialize($deltas);
 
             // build the item XML, according to what kind of update they want

@@ -18,7 +18,7 @@ Parameters are encoded into a URL query string, and the URL is sent to
 IFDB as an http GET request.  The server replies with an XML content
 body that contains the search results.
 
-<p>The root of the URL is <tt>http://ifdb.tads.org/search?xml</tt>.
+<p>The root of the URL is <tt>https://ifdb.org/search?xml</tt>.
 
 <p>The search term and object type are added to the root URL as query
 parameters, using standard URL encoding.  That is, each parameter is
@@ -67,7 +67,7 @@ soon as they're available in the UI.
 
 <p>To search for a game listing for <tt>Deep Space Drifter</tt>:
 
-<p><pre>http://ifdb.tads.org/search?xml&amp;game&amp;searchfor=Deep+Space+Drifter
+<p><pre>https://ifdb.org/search?xml&amp;game&amp;searchfor=Deep+Space+Drifter
 </pre>
 
 <h2>Reply</h2>
@@ -76,7 +76,7 @@ soon as they're available in the UI.
 
 <p><pre>
    &lt;?xml version="1.0" encoding="UTF-8" ?&gt; 
-   &lt;searchReply xmlns="http://ifdb.tads.org/api/xmlns"&gt;
+   &lt;searchReply xmlns="http://ifdb.org/api/xmlns"&gt;
       <i>reply-data</i>
    &lt;/searchReply&gt;
 </pre>

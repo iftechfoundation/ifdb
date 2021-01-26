@@ -10,7 +10,7 @@ pageHeader("IFDB Installer - Windows Internet Explorer");
 
 <object
  classid="clsid:67BAF0C9-D511-4925-A796-3F7BB19726EE"
- codebase="http://ifdb.tads.org/plugins/IFDBInstaller-Windows-IE.CAB"
+ codebase="<?php echo get_root_url() ?>plugins/IFDBInstaller-Windows-IE.CAB"
  style="display:none">
 </object>
 

@@ -23,7 +23,7 @@ function replyXml($body)
     header("Pragma: no-cache");
 
     echo "<?xml version=\"1.0\" encoding=\"utf8\"?>"
-        . "<putific xmlns=\"http://ifdb.tads.org/api/xmlns\">"
+        . "<putific xmlns=\"http://ifdb.org/api/xmlns\">"
         . rss_encode($body)
         . "</putific>";
     exit();
@@ -664,7 +664,7 @@ if ($saveErrMsg) {
 replyXml("<ok/>"
          . "<$action/>"
          . "<tuid>$newid</tuid>"
-         . "<viewUrl>http://ifdb.tads.org/viewgame?id=$newid</viewUrl>"
-         . "<editUrl>http://ifdb.tads.org/editgame?id=$newid</editUrl>");
+         . "<viewUrl>" . get_root_url() . "viewgame?id=$newid</viewUrl>"
+         . "<editUrl>" . get_root_url() . "editgame?id=$newid</editUrl>");
     
 ?>

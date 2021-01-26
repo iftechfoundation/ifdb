@@ -9,7 +9,8 @@ unzip -o $FILENAME
 
 rm -rf initdb
 mkdir initdb
-cat create_db.sql ifdb-archive.sql > initdb/00-init.sql
+cp create_db.sql initdb/00-init.sql
+perl -pe 's!https?://ifdb.tads.org!https://ifdb.org!g' < ifdb-archive.sql >> initdb/00-init.sql
 cp patch-schema.sql initdb/01-patch-schema.sql
 cp create-admin.sql initdb/02-create-admin.sql
 

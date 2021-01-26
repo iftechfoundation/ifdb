@@ -133,7 +133,7 @@ function queryNewsRss(&$items, $db, $sourceType, $sourceID, $maxItems,
         $nbody = htmlspecialcharx(fixDesc($nbody));
 
         $nlink = htmlspecialcharx(
-            "http://ifdb.tads.org/newslog?newsid=$norig");
+            get_root_url() . "newslog?newsid=$norig");
 
         // generate the title
         $nhead = htmlspecialcharx($titleFunc($titleCtx, $nhead));

@@ -534,17 +534,17 @@ if (isset($_REQUEST['rss'])) {
     // send it
     if ($feedType == GAME_RSS_ALL) {
         sendRSS("$title - IFDB Updates",
-                "http://ifdb.tads.org/viewgame?id=$id",
+                get_root_url() . "viewgame?id=$id",
                 "Updates to <i>$title</i>'s IFDB page",
                 $items, 50);
     } else if ($feedType == GAME_RSS_DLS) {
         sendRSS("$title - File Updates on IFDB",
-                "http://ifdb.tads.org/viewgame?id=$id",
+                get_root_url() . "viewgame?id=$id",
                 "IFDB File Updates for <i>$title</i>",
                 $items, 50);
     } else if ($feedType == GAME_RSS_REVIEWS) {
         sendRSS("$title - IFDB Reviews",
-                "http://ifdb.tads.org/viewgame?id=$id&reviews",
+                get_root_url() . "viewgame?id=$id&reviews",
                 "IFDB Member Reviews of <i>$title</i>",
                 $items, 50);
     }
@@ -574,7 +574,7 @@ if (isset($_REQUEST['ifiction']))
 
     // if an error occurred, show the error
     if ($errMsg) {
-        echo "<viewgame xmlns=\"http://ifdb.tads.org/api/xmlns\">";
+        echo "<viewgame xmlns=\"http://ifdb.org/api/xmlns\">";
         xmlField("errorCode", $errCode);
         xmlField("errorMessage", $errMsg);
         echo "</viewgame>";
@@ -586,7 +586,7 @@ if (isset($_REQUEST['ifiction']))
         . "<story>"
         
         . "<colophon>"
-        .    "<generator>ifdb.tads.org/viewgame</generator>"
+        .    "<generator>ifdb.org/viewgame</generator>"
         .   "<generatorversion>1</generatorversion>"
         .   "<originated>" . date("Y-m-d", strtotime($moddate2)) . "</originated>"
         . "</colophon>"
@@ -678,12 +678,12 @@ if (isset($_REQUEST['ifiction']))
     
     echo "</contact>";
 
-    echo "<ifdb xmlns=\"http://ifdb.tads.org/api/xmlns\">";
+    echo "<ifdb xmlns=\"http://ifdb.org/api/xmlns\">";
     xmlField("tuid", $id);
-    xmlField("link", "http://ifdb.tads.org/viewgame?id=$id");
+    xmlField("link", get_root_url() . "viewgame?id=$id");
     if ($hasart) {
         echo "<coverart>";
-        xmlField("url", "http://ifdb.tads.org/viewgame?id=$id&coverart");
+        xmlField("url", get_root_url() . "viewgame?id=$id&coverart");
         echo "</coverart>";
     }
     xmlField("averageRating", $ratingAvg);
