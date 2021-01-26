@@ -53,7 +53,7 @@ for ($i = 0 ; $i < $rowcnt ; $i++)
     }
 
     // if it's an IFDB 'pending' URL, ignore it
-    if (preg_match("/^http:\/\/ifdb.tads.org\/ifarchive-pending\?/i", $url))
+    if (preg_match("/^https:\/\/ifdb.org\/ifarchive-pending\?/i", $url))
     {
         $output[] = "ifarchive-pending URL: gameID=$gameID, "
                     . "game title=$gameTitle, link title=$linkTitle,"

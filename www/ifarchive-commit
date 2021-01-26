@@ -10,7 +10,7 @@ $db = dbConnect();
 
 $id = mysql_real_escape_string(get_req_data("ifdbid"), $db);
 $newPath = mysql_real_escape_string(get_req_data("path"), $db);
-$oldUrl = "http://ifdb.tads.org/ifarchive-pending?ifdbid=$id";
+$oldUrl = "https://ifdb.org/ifarchive-pending?ifdbid=$id";
 $apiKey = get_req_data("key");
 
 // remove any leading '/' in the path
