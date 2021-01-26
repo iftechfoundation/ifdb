@@ -24,7 +24,7 @@ function sendActivationEmail($email, $actcode)
             . "Content-type: Text/HTML\r\n";
 
     // send the message
-    return mail($email, "IFDB user activation", $msg, $hdrs);
+    return send_mail($email, "IFDB user activation", $msg, $hdrs);
 }
 
 function genNewUserAdminLinks($verbose, $actcode, $salt)

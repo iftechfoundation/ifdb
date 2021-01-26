@@ -3072,12 +3072,25 @@ function send_admin_email_if_links($txt, $context, $contextLink)
         $userid = $_SESSION['logged_in_as'];
         $hdrs = "From: IFDB <noreply@ifdb.org>\r\n"
                 . "Content-type: Text/HTML\r\n";
-        mail("ifdbadmin@ifdb.org", "IFDB hyperlink review",
+        send_mail("ifdbadmin@ifdb.org", "IFDB hyperlink review",
              "User: <a href=\"" . get_root_url() . "showuser?id=$userid\">$userid</a><br>\n"
              . "Context: <a href=\"" . get_root_url() . "{$contextLink}\">$context</a><br>\n"
              . "Text:<br>\n<br>\n"
              . $txt,
              $hdrs);
+    }
+}
+
+function send_mail($to, $subject, $message, $additional_headers) {
+    if (isLocalDev()) {
+        error_log("EMAIL: NOT SENDING EMAIL IN LOCAL DEVELOPMENT MODE");
+        error_log("To: $to");
+        error_log("Subject: $subject");
+        error_log(print_r($additional_headers, true));
+        error_log($message);
+        return true;
+    } else {
+        return mail($to, $subject, $message, $additional_headers);
     }
 }
 

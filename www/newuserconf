@@ -24,7 +24,7 @@ page and try again.
         $_SESSION['sent_activation'] = true;
         $msgbody = "Welcome to IFDB! Please activate your account\nby clicking on the link below.\n";
         $hdrs = "From: IFDB Admin <noreply@ifdb.org>\r\n";
-        if (mail("ifdbadmin@ifdb.org", "IFDB user activation", $msgbody, $hdrs)) {
+        if (send_mail("ifdbadmin@ifdb.org", "IFDB user activation", $msgbody, $hdrs)) {
 ?>
 <h1>Registration Confirmed</h1>
 

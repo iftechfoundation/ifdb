@@ -175,7 +175,7 @@ function handlePost()
     $hdrs .= "Content-type: Text/HTML\r\n";
 
     // send it
-    if (!mail($email, "IFDB password reset", $msg, $hdrs)) {
+    if (!send_mail($email, "IFDB password reset", $msg, $hdrs)) {
         $errFlagged = "An error occurred sending your reset instructions
             to your email address. If you don't know of a problem with your
              email address, the problem might be at our end - if so, you

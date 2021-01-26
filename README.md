@@ -20,10 +20,8 @@ The IFDB web app is a LAMP app (Linux, Apache, MySQL, PHP). The development envi
 
 ## Known Issues with the Development Environment
 
-* Sending email doesn't work. That's unfortunate, because if you want to create a user, you'll need to login with an activation code. After you try to create a new user, you'll see an error that the activation code couldn't be sent. Login as `ifdbadmin` at `ifdb.org` / `secret`, navigate to `http://localhost:8080/adminops?finduser` and search for the user you created. There, you can activate the account, mark its profile as "trusted," and, if you scroll down, you can impersonate the user with the "Log in as" link.
+* Sending email doesn't work. That's unfortunate, because if you want to create a user, you'll need to login with an activation code. After you try to create a new user, you should be able to see the email text in the Docker logs. Search for `EMAIL: NOT SENDING EMAIL IN LOCAL DEVELOPMENT MODE`.
 * Game box-art images load from the production IFDB site, not the dev environment. IFDB uses a separate "images" database that isn't part of the IFArchive backup. We'll need to generate a backup of that database and make it available on IFArchive, or, at the very least, provide a way for developers to download images from the real IFDB.
-* Some searches don't work.
-* Character encoding issues. Some of these issues appear to be genuine bugs in production IFDB, some of them appear to be issues with the development environment.
 
 ## Troubleshooting
 

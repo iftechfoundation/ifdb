@@ -514,7 +514,7 @@ function saveChanges()
             $hdrs = "From: IFDB <noreply@ifdb.org>\r\n"
                     . "Content-type: Text/HTML\r\n";
 
-            mail("ifdbadmin@ifdb.org",
+            send_mail("ifdbadmin@ifdb.org",
                  "IFDB profile change", $msg, $hdrs);
         }
 
@@ -575,7 +575,7 @@ complete the re-activation process.</b>
                     . "Content-type: Text/HTML\r\n";
 
             // send the message
-            if (!mail($email, "IFDB user activation", $msg, $hdrs)) {
+            if (!send_mail($email, "IFDB user activation", $msg, $hdrs)) {
                 $errFlagged = "<b>Error:</b>
                     Because you're attempting to change
                     your registered email address, we need to send you email

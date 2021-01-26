@@ -403,7 +403,7 @@ if ($errMsg) {
             }
 
             // send email
-            if (!$errMsg && !mail(
+            if (!$errMsg && !send_mail(
                 "ifdbadmin@ifdb.org",
                 "IFDB comment spam flag",
 
