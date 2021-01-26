@@ -3069,9 +3069,9 @@ function send_admin_email_if_links($txt, $context, $contextLink)
     if (preg_match("/https?:\/\//i", $txt))
     {
         $userid = $_SESSION['logged_in_as'];
-        $hdrs = "From: IFDB <noreply@ifdb.tads.org>\r\n"
+        $hdrs = "From: IFDB <noreply@ifdb.org>\r\n"
                 . "Content-type: Text/HTML\r\n";
-        mail("ifdbadmin@ifdb.tads.org", "IFDB hyperlink review",
+        mail("ifdbadmin@ifdb.org", "IFDB hyperlink review",
              "User: <a href=\"https://ifdb.tads.org/showuser?id=$userid\">$userid</a><br>\n"
              . "Context: <a href=\"https://ifdb.tads.org/{$contextLink}\">$context</a><br>\n"
              . "Text:<br>\n<br>\n"

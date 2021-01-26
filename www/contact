@@ -17,7 +17,7 @@ captchaSupportScripts($capkey);
 
 <p>If you have any comments or questions about this site, you can
 reach us by email at <?php
-   echo captchaMaskEmail("ifdbadmin@ifdb.tads.org",
+   echo captchaMaskEmail("ifdbadmin@ifdb.org",
                          "[<a><i>click to reveal</i></a>]") ?>.
 Please read the advice below about reporting specific kinds of
 problems.

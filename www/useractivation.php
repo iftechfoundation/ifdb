@@ -20,7 +20,7 @@ function sendActivationEmail($email, $actcode)
         not reply to this email - replies to this address are not monitored.\n\n";
 
     // build the headers
-    $hdrs = "From: IFDB <noreply@ifdb.tads.org>\r\n"
+    $hdrs = "From: IFDB <noreply@ifdb.org>\r\n"
             . "Content-type: Text/HTML\r\n";
 
     // send the message

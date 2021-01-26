@@ -404,7 +404,7 @@ if ($errMsg) {
 
             // send email
             if (!$errMsg && !mail(
-                "ifdbadmin@ifdb.tads.org",
+                "ifdbadmin@ifdb.org",
                 "IFDB comment spam flag",
 
                 "<b>Possible spam comment posted</b><br><br>User: "
@@ -430,7 +430,7 @@ if ($errMsg) {
                 
                 . "<br><br>",
                 
-                "From: IFDB <noreply@ifdb.tads.org>\r\n"
+                "From: IFDB <noreply@ifdb.org>\r\n"
                 . "Content-type: Text/HTML\r\n"))
             {
                 $errMsg = "$spamErr RVE1928)";
