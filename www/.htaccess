@@ -1,5 +1,6 @@
 ErrorDocument 403 /error403
 ErrorDocument 404 /error404
+ErrorDocument 503 /error503
 
 <FilesMatch "^[^.]+$">
   ForceType application/x-httpd-php
@@ -13,6 +14,10 @@ ErrorDocument 404 /error404
 RewriteEngine on
 Options FollowSymLinks
 RewriteBase /
+
+#Uncomment to enable maintenance mode
+#RewriteCond %{REQUEST_URI} "!/error503"
+#RewriteRule .* - [R=503,L]
 
 RewriteCond %{HTTPS} !=on
 RewriteCond %{HTTP_HOST} ^ifdb.org$ [OR]
