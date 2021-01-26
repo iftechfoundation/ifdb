@@ -2,8 +2,8 @@ version: '3'
 
 services:
   db:
-    image: mysql:5
-    command: mysqld --sql_mode=""
+    image: mariadb:10
+    command: mysqld --sql_mode="" --character-set-server=latin1 --collation-server=latin1_german2_ci
     volumes:
       - ./initdb:/docker-entrypoint-initdb.d
     environment:
