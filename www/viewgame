@@ -574,7 +574,7 @@ if (isset($_REQUEST['ifiction']))
 
     // if an error occurred, show the error
     if ($errMsg) {
-        echo "<viewgame xmlns=\"http://ifdb.tads.org/api/xmlns\">";
+        echo "<viewgame xmlns=\"http://ifdb.org/api/xmlns\">";
         xmlField("errorCode", $errCode);
         xmlField("errorMessage", $errMsg);
         echo "</viewgame>";
@@ -678,7 +678,7 @@ if (isset($_REQUEST['ifiction']))
     
     echo "</contact>";
 
-    echo "<ifdb xmlns=\"http://ifdb.tads.org/api/xmlns\">";
+    echo "<ifdb xmlns=\"http://ifdb.org/api/xmlns\">";
     xmlField("tuid", $id);
     xmlField("link", "http://ifdb.tads.org/viewgame?id=$id");
     if ($hasart) {

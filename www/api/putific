@@ -328,7 +328,7 @@ request via the <b>links</b> parameter.  The XML content is formatted
 as follows:
 
 <p><pre>
-   &lt;downloads xmlns="http://ifdb.tads.org/api/xmlns"&gt;
+   &lt;downloads xmlns="http://ifdb.org/api/xmlns"&gt;
       &lt;links&gt;
         link 1
         link 2
@@ -587,7 +587,7 @@ result.  The response has this tag structure for a successful
 transaction:
 
 <p><pre>
-   &lt;putific xmlns="http://ifdb.tads.org/api/xmlns"&gt;
+   &lt;putific xmlns="http://ifdb.org/api/xmlns"&gt;
       &lt;ok/&gt;
       &lt;ACTION-NAME/&gt;
       &lt;tuid&gt;TUID (IFDB's internal ID) of the listing&lt;/tuid&gt;

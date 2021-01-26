@@ -94,7 +94,7 @@ of the respective records.
 <p>On error, the reply has this structure:
 
 <p><pre>
-   &lt;viewgame xmlns="http://ifdb.tads.org/api/xmlns"&gt;
+   &lt;viewgame xmlns="http://ifdb.org/api/xmlns"&gt;
      &lt;errorCode&gt;<i>code</i>&lt;/errorCode&gt;
      &lt;errorMessage&gt;<i>Error message text</i>&lt;/errorMessage&gt;
    &lt;/viewgame&gt;
@@ -152,7 +152,7 @@ appears at the same XML nesting level as &lt;identification&gt;,
 &lt;story&gt; element).  The structure is as follows:
 
 <p><pre>
-   &lt;ifdb xmlns="http://ifdb.tads.org/api/xmlns"&gt;
+   &lt;ifdb xmlns="http://ifdb.org/api/xmlns"&gt;
      &lt;tuid&gt;<i>TUID</i>&lt;/tuid&gt;
      &lt;link&gt;<i>URL to game page</i>&lt;/link&gt;
      &lt;coverart&gt;

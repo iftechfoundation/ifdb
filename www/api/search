@@ -76,7 +76,7 @@ soon as they're available in the UI.
 
 <p><pre>
    &lt;?xml version="1.0" encoding="UTF-8" ?&gt; 
-   &lt;searchReply xmlns="http://ifdb.tads.org/api/xmlns"&gt;
+   &lt;searchReply xmlns="http://ifdb.org/api/xmlns"&gt;
       <i>reply-data</i>
    &lt;/searchReply&gt;
 </pre>

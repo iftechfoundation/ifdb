@@ -153,7 +153,7 @@ if ($xml && $enum)
     header("Cache-Control: no-store, no-cache, must-revalidate");
 
     echo "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
-        . "<searchEnum xmlns=\"http://ifdb.tads.org/api/xmlns\">"
+        . "<searchEnum xmlns=\"http://ifdb.org/api/xmlns\">"
         . rss_encode($errmsg)
         . "<itemType>$enum</itemType>"
         . "<items>";
@@ -1071,7 +1071,7 @@ if ($xml) {
     header("Cache-Control: no-store, no-cache, must-revalidate");
 
     echo "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
-        . "<searchReply xmlns=\"http://ifdb.tads.org/api/xmlns\">";
+        . "<searchReply xmlns=\"http://ifdb.org/api/xmlns\">";
 
     // check for errors
     if ($errMsg)
