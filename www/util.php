@@ -26,7 +26,7 @@ function mysql_insert_id($linkid) { return mysqli_insert_id($linkid); }
 define("MYSQL_ASSOC", MYSQLI_ASSOC);
 define("MYSQL_BOTH",  MYSQLI_BOTH);
 
-define("PRODUCTION_SERVER_NAME", "ifdb.org");
+define("PRODUCTION_SERVER_NAME", "ifdb.tads.org");
 define("STAGING_SERVER_NAME", "dev.ifdb.org");
 
 // --------------------------------------------------------------------------
