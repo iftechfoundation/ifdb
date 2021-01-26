@@ -4,8 +4,8 @@
    <Description>Search IFDB</Description>
    <InputEncoding>ISO-8859-1</InputEncoding>
    <Image width="16" height="16" type="image/x-icon">data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8%2F9hAAAAB3RJTUUH2AcaAwUFsGbhmgAAAAlwSFlzAAALEgAACxIB0t1%2B%2FAAAAARnQU1BAACxjwv8YQUAAAGuSURBVHjaY9hgofAfCBjIxYyrTDT%2FM0BB6OlrjAwkAsYlhsb%2F0QWjz50h2iDGebo2%2F3FJJl46TNAgxn2V3SgGMDEzM%2Fz7%2BxfOZ%2BXiZLCpycZt0PPzN0GB%2BP%2FPj1%2F%2Fn5y4%2FP%2Fpqav%2Fv756DxZ7d%2FcJWAzEP9A4C2tgM23Omwo26OvrDwwrotoZlke0Mtw%2FdAksdnL6Zoa9zUsZLizby%2FD04hOGXuXo%2FyCM7ACWP384wAxghDD8%2FsMJZv%2F7xwymJY21GXTCnBkurjjM8OjMU6AIRL5DPgVsSMXDOYwsv%2F5CBP%2F%2FZ2L49YcLYsB%2FFjAtbaLGwMHHyfDnLxtcDh2w%2FEZywS%2BoC%2F5CXXBw0kEGFnYWhuc3P8LlQKDlZSc8UFk0vI3ADDYudgbdUEtgLDAxCCmIgcVkTVUY7p98xPDi7leGb395GPre1GLEBuPtw49QAoWRCeiafwg%2BJz87g7SuGKM092awuqdffVEMYenz2IQziqd9QY1%2FkGaQQciGMCazz8VIiXN%2BJKFohNmODkAGAWMBEbqLfkdg%2BBHZRnTbQXwWUOiu%2BO9PMM3DXIHsGpBhACjY%2B%2Fjx%2B8FgAAAAAElFTkSuQmCC</Image>
-   <Url type="text/html" method="GET" template="http://ifdb.tads.org/search">
+   <Url type="text/html" method="GET" template="https://ifdb.org/search">
       <Param name="searchfor" value="{searchTerms}"/>
    </Url>
-   <moz:SearchForm>http://ifdb.tads.org/search</moz:SearchForm>
+   <moz:SearchForm>https://ifdb.org/search</moz:SearchForm>
 </OpenSearchDescription>
