@@ -650,7 +650,7 @@ function showNewItemsRSS($db, $showcnt)
                      . " of {$r['title']}";
             list($summary, $len, $trunc) = summarizeHtml($r['review'], 140);
             $desc = fixDesc($summary);
-            $link = "http://ifdb.tads.org/viewgame?id={$r['gameid']}"
+            $link = get_root_url() . "viewgame?id={$r['gameid']}"
                     . "&review={$r['reviewid']}";
             $pubDate = $r['d'];
         }
@@ -660,7 +660,7 @@ function showNewItemsRSS($db, $showcnt)
             $title = "A Recommended List by {$l['username']}: {$l['title']}";
             list($desc, $len, $trunc) = summarizeHtml($l['desc'], 210);
             $desc = fixDesc($desc);
-            $link = "http://ifdb.tads.org/viewlist?id={$l['id']}";
+            $link = get_root_url() . "viewlist?id={$l['id']}";
             $pubDate = $l['d'];
         }
         else if ($pick == 'P')
@@ -669,7 +669,7 @@ function showNewItemsRSS($db, $showcnt)
             $title = "A poll by {$p['username']}: {$p['title']}";
             list($desc, $len, $trunc) = summarizeHtml($p['desc'], 210);
             $desc = fixDesc($desc);
-            $link = "http://ifdb.tads.org/poll?id={$p['pollid']}";
+            $link = get_root_url() . "poll?id={$p['pollid']}";
             $pubDate = $p['d'];
         }
         else if ($pick == 'N')
@@ -679,7 +679,7 @@ function showNewItemsRSS($db, $showcnt)
             list($desc, $len, $trunc) = summarizeHtml($n['body'], 210);
             $desc = fixDesc($desc);
             $desc = "Reported by {$n['origUserName']}: $desc";
-            $link = "http://ifdb.tads.org/newslog?newsid={$n['newsID']}";
+            $link = get_root_url() . "newslog?newsid={$n['newsID']}";
             $pubDate = $n['d'];
         }
         else if ($pick == 'C')
@@ -688,7 +688,7 @@ function showNewItemsRSS($db, $showcnt)
             $title = "A new competition page: {$c['title']}";
             list($desc, $len, $trunc) = summarizeHtml($c['desc'], 210);
             $desc = fixDesc($desc);
-            $link = "http://ifdb.tads.org/viewcomp?id={$c['compid']}";
+            $link = get_root_url() . "viewcomp?id={$c['compid']}";
             $pubDate = $c['d'];
         }
         else if ($pick == 'U')
@@ -697,7 +697,7 @@ function showNewItemsRSS($db, $showcnt)
             $title = "A new club page: {$c['name']}";
             list($desc, $len, $trunc) = summarizeHtml($c['desc'], 210);
             $desc = fixDesc($desc);
-            $link = "http://ifdb.tads.org/club?id={$c['clubid']}";
+            $link = get_root_url() . "club?id={$c['clubid']}";
             $pubDate = $c['d'];
         }
         else if ($pick == 'G')
@@ -706,7 +706,7 @@ function showNewItemsRSS($db, $showcnt)
             $title = "A new listing for {$g['title']} by {$g['author']}";
             list($desc, $len, $trunc) = summarizeHtml($g['desc'], 210);
             $desc = fixDesc($desc);
-            $link = "http://ifdb.tads.org/viewgame?id={$g['id']}";
+            $link = get_root_url() . "viewgame?id={$g['id']}";
             $pubDate = $g['d'];
         }
 

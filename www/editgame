@@ -1387,7 +1387,7 @@ function submitUpload(id, fname, fmtid, osid, compression, pri)
         if (idx = fname.lastIndexOf("\\"))
             fname = fname.substr(idx+1);
     }
-    var url = 'http://ifdb.tads.org/ifarchive-pending?ifdbid=' + id;
+    var url = get_root_url() . 'ifarchive-pending?ifdbid=' + id;
 
     gfInsRow("linkModel", v.length,
              [fname + ' (' + url + ')',

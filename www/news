@@ -37,7 +37,7 @@ if (isset($_REQUEST['rss'])) {
 <rss version="2.0">
    <channel>
       <title>IFDB Site News</title>
-      <link>http://ifdb.tads.org/news</link>
+      <link><?php echo get_root_url() ?>news</link>
       <description>Updates on the latest new features on IFDB.</description>
       <language>en-us</language>
 <?php
@@ -55,7 +55,7 @@ if (isset($_REQUEST['rss'])) {
         $ldesc = rss_encode($ldesc);
         $pub = date("D, j M Y H:i:s e", strtotime($pub));
 
-        $link = "http://ifdb.tads.org/news?item=$itemid";
+        $link = get_root_url() . "news?item=$itemid";
         $link = rss_encode(htmlspecialcharx($link));
 
         // send the item

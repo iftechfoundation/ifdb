@@ -148,7 +148,7 @@ if ($rss) {
     ?><rss version="2.0">
        <channel>
           <title><?php echo $username ?>'s Comment Updates</title>
-          <link>http://ifdb.tads.org/</link>
+          <link><?php echo get_root_url(); ?> </link>
           <description>A history of IFDB comments for
              <?php echo $username ?>.</description>
           <language>en-us</language>
@@ -292,7 +292,7 @@ for ($i = 0 ; $i < count($comments) ; $i++) {
         list($desc, $len, $trunc) = summarizeHtml($ctxt, 210);
         $desc = fixDesc($desc, FixDescSpoiler | FixDescRSS);
         $pubDate = date("D, j M Y H:i:s e", strtotime($ccreDT));
-        $link = "http://ifdb.tads.org/$link";
+        $link = get_root_url() . $link;
 
         // if this is the latest item, send its date as the <lastBuildDate>
         if ($i == 0)

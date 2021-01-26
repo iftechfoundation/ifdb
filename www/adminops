@@ -672,7 +672,7 @@ else if (isset($_REQUEST['users'])) {
     $name = htmlspecialcharx($name);
     $remarks = htmlspecialcharx($remarks);
 
-    $acturl = "http://ifdb.tads.org/userconfirm?a=$actcode";
+    $acturl = get_root_url() . "userconfirm?a=$actcode";
 
     $statMap = array("A" => "Active", "D" => "Pending Activation",
                      "B" => "Banned", "X" => "Closed",

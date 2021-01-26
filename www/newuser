@@ -458,14 +458,14 @@ function handlePost()
     }
 
     // generate the admin url base
-    $adminUrl = "https://ifdb.tads.org/userconfirm"
+    $adminUrl = get_root_url() . "userconfirm"
                 . "?nonce=$nonce"
                 . "&userid=$userid"
                 . "&reviewProfile=";
 
     // add the user record
     $result = mysql_query($sql, $db);
-    $proPage = "https://ifdb.tads.org/showuser?id=$userid";
+    $proPage = get_root_url() . "showuser?id=$userid";
 
     // add a login record to record the user's IP address
     mysql_query("insert into logins (uid, ip, `when`)

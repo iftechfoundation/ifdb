@@ -155,7 +155,7 @@ function handlePost()
         where id = '$usernum'", $db);
 
     // assemble the message body
-    $href = "http://ifdb.tads.org/resetpsw?a=$actcode";
+    $href = get_root_url() . "resetpsw?a=$actcode";
 
     $msg = "This message is in response to your request to reset your forgotten\n";
     $msg .= "IFDB password. If you didn't make this request, you can simply\n";

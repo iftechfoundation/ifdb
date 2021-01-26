@@ -375,7 +375,7 @@ if ($errMsg) {
         $ak->setCommentAuthor($userAccountName);
         $ak->setCommentAuthorEmail($userAccountEmail);
         $ak->setCommentAuthorURL(
-            "http://ifdb.tads.org/showuser?id=$curuser");
+            get_root_url() . "showuser?id=$curuser");
         $ak->setCommentContent($commentText);
 
         // notify ifdbadmin if it looks like spam
@@ -396,7 +396,7 @@ if ($errMsg) {
                     $errMsg = "$spamErr RVN1927)";
 
                 // generate the admin url ase
-                $adminUrl = "http://ifdb.tads.org/userconfirm"
+                $adminUrl = get_root_url() . "userconfirm"
                             . "?nonce=$nonce"
                             . "&userid=$curuser"
                             . "&reviewProfile=";
@@ -408,9 +408,9 @@ if ($errMsg) {
                 "IFDB comment spam flag",
 
                 "<b>Possible spam comment posted</b><br><br>User: "
-                . "<a href=\"http://ifdb.tads.org/showuser?id=$curuser\">"
+                . "<a href=\"" . get_root_url() . "showuser?id=$curuser\">"
                 . htmlspecialchars($userAccountName) . "</a> - "
-                . "<a href=\"http://ifdb.tads.org/commentlog?user=$curuser\">"
+                . "<a href=\"" . get_root_url() . "commentlog?user=$curuser\">"
                 . "user comment log</a>"
                 . "<br>Email: "
                 . htmlspecialchars($userAccountEmail)

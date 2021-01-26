@@ -444,10 +444,10 @@ function saveChanges()
             $ak->setCommentAuthor($dname);
             $ak->setCommentAuthorEmail($email);
             $ak->setCommentAuthorURL(
-                "http://ifdb.tads.org/showuser?id=$usernum");
+                get_root_url() . "showuser?id=$usernum");
             $ak->setCommentContent($profile);
             $ak->setPermalink(
-                "http://ifdb.tads.org/showuser?id=$usernum");
+                get_root_url() . "showuser?id=$usernum");
 
             $akIsSpam = $ak->isCommentSpam();
             if ($akIsSpam)
@@ -474,7 +474,7 @@ function saveChanges()
             // Send email to the IFDB admin on any profile change.  Even
             // if the profile doesn't require review, we want to take a
             // look anyway just to be sure.
-            $adminUrl = "http://ifdb.tads.org/userconfirm"
+            $adminUrl = get_root_url() . "userconfirm"
                         . "?nonce=$nonce"
                         . "&userid=$usernum"
                         . "&reviewProfile=";
@@ -484,9 +484,9 @@ function saveChanges()
                       "<b>*** Review required ***</b>" :
                       "(No review required - advisory only)")
                    . "<p>Profile page: "
-                   . "<a href=\"http://ifdb.tads.org/showuser"
+                   . "<a href=\"". get_root_url() . "showuser"
                    . "?id=$usernum&unlock=$nonce\">"
-                   .     "http://ifdb.tads.org/showuser?id=$usernum</a>"
+                   .     get_root_url() . "showuser?id=$usernum</a>"
                    . "<br>User email: " . htmlspecialcharx($email)
                    . "<br>Screen name: " . htmlspecialcharx($dname)
                    . "<br>Location: " . htmlspecialcharx($loc)
@@ -556,7 +556,7 @@ complete the re-activation process.</b>
             $actcode = sha1(md5_rand($usernum) . md5_rand($email));
 
             // build the activation link
-            $actlink = "http://ifdb.tads.org/userconfirm?a=$actcode";
+            $actlink = get_root_url() . "userconfirm?a=$actcode";
 
             // build the message body
             $msg = "Welcome to IFDB!\n\n

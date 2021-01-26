@@ -28,7 +28,7 @@ echo "<?xml version=\"1.0\"?>\r\n";
 <rss version="2.0">
    <channel>
       <title>New on IFDB</title>
-      <link>http://ifdb.tads.org/</link>
+      <link><?php echo get_root_url(); ?></link>
       <description>The latest reviews and listings on IFDB, the
          Interactive Fiction DataBase.</description>
       <language>en-us</language>

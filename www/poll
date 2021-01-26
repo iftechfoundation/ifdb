@@ -293,7 +293,7 @@ if (isset($_REQUEST['newPollGo'])) {
         pageHeader("New Poll");
 
         // get the new poll ID, and generate the URL
-        $url = "http://ifdb.tads.org/poll?id=$tuid";
+        $url = get_root_url() . "poll?id=$tuid";
 
         // get my user name
         $result = mysql_query("select name from users where id='$userid'", $db);
@@ -940,7 +940,7 @@ engine to match.
 <rss version="2.0">
    <channel>
       <title><?php echo $title ?>: an IFDB poll by <?php echo $authname ?></title>
-      <link>http://ifdb.tads.org/</link>
+      <link><?php echo get_root_url() ?></link>
       <description>The latest reviews and listings on IFDB, the
          Interactive Fiction DataBase.</description>
       <language>en-us</language>
@@ -963,7 +963,7 @@ engine to match.
                v.votedate desc", $db);
 
         $pollUrl = rss_encode(htmlspecialcharx(
-            "http://ifdb.tads.org/poll?id=$id"));
+            get_root_url() . "poll?id=$id"));
 
         // send the rows
         for ($i = 0, $cnt = mysql_num_rows($result) ; $i < $cnt ; $i++) {

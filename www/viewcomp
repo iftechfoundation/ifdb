@@ -266,7 +266,7 @@ if ($rss)
         $rssdate = date("D, j M Y H:i:s e", strtotime($hModRaw));
         $dn = deltaDesc($deltas);
         $nlink = htmlspecialcharx(
-            "http://ifdb.tads.org/viewcomp?id=$compID&vsn=$hVsn");
+            get_root_url() . "viewcomp?id=$compID&vsn=$hVsn");
 
         // generate this item
         $item = "<item>"
@@ -285,7 +285,7 @@ if ($rss)
 
     // send the data
     sendRSS($rec["title"],
-            "http://ifdb.tads.org/viewcomp?id=$compID",
+            get_root_url() . "viewcomp?id=$compID",
             $rec["title"] . " - Competition news &amp; updates from IFDB.",
             $items, 50);
 

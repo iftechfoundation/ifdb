@@ -89,7 +89,7 @@ if (isset($_REQUEST['news-rss']))
 
     // send the items
     sendRSS("$name - Club News",
-            "http://ifdb.tads.org/club?id=$qid",
+            get_root_url() . "club?id=$qid",
             "IFDB news postings for the club $name",
             $items, false);
 

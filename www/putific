@@ -664,7 +664,7 @@ if ($saveErrMsg) {
 replyXml("<ok/>"
          . "<$action/>"
          . "<tuid>$newid</tuid>"
-         . "<viewUrl>http://ifdb.tads.org/viewgame?id=$newid</viewUrl>"
-         . "<editUrl>http://ifdb.tads.org/editgame?id=$newid</editUrl>");
+         . "<viewUrl>" . get_root_url() . "viewgame?id=$newid</viewUrl>"
+         . "<editUrl>" . get_root_url() . "editgame?id=$newid</editUrl>");
     
 ?>
