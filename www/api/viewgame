@@ -206,7 +206,7 @@ ratingCountAvg value.
 <p>The returned iFiction record also includes the colophon element,
 which identifies how the record was generated.  For the purposes of
 the colophon, the API identifies itself with the generator name
-"ifdb.tads.org/viewgame".
+"ifdb.org/viewgame".
 
 <?php
 

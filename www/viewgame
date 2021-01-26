@@ -586,7 +586,7 @@ if (isset($_REQUEST['ifiction']))
         . "<story>"
         
         . "<colophon>"
-        .    "<generator>ifdb.tads.org/viewgame</generator>"
+        .    "<generator>ifdb.org/viewgame</generator>"
         .   "<generatorversion>1</generatorversion>"
         .   "<originated>" . date("Y-m-d", strtotime($moddate2)) . "</originated>"
         . "</colophon>"
