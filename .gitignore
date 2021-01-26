@@ -3,3 +3,4 @@ ifdb-archive.sql
 ifdb-archive.zip
 ifdb-archive-*.zip
 initdb
+log/
