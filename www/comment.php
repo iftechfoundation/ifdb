@@ -152,7 +152,7 @@ if ($commentID || $deleteID) {
         if ($deleteID) {
             // deleting - must be the author of the comment or source object
             if ($curuser != $author
-                && (!$curuser || $curuser != $refOwner)) {
+                && (!$curuser || $curuser != $refOwner) && (!check_admin_privileges($db, $curuser))) {
                 $errMsg = "This comment was entered by another user. You "
                           . "can only delete your own comments (or comments "
                           . "posted to $ownSrc).";
@@ -160,7 +160,7 @@ if ($commentID || $deleteID) {
             }
         } else {
             // editing - must be the author of the comment
-            if (!$deleteID && $author != $curuser) {
+            if ((!$deleteID && $author != $curuser) && (!check_admin_privileges($db, $curuser))) {
                 $errMsg = "This comment was entered by another user. You "
                           . "can only edit your own comments.";
                 $errFatal = true;

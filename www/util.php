@@ -3116,4 +3116,18 @@ function get_root_url() {
     }
 }
 
+// --------------------------------------------------------------------------
+//
+// Checks if the userid is an admin
+//
+function check_admin_privileges($db, $userid) {
+	
+	$result = mysql_query("select privileges from users where id='$userid' and privileges='A'", $db);
+	if (mysql_num_rows($result)) return true;
+	
+	return false;
+    
+}
+
+
 ?>
