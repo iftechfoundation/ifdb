@@ -10,13 +10,15 @@ The IFDB web app is a LAMP app (Linux, Apache, MySQL, PHP). The development envi
 
 1. Install Docker and Docker Compose. [https://docs.docker.com/get-docker/](https://docs.docker.com/get-docker/)
 
-2. Run `./prepare_dev_environment.sh` in this directory. That will download the current latest IFDB database backup from IFArchive, and put it in a place where Docker will expect to find it.
+2. Copy the repository `git clone https://github.com/iftechfoundation/ifdb.git`. That will create an `ifdb` directory and get needed scripts and patches.
 
-3. Run `docker-compose up`. That will launch a MySQL Docker container and an Apache container with PHP, available on port 8080.
+3. Run `./prepare_dev_environment.sh` in this directory. That will download the current latest IFDB database backup from IFArchive, and put it in a place where Docker will expect to find it.
 
-4. Go to `http://localhost:8080` on your machine. You should see IFDB running. You can login as `ifdbadmin` at `ifdb.org` with the password `secret` to sign in as an administrator. The administrator has access to the "system maintenance panel" at `http://localhost:8080/adminops`
+4. Run `docker-compose up`. That will launch a MySQL Docker container and an Apache container with PHP, available on port 8080.
 
-5. Optionally, you can query the database using phpMyAdmin at `http://localhost:8081` or run `docker exec -it ifdb_db_1 mysql -psecret ifdb` to use the MySQL command-line interface.
+5. Go to `http://localhost:8080` on your machine. You should see IFDB running. You can login as `ifdbadmin` at `ifdb.org` with the password `secret` to sign in as an administrator. The administrator has access to the "system maintenance panel" at `http://localhost:8080/adminops`
+
+6. Optionally, you can query the database using phpMyAdmin at `http://localhost:8081` or run `docker exec -it ifdb_db_1 mysql -psecret ifdb` to use the MySQL command-line interface.
 
 ## Known Issues with the Development Environment
 
