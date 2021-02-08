@@ -8,6 +8,7 @@ include_once "login-persist.php";
 // mysqli replacements (for compatibility across php versions)
 
 function mysql_connect($server, $user, $password) { return mysqli_connect($server, $user, $password); }
+function mysql_set_charset($linkid, $charset) { return mysqli_set_charset($linkid, $charset); }
 function mysql_select_db($db, $linkid = NULL) { return mysqli_select_db($linkid, $db); }
 function mysql_real_escape_string($str, $db) { return mysqli_real_escape_string($db, $str); }
 function mysql_query($query, $db) { return mysqli_query($db, $query); }

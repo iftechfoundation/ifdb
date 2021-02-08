@@ -43,6 +43,7 @@ function dbConnect()
 
     // connect and select the correct database
     $db = mysql_connect($dbinfo[0], $dbinfo[1], $dbinfo[2], true);
+    mysql_set_charset($db, "latin1");
     if ($db != false)
         $result = mysql_select_db("ifdb", $db);
 
