@@ -113,6 +113,7 @@ alter table reviewvotes
 
 drop view gamelinkstats;
 drop view gameratings;
+drop view gameRatings;
 drop view userScores;
 drop view userscoreitems;
 drop view visreviews;
