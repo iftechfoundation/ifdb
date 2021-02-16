@@ -42,8 +42,8 @@ update users
   where (emailflags & 1) != 0;
 
 /* drop the sandbox views */
-drop view gameratingssandbox0;
-drop view gameratingssandbox01;
+drop view gameRatingsSandbox0;
+drop view gameRatingsSandbox01;
 
 /* delete troll users and their reviews and comments */
 delete from ucomments
@@ -113,6 +113,6 @@ alter table reviewvotes
 
 drop view gamelinkstats;
 drop view gameratings;
-drop view userscores;
+drop view userScores;
 drop view userscoreitems;
 drop view visreviews;
