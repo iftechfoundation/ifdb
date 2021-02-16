@@ -4,7 +4,7 @@ IFDB_FULL_EXPORT=$1
 
 rm -rf initdb
 mkdir initdb
-echo "create database if not exists ifdb; use ifdb;" > initdb/ifdb.sql
+echo "create database if not exists ifdb CHARACTER SET latin1 COLLATE latin1_german2_ci; use ifdb;" > initdb/ifdb.sql
 grep -a -v 'DEFINER=' $IFDB_FULL_EXPORT/ifdb-*.sql >> initdb/ifdb.sql
 echo "create database if not exists ifdb_images0; use ifdb_images0;" | cat - $IFDB_FULL_EXPORT/ifdb_images0-*.sql > initdb/ifdb_images0.sql
 echo "create database if not exists ifdb_images1; use ifdb_images1;" | cat - $IFDB_FULL_EXPORT/ifdb_images1-*.sql > initdb/ifdb_images1.sql
