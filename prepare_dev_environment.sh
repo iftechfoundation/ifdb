@@ -2,7 +2,7 @@
 
 # TODO: detect latest archive
 FILENAME=ifdb-archive-20210117.zip
-if [ ! -f $FILENAME ]; then
+if [ ! -f sql/$FILENAME ]; then
     curl -o sql/$FILENAME https://ifarchive.org/if-archive/info/ifdb/$FILENAME
 fi
 unzip -o sql/$FILENAME
