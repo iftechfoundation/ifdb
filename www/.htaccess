@@ -15,6 +15,10 @@ RewriteEngine on
 Options FollowSymLinks
 RewriteBase /
 
+RewriteCond %{HTTPS} =on
+RewriteCond %{HTTP_HOST} ifdb.tads.org
+RewriteRule ^(.*)$ https://ifdb.org/$1 [L,R=301,NE]
+
 RewriteCond %{HTTPS} !=on
 RewriteCond %{HTTP_HOST} ^ifdb.org$ [OR]
 RewriteCond %{HTTP_HOST} \.ifdb.org$
