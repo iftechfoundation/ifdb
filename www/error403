@@ -1,7 +1,7 @@
 <?php
 include "pagetpl.php";
 
-@session_start();
+include_once "session-start.php";
 
 header("HTTP/1.1 403 Forbidden");
 pageHeader("403 - Forbidden");

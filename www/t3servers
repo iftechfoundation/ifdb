@@ -2,7 +2,7 @@
 
 // administer t3 game servers
 
-@session_start();
+include_once "session-start.php";
 
 include_once "util.php";
 include_once "pagetpl.php";

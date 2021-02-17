@@ -1,5 +1,5 @@
 <?php
-@session_start();
+include_once "session-start.php";
 
 // note if we're logged in
 include "login-check.php";

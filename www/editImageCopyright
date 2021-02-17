@@ -6,7 +6,7 @@ include_once "images.php";
 include "imageuploadhandler.php";
 
 // we have to be logged in to edit a game
-@session_start();
+include_once "session-start.php";
 include "login-check.php";
 if (!logged_in())
     exit();

@@ -3,7 +3,7 @@
 include "pagetpl.php";
 include_once "dbconnect.php";
 
-@session_start();
+include_once "session-start.php";
 
 // read the activation code
 $errFlagged = false;

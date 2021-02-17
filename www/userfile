@@ -8,7 +8,7 @@ function err404()
     exit();
 }
 
-@session_start();
+include_once "session-start.php";
 
 include_once "util.php";
 

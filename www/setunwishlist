@@ -1,6 +1,6 @@
 <?php
 
-@session_start();
+include_once "session-start.php";
 include_once "util.php";
 include "pagetpl.php";
 include "login-check.php";
