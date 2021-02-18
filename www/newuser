@@ -360,7 +360,7 @@ function handlePost()
     // Check with Akismet for a spam mail judgment
     $ak = akNew();
     $ak->setCommentAuthorEmail($email);
-    $akIsSpam = $ak->isCommentSpam;
+    $akIsSpam = $ak->isCommentSpam();
 
     // Check with stopforumspam as well
     $ip = $_SERVER['REMOTE_ADDR'];
