@@ -2456,14 +2456,24 @@ function dispTagTable(tableID, lst, editor)
         var cell = row.insertCell(i % 4);
         var s;
         if (editor) {
+
             var ck = "tagCk" + i;
-            s = "<span class=\"cklabel\" onmouseover=\"javascript:"
-                + "ckboxOver('"+ck+"',false);return true;\" "
-                + "onmouseout=\"javascript:ckboxLeave('"+ck+"',false);"
-                + "return true;\" onclick=\"javascript:ckboxClick('"+ck
-                + "',false,doTagCkBox);return false;\"><img align=absmiddle "
-                + "border=0 id=\"ckImg"+ck+"\"> <span id=\"ckLbl"+ck+"\">" + t
-                + "</span></span>&nbsp;<span class=details id=\"tagCnt"+i+"\">";
+
+			s = "<span class=\"cklabel\" onmouseover=\"javascript:"
+            + "ckboxOver('"+ck+"',false);return true;\" "
+            + "onmouseout=\"javascript:ckboxLeave('"+ck+"',false);"
+            + "return true;\" onclick=\"javascript:ckboxClick('"+ck
+            + "',false,doTagCkBox);return false;\"><img align=absmiddle "
+            + "border=0 id=\"ckImg"+ck+"\"> <span id=\"ckLbl"+ck+"\">" + t + "</span></span>";
+            
+		    <?php if ($adminPriv) { ?>
+    	        s +=  "<input type=image  align=absmiddle border=0 src='delrow.gif'"
+	            + " onclick=\"javascript:deleteTag('"+t+"'); \" >";			
+			<?php } ?>
+                
+            s +=  " &nbsp;<span class=details id=\"tagCnt"+i+"\">";
+				
+            
         }
         else
             s = "<span class=details title=\"Search for games tagged with "
@@ -2532,6 +2542,31 @@ function dispEditTags()
     document.getElementById("tagStatusSpan").innerHTML = "";
     dispTagTable("editTagTable", memTagList, true);
 }
+
+function deleteTag(tag)
+{
+//	alert (tag);
+
+    var c = "id=<?php echo $id ?>";
+	c += "&t=" + encodeURI8859(tag);
+
+    xmlSend("taggamedelete", "tagStatusSpan", cbSaveTags, c);
+
+    for (var j = 0 ; j < memTagList.length ; j++)
+    {
+        if (memTagList[j].tag == tag)
+        {
+            var index = j;
+            break;
+        }
+    }
+
+    memTagList.splice (index, 1)
+    dispEditTags();
+    
+
+}
+
 function editTags()
 {
     memTagList = [];
