@@ -3083,15 +3083,16 @@ function send_admin_email_if_links($txt, $context, $contextLink)
 }
 
 function send_mail($to, $subject, $message, $additional_headers) {
+    $wrapped = wordwrap($message, 78, "\r\n");
     if (isLocalDev()) {
         error_log("EMAIL: NOT SENDING EMAIL IN LOCAL DEVELOPMENT MODE");
         error_log("To: $to");
         error_log("Subject: $subject");
         error_log(print_r($additional_headers, true));
-        error_log($message);
+        error_log($wrapped);
         return true;
     } else {
-        return mail($to, $subject, $message, $additional_headers);
+        return mail($to, $subject, $wrapped, $additional_headers);
     }
 }
 
