@@ -1736,6 +1736,29 @@ function getGameRatingsView($db)
 	}
 }
 
+function getGameHiddenStatus($db,$gameid)
+{
+	// assume sandbox 0
+	$sandbox = 0;
+
+	// if the user is logged in, look up their sandbox
+	$result = mysql_query("select sandbox from games where id='$gameid'", $db);
+	list($sandbox) = mysql_fetch_row($result);
+
+	// figure the table based on the user's sandbox
+	switch ($sandbox)
+	{
+	default:
+	case 0:
+	    // normal user - show only reviews and ratings from other normal users
+		return "gameHiddenStatus0";
+
+	case 1:
+		// troll - show ratings from normal users plus trolls
+		return "gameHiddenStatus01";
+	}
+}
+
 // --------------------------------------------------------------------------
 //
 // Calculate a user's Frequent Fiction score
