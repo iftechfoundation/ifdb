@@ -272,6 +272,7 @@ ALTER TABLE `games`
   ADD COLUMN `sandbox` char(32) COLLATE latin1_german2_ci NOT NULL DEFAULT '0',
 ;
 
+
 --
 -- Final view structure for view `gameRatingsSandbox0`
 --
@@ -285,7 +286,7 @@ ALTER TABLE `games`
 /*!50001 SET character_set_results     = utf8 */;
 /*!50001 SET collation_connection      = utf8_general_ci */;
 /*!50001 CREATE ALGORITHM=UNDEFINED */
-/*!50001 VIEW `gameRatingsSandbox0` AS select `reviews`.`gameid` AS `gameid`,avg(if((ifnull(`reviews`.`RFlags`,0) & 2),NULL,`reviews`.`rating`)) AS `avgRating`,std(if((`reviews`.`RFlags` & 2),NULL,`reviews`.`rating`)) AS `stdDevRating`,count(if((`reviews`.`RFlags` & 2),NULL,`reviews`.`rating`)) AS `numRatingsInAvg`,count(`reviews`.`rating`) AS `numRatingsTotal`,count(if(isnull(`reviews`.`special`),`reviews`.`review`,NULL)) AS `numMemberReviews` from (`reviews` left join `users` on((`users`.`id` = `reviews`.`userid`))) where (ifnull((now() > `reviews`.`embargodate`),1) and (ifnull(`users`.`Sandbox`,0) = 0))z group by `reviews`.`gameid` */;
+/*!50001 VIEW `gameRatingsSandbox0` AS select `reviews`.`gameid` AS `gameid`,avg(if((ifnull(`reviews`.`RFlags`,0) & 2),NULL,`reviews`.`rating`)) AS `avgRating`,std(if((`reviews`.`RFlags` & 2),NULL,`reviews`.`rating`)) AS `stdDevRating`,count(if((`reviews`.`RFlags` & 2),NULL,`reviews`.`rating`)) AS `numRatingsInAvg`,count(`reviews`.`rating`) AS `numRatingsTotal`,count(if(isnull(`reviews`.`special`),`reviews`.`review`,NULL)) AS `numMemberReviews` from (`reviews` left join `users` on((`users`.`id` = `reviews`.`userid`))) where (ifnull((now() > `reviews`.`embargodate`),1) and (ifnull(`users`.`Sandbox`,0) = 0)) group by `reviews`.`gameid` */;
 /*!50001 SET character_set_client      = @saved_cs_client */;
 /*!50001 SET character_set_results     = @saved_cs_results */;
 /*!50001 SET collation_connection      = @saved_col_connection */;
