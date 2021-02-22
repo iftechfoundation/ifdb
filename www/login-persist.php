@@ -7,8 +7,11 @@ function checkPersistentLogin()
 {
     // if we're already logged in, there's no need to check for a persistent
     // session
-    if (isset($_SESSION['logged_in']) && $_SESSION['logged_in'] == true)
-        return $_SESSION['logged_in_as'];
+    if (isset($_SESSION['logged_in']) && $_SESSION['logged_in'] == true) {
+        $userid = $_SESSION['logged_in_as'];
+        if (check_banned($userid)) return false;
+        return $userid;
+    }
 
     // check for the session ID
     if (isset($_COOKIE['IFDBSessionID'])) {
@@ -49,6 +52,21 @@ function checkPersistentLogin()
 
     // not logged in
     return false;
+}
+
+
+function check_banned($userid) {
+    $db = dbConnect();
+    $result = mysql_query(
+        "select 1 from users where id = '$userid' and acctstatus = 'B'", $db);
+    $banned = mysql_num_rows($result) > 0;
+    if ($banned) {
+        error_log("user $user_id is banned; logging out");
+        $_SESSION['logged_in'] = false;
+        $_SESSION['logged_in_as'] = null;
+        unset($_SESSION['provisional_logged_in_as']);
+    }
+    return $banned;
 }
 
 ?>
