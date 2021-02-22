@@ -212,9 +212,13 @@ function setLoginCookie($db, $usernum, $ip)
          values ('$cookie', '$usernum', now())", $db);
 
     // set the cookie in the browser
-    setcookie("IFDBSessionID", $cookie, time() + 60*60*24*365*10, "/",
-              isLocalDev() ? "" : ".tads.org",
-              false, true);
+    setcookie("IFDBSessionID", $cookie, [
+        "expires" => time() + 60*60*24*365*10,
+        "path" => "/",
+        "secure" => !isLocalDev(),
+        "httponly" => true,
+        "samesite" => "lax",
+    ]);
 }
 
 ?>
