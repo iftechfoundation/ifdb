@@ -1,6 +1,6 @@
 <?php
 
-@session_start();
+include_once "session-start.php";
 include_once "dbconnect.php";
 include_once "login-persist.php";
 

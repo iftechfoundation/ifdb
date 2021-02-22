@@ -6,7 +6,7 @@
 // context.  See captcha.php for an example of use.
 //
 
-@session_start();
+include_once "session-start.php";
 include_once "util.php";
 include_once "captcha.php";
 

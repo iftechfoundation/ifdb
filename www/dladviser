@@ -1,5 +1,5 @@
 <?php
-@session_start();
+include_once "session-start.php";
 
 // make sure we process any persistent login state
 include_once "login-persist.php";

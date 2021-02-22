@@ -7,7 +7,7 @@ include_once "news.php";
 include_once "rss.php";
 include "login-check.php";
 
-@session_start();
+include_once "session-start.php";
 
 $userid = checkPersistentLogin();
 $pagetitle = "Club Details";

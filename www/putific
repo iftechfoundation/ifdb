@@ -2,7 +2,7 @@
 
 error_reporting(E_ALL & ~(E_NOTICE | E_WARNING));
 
-@session_start();
+include_once "session-start.php";
 include_once "util.php";
 include_once "login-check.php";
 include_once "dbconnect.php";

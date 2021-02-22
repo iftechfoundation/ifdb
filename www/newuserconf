@@ -3,7 +3,7 @@
 <body>
 
 <?php
-@session_start();
+include_once "session-start.php";
 
 $code = $_SESSION['IMAGE_CODE'];
 $reqCode = str_replace(array('0', '1', 'l'), array('o', 'i', 'i'), $_REQUEST['code']);

@@ -1,7 +1,7 @@
 <?php
 
 // we have to be logged in to do this
-@session_start();
+include_once "session-start.php";
 include "login-check.php";
 include_once "captcha.php";
 include_once "akismet.php";

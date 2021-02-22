@@ -1,6 +1,6 @@
 <?php
 
-@session_start();
+include_once "session-start.php";
 include "login-check.php";
 if (!logged_in())
     exit();
