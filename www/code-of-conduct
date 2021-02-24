@@ -35,8 +35,7 @@ varPageHeader("IFDB Terms of Service", false, get_req_data('helpwin'));
 <p>The following is prohibited:</p>
 
 <ul>
-<li>Promoting illegal material</li>
-<li>Promoting games that contain material violating the harassment policy above.</li>
+<li>Linking to illegal material</li>
 <li>Automated creation of game entries without moderator permission</li>
 <li>Posting spam, malware, or misleading links</li>
 </ul>
