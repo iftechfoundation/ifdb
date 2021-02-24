@@ -2336,6 +2336,11 @@ if (count($inrefs) != 0 && !$historyView) {
                <span id="myTagList" style="margin-right:1ex;"></span> -
                <a href="needjs" onclick="javascript:editTags();return false;"
                   >Edit</a>
+		    <?php if ($adminPriv) { ?>
+               <a href="needjs" onclick="javascript:editTags(true);return false;"
+                  >Delete</a>
+			<?php } ?>
+
                <span class="xmlstatmsg" style="margin-left:1ex;"
                   id="tagStatusSpan"></span>
             </span>
@@ -2438,7 +2443,7 @@ function doTagCkBox(id, stat)
     ce.title = ct + " member" + (ct > 1 ? "s have" : " has")
                + " tagged this game with \"" + memTagList[i].tag + "\"";
 }
-function dispTagTable(tableID, lst, editor)
+function dispTagTable(tableID, lst, editor, deleteTags)
 {
     var tbl = document.getElementById(tableID);
     while (tbl.rows != null && tbl.rows.length != 0)
@@ -2459,20 +2464,22 @@ function dispTagTable(tableID, lst, editor)
 
             var ck = "tagCk" + i;
 
-			s = "<span class=\"cklabel\" onmouseover=\"javascript:"
-            + "ckboxOver('"+ck+"',false);return true;\" "
-            + "onmouseout=\"javascript:ckboxLeave('"+ck+"',false);"
-            + "return true;\" onclick=\"javascript:ckboxClick('"+ck
-            + "',false,doTagCkBox);return false;\"><img align=absmiddle "
-            + "border=0 id=\"ckImg"+ck+"\"> <span id=\"ckLbl"+ck+"\">" + t + "</span></span>";
-            
-		    <?php if ($adminPriv) { ?>
-    	        s +=  "<input type=image  align=absmiddle border=0 src='delrow.gif'"
-	            + " onclick=\"javascript:deleteTag('"+t+"'); \" >";			
-			<?php } ?>
                 
-            s +=  " &nbsp;<span class=details id=\"tagCnt"+i+"\">";
-				
+            if (!deleteTags) {    
+	            s = "<span class=\"cklabel\" onmouseover=\"javascript:"
+	                + "ckboxOver('"+ck+"',false);return true;\" "
+	                + "onmouseout=\"javascript:ckboxLeave('"+ck+"',false);"
+	                + "return true;\" onclick=\"javascript:ckboxClick('"+ck
+	                + "',false,doTagCkBox);return false;\">"
+		            + "<img align=absmiddle border=0 id=\"ckImg"+ck+"\"> "
+            } else {
+	            s = "<span class=\"cklabel\">"
+	    	        + "<input type=image align=absmiddle border=0 id=\"ckImg"+ck+"\""
+	    	        + "src='delrow.gif'" + " onclick=\"javascript:deleteTag('"+t+"'); \" >";			
+
+            }
+
+            s += "<span id=\"ckLbl"+ck+"\">" + t + "</span></span>&nbsp;<span class=details id=\"tagCnt"+i+"\">";				
             
         }
         else
@@ -2520,7 +2527,7 @@ function dispTags()
         pre.innerHTML =
             "The following tags are associated with this game. Click on a tag "
             + "to search for other games with the same tag. ";
-    dispTagTable("tagTable", dbTagList, false);
+    dispTagTable("tagTable", dbTagList, false, false);
 
     var s = "";
     for (var i = 0 ; i < dbTagList.length ; i++) {
@@ -2537,11 +2544,12 @@ function dispTags()
     if (tl != null)
         tl.innerHTML = s;
 }
-function dispEditTags()
+function dispEditTags(deleteTags=false)
 {
     document.getElementById("tagStatusSpan").innerHTML = "";
-    dispTagTable("editTagTable", memTagList, true);
+    dispTagTable("editTagTable", memTagList, true, deleteTags);
 }
+
 
 function deleteTag(tag)
 {
@@ -2562,12 +2570,12 @@ function deleteTag(tag)
     }
 
     memTagList.splice (index, 1)
-    dispEditTags();
+    dispEditTags(true);
     
 
 }
 
-function editTags()
+function editTags(deleteTags=false)
 {
     memTagList = [];
     for (var i = 0 ; i < dbTagList.length ; ++i) {
@@ -2577,7 +2585,7 @@ function editTags()
     }
 
     document.getElementById("tagEditor").style.display = "";
-    dispEditTags();
+    dispEditTags(deleteTags);
     document.getElementById("myTagFld").focus();
 }
 function closeTags()
