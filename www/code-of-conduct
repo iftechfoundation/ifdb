@@ -24,10 +24,10 @@ varPageHeader("IFDB Code of Conduct", false, get_req_data('helpwin'));
 <p>The following conduct is prohibited in comments, reviews, and other user-created text:</p>
 
 <ul>
-<li>Personal threats, sexual harassment, bigotry, or encouragement of harm to others.</li>
-<li>Insults to other users.</li>
-<li>Trolling other users, including hounding them with frequent comments, repeatedly deleting their contributions, or using game ratings or review votes in bad faith against individual users.</li>
-<li>Inappropriate disclosure of someone&#39;s personal or contact information ("doxxing") </li>
+<li>Personal threats, sexual harassment, bigotry, or encouragement of harm to others</li>
+<li>Insults to other users</li>
+<li>Trolling other users, including hounding them with frequent comments, repeatedly deleting their contributions, or using game ratings or review votes in bad faith against individual users</li>
+<li>Inappropriate disclosure of someone&#39;s personal or contact information ("doxxing")</li>
 </ul>
 
 <h3 id="game-and-link">Game and Link Policy</h3>
@@ -47,9 +47,9 @@ varPageHeader("IFDB Code of Conduct", false, get_req_data('helpwin'));
 <p>The following are prohibited:</p>
 
 <ul>
-<li>Maintaining multiple accounts to upvote, support, or denigrate specific games and other reviews ("sockpuppeting").</li>
+<li>Maintaining multiple accounts to upvote, support, or denigrate specific games and other reviews ("sockpuppeting")</li>
 <li>Using ratings for anything other than an evaluation of the game&#39;s contents ("bad-faith ratings")</li>
-<li>Encouraging others to break the above rules.</li>
+<li>Encouraging others to break the above rules</li>
 </ul>
 
 <h3 id="offsite">Off-site Policy</h3>
