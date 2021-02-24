@@ -1,7 +1,7 @@
 <?php
 include "pagetpl.php";
 include_once "util.php";
-varPageHeader("IFDB Terms of Service", false, get_req_data('helpwin'));
+varPageHeader("IFDB Code of Conduct", false, get_req_data('helpwin'));
 
 ?>
 
