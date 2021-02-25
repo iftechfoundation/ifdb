@@ -7,7 +7,7 @@ varPageHeader("IFDB Code of Conduct", false, get_req_data('helpwin'));
 
 <h1>IFDB Code of Conduct</h1>
 
-<p><em>The Interactive Fiction Database (<a href="http://ifdb.org/">ifdb.org</a>) is a community-run database of computer games whose player interactions center on text.</em></p>
+<p><em>The Interactive Fiction Database (<a href="https://ifdb.org/">ifdb.org</a>) is a community-run database of computer games whose player interactions center on text.</em></p>
 
 <h2 id="guiding-principles">Guiding Principles</h2>
 
