@@ -16,7 +16,8 @@ Options FollowSymLinks
 RewriteBase /
 
 RewriteCond %{HTTPS} =on
-RewriteCond %{HTTP_HOST} !ifdb.org
+RewriteCond %{HTTP_HOST} !^ifdb.org$
+RewriteCond %{HTTP_HOST} !^dev.ifdb.org$
 RewriteRule ^(.*)$ https://ifdb.org/$1 [L,R=301,NE]
 
 RewriteCond %{HTTPS} !=on
