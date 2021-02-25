@@ -47,7 +47,7 @@ varPageHeader("IFDB Code of Conduct", false, get_req_data('helpwin'));
 <p>The following are prohibited:</p>
 
 <ul>
-<li>Maintaining multiple accounts to upvote, support, or denigrate specific games and other reviews ("sockpuppeting")</li>
+<li>Maintaining multiple accounts to support or denigrate specific games, authors, or users ("sockpuppeting")</li>
 <li>Using ratings for anything other than an evaluation of the game&#39;s contents ("bad-faith ratings")</li>
 <li>Encouraging others to break the above rules</li>
 </ul>
