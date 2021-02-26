@@ -246,6 +246,19 @@ function verify() {
                     $altMsg = "Account deleted; email sent to "
                               . htmlspecialcharx($email) . ".";
 
+                } else if ($action == 'ban') {
+
+                    // presume success
+                    $errFlagged = false;
+
+					if (mysql_query(
+                        "update users
+                         set acctstatus = 'B', sandbox = 1
+                         where id = '$usernum'", $db) == false) {
+                        $errFlagged = "Error updating database. ";
+                    }
+                    $altMsg = "Account banned.";
+
                 } else if ($action == 'flush') {
 
                     // presume success

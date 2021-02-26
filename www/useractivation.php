@@ -33,15 +33,15 @@ function genNewUserAdminLinks($verbose, $actcode, $salt)
     return "<a href=\"" . get_root_url() . "userconfirm?"
         . "a=$actcode&s=$salt&c=approve\">"
         . ($verbose ? "<b>Approve</b> - " : "")
-        . "Activate account and send email notice</a>"
-        . "$br<a href=\"" . get_root_url() . "userconfirm?"
-        . "a=$actcode&s=$salt&c=delete\">"
-        . ($verbose ? "<b>Reject</b> - " : "")
-        . "Delete account and send notice by email</a>"
+        . "Send activation email</a>"
         . "$br<a href=\"" . get_root_url() . "userconfirm?"
         . "a=$actcode&s=$salt&c=flush\">"
-        . ($verbose ? "<b>Flush</b> - " : "")
-        . "Delete without notice</a>";
+        . ($verbose ? "<b>Delete</b> - " : "")
+        . "Delete user completely</a>"
+        . "$br<a href=\"" . get_root_url() . "userconfirm?"
+        . "a=$actcode&s=$salt&c=ban\">"
+        . ($verbose ? "<b>Ban</b> - " : "")
+        . "Forbid login; hide reviews, comments, and profile</a>";
 }
 
 function new_user_review_list($db)

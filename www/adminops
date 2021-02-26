@@ -828,7 +828,7 @@ else if (isset($_REQUEST['users'])) {
         . "showuser?id=$quid</a><br>"
         . "<span class=details>Activation URL: $acturl</span><br>"
         . "<p>Remarks: $remarks<br>"
-        . "<p>" . genNewUserAdminLinks(false, $actcode, $pswsalt);
+        . "<p>" . genNewUserAdminLinks(true, $actcode, $pswsalt);
 
     echo "<p><table width='90%' cellspacing=0 cellpadding=0 border=0>"
         . "<tr valign=top><td align=left>";
