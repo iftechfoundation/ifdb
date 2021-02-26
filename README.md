@@ -1,8 +1,6 @@
 # IFDB
 
-This is the source code for IFDB, the Interactive Fiction Database.
-
-As of Jan 22, 2021, the code in this repository hasn't been deployed yet. We're going to work together to make this code ready to deploy at a new domain name.
+This is the source code for [IFDB](https://ifdb.org), the Interactive Fiction Database.
 
 # Preparing Your Own Development Environment
 
