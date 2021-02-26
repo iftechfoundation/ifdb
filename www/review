@@ -707,7 +707,7 @@ $result = mysql_query(
        join reviewflags as f on f.reviewid = r.id
        join users as u on u.id = f.flagger
      where
-       g.id = '$qid' and r.userid = '$userid'", $db);
+       f.flagtype = 'S' and g.id = '$qid' and r.userid = '$userid'", $db);
 
 $flagRows = false;
 $rowcnt = mysql_num_rows($result);
