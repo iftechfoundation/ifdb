@@ -55,6 +55,13 @@ if ($flagType == 'spoilers') {
             . "<i>Everyone</i> will see the warning (but they'll still "
             . "have the option to click past the warning to see the "
             . "review).";
+} else if ($flagType == 'inappropriate') {
+    $flag = 'I';
+    $title = "Flag as Inappropriate";
+    $expl = "This will notify site administrators that this post is "
+            . "a violation of our <a href=\"/tos\">terms of service</a>. "
+            . "Site administrators make an effort to investigate flags, "
+            . "but we are under no obligation to respond to this report.";
 } else {
     $title = "Flag Review";
     $errMsg = "Invalid parameters - the link that you used to reach this "
@@ -67,13 +74,18 @@ pageHeader($title);
 if ($confirm == 'Y' && $flag && !$errMsg) {
 
     // make sure there's an explanation
+    if ($flagType == 'spoilers') {
+        $responsibleParty = "the review's author";
+    } else {
+        $responsibleParty = "the site administrators";
+    }
     if (strlen($notes) == 0) {
-        $errMsg = "Please enter an explanation, to give the review's author "
+        $errMsg = "Please enter an explanation, to give $responsibleParty "
                   . "a better understanding of what you think they should "
                   . "change.";
     } else if (strlen($notes) < 15) {
-        $errMsg = "Please enter a longer explanation, so that the review's "
-                  . "author can understand what you think they should "
+        $errMsg = "Please enter a longer explanation, so that $responsibleParty "
+                  . "can understand what you think they should "
                   . "change.";
     }
 
@@ -102,6 +114,42 @@ if ($confirm == 'Y' && $flag && !$errMsg) {
                  '$qNotes', now())", $db);
         }
 
+        if ($result) {
+            $progress = "RFN703";
+            $result = mysql_query("select name, email from users where id='$curuser'", $db);
+            list($flagger_username, $flagger_email) = mysql_fetch_row($result);
+            $flagger_username = htmlspecialchars($flagger_username);
+            $flagger_email = htmlspecialchars($flagger_email);
+        }
+
+        if ($result) {
+            $progress = "RFS704";
+            $review_url = get_root_url() . "viewgame?id=" . $rec['gameid'] . "&review=$reviewID";
+            $rating = $rec['rating'];
+            $summary = htmlspecialchars($rec['summary']);
+            $review_text = fixDesc($rec['review']);
+            $review_date = $rec['moddatefmt'];
+            $reviewer = htmlspecialchars($rec['username']);
+
+            $msg = $str = <<<EOD
+IFDB review flagged as $flagType
+
+<p>Flagging user: $flagger_username &lt;<a href="mailto:$flagger_email">$flagger_email</a>&gt;
+<br>$flagType: $notes
+
+<p><a href="$review_url">View review</a>
+<br><b>$summary</b> ($rating stars) $review_date
+<br>by $reviewer
+
+<p>$review_text
+EOD;
+            $hdrs = "From: IFDB <noreply@ifdb.org>\r\n"
+                    . "Content-type: Text/HTML\r\n"
+                    . "Reply-To: $flagger_email\r\n";
+            $result = send_mail("ifdbadmin@ifdb.org",
+                 "IFDB review flagged as $flagType", $msg, $hdrs);
+        }
+
         // check the results
         if ($result) {
 
@@ -116,7 +164,7 @@ if ($confirm == 'Y' && $flag && !$errMsg) {
             $errMsg = "An error occurred updating the database (error "
                       . "code $progress). You might try again in a few "
                       . "minutes; if the problem persists, you can "
-                      . "<a href=\"contact\">contact us</a>.";
+                      . "<a href=\"/contact\">contact us</a>.";
         }
     }
 }
@@ -136,15 +184,20 @@ if (!$confirm || $errMsg || $succMsg) {
     echo "<p><b>Please flag with care.</b> Flagging is an important part "
         . "of IFDB's " . helpWinLink("help-comm-mod", "community moderation")
         . " system; please use this feature "
-        . "responsibly to help improve IFDB for everyone. Note that "
+        . "responsibly to help improve IFDB for everyone.";
+    
+    if ($flagType == 'spoiler') {
+        echo " Note that "
         . "the review's author will see your screen name as the flagger, "
         . "and will see the explanation you enter below."
 
-        . "<p>The point of flagging is <b>not</b> to punish anyone - it's "
+        . "<p>The point of flagging spoilers is <b>not</b> to punish anyone - it's "
         . "to encourage the author to fix a problem that they might not "
         . "even be aware of.  Please be courteous and helpful in explaining "
-        . "what you think should be changed and why."
-        
+        . "what you think should be changed and why.";
+    }
+     
+    echo ""
         . "<p><form name=\"flag\" method=\"post\" action=\"reviewflag\">"
         . "<input type=hidden name=review value=\"$reviewID\">"
         . "<input type=hidden name=type value=\"$flagType\">"

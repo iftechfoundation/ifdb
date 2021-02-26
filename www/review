@@ -15,7 +15,6 @@ if (!logged_in())
 // connect to the database
 $db = dbConnect();
 
-$userid = $_SESSION['logged_in_as'];
 $errMsg = false;
 $errDetail = array();
 $missingFields = array();
@@ -26,6 +25,10 @@ $isOldReview = false;
 // get the game ID
 $id = $_REQUEST['id'];
 
+$userid = $_SESSION['logged_in_as'];
+if ($_REQUEST['userid'] && check_admin_privileges($db, $userid)) {
+    $userid = $_REQUEST['userid'];
+}
 
 // ------------------------------------------------------------------------
 //
@@ -94,10 +97,10 @@ if (isset($_REQUEST['browse']))
                 if ($rating) $mode[] = "you rated it " . showStars($rating);
                 $mode = implode(", ", $mode);
 
-                echo "<p><a href=\"review?id=$id\"><i>$title</i></a>"
+                echo "<p><a href=\"review?id=$id&userid=$userid\"><i>$title</i></a>"
                     . ", by $author <span class=details "
                     . "style='padding-left:1em;'>($mode) - "
-                    . "<a href=\"review?id=$id\">Write a Review</a> - "
+                    . "<a href=\"review?id=$id&userid=$userid\">Write a Review</a> - "
                     . "<a href=\"viewgame?id=$id\">View Listing</a></span>";
             }
 
@@ -164,10 +167,10 @@ if (isset($_REQUEST['browse']))
                 $title = htmlspecialcharx($row['title']);
                 $author = htmlspecialcharx($row['author']);
 
-                echo "<p><a href=\"review?id=$id\"><i>$title</i></a>, "
+                echo "<p><a href=\"review?id=$id&userid=$userid\"><i>$title</i></a>, "
                     . "by $author <span class=details style='padding-left:1em'>"
                     . "<a href=\"viewgame?id=$id\">View Listing</a> - "
-                    . "<a href=\"review?id=$id\">Write a Review</a></span>";
+                    . "<a href=\"review?id=$id&userid=$userid\">Write a Review</a></span>";
             }
         }
     }
@@ -275,7 +278,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_REQUEST['delete'])) {
         . fixDesc($oldreview, FixDescSpoiler);
 
     echo "</div><form name=\"confirmdelete\" method=\"post\" "
-        . "action=\"review?id=$id\">"
+        . "action=\"review?id=$id&userid=$userid\">"
         . "<input type=submit value=\"Delete\" name=\"confirmDelete\">"
         . " &nbsp;&nbsp; "
         . "<input type=submit value=\"Cancel\" name=\"cancelDelete\">";
@@ -472,7 +475,7 @@ Publish! to post it.
 Just go to the game's home page and click "Review It," and we'll bring
 up your existing review for further editing.
 
-<form name="review" method="post" action="review?id=<?php echo $id ?>">
+<form name="review" method="post" action="review?id=<?php echo $id ?>&userid=<?php echo $userid ?>">
    <input type="submit" value="Continue Editing" name="edit">
    &nbsp;&nbsp;&nbsp;
    <input type="submit" value="Publish!" name="save">
@@ -707,7 +710,7 @@ $result = mysql_query(
        join reviewflags as f on f.reviewid = r.id
        join users as u on u.id = f.flagger
      where
-       g.id = '$qid' and r.userid = '$userid'", $db);
+       f.flagtype = 'S' and g.id = '$qid' and r.userid = '$userid'", $db);
 
 $flagRows = false;
 $rowcnt = mysql_num_rows($result);
@@ -731,7 +734,7 @@ if ($errMsg)
         $errMsg</span><br><br>";
 ?>
 
-<form name="review" method="post" action="review?id=<?php echo $id ?>">
+<form name="review" method="post" action="review?id=<?php echo $id ?>&userid=<?php echo $userid ?>">
 
 <p>
 <?php

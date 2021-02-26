@@ -750,6 +750,8 @@ else if (isset($_REQUEST['users'])) {
 
 		$oldSandbox = $sandbox;
 		$newSandbox = $_REQUEST['sandbox'];
+        // banned/closed users shouldn't show up
+        if ($stat == 'B' || $stat == 'X') $newSandbox = 1;
 		if (isset($sandboxMap[$newSandbox]))
 			$sandbox = $newSandbox;
 
@@ -774,10 +776,6 @@ else if (isset($_REQUEST['users'])) {
                `privileges` = '$privcode',
                sandbox = '$sandbox'
              where id = '$quid'", $db);
-
-        // close or ban the account, if desired
-        if ($result && ($stat == 'B' || $stat == 'X'))
-            $result = close_user_acct($db, $uid, $stat, $progress);
 
         // delete the old format privileges, and insert the new ones
         if ($result) {
@@ -828,7 +826,7 @@ else if (isset($_REQUEST['users'])) {
         . "showuser?id=$quid</a><br>"
         . "<span class=details>Activation URL: $acturl</span><br>"
         . "<p>Remarks: $remarks<br>"
-        . "<p>" . genNewUserAdminLinks(false, $actcode, $pswsalt);
+        . "<p>" . genNewUserAdminLinks(true, $actcode, $pswsalt);
 
     echo "<p><table width='90%' cellspacing=0 cellpadding=0 border=0>"
         . "<tr valign=top><td align=left>";

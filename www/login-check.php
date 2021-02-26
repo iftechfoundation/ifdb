@@ -43,8 +43,13 @@ function provisionally_logged_in()
 function logged_in($smallPage = false)
 {
     // if we have the session flag indicating we're logged in, we're good
-    if (isset($_SESSION['logged_in']) && $_SESSION['logged_in'] == true)
+    if (isset($_SESSION['logged_in']) && $_SESSION['logged_in'] == true) {
+        if (check_banned($_SESSION['logged_in_as'])) {
+            redirect_to_login_page();
+            return false;
+        }
         return true;
+    }
 
     // look for a persistent session
     $userid = checkPersistentLogin();
