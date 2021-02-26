@@ -1,0 +1,65 @@
+<?php
+include "pagetpl.php";
+include_once "util.php";
+varPageHeader("IFDB Code of Conduct", false, get_req_data('helpwin'));
+
+?>
+
+<h1>IFDB Code of Conduct</h1>
+
+<p><em>The Interactive Fiction Database (<a href="https://ifdb.org/">ifdb.org</a>) is a community-run database of computer games whose player interactions center on text.</em></p>
+
+<h2 id="guiding-principles">Guiding Principles</h2>
+
+<ul>
+<li>Principle 1: All users deserve respect and have a right to use the site without fear of harassment. </li>
+<li>Principle 2: All users have the right to feel welcome and have their voice heard, as long as they follow the first principle.</li>
+<li>Principle 3: The goal of IFDB is to record, share, promote, and evaluate interactive fiction while following the first two principles.</li>
+</ul>
+
+<h2 id="policies">Policies for prohibited conduct</h2>
+
+<h3 id="harassment">Harassment policy</h3>
+
+<p>The following conduct is prohibited in comments, reviews, and other user-created text:</p>
+
+<ul>
+<li>Personal threats, sexual harassment, bigotry, or encouragement of harm to others</li>
+<li>Insults to other users</li>
+<li>Trolling other users, including hounding them with frequent comments, repeatedly deleting their contributions, or using game ratings or review votes in bad faith against individual users</li>
+<li>Inappropriate disclosure of someone&#39;s personal or contact information ("doxxing")</li>
+</ul>
+
+<h3 id="game-and-link">Game and Link Policy</h3>
+
+<p>The following is prohibited:</p>
+
+<ul>
+<li>Linking to illegal material</li>
+<li>Automated creation of game entries without moderator permission</li>
+<li>Posting spam, malware, or misleading links</li>
+</ul>
+
+<h3 id="ratings">Rating Policy</h3>
+
+<p>Ratings and reviews are expected to be made in good faith. Ratings and reviews that are judged by moderators not to be in good faith may be removed.</p>
+
+<p>The following are prohibited:</p>
+
+<ul>
+<li>Maintaining multiple accounts to support or denigrate specific games, authors, or users ("sockpuppeting")</li>
+<li>Using ratings for anything other than an evaluation of the game&#39;s contents ("bad-faith ratings")</li>
+<li>Encouraging others to break the above rules</li>
+</ul>
+
+<h3 id="offsite">Off-site Policy</h3>
+
+<p>Harassment of other members of the IF community or promotion or coordination of bad-faith ratings may result in moderation even if it takes place off-site. Such harassment goes against our principles and makes IFDB a non-welcoming environment.</p>
+
+<h3 id="security">Security Policy</h3>
+
+<p>Circumventing passwords or other site features meant to protect personal information, or altering/employing code or exploits that may cause the site to work improperly are grounds for disciplinary action including termination of user accounts and removal of material as determined necessary by site Staff.</p>
+
+<?php
+varPageFooter(get_req_data('helpwin'));
+?>
