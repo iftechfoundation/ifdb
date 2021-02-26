@@ -25,8 +25,10 @@ $isOldReview = false;
 // get the game ID
 $id = $_REQUEST['id'];
 
-if ($_REQUEST['userid']) $userid = $_REQUEST['userid'];
-else $userid = $_SESSION['logged_in_as'];
+$userid = $_SESSION['logged_in_as'];
+if ($_REQUEST['userid'] && check_admin_privileges($db, $userid)) {
+    $userid = $_REQUEST['userid'];
+}
 
 // ------------------------------------------------------------------------
 //
