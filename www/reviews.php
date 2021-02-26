@@ -422,7 +422,7 @@ function showReview($db, $gameid, $rec, $specialNames, $optionFlags = 0)
 
         echo "<div class=smallfoot><span class=details>
                <i>You wrote this review -
-               <a href=\"review?id=$gameid\">Revise it</a></i>
+               <a href=\"review?id=$gameid&userid=$userid\">Revise it</a></i>
                $barCommentCtls</span></div>";
 
     } else if ($specialCode == 'external') {
@@ -450,9 +450,14 @@ function showReview($db, $gameid, $rec, $specialNames, $optionFlags = 0)
             . "return false;\">Yes</a> &nbsp; "
             . "<a href=\"needjs\""
             . "onclick=\"javascript:sendReviewVote('$reviewid', 'N');"
-            . "return false;\">No</a> &nbsp; "
+            . "return false;\">No</a> &nbsp; ";
 
-            . "<div style=\"display:inline;position:relative;\">"
+			if (check_admin_privileges($db, $curuser)) {
+				echo "<a href=\"review?id=$gameid&userid=$userid\">Edit</a>&nbsp; ";
+			}
+			
+			
+		echo  "<div style=\"display:inline;position:relative;\">"
             . "<a href=\"#\" id=\"voteMenuLink_$reviewid\" "
             . "onclick=\"javascript:popVoteMenu('$reviewid');"
             . "return false;\">More Options<img src=\"/blank.gif\""

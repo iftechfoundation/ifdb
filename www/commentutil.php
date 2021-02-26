@@ -325,7 +325,7 @@ function showCommentPage($db, $itemAuthor, $srcID, $srcCode,
             enlistComment($coutlst, $cidx, $comments[$i]);
 
         // show the output list
-        showCommentList($commentPage, $itemAuthor, $cidx, $coutlst);
+        showCommentList($db,$commentPage, $itemAuthor, $cidx, $coutlst);
 
         // end the section
         echo "$pageCtl<br></div>";
@@ -363,15 +363,15 @@ function enlistComment(&$coutlst, &$cidx, $crec)
     }
 }
 
-function showCommentList($commentPage, $itemAuthor, $cidx, $coutlst)
+function showCommentList($db,$commentPage, $itemAuthor, $cidx, $coutlst)
 {
     // show each item in the list
     for ($i = 0 ; $i < count($coutlst) ; $i++)
-        showComment($commentPage, $itemAuthor, $cidx, $coutlst, $i);
+        showComment($db, $commentPage, $itemAuthor, $cidx, $coutlst, $i);
 }
 
 $plonkedCommentNum = 0;
-function showComment($commentPage, $itemAuthor, $cidx, $coutlst, $i)
+function showComment($db,$commentPage, $itemAuthor, $cidx, $coutlst, $i)
 {
     // get the logged-in user
     checkPersistentLogin();
@@ -390,11 +390,17 @@ function showComment($commentPage, $itemAuthor, $cidx, $coutlst, $i)
     $ctls = "<a href=\"$commentPage&replyto=$cid\">"
             . "Reply</a>";
 
+	$isAdmin = check_admin_privileges($db, $curuser);
+
     // add the Edit and Delete controls, if it's ours
     if ($curuser && $curuser == $cuserid) {
         $ctls .= " | <a href=\"$commentPage&edit=$cid\">Edit</a>";
+    } else if ($isAdmin) {
+        $ctls .= " | <a href=\"$commentPage&edit=$cid\">Edit</a>";	    
     }
     if ($curuser == $cuserid || $curuser == $itemAuthor) {
+        $ctls .= " | <a href=\"$commentPage&delete=$cid\">Delete</a>";
+    } else if ($isAdmin) {
         $ctls .= " | <a href=\"$commentPage&delete=$cid\">Delete</a>";
     }
 

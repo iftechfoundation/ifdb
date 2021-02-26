@@ -299,7 +299,7 @@ function sendCoverArt()
 //
 function showMemberReviewsHeader($rowcnt, $ratingsView, $showHisto)
 {
-    global $ratingAvg, $ratingCntAvg, $ratingHisto, $id, $currentUserReview;
+    global $ratingAvg, $ratingCntAvg, $ratingHisto, $id, $currentUserReview, $curuser;
     
     // start the section
     $title = ($ratingsView ? "Reviews and Ratings" : "Member Reviews");
@@ -343,7 +343,7 @@ function showMemberReviewsHeader($rowcnt, $ratingsView, $showHisto)
     echo "<span class=details>Number of "
         . ($ratingsView ? "Ratings" : "Reviews")
         . ": $rowcnt<br>"
-        . "<a href=\"review?id=$id\">"
+        . "<a href=\"review?id=$id&userid=$curuser\">"
         . ($currentUserReview ? "Revise your review" : "Write a review")
         . "</a>"
         . "</span>";
@@ -1267,7 +1267,7 @@ function updateUnwishList(id, stat)
            "<span id=\"clearRatingSpan\"><a href=\"needjs\" "
            . "onclick=\"javascript:clearRating();return false\">"
            . "Remove rating<br></span>")
-        . "<a href=\"review?id=$id\">"
+        . "<a href=\"review?id=$id&userid=$curuser\">"
         . ($currentUserReview != "" ? "Revise my review" : "Review it")
         . "</a><br>"
         . "<a href=\"crossrec?game=$id&edit\">"
@@ -1722,7 +1722,7 @@ if ($ratingCntTot == 0) {
     echo "<img src=\"/blank.gif\" class=\"star0\" title=\"No Ratings\">
        No member reviews yet";
     if ($embargoCnt == 0)
-        echo " - <a href=\"review?id=$id\">be the first</a>";
+        echo " - <a href=\"review?id=$id&userid=$curuser\">be the first</a>";
 } else if ($ratingAvg == 0 && $memberReviewCnt == 0) {
     echo "<a href=\"viewgame?id=$id&ratings\" "
         . "title=\"View all ratings and reviews for this game\">"
@@ -1747,13 +1747,13 @@ if ($ratingCntTot == 0) {
     else {
         echo "No member reviews yet";
         if ($embargoCnt == 0)
-            echo " - <a href=\"review?id=$id\">be the first</a>";
+            echo " - <a href=\"review?id=$id&userid=$curuser\">be the first</a>";
     }
 }
 
 if ($embargoCnt > 0)
     echo "<br><i>Your review of this game is hidden until $embargoDate - "
-        . "<a href=\"review?id=$id\">Revise it</a></i>";
+        . "<a href=\"review?id=$id&userid=$curuser\">Revise it</a></i>";
 
             ?>
          </span>
