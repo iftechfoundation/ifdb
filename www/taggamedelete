@@ -44,7 +44,24 @@ if ($db == false)
 // get the request parameters
 $id = get_req_data('id');
 $xml = isset($_REQUEST['xml']);
-$tag = get_req_data("t");
+for ($i = 0, $tags = array() ; ; $i++) {
+    if (!isset($_REQUEST["t$i"]))
+        break;
+
+    // get this tag
+    $tag = get_req_data("t$i");
+
+    // if it's UTF-8 encoded, translate to 8859-1
+    if (is_utf8($tag))
+        $tag = iconv("UTF-8", "ISO-8859-1//IGNORE", approx_utf8($tag));
+
+    // trim it
+    $tag = trim($tag);
+
+    // if it's not an empty string, add it to the list
+    if (strlen($tag))
+        $tags[] = $tag;
+}
 
 
 // make sure we process any persistent login state
@@ -77,7 +94,14 @@ if (mysql_num_rows($result) == 0)
                  "This tag request refers to a non-existent game.",
                  false);
 
-$result = mysql_query("delete from gametags where gameid = '$qid' and tag ='$tag'", $db);
+foreach ($tags as $t) {
+    $t = mysql_real_escape_string($t, $db);
+    $result = mysql_query("delete from gametags where gameid = '$qid' and tag ='$t'", $db);
+
+    if (!$result)
+        break;
+}
+
 
 
 

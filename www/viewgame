@@ -2337,7 +2337,7 @@ if (count($inrefs) != 0 && !$historyView) {
                <a href="needjs" onclick="javascript:editTags();return false;"
                   >Edit</a>
 		    <?php if ($adminPriv) { ?>
-               <a href="needjs" onclick="javascript:editTags(true);return false;"
+               <a href="needjs" onclick="javascript:deleteTags();return false;"
                   >Delete</a>
 			<?php } ?>
 
@@ -2363,7 +2363,7 @@ if (count($inrefs) != 0 && !$historyView) {
                  </div>
                  <div style="position:absolute;top:2px;right:0px;
                     text-align:right;">
-                    <a href="needjs" onclick="javascript:closeTags();
+                    <a href="needjs" onclick="javascript:closeTags('tagEditor');
                        return false;">Cancel<img src="/blank.gif"
                           class="popup-close-button"></a>
                  </div>
@@ -2395,6 +2395,35 @@ if (count($inrefs) != 0 && !$historyView) {
            </div>
         </div>
 
+<div style="position:relative;height:0px;">
+     <div style="position:absolute; z-index:10000; top:-5em; left:0px;
+        display:none;background:#ffffff;border:3px solid #b0d8ff;
+        padding:0;"  id="tagDeletor">
+        <div style="position:relative;padding:2px;
+           background:#b0d8e8;font-size:80%;">
+           <div style="text-align:center;">
+              <b>Delete Tags</b>
+           </div>
+           <div style="position:absolute;top:2px;right:0px;
+              text-align:right;">
+              <a href="needjs" onclick="javascript:closeTags('tagDeletor');
+                 return false;">Cancel<img src="/blank.gif"
+                    class="popup-close-button"></a>
+           </div>
+        </div>
+        <form name="tagForm" onsubmit="javascript:addTags();return false;"
+           style="padding:1ex 1ex 0.5ex 1ex; margin:0 0 0 0;">
+           <span class=details></span>
+           <table id="deleteTagTable" border=0 class=tags
+              style="font-size:85%;">
+           </table>
+           <input type=image src="/blank.gif" class="save-button"
+              id="viewgame-save-tags-button"
+              name="saveTags" style="margin-top:1ex;"
+              onclick="javascript:saveTagsDelete();return false;">
+        </form>
+     </div>
+  </div>
 
 <script type="text/javascript">
 <!--
@@ -2473,7 +2502,11 @@ function dispTagTable(tableID, lst, editor, deleteTags)
 	                + "',false,doTagCkBox);return false;\">"
 		            + "<img align=absmiddle border=0 id=\"ckImg"+ck+"\"> "
             } else {
-	            s = "<span class=\"cklabel\">"
+               s = "<span class=\"cklabel\" onmouseover=\"javascript:"
+                + "ckboxOver('"+ck+"',false);return true;\" "
+                + "onmouseout=\"javascript:ckboxLeave('"+ck+"',false);"
+                + "return true;\" onclick=\"javascript:deleteTag('"+t
+                + "');return false;\">"
 	    	        + "<input type=image align=absmiddle border=0 id=\"ckImg"+ck+"\""
 	    	        + "src='delrow.gif'" + " onclick=\"javascript:deleteTag('"+t+"'); \" >";			
 
@@ -2544,10 +2577,17 @@ function dispTags()
     if (tl != null)
         tl.innerHTML = s;
 }
-function dispEditTags(deleteTags=false)
+
+function dispEditTags()
 {
     document.getElementById("tagStatusSpan").innerHTML = "";
-    dispTagTable("editTagTable", memTagList, true, deleteTags);
+    dispTagTable("editTagTable", memTagList, true, false);
+}
+
+function dispDeleteTags()
+{
+    document.getElementById("tagStatusSpan").innerHTML = "";
+    dispTagTable("deleteTagTable", memTagList, true, true);
 }
 
 
@@ -2558,7 +2598,7 @@ function deleteTag(tag)
     var c = "id=<?php echo $id ?>";
 	c += "&t=" + encodeURI8859(tag);
 
-    xmlSend("taggamedelete", "tagStatusSpan", cbSaveTags, c);
+    //xmlSend("taggamedelete", "tagStatusSpan", cbSaveTags, c);
 
     for (var j = 0 ; j < memTagList.length ; j++)
     {
@@ -2570,12 +2610,12 @@ function deleteTag(tag)
     }
 
     memTagList.splice (index, 1)
-    dispEditTags(true);
+    dispDeleteTags();
     
 
 }
 
-function editTags(deleteTags=false)
+function editTags()
 {
     memTagList = [];
     for (var i = 0 ; i < dbTagList.length ; ++i) {
@@ -2585,13 +2625,29 @@ function editTags(deleteTags=false)
     }
 
     document.getElementById("tagEditor").style.display = "";
-    dispEditTags(deleteTags);
+    dispEditTags();
     document.getElementById("myTagFld").focus();
 }
-function closeTags()
+
+function deleteTags()
 {
-    document.getElementById("tagEditor").style.display = "none";
+    memTagList = [];
+    for (var i = 0 ; i < dbTagList.length ; ++i) {
+        var t = dbTagList[i];
+        memTagList[i] = {tag: t.tag, tagcnt: t.tagcnt, gamecnt: t.gamecnt,
+                         isMine: t.isMine};
+    }
+
+    document.getElementById("tagDeletor").style.display = "";
+    dispDeleteTags();
 }
+
+
+function closeTags(id="tagEditor")
+{
+    document.getElementById(id).style.display = "none";
+}
+
 function saveTags()
 {
     addTags();
@@ -2607,9 +2663,36 @@ function saveTags()
             c += "&t" + (k++) + "=" + encodeURI8859(t.tag);
     }
     dispTags();
-    closeTags();
+    closeTags("tagEditor");
     xmlSend("taggame", "tagStatusSpan", cbSaveTags, c);
 }
+
+function saveTagsDelete()
+{
+//    dbTagList = [];
+    var c = "id=<?php echo $id ?>";
+    var i, j, k;
+    for (i  = k = 0 ; i < dbTagList.length ; i++)
+    {
+       var t = dbTagList[i];
+       var found = false;
+
+       for (j = 0; j < memTagList.length ; j++)
+       {
+          if (memTagList[j].tag == t.tag) found = true;
+       }
+                 
+       if (!found) c += "&t" + (k++) + "=" + encodeURI8859(t.tag);              
+    }    
+    
+    dbTagList = memTagList;
+    
+    dispTags();
+    closeTags("tagDeletor");
+    xmlSend("taggamedelete", "tagStatusSpan", cbSaveTags, c);
+}
+
+
 function cbSaveTags(resp)
 {
     var tags = resp.getElementsByTagName("tag");
