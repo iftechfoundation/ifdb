@@ -2508,7 +2508,7 @@ function dispTagTable(tableID, lst, editor, deleteTags)
                 + "return true;\" onclick=\"javascript:deleteTag('"+t
                 + "');return false;\">"
 	    	        + "<input type=image align=absmiddle border=0 id=\"ckImg"+ck+"\""
-	    	        + "src='delrow.gif'" + " onclick=\"javascript:deleteTag('"+t+"'); \" >";			
+	    	        + "src='delrow.gif' >";			
 
             }
 
