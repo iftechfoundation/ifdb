@@ -453,18 +453,6 @@ function saveChanges()
             if ($akIsSpam)
                 $newprostat = "R";
 
-            // generate an admin nonce to update the record
-            $task = "review user profile $usernum";
-            $nonce = create_nonce($db, $task);
-            if (!$nonce) {
-                $errFlagged = "An error occurred updating the database. "
-                              . "You might want to wait a few moments "
-                              . "and try again, or <a href=\"contact\">"
-                              . "contact us</a> if the problem persists. "
-                              . "(Error code EPN1688)";
-                return false;
-            }
-
             // profile status code to name map
             $proStatMap = array(
                 "T" => "Trusted",
@@ -474,10 +462,7 @@ function saveChanges()
             // Send email to the IFDB admin on any profile change.  Even
             // if the profile doesn't require review, we want to take a
             // look anyway just to be sure.
-            $adminUrl = get_root_url() . "userconfirm"
-                        . "?nonce=$nonce"
-                        . "&userid=$usernum"
-                        . "&reviewProfile=";
+            $adminUrl = get_root_url() . "adminops?user=$usernum";
     
             $msg = "IFDB profile change notification\r\n<p>"
                    . ($newprostat == "R" ?
@@ -485,8 +470,8 @@ function saveChanges()
                       "(No review required - advisory only)")
                    . "<p>Profile page: "
                    . "<a href=\"". get_root_url() . "showuser"
-                   . "?id=$usernum&unlock=$nonce\">"
-                   .     get_root_url() . "showuser?id=$usernum</a>"
+                   . "?id=$usernum&unlock=1\">"
+                   .     get_root_url() . "showuser?id=$usernum&unlock=1</a>"
                    . "<br>User email: " . htmlspecialcharx($email)
                    . "<br>Screen name: " . htmlspecialcharx($dname)
                    . "<br>Location: " . htmlspecialcharx($loc)
@@ -495,20 +480,8 @@ function saveChanges()
                    . "<br>Profile status: "
                    .    "$newprostat ({$proStatMap[$newprostat]})"
                    . "<p>Profile text: " . htmlspecialcharx($profile)
-                   . "<p><a href=\"{$adminUrl}A\">"
-                   . ($newprostat == "T" ? "Set user to \"normal\"</a>"
-                      . " (remove \"trusted\" designation)" :
-                      "Approve the profile</a>")
-                   . "<br><a href=\"{$adminUrl}T\">Set user to \"trusted\"</a>"
-                   .   " (automatically approves future profile changes)"
-                   . "<br><a href=\"{$adminUrl}B\">Ban the user</a>"
-
-                   . "<br><a href=\"http://localhost/mjrnet/sfs-report.php"
-                   .     "?email=" . urlencode($email)
-                   .     "&ip=" . $_SERVER['REMOTE_ADDR']
-                   .     "&username=" . urlencode($dname)
-                   .     "\">Report this user to StopForumSpam</a>"
-
+                   . "<p><a href=\"{$adminUrl}\">"
+                   . "Manage user profile status</a>"
                    . "<br><br>";
 
             $hdrs = "From: IFDB <noreply@ifdb.org>\r\n"
