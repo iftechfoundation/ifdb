@@ -451,7 +451,7 @@ function handlePost()
 
     // add the user record
     $result = mysql_query($sql, $db);
-    $proPage = get_root_url() . "showuser?id=$userid";
+    $proPage = get_root_url() . "showuser?id=$userid&unlock=1";
 
     // add a login record to record the user's IP address
     mysql_query("insert into logins (uid, ip, `when`)
