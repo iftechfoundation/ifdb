@@ -1414,12 +1414,13 @@ else if ($term || $browse)
                 // get the row data, formatted for display
                 $id = $row['id'];
                 $flags = $row['flags'];
-                if (!$showFlagged && ($flags & FLAG_SHOULD_HIDE)) {
+                $shouldHide = $flags & FLAG_SHOULD_HIDE;
+                if (!$showFlagged && $shouldHide) {
                     continue;
                 }
                 $title = output_encode(htmlspecialcharx($row['title']));
                 $author = output_encode(htmlspecialcharx($row['author']));
-                $stars = showStars($row['avgrating']);
+                $stars = $shouldHide ? "" : showStars($row['avgrating']);
                 $year = output_encode(htmlspecialcharx($row['pubyear']));
                 $art = $row['hasart'];
                 $rcnt = $row['ratingcnt'];
@@ -1466,19 +1467,21 @@ else if ($term || $browse)
                 }
 
                 $ratingExtra = "";
-                if (isset($specialsUsed['ratingdev:']) && $rcnt != 0) {
-                    $ratingExtra = "$rcnt rating"
-                                   . ($rcnt == 1 ? "" : "s")
-                                   . ", &sigma;=$rdev";
+                if (!$shouldHide) {
+                    if (isset($specialsUsed['ratingdev:']) && $rcnt != 0) {
+                        $ratingExtra = "$rcnt rating"
+                                    . ($rcnt == 1 ? "" : "s")
+                                    . ", &sigma;=$rdev";
+                    }
+                    else if ((isset($specialsUsed['#ratings:'])
+                            || preg_match("/^ratingcnt[ ,]/", $orderBy))
+                            && $rcnt != 0) {
+                        $ratingExtra = "$rcnt rating"
+                                    . ($rcnt == 1 ? "" : "s");
+                    }
+                    if ($ratingExtra != "")
+                        $ratingExtra = "<span class=details>($ratingExtra)</span>";
                 }
-                else if ((isset($specialsUsed['#ratings:'])
-                          || preg_match("/^ratingcnt[ ,]/", $orderBy))
-                         && $rcnt != 0) {
-                    $ratingExtra = "$rcnt rating"
-                                   . ($rcnt == 1 ? "" : "s");
-                }
-                if ($ratingExtra != "")
-                    $ratingExtra = "<span class=details>($ratingExtra)</span>";
 
                 // show the item
                 echo "<p>";
