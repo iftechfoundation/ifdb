@@ -688,11 +688,13 @@ if (isset($_REQUEST['ifiction']))
         xmlField("url", get_root_url() . "viewgame?id=$id&coverart");
         echo "</coverart>";
     }
-    xmlField("averageRating", $ratingAvg);
-    list($stars) = roundStars($ratingAvg);
-    xmlField("starRating", $stars);
-    xmlField("ratingCountAvg", $ratingCntAvg);
-    xmlField("ratingCountTot", $ratingCntTot);
+    if (!$should_hide) {
+        xmlField("averageRating", $ratingAvg);
+        list($stars) = roundStars($ratingAvg);
+        xmlField("starRating", $stars);
+        xmlField("ratingCountAvg", $ratingCntAvg);
+        xmlField("ratingCountTot", $ratingCntTot);
+    }
     echo "</ifdb>";
     
     // main end tags
