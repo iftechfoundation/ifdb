@@ -319,16 +319,6 @@ if (strlen($actcode) != 40 && !$nonce) {
 
         if ($errFlagged)
             echo "<p><span class=errmsg><b>Error:</b> $errFlagged</span>";
-
-		// if authorized for further user review, show other pending records
-		if ($_SESSION['admin_for_user_review'])
-		{
-			echo "<br><hr class=dots>"
-				. "More users pending review:"
-				. "<div style=\"margin: 1em 2em;\">";
-			new_user_review_list($db);
-			echo "</div>";	
-		}
     
     } else if ($errFlagged) {
 ?>

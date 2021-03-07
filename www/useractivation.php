@@ -44,35 +44,4 @@ function genNewUserAdminLinks($verbose, $actcode, $salt)
         . "Forbid login; hide reviews, comments, and profile</a>";
 }
 
-function new_user_review_list($db)
-{
-	$result = mysql_query(
-		"select
-  	      substr(n.nonceid, 21) as userid, n.hash, date_format('%Y-%M-%d %H:%i', n.created),
-	      u.name, u.email
-		from
-		  nonces as n
-		  left outer join users as u
-			on u.id = substr(n.nonceid, 21)
-		where
-		  n.nonceid like 'review user profile %'
-		order by
-		  n.created desc
-        limit
-          0, 100", $db);
-
-	$nrows = mysql_num_rows($result);
-
-	if ($nrows == 0) {
-		echo "None";
-	} else {
-		for ($i = 0 ; $i < $nrows ; $i++)
-		{
-			list($uid, $nonce, $date, $uname, $uemail) = mysql_fetch_row($result);
-			$link = "showuser?id=$uid&unlock=$nonce";
-			echo "<a href=\"$link\">$uname</a> &lt;$uemail&gt; $date<br>";
-		}
-	}
-}
-
 ?>
