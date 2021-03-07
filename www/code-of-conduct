@@ -17,9 +17,9 @@ varPageHeader("IFDB Code of Conduct", false, get_req_data('helpwin'));
 <li>Principle 3: The goal of IFDB is to record, share, promote, and evaluate interactive fiction while following the first two principles.</li>
 </ul>
 
-<h2 id="policies">Policies for prohibited conduct</h2>
+<h2 id="policies">Policies for Prohibited Conduct</h2>
 
-<h3 id="harassment">Harassment policy</h3>
+<h3 id="harassment">Harassment Policy</h3>
 
 <p>The following conduct is prohibited in comments, reviews, and other user-created text:</p>
 
@@ -58,7 +58,7 @@ varPageHeader("IFDB Code of Conduct", false, get_req_data('helpwin'));
 
 <h3 id="security">Security Policy</h3>
 
-<p>Circumventing passwords or other site features meant to protect personal information, or altering/employing code or exploits that may cause the site to work improperly are grounds for disciplinary action including termination of user accounts and removal of material as determined necessary by site Staff.</p>
+<p>Circumventing passwords or other site features meant to protect personal information, or altering/employing code or exploits that may cause the site to work improperly are grounds for disciplinary action including termination of user accounts and removal of material as determined necessary by site staff.</p>
 
 <?php
 varPageFooter(get_req_data('helpwin'));
