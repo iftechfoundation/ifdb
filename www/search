@@ -1095,6 +1095,7 @@ if ($xml) {
     $grouptag = $grouptags[$searchType];
     echo "<$grouptag>";
 
+    $showFlagged = isset($_GET['showFlagged']) && $_GET['showFlagged'];
     // send the results
     for ($i = 0 ; $i < count($rows) ; $i++)
     {
@@ -1103,6 +1104,10 @@ if ($xml) {
         {
         case "game":
             $id = $row['id'];
+            $flags = $row['flags'];
+            if (!$showFlagged && ($flags & FLAG_SHOULD_HIDE)) {
+                continue;
+            }
             $title = htmlspecialcharx($row['title']);
             $author = htmlspecialcharx($row['author']);
             $published = $row['published'];
