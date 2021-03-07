@@ -71,6 +71,11 @@ if ($curuser) {
 
 // if this is a photo request, show the photo
 if (isset($_REQUEST['pic'])) {
+    if (localImageCredentials() === null) {
+        header("HTTP/1.1 302 Found");
+        header("Location: https://" . PRODUCTION_SERVER_NAME . $_SERVER['REQUEST_URI']);
+        exit();
+    }
     // query the image
     $result = mysql_query("select picture from users where id='$quid'", $db);
     if (mysql_num_rows($result) == 0)
