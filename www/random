@@ -112,6 +112,7 @@ $sql = "select
           $tableList
         where
           $where
+          and not (games.flags & " . FLAG_SHOULD_HIDE . ")
         $groupBy
         $having
         order by rand()
