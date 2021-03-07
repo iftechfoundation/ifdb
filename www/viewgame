@@ -1641,6 +1641,7 @@ if (!isEmpty($seriesname)) {
                and games.id = r2.gameid
                and ifnull(now() >= r1.embargodate, 1)
                and ifnull(now() >= r2.embargodate, 1)
+               and not (games.flags & " . FLAG_SHOULD_HIDE . ")
                $andOtherUser
             group by r2.gameid
             order by rand()
@@ -1694,6 +1695,7 @@ if (!isEmpty($seriesname)) {
                $joinOtherUser
              where
                c.fromgame = '$qid'
+               and not (g.flags & " . FLAG_SHOULD_HIDE . ")
                $andOtherUser
              group by
                c.fromgame, c.togame
