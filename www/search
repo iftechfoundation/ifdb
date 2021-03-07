@@ -1105,7 +1105,8 @@ if ($xml) {
         case "game":
             $id = $row['id'];
             $flags = $row['flags'];
-            if (!$showFlagged && ($flags & FLAG_SHOULD_HIDE)) {
+            $shouldHide = $flags & FLAG_SHOULD_HIDE;
+            if (!$showFlagged && $shouldHide) {
                 continue;
             }
             $title = htmlspecialcharx($row['title']);
@@ -1133,9 +1134,11 @@ if ($xml) {
                 .   "<title>$title</title>"
                 .   "<link>$link</link>"
                 .   "<author>$author</author>"
-                .   "<averageRating>$rating</averageRating>"
-                .   "<numRatings>$ratingCnt</numRatings>"
-                .   "<starRating>$stars</starRating>"
+                .   ($shouldHide ? "" : (
+                        "<averageRating>$rating</averageRating>"
+                    .   "<numRatings>$ratingCnt</numRatings>"
+                    .   "<starRating>$stars</starRating>"
+                ))
                 .   "<hasCoverArt>$art</hasCoverArt>"
                 .   "<devsys>$devsys</devsys>"
                 .   "<published>"
