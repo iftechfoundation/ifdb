@@ -1321,6 +1321,7 @@ if (!document.all)
       </tr>
    </table>
 
+<?php if (!$should_hide) { ?>
    <p>
    <table class=gamerightbar>
       <tr>
@@ -1384,7 +1385,7 @@ echo "updatePlaylistCount($playlistCnt); updateWishlistCount($wishlistCnt);"
 ?>
 //-->
 </script>
-
+<?php } ?>
    <p>
    <table class=gamerightbar>
       <tr>
