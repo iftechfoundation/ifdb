@@ -704,8 +704,12 @@ if (isset($_REQUEST['ifiction']))
 }
 
 // start the page
+$extraHead = "<script src=\"xmlreq.js\"></script>";
+if ($should_hide) {
+    $extraHead .= "<meta name=\"robots\" content=\"noindex\">";
+}
 pageHeader("$title - Details", false, false,
-           "<script src=\"xmlreq.js\"></script>", true);
+           $extraHead, true);
 initReviewVote();
 
 // check for a game specified by IFID and not found
