@@ -40,7 +40,7 @@ function listMatchItem($match, $num, $showArt, $rating, $hrefTarget)
 
 function showRecList($db, $qlistid, $ownerid, $ownername, $ownerloc,
                      $title, $desc, $moddate, $items, $hrefTarget,
-                     $showComments)
+                     $showComments, $showFlagged)
 {
     // fix up the items for display
     $ownername = htmlspecialcharx($ownername);
@@ -97,6 +97,25 @@ function showRecList($db, $qlistid, $ownerid, $ownername, $ownerloc,
     }
 
     // show the items
+    if (!$showFlagged) {
+        for ($i = $num = 0 ; $i < count($items) ; $i++) {
+            $item = $items[$i];
+            $match = $item['matches'][0];
+            $flags = $match['flags'];
+            $shouldHide = $flags & FLAG_SHOULD_HIDE;
+            if ($shouldHide) {
+                $currentUrl = $_SERVER['REQUEST_URI'];
+                if (strpos($currentUrl, '?') === false) {
+                    $currentUrl .= "?";
+                }
+                $showAllLink = htmlspecialchars( $currentUrl, ENT_QUOTES, 'UTF-8' ) . "&showFlagged=1";
+                echo "<p><div class=restricted>Some results were hidden. "
+                        . "<a href=\"$showAllLink\">See all results</a></div></p>";
+                break;
+            }
+        }
+    }
+
     for ($i = $num = 0 ; $i < count($items) ; $i++) {
         // get the item
         $item = $items[$i];
@@ -105,9 +124,6 @@ function showRecList($db, $qlistid, $ownerid, $ownername, $ownerloc,
         // if the item is empty or has been deleted, skip it
         if ($tuid == "" || $tuid == "(deleted)")
             continue;
-
-        // get the comments, formatted for display
-        $comments = fixdesc($item['comments']);
 
         // count the item
         $num++;
@@ -118,18 +134,29 @@ function showRecList($db, $qlistid, $ownerid, $ownername, $ownerloc,
         // by the time we display a list or preview a list, the
         // matches will have been resolved down to a single item.
         $match = $item['matches'][0];
+        $flags = $match['flags'];
+        $shouldHide = $flags & FLAG_SHOULD_HIDE;
+
+        if (!$showFlagged && $shouldHide) {
+            continue;
+        }
+
+        // get the comments, formatted for display
+        $comments = fixdesc($item['comments']);
 
 	    // get the game ratings table, taking into account the user's sandbox
 		$gameRatingsView = getGameRatingsView($db);
 
         // get the game's average rating
         $rating = false;
-        $result = mysql_query(
-            "select avgRating, numRatingsInAvg
-             from $gameRatingsView
-             where gameid='$tuid'", $db);
-        if (mysql_num_rows($result) > 0)
-            $rating = mysql_fetch_row($result);
+        if (!$shouldHide) {
+            $result = mysql_query(
+                "select avgRating, numRatingsInAvg
+                from $gameRatingsView
+                where gameid='$tuid'", $db);
+            if (mysql_num_rows($result) > 0)
+                $rating = mysql_fetch_row($result);
+        }
 
         // show the number and list the item
         echo "<p>";

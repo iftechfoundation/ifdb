@@ -41,7 +41,7 @@ if (mysql_num_rows($result) == 0) {
         "select gameid as tuid, title, author,
              date_format(published, '%Y') as pubyear,
              (coverart is not null) as hasart,
-             comments, displayorder
+             comments, displayorder, flags
          from
              reclistitems, games
          where
@@ -69,9 +69,11 @@ if ($errMsg) {
     echo "<span class=errmsg>$errMsg</span><br>";
 } else {
 
+    $showFlagged = isset($_GET['showFlagged']) && $_GET['showFlagged'];
+
     // show the list
     showRecList($db, $qlistid, $ownerID, $ownerName, $ownerLoc,
-                $title, $desc, $moddate, $items, "", true);
+                $title, $desc, $moddate, $items, "", true, $showFlagged);
 
     // show some options
     echo "<p><hr class=dots><p>";

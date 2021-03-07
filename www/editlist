@@ -293,7 +293,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_REQUEST['preview'])) {
     // our common select list
     $sel = "select games.id, games.title, games.author,
               (games.coverart is not null) as hasart,
-              date_format(games.published, '%Y') as pubyear";
+              date_format(games.published, '%Y') as pubyear, flags";
 
     // run through the new items and resolve each title/TUID
     for ($i = 0, $numfound = 0, $resolved = false ;
@@ -530,7 +530,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_REQUEST['preview'])) {
                $now = date("M j, Y");
                showRecList($db, $qlistid, $userid, $username, $userloc,
                            $listTitle, $listDesc, $now, $listItems,
-                           "_blank", false);
+                           "_blank", false, true);
            ?>
 
            <p><hr class=dots><p>
