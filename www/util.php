@@ -55,6 +55,10 @@ define("RFLAG_OMIT_AVG",     0x0002);
 define("GAMELINK_IS_GAME",  0x0001);
 define("GAMELINK_PENDING",  0x0002);
 
+// --------------------------------------------------------------------------
+// GAMES table FLAGS column bit values
+//
+define("FLAG_SHOULD_HIDE", 0x0001);
 
 // --------------------------------------------------------------------------
 // shoot the recommendation cache

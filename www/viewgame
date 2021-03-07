@@ -335,7 +335,7 @@ function showMemberReviewsHeader($rowcnt, $ratingsView, $showHisto)
     }
 
     // show the statistics
-    if ($ratingCntAvg > 0) {
+    if ($showHisto && $ratingCntAvg > 0) {
         echo "<span class=details>Average Rating: "
             . showStars($ratingAvg)
             . "</span><br>";
@@ -449,8 +449,10 @@ if (!$errMsg) {
          $editedbyid, $editedbyname, $moddate, $moddate2, $pagevsn,
          $historyView,
          $dlnotes, $extReviews, $extRevDisplayRank,
-         $ratingHisto, $xrefs, $inrefs) =
+         $ratingHisto, $xrefs, $inrefs, $flags) =
              getGameInfo($db, $id, $curuser, $reqVersion, $errMsg, $errCode);
+
+    $should_hide = ($flags & FLAG_SHOULD_HIDE);
 
     // encode some items for output
     $title = output_encode($title);
@@ -1406,6 +1408,11 @@ echo "updatePlaylistCount($playlistCnt); updateWishlistCount($wishlistCnt);"
 <table cellspacing=0 cellpadding=0 border=0>
    <tr valign=top>
       <td>
+        <?php
+            if ($should_hide) {
+                ?><div class=restricted>Links to this page and its ratings have been restricted, due to violations of our Code of Conduct.</div><?php
+            }
+        ?>
          <p>
          <table cellspacing=0 cellpadding=0 border=0>
             <tr valign=top>
@@ -1729,7 +1736,7 @@ if ($ratingCntTot == 0) {
         . "$ratingCntTot member rating" . ($ratingCntTot != 1 ? "s" : "")
         . "</a><br>";
 } else {
-    if ($ratingAvg != 0) {
+    if (!$should_hide && $ratingAvg != 0) {
         echo showStars($ratingAvg)
             . " (based on <a href=\"viewgame?id=$id&ratings\" "
             . "title=\"View all ratings and reviews for this game\">"
@@ -2657,7 +2664,8 @@ dispTags();
             $showcnt = $rowcnt;
 
             // show the Member Reviews section header
-            showMemberReviewsHeader($rowcnt, false, true);
+            $showHisto = !$should_hide;
+            showMemberReviewsHeader($rowcnt, false, $showHisto);
 
             // if we have too many for this front page, limit it
             if ($rowcnt > $reviewsOnHomePage) {
@@ -3157,8 +3165,10 @@ dispTags();
         echo "<br><span class=notes><a href=\"viewgame?id=$id\">Return to the
             game's main page</a></span><br>";
 
+        $showHisto = !$should_hide;
+        
         // start the section
-        showMemberReviewsHeader($realtotcnt, $ratingsView, true);
+        showMemberReviewsHeader($realtotcnt, $ratingsView, $showHisto);
 
         // show the reviews/ratings only if we have any
         if ($totcnt != 0) {

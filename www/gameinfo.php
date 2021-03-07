@@ -36,7 +36,7 @@ function getGameInfo($db, $id, $curuser, $requestVersion, &$errMsg, &$errCode)
             concat(date_format(moddate, '%e %M %Y at %l:%i'),
                lower(date_format(moddate, '%p'))) as moddate,
             date_format(moddate, '%d-%b-%Y %H:%i') as moddate2,
-            pagevsn
+            pagevsn, flags
         from games
         where id = '$qid'", $db);
     if (mysql_num_rows($result) == 0) {
@@ -237,6 +237,7 @@ function getGameInfo($db, $id, $curuser, $requestVersion, &$errMsg, &$errCode)
     $links = $rec["links"];
     $extReviews = $rec["extreviews"];
     $xrefs = $rec["xrefs"];
+    $flags = $rec["flags"];
 
     // make sure that the special name and code are set for the external
     // reviews - historical reviews won't have these elements set
@@ -446,7 +447,7 @@ function getGameInfo($db, $id, $curuser, $requestVersion, &$errMsg, &$errCode)
                  $editedbyid, $editedbyname, $moddate, $moddate2, $pagevsn,
                  $historyView,
                  $dlnotes, $extReviews, $extRevDisplayRank,
-                 $ratingHisto, $xrefs, $inrefs);
+                 $ratingHisto, $xrefs, $inrefs, $flags);
 }
 
 // ----------------------------------------------------------------------------
