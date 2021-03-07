@@ -116,7 +116,8 @@ function getNewItems($db, $limit)
                        ifnull(reviews.embargodate, '0000-00-00')),
                        '%M %e, %Y') as fmtdate,
            (games.coverart is not null) as hasart,
-           (users.picture is not null) as haspic
+           (users.picture is not null) as haspic,
+           games.flags
          from
            reviews
            join games
@@ -274,28 +275,55 @@ function queryNewNews(&$items, $db, $limit, $sourceType,
     }
 }
 
-function showNewItems($db, $first, $last, $items)
+function showNewItems($db, $first, $last, $items, $showFlagged = false, $allowHiddenBanner = true)
 {
     // if the caller didn't provide the new item lists, query them
     if (!$items)
         $items = getNewItems($db, $last);
 
     // show them
-    showNewItemList($db, $items, $first, $last);
+    showNewItemList($db, $items, $first, $last, $showFlagged, $allowHiddenBanner);
 
     // indicate whether there's more to come
     return count($items) > $last;
 }
 
-function showNewItemList($db, $items, $first, $last)
+function showNewItemList($db, $items, $first, $last, $showFlagged, $allowHiddenBanner)
 {
     // show the items
     $totcnt = count($items);
+
+    $showHiddenBanner = false;
+    if (!$showFlagged && $allowHiddenBanner) {
+        for ($idx = $first ; $idx <= $last && $idx < $totcnt ; $idx++)
+        {
+            list($pick, $rawDate, $row) = $items[$idx];
+            if ($pick == 'R' && ($row['flags'] & FLAG_SHOULD_HIDE)) {
+                $showHiddenBanner = true;
+                break;
+            }
+        }
+    }
+    
+    if ($showHiddenBanner) {
+        $currentUrl = $_SERVER['REQUEST_URI'];
+        if (strpos($currentUrl, '?') === false) {
+            $currentUrl .= "?";
+        }
+        $showAllLink = htmlspecialchars( $currentUrl, ENT_QUOTES, 'UTF-8' ) . "&showFlagged=1";
+        echo "<p><div class=restricted>Some results were hidden. "
+            . "<a href=\"$showAllLink\">See all results</a></div></p>";
+    }
+
     for ($idx = $first ; $idx <= $last && $idx < $totcnt ; $idx++)
     {
         // get this item
         list($pick, $rawDate, $row) = $items[$idx];
     
+        if (!$showFlagged && $pick == 'R' && ($row['flags'] & FLAG_SHOULD_HIDE)) {
+            continue;
+        }
+
         // display the item according to its type
 		if (ENABLE_IMAGES) {
 			echo "<table border=\"0\" cellpadding=\"0\" "
