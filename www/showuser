@@ -13,28 +13,23 @@ $sdb = storageDbConnect();
 // get the user ID from the request
 $uid = isset($_REQUEST['id']) ? $_REQUEST['id'] : null;
 
-// check for an unlock override - this allows the administrator to
-// view a new account's page even when it's hidden for review
-$unlock = false;
-$unlockNonce = get_req_data("unlock");
-if ($unlockNonce)
-{
-    // validate the unlock code - it's a nonce keyed to this user's TUID
-    if (validate_nonce($db, "review user profile $uid",
-                       $unlockNonce, $errmsg, false))
-	{
-        $unlock = true;
-		$_SESSION['admin_for_user_review'] = true;
-	}
-	else if ($_SESSION['admin_for_user_review'])
-	{
-		$unlock = true;
-	}
-}
-
 // check for persistent login
 include "login-check.php";
 $curuser = checkPersistentLogin();
+
+// check for an unlock override - this allows the administrator to
+// view a new account's page even when it's hidden for review
+$unlock = false;
+$admin = false;
+if ($curuser) {
+    $result = mysql_query(
+        "select `privileges` from users where id='$curuser'", $db);
+    $userprivs = mysql_result($result, 0, "privileges");
+    $admin = (strpos($userprivs, "A") !== false);
+}
+if (get_req_data("unlock")) {
+    $unlock = $admin;
+}
 
 // if no user was specified, default to the current user
 if ($uid == "")
@@ -357,6 +352,7 @@ if ($errMsg) {
     if ($pendingReview && $uid != $curuser && !$unlock)
     {
         echo "<p><i>This user's profile is pending review.</i>";
+        if ($admin) echo "<p><a href='showuser?id=$uid&unlock=1'>Admin: view user anyway</a></p>";
         pageFooter();
         exit();
     }
@@ -907,7 +903,7 @@ function pingMultiUserSession(sid, gameid, title, author, started)
 if ($unlock)
 {
     // admin details
-    $adminUrl = "userconfirm?nonce=$unlockNonce&userid=$uid&reviewProfile=";
+    $adminUrl = "adminops?user=$uid";
 	$hhemail = htmlspecialcharx($realEmail);
 	$uuemail = urlencode($realEmail);
     echo "<br><hr class=dots>"
@@ -976,12 +972,7 @@ if ($unlock)
     
 
     // add the admin links
-    echo "Administrative actions:<br>"
-        . "<div style=\"margin: 1ex 2em;\">"
-        . "<a href=\"{$adminUrl}A\">Approve</a> - "
-        . "<a href=\"{$adminUrl}T\">Trust</a> - "
-        . "<a href=\"{$adminUrl}B\">Ban</a>"
-        . "</div>";
+    echo "<a href=\"{$adminUrl}\">Administer user acccount</a><br>";
 
     // add the email search
 	// (remove this for now - the search engines seem to reject framed searches now)

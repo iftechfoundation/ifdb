@@ -445,27 +445,13 @@ function handlePost()
                 '$psw', '$salt', '$actcode',
                 '$acctStatus', '$profileStatus', now(), '',
                 '$qremarks', '$tosver')";
-    
-    // generate a nonce for the admin approve/reject operations
-    $task = "review user profile $userid";
-    $nonce = create_nonce($db, $task);
-    if (!$nonce)
-    {
-        $errFlagged = "An error occurred updating the database. This might "
-                      . "be a temporary database problem - please try again "
-                      . "later.";
-        return true;
-    }
 
     // generate the admin url base
-    $adminUrl = get_root_url() . "userconfirm"
-                . "?nonce=$nonce"
-                . "&userid=$userid"
-                . "&reviewProfile=";
+    $adminUrl = get_root_url() . "adminops?user=$userid";
 
     // add the user record
     $result = mysql_query($sql, $db);
-    $proPage = get_root_url() . "showuser?id=$userid";
+    $proPage = get_root_url() . "showuser?id=$userid&unlock=1";
 
     // add a login record to record the user's IP address
     mysql_query("insert into logins (uid, ip, `when`)
@@ -480,7 +466,7 @@ function handlePost()
            . "<br>Account status: "
            .   ($acctStatus == "R" ? "<b>Pending review</b>" :
                 "Pending activation")
-           . "<br>Profile page: <a href=\"$proPage&unlock=$nonce\">"
+           . "<br>Profile page: <a href=\"$proPage\">"
            .    "$proPage</a>"
 
            . "<p>Akisment judgment: " . ($akIsSpam ? "<b>Spam</b>" : "Okay")
@@ -493,15 +479,7 @@ function handlePost()
            . "<br><a href=\"http://www.google.com/search?q=%22"
            .    urlencode($dname) . "%22\">Search for screen name</a>"
 
-           . "<p><a href=\"{$adminUrl}A\">Approve the new account</a>"
-           . "<br><a href=\"{$adminUrl}T\">Set user to \"trusted\"</a>"
-           . "<br><a href=\"{$adminUrl}B\">Ban the user</a>"
-
-           . "<br><a href=\"http://localhost/mjrnet/sfs-report.php"
-           .     "?email=" . urlencode($email)
-           .     "&ip=" . $_SERVER['REMOTE_ADDR']
-           .     "&username=" . urlencode($dname)
-           .     "\">Report this user to StopForumSpam</a>"
+           . "<p><a href=\"{$adminUrl}\">Manage the new account</a>"
 
            . "<br>";
 
