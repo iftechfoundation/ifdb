@@ -126,7 +126,7 @@ else {
     $limit = 5;
     
     // get the latest games, reviews, and lists, and show a mix
-    if (showNewItems($db, 0, 5, false))
+    if (showNewItems($db, 0, 5, false, false, false))
         echo "<p><span class=details><a href=\"allnew\">"
             . "See the full list...</a></span>";
 }
