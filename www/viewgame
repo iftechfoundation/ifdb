@@ -816,7 +816,7 @@ echo helpWinLink("help-ifid", "IFID");
         $reviewView = true;
 
         // note whether we're including ratings that don't have reviews
-        $ratingsView = isset($_REQUEST['ratings']);
+        $ratingsView = isset($_REQUEST['ratings']) && !$should_hide;
 
         // get the page we're showing, defaulting to 1 if it's non-positive
         $reviewPage = get_req_data('pg');
