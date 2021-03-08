@@ -166,6 +166,7 @@ function pageFooter()
 <a class="nav" href="/">IFDB Home</a> |
 <a class="nav" href="http://www.tads.org/">TADS.org</a> |
 <a class="nav" href="/contact">Contact Us</a> |
+<a class="nav" href="/code-of-conduct">Code of Conduct</a> |
 <a class="nav" href="/tos">Terms of Service</a> |
 <a class="nav" href="/privacy">Privacy</a> |
 <a class="nav" href="/copyright">Copyrights &amp; Trademarks</a>
