@@ -1417,7 +1417,7 @@ echo "updatePlaylistCount($playlistCnt); updateWishlistCount($wishlistCnt);"
       <td>
         <?php
             if ($should_hide) {
-                ?><div class=restricted>Links to this page and its ratings have been restricted, due to violations of our Code of Conduct.</div><?php
+                ?><div class=restricted>Links to this page and its ratings have been restricted, due to violations of our <a href="/code-of-conduct">Code of Conduct</a>.</div><?php
             }
         ?>
          <p>
