@@ -33,6 +33,58 @@ if (!$adminPriv) {
     exit();
 }
 
+if (isset($_REQUEST['burygame'])) {
+    $tuid = isset($_REQUEST['id']) ? htmlspecialcharx($_REQUEST['id']) : false;
+    if ($tuid === false) {
+        pageHeader("Bury game");
+        ?>
+        <h1>Bury game</h1>
+        <form>TUID: <input type=hidden name=burygame value=''><input name=id><button>Submit</button></form>
+        <?php
+    } else {
+        $qid = mysql_real_escape_string($tuid, $db);
+        $result = mysql_query("select title, flags from games where id = '$qid'", $db);
+        if (!$result) {
+            error_log(mysql_error($db));
+            echo "There was an error finding this game.";
+        } else if (!mysql_num_rows($result)) {
+            pageHeader("Bury game");
+            echo "Couldn't find a game with ID " . $tuid;
+        } else {
+            list($title, $flags) = mysql_fetch_row($result);
+            $flagset = "";
+            if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+                $shouldHide = $_POST['hide'] === 'on';
+                $newflags = $flags;
+                if ($_POST['hide'] === 'on') {
+                    $newflags |= FLAG_SHOULD_HIDE;
+                } else {
+                    $newflags &= ~FLAG_SHOULD_HIDE;
+                }
+                $result = mysql_query(
+                    "update games
+                    set flags = '$newflags'
+                    where id = '$qid'", $db);
+                if (!$result) {
+                    error_log($mysql_error($db));
+                    echo "There was an error setting the flag.";
+                }
+                $flags = $newflags;
+                $flagset = $shouldHide ? "<p>Buried.</p>" : "<p>Unburied.</p>";
+            }
+            pageHeader("Bury game: " . htmlspecialcharx($title));
+            echo "<h1>Bury game: " . htmlspecialcharx($title) . "</h1>";
+            echo "<p><a href='/viewgame?id=$tuid'>$tuid</a></p>";
+            echo $flagset;
+            $shouldHide = $flags & FLAG_SHOULD_HIDE;
+            $checked = $shouldHide ? "checked" : "";
+            echo "<form method=post>Bury: <input type=checkbox name=hide $checked> <button>Submit</button></form>";
+        }
+    }
+    pageFooter();
+    exit();
+}
+
 if (isset($_REQUEST['showimage'])) {
     list($imgdata, $fmt) = fetch_image($_REQUEST['showimage'], true);
     if (is_null($imgdata))
@@ -2131,6 +2183,7 @@ function cleanutf8($str)
 <a href="adminops?cleanpix">Delete orphaned images</a><br>
 <a href="adminops?users&sortby=new">User list</a><br>
 <a href="adminops?finduser">User search</a><br>
+<a href="adminops?burygame">Bury game</a><br>
 <a href="adminops?userSelfComments">User self-comments</a><br>
 <a href="adminops?reaper=30">Persistent session reaper</a><br>
 <a href="adminops?fixsortkeys">

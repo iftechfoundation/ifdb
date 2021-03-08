@@ -126,7 +126,7 @@ else {
     $limit = 5;
     
     // get the latest games, reviews, and lists, and show a mix
-    if (showNewItems($db, 0, 5, false))
+    if (showNewItems($db, 0, 5, false, false, false))
         echo "<p><span class=details><a href=\"allnew\">"
             . "See the full list...</a></span>";
 }
@@ -523,6 +523,7 @@ if ($loggedIn) {
                        and uw.userid is null
                        and not (reviews.RFlags & " . RFLAG_OMIT_AVG . ")
                        and ifnull(now() >= reviews.embargodate, 1)
+                       and not (games.flags & " . FLAG_SHOULD_HIDE . ")
                      group by
                        games.id
                      order by
@@ -595,6 +596,7 @@ if ($loggedIn) {
                        and uw.userid is null
                        and r1.rating >= 4
                        and ifnull(now() >= r1.embargodate, 1)
+                       and not (games.flags & " . FLAG_SHOULD_HIDE . ")
                      group by
                        r1.gameid
                      order by
@@ -658,6 +660,7 @@ if (count($recs) == 0) {
            games.id = reviews.gameid
            and ifnull(now() >= reviews.embargodate, 1)
            and not (reviews.RFlags & " . RFLAG_OMIT_AVG . ")
+           and not (games.flags & " . FLAG_SHOULD_HIDE . ")
            $exclWhere
          group by
            games.id

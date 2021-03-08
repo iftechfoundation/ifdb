@@ -347,6 +347,11 @@ div.new-club {
     margin-bottom: 1.25em;
 }
 
+.restricted {
+    background: #F0F0F0;
+    padding: 1em;
+}
+
 /*
 The "title" division is used to display the title of a game in
 a review.

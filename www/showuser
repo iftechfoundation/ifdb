@@ -492,7 +492,8 @@ function pingMultiUserSession(sid, gameid, title, author, started)
            games.`desc` as `desc`,
            (coverart is not null) as hasart,
 		   grv.avgRating as rating,
-           grv.numRatingsInAvg as ratingCnt
+           grv.numRatingsInAvg as ratingCnt,
+           flags
          from
            games
            join gameprofilelinks
@@ -516,8 +517,14 @@ function pingMultiUserSession(sid, gameid, title, author, started)
             $art = $rec['hasart'];
             $descInfo = summarizeHtml($rec['desc'], 200);
             $desc = fixDesc($descInfo[0]);
-            $stars = showStars($rec['rating']);
-            $ratingCnt = $rec['ratingCnt'];
+            $shouldHide = $rec['flags'] & FLAG_SHOULD_HIDE;
+            if ($shouldHide) {
+                $stars = "";
+                $ratingCnt = 0;
+            } else {
+                $stars = showStars($rec['rating']);
+                $ratingCnt = $rec['ratingCnt'];
+            }
             $year = $rec['year'];
 
             if ($ratingCnt != 0)

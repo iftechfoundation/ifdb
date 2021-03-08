@@ -335,7 +335,7 @@ function showMemberReviewsHeader($rowcnt, $ratingsView, $showHisto)
     }
 
     // show the statistics
-    if ($ratingCntAvg > 0) {
+    if ($showHisto && $ratingCntAvg > 0) {
         echo "<span class=details>Average Rating: "
             . showStars($ratingAvg)
             . "</span><br>";
@@ -449,8 +449,10 @@ if (!$errMsg) {
          $editedbyid, $editedbyname, $moddate, $moddate2, $pagevsn,
          $historyView,
          $dlnotes, $extReviews, $extRevDisplayRank,
-         $ratingHisto, $xrefs, $inrefs) =
+         $ratingHisto, $xrefs, $inrefs, $flags) =
              getGameInfo($db, $id, $curuser, $reqVersion, $errMsg, $errCode);
+
+    $should_hide = ($flags & FLAG_SHOULD_HIDE);
 
     // encode some items for output
     $title = output_encode($title);
@@ -686,11 +688,13 @@ if (isset($_REQUEST['ifiction']))
         xmlField("url", get_root_url() . "viewgame?id=$id&coverart");
         echo "</coverart>";
     }
-    xmlField("averageRating", $ratingAvg);
-    list($stars) = roundStars($ratingAvg);
-    xmlField("starRating", $stars);
-    xmlField("ratingCountAvg", $ratingCntAvg);
-    xmlField("ratingCountTot", $ratingCntTot);
+    if (!$should_hide) {
+        xmlField("averageRating", $ratingAvg);
+        list($stars) = roundStars($ratingAvg);
+        xmlField("starRating", $stars);
+        xmlField("ratingCountAvg", $ratingCntAvg);
+        xmlField("ratingCountTot", $ratingCntTot);
+    }
     echo "</ifdb>";
     
     // main end tags
@@ -702,8 +706,12 @@ if (isset($_REQUEST['ifiction']))
 }
 
 // start the page
+$extraHead = "<script src=\"xmlreq.js\"></script>";
+if ($should_hide) {
+    $extraHead .= "<meta name=\"robots\" content=\"noindex\">";
+}
 pageHeader("$title - Details", false, false,
-           "<script src=\"xmlreq.js\"></script>", true);
+           $extraHead, true);
 initReviewVote();
 
 // check for a game specified by IFID and not found
@@ -808,7 +816,7 @@ echo helpWinLink("help-ifid", "IFID");
         $reviewView = true;
 
         // note whether we're including ratings that don't have reviews
-        $ratingsView = isset($_REQUEST['ratings']);
+        $ratingsView = isset($_REQUEST['ratings']) && !$should_hide;
 
         // get the page we're showing, defaulting to 1 if it's non-positive
         $reviewPage = get_req_data('pg');
@@ -1313,6 +1321,7 @@ if (!document.all)
       </tr>
    </table>
 
+<?php if (!$should_hide) { ?>
    <p>
    <table class=gamerightbar>
       <tr>
@@ -1376,7 +1385,7 @@ echo "updatePlaylistCount($playlistCnt); updateWishlistCount($wishlistCnt);"
 ?>
 //-->
 </script>
-
+<?php } ?>
    <p>
    <table class=gamerightbar>
       <tr>
@@ -1406,6 +1415,11 @@ echo "updatePlaylistCount($playlistCnt); updateWishlistCount($wishlistCnt);"
 <table cellspacing=0 cellpadding=0 border=0>
    <tr valign=top>
       <td>
+        <?php
+            if ($should_hide) {
+                ?><div class=restricted>Links to this page and its ratings have been restricted, due to violations of our <a href="/code-of-conduct">Code of Conduct</a>.</div><?php
+            }
+        ?>
          <p>
          <table cellspacing=0 cellpadding=0 border=0>
             <tr valign=top>
@@ -1627,6 +1641,7 @@ if (!isEmpty($seriesname)) {
                and games.id = r2.gameid
                and ifnull(now() >= r1.embargodate, 1)
                and ifnull(now() >= r2.embargodate, 1)
+               and not (games.flags & " . FLAG_SHOULD_HIDE . ")
                $andOtherUser
             group by r2.gameid
             order by rand()
@@ -1680,6 +1695,7 @@ if (!isEmpty($seriesname)) {
                $joinOtherUser
              where
                c.fromgame = '$qid'
+               and not (g.flags & " . FLAG_SHOULD_HIDE . ")
                $andOtherUser
              group by
                c.fromgame, c.togame
@@ -1729,7 +1745,7 @@ if ($ratingCntTot == 0) {
         . "$ratingCntTot member rating" . ($ratingCntTot != 1 ? "s" : "")
         . "</a><br>";
 } else {
-    if ($ratingAvg != 0) {
+    if (!$should_hide && $ratingAvg != 0) {
         echo showStars($ratingAvg)
             . " (based on <a href=\"viewgame?id=$id&ratings\" "
             . "title=\"View all ratings and reviews for this game\">"
@@ -2657,7 +2673,8 @@ dispTags();
             $showcnt = $rowcnt;
 
             // show the Member Reviews section header
-            showMemberReviewsHeader($rowcnt, false, true);
+            $showHisto = !$should_hide;
+            showMemberReviewsHeader($rowcnt, false, $showHisto);
 
             // if we have too many for this front page, limit it
             if ($rowcnt > $reviewsOnHomePage) {
@@ -3157,8 +3174,10 @@ dispTags();
         echo "<br><span class=notes><a href=\"viewgame?id=$id\">Return to the
             game's main page</a></span><br>";
 
+        $showHisto = !$should_hide;
+        
         // start the section
-        showMemberReviewsHeader($realtotcnt, $ratingsView, true);
+        showMemberReviewsHeader($realtotcnt, $ratingsView, $showHisto);
 
         // show the reviews/ratings only if we have any
         if ($totcnt != 0) {
