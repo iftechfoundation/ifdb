@@ -143,7 +143,7 @@ if ($errMsg) {
         // show where we are in the list
         $pageCtl = "<span class=details>"
                    . makePageControl(
-                       "alllists?user=$uid&game=&gameid&sortby=$sortReq",
+                       "alllists?user=$uid&game=$gameid&sortby=$sortReq",
                        $pg, $lastPage, $firstOnPage, $lastOnPage, $lstcnt,
                        true, true, $pgAll)
                    . "</span>";
