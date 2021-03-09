@@ -693,6 +693,21 @@ function showNewItemsRSS($db, $showcnt)
     $items = getNewItems($db, $showcnt - 1);
     $totcnt = count($items);
 
+    $lastBuildDate = false;
+    for ($idx = 0 ; $idx < $showcnt && $idx < $totcnt ; $idx++)
+    {
+        list($pick, $rawDate, $row) = $items[$idx];
+        if (!$lastBuildDate) {
+            $lastBuildDate = $rawDate;
+        } else if ($rawDate < $lastBuildDate) {
+            $fmtDate = date("D, j M Y H:i:s e", strtotime($lastBuildDate));
+            echo "<lastBuildDate>$fmtDate</lastBuildDate>\r\n";
+            break;
+        } else {
+            $lastBuildDate = $rawDate;
+        }
+    }
+
     // show the items
     for ($idx = 0 ; $idx < $showcnt && $idx < $totcnt ; $idx++)
     {
@@ -768,13 +783,32 @@ function showNewItemsRSS($db, $showcnt)
             $link = get_root_url() . "viewgame?id={$g['id']}";
             $pubDate = $g['d'];
         }
+        else if ($pick == 'S')
+        {
+            // format the items for RSS
+            // copied and pasted from /news
+            $title = rss_encode("IFDB site news: " . $row['title']);
+            $ldesc = str_replace("<p>", "</p><p>", $row['desc']);
+            $ldesc = str_replace("<br>", "<br/>", $ldesc);
+            $ldesc = rss_encode($ldesc);
+            $pub = date("D, j M Y H:i:s e", strtotime($row['d']));
+
+            $link = get_root_url() . "news?item=" . $row['sitenewsid'];
+            $link = rss_encode(htmlspecialcharx($link));
+
+            // send the item without escaping links
+            echo "<item>\r\n"
+                . "<title>$title</title>\r\n"
+                . "<description><p>$ldesc</p></description>\r\n"
+                . "<link>$link</link>\r\n"
+                . "<pubDate>$pub</pubDate>\r\n"
+                . "<guid>$link</guid>\r\n"
+                . "</item>\r\n";
+            continue;
+        }
 
         // format the item's publication date properly
         $pubDate = date("D, j M Y H:i:s e", strtotime($pubDate));
-
-        // if this is the latest item, send its date as the <lastBuildDate>
-        if ($idx == 0)
-            echo "<lastBuildDate>$pubDate</lastBuildDate>";
 
         // send the item
         echo "<item>\r\n"
