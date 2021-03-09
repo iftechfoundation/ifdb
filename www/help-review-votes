@@ -9,8 +9,6 @@ helpPageHeader("Review Voting Options");
 
 <p>These options let you "review the reviewer," to improve your own
 experience with IFDB and help guide other members to the best reviews.
-They make up IFDB's <a href="help-comm-mod">community moderation</a>
-system for game reviews.
 
 <p><b>Helpful (Yes/No):</b> Vote Yes if you think the review does a
 good job of sharing the reviewer's opinion of the game - it's
@@ -18,7 +16,10 @@ respectful, informative, well-written, insightful, or just generally
 helpful.  Voting Yes <b>doesn't</b> mean that you agree with
 everything the reviewer said, or even with her overall opinion of the
 game.  Reasons to vote No would include being off-topic,
-disrespectful, or overly spoilery.
+disrespectful, or overly spoilery.  As votes accumulate, the reviews 
+that members collectively deem to be the best (however they choose to 
+define "best") will move to the top of the list, and less helpful 
+reviews will move to the bottom.
 
 <p><b>Promote/demote this user:</b> These affect how you (and only
 you) see this user's reviews throughout IFDB.  If you Promote the
@@ -48,6 +49,11 @@ view it.  <b>This affects all users</b>, so use this command
 responsibly.  <b>Don't</b> flag a review for spoilers that are already
 properly hidden with "click to see" warnings - only flag it if the
 spoilers are out in the open.
+
+<p><b>Flag as inappropriate:</b> Notify the moderators that this 
+review may violate the 
+<a href="/code-of-conduct">Code of Conduct</a> or the 
+<a href="/tos">Terms of Service</a>.
 
 <script type="text/javascript">
 function openUserFilter()
