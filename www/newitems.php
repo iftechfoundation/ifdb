@@ -35,6 +35,23 @@ function getNewItems($db, $limit)
     // start with an empty list
     $items = array();
 
+    // query site news
+    $result = mysql_query(
+        "select
+           itemid as sitenewsid, title, ldesc as `desc`,
+           posted as d,
+           date_format(posted, '%M %e, %Y') as fmtdate
+         from
+           sitenews
+         order by
+           d desc
+         $limit", $db);
+    $sitenewscnt = mysql_num_rows($result);
+    for ($i = 0 ; $i < $sitenewscnt ; $i++) {
+        $row = mysql_fetch_array($result, MYSQL_ASSOC);
+        $items[] = array('S', $row['d'], $row);
+    }
+
     // query the recent games
     $result = mysql_query(
         "select id, title, author, `desc`, created as d,
@@ -403,6 +420,12 @@ function showNewItemList($db, $items, $first, $last, $showFlagged, $allowHiddenB
             echo "</div>";
 			if (ENABLE_IMAGES)
 				echo "</td>";
+        }
+        else if ($pick == 'S')
+        {
+            // it's site news
+            echo "<div class=\"site-news\">IFDB <a href='/news'>site news</a> <span class=notes><i>{$row['fmtdate']}</i></span>"
+                . "<br><div class=indented><b>{$row['title']}</b>: {$row['desc']}</div>";
         }
         else if ($pick == 'L')
         {
