@@ -182,8 +182,7 @@ if (!$confirm || $errMsg || $succMsg) {
     echo $expl;
 
     echo "<p><b>Please flag with care.</b> Flagging is an important part "
-        . "of IFDB's " . helpWinLink("help-comm-mod", "community moderation")
-        . " system; please use this feature "
+        . "of IFDB's community moderation system; please use this feature "
         . "responsibly to help improve IFDB for everyone.";
     
     if ($flagType == 'spoiler') {
