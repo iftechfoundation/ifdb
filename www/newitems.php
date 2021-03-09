@@ -40,7 +40,8 @@ function getNewItems($db, $limit)
         "select
            itemid as sitenewsid, title, ldesc as `desc`,
            posted as d,
-           date_format(posted, '%M %e, %Y') as fmtdate
+           date_format(posted, '%M %e, %Y') as fmtdate,
+           (now() < date_add(posted, interval 7 day)) as freshest
          from
            sitenews
          order by
@@ -49,6 +50,7 @@ function getNewItems($db, $limit)
     $sitenewscnt = mysql_num_rows($result);
     for ($i = 0 ; $i < $sitenewscnt ; $i++) {
         $row = mysql_fetch_array($result, MYSQL_ASSOC);
+        if ($i) $row['freshest'] = 0;
         $items[] = array('S', $row['d'], $row);
     }
 
@@ -219,6 +221,12 @@ function getNewItems($db, $limit)
 // sorting callback: sort from newest to oldest
 function sortNewItemsByDate($a, $b)
 {
+    // pin "freshest" items to the top of the list
+    $aFreshest = isset($a[2]['freshest']) ? $a[2]['freshest'] : 0;
+    $bFreshest = isset($b[2]['freshest']) ? $b[2]['freshest'] : 0;
+    $freshest = $bFreshest - $aFreshest;
+    if ($freshest) return $freshest;
+
     // Compare the date fields (element [1]) of the two rows.  These are
     // in the mysql raw date format, which collates like an ascii string,
     // so we can compare with strcmp.  Reverse the sense of the test so
