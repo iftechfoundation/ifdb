@@ -58,8 +58,9 @@ if ($flagType == 'spoilers') {
 } else if ($flagType == 'inappropriate') {
     $flag = 'I';
     $title = "Flag as Inappropriate";
-    $expl = "This will notify site administrators that this post is "
-            . "a violation of our <a href=\"/tos\">terms of service</a>. "
+    $expl = "This will notify site administrators that this post violates "
+            . "our <a href=\"/code-of-conduct\">code of conduct</a> "
+            . "or our <a href=\"/tos\">terms of service</a>. "
             . "Site administrators make an effort to investigate flags, "
             . "but we are under no obligation to respond to this report.";
 } else {
