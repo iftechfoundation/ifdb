@@ -58,8 +58,9 @@ if ($flagType == 'spoilers') {
 } else if ($flagType == 'inappropriate') {
     $flag = 'I';
     $title = "Flag as Inappropriate";
-    $expl = "This will notify site administrators that this post is "
-            . "a violation of our <a href=\"/tos\">terms of service</a>. "
+    $expl = "This will notify site administrators that this post violates "
+            . "our <a href=\"/code-of-conduct\">code of conduct</a> "
+            . "or our <a href=\"/tos\">terms of service</a>. "
             . "Site administrators make an effort to investigate flags, "
             . "but we are under no obligation to respond to this report.";
 } else {
@@ -182,8 +183,7 @@ if (!$confirm || $errMsg || $succMsg) {
     echo $expl;
 
     echo "<p><b>Please flag with care.</b> Flagging is an important part "
-        . "of IFDB's " . helpWinLink("help-comm-mod", "community moderation")
-        . " system; please use this feature "
+        . "of IFDB's community moderation system; please use this feature "
         . "responsibly to help improve IFDB for everyone.";
     
     if ($flagType == 'spoiler') {
