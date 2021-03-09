@@ -16,6 +16,20 @@ The IFDB web app is a LAMP app (Linux, Apache, MySQL, PHP). The development envi
 
 5. Optionally, you can query the database using phpMyAdmin at `http://localhost:8081` or run `docker exec -it ifdb_db_1 mysql -psecret ifdb` to use the MySQL command-line interface.
 
+# Database Changes
+
+Changes to the web site should update immediately but changes to the database require a few more steps.
+
+Make all database schema and content changes in `./sql/patch-schema.sql`. After saving your changes, type the following three commands while in this directory:
+
+```
+docker-compose down
+./prepare_dev_environment.sh
+docker-compose up
+```
+
+All of your database changes should now be available.
+
 ## Known Issues with the Development Environment
 
 * Sending email doesn't work. That's unfortunate, because if you want to create a user, you'll need to login with an activation code. After you try to create a new user, you should be able to see the email text in the Docker logs. Search for `EMAIL: NOT SENDING EMAIL IN LOCAL DEVELOPMENT MODE`.
