@@ -482,7 +482,7 @@ function revealPlonkedComment(ele)
         echo "<div class=reviewCommentReply>";
 
         // show the child list
-        showCommentList($commentPage, $itemAuthor, $cidx, $children);
+        showCommentList($db, $commentPage, $itemAuthor, $cidx, $children);
 
         // close the reply division
         echo "</div>";
