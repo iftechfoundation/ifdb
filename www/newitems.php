@@ -787,10 +787,8 @@ function showNewItemsRSS($db, $showcnt)
         {
             // format the items for RSS
             // copied and pasted from /news
-            $title = rss_encode("IFDB site news: " . $row['title']);
-            $ldesc = str_replace("<p>", "</p><p>", $row['desc']);
-            $ldesc = str_replace("<br>", "<br/>", $ldesc);
-            $ldesc = rss_encode($ldesc);
+            $title = rss_encode("IFDB site news: " . htmlspecialcharx($row['title']));
+            $ldesc = rss_encode(htmlspecialcharx($row['desc']));
             $pub = date("D, j M Y H:i:s e", strtotime($row['d']));
 
             $link = get_root_url() . "news?item=" . $row['sitenewsid'];
@@ -799,7 +797,7 @@ function showNewItemsRSS($db, $showcnt)
             // send the item without escaping links
             echo "<item>\r\n"
                 . "<title>$title</title>\r\n"
-                . "<description><p>$ldesc</p></description>\r\n"
+                . "<description>$ldesc</description>\r\n"
                 . "<link>$link</link>\r\n"
                 . "<pubDate>$pub</pubDate>\r\n"
                 . "<guid>$link</guid>\r\n"
