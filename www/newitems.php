@@ -433,7 +433,7 @@ function showNewItemList($db, $items, $first, $last, $showFlagged, $allowHiddenB
         {
             // it's site news
             echo "<div class=\"site-news\">IFDB <a href='/news'>site news</a> <span class=notes><i>{$row['fmtdate']}</i></span>"
-                . "<br><div class=indented><b>{$row['title']}</b>: {$row['desc']}</div>";
+                . "<br><div class=indented><b>{$row['title']}</b>: {$row['desc']}</div></div>";
         }
         else if ($pick == 'L')
         {
