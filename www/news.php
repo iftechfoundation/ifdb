@@ -128,7 +128,7 @@ function queryNewsRss(&$items, $db, $sourceType, $sourceID, $maxItems,
         // quote/reformat fields
         $nuname = htmlspecialcharx($nuname);
         $nunameOrig = htmlspecialcharx($nunameOrig);
-        $rssdate = date("D, j M Y H:i:s e", strtotime($ncre));
+        $rssdate = date("D, j M Y H:i:s ", strtotime($ncre)) . 'UT';
         list($rbody, $len, $trunc) = summarizeHtml($body, 210);
         $nbody = htmlspecialcharx(fixDesc($nbody));
 

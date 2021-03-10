@@ -263,7 +263,7 @@ if ($rss)
         // decode this history row
         list($hEd, $hEdName, $hMod, $hVsn, $deltas, $hModRaw) = $history[$i];
         $hEdName = htmlspecialcharx($hEdName);
-        $rssdate = date("D, j M Y H:i:s e", strtotime($hModRaw));
+        $rssdate = date("D, j M Y H:i:s ", strtotime($hModRaw)) . 'UT';
         $dn = deltaDesc($deltas);
         $nlink = htmlspecialcharx(
             get_root_url() . "viewcomp?id=$compID&vsn=$hVsn");

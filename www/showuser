@@ -184,7 +184,7 @@ if ($rss == 'gamenews')
 
         // decode this row
         list($gameid, $moddate, $gtitle) = $g;
-        $rssdate = date("D, j M Y H:i:s e", strtotime($moddate));
+        $rssdate = date("D, j M Y H:i:s ", strtotime($moddate)) . 'UT';
         $gtitle = htmlspecialcharx($gtitle);
 
         // First, add a news item for the creation of the profile link.

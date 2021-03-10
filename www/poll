@@ -977,7 +977,7 @@ engine to match.
             $quickQuote = rss_encode(htmlspecialcharx($quickQuote));
             $notes = rss_encode(htmlspecialcharx($notes));
             $voteDate = rss_encode(
-                date("D, j M Y H:i:s e", strtotime($voteDate)));
+                date("D, j M Y H:i:s ", strtotime($voteDate))) . 'UT';
 
             echo "<item>\r\n"
                 . "<title>$gameTitle"
