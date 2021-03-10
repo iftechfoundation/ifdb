@@ -35,6 +35,25 @@ function getNewItems($db, $limit)
     // start with an empty list
     $items = array();
 
+    // query site news
+    $result = mysql_query(
+        "select
+           itemid as sitenewsid, title, ldesc as `desc`,
+           posted as d,
+           date_format(posted, '%M %e, %Y') as fmtdate,
+           (now() < date_add(posted, interval 7 day)) as freshest
+         from
+           sitenews
+         order by
+           d desc
+         $limit", $db);
+    $sitenewscnt = mysql_num_rows($result);
+    for ($i = 0 ; $i < $sitenewscnt ; $i++) {
+        $row = mysql_fetch_array($result, MYSQL_ASSOC);
+        if ($i) $row['freshest'] = 0;
+        $items[] = array('S', $row['d'], $row);
+    }
+
     // query the recent games
     $result = mysql_query(
         "select id, title, author, `desc`, created as d,
@@ -202,6 +221,12 @@ function getNewItems($db, $limit)
 // sorting callback: sort from newest to oldest
 function sortNewItemsByDate($a, $b)
 {
+    // pin "freshest" items to the top of the list
+    $aFreshest = isset($a[2]['freshest']) ? $a[2]['freshest'] : 0;
+    $bFreshest = isset($b[2]['freshest']) ? $b[2]['freshest'] : 0;
+    $freshest = $bFreshest - $aFreshest;
+    if ($freshest) return $freshest;
+
     // Compare the date fields (element [1]) of the two rows.  These are
     // in the mysql raw date format, which collates like an ascii string,
     // so we can compare with strcmp.  Reverse the sense of the test so
@@ -403,6 +428,12 @@ function showNewItemList($db, $items, $first, $last, $showFlagged, $allowHiddenB
             echo "</div>";
 			if (ENABLE_IMAGES)
 				echo "</td>";
+        }
+        else if ($pick == 'S')
+        {
+            // it's site news
+            echo "<div class=\"site-news\">IFDB <a href='/news'>site news</a> <span class=notes><i>{$row['fmtdate']}</i></span>"
+                . "<br><div class=indented><b>{$row['title']}</b>: {$row['desc']}</div></div>";
         }
         else if ($pick == 'L')
         {
@@ -662,6 +693,21 @@ function showNewItemsRSS($db, $showcnt)
     $items = getNewItems($db, $showcnt - 1);
     $totcnt = count($items);
 
+    $lastBuildDate = false;
+    for ($idx = 0 ; $idx < $showcnt && $idx < $totcnt ; $idx++)
+    {
+        list($pick, $rawDate, $row) = $items[$idx];
+        if (!$lastBuildDate) {
+            $lastBuildDate = $rawDate;
+        } else if ($rawDate < $lastBuildDate) {
+            $fmtDate = date("D, j M Y H:i:s e", strtotime($lastBuildDate));
+            echo "<lastBuildDate>$fmtDate</lastBuildDate>\r\n";
+            break;
+        } else {
+            $lastBuildDate = $rawDate;
+        }
+    }
+
     // show the items
     for ($idx = 0 ; $idx < $showcnt && $idx < $totcnt ; $idx++)
     {
@@ -737,13 +783,32 @@ function showNewItemsRSS($db, $showcnt)
             $link = get_root_url() . "viewgame?id={$g['id']}";
             $pubDate = $g['d'];
         }
+        else if ($pick == 'S')
+        {
+            // format the items for RSS
+            // copied and pasted from /news
+            $title = rss_encode("IFDB site news: " . $row['title']);
+            $ldesc = str_replace("<p>", "</p><p>", $row['desc']);
+            $ldesc = str_replace("<br>", "<br/>", $ldesc);
+            $ldesc = rss_encode($ldesc);
+            $pub = date("D, j M Y H:i:s e", strtotime($row['d']));
+
+            $link = get_root_url() . "news?item=" . $row['sitenewsid'];
+            $link = rss_encode(htmlspecialcharx($link));
+
+            // send the item without escaping links
+            echo "<item>\r\n"
+                . "<title>$title</title>\r\n"
+                . "<description><p>$ldesc</p></description>\r\n"
+                . "<link>$link</link>\r\n"
+                . "<pubDate>$pub</pubDate>\r\n"
+                . "<guid>$link</guid>\r\n"
+                . "</item>\r\n";
+            continue;
+        }
 
         // format the item's publication date properly
         $pubDate = date("D, j M Y H:i:s e", strtotime($pubDate));
-
-        // if this is the latest item, send its date as the <lastBuildDate>
-        if ($idx == 0)
-            echo "<lastBuildDate>$pubDate</lastBuildDate>";
 
         // send the item
         echo "<item>\r\n"
