@@ -162,7 +162,7 @@ if ($rss) {
         $title = "$cuname comments on $runame's review of $gtitle";
         list($desc, $len, $trunc) = summarizeHtml($ctxt, 210);
         $desc = fixDesc($desc, FixDescSpoiler | FixDescRSS);
-        $pubDate = date("D, j M Y H:i:s e", strtotime($ccreDT));
+        $pubDate = date("D, j M Y H:i:s ", strtotime($ccreDT)) . 'UT';
         $link = get_root_url() . "viewgame?id=$gid&review=$rid";
 
         // if this is the latest item, send its date as the <lastBuildDate>

@@ -55,7 +55,7 @@ function getGameRssItems($db, $id, $feedType, $gameTitle, $links, $extFeed)
             $rid = $r['reviewid'];
             $rlink = htmlspecialcharx(
                 get_root_url() . "viewgame?id=$id&review=$rid");
-            $rdate = date("D, j M Y H:i:s e", strtotime($r['moddate']));
+            $rdate = date("D, j M Y H:i:s ", strtotime($r['moddate'])) . 'UT';
             list($rdesc, $len, $trunc) = summarizeHtml($r['review'], 210);
             $rdesc = htmlspecialcharx(fixDesc($rdesc));
             $rauth = htmlspecialcharx($r['username']);
@@ -118,7 +118,7 @@ function getGameRssItems($db, $id, $feedType, $gameTitle, $links, $extFeed)
 
             // quote/reformat the fields
             $nuser = htmlspecialcharx($nuser);
-            $rssdate = date("D, j M Y H:i:s e", strtotime($ndate));
+            $rssdate = date("D, j M Y H:i:s ", strtotime($ndate)) . 'UT';
             $nlink = htmlspecialcharx(
                 get_root_url() . "viewgame?id=$id&version=$nvsn");
             $deltas = unserialize($deltas);

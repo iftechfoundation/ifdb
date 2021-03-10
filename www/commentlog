@@ -291,7 +291,7 @@ for ($i = 0 ; $i < count($comments) ; $i++) {
         // set up the XML data
         list($desc, $len, $trunc) = summarizeHtml($ctxt, 210);
         $desc = fixDesc($desc, FixDescSpoiler | FixDescRSS);
-        $pubDate = date("D, j M Y H:i:s e", strtotime($ccreDT));
+        $pubDate = date("D, j M Y H:i:s ", strtotime($ccreDT)) . 'UT';
         $link = get_root_url() . $link;
 
         // if this is the latest item, send its date as the <lastBuildDate>
