@@ -37,10 +37,11 @@ function sendRSS($title, $link, $desc, $items, $limit)
 
     // send the channel header, followed by the body
     echo "<?xml version=\"1.0\"?>"
-        . "<rss version=\"2.0\">"
+        . "<rss version=\"2.0\" xmlns:atom=\"http://www.w3.org/2005/Atom\">"
         . "<channel>"
         . "<title>$title</title>"
         . "<link>$link</link>"
+        . " <atom:link href=\"$link&amp;rss=gamenews\" rel=\"self\" type=\"application/rss+xml\" />"
         . "<description>$desc</description>"
         . "<language>en-us</language>"
         . $body
