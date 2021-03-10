@@ -199,16 +199,16 @@ function browser_os_detect()
 }
 
 // --------------------------------------------------------------------------
-// are we on an iPod or iPhone?
+// are we on an iPhone or Android device?
 //
-function is_ipod_or_iphone()
+function is_mobile()
 {
     // get the browser ID string
     $b = $_SERVER['HTTP_USER_AGENT'];
 
     // check for the relevant strings
     return preg_match(
-        "/^Mozilla\/[0-9.]+ \((iPhone|iPod|iPhone Simulator);/",
+        "/^Mozilla\/[0-9.]+ \((iPhone;|iPod;|iPhone Simulator;|Linux; Android)/",
         $b, $match, 0, 0);
 }
 
@@ -419,7 +419,7 @@ function echoStylesheetLink()
 
     // failing that, check to see if we're on an iPod or iPhone - if so,
     // use the special default style sheet for those devices
-    if (!$ssid && is_ipod_or_iphone()) {
+    if (!$ssid && is_mobile()) {
         // the iPod/iPhone style sheet has ID=6 - it's really an ordinary
         // style sheet, created by Craig Smith (craig@ni.com), but it's
         // distinguished as the default style sheet for these devices
