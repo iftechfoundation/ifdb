@@ -700,7 +700,7 @@ function showNewItemsRSS($db, $showcnt)
         if (!$lastBuildDate) {
             $lastBuildDate = $rawDate;
         } else if ($rawDate < $lastBuildDate) {
-            $fmtDate = date("D, j M Y H:i:s e", strtotime($lastBuildDate));
+            $fmtDate = date("D, j M Y H:i:s ", strtotime($lastBuildDate)) . 'UT';
             echo "<lastBuildDate>$fmtDate</lastBuildDate>\r\n";
             break;
         } else {
@@ -789,7 +789,7 @@ function showNewItemsRSS($db, $showcnt)
             // copied and pasted from /news
             $title = rss_encode("IFDB site news: " . htmlspecialcharx($row['title']));
             $ldesc = rss_encode(htmlspecialcharx($row['desc']));
-            $pub = date("D, j M Y H:i:s e", strtotime($row['d']));
+            $pub = date("D, j M Y H:i:s ", strtotime($row['d'])) . 'UT';
 
             $link = get_root_url() . "news?item=" . $row['sitenewsid'];
             $link = rss_encode(htmlspecialcharx($link));
@@ -806,7 +806,7 @@ function showNewItemsRSS($db, $showcnt)
         }
 
         // format the item's publication date properly
-        $pubDate = date("D, j M Y H:i:s e", strtotime($pubDate));
+        $pubDate = date("D, j M Y H:i:s ", strtotime($pubDate)) . 'UT';
 
         // send the item
         echo "<item>\r\n"

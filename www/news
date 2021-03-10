@@ -51,7 +51,7 @@ if (isset($_REQUEST['rss'])) {
         // format the items for RSS
         $title = rss_encode(htmlspecialcharx($title));
         $ldesc = rss_encode(htmlspecialcharx($ldesc));
-        $pub = date("D, j M Y H:i:s e", strtotime($pub));
+        $pub = date("D, j M Y H:i:s ", strtotime($pub)) . 'UT';
 
         $link = get_root_url() . "news?item=$itemid";
         $link = rss_encode(htmlspecialcharx($link));
