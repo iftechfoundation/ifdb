@@ -146,10 +146,16 @@ function displayReviewVote(reviewID, vote)
 {
     if (vote != null)
     {
-        document.getElementById("voteStat_" + reviewID).innerHTML =
-            "<br>(You previously voted "
-            + (vote == 'Y' ? "Yes" : "No")
-            + ")";
+	    if (vote == "R")
+	    {
+	    	document.getElementById("voteStat_" + reviewID).innerHTML = "";
+	    } 
+	    else {	    
+        	document.getElementById("voteStat_" + reviewID).innerHTML =
+       	  	   "<br>(You previously voted "
+	   	  	   + (vote == 'Y' ? "Yes" : "No")
+	   	  	   + ")";
+        }
     }
 }
 var curPopupMenu = null;
@@ -451,7 +457,10 @@ function showReview($db, $gameid, $rec, $specialNames, $optionFlags = 0)
             . "return false;\">Yes</a> &nbsp; "
             . "<a href=\"needjs\""
             . "onclick=\"javascript:sendReviewVote('$reviewid', 'N');"
-            . "return false;\">No</a> &nbsp; ";
+            . "return false;\">No</a> &nbsp; "
+            . "<a href=\"needjs\""
+            . "onclick=\"javascript:sendReviewVote('$reviewid', 'R');"
+            . "return false;\">Remove vote</a> &nbsp; ";
 
 			if (check_admin_privileges($db, $curuser)) {
 				echo "<a href=\"review?id=$gameid&userid=$userid\">Edit</a>&nbsp; ";
