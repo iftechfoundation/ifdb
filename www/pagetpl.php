@@ -38,13 +38,8 @@ function basePageHeader($title, $focusCtl, $extraOnLoad, $extraHead,
        // add the checkbox javascript if requested
        if ($ckbox)
            ckboxSetup();
-
-       // add iPod/iPhone parameters if applicable
-       if (is_ipod_or_iphone())
-           echo "<meta name=\"viewport\" content=\"width=device-width\">"
-               . "<meta name=\"viewport\" content=\"initial-scale=1.0\">";
-
    ?>
+   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
 <body<?php
 
