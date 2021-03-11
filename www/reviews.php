@@ -149,15 +149,24 @@ function displayReviewVote(reviewID, vote)
 	    if (vote == "R")
 	    {
 	    	document.getElementById("voteStat_" + reviewID).innerHTML = "";
+	    	document.getElementById("voteRemove_" + reviewID).innerHTML = "";
 	    } 
 	    else {	    
         	document.getElementById("voteStat_" + reviewID).innerHTML =
        	  	   "<br>(You previously voted "
 	   	  	   + (vote == 'Y' ? "Yes" : "No")
 	   	  	   + ")";
+	    	document.getElementById("voteRemove_" + reviewID).innerHTML = "<a href=\"needjs\" "
+            + "onclick=\"javascript:sendReviewVote('" + reviewID + "', 'R');"
+            + "return false;\">Remove vote</a> &nbsp; "
         }
-    }
+    } 
+	else {
+	    document.getElementById("voteRemove_" + reviewID).innerHTML = "";				
+	}
 }
+
+
 var curPopupMenu = null;
 function popVoteMenu(reviewID)
 {
@@ -458,9 +467,9 @@ function showReview($db, $gameid, $rec, $specialNames, $optionFlags = 0)
             . "<a href=\"needjs\""
             . "onclick=\"javascript:sendReviewVote('$reviewid', 'N');"
             . "return false;\">No</a> &nbsp; "
-            . "<a href=\"needjs\""
+            . "<span id=\"voteRemove_$reviewid\"><a href=\"needjs\" "
             . "onclick=\"javascript:sendReviewVote('$reviewid', 'R');"
-            . "return false;\">Remove vote</a> &nbsp; ";
+            . "return false;\">Remove vote</a> &nbsp; </span>";
 
 			if (check_admin_privileges($db, $curuser)) {
 				echo "<a href=\"review?id=$gameid&userid=$userid\">Edit</a>&nbsp; ";
