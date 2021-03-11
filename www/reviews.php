@@ -68,10 +68,10 @@ function getReviewQuery($db, $where)
            moddate, date_format(moddate, '%M %e, %Y') as moddatefmt,
            users.id as userid, users.name as username,
            users.location as location, special,
-           sum(reviewvotes.vote = 'Y') as helpful,
-           sum(reviewvotes.vote = 'N') as unhelpful,
-           ifnull(sum(reviewvotes.vote = 'Y'), 0)
-              - ifnull(sum(reviewvotes.vote = 'N'), 0)
+           sum(reviewvotes.vote = 'Y' and ifnull(rvu.sandbox, 0) in $sandbox) as helpful,
+           sum(reviewvotes.vote = 'N' and ifnull(rvu.sandbox, 0) in $sandbox) as unhelpful,
+           ifnull(sum(reviewvotes.vote = 'Y' and ifnull(rvu.sandbox, 0) in $sandbox), 0)
+              - ifnull(sum(reviewvotes.vote = 'N' and ifnull(rvu.sandbox, 0) in $sandbox), 0)
               as netHelpful,
            group_concat(distinct reviewflags.flagtype separator '') as flags,
            reviews.gameid as gameid,
@@ -80,6 +80,7 @@ function getReviewQuery($db, $where)
            reviews
            left outer join reviewvotes on reviewvotes.reviewid = reviews.id
            left outer join users on users.id = reviews.userid
+           left outer join users rvu on rvu.id = reviewvotes.userid
            $joinUserFilter
            left outer join reviewflags on reviewflags.reviewid = reviews.id
          where
