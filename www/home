@@ -5,7 +5,6 @@ include_once "dbconnect.php";
 include_once "util.php";
 include "pagetpl.php";
 include_once "login-persist.php";
-include "plugin-detect.php";
 include "newitems.php";
 include_once "commentutil.php";
 
@@ -300,40 +299,6 @@ if (count($rows) > 0) {
                              alt='The "Show me how!" button'>
                         in any game's Download box for customized, step-by-step
                         instructions for running the game on your system.
-
-                        <div id="PlayNowBox"
-                          style="display: none; margin-top: 1em;">
-                           Better yet, turn IFDB into your IF Jukebox!
-                           Install the <img src="autoins.gif" align="absmiddle"
-                              alt='The "Play Now!" button'>
-                           button, which launches games directly from IFDB with
-                           just one click.
-                           <a href="plugins/index">Learn more...</a>
-                        </div>
-
-         <?php
-
-// Check to see if this browser is compatible with the Meta Installer.
-// If so, generate code to determine if the plug-in is already installed.
-// If it's not, generate an ad for it.
-        switch (detectPlugin()) {
-        case "WindowsIE":
-        case "WindowsMozilla":
-            // we're compatible - generate scripting code to check to
-            // see if the plug-in is actually installed, and if not
-            // make the ad box visible
-        ?>
-<script type="text/javascript">
-<!--
-if (!detectMetaInstaller())
-    document.getElementById("PlayNowBox").style.display = "";
-//-->
-</script>
-        <?php
-            break;
-        }
-        ?>
-
                      </td>
                   </tr>
                </table>

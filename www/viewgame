@@ -8,7 +8,6 @@ $curuser = checkPersistentLogin();
 
 include "pagetpl.php";
 include_once "util.php";
-include "plugin-detect.php";
 include "starctl.php";
 include_once "rss.php";
 include_once "game-rss.php";
@@ -90,85 +89,6 @@ function getFootnoteStar($num)
         return $f[$num-1];
     else
         return str_repeat("*", 2 + $num - count($f));
-}
-
-// ------------------------------------------------------------------------
-// Write the client-side code for the auto-install button.  We only want
-// to write the button at all for systems that support it.  If the system
-// supports it but the necessary plug-in or other client piece isn't
-// installed, we'll write instructions on installing it.
-//
-function writeAutoInstallButton()
-{
-    global $id, $mirrorIDPref, $title;
-
-    // check to see if we've detected a plugin-compatible browser
-    $pluginType = detectPlugin();
-    if ($pluginType == "WindowsIE") {
-        ?>
-<script type="text/javascript">
-if (detectMetaInstaller())
-{
-    document.write("<object id=\"ifdbactivex\" "
-                   + "classid=\"clsid:67BAF0C9-D511-4925-A796-3F7BB19726EE\" "
-                   + "width=0 height=0 style=\"display:none;\">"
-                   + "<param name=\"gameID\" "
-                   + "value=\"" + <?php echo "\"".jsSpecialChars($id)."\"" ?>
-                   + "\"><param name=\"mirrorID\" "
-                   + "value=\"" + <?php
-                      echo "\"". jsSpecialChars($mirrorIDPref) . "\"" ?>
-                   + "\"></object><script type=\"text/javascript\">\n"
-                   + "function PlayItNow() { "
-                   + "var d=document.getElementById(\"ifdbactivex\");\n"
-                   + "d.doDownload();}\n</scr" + "ipt>\n"
-                   + "<a href=\"needjs\" onclick=\"javascript:PlayItNow();"
-                   + "return false;\" title=\"Play Now!\">"
-                   + "<img border=0 src=\"blank.gif\" "
-                   + "alt=\"Play Now!\" class=\"auto-install-button\" "
-                   + "style=\"margin:0 0 0.3em 0;cursor:pointer;\"></a><br>");
-}
-</script>
-<?php
-    } else if ($pluginType == "WindowsMozilla") {
-        ?>
-<script type="text/javascript">
-<!--
-function PlayItNow(g,m)
-{
-    document.getElementById("PlayNowButton").doInstall(g,m);
-}
-if (detectMetaInstaller()) {
-    document.write(
-        "<a href=\"needjs\" onclick=\"javascript:PlayItNow('<?php
-        echo jsSpecialChars($id) ?>', '<?php
-        echo jsSpecialChars($mirrorIDPref)
-        ?>');return false;\" title=\"Play Now!\">"
-        + "<img border=0 src=\"blank.gif\" "
-        + "alt=\"Play Now!\" class=\"auto-install-button\" "
-        + "style=\"margin:0 0 0.3em 0;cursor:pointer;\"></a>"
-        + "<object type=\"" + mozPluginType + "\" "
-        + "style=\"width:0px; height: 0px; "
-        + "position: absolute; left: -1px; top: -1px;\" "
-        + "id=\"PlayNowButton\" border=0></object>"
-        + "<br>");
-}
-//-->
-</script>
-<?php
-    } else if ($pluginType == "MacintoshZoom.Dev"
-               || $pluginType == "MacintoshZoom") {
-
-        // use the title as the filename, with special characters removed
-        $fname = rawurlencode(str_replace(
-            array("/", ":"), array(" ", " "), $title));
-
-        // The following is a special URL that .htaccess maps to a regular
-        // dladviser URL like this:  dladviser?id=$id&os=MacOSX&xml
-        echo "<a href=\"dla-zoom/$id/$fname.signpost\">"
-            . "<img src=\"blank.gif\" class=\"auto-install-button\" "
-            . "style=\"margin:0 0 0.3em 0;cursor:pointer;\">"
-            . "</a><br>";
-    }
 }
 
 // ------------------------------------------------------------------------
@@ -1005,28 +925,12 @@ if ($foundGame)
             . "</a><br>";
 	}
 
-    // Add the Play Now (meta-installer) button, if we're using a browser
-    // that has a plug-in available; we omit this when the browser doesn't
-    // have a plug-in to avoid confusing the user.
-    writeAutoInstallButton();
-
-    // Write the Download Adviser ("Show Me How") button if applicable.
-    // For Zoom on Mac OS, omit this; Zoom is a tightly integrated browser
-    // and interpreter, so it seems safe to assume that users will
-    // essentially never need manual download instructions if they're
-    // using Zoom to access the game listing.
-    $plugin = detectPlugin();
-    if ($plugin == "MacintoshZoom"
-        || $plugin == "MacintoshZoom.Dev") {
-        // for these user agents, omit the DLA button entirely
-    } else {
-        // show the DLA button for every other browser
-        echo "<a href=\"dladviser?id=$id\" "
-            . "title=\"Get customized help for downloading and installing "
-            . "this game\">"
-            . "<img src=\"/blank.gif\" class=\"dla-button\" "
-            . "style=\"padding:0 0 0 0;margin:0 0 0 0\"></a><br>";
-    }
+    // Write the Download Adviser ("Show Me How") button
+    echo "<a href=\"dladviser?id=$id\" "
+        . "title=\"Get customized help for downloading and installing "
+        . "this game\">"
+        . "<img src=\"/blank.gif\" class=\"dla-button\" "
+        . "style=\"padding:0 0 0 0;margin:0 0 0 0\"></a><br>";
 
     echo "</td>";
 }

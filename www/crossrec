@@ -13,7 +13,6 @@ $curuser = checkPersistentLogin();
 
 include "pagetpl.php";
 include_once "util.php";
-include "plugin-detect.php";
 include "starctl.php";
 
 // get the parameters
