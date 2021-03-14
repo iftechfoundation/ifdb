@@ -2093,7 +2093,7 @@ if (count($inrefs) != 0 && !$historyView) {
 
                     // Baf's Guide
                     $showBody = true;
-                    $txt .= "<h3><a href=\"http://www.wurb.com/if";
+                    $txt .= "<h3><a href=\"https://web.archive.org/web/20110100000000/https://www.wurb.com/if";
                     if (!isEmpty($bafsid))
                         $txt .= "/game/$bafsid";
                     $txt .= "\" title=\"Go to Baf's Guide to the IF Archive\">"
