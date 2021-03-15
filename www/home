@@ -526,6 +526,8 @@ if ($loggedIn) {
                        and not (games.flags & " . FLAG_SHOULD_HIDE . ")
                      group by
                        games.id
+                     having
+                       count(reviews.rating) >= 5
                      order by
                        avgrating desc
                      limit
