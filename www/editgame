@@ -1571,8 +1571,8 @@ var linkVals = [
                           "Interactive Fiction Reviews Organization"
                               => "http://www.ifreviews.org/",
                           "SPAC" => "http://www.caad.es/spac/",
-                          "SPAG" => "http://www.sparkynet.com/spag/",
-                          "Xyzzy News" => "http://www.xyzzynews.com/");
+                          "SPAG" => "https://www.spagmag.org/",
+                          "Xyzzy News" => "https://web.archive.org/web/20100106035046/https://www.xyzzynews.com/");
                       echo makeComboBox(
                          "extrevSource", 80, "", array_keys($reviewSites),
                          "onComboSelectReviewSite");
