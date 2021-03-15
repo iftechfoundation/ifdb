@@ -1572,7 +1572,7 @@ var linkVals = [
                               => "http://www.ifreviews.org/",
                           "SPAC" => "http://www.caad.es/spac/",
                           "SPAG" => "https://www.spagmag.org/",
-                          "Xyzzy News" => "https://web.archive.org/web/20100106035046/https://www.xyzzynews.com/");
+                          "Xyzzy News" => "https://ifarchive.org/indexes/if-archive/magazines/XYZZYnews/");
                       echo makeComboBox(
                          "extrevSource", 80, "", array_keys($reviewSites),
                          "onComboSelectReviewSite");
