@@ -1476,14 +1476,12 @@ else if ($term || $browse)
                                     . ($rcnt == 1 ? "" : "s")
                                     . ", &sigma;=$rdev";
                     }
-                    else if ((isset($specialsUsed['#ratings:'])
-                            || preg_match("/^ratingcnt[ ,]/", $orderBy))
-                            && $rcnt != 0) {
+                    else if ($rcnt != 0) {
                         $ratingExtra = "$rcnt rating"
                                     . ($rcnt == 1 ? "" : "s");
                     }
                     if ($ratingExtra != "")
-                        $ratingExtra = "<span class=details>($ratingExtra)</span>";
+                        $ratingExtra = "<span class=details> ($ratingExtra)</span>";
                 }
 
                 // show the item
