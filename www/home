@@ -394,7 +394,7 @@ if ($loggedIn) {
             "create temporary table rating_space as
              select
                r2.userid as userid,
-               sum((r1.rating - r2.rating)*(r1.rating - r2.rating))
+               sum(power(cast(r1.rating as signed) - cast(r2.rating as signed), 2))
                  / count(r2.gameid) as dist,
                count(r2.gameid) as cnt
              from
