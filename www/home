@@ -642,6 +642,7 @@ if (count($recs) == 0) {
                      . " and wl.userid is null"
                      . " and uw.userid is null";
     }
+    $gameRatingsView = getGameRatingsView($db);
 
     // pick the top-rated games
     $result = mysql_query(
@@ -651,23 +652,17 @@ if (count($recs) == 0) {
            games.author as author,
            games.`desc` as `desc`,
            (games.coverart is not null) as hasart,
-           avg(reviews.rating) as avgrating
+           starsort
          from
            games
-           join reviews
+           join $gameRatingsView on games.id = gameid
            $exclJoin
          where
-           games.id = reviews.gameid
-           and ifnull(now() >= reviews.embargodate, 1)
-           and not (reviews.RFlags & " . RFLAG_OMIT_AVG . ")
+           starsort >= 4
            and not (games.flags & " . FLAG_SHOULD_HIDE . ")
            $exclWhere
-         group by
-           games.id
-         having
-           avgrating >= 4
          order by
-           avgrating desc
+           starsort desc
          limit
            0, $maxpicks", $db);
 
