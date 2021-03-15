@@ -3117,12 +3117,6 @@ dispTags();
                 . "\", null);\n";
         }
 
-        // generate the Baf's Guide link if we have one
-        if ($bafsid) {
-            echo "addLinkItem(\"Baf's Guide\", \"http://www.wurb.com/if\", "
-                . "\"/game/" . $bafsid . "\");\n";
-        }
-
         // generate a run-time check for an IF Wiki link, if we have an IFID
         if (count($ifids) > 0) {
             $jifid = str_replace("\"", "&#34;", $ifids[0]);
