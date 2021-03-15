@@ -1521,9 +1521,8 @@ var linkVals = [
          <td align=right><b>Off-Site Reviews:&nbsp;&nbsp;</b></td><td>
             <span class=details><i>Use this section to link
                to full-length reviews on other sites
-               (e.g., <a href="http://sparkynet.com/spag/">SPAG</a>,
-               <a href="http://www.xyzzynews.com/">Xyzzy News</a>,
-               <a href="http://www.brasslantern.org">Brass Lantern</a>...)
+               (e.g., <a href="https://spagmag.org">SPAG</a>,
+               <a href="https://www.rockpapershotgun.com">Rock Paper Shotgun</a>...)
             </i></span>
 
             <?php
