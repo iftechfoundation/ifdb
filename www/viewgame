@@ -1782,7 +1782,7 @@ if ($embargoCnt > 0)
     if (!isEmpty($desc) && ($detailView || $historyView)) {
 ?>
          <h3>About the Story</h3>
-         <?php echo $desc ?>
+         <p><?php echo $desc ?></p>
 <?php
     }
 
@@ -2331,7 +2331,7 @@ if (count($inrefs) != 0 && !$historyView) {
 
         ?>
 
-        <span id="tagPre" class=details></span>
+        <p><span id="tagPre" class=details></span>
         <span class=details style="margin-left: 1ex;">
            - <a href="showtags?limit=50">View the most common tags</a>
            (<?php echo helpWinLink("help-tags", "What's a tag?")
@@ -2339,7 +2339,7 @@ if (count($inrefs) != 0 && !$historyView) {
 //           onclick="javascript:helpWin('help-tags');return false;"
 //           >What's a tag?</a>
            ?>)
-        </span>
+        </span></p>
         <div class=indented>
            <table id="tagTable" border=0 class=tags>
            </table>
