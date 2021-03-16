@@ -692,12 +692,12 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse)
     case "game":
         if ($browse) {
             $sortList = array(
-                'lnew' => array('games.created desc,', 'Newest Listing First'),
-                'lold' => array('games.created,', 'Oldest Listing First'),
                 'ratu' => array('starsort desc,',
                                 'Highest Rated First'),
                 'ratd' => array('starsort,',
                                 'Lowest Rated First'),
+                'lnew' => array('games.created desc,', 'Newest Listing First'),
+                'lold' => array('games.created,', 'Oldest Listing First'),
                 'rcu' => array('ratingcnt desc, starsort desc,',
                                'Most Ratings First'),
                 'rcd' => array('ratingcnt, starsort desc,',
@@ -707,7 +707,7 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse)
                 'pnew' => array('published desc,', 'Latest Publication First'),
                 'pold' => array('sort_pub,', 'Earliest Publication First'),
                 'rand' => array('rand(),', 'Random Order'));
-            $defSortBy = 'lnew';
+            $defSortBy = 'ratu';
         } else {
             $sortList = array(
                 'ttl' => array('sort_title,', 'Sort by Title'),
