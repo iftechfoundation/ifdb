@@ -128,7 +128,7 @@ else {
     // get the latest games, reviews, and lists, and show a mix
     if (showNewItems($db, 0, 5, false, false, false))
         echo "<p><span class=details><a href=\"allnew\">"
-            . "See the full list...</a></span>";
+            . "See the full list...</a></span></p>";
 }
 
 //         </div>
@@ -140,8 +140,7 @@ else {
       ?>
 
       </div>
-      <table>
-         <tr valign=top>
+      <div class=twocol>
 
 
 <?php
@@ -244,8 +243,8 @@ $colClass = "firstcol";
 // 
 $rows = $pollRows;
 if (count($rows) > 0) {
-    echo "<td width=\"$colWidth\">"
-        . "<p><table class=\"halfcol\" cellpadding=0 cellspacing=0>"
+    echo "<div width=\"$colWidth\">"
+        . "<table class=\"halfcol\" cellpadding=0 cellspacing=0>"
         . "<tr><td class='$colClass'><div class=\"headline\">Vote!</div>"
         . "<div style=\"margin-bottom: 1ex;\">"
         . "Help other IFDB members find the games they're looking for "
@@ -279,7 +278,7 @@ if (count($rows) > 0) {
 
 //  ------------------------ end poll sampler box ---------------------------
 ?>
-            </td>
+            </div>
 
 
             <?php
@@ -287,7 +286,7 @@ if (count($rows) > 0) {
             ?>
 
 
-            <td width="<?php echo $colWidth ?>">
+            <div width="<?php echo $colWidth ?>">
                <table class="halfcol" cellpadding=0 cellspacing=0>
                   <tr>
                      <td class="<?php echo $colClass; $colClass=""; ?>">
@@ -337,14 +336,13 @@ if (!detectMetaInstaller())
                      </td>
                   </tr>
                </table>
-            </td>
+            </div>
 
             <?php
 // ----------------------- End New To IF? Box ---------------------------
             ?>
-
-         </tr>         
-      </table>
+         
+      </div>
       <?php
 // ------------------------- end bottom row extra stuff table ----------------
       ?>

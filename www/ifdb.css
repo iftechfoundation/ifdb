@@ -994,15 +994,21 @@ span.headlineRss {
     font-weight: normal;
 }
 
-table.halfcol tr td {
-    border-left: 1em solid transparent;
-}
-table.halfcol tr td.firstcol {
-    border-left: none;
-}
-table.halfcol div.headline {
-}
+@media (min-width: 100ch) {
+    .twocol {
+        display: flex;
+    }
+    .twocol > div {
+        flex-basis: 50%;
+    }
+    table.halfcol tr td {
+        border-left: 1em solid transparent;
+    }
+    table.halfcol tr td.firstcol {
+        border-left: none;
+    }
 
+}
 /*
 The "rightbar" table style is used for the little information
 boxes at the right of the home page and some other pages.
