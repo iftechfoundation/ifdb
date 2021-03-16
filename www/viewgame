@@ -2093,7 +2093,7 @@ if (count($inrefs) != 0 && !$historyView) {
 
                     // Baf's Guide
                     $showBody = true;
-                    $txt .= "<h3><a href=\"http://www.wurb.com/if";
+                    $txt .= "<h3><a href=\"https://web.archive.org/web/20110100000000/https://www.wurb.com/if";
                     if (!isEmpty($bafsid))
                         $txt .= "/game/$bafsid";
                     $txt .= "\" title=\"Go to Baf's Guide to the IF Archive\">"
@@ -3115,12 +3115,6 @@ dispTags();
                 . "</i> Web Site\", \""
                 . str_replace("\"", "%22", $website)
                 . "\", null);\n";
-        }
-
-        // generate the Baf's Guide link if we have one
-        if ($bafsid) {
-            echo "addLinkItem(\"Baf's Guide\", \"http://www.wurb.com/if\", "
-                . "\"/game/" . $bafsid . "\");\n";
         }
 
         // generate a run-time check for an IF Wiki link, if we have an IFID
