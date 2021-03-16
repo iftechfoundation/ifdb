@@ -133,10 +133,8 @@ function pageHeader($title, $focusCtl = false, $extraOnLoad = false,
                <a href="/search?browse">Browse</a> |
                <a href="/search">Search</a> Games
                <input type="text" size=30 name="searchbar" value="">
-               <input type=image src="/blank.gif"
-                   class="go-button" id="topbar-search-go-button"
-                   name="searchGo"
-                   style="margin:0 0 0 0;padding:0 0 0 0;">
+               <button class="go-button" id="topbar-search-go-button"
+                   style="margin:0 0 0 0;padding:0 0 0 0;"></button>
                &nbsp; | &nbsp; <?php
 if (isset($_SESSION['logged_in']) && $_SESSION['logged_in'])
     echo "<a href=\"/logout\">Log Out</a>";
