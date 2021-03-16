@@ -2101,3 +2101,337 @@ span.sfl-save-autodesc {
     padding-left: 1em;
 }
 
+@media (prefers-color-scheme: dark) {
+    body {
+        background: #000000;
+        color: #ffffff;
+        font: 11pt/15pt Verdana, Arial, Helvetica, Sans-Serif;
+    }
+    form {
+        font: 11pt/15pt Verdana, Arial, Helvetica, Sans-Serif;
+    }
+    table tr td {
+        font: 11pt/15pt Verdana, Arial, Helvetica, Sans-Serif;
+    }
+    div.topbar {
+        background: url("/dark-images/ifdb-topbar-midnight.jpg") #000030 no-repeat;
+    }
+    div.smalltopbar {
+        background: url("/dark-images/ifdb-smalltopbar-midnight.jpg") #000030 no-repeat;
+    }
+    div.topctl {
+        font: 11pt/15pt Verdana, Arial, Helvetica, Sans-Serif;
+        background: #202040;
+        border-bottom: thin dotted #303060;
+    }
+    table.downloads {
+        background: #101030;
+        border: thin dotted #303030;
+    }
+    table.downloads h3 {
+        font: 10pt/14pt Verdana, Arial, Helvetica, Sans-Serif;
+        font-weight: bold;
+        color: #d0d0ff;
+        margin: 0 0 0 0;
+    }
+    table.downloads td {
+        font: 10pt/14pt Verdana, Arial, Helvetica, Sans-Serif;
+    }
+    span.dlzipmain {
+        color: #d0d0ff;
+    }
+    span.zipnote {
+        color: #d0d0ff;
+    }
+    span.fmtnotes {
+        color: #A0A0A0;
+    }
+    div.footer {
+        font-size: 8pt;
+    }
+    div.headline {
+        font-size: 110%;
+        background: #202030;
+        border-top: thin solid #303050;
+        color: #d0d0ff;
+    }
+    div.headline2 {
+        font-size: 110%;
+        background: #202030;
+        border-top: thin solid #303050;
+        color: #d0d0ff;
+    }
+    table.botbar {
+        background: #101018;
+    }
+    table.botbar td {
+        border-color: #303050;
+    }
+    table.botbar table tr.botbarhdr td {
+        background: #383838;
+        color: #f0f0f0;
+    }
+    table.gamerightbar {
+        background: #101030;
+        border: thin dotted #303030;
+        font-size: 80%;
+    }
+    table.gamerightbar td {
+        font-size: 10pt;
+        color: #d8d8d8;
+    }
+    table.gamerightbar td h3 {
+        font: 10pt/14pt Verdana, Arial, Helvetica, Sans-Serif;
+        font-weight: bold;
+        color: #d0d0ff;
+        margin: 0 0 0.5em 0;
+    }
+    table.rightbar {
+        /*border: thin dotted #303050;*/
+        border-top: thin solid #303050;
+        background: #101030;
+    }
+    tr.boxhead h3 {
+        color: #f0f0f0;
+    }
+    div.cpanelBtnHover {
+        background: #303058;
+    }
+    div.cpanelHeading {
+        background: #303050;
+    }
+    table.botbar2 {
+        background: #101030;
+        border-top: thin solid #303050;
+    }
+    span.notes {
+        color: #c0c0c0;
+    }
+    span.notes a.silent {
+        color: #c0c0c0;
+    }
+    span.warning {
+        background: #E0E000;
+        color: #000000;
+    }
+    a {
+        color: #9090ff;
+    }
+    a.silent {
+        color: #ffffff;
+    }
+    a:visited {
+        color: #ff90ff;
+    }
+    a:hover {
+        color: #ff3030;
+    }
+    a.authorProfileLink {
+        background: #f0f0a0;
+        color: #000090;
+    }
+    a.authorProfileLink:visited {
+        color: #900090;
+    }
+    a.authorProfileLink:hover {
+        color: #ff0000;
+    }
+    div.reviewCommentReply {
+        border-left: 0.75ex solid #404040;
+    }
+    h1 {
+        color: #d0d0ff;
+        font-size: 125%;
+    }
+    h2 {
+        color: #d0d0ff;
+        font-size: 110%;
+    }
+    h3 {
+        color: #d0d0ff;
+        font-size: 100%;
+    }
+    form.stylepicform {
+        background: #101030;
+        color: #ffffff;
+    }
+    table.searchSummary {
+        background: #202040;
+        color: #ffffff;
+    }
+    div.tipbox {
+        background: #404040;
+        color: #ffffff;
+    }
+    div.inlinetip {
+        background: #404040;
+        color: #ffffff;
+    }
+    div.edit-popup-frame {
+    }
+    div.edit-popup-title {
+        background: #7098a8;
+        color: #000040;
+    }
+    div.edit-popup-win {
+        border: 3px solid #7098a8;
+    }
+    div.edit-popup-win table tr td {
+        background: #ffffff;
+        color: #000000;
+    }
+    div.edit-popup-win span.details {
+        font-size: 100%;
+        color: #505050;
+    }
+    div.popupMenu {
+        border: 1px solid #A0A0A0;
+        background: #404040;
+        padding: 0 0 0 0;
+        color: #ffffff;
+    }
+    div.popupMenu table {
+        font-size: 75%;
+    }
+    div.popupMenu a {
+        text-decoration: none;
+        padding: 0 6px 0 6px;
+        margin: 0 0 0 0;
+        width: 100%;
+    }
+    div.popupMenu a:hover {
+        background: #202020;
+    }
+    input.go-button {
+        background: url("/dark-images/go-button-midnight.gif") no-repeat center center;
+    }
+    img.star0 {
+        background: url('/dark-images/star0-midnight.gif') no-repeat center center;
+        vertical-align: middle;
+        width: 56px;
+        height: 14px;
+    }
+    img.star0h {
+        background: url('/dark-images/star0h-midnight.gif') no-repeat center center;
+        vertical-align: middle;
+        width: 56px;
+        height: 14px;
+    }
+    img.star1 {
+        background: url('/dark-images/star1-midnight.gif') no-repeat center center;
+        vertical-align: middle;
+        width: 56px;
+        height: 14px;
+    }
+    img.star1h {
+        background: url('/dark-images/star1h-midnight.gif') no-repeat center center;
+        vertical-align: middle;
+        width: 56px;
+        height: 14px;
+    }
+    img.star2 {
+        background: url('/dark-images/star2-midnight.gif') no-repeat center center;
+        vertical-align: middle;
+        width: 56px;
+        height: 14px;
+    }
+    img.star2h {
+        background: url('/dark-images/star2h-midnight.gif') no-repeat center center;
+        vertical-align: middle;
+        width: 56px;
+        height: 14px;
+    }
+    img.star3 {
+        background: url('/dark-images/star3-midnight.gif') no-repeat center center;
+        vertical-align: middle;
+        width: 56px;
+        height: 14px;
+    }
+    img.star3h {
+        background: url('/dark-images/star3h-midnight.gif') no-repeat center center;
+        vertical-align: middle;
+        width: 56px;
+        height: 14px;
+    }
+    img.star4 {
+        background: url('/dark-images/star4-midnight.gif') no-repeat center center;
+        vertical-align: middle;
+        width: 56px;
+        height: 14px;
+    }
+    img.star4h {
+        background: url('/dark-images/star4h-midnight.gif') no-repeat center center;
+        vertical-align: middle;
+        width: 56px;
+        height: 14px;
+    }
+    img.star5 {
+        background: url('/dark-images/star5-midnight.gif') no-repeat center center;
+        vertical-align: middle;
+        width: 56px;
+        height: 14px;
+    }
+    img.grid-move-up {
+        background: url('/dark-images/moveup-midnight.gif') no-repeat center center;
+    }
+    img.grid-move-down {
+        background: url('/dark-images/movedown-midnight.gif') no-repeat center center;
+    }
+    img.authored-list-icon {
+        background: url('/dark-images/authored-midnight.gif') no-repeat center center;
+    }
+    img.game-search-icon {
+        background: url('/dark-images/search-midnight.gif') no-repeat center center;
+    }
+    img.list-search-icon {
+        background: url('/dark-images/findlist-midnight.gif') no-repeat center center;
+    }
+    img.list-list-icon {
+        background: url('/dark-images/findlist-midnight.gif') no-repeat center center;
+    }
+    img.browse-members-icon {
+        background: url('/dark-images/browsemembers-midnight.gif') no-repeat center center;
+    }
+    img.random-list-icon {
+        background: url('/dark-images/random-midnight.gif') no-repeat center center;
+    }
+    img.member-search-icon {
+        background: url('/dark-images/findmember-midnight.gif') no-repeat center center;
+    }
+    img.my-profile-icon {
+        background: url('/dark-images/findmember-midnight.gif') no-repeat center center;
+    }
+    img.browse-games-icon {
+        background: url('/dark-images/browsegames-midnight.gif') no-repeat center center;
+    }
+    img.browse-lists-icon {
+        background: url('/dark-images/browselists-midnight.gif') no-repeat center center;
+    }
+    img.personal-page-icon {
+        background: url('/dark-images/personal-midnight.gif') no-repeat center center;
+    }
+    img.create-list-icon {
+        background: url('/dark-images/createlist-midnight.gif') no-repeat center center;
+    }
+    img.create-game-icon {
+        background: url('/dark-images/newgame-midnight.gif') no-repeat center center;
+    }
+    img.edit-game-icon {
+        background: url('/dark-images/editgame-midnight.gif') no-repeat center center;
+    }
+    img.create-review-icon {
+        background: url('/dark-images/review-midnight.gif') no-repeat center center;
+    }
+    img.review-list-icon {
+        background: url('/dark-images/editgame-midnight.gif') no-repeat center center;
+    }
+    img.list-message-icon {
+        background: url('/dark-images/messages-midnight.gif') no-repeat center center;
+    }
+    tr.oddRow {
+        background: #101010;
+    }
+    tr.evenRow {
+        background: #202020;
+    }
+}
