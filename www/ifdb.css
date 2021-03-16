@@ -1300,7 +1300,7 @@ with an image to match the actual size of the image you're using.  CSS
 doesn't have a way to do that indirectly by reading the size from the
 image file, unfortunately.
 */
-input.go-button {
+.go-button {
     background: url("/go-button.gif");
     width: 16px;
     height: 16px;
