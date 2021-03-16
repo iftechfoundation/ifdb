@@ -116,7 +116,7 @@ $fields = array(
           game within the series", null, TypeString),
     array("Genre", "genre", 50,
           "We recommend the <a target=\"_blank\"
-            href=\"http://www.wurb.com/if/genre\">Baf's
+            href=\"https://web.archive.org/web/20110514231056/https://www.wurb.com/if/genre\">Baf's
             Guide</a> list, but feel free to combine genres or
             go off-list as needed",
           array("Abuses", "Adaptation", "Children's",
