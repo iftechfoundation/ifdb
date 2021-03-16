@@ -979,15 +979,13 @@ div.headline {
     font-weight: normal;
     color: #000080;
     margin: 2em 0 1em 0;
-    position: relative;
+    display: flex;
+    justify-content: space-between;
 }
 div.headline1 {
     margin-top: 0;
 }
 span.headlineRss {
-    position: absolute;
-    right: 4px;
-    top: 2px;
     text-align: right;
     vertical-align: middle;
     font:  70% Verdana, Arial, Helvetica, Sans-Serif;
