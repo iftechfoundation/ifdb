@@ -979,30 +979,34 @@ div.headline {
     font-weight: normal;
     color: #000080;
     margin: 2em 0 1em 0;
-    position: relative;
+    display: flex;
+    justify-content: space-between;
 }
 div.headline1 {
     margin-top: 0;
 }
 span.headlineRss {
-    position: absolute;
-    right: 4px;
-    top: 2px;
     text-align: right;
     vertical-align: middle;
     font:  70% Verdana, Arial, Helvetica, Sans-Serif;
     font-weight: normal;
 }
 
-table.halfcol tr td {
-    border-left: 1em solid transparent;
-}
-table.halfcol tr td.firstcol {
-    border-left: none;
-}
-table.halfcol div.headline {
-}
+@media (min-width: 100ch) {
+    .twocol {
+        display: flex;
+    }
+    .twocol > div {
+        flex-basis: 50%;
+    }
+    table.halfcol tr td {
+        border-left: 1em solid transparent;
+    }
+    table.halfcol tr td.firstcol {
+        border-left: none;
+    }
 
+}
 /*
 The "rightbar" table style is used for the little information
 boxes at the right of the home page and some other pages.
