@@ -184,13 +184,13 @@ if ($rss == 'gamenews')
 
         // decode this row
         list($gameid, $moddate, $gtitle) = $g;
-        $rssdate = date("D, j M Y H:i:s ", strtotime($moddate)) . 'UT';
+        $rssdate = gmdate("D, j M Y H:i:s \G\M\T", strtotime($moddate));
         $gtitle = htmlspecialcharx($gtitle);
 
         // First, add a news item for the creation of the profile link.
         $item = "<item>"
                 . "<title>$gtitle linked to profile</title>"
-                . "<description><i>$gtitle</i> has been newly "
+                . "<description>$gtitle has been newly "
                 . "linked to this author's profile.</description>"
                 . "<pubDate>$rssdate</pubDate>"
                 . "<guid>" . get_root_url() . "viewgame?id=$gameid</guid>"
