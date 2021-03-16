@@ -33,6 +33,48 @@ if (!$adminPriv) {
     exit();
 }
 
+if (isset($_REQUEST['adminemail'])) {
+    pageHeader("Admin email");
+    $to = isset($_POST['to']) ? $_POST['to'] : false;
+    $actuallySend = isset($_POST['actuallySend']);
+    if ($to === false) {
+        ?>
+            <h1>Admin email</h1>
+            <p>Send an email as ifdbadmin</p>
+            <form method=post>
+                <p>To: <br><input type=email name=to required></p>
+                <p>Subject: <br><input name=subject></p>
+                <p>(Type the email in HTML. You have to use &lt;p&gt; tags to insert paragraph breaks.)</p>
+                <textarea name=body cols=75 rows=20></textarea>
+                <br><button>Preview</button>
+            </form>
+        <?php
+    } else if ($actuallySend) {
+        $hdrs = "From: IFDB <ifdbadmin@ifdb.org>\r\n"
+            . "Content-type: Text/HTML\r\n";
+
+        // send the message
+        if (send_mail($to, $_POST['subject'], $_POST['body'], $hdrs)) {
+            echo "Mail sent.";
+        } else {
+            echo "There was an error sending the email.";
+        }
+    } else {
+        echo "<h1>Preview mail</h1>";
+        echo "<p>To: " . htmlspecialcharx($to);
+        echo "<p>Subject: " . htmlspecialcharx($_POST['subject']);
+        echo "<hr>";
+        echo $_POST['body'];
+        echo "<hr><form method=post><input type=hidden name=actuallySend value=true>";
+        echo '<input type=hidden name=to value="'.htmlspecialcharx($to).'">';
+        echo '<input type=hidden name=subject value="'.htmlspecialcharx($_POST['subject']).'">';
+        echo '<input type=hidden name=body value="'.htmlspecialcharx($_POST['body']).'">';
+        echo "<button>Send Now</button></form>";
+    }
+    pageFooter();
+    exit();
+}
+
 if (isset($_REQUEST['burygame'])) {
     $tuid = isset($_REQUEST['id']) ? htmlspecialcharx($_REQUEST['id']) : false;
     if ($tuid === false) {
@@ -2183,6 +2225,7 @@ function cleanutf8($str)
 <a href="adminops?cleanpix">Delete orphaned images</a><br>
 <a href="adminops?users&sortby=new">User list</a><br>
 <a href="adminops?finduser">User search</a><br>
+<a href="adminops?adminemail">Send admin email</a><br>
 <a href="adminops?burygame">Bury game</a><br>
 <a href="adminops?userSelfComments">User self-comments</a><br>
 <a href="adminops?reaper=30">Persistent session reaper</a><br>
