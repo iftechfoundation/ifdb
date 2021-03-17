@@ -1594,7 +1594,7 @@ if (!isEmpty($seriesname)) {
         // Also exclude games that are already on the current user's
         // play list or wish list - they obviously already know about
         // these games, so there's no reason to recommend them.
-        if ($curuser) {
+        if ($curuser && !$cssOverride) {
             $joinOtherUser = "left outer join reviews as r3"
                              . "  on r3.gameid = r2.gameid"
                              . "  and r3.id != r2.id"
@@ -1653,7 +1653,7 @@ if (!isEmpty($seriesname)) {
             $crossrecs[] = mysql_fetch_array($result, MYSQL_ASSOC);
 
         // add current-user exclusions for explicit cross-recs, if logged in
-        if ($curuser) {
+        if ($curuser && !$cssOverride) {
             $joinOtherUser = "left outer join playedgames as pg"
                              . "  on pg.userid = '$curuser'"
                              . "  and pg.gameid = c.togame"
