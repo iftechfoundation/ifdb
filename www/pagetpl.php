@@ -122,24 +122,26 @@ function pageHeader($title, $focusCtl = false, $extraOnLoad = false,
          <tr valign=baseline>
             <td align=left>
                <?php echo $homearrow ?>
-               <a href="/">Home</a>
-               | <?php echo $profarrow ?><a href="/showuser">Profile</a>
-               - <?php echo $editprofarrow ?><a href="/editprofile">Edit</a>
-               | <?php echo $yourarrow ?><a href="/personal"><b>Your Page</b></a>
-               | <?php echo $commentarrow ?><a href="/commentlog?mode=inbox">
+               <a id="topbar-home" href="/">Home</a>
+               | <?php echo $profarrow ?><a id="topbar-profile" href="/showuser">Profile</a>
+               - <?php echo $editprofarrow ?><a id="topbar-edit" href="/editprofile">Edit</a>
+               | <?php echo $yourarrow ?><a id="topbar-personal" href="/personal"><b>Your Page</b></a>
+               | <?php echo $commentarrow ?><a id="topbar-inbox" href="/commentlog?mode=inbox">
                   Your Inbox</a>
             </td>
             <td align=right>
-               <a href="/search?browse">Browse</a> |
-               <a href="/search">Search</a> Games
-               <input type="text" size=30 name="searchbar" value="">
-               <button class="go-button" id="topbar-search-go-button"
-                   style="margin:0 0 0 0;padding:0 0 0 0;"></button>
+               <a id="topbar-browse" href="/search?browse">Browse</a> |
+               <a id="topbar-search" href="/search">Search</a> Games
+               <input id="topbar-searchbar" type="text" size=30 name="searchbar" value="">
+               <input type=image src="/blank.gif"
+                   class="go-button" id="topbar-search-go-button"
+                   name="searchGo"
+                   style="margin:0 0 0 0;padding:0 0 0 0;">
                &nbsp; | &nbsp; <?php
 if (isset($_SESSION['logged_in']) && $_SESSION['logged_in'])
-    echo "<a href=\"/logout\">Log Out</a>";
+    echo "<a id=\"topbar-logout\" href=\"/logout\">Log Out</a>";
 else
-    echo "<a href=\"/login\">Log In</a>";
+    echo "<a id=\"topbar-login\" href=\"/login\">Log In</a>";
                ?>
             </td>
          </tr>
@@ -156,13 +158,13 @@ function pageFooter()
 ?>
 
 <div class="footer">
-<a class="nav" href="/">IFDB Home</a> |
-<a class="nav" href="http://www.tads.org/">TADS.org</a> |
-<a class="nav" href="/contact">Contact Us</a> |
-<a class="nav" href="/code-of-conduct">Code of Conduct</a> |
-<a class="nav" href="/tos">Terms of Service</a> |
-<a class="nav" href="/privacy">Privacy</a> |
-<a class="nav" href="/copyright">Copyrights &amp; Trademarks</a>
+<a class="nav" id="footer-home" href="/">IFDB Home</a> |
+<a class="nav" id="footer-tads" href="http://www.tads.org/">TADS.org</a> |
+<a class="nav" id="footer-contact" href="/contact">Contact Us</a> |
+<a class="nav" id="footer-coc" href="/code-of-conduct">Code of Conduct</a> |
+<a class="nav" id="footer-tos" href="/tos">Terms of Service</a> |
+<a class="nav" id="footer-privacy" href="/privacy">Privacy</a> |
+<a class="nav" id="footer-copyright" href="/copyright">Copyrights &amp; Trademarks</a>
 </a></div>
 
 </div>
