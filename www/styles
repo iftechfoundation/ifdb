@@ -487,8 +487,6 @@ if ($setID) {
             echo "<p>";
 
             $zorkTUID = "0dbnusxunq7fw5ro";
-            if (isLocalDev())
-                $zorkTUID = "qzll6te6xriyv11x";
             $thumbSrc = "viewgame?id=$zorkTUID&cssOverride=$ssid";
 //                      "cssthumb?css=$ssid";
 
