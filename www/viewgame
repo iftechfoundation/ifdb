@@ -1812,11 +1812,11 @@ if ($embargoCnt > 0)
                        . " title=\"What does this mean?\">"
                        . "Forgiveness Rating</a>: $forgiveness<br>" ?>
                <?php if(!isEmpty($bafsid))
-                   echo "<a class=silent href=\"http://www.wurb.com/if\"
-                        title=\"Go to Baf's Guide to the IF Archive\">
-                        Baf's Guide</a> ID:
+                   echo "<a class=silent " . helpWinHRef("help-bafs")
+                       . " title=\"What's a Baf's Guide ID?\">
+                        Baf's Guide ID</a>:
                      <a class=silent
-                      href=\"http://www.wurb.com/if/game/$bafsid\"
+                      href=\"https://web.archive.org/web/20110100000000/http://www.wurb.com/if/game/$bafsid\"
                         title=\"Go to the Baf's Guide listing for this game\">
                         $bafsid</a>
                      <br>" ?>
