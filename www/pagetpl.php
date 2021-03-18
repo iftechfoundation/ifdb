@@ -82,8 +82,7 @@ function pageHeader($title, $focusCtl = false, $extraOnLoad = false,
     $curuser = ((isset($_SESSION['logged_in']) && $_SESSION['logged_in'])
                 ? $_SESSION['logged_in_as'] : false);
     $curarrow = "<img src=\"/blank.gif\" class=\"topbarcurarrow\">";
-    $homearrow = $profarrow = $editprofarrow = $yourarrow = $commentarrow =
-        false;
+    $homearrow = $profarrow = $editprofarrow = $yourarrow = $commentarrow = $tiparrow = false;
     switch ($pagescript) {
     case "home":
         $homearrow = $curarrow;
@@ -105,6 +104,10 @@ function pageHeader($title, $focusCtl = false, $extraOnLoad = false,
     case "commentlog":
         $commentarrow = $curarrow;
         break;
+
+    case "tips":
+        $tiparrow = $curarrow;
+        break;
     }
 
     // add the top bar for a regular window
@@ -121,13 +124,12 @@ function pageHeader($title, $focusCtl = false, $extraOnLoad = false,
       <table width="100%" border=0 cellspacing=0 cellpadding=0>
          <tr valign=baseline>
             <td align=left>
-               <?php echo $homearrow ?>
-               <a href="/">Home</a>
-               | <?php echo $profarrow ?><a href="/showuser">Profile</a>
-               - <?php echo $editprofarrow ?><a href="/editprofile">Edit</a>
-               | <?php echo $yourarrow ?><a href="/personal"><b>Your Page</b></a>
-               | <?php echo $commentarrow ?><a href="/commentlog?mode=inbox">
-                  Your Inbox</a>
+               <?php echo $homearrow ?> <a href="/">Home</a>
+               | <?php echo $profarrow ?> <a href="/showuser">Profile</a>
+               - <?php echo $editprofarrow ?> <a href="/editprofile">Edit</a>
+               | <?php echo $yourarrow ?> <a href="/personal"><b>Your Page</b></a>
+               | <?php echo $commentarrow ?> <a href="/commentlog?mode=inbox">Your Inbox</a>
+               | <?php echo $tiparrow ?> <a href="/tips">Tips & Info</a>
             </td>
             <td align=right>
                <a href="/search?browse">Browse</a> |

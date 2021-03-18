@@ -65,7 +65,6 @@ pageHeader("The Interactive Fiction Database - IF and Text Adventures");
          recommendation engine.  IFDB is a Wiki-style
          community project: members can add new game listings, write
          reviews, exchange game recommendations, and more.
-         <span class=details><a href="tips">Tips &amp; More Info</a></span>
 
          <?php
 // -------------------------- inbox ----------------------------
