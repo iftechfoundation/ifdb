@@ -7,7 +7,6 @@ $userid = checkPersistentLogin();
 
 include "pagetpl.php";
 include_once "util.php";
-include "plugin-detect.php";
 include_once "dbconnect.php";
 $db = dbConnect();
 
@@ -188,45 +187,6 @@ if ($osid == "") {
     if ($val)
         list ($osid, $osvsn) = $val;
 }
-
-// show the plug-in ad, if applicable
-function showPluginAd()
-{
-    switch (detectPlugin()) {
-    case "WindowsIE":
-    case "WindowsMozilla":
-        // we're on a plug-in compatible browser - display the ad
-        // invisibly, then add some javascript to check to see if the
-        // plug-in is actually installed, and make the ad visible if not
-        ?>
-
-        <div style="float:right; display:none;" id="PlayNowBox">
-           <table class=rightbar cellpadding=0 cellspacing=0>
-              <tr class="boxhead">
-                 <td><h3>Want easier downloads?</h3></td>
-              </tr>
-              <tr>
-                 <td>
-                    The <i>Play Now!</i> button can launch most games
-                    directly from IFDB with a click -
-                    no need to manually download games, find interpreters,
-                    or fuss with Zip files.
-                    <a href="plugins/index">Learn more...</a>
-                 </td>
-              </tr>
-           </table>
-        </div>
-        <script type="text/javascript">
-<!--
-if (!detectMetaInstaller())
-    document.getElementById("PlayNowBox").style.display = "";
-//-->
-        </script>
-        
-        <?php
-        break;
-    }
-}
     
 // If there's no OS setting (either from the profile defaults or the
 // request parameters), they need to choose one before we can proceed.
@@ -238,9 +198,6 @@ if ($osid == "") {
     } else {
 
         pageHeader("Download Adviser");
-        
-        // show the ad for the plugin, if applicable
-        showPluginAd();
 
         // they need to choose an operating system before we can proceed
         echo "<h1>Download Adviser for <i>$title</i></h1>
@@ -1661,18 +1618,6 @@ if ($xml) {
 
     // set up the XML response
     $xml = "";
-
-    // add the client version update information
-    $fp = fopen("plugins/versions.xml", "r");
-    if ($fp) {
-        while (!feof($fp)) {
-            $fl = fgets($fp);
-            $xml .= $fl;
-        }
-
-        // done with the file
-        fclose($fp);
-    }
         
     // add the IF Archive mirror setting, if available
     if ($mirrorUrlPref)
@@ -1708,7 +1653,6 @@ if ($xml) {
 pageHeader("$title - Download Adviser");
 
 // start the page
-showPluginAd();
 echo "<h1>Download Adviser for <i>$title</i></h1>"
    . "<p><a href=\"viewgame?id=$id\">Return to the game's home page</a>"
 

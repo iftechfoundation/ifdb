@@ -11,7 +11,6 @@ $db = dbConnect();
 
 include "pagetpl.php";
 include_once "util.php";
-include "plugin-detect.php";
 include "starctl.php";
 include_once "rss.php";
 include_once "game-rss.php";
