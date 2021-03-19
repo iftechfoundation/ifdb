@@ -127,6 +127,148 @@ if (isset($_REQUEST['burygame'])) {
     exit();
 }
 
+if (isset($_REQUEST['reviewvotes'])) {
+    if (isset($_REQUEST['reviewid'])) {
+        $reviewid = $_REQUEST['reviewid'];
+        $rid = htmlspecialcharx($_REQUEST['reviewid']);
+        $result = mysql_query("select
+            userid, name, sandbox, vote
+            from reviewvotes
+            join users on userid = users.id
+            where reviewid=" . mysql_real_escape_string($reviewid, $db) . "
+            order by vote, sandbox, name", $db);
+        pageHeader("Review votes");
+        if (!$result) {
+            error_log(mysql_error($db));
+            echo "There was an error finding this review.";
+            pageFooter();
+            exit();
+        }
+        if (mysql_num_rows($result) == 0) {
+            echo "This review has no votes: $rid";;
+            pageFooter();
+            exit();
+        }
+
+        ?>
+        <h1>Review votes</h1>
+        <p>Review votes for review ID <?php echo $rid ?><p>
+        <table><tr><th>User</th><th>Sandbox</th><th>Vote</th></tr>
+        <?php
+        for ($i = 0 ; $i < mysql_num_rows($result) ; $i++) {
+            list($userid, $name, $sandbox, $vote) = mysql_fetch_row($result);
+            echo "<td><a href=\"/adminops?reviewvotes&userid=".htmlspecialcharx($userid)."\">";
+            echo htmlspecialcharx($name);
+            echo "</a></td><td>".htmlspecialcharx($sandbox)."</td>";
+            echo "<td>".htmlspecialcharx($vote)."</td></tr>\n";
+        }
+        echo "</table>\n";
+    } else if (isset($_GET['userid'])) {
+        $userid = $_GET['userid'];
+        $result = mysql_query("select
+            name
+            from users
+            where id='" . mysql_real_escape_string($userid, $db) . "'", $db);
+        pageHeader("Review votes");
+        if (!$result) {
+            error_log(mysql_error($db));
+            echo "There was an error finding this user.";
+            pageFooter();
+            exit();
+        }
+        list($name) = mysql_fetch_row($result);
+
+        $votername = htmlspecialcharx($name);
+        echo "<h1>Review votes: $votername</h1>";
+
+        $result = mysql_query("select
+            reviews.userid as userid,
+            users.name as name,
+            count(reviewid) as count,
+            sum(case when vote = 'Y' then 1 else 0 end) as helpful
+            from reviewvotes
+            join reviews on reviewid = reviews.id
+            join users on reviews.userid = users.id
+            where reviewvotes.userid = '" . mysql_real_escape_string($userid, $db) ."'
+            group by reviews.userid, users.name
+            order by count(reviewid) desc
+        ", $db);
+
+        if (!$result) {
+            error_log(mysql_error($db));
+            echo "There was an error loading this user's review votes.";
+            pageFooter();
+            exit();
+        }
+
+        ?>
+        <h2>Summary</h2>
+        <table>
+        <tr><th>Review Author</th><th>Count</th><th>% Helpful?</th></tr>
+        <?php
+        for ($i = 0 ; $i < mysql_num_rows($result) ; $i++) {
+            list($reviewuserid, $name, $count, $helpful) = mysql_fetch_row($result);
+            echo "<tr><td><a href=\"showuser?id=$reviewuserid\">".htmlspecialcharx($name)."</td>";
+            echo "<td>$count</td><td>".(round($helpful / $count * 100))."%</td></tr>\n";
+        }
+        echo "</table><hr>";
+
+        $result = mysql_query("select
+            games.id as gameid,
+            games.title as title,
+            games.author as author,
+            reviews.userid as userid,
+            users.name as username,
+            reviews.id as reviewid,
+            reviews.rating as rating,
+            reviews.summary as summary,
+            reviews.review as review,
+            reviews.moddate as moddate,
+            date_format(reviews.moddate, '%M %e, %Y') as moddatefmt,
+            vote
+            from reviewvotes
+            join reviews on reviewid = reviews.id
+            join games on gameid = games.id
+            join users on reviews.userid = users.id
+            where reviewvotes.userid = '" . mysql_real_escape_string($userid, $db) ."'
+            order by gameid, vote, reviews.moddate
+        ", $db);
+        if (!$result) {
+            error_log(mysql_error($db));
+            echo "There was an error loading this user's review votes.";
+            pageFooter();
+            exit();
+        }
+
+        include "reviews.php";
+        $specialNames = initSpecialNames($db);
+        
+        for ($i = 0 ; $i < mysql_num_rows($result) ; $i++) {
+            $rec = mysql_fetch_array($result, MYSQL_ASSOC);
+
+            // display the game information
+            $gameid = $rec['gameid'];
+            $title = htmlspecialcharx($rec['title']);
+            $author = htmlspecialcharx($rec['author']);
+            echo "<div style=\"margin-bottom:0.5em;\">"
+                . "<a href=\"viewgame?id=$gameid\"><b><i>$title</i></b></a>"
+                . ", by $author</div>";
+
+            echo "<div class=indented>";
+
+            echo "<p>$votername voted this review <b>" . ($rec['vote'] === 'Y' ? "helpful" : "unhelpful")  . "</b></p>";
+            
+            showReview($db, $gameid, $rec, $specialNames, 3 /*SHOWREVIEW_NOVOTECTLS & SHOWREVIEW_NOCOMMENTCTLS*/);
+
+            // end the listing
+            echo "</div>";
+        }
+
+    }
+    pageFooter();
+    exit();
+}
+
 if (isset($_REQUEST['showimage'])) {
     list($imgdata, $fmt) = fetch_image($_REQUEST['showimage'], true);
     if (is_null($imgdata))
