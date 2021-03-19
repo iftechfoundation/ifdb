@@ -387,7 +387,7 @@ function showReview($db, $gameid, $rec, $specialNames, $optionFlags = 0)
     }
 
     // show the review body
-    echo "$review<br>";
+    echo "<p>$review</p>";
 
     // set up the comment controls, if applicable
     $commentCtls = $barCommentCtl = "";
