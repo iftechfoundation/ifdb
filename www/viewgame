@@ -2317,7 +2317,7 @@ if (count($inrefs) != 0 && !$historyView) {
             // show the reviews
             for ($i = 0 ; $i < mysql_num_rows($result) ; $i++)
                 showReview($db, $id, mysql_fetch_array($result, MYSQL_ASSOC),
-                           $specialNames);
+                           $specialNames, 0 | ($adminPriv ? SHOWREVIEW_ADMINREVIEWVOTESLINK : 0));
         }
 
         // end the indented division if we started one
@@ -2814,7 +2814,7 @@ dispTags();
                 $reviewRec = mysql_fetch_array($result, MYSQL_ASSOC);
 
                 // show it
-                showReview($db, $id, $reviewRec, $specialNames);
+                showReview($db, $id, $reviewRec, $specialNames, 0 | ($adminPriv ? SHOWREVIEW_ADMINREVIEWVOTESLINK : 0));
             }
 
             // show the link to the full list of reviews, if there are more
@@ -3204,7 +3204,7 @@ dispTags();
             // list the comments below and thus don't need the control
             // to show more of them.
             showReview($db, $id, $reviewRec, $specialNames,
-                       SHOWREVIEW_COMMENTCTLSADDONLY);
+                       SHOWREVIEW_COMMENTCTLSADDONLY | ($adminPriv ? SHOWREVIEW_ADMINREVIEWVOTESLINK : 0));
 
             // end the nested division that the header opens
             echo "</div>";
@@ -3324,7 +3324,7 @@ dispTags();
             // now show the reviews
             for ($i = $firstOnPage ; $i <= $lastOnPage ; $i++) {
                 showReview($db, $id, mysql_fetch_array($result, MYSQL_ASSOC),
-                           $specialNames);
+                           $specialNames, 0 | ($adminPriv ? SHOWREVIEW_ADMINREVIEWVOTESLINK : 0));
             }
 
             // show the page controls again at the bottom of the review list

@@ -231,6 +231,7 @@ function popupMenuKey(e, id)
 define("SHOWREVIEW_NOVOTECTLS", 0x0001);
 define("SHOWREVIEW_NOCOMMENTCTLS", 0x0002);
 define("SHOWREVIEW_COMMENTCTLSADDONLY", 0x0004);
+define("SHOWREVIEW_ADMINREVIEWVOTESLINK", 0x0008);
 
 function showReview($db, $gameid, $rec, $specialNames, $optionFlags = 0)
 {
@@ -240,6 +241,7 @@ function showReview($db, $gameid, $rec, $specialNames, $optionFlags = 0)
     $showVoteCtls = !($optionFlags & SHOWREVIEW_NOVOTECTLS);
     $showCommentCtls = !($optionFlags & SHOWREVIEW_NOCOMMENTCTLS);
     $addCommentOnly = ($optionFlags & SHOWREVIEW_COMMENTCTLSADDONLY);
+    $adminReviewVotes = ($optionFlags & SHOWREVIEW_ADMINREVIEWVOTESLINK);
     
     // get the current user, if we're logged in
     checkPersistentLogin();
@@ -319,7 +321,7 @@ function showReview($db, $gameid, $rec, $specialNames, $optionFlags = 0)
         if ($helpful != 0 || $unhelpful != 0) {
             echo "<p><div class=smallhead><span class=details>$helpful of
                   $totalvotes people found the following review helpful:
-                 </span></div>";
+                 ".($adminReviewVotes ? "<a href=\"/adminops?reviewvotes&reviewid=$reviewid\">Admin: Who?</a>" : "")."</span></div>";
         }
     }
 
