@@ -164,6 +164,18 @@ if ($errMsg) {
     // determine the sorting order
     $ord = isset($sortList[$sortReq]) ? $sortList[$sortReq] : $sortList['new'];
 
+    // Include only reviews from our sandbox or sandbox 0 (all users)
+    $sandbox = "(0)";
+    if ($curuser)
+    {
+        // get my sandbox
+        $mysandbox = 0;
+        $result = mysql_query("select sandbox from users where id='$curuser'", $db);
+        list($mysandbox) = mysql_fetch_row($result);
+        if ($mysandbox != 0)
+            $sandbox = "(0,$mysandbox)";
+    }
+
     // query the reviews
     $sql = "select
            games.id as gameid,
@@ -180,8 +192,8 @@ if ($errMsg) {
              null) as embargodate,
            reviews.special as special,
            date_format(reviews.moddate, '%M %e, %Y') as moddatefmt,
-           sum(reviewvotes.vote = 'Y') as helpful,
-           sum(reviewvotes.vote = 'N') as unhelpful,
+           sum(reviewvotes.vote = 'Y' and ifnull(rvu.sandbox, 0) in $sandbox) as helpful,
+           sum(reviewvotes.vote = 'N' and ifnull(rvu.sandbox, 0) in $sandbox) as unhelpful,
            ifnull(sum(reviewvotes.vote = 'Y'), 0)
               - ifnull(sum(reviewvotes.vote = 'N'), 0)
               as netHelpful,
@@ -192,6 +204,7 @@ if ($errMsg) {
            join reviews
            left outer join reviewvotes
               on reviewvotes.reviewid = reviews.id
+           left outer join users rvu on rvu.id = reviewvotes.userid
            $joinTag
            left outer join reviewflags on reviewflags.reviewid = reviews.id
          where
