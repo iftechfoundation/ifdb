@@ -20,6 +20,10 @@ include_once "util.php";
 include_once "dbconnect.php";
 $db = dbConnect();
 
+if ($curuser) {
+    $adminPriv = check_admin_privileges($db, $curuser);
+}
+
 include "reviews.php";
 $specialNames = initSpecialNames($db);
 
@@ -265,7 +269,7 @@ if ($errMsg) {
             // display it
             if ($rec['review'] != "") {
                 // we have a full review
-                showReview($db, $gameid, $rec, $specialNames);
+                showReview($db, $gameid, $rec, $specialNames, 0 | ($adminPriv ? SHOWREVIEW_ADMINREVIEWVOTESLINK : 0));
             } else {
                 // we have a rating only
                 echo "$username's Rating: " . showStars($rec['rating'])
