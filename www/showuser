@@ -536,8 +536,8 @@ function pingMultiUserSession(sid, gameid, title, author, started)
                 echo "<table class=grid border=0 cellspacing=0 cellpadding=0>"
                     . "<tr><td>"
                     . "<a href=\"viewgame?id=$gid\">"
-                    . "<img src=\"viewgame?id=$gid&coverart&thumbnail=80x80\" "
-                    . "border=0></a></td><td>"
+                    . coverArtThumbnail($gid, 80)
+                    . "</a></td><td>"
                     . "<a href=\"viewgame?id=$gid\"><b>$title</b></a>, "
                     . "by $author"
                     . ($year ?
