@@ -722,8 +722,7 @@ if(!isEmpty($desc)) {
 }
 if ($hasart) {
     $extraHead .= "<meta property=\"og:image\" content=\"";
-    $extraHead .= get_root_url() . "viewgame?coverart&amp;id=$id";
-    $extraHead .= "&amp;thumbnail=175x175\"/>";
+    $extraHead .= get_root_url() . "viewgame?coverart&amp;id=$id\"/>";
 }
 
 pageHeader("$title - Details", false, false,
