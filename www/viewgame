@@ -2813,8 +2813,8 @@ dispTags();
                         echo "<table class=grid cellspacing=0 cellpadding=0 "
                             . "border=0><tr><td>"
                             . "<a href=\"viewgame?id=$crid\">"
-                            . "<img border=0 src=\"viewgame?id=$crid&coverart"
-                            . "&thumbnail=80x80\"></a></td><td>";
+                            . coverArtThumbnail($crid, 80)
+                            . "</a></td><td>";
                     
                     echo "<a href=\"viewgame?id=$crid\"><b>$crtitle</b></a>"
                         . ", by $crauthor<br>";
