@@ -1336,9 +1336,7 @@ if ($hasart) {
                <td class=coverart>
 
                   <a href="<?php echo $arthref ?>&ldesc">
-                     <img src="<?php echo $arthref ?>&thumbnail=175x175"
-                        border=0
-                        title="Cover Art - click to view at full size">
+                     <?php echo coverArtThumbnail($id, 175, isset($_REQUEST['version']) ? "&version=".$_REQUEST['version'] : ""); ?>
                   </a>
                </td>
                <?php
