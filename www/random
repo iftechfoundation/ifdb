@@ -15,24 +15,23 @@ $db = dbConnect();
 $qtype = get_req_data('t');
 $refresh = "random" . ($qtype != "" ? "?t=$qtype" : "");
 $where = "1";
-$having = "";
 switch ($qtype) {
 case 'high-rated':
-    $having = "avgrating >= 4";
+    $where = "starsort >= 3.7";
     $qname = "Highly-rated Game%s";
     $expl = "This is a randomly selected list of 4- and 5-star games, "
             . "according to IFDB member ratings.";
     break;
 
 case 'low-rated':
-    $having = "avgrating <= 2";
+    $where = "starsort <= 1.8";
     $qname = "Low-rated Game%s";
     $expl = "This is a randomly selected list of 1- and 2-star games, "
             . "according to IFDB member ratings.";
     break;
 
 case 'controversy':
-    $having = "ratingdev >= 0.7";
+    $where = "stdDevRating >= 0.7 and numRatingsInAvg >= 10";
     $qname = "Controversial Game%s";
     $expl = "This is a randomly selected list of games that have a lot "
             . "of variation in the \"star\" ratings by IFDB members. "
@@ -55,7 +54,7 @@ case 'recent':
     break;
 
 case 'unrated':
-    $having = "ratingcnt = 0";
+    $where = "numRatingsInAvg = 0";
     $qname = "Unrated Game%s";
     $expl = "This is a randomly selected list of games that don't "
             . "have any ratings by IFDB members yet.";
@@ -91,19 +90,12 @@ $selectList = "games.id as id,
                date_format(published, '%Y') as pubyear,
                published,
                (coverart is not null) as hasart,
-               avg(reviews.rating) as avgrating,
-               count(reviews.rating) as ratingcnt,
-               stddev(reviews.rating) as ratingdev,
+               avgRating as avgrating,
+               numRatingsInAvg as ratingcnt,
+               stdDevRating as ratingdev,
                sort_title, sort_author";
 $tableList = "games
-              left outer join reviews on reviews.gameid = games.id
-                and not (reviews.RFlags & " . RFLAG_OMIT_AVG . ")
-                and ifnull(now() >= reviews.embargodate, 1)";
-$groupBy = "group by games.id";
-
-// if there's a HAVING clause, plug in the HAVING phase
-if ($having != "")
-    $having = "having $having";
+              left outer join gameRatingsSandbox0 on games.id = gameid";
 
 // build the SELECT statement
 $sql = "select
@@ -113,8 +105,6 @@ $sql = "select
         where
           $where
           and not (games.flags & " . FLAG_SHOULD_HIDE . ")
-        $groupBy
-        $having
         order by rand()
         limit 0, 10";
 

@@ -210,14 +210,10 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse)
             "series:" => array("seriesname", 0),
             "tag:" => array("tags", 3),
             "bafs:" => array("bafsid", 2),
-            "rating:" => array("avg(reviews.rating)", 1, true),
-            "#reviews:" => array(
-                "count(if(reviews.special is null,reviews.review,null))",
-                1, true),
-            "ratingdev:" => array(
-                "stddev(if(reviews.RFlags & " . RFLAG_OMIT_AVG
-                .          ", null, reviews.rating))", 1, true),
-            "#ratings:" => array("count(reviews.rating)", 1, true),
+            "rating:" => array("avgRating", 1, true),
+            "#reviews:" => array("numMemberReviews",1, true),
+            "ratingdev:" => array("stdDevRating", 1, true),
+            "#ratings:" => array("numRatingsTotal", 1, true),
             "forgiveness:" => array("forgiveness", 0),
             "language:" => array("language", 99),
             "author:" => array("author", 99),
@@ -244,26 +240,18 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse)
                          as published,
                        date_format(games.published, '%Y') as pubyear,
                        (games.coverart is not null) as hasart,
-                       avg(if(reviews.RFlags & " . RFLAG_OMIT_AVG . ",
-                              null, reviews.rating))
-                         as avgrating,
-                       count(if(reviews.RFlags & " . RFLAG_OMIT_AVG . ",
-                                null, reviews.rating))
-                         as ratingcnt,
-                       stddev(if(reviews.RFlags & " . RFLAG_OMIT_AVG . ",
-                                 null, reviews.rating))
-                         as ratingdev,
+                       avgRating as avgrating,
+                       numRatingsInAvg as ratingcnt,
+                       stdDevRating as ratingdev,
+                       numRatingsTotal,
+                       numMemberReviews,
                        games.sort_title as sort_title,
                        games.sort_author as sort_author,
                        ifnull(games.published, '9999-12-31') as sort_pub,
                        games.flags";
         $tableList = "games
-                      left outer join reviews
-                        on reviews.gameid = games.id
-                          and ifnull(now() >= reviews.embargodate, 1)
-                      left outer join users as reviewuser
-                        on reviewuser.id = reviews.userid";
-        $baseWhere = "and ifnull(reviewuser.sandbox, 0) in $sandbox ";
+                      left join ".getGameRatingsView($db)." on games.id = gameid";
+        $baseWhere = "";
         $groupBy = "group by games.id";
         $baseOrderBy = "sort_title";
         $matchCols = "title, author, `desc`, tags";
@@ -704,35 +692,35 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse)
     case "game":
         if ($browse) {
             $sortList = array(
+                'ratu' => array('starsort desc,',
+                                'Highest Rated First'),
+                'ratd' => array('starsort,',
+                                'Lowest Rated First'),
                 'lnew' => array('games.created desc,', 'Newest Listing First'),
                 'lold' => array('games.created,', 'Oldest Listing First'),
-                'ratu' => array('avgrating desc, ratingcnt desc,',
-                                'Highest Rated First'),
-                'ratd' => array('avgrating, ratingcnt desc,',
-                                'Lowest Rated First'),
-                'rcu' => array('ratingcnt desc, avgrating desc,',
+                'rcu' => array('ratingcnt desc, starsort desc,',
                                'Most Ratings First'),
-                'rcd' => array('ratingcnt, avgrating desc,',
+                'rcd' => array('ratingcnt, starsort desc,',
                                'Fewest Ratings First'),
                 'ttl' => array('sort_title,', 'Sort by Title'),
                 'auth' => array('sort_author,', 'Sort by Author'),
                 'pnew' => array('published desc,', 'Latest Publication First'),
                 'pold' => array('sort_pub,', 'Earliest Publication First'),
                 'rand' => array('rand(),', 'Random Order'));
-            $defSortBy = 'lnew';
+            $defSortBy = 'ratu';
         } else {
             $sortList = array(
                 'ttl' => array('sort_title,', 'Sort by Title'),
                 'auth' => array('sort_author,', 'Sort by Author'),
-                'ratu' => array('avgrating desc,', 'Highest Rated First'),
-                'ratd' => array('avgrating,', 'Lowest Rated First'),
-                'rcu' => array('ratingcnt desc, avgrating desc,',
+                'ratu' => array('starsort desc,', 'Highest Rated First'),
+                'ratd' => array('starsort,', 'Lowest Rated First'),
+                'rcu' => array('ratingcnt desc, starsort desc,',
                                'Most Ratings First'),
-                'rcd' => array('ratingcnt, avgrating desc,',
+                'rcd' => array('ratingcnt, starsort desc,',
                                'Fewest Ratings First'),
-                'rsdu' => array('ratingdev desc, avgrating desc, ratingcnt desc,',
+                'rsdu' => array('ratingdev desc, starsort desc,',
                                 'Rating Deviation - High to Low'),
-                'rsdd' => array('ratingdev, avgrating desc, ratingcnt desc,',
+                'rsdd' => array('ratingdev, starsort desc,',
                                 'Rating Deviation - Low to High'),
                 'new' => array('published desc,', 'Latest Publication First'),
                 'old' => array('sort_pub,', 'Earliest Publication First'),
