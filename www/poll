@@ -1237,8 +1237,8 @@ function expandVote(id)
                 if ($coverArt) {
                     echo "<td style=\"padding-right: 2em; width: 80px;\">"
                         . "<a href=\"viewgame?id=$gameID\">"
-                        . "<img border=0 src=\"viewgame?id=$gameID&coverart"
-                        . "&thumbnail=80x80\"></a></td>";
+                        . coverArtThumbnail($gameID, 80)
+                        . "</a></td>";
                 } else {
                     echo "<td style=\"width: 1px;\"></td>";
                 }
