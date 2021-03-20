@@ -131,9 +131,7 @@ $fields = array(
           . helpWinLink("help-forgiveness", "Details"),
           array("Merciful", "Polite", "Tough", "Nasty", "Cruel"), TypeString),
     array("<i>Baf's Guide</i> ID", "bafsid", 10,
-          "Integer identifier assigned by
-           <a target=\"_blank\" href=\"http://www.wurb.com/if\">Baf's
-             Guide</a> - "
+          "Integer identifier assigned by Baf's Guide - "
           . helpWinLink("help-bafs", "How do I find this?"),
           null, TypeInt),
     array("Web site", "website", 60,
