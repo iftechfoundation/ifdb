@@ -630,6 +630,21 @@ $extraHead = "<script src=\"xmlreq.js\"></script>";
 if ($should_hide) {
     $extraHead .= "<meta name=\"robots\" content=\"noindex\">";
 }
+
+// add Open Graph elements
+$extraHead .= "<meta property=\"og:site_name\" content=\"IFDB\" />";
+$extraHead .= "<meta property=\"og:type\" content=\"website\" />";
+$extraHead .= "<meta property=\"og:url\" content=\"";
+$extraHead .= get_root_url() . "viewgame?id=$id\" />";
+$extraHead .= "<meta property=\"og:title\" content=\"$title\" />";
+if(!isEmpty($desc)) {
+    $extraHead .= "<meta property=\"og:description\" content=\"$desc\" />";
+}
+if ($hasart) {
+    $extraHead .= "<meta property=\"og:image\" content=\"";
+    $extraHead .= get_root_url() . "viewgame?coverart&amp;id=$id\"/>";
+}
+
 pageHeader("$title - Details", false, false,
            $extraHead, true);
 initReviewVote();
