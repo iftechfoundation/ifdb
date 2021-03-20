@@ -371,8 +371,8 @@ function showNewItemList($db, $items, $first, $last, $showFlagged, $allowHiddenB
 						. "&thumbnail=50x50\"></a>";
 				} else if ($r["hasart"]) {
 					echo "<a href=\"viewgame?id={$r['gameid']}\">"
-						. "<img border=0 src=\"viewgame?id={$r['gameid']}"
-						. "&coverart&thumbnail=50x50\"></a>";
+						. coverArtThumbnail($r['gameid'], 50)
+						. "</a>";
 				} else {
 					echo "<a href=\"viewgame?id={$r['gameid']}"
 						. "&review={$r['reviewid']}\">"
@@ -482,8 +482,8 @@ function showNewItemList($db, $items, $first, $last, $showFlagged, $allowHiddenB
 			if (ENABLE_IMAGES) {
 				if ($g["hasart"]) {
 					echo "<a href=\"viewgame?id={$g['id']}\">"
-						. "<img border=0 src=\"viewgame?id={$g['id']}"
-						. "&coverart&thumbnail=50x50\"></a>";
+						. coverArtThumbnail($g['id'], 50)
+						. "</a>";
 				} else {
 					echo "<a href=\"viewgame?id={$g['id']}\">"
 						. "<img border=0 src=\"game50.gif\"></a>";
@@ -601,8 +601,8 @@ function showNewItemList($db, $items, $first, $last, $showFlagged, $allowHiddenB
 						. "&thumbnail=50x50\"></a>";
 				} else if ($n["hasart"]) {
 					echo "<a href=\"viewgame?id={$n['gameid']}\">"
-						. "<img border=0 src=\"viewgame?id=$gid"
-						. "&coverart&thumbnail=50x50\"></a>";
+						. coverArtThumbnail($gid, 50)
+						. "</a>";
 				} else {
 					echo "<a href=\"newslog?newsid=$nid\">"
 						. "<img border=0 src=\"news50.gif\"></a>";
