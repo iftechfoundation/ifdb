@@ -11,10 +11,11 @@ pageHeader("IFDB Copyright and Trademark Information");
 <p>This site is copyrighted &copy; 2007, <?php echo date('Y') ?> by
 Michael J. Roberts.
 
-<p>Reviews from <a href="http://www.wurb.com/if">Baf's Guide to the IF
-Archive</a> are copyrighted by their respective authors and are used
-here by permission.  Baf's Guide is copyrighted &copy; 2007 by
-Carl Muckenhoupt.
+<p>Reviews from 
+<a href="https://web.archive.org/web/20110109233058/http://www.wurb.com/if">
+Baf's Guide to the IF Archive</a> are copyrighted by their respective 
+authors and are used here by permission.  Baf's Guide is copyrighted 
+&copy; 2007 by Carl Muckenhoupt.
 
 <p>"Cover art" images (in game listings) and personal profile images
 have individual copyrights that are indicated in the full-size view of
