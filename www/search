@@ -1023,7 +1023,10 @@ else if ($searchType == "member") {
           at least one story file or application download link. 
 
        <p><b>bafs:<i>id</i></b> searches for the game with the given
-          <a href="http://www.wurb.com/if">Baf's Guide</a> ID.
+	      Baf's Guide ID.
+       (<?php
+          echo helpWinLink("help-bafs", "What's a Baf's Guide ID?");
+       ?>)
 
        <p><b>ifid:<i>xxx</i></b> searches for a game with the given IFID.
        (<?php
