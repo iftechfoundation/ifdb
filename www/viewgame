@@ -635,9 +635,9 @@ $extraHead .= "<meta property=\"og:site_name\" content=\"IFDB\" />";
 $extraHead .= "<meta property=\"og:type\" content=\"website\" />";
 $extraHead .= "<meta property=\"og:url\" content=\"";
 $extraHead .= get_root_url() . "viewgame?id=$id\" />";
-$extraHead .= "<meta property=\"og:title\" content=\"$title\" />";
+$extraHead .= "<meta property=\"og:title\" content=\"".strip_tags($title)."\" />";
 if(!isEmpty($desc)) {
-    $extraHead .= "<meta property=\"og:description\" content=\"$desc\" />";
+    $extraHead .= "<meta property=\"og:description\" content=\"".strip_tags($desc)."\" />";
 }
 if ($hasart) {
     $extraHead .= "<meta property=\"og:image\" content=\"";
