@@ -59,7 +59,6 @@ $specialNames = initSpecialNames($db);
 
 // cache the IF Archive mirror mapping, if any
 include "mirrorUrl.php";
-cacheUrlPref($db, $curuser);
 
 // presume the default layout preferences: show off-site reviews with
 // summaries in the Editorial Review section

@@ -18,7 +18,6 @@ $xml = isset($_REQUEST['xml']);
 // cache the IF Archive mirror mapping, if any
 global $mirrorIDPref, $mirrorUrlPref;
 include "mirrorUrl.php";
-cacheUrlPref($db, $userid, get_req_data('mirror'));
 
 
 $urlToOsMap = array(
