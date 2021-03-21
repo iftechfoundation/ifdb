@@ -710,10 +710,10 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse)
             $defSortBy = 'ratu';
         } else {
             $sortList = array(
-                'ttl' => array('sort_title,', 'Sort by Title'),
-                'auth' => array('sort_author,', 'Sort by Author'),
                 'ratu' => array('starsort desc,', 'Highest Rated First'),
                 'ratd' => array('starsort,', 'Lowest Rated First'),
+                'ttl' => array('sort_title,', 'Sort by Title'),
+                'auth' => array('sort_author,', 'Sort by Author'),
                 'rcu' => array('ratingcnt desc, starsort desc,',
                                'Most Ratings First'),
                 'rcd' => array('ratingcnt, starsort desc,',
@@ -725,7 +725,11 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse)
                 'new' => array('published desc,', 'Latest Publication First'),
                 'old' => array('sort_pub,', 'Earliest Publication First'),
                 'rand' => array('rand(),', 'Random Order'));
-            $defSortBy = 'rel';
+            if (count($words)) {
+                $defSortBy = 'rel';
+            } else {
+                $defSortBy = 'ratu';
+            }
         }
 
         if (!isset($specialsUsed['ratingdev:'])) {
@@ -803,8 +807,8 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse)
         break;
     }
 
-    // add Relevance as a sort option if doing a search
-    if (!$browse) {
+    // add Relevance as a sort option if doing a search with terms
+    if (!$browse && count($words)) {
         $sortList = array('rel' => array('', 'Sort by Relevance'))
                     + $sortList;
         $defSortBy = 'rel';
