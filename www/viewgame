@@ -2017,7 +2017,7 @@ if (count($inrefs) != 0 && !$historyView) {
                         $txt .= "/game/$bafsid";
                     $txt .= "\" title=\"Go to Baf's Guide to the IF Archive\">"
                             . "$specialname</a></h3>"
-                            . "<div class=smallhead>$stars<br></div>";
+                            . "<div class=smallhead>$stars<br></div><p>";
 
                 } else if ($code == 'external') {
 
