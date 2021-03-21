@@ -936,39 +936,7 @@ will customize its advice based on the settings below.</span>
 <p>
 
    <table class=dataform border=0 cellspacing=0 cellpadding=0>
-      <tr valign=top>
-         <td align=right>
-            <nobr>IF Archive Mirror:</nobr>
-         </td>
-         <td>
-            <select name="mirror" id="mirror">
-            <?php
-$result = mysql_query(
-    "select mirrorid, name from mirrors
-     order by if(mirrorid=1, 1, if(mirrorid=100, 2, 3)), name", $db);
-for ($i = 0 ; $i < mysql_num_rows($result) ; $i++) {
-    list($mid, $mname) = mysql_fetch_row($result);
-    $mname = htmlspecialcharx($mname);
-    $sel = ($mid == $mirror ? " selected" : "");
-    echo "<option value=\"$mid\"$sel>$mname</option>";
-}
-            ?>
-            </select>
-            <br>
-            <span class=microhelp>
-               The site you select here will be used for the IF Archive file
-               links you see on IFDB.
-               (<?php
-                  echo helpWinLink("help-mirrors", "What's a mirror?");
-//<a href="needjs"
-//               onclick="javascript:helpWin('help-mirrors');return false;"
-//               >What's a mirror?</a>
-               ?>)
-            </span>
-         </td>
-      </tr>
 
-      <tr valign=top><td>&nbsp;<br></td></tr>
       <tr valign=top>
          <td align=right>
             <nobr>Primary Operating System:</nobr>
