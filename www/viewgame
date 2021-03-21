@@ -1351,9 +1351,7 @@ if ($hasart) {
                <td class=coverart>
 
                   <a href="<?php echo $arthref ?>&ldesc">
-                     <img src="<?php echo $arthref ?>&thumbnail=175x175"
-                        border=0
-                        title="Cover Art - click to view at full size">
+                     <?php echo coverArtThumbnail($id, 175, isset($_REQUEST['version']) ? "&version=".$_REQUEST['version'] : ""); ?>
                   </a>
                </td>
                <?php
@@ -2830,8 +2828,8 @@ dispTags();
                         echo "<table class=grid cellspacing=0 cellpadding=0 "
                             . "border=0><tr><td>"
                             . "<a href=\"viewgame?id=$crid\">"
-                            . "<img border=0 src=\"viewgame?id=$crid&coverart"
-                            . "&thumbnail=80x80\"></a></td><td>";
+                            . coverArtThumbnail($crid, 80)
+                            . "</a></td><td>";
                     
                     echo "<a href=\"viewgame?id=$crid\"><b>$crtitle</b></a>"
                         . ", by $crauthor<br>";

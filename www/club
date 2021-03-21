@@ -266,8 +266,8 @@ if (isset($_REQUEST['wishlist']) || isset($_REQUEST['playlist']))
         if ($gpic) {
             echo "<p><table border=0 cellpadding=0 cellspacing=0 class=grid>"
                 . "<tr><td><a href=\"viewgame?id=$gid\">"
-                . "<img src=\"viewgame?id=$gid&coverart&thumbnail=80x80\" "
-                . "border=0></a></td>"
+                . coverArtThumbnail($gid, 80)
+                . "</a></td>"
                 . "<td><a href=\"viewgame?id=$gid\"><i>$gtitle</i></a>, "
                 . "by $gauthor<br>"
                 . "<span class=details>On $gcnt member $nm"

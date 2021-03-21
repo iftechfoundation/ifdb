@@ -15,10 +15,9 @@ function listMatchItem($match, $num, $showArt, $rating, $hrefTarget)
         $hrefTarget = " target=\"$hrefTarget\"";
 
     if ($art)
-        echo "<a href=\"viewgame?id=$id\"$hrefTarget>"
-            . "<img src=\"viewgame?id=$id&coverart&thumbnail=100x100\""
-            . " align=left border=0 "
-            . " style=\"margin-right: 1em; margin-bottom: 0.5em;\"></a>";
+        echo "<a href=\"viewgame?id=$id\"$hrefTarget style=\"margin-right: 1em;margin-bottom: 0.5em; float: left;\">"
+            . coverArtThumbnail($id, 100)
+            . "</a>";
 
     if ($num)
         echo "<b>$num</b>. ";

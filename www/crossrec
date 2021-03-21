@@ -555,8 +555,8 @@ if ($editMode) {
         if ($toArt) {
             echo "<td style=\"padding-right: 2em; width: 80px;\">"
                 . "<a href=\"viewgame?id=$toID\">"
-                . "<img border=0 src=\"viewgame?id=$toID&coverart"
-                . "&thumbnail=80x80\">(toArt=$toArt)</a></td>";
+                . coverArtThumbnail($toID, 80)
+                . "(toArt=$toArt)</a></td>";
         } else {
             echo "<td style=\"width: 1px;\"></td>";
         }
