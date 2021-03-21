@@ -21,6 +21,7 @@ function basePageHeader($title, $focusCtl, $extraOnLoad, $extraHead,
     iconv_set_encoding("output_encoding", "ISO-8859-1");
     iconv_set_encoding("input_encoding", "ISO-8859-1");
 ?>
+<!DOCTYPE html>
 <html>
 <head>
    <link rel="icon" type="image/png" href="/ifdb-favicon.png">
