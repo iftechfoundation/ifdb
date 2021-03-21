@@ -37,18 +37,11 @@ pageHeader("The Interactive Fiction Database - IF and Text Adventures");
 <table style="width:100%;" cellpadding=0 cellspacing=0 border=0>
    <tr>
 
-
-      <?php
-// -------------------------- left column ---------------------------------
-// (currently empty)
-      ?>
       <td valign=top>
 
 
       </td>
-      <?php
-// ------------------------- center column --------------------------------
-      ?>
+
       <td valign=top>
 
          <div class="headline headline1">
@@ -77,7 +70,6 @@ pageHeader("The Interactive Fiction Database - IF and Text Adventures");
          </div>
 
             <?php
-//         <div class=indented>
 
 if (!$db) {
     echo "<span class=errmsg>An error occurred connecting to the
@@ -93,23 +85,11 @@ else {
             . "See the full list...</a></span></p>";
 }
 
-//         </div>
             ?>
-
-
-      <?php
-// ----------------------- bottom extra stuff table ----------------------
-      ?>
 
       </div>
       <div class=twocol>
          <?php include "components/poll-sampler.php"?>
-
-
-            <?php
-// ------------------------ New To IF? box ------------------------------
-            ?>
-
 
             <div width="<?php echo $colWidth ?>">
                <table class="halfcol" cellpadding=0 cellspacing=0>
@@ -134,24 +114,13 @@ else {
             ?>
          
       </div>
-      <?php
-// ------------------------- end bottom row extra stuff table ----------------
-      ?>
 
 <?php include "components/ifdb-recommends.php"?>
 
       </td>
 
-      <?php
-// -------------------------- right column ------------------------------
-      ?>
       <td align=right valign=top>
 
-
-
-         <?php
-            // ----------------- control panel ---------------------
-         ?>
          <table class="rightbar cpanel" cellpadding="0" cellspacing="0"
                    id="HomeControlPanel">
             <tr>
@@ -181,7 +150,6 @@ function cpanelMouseOut(e, div)
 
 
          <?php
-//  ----------------------- Join IFDB ad --------------------------------
 
 if (!$loggedIn) {
          ?>
@@ -203,7 +171,6 @@ if (!$loggedIn) {
          </table>
          <?php
 }
-//  ----------------------- End Join IFDB ad -----------------------------
          ?>
 
 
