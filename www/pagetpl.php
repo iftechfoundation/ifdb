@@ -109,43 +109,45 @@ function pageHeader($title, $focusCtl = false, $extraOnLoad = false,
 
     // add the top bar for a regular window
 ?>
-<div class="topbar">
-   <div class="topbar-right">
-      <a class="topbar" href="/"><!--
-         <img src="/ifdb-topbar.jpg" border=0> --></a>
-   </div>
-</div>
+<header>
+    <div class="topbar">
+    <div class="topbar-right">
+        <a class="topbar" href="/"><!--
+            <img src="/ifdb-topbar.jpg" border=0> --></a>
+    </div>
+    </div>
 
-<div class="topctl">
-   <form method="get" action="/search" name="search">
-      <table width="100%" border=0 cellspacing=0 cellpadding=0>
-         <tr valign=baseline>
-            <td align=left>
-               <?php echo $homearrow ?>
-               <a id="topbar-home" href="/">Home</a>
-               | <?php echo $profarrow ?><a id="topbar-profile" href="/showuser">Profile</a>
-               - <?php echo $editprofarrow ?><a id="topbar-edit" href="/editprofile">Edit</a>
-               | <?php echo $yourarrow ?><a id="topbar-personal" href="/personal"><b>Your Page</b></a>
-               | <?php echo $commentarrow ?><a id="topbar-inbox" href="/commentlog?mode=inbox">
-                  Your Inbox</a>
-            </td>
-            <td align=right>
-               <a id="topbar-browse" href="/search?browse">Browse</a> |
-               <a id="topbar-search" href="/search">Search</a> Games
-               <input id="topbar-searchbar" type="text" size=30 name="searchbar" value="">
-               <button class="go-button" id="topbar-search-go-button"
-                   style="margin:0 0 0 0;padding:0 0 0 0;"></button>
-               &nbsp; | &nbsp; <?php
-if (isset($_SESSION['logged_in']) && $_SESSION['logged_in'])
-    echo "<a id=\"topbar-logout\" href=\"/logout\">Log Out</a>";
-else
-    echo "<a id=\"topbar-login\" href=\"/login\">Log In</a>";
-               ?>
-            </td>
-         </tr>
-      </table>
-   </form>
-</div>
+    <div class="topctl">
+    <form method="get" action="/search" name="search">
+        <table width="100%" border=0 cellspacing=0 cellpadding=0>
+            <tr valign=baseline>
+                <td align=left>
+                <?php echo $homearrow ?>
+                <a id="topbar-home" href="/">Home</a>
+                | <?php echo $profarrow ?><a id="topbar-profile" href="/showuser">Profile</a>
+                - <?php echo $editprofarrow ?><a id="topbar-edit" href="/editprofile">Edit</a>
+                | <?php echo $yourarrow ?><a id="topbar-personal" href="/personal"><b>Your Page</b></a>
+                | <?php echo $commentarrow ?><a id="topbar-inbox" href="/commentlog?mode=inbox">
+                    Your Inbox</a>
+                </td>
+                <td align=right>
+                <a id="topbar-browse" href="/search?browse">Browse</a> |
+                <a id="topbar-search" href="/search">Search</a> Games
+                <input id="topbar-searchbar" type="text" size=30 name="searchbar" value="">
+                <button class="go-button" id="topbar-search-go-button"
+                    style="margin:0 0 0 0;padding:0 0 0 0;"></button>
+                &nbsp; | &nbsp; <?php
+    if (isset($_SESSION['logged_in']) && $_SESSION['logged_in'])
+        echo "<a id=\"topbar-logout\" href=\"/logout\">Log Out</a>";
+    else
+        echo "<a id=\"topbar-login\" href=\"/login\">Log In</a>";
+                ?>
+                </td>
+            </tr>
+        </table>
+    </form>
+    </div>
+</header>
 
 <div class="main">
 <?php

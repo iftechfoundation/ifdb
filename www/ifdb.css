@@ -150,6 +150,12 @@ h3 {
     margin-bottom: 0px;
 }
 
+header {
+    position: -webkit-sticky;
+    position: sticky;
+    top: 0;
+}
+
 /*
 The "topbar" division is the area where we display the main IFDB
 banner identifying the site.  The color setting is chosen so that the
