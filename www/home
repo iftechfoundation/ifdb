@@ -101,14 +101,10 @@ if ($debugflag) echo "debug mode enabled...<br>";
       </div>
 
       <?php if (!$loggedIn) : ?>
-      <div class="block">
-         <table class="rightbar">
-            <td valign=top>
-               <h3>Join IFDB!</h3>
-               IFDB isn't just for reading about IF - you can also share your opinions about your favorite games. Members can write reviews, create Recommended Lists, add and edit game listings, and more. Membership is free and only takes a few moments to set up.
-               <a href="newuser">Sign up now!</a>
-            </td>
-         </table>
+      <div class="block rightbar">
+         <h3>Join IFDB!</h3>
+         IFDB isn't just for reading about IF - you can also share your opinions about your favorite games. Members can write reviews, create Recommended Lists, add and edit game listings, and more. Membership is free and only takes a few moments to set up.
+         <a href="newuser">Sign up now!</a>
       </div>
       <?php endif ?>
       
