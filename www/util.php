@@ -1234,7 +1234,7 @@ function fixDesc($desc, $specials = 0)
                         // open tag.
                         if (in_array($tagName, $tagStack)) {
                             // close tags until we match up with the open
-                            while ($tagSp > 0) {
+                            while ($tagSp >= 0) {
                                 // pop the current tag
                                 $curTag = $tagStack[$tagSp--];
 
