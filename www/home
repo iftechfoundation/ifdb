@@ -95,9 +95,7 @@ if ($debugflag) echo "debug mode enabled...<br>";
          </div>
       </div>
 
-      <div class="block">
-         <?php include "components/top-reviewers.php"?>
-      </div>
+      <?php include "components/top-reviewers.php"?>
 
       <?php if (!$loggedIn) : ?>
       <div class="block rightbar">

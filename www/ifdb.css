@@ -1065,6 +1065,15 @@ boxes at the right of the home page and some other pages.
     padding: 0px;
 }
 
+#top-reviewers-widget li{
+    list-style: none;
+}
+
+#top-reviewers-widget ol {
+    margin: 0.5em 0em 0.5em 0em;
+    padding: 0px;
+}
+
 table.botbar2 {
     border-top: thin solid #e8e8ff;
     background: #f8f8ff;
