@@ -1051,20 +1051,18 @@ boxes at the right of the home page and some other pages.
     padding: 2px 4px 4px 4px;
 }
 
-.rightbar tr {
-    padding: 0 0 0 0;
-}
-
 .rightbar h3 {
     margin-top: 0px;
     padding: 0px 4px 4px 0px;
 }
 
+.rightbar p {
+    margin: 0px;
+}
+
 .cpanel {
     border: none;
-}
-.cpanel tr td {
-    padding: 0;
+    padding: 0px;
 }
 
 table.botbar2 {

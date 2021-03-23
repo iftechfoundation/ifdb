@@ -43,8 +43,7 @@ if ($debugflag) echo "debug mode enabled...<br>";
             </span>
          </div>
 
-         <p>The Interactive Fiction Database is an IF game catalog and recommendation engine. IFDB is a Wiki-style community project: members can add new game listings, write reviews, exchange game recommendations, and more.
-         <span class=details><a href="tips">Tips & More Info</a></span>
+         <p>The Interactive Fiction Database is an IF game catalog and recommendation engine. IFDB is a Wiki-style community project: members can add new game listings, write reviews, exchange game recommendations, and more. <span class=details><a href="tips">Tips & More Info</a></span><p>
       </div>
 
       <?php include "components/check-inbox.php"?>
@@ -79,7 +78,7 @@ if ($debugflag) echo "debug mode enabled...<br>";
 
          <div class="column">
             <div class="headline">New to IF?</div>
-            The IFDB <b>Download Adviser</b> can help get you up and running with the games you find on IFDB. Just click <img src="dlhelpbtn.gif" align="absmiddle" alt='The "Show me how!" button'> in any game's Download box for customized, step-by-step instructions for running the game on your system.
+            <p>The IFDB <b>Download Adviser</b> can help get you up and running with the games you find on IFDB. Just click <img src="dlhelpbtn.gif" align="absmiddle" alt='The "Show me how!" button'> in any game's Download box for customized, step-by-step instructions for running the game on your system.</p>
          </div>
       </div>
       
@@ -103,7 +102,7 @@ if ($debugflag) echo "debug mode enabled...<br>";
       <?php if (!$loggedIn) : ?>
       <div class="block rightbar">
          <h3>Join IFDB!</h3>
-         IFDB isn't just for reading about IF - you can also share your opinions about your favorite games. Members can write reviews, create Recommended Lists, add and edit game listings, and more. Membership is free and only takes a few moments to set up.
+         <p>IFDB isn't just for reading about IF - you can also share your opinions about your favorite games. Members can write reviews, create Recommended Lists, add and edit game listings, and more. Membership is free and only takes a few moments to set up.</p>
          <a href="newuser">Sign up now!</a>
       </div>
       <?php endif ?>
