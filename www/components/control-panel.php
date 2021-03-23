@@ -1,14 +1,9 @@
 <?php
-function cpbtn($icon, $label, $href, $top)
-{
-    echo "<div class=\"cpanelBtn" . ($top ? " cpanelBtnTop" : "")
-        . "\" onmouseover=\"javascript:cpanelMouseOver(event, this);\" "
-        . "onmouseout=\"javascript:cpanelMouseOut(event, this);\" "
-        . "onclick=\"javascript:window.navigate('$href');return false;\">"
-        . "<a href=\"$href\">"
-        . "<img src=\"/blank.gif\" class=\"$icon cpanelBtnIcon\"></a> "
-        . "<a href=\"$href\">$label</a>"
-        . "</div>";
+function cpbtn($icon, $label, $href, $top) {
+    echo "<a href=\"$href\">"
+    . "<div class=\"cpanelBtn" . ($top ? " cpanelBtnTop" : "") . "\"><img src=\"/blank.gif\" class=\"$icon cpanelBtnIcon\">"
+    . "$label"
+    . "</div></a>";
 }
 ?>
                   <div class="cpanelHeading cpanelHeadingTop">Find</div>

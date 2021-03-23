@@ -92,14 +92,6 @@ if ($debugflag) echo "debug mode enabled...<br>";
 
       <div class="block">
          <div class="rightbar cpanel" id="HomeControlPanel">
-            <script type="text/javascript">
-               function cpanelMouseOver(e, div){
-                  div.className += " cpanelBtnHover";
-               }
-               function cpanelMouseOut(e, div){
-                  div.className = div.className.replace(/ [a-zA-Z]+$/, "");
-               }
-            </script>
             <?php include "components/control-panel.php"?>
          </div>
       </div>

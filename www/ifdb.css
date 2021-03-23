@@ -1097,14 +1097,13 @@ div.cpanelBtnTop {
     margin: 0;
     border-top: none;
 }
-div.cpanelBtnHover {
-    margin: 0;
+.cpanelBtn:hover {
     background: #90ffff;
 }
-div.cpanelBtn a {
+.cpanel a {
     text-decoration: none;
 }
-div.cpanelBtn a:hover {
+.cpanel a:hover {
     text-decoration: underline;
 }
 img.cpanelBtnIcon {
