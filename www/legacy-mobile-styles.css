@@ -2,7 +2,6 @@
 
 @media only screen and (max-device-width: 480px) {
  body {
-// max-width: 480px;
   margin-bottom: 48px;
  }
 
@@ -11,12 +10,6 @@ img.play-online-button {
     width: 0px;
 }
 
-span.disabledCtl {
-//  display: none;
-}
-span.details { 
-//  display: none;
-}
 div.topctl form input[type="text"] {
   width:195px;
 }
@@ -45,15 +38,6 @@ div.topctl table {
   clear: both;
  } 
 
-}
-
-@media only screen and (width: 320px)  {
-   body {
-//    max-width: 320px;
-  }
- a.topbar {
-//   width: 320px;
- }
 }
 
 img.play-online-button {
@@ -98,10 +82,6 @@ div.downloadfloat {
 
 div.downloadfloat h3 {
  display:none;
-}
-
-input.go-button {
-/*  -webkit-border-image: url("images/iPhoneGoButton.png"); */
 }
 
 input#searchfor, #searchfor2{
