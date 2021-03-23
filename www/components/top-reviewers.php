@@ -3,12 +3,8 @@
     ?>
 
 
-         <table class=rightbar cellpadding=0 cellspacing=0>
-            <tr class="boxhead">
-               <td><h3>Reviewer Trophy Room</h3></td>
-            </tr>
-            <tr>
-               <td>
+         <div class="rightbar">
+               <h3>Reviewer Trophy Room</h3>
                   <span class=details><i>IFDB's top reviewers, as determined
                      by <?php echo helpWinLink("help-ff", "Frequent Fiction")
                      ?> scores:</i></span><p>
@@ -33,10 +29,8 @@ foreach ($rlst as $r) {
                   <?php echo helpWinLink(
                       "help-top-rev", "Who qualifies?") ?>
                   </span>
-    
-               </td>
-            </tr>
-         </table>
+                  </p>
+         </div>
 
 <?php
 // -------------------- end reviewers insert ------------------------------
