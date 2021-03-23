@@ -15,9 +15,9 @@ $quid = mysql_real_escape_string($uid, $db);
 
 $loggedIn = (isset($_SESSION['logged_in']) && $_SESSION['logged_in']);
 
-
 $adminPriv = false;
 $caughtUpDate = false;
+
 if ($uid) {
     $result = mysql_query(
         "select `privileges`, caughtupdate from users where id='$quid'", $db);
@@ -28,28 +28,18 @@ if ($uid) {
 
 $debugflag = $adminPriv && get_req_data('debug') == 'yesDebug';
 if ($debugflag) echo "debug mode enabled...<br>";
-
-pageHeader("The Interactive Fiction Database - IF and Text Adventures");
-
 ?>
 
-<div style="width:100%;">
+<?php pageHeader("The Interactive Fiction Database - IF and Text Adventures")?>
+
 <table style="width:100%;" cellpadding=0 cellspacing=0 border=0>
    <tr>
-
       <td valign=top>
-
-
-      </td>
-
-      <td valign=top>
-
          <div class="headline headline1">
             Welcome to IFDB!
             <span class=headlineRss>
                <a href="news">Site News</a> |
-               <a href="news?rss">
-                  <img src="blank.gif" class="rss-icon">RSS Feed</a>
+               <a href="news?rss"><img src="blank.gif" class="rss-icon">RSS Feed</a>
             </span>
          </div>
 
@@ -64,28 +54,27 @@ pageHeader("The Interactive Fiction Database - IF and Text Adventures");
          <div class=headline>
             New on IFDB
             <span class=headlineRss>
-               <a href="allnew-rss">
-                  <img src="blank.gif" class="rss-icon">RSS Feed</a>
+               <a href="allnew-rss"><img src="blank.gif" class="rss-icon">RSS Feed</a>
             </span>
          </div>
 
-            <?php
+         <?php
 
-if (!$db) {
-    echo "<span class=errmsg>An error occurred connecting to the
-        database. Please try again later, or <a href=\"contact\">contact
-        us</a> if the problem persists.</span>";
-}
-else {
-    $limit = 5;
-    
-    // get the latest games, reviews, and lists, and show a mix
-    if (showNewItems($db, 0, 5, false, false, false))
-        echo "<p><span class=details><a href=\"allnew\">"
-            . "See the full list...</a></span></p>";
-}
+         if (!$db) {
+            echo "<span class=errmsg>An error occurred connecting to the
+               database. Please try again later, or <a href=\"contact\">contact
+               us</a> if the problem persists.</span>";
+         }
+         else {
+            $limit = 5;
+            
+            // get the latest games, reviews, and lists, and show a mix
+            if (showNewItems($db, 0, 5, false, false, false))
+               echo "<p><span class=details><a href=\"allnew\">"
+                     . "See the full list...</a></span></p>";
+         }
 
-            ?>
+         ?>
 
       </div>
       <div class=twocol>
@@ -95,15 +84,8 @@ else {
                <table class="halfcol" cellpadding=0 cellspacing=0>
                   <tr>
                      <td class="<?php echo $colClass; $colClass=""; ?>">
-                        <div class="headline">
-                           New to IF?
-                        </div>
-                        The IFDB <b>Download Adviser</b> can help get you up and
-                        running with the games you find on IFDB.  Just click
-                        <img src="dlhelpbtn.gif" align="absmiddle"
-                             alt='The "Show me how!" button'>
-                        in any game's Download box for customized, step-by-step
-                        instructions for running the game on your system.
+                        <div class="headline">New to IF?</div>
+                        The IFDB <b>Download Adviser</b> can help get you up and running with the games you find on IFDB. Just click <img src="dlhelpbtn.gif" align="absmiddle" alt='The "Show me how!" button'> in any game's Download box for customized, step-by-step instructions for running the game on your system.
                      </td>
                   </tr>
                </table>
@@ -115,29 +97,22 @@ else {
          
       </div>
 
-<?php include "components/ifdb-recommends.php"?>
-
+         <?php include "components/ifdb-recommends.php"?>
       </td>
 
       <td align=right valign=top>
-
-         <table class="rightbar cpanel" cellpadding="0" cellspacing="0"
-                   id="HomeControlPanel">
+         <table class="rightbar cpanel" cellpadding="0" cellspacing="0" id="HomeControlPanel">
             <tr>
                <td>
 
-<script type="text/javascript">
-<!--
-function cpanelMouseOver(e, div)
-{
-    div.className += " cpanelBtnHover";
-}
-function cpanelMouseOut(e, div)
-{
-    div.className = div.className.replace(/ [a-zA-Z]+$/, "");
-}
-//-->
-</script>
+                  <script type="text/javascript">
+                     function cpanelMouseOver(e, div){
+                        div.className += " cpanelBtnHover";
+                     }
+                     function cpanelMouseOut(e, div){
+                        div.className = div.className.replace(/ [a-zA-Z]+$/, "");
+                     }
+                  </script>
 
                   <?php include "components/control-panel.php"?>
 
@@ -145,41 +120,28 @@ function cpanelMouseOut(e, div)
             </tr>
          </table>
 
-
          <?php include "components/top-reviewers.php"?>
 
-
-         <?php
-
-if (!$loggedIn) {
-         ?>
-         <p>
+         <?php if (!$loggedIn) : ?>
          <table class=rightbar cellpadding=0 cellspacing=0>
             <tr class="boxhead">
-               <td align=center><h3>Join IFDB!</h3></td>
+               <td align=center>
+                  <h3>Join IFDB!</h3>
+               </td>
             </tr>
             <tr>
                <td>
-                  IFDB isn't just for reading about IF - you can also
-                  share your opinions about your favorite games.
-                  Members can write reviews, create Recommended Lists,
-                  add and edit game listings, and more. Membership
-                  is free and only takes a few moments to set up.
+                  IFDB isn't just for reading about IF - you can also share your opinions about your favorite games. Members can write reviews, create Recommended Lists, add and edit game listings, and more. Membership is free and only takes a few moments to set up.
                   <a href="newuser">Sign up now!</a>
                </td>
             </tr>
          </table>
-         <?php
-}
-         ?>
+         <?php endif ?>
 
-
-
-<?php include "components/database-stats.php"?>
+         <?php include "components/database-stats.php"?>
             
       </td>
    </tr>
 </table>
-
 
 <?php pageFooter()?>
