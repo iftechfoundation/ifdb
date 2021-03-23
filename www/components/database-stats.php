@@ -2,9 +2,7 @@
    //------------------------- statistics insert --------------------
 ?>
 
-        <table class="rightbar" cellpadding="0" cellspacing="0">
-            <tr>
-               <td>
+        <div class="rightbar">
                   <h3>In the Database</h3>
 <?php
    
@@ -57,13 +55,9 @@ $cnt = mysql_result($result, 0, "c");
 if ($cnt)
     echo "&bull; <a class=silent href=\"search?browse&comp\">"
         . "$cnt Competition Listings</a><br>";
-    
-echo "</div>";
 ?>
 
-               </td>
-            </tr>
-         </table>
+        </div>
 
 <?php
 // ---------------------- end statistics insert ----------------------
