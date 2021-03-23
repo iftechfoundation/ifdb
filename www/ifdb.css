@@ -1048,14 +1048,16 @@ boxes at the right of the home page and some other pages.
     background: #F8F8FF;
     margin-bottom: 1em;
     font-size: 0.85em;
+    padding: 2px 4px 4px 4px;
 }
 
 .rightbar tr {
     padding: 0 0 0 0;
 }
 
-.rightbar tr td {
-    padding: 2px 4px 4px 4px;
+.rightbar h3 {
+    margin-top: 0px;
+    padding: 0px 4px 4px 0px;
 }
 
 .cpanel {
