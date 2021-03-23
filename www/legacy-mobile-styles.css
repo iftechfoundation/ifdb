@@ -13,11 +13,6 @@ div.topctl  table td   {
  text-align:center;
 }
 
-div.topctl  table td:first-child   {
-  display:none;
-}
-
-
 div.topctl table {
   position: relative;
   left: -5px;
