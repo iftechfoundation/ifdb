@@ -5,11 +5,6 @@
   margin-bottom: 48px;
  }
 
-img.play-online-button {
-   display: none;
-    width: 0px;
-}
-
 div.topctl form input[type="text"] {
   width:195px;
 }
@@ -38,11 +33,6 @@ div.topctl table {
   clear: both;
  } 
 
-}
-
-img.play-online-button {
-   display: none;
-    width: 0px;
 }
 
 img.dla-button {
