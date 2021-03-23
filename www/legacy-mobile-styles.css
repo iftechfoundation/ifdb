@@ -1,0 +1,111 @@
+@import url("/ifdb.css");
+
+@media only screen and (max-device-width: 480px) {
+ body {
+// max-width: 480px;
+  margin-bottom: 48px;
+ }
+
+img.play-online-button {
+   display: none;
+    width: 0px;
+}
+
+span.disabledCtl {
+//  display: none;
+}
+span.details { 
+//  display: none;
+}
+div.topctl form input[type="text"] {
+  width:195px;
+}
+
+div.topctl  table td   {
+ text-align:center;
+}
+
+div.topctl  table td:first-child   {
+  display:none;
+}
+
+
+div.topctl table {
+  position: relative;
+  left: -5px;
+  width: 320px;
+}
+
+ div.xxxxtopbar {
+    width: 320px;
+    height: 55px;
+   background: url("images/ifdb-topbar-nar.jpg") #c0c0c0 no-repeat;
+ }
+ body {
+  clear: both;
+ } 
+
+}
+
+@media only screen and (width: 320px)  {
+   body {
+//    max-width: 320px;
+  }
+ a.topbar {
+//   width: 320px;
+ }
+}
+
+img.play-online-button {
+   display: none;
+    width: 0px;
+}
+
+img.dla-button {
+    background-image: none;
+    width: 0px;
+}
+table.searchSummary {
+  display: none;
+}
+table.gameRightBar {
+  display: none;
+}
+span.fmtnotes {
+  display: none;
+}
+.new-review {
+   font-size: 12pt;
+}
+
+.rightbar {
+   display: none;
+}
+
+div.tipbox {
+   display: none;
+}
+
+div.footer {
+  display: none;
+}
+
+div.downloadfloat {
+    float: none;
+    width: 100%;
+   margin-left: 2px
+}
+
+div.downloadfloat h3 {
+ display:none;
+}
+
+input.go-button {
+/*  -webkit-border-image: url("images/iPhoneGoButton.png"); */
+}
+
+input#searchfor, #searchfor2{
+  width: 95%;
+}
+
+
