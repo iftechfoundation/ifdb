@@ -109,12 +109,11 @@ function pageHeader($title, $focusCtl = false, $extraOnLoad = false,
 
     // add the top bar for a regular window
 ?>
-<div class="topbar">
-   <div class="topbar-right">
-      <a class="topbar" href="/"><!--
-         <img src="/ifdb-topbar.jpg" border=0> --></a>
-   </div>
-</div>
+
+<a href="/">
+    <div class="topbar"></div>
+</a>
+
 
 <div class="topctl">
    <form method="get" action="/search" name="search">
