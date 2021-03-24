@@ -281,6 +281,10 @@ div.main {
     min-width: 50%;
 }
 
+#download-advisor-aside{
+    flex-basis: 30ch;
+}
+
 /*
 The "botbar" table contains the navigation controls at the bottom of the
 page.

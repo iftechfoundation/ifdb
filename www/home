@@ -72,11 +72,11 @@ if ($debugflag) echo "debug mode enabled...<br>";
       </div>
 
       <div class="block flexer">
-         <div class="column">
+         <div class="column col-main">
             <?php include "components/poll-sampler.php"?>
          </div>
 
-         <div class="column">
+         <div id="download-advisor-aside" class="column col-sidebar">
             <div class="headline">New to IF?</div>
             <p>The IFDB <b>Download Adviser</b> can help get you up and running with the games you find on IFDB. Just click <img src="dlhelpbtn.gif" align="absmiddle" alt='The "Show me how!" button'> in any game's Download box for customized, step-by-step instructions for running the game on your system.</p>
          </div>
