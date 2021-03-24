@@ -2282,14 +2282,20 @@ span.sfl-save-autodesc {
         margin: 0 0 0.5em 0;
     }
     table.rightbar {
-        /*border: thin dotted #303050;*/
         border-top: thin solid #303050;
         background: #101030;
+    }
+    .aside-box {
+        border-top: thin solid #303050;
+        background: #101030;
+    }
+    .main-nav a:hover{
+        background-color: #2c2c52;
     }
     tr.boxhead h3 {
         color: #f0f0f0;
     }
-    div.cpanelBtnHover {
+    .cpanelBtn:hover {
         background: #303058;
     }
     div.cpanelHeading {
