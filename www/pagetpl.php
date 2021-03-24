@@ -120,25 +120,27 @@ function pageHeader($title, $focusCtl = false, $extraOnLoad = false,
    <form method="get" action="/search" name="search">
         <nav id="main-nav" class="main-nav">
             <ul>
-                <li class="<?= ($pagescript === 'home') ? 'page-active':''; ?>"><a id="topbar-home" href="/">Home</a></li>
-                <li class="<?= ($pagescript === 'showuser') ? 'page-active':''; ?>"><a id="topbar-profile" href="/showuser">Profile</a></li>
-                <li class="<?= ($pagescript === 'editprofile') ? 'page-active':''; ?>"><a id="topbar-edit" href="/editprofile">Edit</a></li>
-                <li class="<?= ($pagescript === 'personal') ? 'page-active':''; ?>"><a id="topbar-personal" href="/personal">Your Page</a></li>
-                <li class="<?= ($pagescript === 'commentlog') ? 'page-active':''; ?>"><a id="topbar-inbox" href="/commentlog?mode=inbox">Your Inbox</a></li>
+            <li class="<?= ($pagescript === 'home') ? 'page-active':''; ?>"><a id="topbar-home" href="/">Home</a></li>
+            <li class="<?= ($pagescript === 'showuser') ? 'page-active':''; ?>"><a id="topbar-profile" href="/showuser">Profile</a></li>
+            <li class="<?= ($pagescript === 'editprofile') ? 'page-active':''; ?>"><a id="topbar-edit" href="/editprofile">Edit</a></li>
+            <li class="<?= ($pagescript === 'personal') ? 'page-active':''; ?>"><a id="topbar-personal" href="/personal">Your Page</a></li>
+            <li class="<?= ($pagescript === 'commentlog') ? 'page-active':''; ?>"><a id="topbar-inbox" href="/commentlog?mode=inbox">Your Inbox</a></li>
             </ul>
-
+    
+                
             <div class="block">
-               <a id="topbar-browse" href="/search?browse">Browse</a>
-               <a id="topbar-search" href="/search">Search</a>
-               <input id="topbar-searchbar" type="text" name="searchbar" placeholder="Search for games...">
-               <button class="go-button" id="topbar-search-go-button"
-                   style="margin:0 0 0 0;padding:0 0 0 0;"></button><?php
-if (isset($_SESSION['logged_in']) && $_SESSION['logged_in'])
-    echo "<a id=\"topbar-logout\" href=\"/logout\">Log Out</a>";
-else
-    echo "<a id=\"topbar-login\" href=\"/login\">Log In</a>";
-               ?>
-            </div>
+                <a id="topbar-browse" href="/search?browse">Browse</a>
+                <a id="topbar-search" href="/search">Search</a>
+                <input id="topbar-searchbar" type="text" name="searchbar" placeholder="Search for games...">
+                <button class="go-button" id="topbar-search-go-button"
+                    style="margin:0 0 0 0;padding:0 0 0 0;"></button>
+                <?php
+                if (isset($_SESSION['logged_in']) && $_SESSION['logged_in'])
+                    echo "<a id=\"topbar-logout\" href=\"/logout\">Log Out</a>";
+                else
+                    echo "<a id=\"topbar-login\" href=\"/login\">Log In</a>";
+                ?>
+            </div> 
         </nav>
    </form>
 </div>
