@@ -228,10 +228,20 @@ div.topctl form {
 } 
 
 .main-nav a{
+    text-decoration: none;
     padding: 0.25em 0.75em 0.25em 0.75em;
     display: inline-block;
     white-space: nowrap;
 } 
+
+.main-nav a:hover{
+    text-decoration: underline;
+    background-color: #dcdcdc;
+}
+
+.page-active{
+    font-weight: bold;
+}
 
 /*
 The "main" division is basically the rest of the page below the
