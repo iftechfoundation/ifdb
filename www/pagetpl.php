@@ -121,7 +121,7 @@ function pageHeader($title, $focusCtl = false, $extraOnLoad = false,
         <nav id="main-nav" class="main-nav">
             <ul>
             <li class="<?= ($pagescript === 'home') ? 'page-active':''; ?>"><a id="topbar-home" href="/">Home</a></li>
-            <li class="<?= ($pagescript === 'showuser') ? 'page-active':''; ?>"><a id="topbar-profile" href="/showuser">Profile</a></li>
+            <li class="<?= ($pagescript === 'showuser') ? 'page-active':''; ?>"><a id="topbar-profile" href="/showuser">Profile</a></li>|
             <li class="<?= ($pagescript === 'editprofile') ? 'page-active':''; ?>"><a id="topbar-edit" href="/editprofile">Edit</a></li>
             <li class="<?= ($pagescript === 'personal') ? 'page-active':''; ?>"><a id="topbar-personal" href="/personal">Your Page</a></li>
             <li class="<?= ($pagescript === 'commentlog') ? 'page-active':''; ?>"><a id="topbar-inbox" href="/commentlog?mode=inbox">Your Inbox</a></li>
@@ -129,7 +129,7 @@ function pageHeader($title, $focusCtl = false, $extraOnLoad = false,
     
                 
             <div class="block">
-                <a id="topbar-browse" href="/search?browse">Browse</a>
+                <a id="topbar-browse" href="/search?browse">Browse</a>|
                 <a id="topbar-search" href="/search">Search</a>
                 <input id="topbar-searchbar" type="text" name="searchbar" placeholder="Search for games...">
                 <button class="go-button" id="topbar-search-go-button"
