@@ -2324,12 +2324,18 @@ span.sfl-save-autodesc {
         background: #101030;
         color: #ffffff;
     }
+    input, select{
+        background-color: #000000;
+        color: #FFFFFF;
+        border: 1px solid #323245;
+    }
     table.searchSummary {
         background: #202040;
         color: #ffffff;
     }
     div.tipbox {
-        background: #404040;
+        background: #101030;
+        border: 1px solid #323245;
         color: #ffffff;
     }
     div.inlinetip {
@@ -2359,6 +2365,23 @@ span.sfl-save-autodesc {
     }
     div.popupMenu a:hover {
         background: #202020;
+    }
+    div.browseBar {
+        background: #202030;
+    }
+    div.browseTabs {
+        padding: 6px 0 0 4px;
+    }
+    span.browseLabel {
+        font-weight: bold;
+        margin-right: 2em;
+    }
+    span.browseTab {
+        background: #303050;
+        border: 1px solid #202030;
+    }
+    span.activeBrowseTab {
+        background: #444476;
     }
     input.go-button {
         background: url("/dark-images/go-button-midnight.gif") no-repeat center center;
