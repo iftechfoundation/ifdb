@@ -2201,13 +2201,6 @@ span.sfl-save-autodesc {
     body {
         background: #000000;
         color: #ffffff;
-        font: 11pt/15pt Verdana, Arial, Helvetica, Sans-Serif;
-    }
-    form {
-        font: 11pt/15pt Verdana, Arial, Helvetica, Sans-Serif;
-    }
-    table tr td {
-        font: 11pt/15pt Verdana, Arial, Helvetica, Sans-Serif;
     }
     div.topbar {
         background: url("/dark-images/ifdb-topbar-midnight.jpg") #000030 no-repeat;
@@ -2224,13 +2217,7 @@ span.sfl-save-autodesc {
         border: thin dotted #303030;
     }
     table.downloads h3 {
-        font: 10pt/14pt Verdana, Arial, Helvetica, Sans-Serif;
-        font-weight: bold;
         color: #d0d0ff;
-        margin: 0 0 0 0;
-    }
-    table.downloads td {
-        font: 10pt/14pt Verdana, Arial, Helvetica, Sans-Serif;
     }
     span.dlzipmain {
         color: #d0d0ff;
@@ -2241,17 +2228,12 @@ span.sfl-save-autodesc {
     span.fmtnotes {
         color: #A0A0A0;
     }
-    div.footer {
-        font-size: 8pt;
-    }
     div.headline {
-        font-size: 110%;
         background: #202030;
         border-top: thin solid #303050;
         color: #d0d0ff;
     }
     div.headline2 {
-        font-size: 110%;
         background: #202030;
         border-top: thin solid #303050;
         color: #d0d0ff;
@@ -2269,17 +2251,12 @@ span.sfl-save-autodesc {
     table.gamerightbar {
         background: #101030;
         border: thin dotted #303030;
-        font-size: 80%;
     }
     table.gamerightbar td {
-        font-size: 10pt;
         color: #d8d8d8;
     }
     table.gamerightbar td h3 {
-        font: 10pt/14pt Verdana, Arial, Helvetica, Sans-Serif;
-        font-weight: bold;
         color: #d0d0ff;
-        margin: 0 0 0.5em 0;
     }
     table.rightbar {
         border-top: thin solid #303050;
@@ -2340,17 +2317,8 @@ span.sfl-save-autodesc {
     div.reviewCommentReply {
         border-left: 0.75ex solid #404040;
     }
-    h1 {
+    h1, h2, h3 {
         color: #d0d0ff;
-        font-size: 125%;
-    }
-    h2 {
-        color: #d0d0ff;
-        font-size: 110%;
-    }
-    h3 {
-        color: #d0d0ff;
-        font-size: 100%;
     }
     form.stylepicform {
         background: #101030;
@@ -2367,8 +2335,6 @@ span.sfl-save-autodesc {
     div.inlinetip {
         background: #404040;
         color: #ffffff;
-    }
-    div.edit-popup-frame {
     }
     div.edit-popup-title {
         background: #7098a8;
@@ -2390,15 +2356,6 @@ span.sfl-save-autodesc {
         background: #404040;
         padding: 0 0 0 0;
         color: #ffffff;
-    }
-    div.popupMenu table {
-        font-size: 75%;
-    }
-    div.popupMenu a {
-        text-decoration: none;
-        padding: 0 6px 0 6px;
-        margin: 0 0 0 0;
-        width: 100%;
     }
     div.popupMenu a:hover {
         background: #202020;
