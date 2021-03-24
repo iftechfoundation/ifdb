@@ -1384,6 +1384,7 @@ image file, unfortunately.
     height: 16px;
     border: none;
     vertical-align: middle;
+    margin-right: 1em;
 }
 input.save-button {
     background: url("/savechanges.gif");

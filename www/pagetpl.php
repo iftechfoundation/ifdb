@@ -132,7 +132,7 @@ function pageHeader($title, $focusCtl = false, $extraOnLoad = false,
                 <a id="topbar-search" href="/search">Search</a>
                 <input id="topbar-searchbar" type="text" name="searchbar" placeholder="Search for games...">
                 <button class="go-button" id="topbar-search-go-button"
-                    style="margin:0 0 0 0;padding:0 0 0 0;"></button>
+                    style="padding:0em;"></button>
                 <?php
                 if (isset($_SESSION['logged_in']) && $_SESSION['logged_in'])
                     echo "<a id=\"topbar-logout\" href=\"/logout\">Log Out</a>";
