@@ -1,4 +1,4 @@
-<div class="rightbar">
+<div class="aside-box">
     <h3>In the Database</h3>
 
     <?php

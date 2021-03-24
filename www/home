@@ -90,7 +90,7 @@ if ($debugflag) echo "debug mode enabled...<br>";
    <div class="column col-sidebar">
 
       <div class="block">
-         <div class="rightbar cpanel" id="HomeControlPanel">
+         <div class="aside-box cpanel" id="HomeControlPanel">
             <?php include "components/control-panel.php"?>
          </div>
       </div>
@@ -98,7 +98,7 @@ if ($debugflag) echo "debug mode enabled...<br>";
       <?php include "components/top-reviewers.php"?>
 
       <?php if (!$loggedIn) : ?>
-      <div class="block rightbar">
+      <div class="block aside-box">
          <h3>Join IFDB!</h3>
          <p>IFDB isn't just for reading about IF - you can also share your opinions about your favorite games. Members can write reviews, create Recommended Lists, add and edit game listings, and more. Membership is free and only takes a few moments to set up.</p>
          <a href="newuser">Sign up now!</a>

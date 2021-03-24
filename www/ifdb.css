@@ -1079,7 +1079,24 @@ span.headlineRss {
 The "rightbar" table style is used for the little information
 boxes at the right of the home page and some other pages.
 */
-.rightbar {
+table.rightbar {
+    border-top: thin solid #e8e8FF;
+    background: #F8F8FF;
+    width: 30ex;
+    padding: 0 0 0 0;
+    margin: 0 0 1em 1.5ex;
+}
+
+table.rightbar tr {
+    padding: 0 0 0 0;
+}
+
+table.rightbar tr td {
+    padding: 2px 4px 4px 4px;
+    font-size: 85%;
+}
+
+.aside-box {
     border-top: thin solid #e8e8FF;
     background: #F8F8FF;
     margin-bottom: 1em;
@@ -1087,12 +1104,12 @@ boxes at the right of the home page and some other pages.
     padding: 2px 4px 4px 4px;
 }
 
-.rightbar h3 {
+.aside-box h3 {
     margin-top: 0px;
     padding: 0px 4px 4px 0px;
 }
 
-.rightbar p {
+.aside-box p {
     margin: 0px;
 }
 
