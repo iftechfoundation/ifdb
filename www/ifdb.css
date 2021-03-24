@@ -203,10 +203,35 @@ div.topctl table tr td {
     padding: 0 1em 0 1em;
 }
 div.topctl form {
-    font-size: 95%;
-    margin: 0 0 0 0;
-    padding: 0 0 0 0;
+    font-size: 0.85em;
+    margin: 0px;
 }
+
+.main-nav{
+    display: flex;
+    flex-wrap: wrap;
+    overflow: auto;
+    padding: 0em 1em 0em 1em;
+}
+
+.main-nav ul{
+    margin: 0px;
+    padding: 0px;
+    display: flex;
+    flex-basis: 0;
+    flex-grow: 999;
+}
+
+.main-nav li{
+    list-style: none;
+    
+} 
+
+.main-nav a{
+    padding: 0.25em 0.75em 0.25em 0.75em;
+    display: inline-block;
+    white-space: nowrap;
+} 
 
 /*
 The "main" division is basically the rest of the page below the

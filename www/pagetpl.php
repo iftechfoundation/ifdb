@@ -118,18 +118,18 @@ function pageHeader($title, $focusCtl = false, $extraOnLoad = false,
 
 <div class="topctl">
    <form method="get" action="/search" name="search">
-      <table width="100%" border=0 cellspacing=0 cellpadding=0>
-         <tr valign=baseline>
-            <td align=left>
+        <nav id="main-nav" class="main-nav">
+            <ul>
                <?php echo $homearrow ?>
-               <a id="topbar-home" href="/">Home</a>
-               | <?php echo $profarrow ?><a id="topbar-profile" href="/showuser">Profile</a>
-               - <?php echo $editprofarrow ?><a id="topbar-edit" href="/editprofile">Edit</a>
-               | <?php echo $yourarrow ?><a id="topbar-personal" href="/personal"><b>Your Page</b></a>
-               | <?php echo $commentarrow ?><a id="topbar-inbox" href="/commentlog?mode=inbox">
-                  Your Inbox</a>
-            </td>
-            <td align=right>
+               <li><a id="topbar-home" href="/">Home</a></li>
+               | <?php echo $profarrow ?><li><a id="topbar-profile" href="/showuser">Profile</a><li>
+               - <?php echo $editprofarrow ?><li><a id="topbar-edit" href="/editprofile">Edit</a></li>
+               | <?php echo $yourarrow ?><li><a id="topbar-personal" href="/personal"><b>Your Page</b></a></li>
+               | <?php echo $commentarrow ?><li><a id="topbar-inbox" href="/commentlog?mode=inbox">
+                  Your Inbox</a></li>
+            </ul>
+
+            <div class="block">
                <a id="topbar-browse" href="/search?browse">Browse</a> |
                <a id="topbar-search" href="/search">Search</a> Games
                <input id="topbar-searchbar" type="text" size=30 name="searchbar" value="">
@@ -141,9 +141,8 @@ if (isset($_SESSION['logged_in']) && $_SESSION['logged_in'])
 else
     echo "<a id=\"topbar-login\" href=\"/login\">Log In</a>";
                ?>
-            </td>
-         </tr>
-      </table>
+            </div>
+        </nav>
    </form>
 </div>
 
