@@ -98,15 +98,9 @@ $colClass = "firstcol";
 // 
 $rows = $pollRows;
 if (count($rows) > 0) {
-    echo "<div width=\"$colWidth\">"
-        . "<table class=\"halfcol\" cellpadding=0 cellspacing=0>"
-        . "<tr><td class='$colClass'><div class=\"headline\">Vote!</div>"
-        . "<div style=\"margin-bottom: 1ex;\">"
-        . "Help other IFDB members find the games they're looking for "
-        . "by voting in their polls.  Here are a few recent ones:"
-        . "</div>";
-
-    $colClass = "";
+    echo "<div class=\"block\"><div class=\"headline\">Vote!</div>"
+        . "<p>Help other IFDB members find the games they're looking for "
+        . "by voting in their polls.  Here are a few recent ones:</p>";
     
     for ($i = 0 ; $i < count($rows) ; $i++) {
         // retrieve the values
