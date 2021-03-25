@@ -159,15 +159,17 @@ by there.</span><br>
    <br><br>
    <b>Important:</b> by registering, you confirm that you agree to
       our <?php
-         echo helpWinLink("/privacy?helpwin=1", "Privacy Policy");
-//<a href="needjs"
-//        onclick="javascript:helpWin('/privacy?helpwin=1');return false;">
-//         Privacy Policy</a>
-      ?> and <?php
+         echo helpWinLink("/code-of-conduct?helpwin=1", "Code of Conduct");
+      ?>, our <?php		 
          echo helpWinLink("/tos?helpwin=1", "Terms of Service");
 //<a href="needjs"
 //        onclick="javascript:helpWin('/tos?helpwin=1');return false;">
 //         Terms of Service</a>
+      ?>, and our <?php
+         echo helpWinLink("/privacy?helpwin=1", "Privacy Policy");
+//<a href="needjs"
+//        onclick="javascript:helpWin('/privacy?helpwin=1');return false;">
+//         Privacy Policy</a>
       ?>.
 
    <br><br>
@@ -564,5 +566,4 @@ href="/contact">contact us</a> to let us know about the problem.
 } // function handlePost()
 
 ?>
-
 
