@@ -1043,11 +1043,11 @@ else {  // ...default is searching games
             you have/have not put on your played list (i.e. "I've played it").
             Only works if you are logged in with a user account.
 
-       <p><b>wish:<i>yes</i>|<i>no</i></b> lists games that
+       <p><b>wished:<i>yes</i>|<i>no</i></b> lists games that
             you have/have not put on your wish list (i.e. "It's on my wish list").
             Only works if you are logged in with a user account.
 
-       <p><b>unwish:<i>yes</i>|<i>no</i></b> lists games that
+       <p><b>unwished:<i>yes</i>|<i>no</i></b> lists games that
             you have/have not put on your unwish list (i.e. "I'm not interested").
             Only works if you are logged in with a user account.
 
