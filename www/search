@@ -505,7 +505,8 @@ if ($xml) {
 
     // no UI in XML mode - this is an API request
     
-} else if ($term || $browse) {
+}
+else if ($term || $browse) {
 
     if (!$browse) {
     ?>
@@ -532,7 +533,8 @@ if ($xml) {
 
     <?php
     }
-} else if ($searchType == "list") {
+}
+else if ($searchType == "list") {
 
     ?>
 
@@ -718,7 +720,7 @@ else if ($searchType == "comp") {
        <p><b>series:<i>name</i></b> shows competitions with <i>name</i>
        in their series names
 
-       <p><b>year:</i>low-high</i></b> shows competitions whose award
+       <p><b>year:<i>low-high</i></b> shows competitions whose award
        dates were in the given range of years. You can make the range
        open-ended by leaving out an endpoint: <b>year:1995-</b> searches
        for all competitions 1995 and later, and <b>year:-2000</b> searches
@@ -893,7 +895,9 @@ else if ($searchType == "member") {
 
 
     <?php
-} else {
+}
+else {  // ...default is searching games
+
     ?>
 
     <form name="advsearch" method="get" action="search">
@@ -949,7 +953,7 @@ else if ($searchType == "member") {
               "series", 2, "series:@@"); ?>
 
        <p><b>genre:<i>genre name</i></b> only shows games with the given genre.
-          (If a game's listing has multiple genres, it will match as long
+          If a game's listing has multiple genres, it will match as long
           as <i>genre name</i> is found within the listing. For example,
           <b>genre:western</b> will match a game listed with genre
           "Science Fiction/Western/Romance."
@@ -968,7 +972,7 @@ else if ($searchType == "member") {
           of ratings in the given range.  For example, <b>#ratings:3-</b>
           lists games with three or more ratings.
 
-       <p><b>ratingdev:</i>low-high</i></b> lists games with a ratings
+       <p><b>ratingdev:<i>low-high</i></b> lists games with a ratings
           standard deviation in the given range. (If you use this option,
           the standard deviation for each rating will be shown in parentheses
           after the star rating, and you'll have the option to order the
@@ -1020,10 +1024,10 @@ else if ($searchType == "member") {
 
        <p><b>downloadable:<i>yes</i>|<i>no</i></b> lists games that
           are/are not downloadable.  A downloadable game is one that has
-          at least one story file or application download link. 
+          at least one story file or application download link.
 
        <p><b>bafs:<i>id</i></b> searches for the game with the given
-	      Baf's Guide ID.
+          Baf's Guide ID.
        (<?php
           echo helpWinLink("help-bafs", "What's a Baf's Guide ID?");
        ?>)
@@ -1034,6 +1038,18 @@ else if ($searchType == "member") {
 //<a href="needjs" onclick="javascript:helpWin('help-ifid');return false;"
 //          >What's an IFID?</a>
        ?>)
+
+       <p><b>played:<i>yes</i>|<i>no</i></b> lists games that
+            you have/have not put on your played list (i.e. "I've played it").
+            Only works if you are logged in with a user account.
+
+       <p><b>wish:<i>yes</i>|<i>no</i></b> lists games that
+            you have/have not put on your wish list (i.e. "It's on my wish list").
+            Only works if you are logged in with a user account.
+
+       <p><b>unwish:<i>yes</i>|<i>no</i></b> lists games that
+            you have/have not put on your unwish list (i.e. "I'm not interested").
+            Only works if you are logged in with a user account.
 
        </div>
 
