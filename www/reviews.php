@@ -153,7 +153,7 @@ function displayReviewVote(reviewID, vote)
 	    } 
 	    else {	    
         	document.getElementById("voteStat_" + reviewID).innerHTML =
-       	  	   "<br>(You previously voted "
+       	  	   "<br>(You voted "
 	   	  	   + (vote == 'Y' ? "Yes" : "No")
 	   	  	   + ")";
 	    	document.getElementById("voteRemove_" + reviewID).innerHTML = "<a href=\"needjs\" "
