@@ -219,6 +219,9 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse)
             "author:" => array("author", 99),
             "ifid:" => array("/ifid/", 99),
             "downloadable:" => array("/downloadable/", 99),
+            "played:" => array("played", 99),
+            "wished:" => array("wished", 99),
+            "unwished:" => array("unwished", 99),
             "license:" => array("license", 0),
             "format:" => array("/gameformat/", 99));
                 
@@ -514,6 +517,57 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse)
                 // we need yes=non-zero/no=zero game links
                 $op = (preg_match("/^y.*/i", $txt) ? "!=" : "=");
                 $expr = "gls.numGameLinks $op 0";
+                break;
+
+            case 'played':
+                // Only use this query when the user is logged in
+                if ($curuser) {
+                    // need to join the playedgames table to do this query
+                    if (!isset($extraJoins[$col])) {
+                        $extraJoins[$col] = true;
+                        $tableList .= " left join playedgames as pg "
+                                      . "on games.id = pg.gameid "
+                                      . "and pg.userid = '$curuser'";
+                    }
+
+                    // we need yes=non-zero/no=zero game links
+                    $op = (preg_match("/^y.*/i", $txt) ? "is not" : "is");
+                    $expr = "pg.gameid $op null";  
+                }
+                break;
+
+            case 'wished':
+                // Only use this query when the user is logged in
+                if ($curuser) {
+                    // need to join the playedgames table to do this query
+                    if (!isset($extraJoins[$col])) {
+                        $extraJoins[$col] = true;
+                        $tableList .= " left join wishlists as wl "
+                                      . "on games.id = wl.gameid "
+                                      . "and wl.userid = '$curuser'";
+                    }
+
+                    // we need yes=non-zero/no=zero game links
+                    $op = (preg_match("/^y.*/i", $txt) ? "is not" : "is");
+                    $expr = "wl.gameid $op null";  
+                }
+                break;
+
+            case 'unwished':
+                // Only use this query when the user is logged in
+                if ($curuser) {
+                    // need to join the playedgames table to do this query
+                    if (!isset($extraJoins[$col])) {
+                        $extraJoins[$col] = true;
+                        $tableList .= " left join unwishlists as ul "
+                                      . "on games.id = ul.gameid "
+                                      . "and ul.userid = '$curuser'";
+                    }
+
+                    // we need yes=non-zero/no=zero game links
+                    $op = (preg_match("/^y.*/i", $txt) ? "is not" : "is");
+                    $expr = "ul.gameid $op null";  
+                }
                 break;
 
             case 'author':
