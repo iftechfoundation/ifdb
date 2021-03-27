@@ -1040,15 +1040,15 @@ else {  // ...default is searching games
        ?>)
 
        <p><b>played:<i>yes</i>|<i>no</i></b> lists games that
-            you have/have not put on your played list (i.e. "I've played it").
+            you have/haven't put on your played list (i.e. "I've played it").
             Only works if you are logged in with a user account.
 
-       <p><b>wished:<i>yes</i>|<i>no</i></b> lists games that
-            you have/have not put on your wish list (i.e. "It's on my wish list").
+       <p><b>willplay:<i>yes</i>|<i>no</i></b> lists games that
+            you have/haven't put on your "will play" list (i.e. "It's on my wish list").
             Only works if you are logged in with a user account.
 
-       <p><b>unwished:<i>yes</i>|<i>no</i></b> lists games that
-            you have/have not put on your unwish list (i.e. "I'm not interested").
+       <p><b>wontplay:<i>yes</i>|<i>no</i></b> lists games that
+            you have/haven't put on your "won't play" list (i.e. "I'm not interested").
             Only works if you are logged in with a user account.
 
        </div>

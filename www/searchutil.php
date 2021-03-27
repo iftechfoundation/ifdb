@@ -220,8 +220,8 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse)
             "ifid:" => array("/ifid/", 99),
             "downloadable:" => array("/downloadable/", 99),
             "played:" => array("played", 99),
-            "wished:" => array("wished", 99),
-            "unwished:" => array("unwished", 99),
+            "willplay:" => array("willplay", 99),
+            "wontplay:" => array("wontplay", 99),
             "license:" => array("license", 0),
             "format:" => array("/gameformat/", 99));
                 
@@ -536,7 +536,7 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse)
                 }
                 break;
 
-            case 'wished':
+            case 'willplay':
                 // Only use this query when the user is logged in
                 if ($curuser) {
                     // need to join the playedgames table to do this query
@@ -553,7 +553,7 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse)
                 }
                 break;
 
-            case 'unwished':
+            case 'wontplay':
                 // Only use this query when the user is logged in
                 if ($curuser) {
                     // need to join the playedgames table to do this query
