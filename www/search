@@ -1370,6 +1370,14 @@ else if ($term || $browse)
             echo "</div>";
         }
 
+        // if this is a poll search, show the poll tip box
+            if ($searchType == "poll") {
+                echo "<div class=tipbox><h1><a href=\"poll?id=new\">Create a Poll</a></h1>"
+                    . "If you'd like recommendations for a specific kind of IF, you can "
+                    . "<a href=\"poll?id=new\">create a new poll</a>."
+                    . "</div>";
+        }
+		
         // show the sorting controls
         $hids = array("searchfor" => $term);
         if ($browse)
