@@ -203,9 +203,45 @@ div.topctl table tr td {
     padding: 0 1em 0 1em;
 }
 div.topctl form {
-    font-size: 95%;
-    margin: 0 0 0 0;
-    padding: 0 0 0 0;
+    font-size: 0.85em;
+    margin: 0px;
+}
+
+.main-nav{
+    display: flex;
+    flex-wrap: wrap;
+    overflow: auto;
+    padding: 0em 1em 0em 1em;
+}
+
+.main-nav ul{
+    margin: 0px;
+    padding: 0px;
+    display: flex;
+    flex-basis: 0;
+    flex-grow: 999;
+    align-items: center;
+}
+
+.main-nav li{
+    list-style: none;
+    
+} 
+
+.main-nav a{
+    text-decoration: none;
+    padding: 0.25em 0.75em 0.25em 0.75em;
+    display: inline-block;
+    white-space: nowrap;
+} 
+
+.main-nav a:hover{
+    text-decoration: underline;
+    background-color: #dcdcdc;
+}
+
+.page-active{
+    font-weight: bold;
 }
 
 /*
@@ -220,6 +256,33 @@ div.main {
     max-width: 100ch;
     padding: 1em 1em 1em 1em;
     margin: 0 auto;
+}
+
+.flexer{
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    margin: -0.5em;
+}
+
+.column{
+    flex: 1;
+    margin: 0.5em;
+}
+
+.col-sidebar{
+    flex-basis: 16rem;
+    flex-grow: 1;
+}
+
+.col-main{
+    flex-basis: 0;
+    flex-grow: 999;
+    min-width: 50%;
+}
+
+#download-advisor-aside{
+    flex-basis: 30ch;
 }
 
 /*
@@ -1037,11 +1100,35 @@ table.rightbar tr td {
     font-size: 85%;
 }
 
-table.cpanel {
-    border: none;
+.aside-box {
+    border-top: thin solid #e8e8FF;
+    background: #F8F8FF;
+    margin-bottom: 1em;
+    font-size: 0.85em;
+    padding: 2px 4px 4px 4px;
 }
-table.cpanel tr td {
-    padding: 0;
+
+.aside-box h3 {
+    margin-top: 0px;
+    padding: 0px 4px 4px 0px;
+}
+
+.aside-box p {
+    margin: 0px;
+}
+
+.cpanel {
+    border: none;
+    padding: 0px;
+}
+
+#top-reviewers-widget li{
+    list-style: none;
+}
+
+#top-reviewers-widget ol {
+    margin: 0.5em 0em 0.5em 0em;
+    padding: 0px;
 }
 
 table.botbar2 {
@@ -1076,18 +1163,17 @@ div.cpanelBtnTop {
     margin: 0;
     border-top: none;
 }
-div.cpanelBtnHover {
-    margin: 0;
+.cpanelBtn:hover {
     background: #90ffff;
 }
-div.cpanelBtn a {
+.cpanel a {
     text-decoration: none;
 }
-div.cpanelBtn a:hover {
+.cpanel a:hover {
     text-decoration: underline;
 }
 img.cpanelBtnIcon {
-    margin-right: 1ex;
+    margin-right: 1em;
 }
 div.cpanelHeading {
     margin: 0;
@@ -1319,6 +1405,7 @@ image file, unfortunately.
     height: 16px;
     border: none;
     vertical-align: middle;
+    margin-right: 1em;
 }
 input.save-button {
     background: url("/savechanges.gif");
@@ -2114,13 +2201,6 @@ span.sfl-save-autodesc {
     body {
         background: #000000;
         color: #ffffff;
-        font: 11pt/15pt Verdana, Arial, Helvetica, Sans-Serif;
-    }
-    form {
-        font: 11pt/15pt Verdana, Arial, Helvetica, Sans-Serif;
-    }
-    table tr td {
-        font: 11pt/15pt Verdana, Arial, Helvetica, Sans-Serif;
     }
     div.topbar {
         background: url("/dark-images/ifdb-topbar-midnight.jpg") #000030 no-repeat;
@@ -2137,13 +2217,7 @@ span.sfl-save-autodesc {
         border: thin dotted #303030;
     }
     table.downloads h3 {
-        font: 10pt/14pt Verdana, Arial, Helvetica, Sans-Serif;
-        font-weight: bold;
         color: #d0d0ff;
-        margin: 0 0 0 0;
-    }
-    table.downloads td {
-        font: 10pt/14pt Verdana, Arial, Helvetica, Sans-Serif;
     }
     span.dlzipmain {
         color: #d0d0ff;
@@ -2154,17 +2228,12 @@ span.sfl-save-autodesc {
     span.fmtnotes {
         color: #A0A0A0;
     }
-    div.footer {
-        font-size: 8pt;
-    }
     div.headline {
-        font-size: 110%;
         background: #202030;
         border-top: thin solid #303050;
         color: #d0d0ff;
     }
     div.headline2 {
-        font-size: 110%;
         background: #202030;
         border-top: thin solid #303050;
         color: #d0d0ff;
@@ -2182,27 +2251,28 @@ span.sfl-save-autodesc {
     table.gamerightbar {
         background: #101030;
         border: thin dotted #303030;
-        font-size: 80%;
     }
     table.gamerightbar td {
-        font-size: 10pt;
         color: #d8d8d8;
     }
     table.gamerightbar td h3 {
-        font: 10pt/14pt Verdana, Arial, Helvetica, Sans-Serif;
-        font-weight: bold;
         color: #d0d0ff;
-        margin: 0 0 0.5em 0;
     }
     table.rightbar {
-        /*border: thin dotted #303050;*/
         border-top: thin solid #303050;
         background: #101030;
+    }
+    .aside-box {
+        border-top: thin solid #303050;
+        background: #101030;
+    }
+    .main-nav a:hover{
+        background-color: #2c2c52;
     }
     tr.boxhead h3 {
         color: #f0f0f0;
     }
-    div.cpanelBtnHover {
+    .cpanelBtn:hover {
         background: #303058;
     }
     div.cpanelHeading {
@@ -2247,35 +2317,30 @@ span.sfl-save-autodesc {
     div.reviewCommentReply {
         border-left: 0.75ex solid #404040;
     }
-    h1 {
+    h1, h2, h3 {
         color: #d0d0ff;
-        font-size: 125%;
-    }
-    h2 {
-        color: #d0d0ff;
-        font-size: 110%;
-    }
-    h3 {
-        color: #d0d0ff;
-        font-size: 100%;
     }
     form.stylepicform {
         background: #101030;
         color: #ffffff;
+    }
+    input, select{
+        background-color: #000000;
+        color: #FFFFFF;
+        border: 1px solid #323245;
     }
     table.searchSummary {
         background: #202040;
         color: #ffffff;
     }
     div.tipbox {
-        background: #404040;
+        background: #101030;
+        border: 1px solid #323245;
         color: #ffffff;
     }
     div.inlinetip {
         background: #404040;
         color: #ffffff;
-    }
-    div.edit-popup-frame {
     }
     div.edit-popup-title {
         background: #7098a8;
@@ -2298,17 +2363,25 @@ span.sfl-save-autodesc {
         padding: 0 0 0 0;
         color: #ffffff;
     }
-    div.popupMenu table {
-        font-size: 75%;
-    }
-    div.popupMenu a {
-        text-decoration: none;
-        padding: 0 6px 0 6px;
-        margin: 0 0 0 0;
-        width: 100%;
-    }
     div.popupMenu a:hover {
         background: #202020;
+    }
+    div.browseBar {
+        background: #202030;
+    }
+    div.browseTabs {
+        padding: 6px 0 0 4px;
+    }
+    span.browseLabel {
+        font-weight: bold;
+        margin-right: 2em;
+    }
+    span.browseTab {
+        background: #303050;
+        border: 1px solid #202030;
+    }
+    span.activeBrowseTab {
+        background: #444476;
     }
     input.go-button {
         background: url("/dark-images/go-button-midnight.gif") no-repeat center center;

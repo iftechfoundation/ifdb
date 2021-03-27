@@ -1,0 +1,72 @@
+@import url("/ifdb.css");
+
+@media only screen and (max-device-width: 480px) {
+ body {
+  margin-bottom: 48px;
+ }
+
+div.topctl form input[type="text"] {
+  width:195px;
+}
+
+div.topctl  table td   {
+ text-align:center;
+}
+
+div.topctl table {
+  position: relative;
+  left: -5px;
+  width: 320px;
+}
+
+ div.xxxxtopbar {
+    width: 320px;
+    height: 55px;
+   background: url("images/ifdb-topbar-nar.jpg") #c0c0c0 no-repeat;
+ }
+ body {
+  clear: both;
+ } 
+
+}
+
+img.dla-button {
+    background-image: none;
+    width: 0px;
+}
+table.searchSummary {
+  display: none;
+}
+table.gameRightBar {
+  display: none;
+}
+span.fmtnotes {
+  display: none;
+}
+.new-review {
+   font-size: 12pt;
+}
+
+.rightbar {
+   display: none;
+}
+
+div.tipbox {
+   display: none;
+}
+
+div.downloadfloat {
+    float: none;
+    width: 100%;
+   margin-left: 2px
+}
+
+div.downloadfloat h3 {
+ display:none;
+}
+
+input#searchfor, #searchfor2{
+  width: 95%;
+}
+
+

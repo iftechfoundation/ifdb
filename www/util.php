@@ -417,19 +417,6 @@ function echoStylesheetLink()
             list($ssid, $ssauthor) = mysql_fetch_row($result);
     }
 
-    // failing that, check to see if we're on an iPod or iPhone - if so,
-    // use the special default style sheet for those devices
-    if (!$ssid && is_mobile()) {
-        // the iPod/iPhone style sheet has ID=6 - it's really an ordinary
-        // style sheet, created by Craig Smith (craig@ni.com), but it's
-        // distinguished as the default style sheet for these devices
-        $result = mysql_query(
-            "select stylesheetid, userid from stylesheets
-             where stylesheetid = '6'", $db);
-        if (mysql_num_rows($result) > 0)
-            list($ssid, $ssauthor) = mysql_fetch_row($result);
-    }
-
     // check for a temporary CSS override
     if ($cssOverride) {
         $db = dbConnect();
@@ -440,14 +427,16 @@ function echoStylesheetLink()
         $ssauthor = mysql_result($result, 0, "userid");
     }
 
-    // If we found a custom style sheet selection, use it; otherwise use
-    // the default style sheet.
+    // If we found a custom style sheet selection, use it;
     if ($ssid)
         echo "<link rel=\"stylesheet\"
                href=\"/users/$ssauthor/css/$ssid.css\">";
+    // otherwise, use the mobile stylesheet if we're on mobile
+    else if (is_mobile())
+        echo "<link rel=\"stylesheet\" href=\"/legacy-mobile-styles.css\">";
+    // or the regular stylesheet if we're not
     else
         echo "<link rel=\"stylesheet\" href=\"/ifdb.css\">";
-//        echo "<link rel=\"stylesheet\" href=\"/ifdb-default.css\">";
 }
 
 // --------------------------------------------------------------------------
