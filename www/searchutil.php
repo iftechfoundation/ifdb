@@ -530,7 +530,7 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse)
                                       . "and pg.userid = '$curuser'";
                     }
 
-                    // we need yes=non-zero/no=zero game links
+                    // we need yes=not-null/no=null game ids
                     $op = (preg_match("/^y.*/i", $txt) ? "is not" : "is");
                     $expr = "pg.gameid $op null";  
                 }
@@ -539,7 +539,7 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse)
             case 'willplay':
                 // Only use this query when the user is logged in
                 if ($curuser) {
-                    // need to join the playedgames table to do this query
+                    // need to join the wishlists table to do this query
                     if (!isset($extraJoins[$col])) {
                         $extraJoins[$col] = true;
                         $tableList .= " left join wishlists as wl "
@@ -547,7 +547,7 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse)
                                       . "and wl.userid = '$curuser'";
                     }
 
-                    // we need yes=non-zero/no=zero game links
+                    // we need yes=not-null/no=null game ids
                     $op = (preg_match("/^y.*/i", $txt) ? "is not" : "is");
                     $expr = "wl.gameid $op null";  
                 }
@@ -556,7 +556,7 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse)
             case 'wontplay':
                 // Only use this query when the user is logged in
                 if ($curuser) {
-                    // need to join the playedgames table to do this query
+                    // need to join the unwishlists table to do this query
                     if (!isset($extraJoins[$col])) {
                         $extraJoins[$col] = true;
                         $tableList .= " left join unwishlists as ul "
@@ -564,7 +564,7 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse)
                                       . "and ul.userid = '$curuser'";
                     }
 
-                    // we need yes=non-zero/no=zero game links
+                    // we need yes=not-null/no=null game ids
                     $op = (preg_match("/^y.*/i", $txt) ? "is not" : "is");
                     $expr = "ul.gameid $op null";  
                 }
