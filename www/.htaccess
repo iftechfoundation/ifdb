@@ -11,6 +11,10 @@ ErrorDocument 503 /error503
   Deny from All
 </FilesMatch>
 
+<FilesMatch "\.(css|js)$">
+  Header set Cache-Control "no-cache"
+</FilesMatch>
+
 RewriteEngine on
 Options FollowSymLinks
 RewriteBase /
