@@ -433,10 +433,10 @@ function echoStylesheetLink()
                href=\"/users/$ssauthor/css/$ssid.css\">";
     // otherwise, use the mobile stylesheet if we're on mobile
     else if (is_mobile())
-        echo "<link rel=\"stylesheet\" href=\"/legacy-mobile-styles.css\">";
+        echo "<link rel=\"stylesheet\" href=\"/legacy-mobile-styles.css?v=1\">";
     // or the regular stylesheet if we're not
     else
-        echo "<link rel=\"stylesheet\" href=\"/ifdb.css\">";
+        echo "<link rel=\"stylesheet\" href=\"/ifdb.css?v=1\">";
 }
 
 // --------------------------------------------------------------------------

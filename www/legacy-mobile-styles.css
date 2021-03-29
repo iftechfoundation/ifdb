@@ -1,4 +1,4 @@
-@import url("/ifdb.css");
+@import url("/ifdb.css?v=1");
 
 @media only screen and (max-device-width: 480px) {
  body {
