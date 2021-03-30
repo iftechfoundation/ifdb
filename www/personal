@@ -20,7 +20,7 @@ $result = mysql_query(
     "select name, caughtupdate from users where id='$quid'", $db);
 list($username, $caughtUpDate) = mysql_fetch_row($result);
 
-pageHeader("$username's IFDB Page");
+pageHeader("$username's IFDB Activity");
 echo "<div style=\"width: 100%;\">
     <table width=\"100%\" cellpadding=0 cellspacing=0>
     <tr valign=top><td style=\"padding-right: 1em;\">";
