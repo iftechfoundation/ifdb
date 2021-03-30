@@ -120,8 +120,8 @@ function pageHeader($title, $focusCtl = false, $extraOnLoad = false,
         <nav id="main-nav" class="main-nav">
             <ul>
             <li class="<?= ($pagescript === 'home') ? 'page-active':''; ?>"><a id="topbar-home" href="/">Home</a></li>
-            <li class="<?= ($pagescript === 'showuser') ? 'page-active':''; ?>"><a id="topbar-profile" href="/showuser">Profile</a></li>-
-            <li class="<?= ($pagescript === 'editprofile') ? 'page-active':''; ?>"><a id="topbar-edit" href="/editprofile">Edit</a></li>
+            <li class="<?= ($pagescript === 'showuser') ? 'page-active':''; ?>"><a id="topbar-profile" href="/showuser">Profile</a></li>
+            <li class="<?= ($pagescript === 'editprofile') ? 'page-active':''; ?>"><a id="topbar-edit" href="/editprofile">Settings</a></li>
             <li class="<?= ($pagescript === 'personal') ? 'page-active':''; ?>"><a id="topbar-personal" href="/personal">Your Page</a></li>
             <li class="<?= ($pagescript === 'commentlog') ? 'page-active':''; ?>"><a id="topbar-inbox" href="/commentlog?mode=inbox">Your Inbox</a></li>
             </ul>
