@@ -619,14 +619,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST'
 }
 
 // start the page
-pageHeader("Update Profile", "editprofile.email", false,
+pageHeader("Update Settings", "editprofile.email", false,
            "<script src='xmlreq.js'></script");
 imageUploadScripts();
 captchaSupportScripts($captchaKey);
 
 ?>
 
-<h1>Update Profile</h1>
+<h1>Update Settings</h1>
 
 <?php
     if ($errFlagged)
@@ -639,7 +639,7 @@ captchaSupportScripts($captchaKey);
 
     if ($changed)
         echo "<p><span class=success><b>
-           Your profile has been updated.</b></span>";
+           Your settings have been updated.</b></span>";
 
     if ($emailChanged && !$errFlagged)
         echo "<p><font color=red><b>Your email address has been updated,
