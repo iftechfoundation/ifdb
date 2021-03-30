@@ -147,7 +147,7 @@ list($comments, $commentCnt) = queryComments(
 if ($commentCnt == 0) {
     echo "<span class=notes><i>You have no comments yet (either "
         . "comments that you posted, or comments by others on your "
-        . "reviews).</span><p>"
+        . "reviews).</i></span><p>"
         . helpWinLink("help-discussions", "Explain this") . "<p>";
 } else {
 
@@ -479,7 +479,7 @@ if (count($games) == 0) {
        listings in the IFDB catalog.</i></span>";
 } else {
     foreach ($games as $g) {
-        echo "<a href=\"viewgame?id={$g['id']}\"<i>"
+        echo "<a href=\"viewgame?id={$g['id']}\"><i>"
             . htmlspecialcharx($g['title']) . "</i></a>, by "
             . htmlspecialcharx($g['author'])
             . "<span class=details> - "
