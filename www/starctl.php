@@ -194,7 +194,7 @@ function showStarCtlImg($id, $val, $init, $clickFunc, $leaveFunc)
 {
     return "<img id=\"{$id}_{$val}\" "
         . "style=\"vertical-align:middle;cursor:pointer;"
-        . "display:" . ($val == $init ? "inline" : "none") . ";\""
+        . "display:" . ($val == $init ? "inline" : "none") . ";\" "
         . "onmouseover=\"javascript:mouseOverStarCtl('$id', event);\" "
         . "onmousemove=\"javascript:mouseOverStarCtl('$id', event);\" "
         . "onmouseout=\"javascript:mouseOutStarCtl('$id', event, $leaveFunc);\" "

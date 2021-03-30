@@ -463,7 +463,7 @@ function showReview($db, $gameid, $rec, $specialNames, $optionFlags = 0)
 
         echo "<div class=smallfoot><span class=details>"
             . "Was this review helpful to you? &nbsp; "
-            . "<a href=\"needjs\""
+            . "<a href=\"needjs\" "
             . "onclick=\"javascript:sendReviewVote('$reviewid', 'Y');"
             . "return false;\">Yes</a> &nbsp; "
             . "<a href=\"needjs\""
@@ -481,7 +481,7 @@ function showReview($db, $gameid, $rec, $specialNames, $optionFlags = 0)
 		echo  "<div style=\"display:inline;position:relative;\">"
             . "<a href=\"#\" id=\"voteMenuLink_$reviewid\" "
             . "onclick=\"javascript:popVoteMenu('$reviewid');"
-            . "return false;\">More Options<img src=\"/blank.gif\""
+            . "return false;\">More Options<img src=\"/blank.gif\" "
             . "class=\"popup-menu-arrow\"></a>"
 
             . "<div id=\"voteMenu_$reviewid\" style=\"display: none;"
