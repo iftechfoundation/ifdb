@@ -1117,6 +1117,11 @@ table.rightbar tr td {
     margin: 0px;
 }
 
+.aside-box ul {
+    padding-left: 3ch;
+    margin: 0;
+}
+
 .cpanel {
     border: none;
     padding: 0px;
