@@ -160,7 +160,7 @@ function pageFooter()
 <a class="nav" id="footer-tos" href="/tos">Terms of Service</a> |
 <a class="nav" id="footer-privacy" href="/privacy">Privacy</a> |
 <a class="nav" id="footer-copyright" href="/copyright">Copyrights &amp; Trademarks</a>
-</a></div>
+</div>
 
 </div>
 </body>
