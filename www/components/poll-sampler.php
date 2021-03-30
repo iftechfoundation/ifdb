@@ -121,6 +121,7 @@ if (count($rows) > 0) {
 
     echo "<div class=\"details\" style=\"margin-top: 1ex;\">"
         . "<a href=\"search?browse&poll&sortby=new\">Browse all polls</a> | "
+        . "<a href=\"poll?id=new\">Create a poll</a> | "
         . helpWinLink("help-polls", "What are polls?")
         . "</div></td></tr></table></div>";
 }
