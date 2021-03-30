@@ -111,7 +111,7 @@ if ($debugflag) echo "debug mode enabled...<br>";
       
       <div class="aside-box">
          <h3>IF Links</h3>
-         <ul style="margin: 0 0 0 1em; padding: 0;">
+         <ul>
             <li><a href="https://intfiction.org"><b>IF Community Forum</b></a>: Discuss playing IF, creating IF, and competitions.</li>
             <li><a href="https://planet-if.com"><b>Planet IF</b></a>: Read the latest posts from IF-related blogs.</li>
             <li><a href="http://ifwiki.org"><b>IFWiki</b></a>: Explore IF history, theory, and other community knowledge.</li>
@@ -121,7 +121,7 @@ if ($debugflag) echo "debug mode enabled...<br>";
 
       <div class="aside-box">
          <h3>Competition Links</h3>
-         <ul style="margin: 0 0 0 1em; padding: 0;">
+         <ul>
             <li><a href="https://ifcomp.org"><b>IFComp</b></a></li>
             <li><a href="https://www.springthing.net"><b>Spring Thing</b></a></li>
             <li><a href="https://xyzzyawards.org"><b>XYZZY Awards</b></a></li>
