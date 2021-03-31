@@ -6,12 +6,14 @@ $ifid = get_req_data("ifid");
 $qifid = strtoupper(urlencode($ifid));
 
 // look up the page on ifwiki.org
-$body = x_http_get("http://ifwiki.org/index.php?title=IFID:$qifid",
-                   null, $headers);
+$ch = curl_init("http://ifwiki.org/index.php?title=IFID:$qifid");
+curl_setopt($ch, CURLOPT_NOBODY, true);
+curl_setopt($ch, CURLOPT_TIMEOUT, 30);
+curl_exec($ch);
+$status_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+curl_close($ch);
 
-$exists = false;
-if (preg_match("/HTTP\/[.\d]+ +200 /", $headers))
-    $exists = true;
+$exists = ($status_code == 200);
 
 header("Expires: Mon, 26 Jul 1997 05:00:00 GMT");
 header("Cache-Control: no-store, no-cache, must-revalidate");
