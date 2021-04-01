@@ -840,7 +840,7 @@ else if ($searchType == "tag") {
              <td></td>
           </tr>
        </table>
-       <input type="hidden" name="member" value="1">
+       <input type="hidden" name="tag" value="1">
     </form>
 
     <h3>Search Tips</h3>
