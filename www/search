@@ -345,6 +345,8 @@ if ($term || $browse) {
         case "club":
             $redir = "club?id={$rows[0]['clubid']}";
             break;
+        
+        // Does not apply to tags
         }
 
         // if we found a unique result, redirect to it, so that we go directly
@@ -1233,6 +1235,11 @@ if ($xml) {
                 .  "<badge>$badge</badge>"
                 . "</member>");
             break;
+
+        case "tag":
+            $id = $row['tag'];
+            $link = htmlspecialcharx(get_root_url() . "search?searchfor=tag:$id");
+            break;
         }
     }
 
@@ -1650,6 +1657,16 @@ else if ($term || $browse)
                         . ($profile ? "<i>\"$profile\"</i>" : "")
                         . "</span>";
                 }
+                break;
+  
+            case "tag":
+                // get the row data
+                $id = $row['tag'];
+
+                // show the listing
+                echo "<p><a href=\"search?searchfor=tag:$id\">"
+                    . "<b>$id</b></a><br>";
+
                 break;
             }
         }
