@@ -870,6 +870,13 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse)
         $defSortBy = 'name';
         break;
 
+    case "tag":
+        $sortList = array(
+            'name' => array('gt.tag,', 'Sort by Tag Name'),
+            'rand' => array('rand(),', 'Random Order'));
+        $defSortBy = 'name';
+        break;
+
     default:
         $sortList = array();
         break;
