@@ -938,7 +938,7 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse)
     // run the query
     $result = mysql_query($sql, $db);
     if (!$result) error_log(mysql_error($db));
-    echo "<p>$sql<p>" . mysql_error($db) . "<p>";  // DIAGNOSTICS
+//    echo "<p>$sql<p>" . mysql_error($db) . "<p>";  // DIAGNOSTICS
 
     $errMsg = false;
     if ($result) {
