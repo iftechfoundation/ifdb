@@ -206,6 +206,7 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse)
         $specialMap = array(
             "genre:" => array("genre", 0),
             "published:" => array("date_format(published, '%Y')", 1),
+            "submitted:" => array("date_format(created, '%Y')", 1),
             "system:" => array("system", 0),
             "series:" => array("seriesname", 0),
             "tag:" => array("tags", 3),
