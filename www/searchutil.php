@@ -204,7 +204,7 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse)
     {
         // special keywords for tag search
         $specialMap = array(
-            "tag:" => array("tag", 99));        
+            "tag:" => array("tag", 0));        
         
         $selectList = "gt.tag as tag";
         $tableList = "gametags as gt";
