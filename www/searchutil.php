@@ -200,6 +200,20 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse)
         $likeCol = "c.title";
         $summaryDesc = "Competitions";
     }
+    else if ($searchType == "tag")
+    {
+        // special keywords for tag search
+        $specialMap = array(
+            "tag:" => array("tag", 99));        
+        
+        $selectList = "gt.tag as tag";
+        $tableList = "gametags as gt";
+        $groupBy = "group by gt.tag";
+        $baseOrderBy = "gt.tag";
+        $matchCols = "gt.tag";
+        $likeCol = "gt.tag";
+        $summaryDesc = "Tags";
+    }
     else
     {
         // special keywords for game search:  "keyword:" => descriptor
@@ -924,7 +938,7 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse)
     // run the query
     $result = mysql_query($sql, $db);
     if (!$result) error_log(mysql_error($db));
-//    echo "<p>$sql<p>" . mysql_error($db) . "<p>";  // DIAGNOSTICS
+    echo "<p>$sql<p>" . mysql_error($db) . "<p>";  // DIAGNOSTICS
 
     $errMsg = false;
     if ($result) {
