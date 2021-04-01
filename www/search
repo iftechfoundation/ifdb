@@ -577,11 +577,6 @@ else if ($searchType == "poll") {
        <!-- <h2>Search Polls</h2> -->
        <table cellspacing=0 cellpadding=0 border=0>
           <tr>
-             <!--
-             <td>
-                <b>Search for:&nbsp;</b>
-             </td>
-             -->
              <td>
                 <input type="text" name="searchfor" id="searchfor" size=70
                       value="<?php echo htmlspecialcharx($tTerm) ?>">
@@ -629,11 +624,6 @@ else if ($searchType == "comp") {
        <!-- <h2>Search Competitions</h2> -->
        <table cellpadding=0 cellspacing=0>
           <tr>
-             <!--
-             <td>
-                <b>Search for:&nbsp;</b>
-             </td>
-             -->
              <td>
                 <input type="text" name="searchfor" id="searchfor" size=70
                       value="<?php echo htmlspecialcharx($tTerm) ?>">
@@ -705,11 +695,6 @@ else if ($searchType == "club") {
        <!-- <h2>Search Clubs</h2> -->
        <table cellpadding=0 cellspacing=0>
           <tr>
-             <!--
-             <td>
-                <b>Search for:&nbsp;</b>
-             </td>
-             -->
              <td>
                 <input type="text" name="searchfor" id="searchfor" size=70
                       value="<?php echo htmlspecialcharx($tTerm) ?>">
@@ -767,11 +752,6 @@ else if ($searchType == "member") {
        <!-- <h2>Search Member Directory</h2> -->
        <table cellpadding=0 cellspacing=0>
           <tr>
-             <!--
-             <td>
-                <b>Search for:&nbsp;</b>
-             </td>
-             -->
              <td>
                 <input type="text" name="searchfor" id="searchfor" size=70
                       value="<?php echo htmlspecialcharx($tTerm) ?>">
@@ -827,11 +807,6 @@ else if ($searchType == "tag") {
        <!-- <h2>Search Member Directory</h2> -->
        <table cellpadding=0 cellspacing=0>
           <tr>
-             <!--
-             <td>
-                <b>Search for:&nbsp;</b>
-             </td>
-             -->
              <td>
                 <input type="text" name="searchfor" id="searchfor" size=70
                       value="<?php echo htmlspecialcharx($tTerm) ?>">
