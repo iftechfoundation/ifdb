@@ -833,7 +833,7 @@ else if ($searchType == "tag") {
              <td>
                 <input type="text" name="searchfor" id="searchfor" size=70
                       value="<?php echo htmlspecialcharx($tTerm) ?>">
-                <input type="submit" name="searchgo" value="Search Members">
+                <input type="submit" name="searchgo" value="Search Tags">
              </td>
           </tr>
           <tr>
