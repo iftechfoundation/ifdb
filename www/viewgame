@@ -1222,8 +1222,6 @@ function updateUnwishList(id, stat)
 <script type="text/javascript">
 <!--
 mouseOutRating(<?php echo $currentUserRating ?>);
-if (!document.all)
-    document.captureEvents(Event.MOUSEMOVE);
 //-->
 </script>
             <?php
