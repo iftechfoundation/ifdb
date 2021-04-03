@@ -999,14 +999,13 @@ else {  // ...default is searching games
           or later, and <b>published:-2000</b> lists games published in
           2000 or earlier.
 
-       <p><b>submitted:<i>year-year</i></b> only shows games with
-          listings created and submitted on dates in the given range.
-          For example, <b>submitted:1990-2000</b> shows games with
-          listings submitted from 1990 to 2000. <b>submitted:1990</b>
-          shows games with listings submitted in 1990.
-          <b>submitted:1990-</b> shows games with listings submitted
-          in 1990 or later, and <b>submitted:-2000</b> shows games
-          with listings submitted in 2000 or earlier.
+       <p><b>added:<i>year-year</i></b> only shows games with
+          listings added to the database on dates in the given range.
+          For example, <b>added:2007-2020</b> shows games added
+          from 2007 to 2020. <b>added:2007</b> shows games added
+          in 2007. <b>added:2007-</b> shows games added in 2007
+          or later, and <b>added:-2020</b> shows games added in
+          2020 or earlier.
 
        <p><b>language:<i>code</i></b> lists games written in the given
           spoken language.  You can use the English name of the language,
