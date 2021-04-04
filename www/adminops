@@ -741,7 +741,7 @@ else if (isset($_REQUEST['users'])) {
 
 	echo "<div style=\"margin: 1ex 0px;\">"
 		. "<form>"
-		. "Search by name or email: <input name=\"finduser\" type=\"text\" length=60 value=\"$fldval\">"
+		. "Search by name or email: <input name=\"finduser\" type=\"text\" length=60>"
 		. "  <input type=\"submit\" name=\"go\" value=\"Find\">"
 		. "</form>"
 		. "</div>";
