@@ -72,8 +72,8 @@ if ($curuser) {
         list($offsiteMode) = mysql_fetch_row($result);
 
     // if it's not set, default to 'A'
-    if (strlen($offsetMode) != 1 || strpos("ABLN", $offsiteMode) === false)
-        $offsetMode = 'A';
+    if (strlen($offsiteMode) != 1 || strpos("ABLN", $offsiteMode) === false)
+        $offsiteMode = 'A';
 }
 
 // ------------------------------------------------------------------------
@@ -1980,14 +1980,6 @@ if (count($inrefs) != 0 && !$historyView) {
 
         // see what we have
         if (count($srevs) != 0) {
-            if ($historyView)
-                echo "<h2>Off-Site Reviews</h2>";
-            else
-                echo "<h2>Editorial Reviews</h2>";
-            
-            echo "<div class=indented>";
-            $divStarted = true;
-
             for ($i = 0 ; $i < count($srevs) ; $i++) {
                 // get this row
                 $srev = $srevs[$i];
@@ -2107,6 +2099,16 @@ if (count($inrefs) != 0 && !$historyView) {
                     $osr .= $txt;
                 } else {
                     // this is for immediate display
+                    if (!$divStarted) {
+                        if ($historyView)
+                            echo "<h2>Off-Site Reviews</h2>";
+                        else
+                            echo "<h2>Editorial Reviews</h2>";
+
+                        echo "<div class=indented>";
+                        $divStarted = true;
+                    }
+
                     echo $txt;
                 }
             }
