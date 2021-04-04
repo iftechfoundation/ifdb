@@ -218,6 +218,7 @@ div.topctl form {
     flex-wrap: wrap;
     overflow: auto;
     padding: 0em 1em 0em 1em;
+    justify-content: space-between;
 }
 
 .main-nav ul{
@@ -225,7 +226,6 @@ div.topctl form {
     padding: 0px;
     display: flex;
     flex-basis: 0;
-    flex-grow: 999;
     align-items: center;
 }
 
