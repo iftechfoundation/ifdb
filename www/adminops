@@ -26,7 +26,7 @@ if ($userid) {
 
 // if this isn't an ADMIN user, send back an error
 if (!$adminPriv) {
-    pageHeader("Unuthorized Access Prohibited");
+    pageHeader("Unauthorized Access Prohibited");
     echo "<h1>Unauthorized Access Prohibited</h1>
         <p>Access to this page is restricted to authorized users.";
     pageFooter();
