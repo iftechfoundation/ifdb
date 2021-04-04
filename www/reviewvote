@@ -51,7 +51,7 @@ if (!$userid && !$xml && !logged_in(true))
     exit();
 
 if (!$userid)
-    sendResponse("Not Saved", "To vote on a reviews, please log in.", false);
+    sendResponse("Not Saved", "To vote on a review, please log in.", false);
 
 if (isEmpty($id) || isEmpty($vote) || strstr("YNR", $vote) == false)
     sendResponse("Not Saved", "This voting link is not valid.", false);
