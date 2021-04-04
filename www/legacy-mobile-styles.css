@@ -1,32 +1,13 @@
 @import url("/ifdb.css?v=1");
 
 @media only screen and (max-device-width: 480px) {
- body {
+  body {
   margin-bottom: 48px;
  }
 
 div.topctl form input[type="text"] {
   width:195px;
 }
-
-div.topctl  table td   {
- text-align:center;
-}
-
-div.topctl table {
-  position: relative;
-  left: -5px;
-  width: 320px;
-}
-
- div.xxxxtopbar {
-    width: 320px;
-    height: 55px;
-   background: url("images/ifdb-topbar-nar.jpg") #c0c0c0 no-repeat;
- }
- body {
-  clear: both;
- } 
 
 }
 
