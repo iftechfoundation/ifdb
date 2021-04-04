@@ -838,6 +838,10 @@ if ($id == 'new') {
     pageHeader("Create a New Poll", "newPollForm.title");
 ?>
 
+<div class="tipbox"><h1>Ask a question</h1>
+If you have a question about IF, you can
+<a href="https://intfiction.org">ask at the IF Community Forum</a>.</div>
+
 <h1>Create a New Poll</h1>
 <p>Are you looking for recommendations for a particular type of IF
 to play?  Ask the IFDB community for ideas by creating a public poll.
