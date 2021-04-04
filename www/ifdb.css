@@ -741,7 +741,10 @@ div.edit-popup-win table tr td {
 div#imageUploadCopyrightForm table td {
     font-size: 90%;
 }
-        
+
+input#searchfor, #searchfor2{
+  max-width: calc(100vw - 2rem);
+}
 
 /*
 The "searchSummary" table is used to show the current location in the
