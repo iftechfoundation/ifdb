@@ -57,7 +57,13 @@ CSS unfortunately doesn't have a way to refer indirectly to the dimensions
 from the image file, so you just have to hard-code the actual pixel size.
 */
 
+html {
+    box-sizing: border-box;
+}
 
+*, *:before, *:after {
+  box-sizing: inherit;
+}
 
 /*
 This is the style for the main body of the page - nearly everything
