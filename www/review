@@ -688,7 +688,10 @@ by <?php echo $author ?><br>
    </span>
 
 <p>Share your thoughts about this game with others in the IF community.
-Please avoid spoilers (or, use the <?php
+Please follow our <?php
+   echo helpWinLink("code-of-conduct", "code of conduct");
+?>, 
+and please avoid spoilers (or use the <?php
 echo helpWinLink("help-review#spoilertags", "&lt;spoiler&gt; tag")
 ?>).
 If you haven't written reviews here before, please read our <?php
