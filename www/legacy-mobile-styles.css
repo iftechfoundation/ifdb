@@ -1,12 +1,5 @@
 @import url("/ifdb.css?v=1");
 
-@media only screen and (max-device-width: 480px) {
-  body {
-  margin-bottom: 48px;
- }
-
-}
-
 img.dla-button {
     background-image: none;
     width: 0px;
