@@ -189,18 +189,6 @@ $qterm = mysql_real_escape_string($term, $db);
 
 $hrefTerm = ($term ? $term : $tTerm);
 $hrefTerm = urlencode($hrefTerm);
-$hrefSearchGame = "href=\"search?tterm=$hrefTerm\" "
-                  . "onclick=\"javascript:newSearch('');return false;\"";
-$hrefSearchList = "href=\"search?list&tterm=$hrefTerm\" "
-                  . "onclick=\"javascript:newSearch('list');return false;\"";
-$hrefSearchMember = "href=\"search?member&tterm=$hrefTerm\" "
-                    . "onclick=\"javascript:newSearch('member');return false;\"";
-$hrefSearchPoll = "href=\"search?poll&tterm=$hrefTerm\" "
-                  . "onclick=\"javascript:newSearch('poll');return false;\"";
-$hrefSearchComp = "href=\"search?comp&tterm=$hrefTerm\" "
-                  . "onclick=\"javascript:newSearch('comp');return false;\"";
-$hrefSearchClub = "href=\"search?club&tterm=$hrefTerm\" "
-                  . "onclick=\"javascript:newSearch('club');return false;\"";
 
 // get the search type
 $searchType = (isset($_REQUEST['list']) ? "list" :
@@ -208,15 +196,17 @@ $searchType = (isset($_REQUEST['list']) ? "list" :
                isset($_REQUEST['member']) ? "member" :
                isset($_REQUEST['comp']) ? "comp" :
                isset($_REQUEST['club']) ? "club" :
+               isset($_REQUEST['tag']) ? "tag" :
                "game");
 
 $browseTabs = array(
-    "game" => "Games",
-    "list" => "Lists",
-    "poll" => "Polls",
-    "comp" => "Competitions",
-    "club" => "Clubs",
-    "member" => "Members");
+    "game"    => "Games",
+    "list"    => "Lists",
+    "poll"    => "Polls",
+    "comp"    => "Competitions",
+    "club"    => "Clubs",
+    "member"  => "Members",
+    "tag"     => "Tags");
 
 if (isset($_REQUEST['list'])) {
     $searchType = "list";
@@ -242,6 +232,11 @@ else if (isset($_REQUEST['club'])) {
     $searchType = "club";
     $searchButton = "Search Clubs";
     $hiddenTypeField = "<input type=\"hidden\" name=\"club\" value=\"1\">";
+}
+else if (isset($_REQUEST['tag'])) {
+    $searchType = "tag";
+    $searchButton = "Search Tags";
+    $hiddenTypeField = "<input type=\"hidden\" name=\"tag\" value=\"1\">";
 }
 else {
     $searchType = "game";
@@ -350,6 +345,8 @@ if ($term || $browse) {
         case "club":
             $redir = "club?id={$rows[0]['clubid']}";
             break;
+        
+        // Does not apply to tags
         }
 
         // if we found a unique result, redirect to it, so that we go directly
@@ -378,7 +375,8 @@ if (!$xml) {
                         ($searchType == "member" ? "Members" :
                          ($searchType == "comp" ? "Competitions" :
                           ($searchType == "club" ? "Clubs" :
-                           "Games")))));
+                           ($searchType == "tag" ? "Tags" :
+                           "Games"))))));
 
     pageHeader($term == "" && $browse ? "Browse $searchTypeName"
                                       : "Search for $searchTypeName",
@@ -519,16 +517,6 @@ else if ($term || $browse) {
        <?php echo $hiddenTypeField ?>
        <?php echo $hiddenXL ?>
        <br>
-       <!--
-       <span class=details>
-          <a <?php echo $hrefSearchGame ?>>Advanced Search Games</a> -
-          <a <?php echo $hrefSearchList ?>>Search Lists</a> -
-          <a <?php echo $hrefSearchPoll ?>>Search Polls</a> -
-          <a <?php echo $hrefSearchComp ?>>Search Competitions</a> -
-          <a <?php echo $hrefSearchClub ?>>Search Clubs</a> -
-          <a <?php echo $hrefSearchMember ?>>Search Members</a>
-       </span>
-       -->
     </form>
 
     <?php
@@ -542,11 +530,6 @@ else if ($searchType == "list") {
        <!-- <h2>Search Recommended Lists</h2> -->
        <table cellspacing=0 cellpadding=0 border=0>
           <tr>
-             <!--
-             <td>
-                <b>Search for:&nbsp;</b>
-             </td>
-             -->
              <td>
                 <input type="text" name="searchfor" id="searchfor" size=70
                       value="<?php echo htmlspecialcharx($tTerm) ?>">
@@ -555,23 +538,11 @@ else if ($searchType == "list") {
           </tr>
           <tr>
              <td></td>
-             <!--
-             <td>
-                <span class=details><b>Other searches:</b>
-                   <a <?php echo $hrefSearchGame ?>>Games</a> -
-                   <a <?php echo $hrefSearchPoll ?>>Search Polls</a> -
-                   <a <?php echo $hrefSearchComp ?>>Search Competitions</a> -
-                   <a <?php echo $hrefSearchClub ?>>Search Clubs</a> -
-                   <a <?php echo $hrefSearchMember ?>>Members</a>
-                </span>
-             </td>
-             -->
           </tr>
        </table>
        <input type="hidden" name="list" value="1">
     </form>
 
-    <br><br>
     <h3>Search Tips</h3>
 
     <div class=searchnotes>
@@ -606,11 +577,6 @@ else if ($searchType == "poll") {
        <!-- <h2>Search Polls</h2> -->
        <table cellspacing=0 cellpadding=0 border=0>
           <tr>
-             <!--
-             <td>
-                <b>Search for:&nbsp;</b>
-             </td>
-             -->
              <td>
                 <input type="text" name="searchfor" id="searchfor" size=70
                       value="<?php echo htmlspecialcharx($tTerm) ?>">
@@ -619,23 +585,11 @@ else if ($searchType == "poll") {
           </tr>
           <tr>
              <td></td>
-             <!--
-             <td>
-                <span class=details><b>Other searches:</b>
-                   <a <?php echo $hrefSearchGame ?>>Games</a> -
-                   <a <?php echo $hrefSearchList ?>>Search Lists</a> -
-                   <a <?php echo $hrefSearchComp ?>>Search Competitions</a> -
-                   <a <?php echo $hrefSearchClub ?>>Search Clubs</a> -
-                   <a <?php echo $hrefSearchMember ?>>Members</a>
-                </span>
-             </td>
-             -->
           </tr>
        </table>
        <input type="hidden" name="poll" value="1">
     </form>
 
-    <br><br>
     <h3>Search Tips</h3>
 
     <div class=searchnotes>
@@ -670,11 +624,6 @@ else if ($searchType == "comp") {
        <!-- <h2>Search Competitions</h2> -->
        <table cellpadding=0 cellspacing=0>
           <tr>
-             <!--
-             <td>
-                <b>Search for:&nbsp;</b>
-             </td>
-             -->
              <td>
                 <input type="text" name="searchfor" id="searchfor" size=70
                       value="<?php echo htmlspecialcharx($tTerm) ?>">
@@ -683,23 +632,11 @@ else if ($searchType == "comp") {
           </tr>
           <tr>
              <td></td>
-             <!--
-             <td>
-                <span class=details><b>Other searches:</b>
-                   <a <?php echo $hrefSearchGame ?>>Games</a> -
-                   <a <?php echo $hrefSearchList ?>>Recommended Lists</a> -
-                   <a <?php echo $hrefSearchPoll ?>>Search Polls</a> -
-                   <a <?php echo $hrefSearchClub ?>>Search Clubs</a> -
-                   <a <?php echo $hrefSearchMember ?>>Search Members</a>
-                </span>
-             </td>
-             -->
           </tr>
        </table>
        <input type="hidden" name="comp" value="1">
     </form>
 
-    <br><br>
     <h3>Search Tips</h3>
 
     <div class=searchnotes>
@@ -758,11 +695,6 @@ else if ($searchType == "club") {
        <!-- <h2>Search Clubs</h2> -->
        <table cellpadding=0 cellspacing=0>
           <tr>
-             <!--
-             <td>
-                <b>Search for:&nbsp;</b>
-             </td>
-             -->
              <td>
                 <input type="text" name="searchfor" id="searchfor" size=70
                       value="<?php echo htmlspecialcharx($tTerm) ?>">
@@ -771,23 +703,11 @@ else if ($searchType == "club") {
           </tr>
           <tr>
              <td></td>
-             <!--
-             <td>
-                <span class=details><b>Other searches:</b>
-                   <a <?php echo $hrefSearchGame ?>>Games</a> -
-                   <a <?php echo $hrefSearchList ?>>Recommended Lists</a> -
-                   <a <?php echo $hrefSearchPoll ?>>Search Polls</a> -
-                   <a <?php echo $hrefSearchClub ?>>Search Clubs</a> -
-                   <a <?php echo $hrefSearchMember ?>>Search Members</a>
-                </span>
-             </td>
-             -->
           </tr>
        </table>
        <input type="hidden" name="club" value="1">
     </form>
 
-    <br><br>
     <h3>Search Tips</h3>
 
     <div class=searchnotes>
@@ -832,11 +752,6 @@ else if ($searchType == "member") {
        <!-- <h2>Search Member Directory</h2> -->
        <table cellpadding=0 cellspacing=0>
           <tr>
-             <!--
-             <td>
-                <b>Search for:&nbsp;</b>
-             </td>
-             -->
              <td>
                 <input type="text" name="searchfor" id="searchfor" size=70
                       value="<?php echo htmlspecialcharx($tTerm) ?>">
@@ -845,23 +760,11 @@ else if ($searchType == "member") {
           </tr>
           <tr>
              <td></td>
-             <!--
-             <td>
-                <span class=details><b>Other searches:</b>
-                   <a <?php echo $hrefSearchGame ?>>Games</a> -
-                   <a <?php echo $hrefSearchList ?>>Recommended Lists</a> -
-                   <a <?php echo $hrefSearchPoll ?>>Search Polls</a>
-                   <a <?php echo $hrefSearchComp ?>>Search Competitions</a> -
-                   <a <?php echo $hrefSearchClub ?>>Search Clubs</a> -
-                </span>
-             </td>
-             -->
           </tr>
        </table>
        <input type="hidden" name="member" value="1">
     </form>
 
-    <br><br>
     <h3>Search Tips</h3>
 
     <div class=searchnotes>
@@ -896,6 +799,48 @@ else if ($searchType == "member") {
 
     <?php
 }
+else if ($searchType == "tag") {
+
+    ?>
+
+    <form name="advsearch" method="get" action="search">
+       <!-- <h2>Search Member Directory</h2> -->
+       <table cellpadding=0 cellspacing=0>
+          <tr>
+             <td>
+                <input type="text" name="searchfor" id="searchfor" size=70
+                      value="<?php echo htmlspecialcharx($tTerm) ?>">
+                <input type="submit" name="searchgo" value="Search Tags">
+             </td>
+          </tr>
+          <tr>
+             <td></td>
+          </tr>
+       </table>
+       <input type="hidden" name="tag" value="1">
+    </form>
+
+    <h3>Search Tips</h3>
+
+    <div class=searchnotes>
+
+    <p>By default, IFDB searches each tag name for the
+    words you enter, and shows tags that match at least one of your
+    search terms.  You can customize the search with the 
+    special modifiers below.
+
+
+    <div class=indented>
+
+       <?php echo $commonInstructions ?>
+        
+    </div>
+        
+    </div>
+
+
+    <?php
+}
 else {  // ...default is searching games
 
     ?>
@@ -906,18 +851,7 @@ else {  // ...default is searching games
               value="<?php echo htmlspecialcharx($tTerm) ?>">
        <input type="submit" name="searchgo" value="Search Games">
        <?php echo $hiddenXL ?>
-       <!-- 
        <br>
-       <span class=details><b>Other searches:</b>
-          <a <?php echo $hrefSearchList ?>>Recommended Lists</a> -
-          <a <?php echo $hrefSearchPoll ?>>Polls</a> -
-          <a <?php echo $hrefSearchComp ?>>Competitions</a> -
-          <a <?php echo $hrefSearchClub ?>>Search Clubs</a> -
-          <a <?php echo $hrefSearchMember ?>>Members</a>
-       </span>
-       -->
-
-       <br><br>
        <h3>Search Tips</h3>
 
        <div class=searchnotes>
@@ -1276,6 +1210,11 @@ if ($xml) {
                 .  "<badge>$badge</badge>"
                 . "</member>");
             break;
+
+        case "tag":
+            $id = $row['tag'];
+            $link = htmlspecialcharx(get_root_url() . "search?searchfor=tag:$id");
+            break;
         }
     }
 
@@ -1306,7 +1245,8 @@ else if ($term || $browse)
                                  . ($searchType == "poll" ? "&poll" : "")
                                  . ($searchType == "member" ? "&member" : "")
                                  . ($searchType == "comp" ? "&comp" : "")
-                                 . ($searchType == "club" ? "&club" : ""),
+                                 . ($searchType == "club" ? "&club" : "")
+                                 . ($searchType == "tag" ? "&tag" : ""),
                                  $pg, $lastPage, $firstOnPage, $lastOnPage,
                                  $rowcnt, true,
                                  $rowcnt < $showAllMaxRows, $pgAll)
@@ -1716,6 +1656,16 @@ else if ($term || $browse)
                         . ($profile ? "<i>\"$profile\"</i>" : "")
                         . "</span>";
                 }
+                break;
+  
+            case "tag":
+                // get the row data
+                $id = $row['tag'];
+
+                // show the listing
+                echo "<p><a href=\"search?searchfor=tag:$id\">"
+                    . "<b>$id</b></a><br>";
+
                 break;
             }
         }

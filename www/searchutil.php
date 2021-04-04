@@ -200,6 +200,20 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse)
         $likeCol = "c.title";
         $summaryDesc = "Competitions";
     }
+    else if ($searchType == "tag")
+    {
+        // special keywords for tag search
+        $specialMap = array(
+            "tag:" => array("tag", 0));        
+        
+        $selectList = "gt.tag as tag";
+        $tableList = "gametags as gt";
+        $groupBy = "group by gt.tag";
+        $baseOrderBy = "gt.tag";
+        $matchCols = "gt.tag";
+        $likeCol = "gt.tag";
+        $summaryDesc = "Tags";
+    }
     else
     {
         // special keywords for game search:  "keyword:" => descriptor
@@ -852,6 +866,13 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse)
             'mcd' => array('membercnt desc,', 'Most Members First'),
             'mcu' => array('membercnt,', 'Fewest Members First'),
             'con' => array('lower(c.contacts),', 'Sort by Contact Name'),
+            'rand' => array('rand(),', 'Random Order'));
+        $defSortBy = 'name';
+        break;
+
+    case "tag":
+        $sortList = array(
+            'name' => array('gt.tag,', 'Sort by Tag Name'),
             'rand' => array('rand(),', 'Random Order'));
         $defSortBy = 'name';
         break;
