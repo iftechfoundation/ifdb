@@ -929,7 +929,7 @@ p.nosp {
     margin: 0 0 0 0;
 }
 
-p {
+p, ul, ol {
     max-width: 60ch;
 }
 
