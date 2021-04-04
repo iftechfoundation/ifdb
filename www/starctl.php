@@ -53,40 +53,7 @@ function setStarCtlValue(id, val)
         ?>
 <script type="text/javascript">
 <!--
-var starRatings = [];
-function isMouseInStarCtl(id, e)
-{
-    var x, y;
-    if (e.pageX) {
-        x = e.pageX;
-        y = e.pageY;
-    } else if (e.clientX) {
-        x = e.clientX
-            + (document.documentElement.scrollLeft
-               ? document.documentElement.scrollLeft
-               : document.body.scrollLeft);
-        y = e.clientY
-            + (document.documentElement.scrollTop
-               ? document.documentElement.scrollTop
-               : document.body.scrollTop);
-    }
-    var ox = x, oy = y;
-    var msg = "";
-    for (i = 0 ; i <= 5 ; i++) {
-        x = ox;
-        y = oy;
-        var sEle = document.getElementById(id + "_" + i);
-        if (sEle.style.display == "inline") {
-            for (var ele = sEle ; ele != document.body ;
-                 x -= ele.offsetLeft, y -= ele.offsetTop,
-                 ele = ele.offsetParent) ;
-            if (x >= 0 && x <= sEle.offsetWidth
-                && y >= 0 && y <= sEle.offsetHeight)
-                return true;
-        }
-    }
-    return false;
-}
+var starRatings = {};
 function starsFromMouse(id, e)
 {
     var x;
@@ -97,12 +64,7 @@ function starsFromMouse(id, e)
             + (document.documentElement.scrollLeft
                ? document.documentElement.scrollLeft
                : document.body.scrollLeft);
-    var sEle;
-    for (i = 0 ; i <= 5 ; i++) {
-        sEle = document.getElementById(id + "_" + i);
-        if (sEle.style.display == "inline")
-            break;
-    }
+    var sEle = document.getElementById(id);
     for (var ele = sEle ; ele != document.body ;
          x -= ele.offsetLeft, ele = ele.offsetParent) ;
 
@@ -122,12 +84,10 @@ function mouseClickStarCtl(id, e, clickFunc)
 }
 function mouseOutStarCtl(id, e, cbFunc)
 {
-    if (!isMouseInStarCtl(id, e)) {
-        var stars = starRatings[id];
-        showStarCtlValue(id, stars);
-        if (cbFunc != null)
-            cbFunc(stars);
-    }
+   var stars = starRatings[id];
+   showStarCtlValue(id, stars);
+   if (cbFunc != null)
+       cbFunc(stars);
 }
 function setStarCtlValue(id, val)
 {
@@ -136,12 +96,7 @@ function setStarCtlValue(id, val)
 }
 function showStarCtlValue(id, val)
 {
-    var i;
-    document.getElementById(id + "_" + val).style.display = "inline";
-    for (i = 0 ; i <= 5 ; i++) {
-        if (i != val)
-            document.getElementById(id + "_" + i).style.display = "none";
-    }
+    document.getElementById(id).className = "star" + val;
 }
 //-->
 </script>
@@ -183,23 +138,17 @@ function showStarCtl($id, $init, $clickFunc, $leaveFunc)
                . "//-->\r\n"
                . "</script>\r\n";
         
-        for ($i = 0 ; $i <= 5 ; $i++)
-            $str .= showStarCtlImg($id, $i, $init, $clickFunc, $leaveFunc);
+        $str .= "<img id=\"{$id}\" "
+                . "style=\"vertical-align:middle;cursor:pointer;"
+                . "display: inline;\" "
+                . "onmouseover=\"javascript:mouseOverStarCtl('$id', event);\" "
+                . "onmousemove=\"javascript:mouseOverStarCtl('$id', event);\" "
+                . "onmouseout=\"javascript:mouseOutStarCtl('$id', event, $leaveFunc);\" "
+                . "onclick=\"javascript:mouseClickStarCtl('$id', event, $clickFunc);\" "
+                . "src=\"blank.gif\" class=\"star$init\">";
     }
 
     return $str;
-}
-
-function showStarCtlImg($id, $val, $init, $clickFunc, $leaveFunc)
-{
-    return "<img id=\"{$id}_{$val}\" "
-        . "style=\"vertical-align:middle;cursor:pointer;"
-        . "display:" . ($val == $init ? "inline" : "none") . ";\" "
-        . "onmouseover=\"javascript:mouseOverStarCtl('$id', event);\" "
-        . "onmousemove=\"javascript:mouseOverStarCtl('$id', event);\" "
-        . "onmouseout=\"javascript:mouseOutStarCtl('$id', event, $leaveFunc);\" "
-        . "onclick=\"javascript:mouseClickStarCtl('$id', event, $clickFunc);\" "
-        . "src=\"blank.gif\" class=\"star$val\">";
 }
 
 ?>
