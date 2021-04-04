@@ -777,10 +777,16 @@ div.searchHelpList td {
 Tabs for browse-mode search types
 */
 div.browseBar {
-    position: relative;
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
     width: 100%;
     font-size: 85%;
     background: #e0e0e0;
+    margin-bottom: 1em;
+    text-size-adjust: none;
+    -webkit-text-size-adjust: none;
+    flex-wrap: wrap;
 }
 div.browseTabs {
     padding: 6px 0 0 4px;
@@ -799,16 +805,15 @@ span.browseTab {
     position: relative;
     bottom: -1px;
 }
+.browseSummary {
+    padding-left: 4px;
+    padding-right: 4px;
+}
 span.firstBrowseTab {
     border-left: 1px solid #c0c0c0;
 }
 span.activeBrowseTab {
     background: #a0ffff;
-}
-div.browseSummary {
-    position: absolute;
-    right: 0.5ex;
-    bottom: 0px;
 }
 
 /*
