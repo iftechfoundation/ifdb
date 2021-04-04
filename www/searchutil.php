@@ -220,6 +220,7 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse)
         $specialMap = array(
             "genre:" => array("genre", 0),
             "published:" => array("date_format(published, '%Y')", 1),
+            "added:" => array("date_format(created, '%Y')", 1),
             "system:" => array("system", 0),
             "series:" => array("seriesname", 0),
             "tag:" => array("tags", 3),
@@ -780,6 +781,8 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse)
             $sortList = array(
                 'ratu' => array('starsort desc,', 'Highest Rated First'),
                 'ratd' => array('starsort,', 'Lowest Rated First'),
+                'lnew' => array('games.created desc,', 'Newest Listing First'),
+                'lold' => array('games.created,', 'Oldest Listing First'),
                 'ttl' => array('sort_title,', 'Sort by Title'),
                 'auth' => array('sort_author,', 'Sort by Author'),
                 'rcu' => array('ratingcnt desc, starsort desc,',
