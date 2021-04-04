@@ -194,28 +194,20 @@ function sfsCheck($ip, $email, $username, &$banned)
 
     // run the query through stopforumspam.com
     $info = array();
-    $result = x_http_get("http://www.stopforumspam.com/api?"
-                         . "ip=$ip&email=$email&username=$username");
+    $ch = curl_init("https://www.stopforumspam.com/api?json&"
+                    . "ip=$ip&email=$email&username=$username");
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_TIMEOUT, 30);
+    $result = curl_exec($ch);
+    curl_close($ch);
 
-    // parse the results
-    $result = explode("\n", $result);
-    $type = false;
-    foreach ($result as $r) {
-        if (preg_match("/<type>([a-z]+)<\/type>/", $r, $match))
-            $type = $match[1];
-        else if (preg_match("/<appears>yes<\/appears>/", $r))
-            $info[$type]['appears'] = true;
-        else if (preg_match("/<lastseen>([-: 0-9]+)<\/lastseen>/", $r, $m))
-            $info[$type]['lastseen'] = substr($m[1], 0, 10);
-        else if (preg_match("/<frequency>([0-9]+)<\/frequency>/", $r, $m))
-            $info[$type]['frequency'] = $m[1];
-    }
+    $info = json_decode($result, true);
 
     // assemble the results into a printable string
     $ret = false;
     $typeMap = array('ip' => 'IP', 'email' => 'Email',
                      'username' => 'Name');
-    foreach (array('ip', 'email', 'username') as $t) {
+    foreach (array_keys($typeMap) as $t) {
         $i = $info[$t];
         if ($i['appears']) {
             $t = $typeMap[$t];
