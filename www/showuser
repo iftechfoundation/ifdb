@@ -232,38 +232,6 @@ if ($rss == 'gamenews')
     exit();
 }
 
-// if this is an admin view with a request for an email address search,
-// generate the search results - this is used inside an iframe, so it's
-// the only thing we want on the page in this case
-if ($unlock && get_req_data("search") == "email")
-{
-    // set up a search for the email address
-	$engine = "http://www.bing.com";
-	$uuemail = urlencode($realEmail);
-    $searchUrl = "$engine/search?q=\"$uuemail\"";
-
-    // pass along the client browser string header so that the engine sends
-    // us the right style sheet for the client device
-    $searchHeaders = "";
-    $ua = $_SERVER["HTTP_USER_AGENT"];
-    if ($ua)
-        $searchHeaders .= "User-Agent: $ua\r\n";
-
-    // run the search
-    $searchbody = x_http_get($searchUrl, $searchHeaders);
-    if ($searchbody)
-    {
-        $searchbody = preg_replace(
-            "/<head[^>]*>/i", "$0<base href=\"$engine\">",
-            $searchbody);
-        echo $searchbody;
-    }
-    else
-        echo "Email search failed";
-
-    exit();
-}
-
 pageHeader($pageTitle, false, false, "<script src=\"xmlreq.js\"></script>");
 
 $captchaKey = "showuser.$uid";
@@ -980,30 +948,6 @@ if ($unlock)
 
     // add the admin links
     echo "<a href=\"{$adminUrl}\">Administer user acccount</a><br>";
-
-    // add the email search
-	// (remove this for now - the search engines seem to reject framed searches now)
-	//echo "<div style=\"margin: 1em 0px;\">"
-    //    . "<iframe src=\"showuser?id=$uid&search=email&unlock=$unlockNonce\" "
-    //    . "frameborder=0 style=\"width: 100%; overflow: auto;\" "
-    //    . "onload=\"javascript:onLoadEmailSearchFrame(this)\">"
-    //    . "</iframe>"
-    //    . "</div>";
-    ?>
-    <script>
-    function onLoadEmailSearchFrame(fr)
-    {
-        fr.style.height = "" + getDocHeight(fr.contentWindow.document) + "px";
-    }
-    function getDocHeight(doc)
-    {
-        return Math.max(
-            Math.max(doc.body.scrollHeight, doc.documentElement.scrollHeight),
-            Math.max(doc.body.offsetHeight, doc.documentElement.offsetHeight),
-            Math.max(doc.body.clientHeight, doc.documentElement.clientHeight));
-    }
-    </script>
-    <?php
 }
 
 pageFooter();
