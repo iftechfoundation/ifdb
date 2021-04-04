@@ -1368,11 +1368,9 @@ else if ($term || $browse)
         // if this is a game search, show the tip boxes
         if ($searchType == "game") {
             echo "<div class=tipgroup>"
-                . "<div class=tipbox><h1>Can't find it?</h1>"
-                . "If the game you're looking for isn't in our database yet, "
-                . "you can help improve IFDB by "
-                . "<a href=\"editgame?id=new\">adding a new listing</a> "
-                . "yourself. "
+                . "<div class=tipbox>"
+                . "<h1><a href=\"editgame?id=new\">Add a game listing</a></h1>"
+                . "You can help improve IFDB by adding a game to our database."
                 . "</div>";
 
             if ($pg == 1 && !$pgAll)
@@ -1386,14 +1384,40 @@ else if ($term || $browse)
             echo "</div>";
         }
 
-        // if this is a poll search, show the poll tip box
-            if ($searchType == "poll") {
-                echo "<div class=tipbox><h1><a href=\"poll?id=new\">Create a Poll</a></h1>"
-                    . "If you'd like recommendations for a specific kind of IF, you can "
-                    . "<a href=\"poll?id=new\">create a new poll</a>."
+        // if this is a list search, show the list tip box
+            if ($searchType == "list") {
+                echo "<div class=tipbox>"
+                    . "<h1><a href=\"editlist?id=new\">Create a recommended list</a></h1>"
+                    . "You can use lists to recommend games you like to other people."
                     . "</div>";
         }
 		
+        // if this is a poll search, show the poll tip box
+        if ($searchType == "poll") {
+            echo "<div class=tipbox>"
+                . "<h1><a href=\"poll?id=new\">Create a poll</a></h1>"
+                . "If you're looking for a specific kind of IF, you can "
+                . "create a poll to ask other people for recommendations."
+                . "</div>";
+        }
+
+        // if this is a comp search, show the comp tip box
+        if ($searchType == "comp") {
+            echo "<div class=tipbox>"
+                . "<h1><a href=\"editcomp?id=new\">Add a competition page</a></h1>"
+                . "If a competition isn't in our database yet, you can "
+                . "add a new competition page."
+                . "</div>";
+        }
+
+        // if this is a club search, show the club tip box
+        if ($searchType == "club") {
+            echo "<div class=tipbox>"
+                . "<h1><a href=\"editclub?id=new\">Add a club listing</a></h1>"
+                . "If you have a club for IFDB members, you can add a listing for it."
+                . "</div>";
+        }
+
         // show the sorting controls
         $hids = array("searchfor" => $term);
         if ($browse)
