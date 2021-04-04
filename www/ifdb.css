@@ -747,18 +747,6 @@ input#searchfor, #searchfor2{
 }
 
 /*
-The "searchSummary" table is used to show the current location in the
-result set for a search.
-*/
-table.searchSummary {
-    background: #e0e000;
-    width: 100%;
-}
-table.searchSummary tr td {
-    font-size: 85%;
-}
-
-/*
 "searchHelpList" is used on the search help page for the lists of
 values for special flags, such as the list of file formats on the
 game search page.
@@ -2348,10 +2336,6 @@ span.sfl-save-autodesc {
         background-color: #000000;
         color: #FFFFFF;
         border: 1px solid #323245;
-    }
-    table.searchSummary {
-        background: #202040;
-        color: #ffffff;
     }
     div.tipbox {
         background: #101030;
