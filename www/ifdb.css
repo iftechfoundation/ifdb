@@ -1420,6 +1420,7 @@ image file, unfortunately.
     border: none;
     vertical-align: middle;
     margin-right: 1em;
+    padding: 0;
 }
 input.save-button {
     background: url("/savechanges.gif");
