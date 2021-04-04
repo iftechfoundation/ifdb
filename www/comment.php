@@ -508,6 +508,10 @@ if (!$submit || $errMsg || !$captchaOK) {
 <b>Guidelines:</b>
 <ul class=doublespace>
 
+   <li>Follow our <?php
+echo helpWinLink("code-of-conduct", "code of conduct")
+   ?>.</li>
+   
    <li>Be courteous.
 
    <li>If you have criticisms, try to make them constructive.
