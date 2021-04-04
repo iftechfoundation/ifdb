@@ -1904,7 +1904,7 @@ for ($i = 0 ; $i < count($reftypes) ; ++$i) {
                <i>Your changes will be attributed to you as
                   "<?php 
                       echo htmlspecialcharx($username);
-                      if (!is_null($userloc))
+                      if ($userloc != "")
                           echo " (" . htmlspecialcharx($userloc) . ")"
                    ?>."
                    <a href="<?php echo switchUserAndReturnHRef() ?>">

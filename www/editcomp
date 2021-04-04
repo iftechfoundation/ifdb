@@ -1602,7 +1602,10 @@ function editGame(divno, rownum)
         echo  "<div class=indented style='margin-top:1ex;' id='divDiv$i'>"
             . "</div>";
     }
-        
+
+	$displayName = $username;
+	if ($userloc != "")
+        $displayName .= " ($userloc)";
 
     // finish the form
     echo "<p><hr class=dots></div><tr><td></td><td><br><br>"
@@ -1631,7 +1634,7 @@ function editGame(divno, rownum)
         . "id='edit-cancel-button'></a>"
 
         . "<br><br><span class=details>"
-        . "<i>Your changes will be attributed to you as $username ($userloc). "
+        . "<i>Your changes will be attributed to you as $displayName. "
         . "<a href=\"" . switchUserAndReturnHRef()
         . "\">Click here</a> to log in as a different user (but note "
         . "that this will discard your unsaved changes above).</i></span>"
