@@ -811,20 +811,20 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse)
 
     case "list":
         $sortList = array(
-            'ttl' => array('title,', 'Sort by List Title'),
-            'usr' => array('username,', 'Sort by List Author'),
             'new' => array('moddate desc,', 'Newest First'),
             'old' => array('moddate,', 'Oldest First'),
+            'ttl' => array('title,', 'Sort by List Title'),
+            'usr' => array('username,', 'Sort by List Author'),
             'rand' => array('rand(),', 'Random Order'));
-        $defSortBy = 'ttl';
+        $defSortBy = 'new';
         break;
 
     case "poll":
         $sortList = array(
-            'ttl' => array('title,', 'Sort by Poll Title'),
-            'usr' => array('username,', 'Sort by Poll Author'),
             'new' => array('p.created desc,', 'Newest First'),
             'old' => array('p.created,', 'Oldest First'),
+            'ttl' => array('title,', 'Sort by Poll Title'),
+            'usr' => array('username,', 'Sort by Poll Author'),
             'newvote' => array('votedate desc,', 'Latest Vote First'),
             'oldvote' => array('votedate,', 'Longest Since Last Vote First'),
             'votes' => array('votecnt desc,', 'Most Votes First'),
@@ -832,7 +832,7 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse)
             'games' => array('gamecnt desc,', 'Most Games First'),
             'gamesd' => array('gamecnt,', 'Least Games First'),
             'rand' => array('rand(),', 'Random Order'));
-        $defSortBy = 'ttl';
+        $defSortBy = 'new';
         break;
 
     case "member":
@@ -851,7 +851,7 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse)
 
     case "comp":
         $sortList = array(
-            'awn' => array('c.awarddate desc,', 'Most Recent First'),
+            'awn' => array('c.awarddate desc,', 'Newest First'),
             'awo' => array('c.awarddate,', 'Oldest First'),
             'nm' => array('lower(c.title),', 'Sort by Name'),
             'numgd' => array('count(g.gameid) desc,', 'Most Entries First'),
@@ -863,14 +863,14 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse)
 
     case "club":
         $sortList = array(
-            'name' => array('c.name,', 'Sort by Name'),
             'new' => array('c.created desc,', 'Newest First'),
             'old' => array('c.created,', 'Oldest First'),
+            'name' => array('c.name,', 'Sort by Name'),
             'mcd' => array('membercnt desc,', 'Most Members First'),
             'mcu' => array('membercnt,', 'Fewest Members First'),
             'con' => array('lower(c.contacts),', 'Sort by Contact Name'),
             'rand' => array('rand(),', 'Random Order'));
-        $defSortBy = 'name';
+        $defSortBy = 'new';
         break;
 
     case "tag":
