@@ -770,6 +770,8 @@ else if (isset($_REQUEST['users'])) {
              $created, $login) =  mysql_fetch_row($result);
         $name = htmlspecialcharx($name);
         $email = htmlspecialcharx($email);
+        $email = spoilerWarning($email, "Click to see email");
+        $email .=spoilerWarningScript();
         $pubmail = htmlspecialcharx($pubmail);
         $stat = isset($statMap[$statCode]) ? $statMap[$statCode] : "";
         $proStat = isset($proStatMap[$proStat]) ? $proStatMap[$proStat] : "";
