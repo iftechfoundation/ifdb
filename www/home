@@ -39,7 +39,7 @@ if ($debugflag) echo "debug mode enabled...<br>";
          <div class="headline headline1">Welcome to IFDB!
             <span class=headlineRss>
                <a href="news">Site News</a> |
-               <a href="news?rss"><img src="blank.gif" class="rss-icon">RSS Feed</a>
+               <a href="news?rss"><img src="blank.gif" class="rss-icon" alt="">RSS Feed</a>
             </span>
          </div>
 
@@ -51,7 +51,7 @@ if ($debugflag) echo "debug mode enabled...<br>";
       <div class="block">
          <div class=headline>New on IFDB
             <span class=headlineRss>
-               <a href="allnew-rss"><img src="blank.gif" class="rss-icon">RSS Feed</a>
+               <a href="allnew-rss"><img src="blank.gif" class="rss-icon" alt="">RSS Feed</a>
             </span>
          </div>
          <?php
