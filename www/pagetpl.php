@@ -110,7 +110,7 @@ function pageHeader($title, $focusCtl = false, $extraOnLoad = false,
     // add the top bar for a regular window
 ?>
 
-<a href="/">
+<a href="/" aria-label="Home">
     <div class="topbar"></div>
 </a>
 
