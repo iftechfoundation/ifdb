@@ -260,7 +260,7 @@ margins here.
 */
 div.main {
     max-width: 100ch;
-    padding: 1em 1em 1em 1em;
+    padding: 1em 0;
     margin: 0 auto;
 }
 
