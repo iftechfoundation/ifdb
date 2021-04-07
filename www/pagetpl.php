@@ -29,8 +29,6 @@ function basePageHeader($title, $focusCtl, $extraOnLoad, $extraHead,
     <link rel="manifest" href="/favicons/site.webmanifest">
     <link rel="mask-icon" href="/favicons/safari-pinned-tab.svg" color="#9a165a">
     <link rel="shortcut icon" href="/favicon.ico">
-    <meta name="msapplication-TileColor" content="#603cba">
-    <meta name="msapplication-config" content="/favicons/browserconfig.xml">
     <meta name="theme-color" content="#ffffff">
     
    <link rel="search" type="application/opensearchdescription+xml"
