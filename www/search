@@ -1307,11 +1307,11 @@ else if ($term || $browse)
             $range = ($firstOnPage+1) . "-" . ($lastOnPage+1) . " of $rowcnt";
 
         // show where we are in the results
-        echo "<div class=\"browseBar\">"
+        echo "<div class=\"browseBar\"><span>"
             . ($term != ""
                ? "Results for <b>" . htmlspecialcharx($term) . "</b>" : "")
             . $otherBrowse
-            . "<div class=\"browseSummary\">$range</div></div>";
+            . "</span><div class=\"browseSummary\">$range</div></div>";
 
         // if this is a game search, show the tip boxes
         if ($searchType == "game") {

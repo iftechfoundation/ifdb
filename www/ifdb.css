@@ -218,6 +218,7 @@ div.topctl form {
     flex-wrap: wrap;
     overflow: auto;
     padding: 0em 1em 0em 1em;
+    justify-content: space-between;
 }
 
 .main-nav ul{
@@ -225,7 +226,6 @@ div.topctl form {
     padding: 0px;
     display: flex;
     flex-basis: 0;
-    flex-grow: 999;
     align-items: center;
 }
 
@@ -741,18 +741,9 @@ div.edit-popup-win table tr td {
 div#imageUploadCopyrightForm table td {
     font-size: 90%;
 }
-        
 
-/*
-The "searchSummary" table is used to show the current location in the
-result set for a search.
-*/
-table.searchSummary {
-    background: #e0e000;
-    width: 100%;
-}
-table.searchSummary tr td {
-    font-size: 85%;
+input#searchfor, #searchfor2{
+  max-width: calc(100vw - 2rem);
 }
 
 /*
@@ -774,10 +765,16 @@ div.searchHelpList td {
 Tabs for browse-mode search types
 */
 div.browseBar {
-    position: relative;
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
     width: 100%;
     font-size: 85%;
     background: #e0e0e0;
+    margin-bottom: 1em;
+    text-size-adjust: none;
+    -webkit-text-size-adjust: none;
+    flex-wrap: wrap;
 }
 div.browseTabs {
     padding: 6px 0 0 4px;
@@ -796,16 +793,15 @@ span.browseTab {
     position: relative;
     bottom: -1px;
 }
+.browseSummary {
+    padding-left: 4px;
+    padding-right: 4px;
+}
 span.firstBrowseTab {
     border-left: 1px solid #c0c0c0;
 }
 span.activeBrowseTab {
     background: #a0ffff;
-}
-div.browseSummary {
-    position: absolute;
-    right: 0.5ex;
-    bottom: 0px;
 }
 
 /*
@@ -1417,6 +1413,7 @@ image file, unfortunately.
     border: none;
     vertical-align: middle;
     margin-right: 1em;
+    padding: 0;
 }
 input.save-button {
     background: url("/savechanges.gif");
@@ -2339,10 +2336,6 @@ span.sfl-save-autodesc {
         background-color: #000000;
         color: #FFFFFF;
         border: 1px solid #323245;
-    }
-    table.searchSummary {
-        background: #202040;
-        color: #ffffff;
     }
     div.tipbox {
         background: #101030;
