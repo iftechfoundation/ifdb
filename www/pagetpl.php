@@ -28,7 +28,7 @@ function basePageHeader($title, $focusCtl, $extraOnLoad, $extraHead,
     <link rel="icon" type="image/png" sizes="16x16" href="/favicons/favicon-16x16.png">
     <link rel="manifest" href="/favicons/site.webmanifest">
     <link rel="shortcut icon" href="/favicon.ico">
-    <meta name="theme-color" content="#ffffff">
+    <meta name="theme-color" content="#000000">
     
    <link rel="search" type="application/opensearchdescription+xml"
          title="IFDB Search Plugin"
