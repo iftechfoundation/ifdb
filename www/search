@@ -436,8 +436,7 @@ if (!$browse && !$xml) {
     {
         if ($key == $searchType)
             $otherTabs .= "<span class=\"$tabClass activeBrowseTab\">"
-                          . "<a href=\"search?$key\">"
-                          . "$label</a></span>";
+                            . "$label</span>";
         else
             $otherTabs .= "<span class=\"$tabClass\">"
                           . "<a href=\"search?$key\">"
