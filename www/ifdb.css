@@ -775,23 +775,36 @@ div.browseBar {
     text-size-adjust: none;
     -webkit-text-size-adjust: none;
     flex-wrap: wrap;
+    padding-bottom: 1px;
 }
-div.browseTabs {
-    padding: 6px 0 0 4px;
-}
-span.browseLabel {
+.browseLabel {
     font-weight: bold;
-    margin-right: 2em;
+    margin-bottom: 0.5em;
 }
 span.browseTab {
     background: #f0f0f0;
-    padding: 3px 2ex 0 2ex;
-    margin: 0;
     border: 1px solid #c0c0c0;
     border-left: none;
-    border-bottom: none;
     position: relative;
-    bottom: -1px;
+    margin-bottom: -1px;
+}
+
+.browseTabs {
+    text-decoration: none;
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.browseTabs a {
+    text-decoration: none;
+    padding: 0.25em 0.75em 0.25em 0.75em;
+    display: inline-block;
+    white-space: nowrap;
+}
+
+.browseTabs a:hover {
+    text-decoration: underline;
+    background-color: #dcdcdc;
 }
 .browseSummary {
     padding-left: 4px;
@@ -800,8 +813,9 @@ span.browseTab {
 span.firstBrowseTab {
     border-left: 1px solid #c0c0c0;
 }
-span.activeBrowseTab {
+span.activeBrowseTab, .activeBrowseTab a:hover {
     background: #a0ffff;
+    padding: 0.25em 0.75em 0.25em 0.75em;
 }
 
 /*
