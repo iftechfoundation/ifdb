@@ -362,7 +362,7 @@ if (count($recs) >= 2) {
         if ($hasart)
             echo "<table border=0 cellspacing=0 cellpadding=0>"
                 . "<tr valign=top><td>"
-                . "<a href=\"viewgame?id=$gameid\" style=\"margin-right: 1em;\">"
+                . "<a href=\"viewgame?id=$gameid\" style=\"margin-right: 1em;\" aria-label=\"$title\">"
                 . coverArtThumbnail($gameid, 70)
                 . "</a></td><td>";
         
