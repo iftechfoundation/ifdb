@@ -777,9 +777,9 @@ div.browseBar {
     flex-wrap: wrap;
     padding-bottom: 1px;
 }
-span.browseLabel {
+.browseLabel {
     font-weight: bold;
-    margin-right: 2em;
+    margin-bottom: 0.5em;
 }
 span.browseTab {
     background: #f0f0f0;

@@ -428,9 +428,10 @@ function helpExtLink($title, $url)
 }
 
 if (!$browse && !$xml) {
-    $otherTabs = "<div class=\"browseBar\">"
-                 . "<div class=\"browseTabs\">"
-                 . "<span class=\"browseLabel\">Searching</span>";
+    $otherTabs = "<div class=\"browseLabel\">Searching</div>"
+                 . "<div class=\"browseBar\">"
+                 . "<div class=\"browseTabs\">";
+                 
     $tabClass = "browseTab firstBrowseTab";
     foreach ($browseTabs as $key => $label)
     {
@@ -1282,8 +1283,7 @@ else if ($term || $browse)
         $otherBrowse = "";
         if ($browse)
         {
-            $otherBrowse = "<div class=\"browseTabs\">"
-                           . "<span class=\"browseLabel\">Browsing</span>";
+            $otherBrowse = "<div class=\"browseTabs\">";
             $tabClass = "browseTab firstBrowseTab";
             foreach ($browseTabs as $key => $label)
             {
@@ -1306,9 +1306,9 @@ else if ($term || $browse)
             $range = ($firstOnPage+1) . "-" . ($lastOnPage+1) . " of $rowcnt";
 
         // show where we are in the results
-        echo "<div class=\"browseBar\"><span>"
-            . ($term != ""
-               ? "Results for <b>" . htmlspecialcharx($term) . "</b>" : "")
+        echo ($term == "" ? "<div class=\"browseLabel\">Browsing</div>" : "")
+            . "<div class=\"browseBar\"><span>"
+            . ($term != "" ? "Results for <b>" . htmlspecialcharx($term) . "</b>" : "")
             . $otherBrowse
             . "</span><div class=\"browseSummary\">$range</div></div>";
 
