@@ -543,6 +543,7 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse)
                                   . "on gpl.gameid = games.id "
                                   . "and gpl.userid = '$txt'";
                 }
+                break;
 
             case 'played':
                 // Only use this query when the user is logged in
