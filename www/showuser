@@ -471,7 +471,8 @@ function pingMultiUserSession(sid, gameid, title, author, started)
          where
            gameprofilelinks.userid = '$quid'
          group by games.id
-         order by games.sort_title", $db);
+         order by starsort desc
+         limit 0, 5", $db);
 
     if (($cnt = mysql_num_rows($result)) > 0) {
         echo "<h2>Interactive Fiction by $username</h2>"
@@ -523,6 +524,9 @@ function pingMultiUserSession(sid, gameid, title, author, started)
                     . "<i>$desc</i></span></div>";
             }
         }
+        
+        echo "<p><span class=details><a href=\"search?authorid=$uid\">"
+            . "See all of this member's games</a></span>";
         echo "</div>";
     }
            
