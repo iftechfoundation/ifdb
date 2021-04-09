@@ -525,7 +525,7 @@ function pingMultiUserSession(sid, gameid, title, author, started)
             }
         }
         
-        echo "<p><span class=details><a href=\"search?authorid=$uid\">"
+        echo "<p><span class=details><a href=\"search?searchfor=authorid:$uid\">"
             . "See all of this member's games</a></span>";
         echo "</div>";
     }
