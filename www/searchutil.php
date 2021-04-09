@@ -536,7 +536,7 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse)
                 break;
  
             case 'authorid':
-                // add the gameprofilelinks join if necessary
+                // need to join the gameprofilelinks table to do this query
                 if (!isset($extraJoins[$col])) {
                     $extraJoins[$col] = true;
                     $tableList .= " inner join gameprofilelinks as gpl "
