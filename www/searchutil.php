@@ -232,6 +232,7 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse)
             "forgiveness:" => array("forgiveness", 0),
             "language:" => array("language", 99),
             "author:" => array("author", 99),
+            "authorid:" => array("authorid", 99),
             "ifid:" => array("/ifid/", 99),
             "downloadable:" => array("/downloadable/", 99),
             "played:" => array("played", 99),
@@ -533,6 +534,15 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse)
                 $op = (preg_match("/^y.*/i", $txt) ? "!=" : "=");
                 $expr = "gls.numGameLinks $op 0";
                 break;
+ 
+            case 'authorid':
+                // add the gameprofilelinks join if necessary
+                if (!isset($extraJoins[$col])) {
+                    $extraJoins[$col] = true;
+                    $tableList .= " inner join gameprofilelinks as gpl "
+                                  . "on gpl.gameid = games.id "
+                                  . "and gpl.userid = '$txt'";
+                }
 
             case 'played':
                 // Only use this query when the user is logged in

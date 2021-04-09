@@ -981,6 +981,9 @@ else {  // ...default is searching games
 //          >What's an IFID?</a>
        ?>)
 
+        <p><b>authorid:<i>id</i></b> lists games by the author with
+            the given id.
+           
        <p><b>played:<i>yes</i>|<i>no</i></b> lists games that
             you have/haven't put on your played list (i.e. "I've played it").
             Only works if you are logged in with a user account.
