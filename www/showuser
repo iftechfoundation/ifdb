@@ -662,7 +662,7 @@ function pingMultiUserSession(sid, gameid, title, author, started)
     if ($revcnt == 0) {
         echo "<i>This member hasn't written any reviews yet.</i><br>";
         if ($ratingcnt != 0) {
-            echo "<span class=details>"
+            echo "<br><span class=details>"
                 . "<a href=\"allreviews?id=$uid&ratings=yes\">"
                 . "See all ratings by this member</a></span>";
         }
