@@ -472,13 +472,13 @@ function pingMultiUserSession(sid, gameid, title, author, started)
            gameprofilelinks.userid = '$quid'
          group by games.id
          order by starsort desc
-         limit 0, 5", $db);
+         limit 0, 6", $db);
 
     if (($cnt = mysql_num_rows($result)) > 0) {
         echo "<h2>Interactive Fiction by $username</h2>"
             . "<div class=indented>";
 
-        for ($i = 0 ; $i < $cnt ; $i++) {
+        for ($i = 0 ; $i < 5 && $i < mysql_num_rows($result) ; $i++) {
             $rec = mysql_fetch_array($result, MYSQL_ASSOC);
             $gid = urlencode($rec['id']);
             $title = htmlspecialcharx($rec['title']);
@@ -513,7 +513,7 @@ function pingMultiUserSession(sid, gameid, title, author, started)
                        " <span class=details>($year)</span><br>" : "")
                     . "<span class=details>$stars</span>"
                     . "<span class=details><i>$desc</i></span>"
-                    . "</td></tr></table>";
+                    . "</td></tr></table><br>";
             }
             else {
                 echo "<a href=\"viewgame?id=$gid\"><b>$title</b></a>, "
@@ -521,12 +521,15 @@ function pingMultiUserSession(sid, gameid, title, author, started)
                     . ($year ? " ($year)" : ""). "<br>"
                     . "<span class=details>$stars</span>"
                     . "<div class=indented><span class=details>"
-                    . "<i>$desc</i></span></div>";
+                    . "<i>$desc</i></span></div><br>";
             }
         }
-        
-        echo "<p><span class=details><a href=\"search?searchfor=authorid:$uid\">"
-            . "See all of this member's games</a></span>";
+
+        if (mysql_num_rows($result) > 5) {
+            echo "<p><span class=details><a href=\"search?searchfor=authorid:$uid\">"
+                . "See all of this member's games</a></span>";
+        }
+
         echo "</div>";
     }
            
@@ -551,9 +554,9 @@ function pingMultiUserSession(sid, gameid, title, author, started)
                 and reclistitems.listid = reclists.id
             group by reclistitems.listid
             order by moddate desc
-            limit 0, 5", $db);
+            limit 0, 6", $db);
 
-        for ($i = 0 ; $i < mysql_num_rows($result) ; $i++) {
+        for ($i = 0 ; $i < 5 && $i < mysql_num_rows($result) ; $i++) {
             // fetch the next row
             list($listid, $title, $desc, $moddate, $itemcnt) =
                 mysql_fetch_row($result);
@@ -571,8 +574,10 @@ function pingMultiUserSession(sid, gameid, title, author, started)
                 . "<i>$desc</i></span></div><br>";
         }
 
-        echo "<p><span class=details><a href=\"alllists?user=$uid\">"
-            . "See all of this member's lists</a></span>";
+        if (mysql_num_rows($result) > 5) {
+            echo "<p><span class=details><a href=\"alllists?user=$uid\">"
+                . "See all of this member's lists</a></span>";
+        }
     }
 
     echo "</div>";
@@ -605,9 +610,9 @@ function pingMultiUserSession(sid, gameid, title, author, started)
             order by
                p.created desc
             limit
-               0, 5", $db);
+               0, 6", $db);
 
-        for ($i = 0 ; $i < mysql_num_rows($result) ; $i++) {
+        for ($i = 0 ; $i < 5 && $i < mysql_num_rows($result) ; $i++) {
             // fetch the next row
             list($pollid, $title, $desc, $created, $votecnt, $gamecnt) =
                 mysql_fetch_row($result);
@@ -629,8 +634,10 @@ function pingMultiUserSession(sid, gameid, title, author, started)
                 . "<i>$desc</i></span></div><br>";
         }
 
-        echo "<p><span class=details><a href=\"allpolls?user=$uid\">"
-            . "See all of this member's polls</a></span>";
+        if (mysql_num_rows($result) > 5) {
+            echo "<p><span class=details><a href=\"allpolls?user=$uid\">"
+                . "See all of this member's polls</a></span>";
+        }
     }
 
     echo "</div>";
@@ -674,9 +681,9 @@ function pingMultiUserSession(sid, gameid, title, author, started)
                and games.id = reviews.gameid
                and ifnull(now() >= reviews.embargodate, 1)
              order by reviews.moddate desc
-             limit 0, 5", $db);
+             limit 0, 6", $db);
 
-        for ($i = 0 ; $i < mysql_num_rows($result) ; $i++) {
+        for ($i = 0 ; $i < 5 && $i < mysql_num_rows($result) ; $i++) {
             // retrieve the result
             list($gameid, $title, $author, $revid, $rating,
                  $summary, $review, $moddate) = mysql_fetch_row($result);
@@ -702,12 +709,14 @@ function pingMultiUserSession(sid, gameid, title, author, started)
             echo "</span></div><br>";
         }
 
-        echo "<p><span class=details><a href=\"allreviews?id=$uid\">"
-            . "See all reviews by this member</a></span>";
+        if (mysql_num_rows($result) > 5) {
+            echo "<p><span class=details><a href=\"allreviews?id=$uid\">"
+                . "See all reviews by this member</a></span>";
 
-        echo "<br><span class=details>"
-            . "<a href=\"allreviews?id=$uid&ratings=yes\">"
-            . "See all ratings and reviews by this member</a></span>";
+            echo "<br><span class=details>"
+                . "<a href=\"allreviews?id=$uid&ratings=yes\">"
+                . "See all ratings and reviews by this member</a></span>";
+        }
     }
 
     echo "</div>";
