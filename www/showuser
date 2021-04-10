@@ -471,8 +471,7 @@ function pingMultiUserSession(sid, gameid, title, author, started)
          where
            gameprofilelinks.userid = '$quid'
          group by games.id
-         order by starsort desc
-         limit 0, 6", $db);
+         order by starsort desc", $db);
 
     if (($cnt = mysql_num_rows($result)) > 0) {
         echo "<h2>Interactive Fiction by $username</h2>"
@@ -527,7 +526,8 @@ function pingMultiUserSession(sid, gameid, title, author, started)
 
         if (mysql_num_rows($result) > 5) {
             echo "<p><span class=details><a href=\"search?searchfor=authorid:$uid\">"
-                . "See all of this member's games</a></span>";
+                . "See all " . mysql_num_rows($result)
+                . " games by $username</a></span>";
         }
 
         echo "</div>";
@@ -553,8 +553,7 @@ function pingMultiUserSession(sid, gameid, title, author, started)
                 userid = '$quid'
                 and reclistitems.listid = reclists.id
             group by reclistitems.listid
-            order by moddate desc
-            limit 0, 6", $db);
+            order by moddate desc", $db);
 
         for ($i = 0 ; $i < 5 && $i < mysql_num_rows($result) ; $i++) {
             // fetch the next row
@@ -576,7 +575,8 @@ function pingMultiUserSession(sid, gameid, title, author, started)
 
         if (mysql_num_rows($result) > 5) {
             echo "<p><span class=details><a href=\"alllists?user=$uid\">"
-                . "See all of this member's lists</a></span>";
+                . "See all " . mysql_num_rows($result)
+                . " lists by $username</a></span>";
         }
     }
 
@@ -608,9 +608,7 @@ function pingMultiUserSession(sid, gameid, title, author, started)
             group by
                p.pollid
             order by
-               p.created desc
-            limit
-               0, 6", $db);
+               p.created desc", $db);
 
         for ($i = 0 ; $i < 5 && $i < mysql_num_rows($result) ; $i++) {
             // fetch the next row
@@ -636,7 +634,8 @@ function pingMultiUserSession(sid, gameid, title, author, started)
 
         if (mysql_num_rows($result) > 5) {
             echo "<p><span class=details><a href=\"allpolls?user=$uid\">"
-                . "See all of this member's polls</a></span>";
+                . "See all " . mysql_num_rows($result)
+                . " polls by $username</a></span>";
         }
     }
 
@@ -680,8 +679,7 @@ function pingMultiUserSession(sid, gameid, title, author, started)
                and reviews.review is not null
                and games.id = reviews.gameid
                and ifnull(now() >= reviews.embargodate, 1)
-             order by reviews.moddate desc
-             limit 0, 6", $db);
+             order by reviews.moddate desc", $db);
 
         for ($i = 0 ; $i < 5 && $i < mysql_num_rows($result) ; $i++) {
             // retrieve the result
@@ -711,11 +709,12 @@ function pingMultiUserSession(sid, gameid, title, author, started)
 
         if (mysql_num_rows($result) > 5) {
             echo "<p><span class=details><a href=\"allreviews?id=$uid\">"
-                . "See all reviews by this member</a></span>";
+                . "See all " . mysql_num_rows($result)
+                . " reviews by $username</a></span>";
 
             echo "<br><span class=details>"
                 . "<a href=\"allreviews?id=$uid&ratings=yes\">"
-                . "See all ratings and reviews by this member</a></span>";
+                . "See all ratings and reviews by $username</a></span>";
         }
     }
 
@@ -755,11 +754,11 @@ function pingMultiUserSession(sid, gameid, title, author, started)
                  from games, playedgames
                  where games.id = playedgames.gameid
                  and playedgames.userid = '$quid'
-                 order by playedgames.date_added desc
-                 limit 0, 6", $db);
+                 order by playedgames.date_added desc", $db);
 
             if (mysql_num_rows($result) == 0)
-                echo "<i>This member hasn't marked any games as played.</i>";
+                echo "<i>This member hasn't added any games to
+                      $hisHer Played List yet.</i>";
 
             for ($i = 0 ; $i < 5 && $i < mysql_num_rows($result) ; $i++) {
                 list($gid, $title, $author) = mysql_fetch_row($result);
@@ -771,7 +770,8 @@ function pingMultiUserSession(sid, gameid, title, author, started)
 
             if (mysql_num_rows($result) > 5)
                 echo "<p><span class=details><a href=\"playlist?id=$uid\">"
-                    . "View the entire list</a></span><br>";
+                    . "See all " . mysql_num_rows($result)
+                    . " entries in the Played List</a></span><br>";
         }
 
         if ($wishlistPub) {
@@ -784,12 +784,11 @@ function pingMultiUserSession(sid, gameid, title, author, started)
                  from games, wishlists
                  where games.id = wishlists.gameid
                  and wishlists.userid = '$quid'
-                 order by wishlists.date_added desc
-                 limit 0, 6", $db);
+                 order by wishlists.date_added desc", $db);
 
             if (mysql_num_rows($result) == 0)
                 echo "<i>This member hasn't added any games to
-                      $hisHer wish list yet.</i>";
+                      $hisHer Wish List yet.</i>";
 
             for ($i = 0 ; $i < 5 && $i < mysql_num_rows($result) ; $i++) {
                 list($gid, $title, $author) = mysql_fetch_row($result);
@@ -802,7 +801,8 @@ function pingMultiUserSession(sid, gameid, title, author, started)
             if (mysql_num_rows($result) > 5)
                 echo "<p><span class=details>"
                     . "<a href=\"playlist?id=$uid&type=wishlist\">"
-                    . "View the entire list</a></span><br>";
+                    . "See all " . mysql_num_rows($result)
+                    . " entries in the Wish List</a></span><br>";
         }
 
         if ($unwishlistPub) {
@@ -815,12 +815,11 @@ function pingMultiUserSession(sid, gameid, title, author, started)
                  from games, unwishlists
                  where games.id = unwishlists.gameid
                  and unwishlists.userid = '$quid'
-                 order by unwishlists.date_added desc
-                 limit 0, 6", $db);
+                 order by unwishlists.date_added desc", $db);
 
             if (mysql_num_rows($result) == 0)
                 echo "<i>This member hasn't added any games to
-                      $hisHer \"Not Interested\" list yet.</i>";
+                      $hisHer \"Not Interested\" List yet.</i>";
 
             for ($i = 0 ; $i < 5 && $i < mysql_num_rows($result) ; $i++) {
                 list($gid, $title, $author) = mysql_fetch_row($result);
@@ -833,7 +832,8 @@ function pingMultiUserSession(sid, gameid, title, author, started)
             if (mysql_num_rows($result) > 5)
                 echo "<p><span class=details>"
                     . "<a href=\"playlist?id=$uid&type=unwishlist\">"
-                    . "View the entire list</a></span><br>";
+                    . "See all " . mysql_num_rows($result)
+                    . " entries in the \"Not Interested\" List</a></span><br>";
         }
 
         echo "</div>";
