@@ -15,6 +15,11 @@ ALTER TABLE `clubs`
   ADD COLUMN `pswsalt` varchar(32) COLLATE latin1_german2_ci DEFAULT NULL
 ;
 
+ALTER TABLE `crossrecs`
+  DROP PRIMARY KEY,
+  ADD COLUMN `id` bigint(20) unsigned PRIMARY KEY AUTO_INCREMENT FIRST
+;
+
 DROP TABLE IF EXISTS `userfilters`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
