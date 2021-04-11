@@ -154,7 +154,7 @@ function init()
            picture is not null as haspic, picture as pic,
            acctstatus, activationcode,
            concat(defaultos, '.', ifnull(defaultosvsn,'')) as defaultos,
-           noexedownloads, publiclists, gender, emailflags, mirrorid,
+           noexedownloads, publiclists, gender, emailflags, 
            offsite_display, accessibility
         from
            users
@@ -191,7 +191,6 @@ function init()
     $emailflags = mysql_result($result, 0, "emailflags");
     $oldEmailcaptcha = (($emailflags & EMAIL_CAPTCHA) ? 1 : 0);
     $oldEmailcloaked = (($emailflags & EMAIL_CLOAKED) ? 1 : 0);
-    $oldMirror = mysql_result($result, 0, "mirrorid");
     $oldOffsite = mysql_result($result, 0, "offsite_display");
     $oldAccessibility = mysql_result($result, 0, "accessibility");
 
@@ -571,7 +570,7 @@ complete the re-activation process.</b>
                    defaultos = $qdefos, defaultosvsn = $qdefosvsn,
                    noexedownloads = '$qNoExes', publiclists = '$qPublicLists',
                    gender = '$qGender', emailflags = '$emailflags',
-                   mirrorid = '$qmirror', offsite_display = '$qOffsite',
+                   offsite_display = '$qOffsite',
                    accessibility = '$qAccessibility'
                    $setPic
                 where id = '$usernum'", $db) == false) {
