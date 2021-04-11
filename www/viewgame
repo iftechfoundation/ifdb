@@ -1514,26 +1514,16 @@ if (!isEmpty($genre)) {
         // play list or wish list - they obviously already know about
         // these games, so there's no reason to recommend them.
         if ($curuser && !$cssOverride) {
-            $joinOtherUser = "left outer join reviews as r3"
-                             . "  on r3.gameid = r2.gameid"
-                             . "  and r3.id != r2.id"
-                             . "  and r3.userid = '$curuser'"
-                             . " left outer join playedgames as pg"
-                             . "  on pg.userid = '$curuser'"
-                             . "  and pg.gameid = r2.gameid"
-                             . " left outer join wishlists as wl"
-                             . "  on wl.userid = '$curuser'"
-                             . "  and wl.gameid = r2.gameid"
-                             . " left outer join unwishlists as uw"
-                             . "  on uw.userid = '$curuser'"
-                             . "  and uw.gameid = r2.gameid";
-            $andOtherUser = "and r1.userid != '$curuser'"
-                            . " and r2.userid != '$curuser'"
-                            . " and r3.id is null"
-                            . " and ifnull(now() >= r3.embargodate, 1)"
-                            . " and pg.userid is null"
-                            . " and wl.userid is null"
-                            . " and uw.userid is null";
+            $joinOtherUser = "";
+            $andOtherUser = "and r1.userid != '$curuser'
+                             and r2.userid != '$curuser'
+                             and r2.gameid not in (
+                                select gameid from playedgames pg where pg.userid = '$curuser'
+                                union
+                                select gameid from wishlists wl where wl.userid = '$curuser'
+                                union
+                                select gameid from unwishlists uw where uw.userid = '$curuser'
+                            )";
         } else {
             $joinOtherUser = "";
             $andOtherUser = "";
