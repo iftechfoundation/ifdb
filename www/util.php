@@ -3132,5 +3132,29 @@ function coverArtThumbnail($id, $size, $params = "") {
     return "<img srcset=\"$thumbnail{$size}x$size$params, $thumbnail{$x15}x$x15$params 1.5x, $thumbnail{$x2}x$x2$params 2x, $thumbnail{$x3}x$x3$params 3x\" src=\"/viewgame?id=$id&coverart&thumbnail={$size}x$size\" height=$size width=$size border=0 alt=\"\">";
 }
 
+// ----------------------------------------------------------------------------
+//
+// Turns a comma-separated list of more than twenty-five authors into
+// a collapsed, expandable list of authors
+//
+
+function collapsedAuthors($authors) {
+    $authorArr = explode(', ', $authors);
+    $str = "";
+    
+    if (count($authorArr) > 25) {
+        $firstAuthor = array_shift($authorArr);
+        $secondAuthor = array_shift($authorArr);
+        
+        $str =  "$firstAuthor, $secondAuthor et al."
+                . "<details><summary>Show other authors</summary>"
+                . implode(', ', $authorArr)
+                . "</details>";
+    }
+    else {
+        $str = $authors;
+    }
+    return $str;
+}
 
 ?>
