@@ -167,11 +167,8 @@ as the background image.  This can be set to zero size if the
 hyperlink isn't wanted.
 */
 div.topbar {
-    width: 100%;
     background: url("/ifdb-topbar.jpg") #c0c0c0 no-repeat;
     height: 55px;
-    max-width: 100ch;
-    margin: 0 auto;
 }
 a.topbar {
     height: 55px;
