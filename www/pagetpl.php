@@ -86,32 +86,6 @@ function pageHeader($title, $focusCtl = false, $extraOnLoad = false,
     checkPersistentLogin();
     $curuser = ((isset($_SESSION['logged_in']) && $_SESSION['logged_in'])
                 ? $_SESSION['logged_in_as'] : false);
-    $curarrow = "<img src=\"/blank.gif\" class=\"topbarcurarrow\">";
-    $homearrow = $profarrow = $editprofarrow = $yourarrow = $commentarrow =
-        false;
-    switch ($pagescript) {
-    case "home":
-        $homearrow = $curarrow;
-        break;
-
-    case "showuser":
-        if (!isset($query['id']) || $query['id'] == $curuser)
-            $profarrow = $curarrow;
-        break;
-
-    case "editprofile":
-        $editprofarrow = $curarrow;
-        break;
-
-    case "personal":
-        $yourarrow = $curarrow;
-        break;
-
-    case "commentlog":
-        $commentarrow = $curarrow;
-        break;
-    }
-
     // add the top bar for a regular window
 ?>
 
