@@ -216,6 +216,7 @@ if ($errMsg) {
             $gameid = $rec['gameid'];
             $title = htmlspecialcharx($rec['title']);
             $author = htmlspecialcharx($rec['author']);
+            $author = collapsedAuthors($author);
             list($desc, $desclen, $desctrun) = summarizeHtml($rec['desc'], 210);
             $desc = fixDesc($desc);
             $shouldHide = $rec['flags'] & FLAG_SHOULD_HIDE;

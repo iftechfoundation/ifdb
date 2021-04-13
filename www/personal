@@ -113,6 +113,7 @@ if ($fullReviewCnt == 0) {
             mysql_fetch_row($result);
         $title = htmlspecialcharx($title);
         $author = htmlspecialcharx($author);
+        $author = collapsedAuthors($author);
         $embargo =
             ($embargoDate
              ? " <span class=details>(hidden until $embargoDate)</span> "
@@ -315,7 +316,7 @@ if (mysql_num_rows($result) == 0) {
         echo "<a href=\"viewgame?id=$gameid\"><i>"
             . htmlspecialcharx($title)
             . "</i></a>, by "
-            . htmlspecialcharx($author)
+            . collapsedAuthors(htmlspecialcharx($author))
             . "<br>";
     }
 
@@ -342,7 +343,7 @@ for ($i = 0 ; $i < $maxgames && $i < mysql_num_rows($result) ; $i++) {
     echo "<a href=\"viewgame?id=$gameid\"><i>"
         . htmlspecialcharx($title)
         . "</i></a>, by "
-        . htmlspecialcharx($author)
+        . collapsedAuthors(htmlspecialcharx($author))
         . "<br>";
 }
 
@@ -371,7 +372,7 @@ for ($i = 0 ; $i < $maxgames && $i < mysql_num_rows($result) ; $i++) {
     echo "<a href=\"viewgame?id=$gameid\"><i>"
         . htmlspecialcharx($title)
         . "</i></a>, by "
-        . htmlspecialcharx($author)
+        . collapsedAuthors(htmlspecialcharx($author))
         . "<br>";
 }
 
@@ -481,7 +482,7 @@ if (count($games) == 0) {
     foreach ($games as $g) {
         echo "<a href=\"viewgame?id={$g['id']}\"><i>"
             . htmlspecialcharx($g['title']) . "</i></a>, by "
-            . htmlspecialcharx($g['author'])
+            . collapsedAuthors(htmlspecialcharx($g['author']))
             . "<span class=details> - "
             . ($g['pagevsn'] == 1 ? "created" : "edited")
             . " on {$g['md']}</span><br>";

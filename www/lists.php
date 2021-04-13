@@ -8,6 +8,7 @@ function listMatchItem($match, $num, $showArt, $rating, $hrefTarget)
     $id = htmlspecialcharx($match['id']);
     $title = htmlspecialcharx($match['title']);
     $author = htmlspecialcharx($match['author']);
+    $author = collapsedAuthors($author);
     $pubyear = $match['pubyear'];
     $art = $showArt && $match['hasart'];
 

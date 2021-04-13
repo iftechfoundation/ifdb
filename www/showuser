@@ -482,6 +482,7 @@ function pingMultiUserSession(sid, gameid, title, author, started)
             $gid = urlencode($rec['id']);
             $title = htmlspecialcharx($rec['title']);
             $author = htmlspecialcharx($rec['author']);
+            $author = collapsedAuthors($author);
             $art = $rec['hasart'];
             $descInfo = summarizeHtml($rec['desc'], 200);
             $desc = fixDesc($descInfo[0]);
@@ -689,6 +690,7 @@ function pingMultiUserSession(sid, gameid, title, author, started)
             // fix up fields for display
             $title = htmlspecialcharx($title);
             $author = htmlspecialcharx($author);
+            $author = collapsedAuthors($author);
             $summary = htmlspecialcharx($summary);
             list($review, $revlen, $revtrunc) = summarizeHtml($review, 140);
             $review = fixDesc($review);
@@ -764,6 +766,7 @@ function pingMultiUserSession(sid, gameid, title, author, started)
                 list($gid, $title, $author) = mysql_fetch_row($result);
                 $title = htmlspecialcharx($title);
                 $author = htmlspecialcharx($author);
+                $author = collapsedAuthors($author);
                 echo "<a href=\"viewgame?id=$gid\"><i>$title</i></a>, "
                     . "by $author<br>";
             }
@@ -794,6 +797,7 @@ function pingMultiUserSession(sid, gameid, title, author, started)
                 list($gid, $title, $author) = mysql_fetch_row($result);
                 $title = htmlspecialcharx($title);
                 $author = htmlspecialcharx($author);
+                $author = collapsedAuthors($author);
                 echo "<a href=\"viewgame?id=$gid\"><i>$title</i></a>, "
                     . "by $author<br>";
             }
@@ -825,6 +829,7 @@ function pingMultiUserSession(sid, gameid, title, author, started)
                 list($gid, $title, $author) = mysql_fetch_row($result);
                 $title = htmlspecialcharx($title);
                 $author = htmlspecialcharx($author);
+                $author = collapsedAuthors($author);
                 echo "<a href=\"viewgame?id=$gid\"><i>$title</i></a>, "
                     . "by $author<br>";
             }

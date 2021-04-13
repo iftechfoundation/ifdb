@@ -172,6 +172,7 @@ if ($rowcnt == 0) {
         $id = $row['id'];
         $title = output_encode(htmlspecialcharx($row['title']));
         $author = output_encode(htmlspecialcharx($row['author']));
+        $author = collapsedAuthors($author);
         $stars = showStars($row['avgrating']);
         $year = output_encode(htmlspecialcharx($row['pubyear']));
         $art = $row['hasart'];

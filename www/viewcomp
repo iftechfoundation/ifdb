@@ -438,6 +438,7 @@ for ($i = 0 ; $i < count($divs) ; $i++) {
         $gameplace = htmlspecialcharx($game["place"]);
         $gametitle = htmlspecialcharx($game["title"]);
         $gameauthor = htmlspecialcharx($game["author"]);
+        $gameauthor = collapsedAuthors($gameauthor);
 
         // display it
         echo "$gameplace: <a href=\"viewgame?id=$gameid\">"
