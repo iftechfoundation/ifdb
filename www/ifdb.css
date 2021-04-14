@@ -205,12 +205,40 @@ div.topctl table tr td {
     margin: 0 0 0 0;
     padding: 0 1em 0 1em;
 }
-div.topctl form {
+.topctl form {
     margin: 0px;
     display: inline-block;
 }
 
-.main-nav{
+.main-nav form {
+    margin: 0.25em 0.75em 0.25em 0.75em;
+}
+
+.searchbar-wrapper {
+    display: flex;
+    border: 2px solid #cfcfcf;
+    border-radius: 1em;
+}
+
+.searchbar-wrapper > input {
+    border: none;
+    padding-left: 0.5em;
+    border-radius: 1em 0 0 1em;
+}
+
+.searchbar-wrapper > button {
+    border: none;
+    cursor: pointer;
+    border-radius: 0 1em 1em 0;
+    background-color: #FFFFFF;
+    padding: 0.1em;
+}   
+
+.searchbar-wrapper > button:hover, button:focus {
+    background-color: #e8e8e8
+}
+
+.main-nav {
     display: flex;
     flex-wrap: wrap;
     overflow: auto;
@@ -257,9 +285,6 @@ div.topctl form {
     font-weight: bold;
 }
 
-.main-nav input {
-    margin: 0.25em 0.75em 0.25em 0.75em;
-}
 
 
 /*
@@ -1118,6 +1143,15 @@ span.headlineRss {
     align-items: center;
     align-self: start;
     margin-left: -1em;
+    padding: 0.25em 0.75em 0.25em 0.75em;
+    border: none;
+    background: none;
+    cursor: pointer;
+}
+
+.menu-toggle-button:hover{
+    text-decoration: underline;
+    background-color: #dcdcdc;
 }
 
 @media (max-width: 55ch) {
