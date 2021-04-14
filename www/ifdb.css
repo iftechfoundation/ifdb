@@ -221,6 +221,10 @@ div.topctl form {
     align-items: center;
 }
 
+ #mobile-menu-toggle-button + .main-nav {
+    padding-left: 0;
+}
+
 .main-nav ul{
     margin: 0px;
     padding: 0px;
@@ -1103,6 +1107,8 @@ span.headlineRss {
 
 .menu-toggle-button{
     display: none;
+    align-items: center;
+    align-self: start;
 }
 
 @media (max-width: 55ch) {
@@ -1112,7 +1118,7 @@ span.headlineRss {
     }
 
     .mobile-menu #mobile-menu-toggle-button{
-        display: inline-block;
+        display: flex;
     }
 
 }
