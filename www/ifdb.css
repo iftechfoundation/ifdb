@@ -217,6 +217,8 @@ div.topctl form {
     padding: 0em 1em 0em 1em;
     justify-content: space-between;
     font-size: 0.85em;
+    flex: 1;
+    align-items: center;
 }
 
 .main-nav ul{
@@ -1094,6 +1096,27 @@ span.headlineRss {
     }
 
 }
+
+.hidden{
+    display: none !important;
+}
+
+.menu-toggle-button{
+    display: none;
+}
+
+@media (max-width: 55ch) {
+
+    .mobile-menu .mobile-hidden{
+        display: none;
+    }
+
+    .mobile-menu #mobile-menu-toggle-button{
+        display: inline-block;
+    }
+
+}
+
 /*
 The "rightbar" table style is used for the little information
 boxes at the right of the home page and some other pages.

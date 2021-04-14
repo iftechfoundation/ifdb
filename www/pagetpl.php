@@ -93,6 +93,10 @@ function pageHeader($title, $focusCtl = false, $extraOnLoad = false,
     <a href="/" aria-label="Home">
         <div class="topbar"></div>
     </a>
+    <div id="main-nav-wrapper" class="flexer" style="margin:0">
+        <button type="button" id="mobile-menu-toggle-button" class="menu-toggle-button" aria-label="Menu" onclick="ToggleMobileMenu()" class="hidden">
+            <span>Menu</span>
+        </button>
         <nav id="main-nav" class="main-nav">
             <ul>
             <li class="<?= ($pagescript === 'home') ? 'page-active':''; ?>"><a id="topbar-home" href="/">Home</a></li>
@@ -112,13 +116,35 @@ function pageHeader($title, $focusCtl = false, $extraOnLoad = false,
                 </form>
                 <?php
                 if (isset($_SESSION['logged_in']) && $_SESSION['logged_in'])
-                    echo "<a id=\"topbar-logout\" href=\"/logout\">Log Out</a>";
+                    echo "<a id=\"topbar-logout\" class=\"login-link\" href=\"/logout\">Log Out</a>";
                 else
-                    echo "<a id=\"topbar-login\" href=\"/login\">Log In</a>";
+                    echo "<a id=\"topbar-login\" class=\"login-link\" href=\"/login\">Log In</a>";
                 ?>
             </div> 
         </nav>
+    </div>
 </div>
+
+<script>
+    function ToggleMobileMenu() {
+        document.querySelector('.main-nav ul').classList.toggle('mobile-hidden');
+        document.querySelector('.login-link').classList.toggle('mobile-hidden');
+        document.querySelector('#topbar-search').classList.toggle('mobile-hidden');
+        document.querySelectorAll('#mobile-menu-toggle-button img').forEach(item => item.classList.toggle('mobile-hidden'));
+    }
+
+    (()=> {
+    
+    // The mobile menu should be closed by default
+    ToggleMobileMenu();
+
+    // If javascript is enabled, un-hide the mobile menu button & add the 'mobile-menu' class to the main nav wrapper,
+    document.querySelector('#mobile-menu-toggle-button').classList.remove('hidden');
+    document.querySelector('#main-nav-wrapper').classList.add('mobile-menu');
+    
+})()
+    
+</script>
 
 <div class="main">
 <?php
