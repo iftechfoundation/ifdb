@@ -93,7 +93,6 @@ function pageHeader($title, $focusCtl = false, $extraOnLoad = false,
     <a href="/" aria-label="Home">
         <div class="topbar"></div>
     </a>
-   <form method="get" action="/search" name="search">
         <nav id="main-nav" class="main-nav">
             <ul>
             <li class="<?= ($pagescript === 'home') ? 'page-active':''; ?>"><a id="topbar-home" href="/">Home</a></li>
@@ -107,8 +106,10 @@ function pageHeader($title, $focusCtl = false, $extraOnLoad = false,
             <div class="block">
                 <a id="topbar-browse" href="/search?browse">Browse</a>|
                 <a id="topbar-search" href="/search">Search</a>
-                <input id="topbar-searchbar" type="text" name="searchbar" placeholder="Search for games...">
-                <button class="go-button" id="topbar-search-go-button" aria-label="Go"></button>
+                <form method="get" action="/search" name="search">
+                    <input id="topbar-searchbar" type="text" name="searchbar" placeholder="Search for games...">
+                    <button class="go-button" id="topbar-search-go-button" aria-label="Go"></button>
+                </form>
                 <?php
                 if (isset($_SESSION['logged_in']) && $_SESSION['logged_in'])
                     echo "<a id=\"topbar-logout\" href=\"/logout\">Log Out</a>";
@@ -117,7 +118,6 @@ function pageHeader($title, $focusCtl = false, $extraOnLoad = false,
                 ?>
             </div> 
         </nav>
-   </form>
 </div>
 
 <div class="main">

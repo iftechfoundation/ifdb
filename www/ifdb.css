@@ -206,8 +206,8 @@ div.topctl table tr td {
     padding: 0 1em 0 1em;
 }
 div.topctl form {
-    font-size: 0.85em;
     margin: 0px;
+    display: inline-block;
 }
 
 .main-nav{
@@ -216,6 +216,7 @@ div.topctl form {
     overflow: auto;
     padding: 0em 1em 0em 1em;
     justify-content: space-between;
+    font-size: 0.85em;
 }
 
 .main-nav ul{
