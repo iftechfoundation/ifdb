@@ -95,6 +95,8 @@ function pageHeader($title, $focusCtl = false, $extraOnLoad = false,
     </a>
     <div id="main-nav-wrapper" class="flexer" style="margin:0">
         <button type="button" id="mobile-menu-toggle-button" class="menu-toggle-button" aria-label="Menu" onclick="ToggleMobileMenu()" class="hidden">
+            <img src="img/menu.svg" alt="" class="mobile-hidden">
+            <img src="img/close.svg" alt="">
             <span>Menu</span>
         </button>
         <nav id="main-nav" class="main-nav">
