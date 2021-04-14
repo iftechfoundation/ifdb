@@ -214,11 +214,14 @@ div.topctl form {
     display: flex;
     flex-wrap: wrap;
     overflow: auto;
-    padding: 0em 1em 0em 1em;
     justify-content: space-between;
     font-size: 0.85em;
     flex: 1;
     align-items: center;
+}
+
+#main-nav-wrapper{
+    padding: 0em 1em 0em 1em;
 }
 
  #mobile-menu-toggle-button + .main-nav {
@@ -253,6 +256,11 @@ div.topctl form {
 .page-active{
     font-weight: bold;
 }
+
+.main-nav input {
+    margin: 0.25em 0.75em 0.25em 0.75em;
+}
+
 
 /*
 The "main" division is basically the rest of the page below the
@@ -1109,6 +1117,7 @@ span.headlineRss {
     display: none;
     align-items: center;
     align-self: start;
+    margin-left: -1em;
 }
 
 @media (max-width: 55ch) {
@@ -1119,6 +1128,10 @@ span.headlineRss {
 
     .mobile-menu #mobile-menu-toggle-button{
         display: flex;
+    }
+
+    .mobile-menu ul{
+        display: inline-block;
     }
 
 }

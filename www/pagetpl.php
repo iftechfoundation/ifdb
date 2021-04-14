@@ -129,7 +129,7 @@ function pageHeader($title, $focusCtl = false, $extraOnLoad = false,
 
 <script>
     function ToggleMobileMenu() {
-        document.querySelector('.main-nav ul').classList.toggle('mobile-hidden');
+        document.querySelector('#main-nav ul').classList.toggle('mobile-hidden');
         document.querySelector('.login-link').classList.toggle('mobile-hidden');
         document.querySelector('#topbar-search').classList.toggle('mobile-hidden');
         document.querySelectorAll('#mobile-menu-toggle-button img').forEach(item => item.classList.toggle('mobile-hidden'));
