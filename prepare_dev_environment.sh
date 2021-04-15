@@ -12,5 +12,6 @@ mkdir initdb
 cat sql/create-db.sql ifdb-archive.sql > initdb/00-init.sql
 cp sql/patch-schema.sql initdb/01-patch-schema.sql
 cp sql/create-admin.sql initdb/02-create-admin.sql
+cp sql/create-test-user.sql initdb/03-create-test-user.sql
 
 sed 's/"127.0.0.1", "username", "password"/"db", "root", "secret"/' local-credentials.php.template > www/local-credentials.php
