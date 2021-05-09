@@ -862,8 +862,8 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse)
 
     case "comp":
         $sortList = array(
-            'awn' => array('c.awarddate desc,', 'Newest First'),
-            'awo' => array('c.awarddate,', 'Oldest First'),
+            'awn' => array('ifnull(c.awarddate, c.qualclose) desc,', 'Newest First'),
+            'awo' => array('ifnull(c.awarddate, c.qualclose),', 'Oldest First'),
             'nm' => array('lower(c.title),', 'Sort by Name'),
             'numgd' => array('count(g.gameid) desc,', 'Most Entries First'),
             'numgu' => array('count(g.gameid),', 'Fewest Entries First'),
