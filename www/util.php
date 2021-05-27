@@ -1959,6 +1959,12 @@ function splitPersonalNameList($name)
 //
 function getSortingPersonalName($name)
 {
+    // strip parentheses
+    // rationale: some games have author set to: "Real Name (as Pseudonym)"
+    //            clicking on their name will launch a search, we want the
+    //            search results to include results for "Real Name"
+    $name = preg_replace("/\([^)]+\)/","",$name);
+
     // split it on spaces that aren't preceded by commas
     $names = preg_split("/(?<!,)\s+/", $name, -1, PREG_SPLIT_NO_EMPTY);
     $c = count($names);
