@@ -623,23 +623,28 @@ function sendImage($imgData, $imgFmt, $thumbnail, $flags = 0)
             }
 
             // generate the thumbnail image
-            $thumb = imagecreatetruecolor($sx, $sy);
-            imagefilledrectangle($thumb, 0, 0, $sx, $sy,
-                                 imagecolorallocate($thumb, 255,255,255));
-            imagecopyresampled($thumb, $source,
-                               ($sx - $cx)/2, ($sy - $cy)/2, 0, 0,
-                               $cx, $cy, $ix, $iy);
+            $thumb = newTransparentImage($sx, $sy);
+            imagecopyresampled(
+                $thumb,
+                $source,
+                ($sx - $cx) / 2,
+                ($sy - $cy) / 2,
+                0,
+                0,
+                $cx,
+                $cy,
+                $ix,
+                $iy
+            );
 
             // send it in the original format, or jpeg if unrecognized
             if ($imgFmt == "gif") {
                 header("Content-type: image/gif");
                 imagegif($thumb);
-            }
-            else if ($imgFmt == "png") {
+            } else if ($imgFmt == "png") {
                 header("Content-type: image/png");
                 imagepng($thumb, null, 0);
-            }
-            else {
+            } else {
                 header("Content-type: image/jpeg");
                 imagejpeg($thumb);
             }
@@ -663,7 +668,8 @@ function newTransparentImage($x, $y)
 {
     // create a true-color image of the given size
     $r = imagecreatetruecolor($x, $y);
-    
+    imagesavealpha($r, true);;
+
     // we want to set the transparency in the new image, not combine it
     imagealphablending($r, false);
 
