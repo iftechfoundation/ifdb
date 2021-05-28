@@ -2,11 +2,15 @@
 
 include_once "dbconnect.php";
 include_once "images.php";
+include_once "login-check.php";
 include_once "login-persist.php";
+include_once "pagetpl.php";
 
 // --------------------------------------------------------------------------
 // mysqli replacements (for compatibility across php versions)
 
+define("MYSQL_ASSOC", MYSQLI_ASSOC);
+define("MYSQL_BOTH",  MYSQLI_BOTH);
 function mysql_connect($server, $user, $password) { return mysqli_connect($server, $user, $password); }
 function mysql_set_charset($linkid, $charset) { return mysqli_set_charset($linkid, $charset); }
 function mysql_select_db($db, $linkid = NULL) { return mysqli_select_db($linkid, $db); }
@@ -24,8 +28,6 @@ function mysql_result($result, $row, $field = 0) {
     return $row[$field];
 }
 function mysql_insert_id($linkid) { return mysqli_insert_id($linkid); }
-define("MYSQL_ASSOC", MYSQLI_ASSOC);
-define("MYSQL_BOTH",  MYSQLI_BOTH);
 
 define("PRODUCTION_SERVER_NAME", "ifdb.org");
 define("STAGING_SERVER_NAME", "dev.ifdb.org");
