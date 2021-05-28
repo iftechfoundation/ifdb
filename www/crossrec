@@ -444,8 +444,8 @@ if ($editMode) {
     $pgAll = false;
     $pg = get_req_data('pg');
 
-	// get the game ratings table, taking into account the user's sandbox
-	$gameRatingsView = getGameRatingsView($db);
+    // get the game ratings table, taking into account the user's sandbox
+    $gameRatingsView = getGameRatingsView($db);
 
     // query the recommendations
     $result = mysql_query(

@@ -37,17 +37,17 @@ function queryComments($db, $mode, $quid, $limit, $caughtUpDate, $keepPlonked)
     }
     $andNotPlonked = ($keepPlonked ? "" : "and $plonkedCol = 0");
 
-	// Include only reviews from our sandbox or sandbox 0 (all users)
-	$inSandbox = "uc.sandbox = 0";
-	if ($curuser)
-	{
-		// get my sandbox
-		$sandbox = 0;
-		$result = mysql_query("select sandbox from users where id='$curuser'", $db);
-		list($sandbox) = mysql_fetch_row($result);
-		if ($sandbox != 0)
-			$inSandbox = "uc.sandbox in (0, $sandbox)";
-	}
+    // Include only reviews from our sandbox or sandbox 0 (all users)
+    $inSandbox = "uc.sandbox = 0";
+    if ($curuser)
+    {
+        // get my sandbox
+        $sandbox = 0;
+        $result = mysql_query("select sandbox from users where id='$curuser'", $db);
+        list($sandbox) = mysql_fetch_row($result);
+        if ($sandbox != 0)
+            $inSandbox = "uc.sandbox in (0, $sandbox)";
+    }
 
     switch ($mode) {
     case 'subscribed':
@@ -115,7 +115,7 @@ function queryComments($db, $mode, $quid, $limit, $caughtUpDate, $keepPlonked)
            and ($modeWhere)
            $andNew
            $andNotPlonked
-		   and ($inSandbox)
+           and ($inSandbox)
          $modeGroup
          $modeHaving
          order by
@@ -217,17 +217,17 @@ function showCommentPage($db, $itemAuthor, $srcID, $srcCode,
                       .   "and uf.filtertype = 'K')";
     }
 
-	// Include only reviews from our sandbox or sandbox 0 (all users)
-	$inSandbox = "uc.sandbox = 0";
-	if ($curuser)
-	{
-		// get my sandbox
-		$sandbox = 0;
-		$result = mysql_query("select sandbox from users where id='$curuser'", $db);
-		list($sandbox) = mysql_fetch_row($result);
-		if ($sandbox != 0)
-			$inSandbox = "uc.sandbox in (0, $sandbox)";
-	}
+    // Include only reviews from our sandbox or sandbox 0 (all users)
+    $inSandbox = "uc.sandbox = 0";
+    if ($curuser)
+    {
+        // get my sandbox
+        $sandbox = 0;
+        $result = mysql_query("select sandbox from users where id='$curuser'", $db);
+        list($sandbox) = mysql_fetch_row($result);
+        if ($sandbox != 0)
+            $inSandbox = "uc.sandbox in (0, $sandbox)";
+    }
 
     // query the comments
     $result = mysql_query(
@@ -244,7 +244,7 @@ function showCommentPage($db, $itemAuthor, $srcID, $srcCode,
            (c.private is null $orOwner)
            and c.source = '$srcCode'
            and c.sourceid = '$srcID'
-		   and ($inSandbox)
+           and ($inSandbox)
          order by
            c.created desc", $db);
 
@@ -390,7 +390,7 @@ function showComment($db,$commentPage, $itemAuthor, $cidx, $coutlst, $i)
     $ctls = "<a href=\"$commentPage&replyto=$cid\">"
             . "Reply</a>";
 
-	$isAdmin = check_admin_privileges($db, $curuser);
+    $isAdmin = check_admin_privileges($db, $curuser);
 
     // add the Edit and Delete controls, if it's ours
     if ($curuser && $curuser == $cuserid) {
@@ -496,17 +496,17 @@ function countComments($db, $srcCode, $qSrcID)
     $curuser = $_SESSION['logged_in_as'];
     $orOwner = ($curuser ? "or '$curuser' in (c.userid, c.private)" : "");
 
-	// Include only reviews from our sandbox or sandbox 0 (all users)
-	$inSandbox = "uc.sandbox = 0";
-	if ($curuser)
-	{
-		// get my sandbox
-		$sandbox = 0;
-		$result = mysql_query("select sandbox from users where id='$curuser'", $db);
-		list($sandbox) = mysql_fetch_row($result);
-		if ($sandbox != 0)
-			$inSandbox = "uc.sandbox in (0, $sandbox)";
-	}
+    // Include only reviews from our sandbox or sandbox 0 (all users)
+    $inSandbox = "uc.sandbox = 0";
+    if ($curuser)
+    {
+        // get my sandbox
+        $sandbox = 0;
+        $result = mysql_query("select sandbox from users where id='$curuser'", $db);
+        list($sandbox) = mysql_fetch_row($result);
+        if ($sandbox != 0)
+            $inSandbox = "uc.sandbox in (0, $sandbox)";
+    }
 
     $result = mysql_query(
         "select
@@ -518,7 +518,7 @@ function countComments($db, $srcCode, $qSrcID)
            (c.private is null $orOwner)
            and (c.source = '$srcCode' and c.sourceid = '$qSrcID')
            and ($inSandbox)",
-		$db);
+        $db);
 
     list($cnt) = mysql_fetch_row($result);
     return $cnt;

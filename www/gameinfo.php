@@ -381,8 +381,8 @@ function getGameInfo($db, $id, $curuser, $requestVersion, &$errMsg, &$errCode)
                     ? htmlspecialcharx(mysql_result($result, 0, "name"))
                     : "";
 
-	// get the ratings view for the current user's sandbox
-	$gameRatingsView = getGameRatingsView($db);
+    // get the ratings view for the current user's sandbox
+    $gameRatingsView = getGameRatingsView($db);
 
     // get the rating statistics
     $result = mysql_query(

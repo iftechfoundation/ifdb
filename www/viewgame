@@ -889,14 +889,14 @@ for ($foundGame = $foundPC = $foundT3W = $foundHex = $pcUrl = $t3wUrl = $hexUrl 
         $t3wUrl = urlencode($link['url']);
     }
 
-	// check for an uncompressed Hugo executable
-	if (!$foundHex
+    // check for an uncompressed Hugo executable
+    if (!$foundHex
         && $link['fmtexternid'] == 'hugo'
         && !$link['compression'])
-	{
-		$foundHex = true;
-		$hexUrl = urlencode($link['url']);
-	}
+    {
+        $foundHex = true;
+        $hexUrl = urlencode($link['url']);
+    }
 }
 if ($foundGame)
 {
@@ -927,17 +927,17 @@ if ($foundGame)
             . "</a><br>";
     }
 
-	// if we have a Hugo game, set up a play-online link
-	if ($foundHex && $hexUrl) {
-		$hexLaunch = "http://textadventures.online/play/?story={$hexUrl}";
-		$htarget = (is_kindle() ? "" : "target=\"_blank\"");
+    // if we have a Hugo game, set up a play-online link
+    if ($foundHex && $hexUrl) {
+        $hexLaunch = "http://textadventures.online/play/?story={$hexUrl}";
+        $htarget = (is_kindle() ? "" : "target=\"_blank\"");
         echo "<a href=\"{$hexLaunch}\" $htarget "
-			. "title=\"Play this game right now in your browser. No "
+            . "title=\"Play this game right now in your browser. No "
             . "installation is required.\">"
             . "<img src=\"/blank.gif\" class=\"play-online-button\" "
             . "style=\"margin:0px 0px 0.3em 0px;cursor:pointer;\">"
             . "</a><br>";
-	}
+    }
 
     // Write the Download Adviser ("Show Me How") button
     echo "<a href=\"dladviser?id=$id\" "
@@ -2263,10 +2263,10 @@ if (count($inrefs) != 0 && !$historyView) {
                <span id="myTagList" style="margin-right:1ex;"></span> -
                <a href="needjs" onclick="javascript:editTags();return false;"
                   >Edit</a>
-		    <?php if ($adminPriv) { ?>
+            <?php if ($adminPriv) { ?>
                <a href="needjs" onclick="javascript:deleteTags();return false;"
                   >Delete</a>
-			<?php } ?>
+            <?php } ?>
 
                <span class="xmlstatmsg" style="margin-left:1ex;"
                   id="tagStatusSpan"></span>
@@ -2422,20 +2422,20 @@ function dispTagTable(tableID, lst, editor, deleteTags)
 
 
             if (!deleteTags) {
-	            s = "<span class=\"cklabel\" onmouseover=\"javascript:"
-	                + "ckboxOver('"+ck+"',false);return true;\" "
-	                + "onmouseout=\"javascript:ckboxLeave('"+ck+"',false);"
-	                + "return true;\" onclick=\"javascript:ckboxClick('"+ck
-	                + "',false,doTagCkBox);return false;\">"
-		            + "<img align=absmiddle border=0 id=\"ckImg"+ck+"\"> "
+                s = "<span class=\"cklabel\" onmouseover=\"javascript:"
+                    + "ckboxOver('"+ck+"',false);return true;\" "
+                    + "onmouseout=\"javascript:ckboxLeave('"+ck+"',false);"
+                    + "return true;\" onclick=\"javascript:ckboxClick('"+ck
+                    + "',false,doTagCkBox);return false;\">"
+                    + "<img align=absmiddle border=0 id=\"ckImg"+ck+"\"> "
             } else {
                s = "<span class=\"cklabel\" onmouseover=\"javascript:"
                 + "ckboxOver('"+ck+"',false);return true;\" "
                 + "onmouseout=\"javascript:ckboxLeave('"+ck+"',false);"
                 + "return true;\" onclick=\"javascript:deleteTag('"+t
                 + "');return false;\">"
-	    	        + "<input type=image align=absmiddle border=0 id=\"ckImg"+ck+"\""
-	    	        + "src='delrow.gif' >";
+                    + "<input type=image align=absmiddle border=0 id=\"ckImg"+ck+"\""
+                    + "src='delrow.gif' >";
 
             }
 
@@ -2520,10 +2520,10 @@ function dispDeleteTags()
 
 function deleteTag(tag)
 {
-//	alert (tag);
+//    alert (tag);
 
     var c = "id=<?php echo $id ?>";
-	c += "&t=" + encodeURI8859(tag);
+    c += "&t=" + encodeURI8859(tag);
 
     //xmlSend("taggamedelete", "tagStatusSpan", cbSaveTags, c);
 
@@ -2806,7 +2806,7 @@ dispTags();
                     $crdesc = fixDesc($crdescInfo[0]);
                     $crart = $c['hasart'];
 
-					$gameRatingsView = getGameRatingsView($db);
+                    $gameRatingsView = getGameRatingsView($db);
                     $result = mysql_query(
                         "select avgRating, numRatingsInAvg, numRatingsTotal
                          from $gameRatingsView

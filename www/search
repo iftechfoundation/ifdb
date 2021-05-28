@@ -147,7 +147,7 @@ if ($xml && $enum)
     }
 
     // send the results
-	ini_set("default_charset", "ISO-8859-1");
+    ini_set("default_charset", "ISO-8859-1");
     header("Content-type: text/xml");
     header("Expires: Mon, 26 Jul 1997 05:00:00 GMT");
     header("Cache-Control: no-store, no-cache, must-revalidate");
