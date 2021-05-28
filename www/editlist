@@ -253,7 +253,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST'
                 $deferred = true;
             } else {
                 // we have a resolution - set the resolved TUID in the item
-                $tuid = $item['tuid'] = $sel;
+                $item['tuid'] = $sel;
+                $tuid = mysql_real_escape_string($item['tuid'], $db);
 
                 // we no longer need the title, as we've resolved it to
                 // a specific listing
@@ -265,8 +266,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST'
         // database entry still exists
         if ($tuid != "") {
             // look it up
-            $result = mysql_query("select id from games
-                where id='$tuid'", $db);
+            $result = mysql_query("select id from games where id='$tuid'", $db);
 
             // if we didn't find it, flag that we 
             if (mysql_num_rows($result) == 0) {
