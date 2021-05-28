@@ -108,7 +108,7 @@ if (isset($_REQUEST['burygame'])) {
                     set flags = '$newflags'
                     where id = '$qid'", $db);
                 if (!$result) {
-                    error_log($mysql_error($db));
+                    error_log(mysql_error($db));
                     echo "There was an error setting the flag.";
                 }
                 $flags = $newflags;
@@ -1289,12 +1289,12 @@ else if (isset($_REQUEST['users'])) {
         if ($rebuild || $sortTitle == "")
             $setVars[] = "sort_title = '"
                          . mysql_real_escape_string(strtoupper(
-                             getSortingTitle($title))) . "'";
+                             getSortingTitle($title)), $db) . "'";
 
         if ($rebuild || $sortAuthor == "")
             $setVars[] = "sort_author = '"
                          . mysql_real_escape_string(strtoupper(
-                             getSortingPersonalNameList($author))) . "'";
+                             getSortingPersonalNameList($author)), $db) . "'";
 
         $setVars = implode(",", $setVars);
         $result = mysql_query(
@@ -1849,7 +1849,7 @@ else if (isset($_REQUEST['users'])) {
                filterID, filterName, ckBoxName, showName, endDate,
                filterType, explanation
              from filters
-             where filterid = '$qFilterID'");
+             where filterid = '$qFilterID'", $db);
         if (mysql_num_rows($result) > 0) {
             list($filterID, $filterName, $ckBoxName, $showName, $endDate,
                  $filterType, $explanation) = mysql_fetch_row($result);
