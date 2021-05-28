@@ -283,27 +283,6 @@ if ($pg == 'all') {
     $limit = "limit $firstOnPage, $perPage";
 }
 
-// callback to prepend a "+" to a search word
-function prependPlus($txt)
-{
-    return "+" . $txt;
-}
-
-// is the given string a name suffix?
-function isNameSuffix($s)
-{
-    return in_array(strtolower($s),
-                    array("jr", "jr.", "sr", "sr.", "phd", "ph.d.",
-                          "md", "m.d."));
-}
-
-function unNegate($w)
-{
-    if (substr($w, 0, 1) == '-')
-        $w = substr($w, 1);
-    return $w;
-}
-
 // if we have a search term, find it
 if ($term || $browse) {
 
