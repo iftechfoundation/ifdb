@@ -164,7 +164,7 @@ if ($errMsg) {
                     echo "<br><span class=details>"
                         . "Added to $listName on $dateAdded"
                         . "</span>";
-                
+
                 echo "</td></tr></table>";
             }
             else

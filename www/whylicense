@@ -70,6 +70,6 @@ you to share your work with the whole IF community.
 <br><a href="home">IFDB Home</a>
 
 
-<?php 
+<?php
 varPageFooter(get_req_data('helpwin'));
 ?>

@@ -23,7 +23,7 @@ alter table clubs
   drop column pswsalt;
 
 delete from clubmembers
-  where (select members_public from clubs 
+  where (select members_public from clubs
          where clubs.clubid = clubmembers.clubid) != 'Y';
 
 delete from users
@@ -84,15 +84,15 @@ update games
   where coverart is not null;
 
 delete from playedgames
-  where (select locate('P', publiclists) from users 
+  where (select locate('P', publiclists) from users
          where users.id = playedgames.userid) = 0;
 
 delete from unwishlists
-  where (select locate('U', publiclists) from users 
+  where (select locate('U', publiclists) from users
          where users.id = unwishlists.userid) = 0;
 
 delete from wishlists
-  where (select locate('W', publiclists) from users 
+  where (select locate('W', publiclists) from users
          where users.id = wishlists.userid) = 0;
 
 alter table users

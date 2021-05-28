@@ -105,7 +105,7 @@ function getGameInfo($db, $id, $curuser, $requestVersion, &$errMsg, &$errCode)
     for ($i = 0, $xrefs = array() ; $i < $rows ; $i++)
         $xrefs[] = mysql_fetch_array($result, MYSQL_ASSOC);
 
-    // Fetch the INCOMING cross-references.  Since these can come from 
+    // Fetch the INCOMING cross-references.  Since these can come from
     // multiple sources each with their own different display ordering,
     // the display order isn't meaningful when they're combined.  Instead,
     // group them by reference type so that we show all of the translations
@@ -318,7 +318,7 @@ function getGameInfo($db, $id, $curuser, $requestVersion, &$errMsg, &$errCode)
     usort($links, "sortByDisplayOrder");
 
     // Fill in the outbound xrefs with the game titles and authors,
-    // and the reference type names.  We can't just select this up 
+    // and the reference type names.  We can't just select this up
     // front because of versioning - old versions won't have this
     // extra data stashed, so for uniformity we simply reconstruct
     // it now for all versions.
@@ -375,7 +375,7 @@ function getGameInfo($db, $id, $curuser, $requestVersion, &$errMsg, &$errCode)
     }
 
     // look up the name of the editor
-    $result = mysql_query("select name from users 
+    $result = mysql_query("select name from users
         where id = '$editedbyid'", $db);
     $editedbyname = ($result && mysql_num_rows($result))
                     ? htmlspecialcharx(mysql_result($result, 0, "name"))

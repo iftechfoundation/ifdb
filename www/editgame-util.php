@@ -291,7 +291,7 @@ function saveUpdates($db, $adminPriv, $apiMode,
                      &$saveErrMsg, &$saveErrCode, &$errDetail)
 {
     global $fields, $fmtmap;
-    
+
     // no errors yet
     $errDetail = array();
 
@@ -412,7 +412,7 @@ function saveUpdates($db, $adminPriv, $apiMode,
             // supplied the profile link {TUID} codes, sans author names.
             if (is_null($val) || $val == "") {
                 if ($changesNew["authorExt"] != "") {
-                    $errDetail["eAuthor"][] = 
+                    $errDetail["eAuthor"][] =
                         "Please be sure to enter the author's display name "
                         . "just before each profile link.  Use the format "
                         . "<b>Author Dent {a10x00139ke9041j}</b>.";
@@ -631,7 +631,7 @@ function saveUpdates($db, $adminPriv, $apiMode,
         // save the profile list in the update record for insertion
         $changesNew['profileLinks'] = $proList;
     }
-    
+
 
     // if validation failed, stop the update and redisplay the form
     if (count($errDetail)) {
@@ -727,7 +727,7 @@ function saveUpdates($db, $adminPriv, $apiMode,
                     record in the database.  You might try the request
                     again in a little while, or
                     <a target=\"_blank\" href=\"/contact\">contact us</a>
-                    if the problem persists.  If you need to contact us, 
+                    if the problem persists.  If you need to contact us,
                     please tell us <b>exactly</b> what you were trying to do
                     (if you can take a snapshot of the screen showing
                     all of the updates you made, that would help), and
@@ -789,7 +789,7 @@ function calcDeltas($oldRec, $newRec)
     $f = $fields;
     $f[] = array("author", "author", 60, null, null, TypeString);
     $f[] = array("authorExt", "authorExt", 60, null, null, TypeString);
-    
+
     // generate a list of updated fields
     $changesOld = array();
     $changesNew = array();
@@ -1074,14 +1074,14 @@ function update_profile_links($db, $qgameid, $plNew, &$progress)
         if (!isset($plNewTab[$p]))
             $plOldOnly[] = $p;
     }
-    
+
     // make a list of items appearing only in the NEW table
     $plNewOnly = array();
     foreach ($plNewTab as $p => $v) {
         if (!isset($plOldTab[$p]))
             $plNewOnly[] = $p;
     }
-    
+
     // delete the old links that aren't set in the new list
     $result = true;
     if (count($plOldOnly) > 0) {
@@ -1090,7 +1090,7 @@ function update_profile_links($db, $qgameid, $plNew, &$progress)
             "delete from gameprofilelinks where gameid = '$qgameid' and userid in ('"
             . implode("','", $plOldOnly) . "')", $db);
     }
-            
+
     // insert the new profile links
     for ($i = 0 ; $i < count($plNewOnly) ; $i++) {
         if ($result) {
@@ -1099,7 +1099,7 @@ function update_profile_links($db, $qgameid, $plNew, &$progress)
         }
     }
 
-    // return the mysql success/error status 
+    // return the mysql success/error status
     return $result;
 }
 
@@ -1120,7 +1120,7 @@ function saveNewGame($db, $adminPriv, $apiMode,
     // make sure that the required fields are present
     foreach (array("title" => "title", "author" => "eAuthor")
              as $col => $errCol) {
-        
+
         // get the new value, if present
         $newVal = isset($changesNew[$col]) ? $changesNew[$col] : "";
 
@@ -1134,7 +1134,7 @@ function saveNewGame($db, $adminPriv, $apiMode,
                       . "before each profile link.  Use the format "
                       . "<b>Author Dent {a10x00139ke9041j}</b>.";
         }
-        
+
         // if it's not set, flag the error
         if ($newVal == "") {
             // flag the specific column error
@@ -1266,7 +1266,7 @@ function saveNewGame($db, $adminPriv, $apiMode,
             }
         }
     }
-                    
+
     // insert the cross-references, if any
     if ($result && isset($changesNew['xrefs'])) {
         $xrefs = $changesNew['xrefs'];
@@ -1329,7 +1329,7 @@ function saveOldGame($db, $adminPriv, $apiMode,
     // the ID of an existing game will not change
     $newid = $id;
     $qnewid = $qid = mysql_real_escape_string($id, $db);
-    
+
     // The first step in saving is to figure out what's changed,
     // and save a history record for each modified field.  The
     // history record consists of the OLD value of each updated
@@ -1581,7 +1581,7 @@ function saveOldGame($db, $adminPriv, $apiMode,
         $progress = "DLR0720.B";
         $result = mysql_query(
             "delete from reviews where gameid='$qid' and special='4'", $db);
-    
+
         // insert the new reviews
         $revs = $changesNew['extreviews'];
         for ($i = 0 ; $i < count($revs) ; $i++) {
@@ -1613,7 +1613,7 @@ function saveOldGame($db, $adminPriv, $apiMode,
     if ($result && isset($changesNew['profileLinks'])) {
         $result = update_profile_links($db, $qnewid, $changesNew['profileLinks'], $progress);
     }
-                    
+
     // note the error if in diagnostic mode
     if ($adminPriv)
         $progress .= " [" . mysql_errno($db) . " - " . mysql_error($db) . "]";

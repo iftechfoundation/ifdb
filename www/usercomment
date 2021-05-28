@@ -38,7 +38,7 @@ function showCommentReference($db, $rec)
         list($uid, $name, $pic, $loc) = $rec;
         $name = htmlspecialcharx($name);
         $loc = htmlspecialcharx($loc);
-        
+
         echo "<p><hr class=dots>You are commenting on this member's profile:<p>";
         if ($pic)
             echo "<table class=grid border=0 cellspacing=0 cellpadding=0>"

@@ -137,13 +137,13 @@ if ($delKey && get_req_data('delete') && get_req_data('reqid') == $delKey)
     {
         $s = (count($files) > 1 ? "s" : "");
         $these = (count($files) > 1 ? "these" : "this");
-    
+
         pageHeader("Confirm Deletion");
         echo "<h1>Confirm Deletion</h1>"
             . "Please confirm that you'd like to delete the following "
             . "file$s from your Storage Server account:<p>"
             . "<div class=indented>";
-        
+
         foreach ($files as $file)
             echo htmlspecialchars($file['desc']) . "<br>";
 
@@ -298,7 +298,7 @@ if ($dh = @opendir($path))
                             "desc" => "$title > Save > $slotno$udesc");
                         $gameDelList[] = $del;
                         $delList[$fileDelKey] = array($del);
-                        
+
                         // generate the Download and Delete links
                         $links = array(
 //                            "<a href=\"t3files?download=$dlpath\">"

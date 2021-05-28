@@ -47,7 +47,7 @@ function showCommentReference($db, $rec)
         $title = htmlspecialcharx($title);
         $desc = fixDesc($desc);
         $uname = htmlspecialcharx($uname);
-    
+
         echo "<p><hr class=dots>You are commenting on "
             . "<a href=\"poll?id=$id\"><b>$title</b></a>, a poll "
             . "by <a href=\"showuser?id=$uid\">$uname</a>.";

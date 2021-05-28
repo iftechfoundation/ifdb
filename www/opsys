@@ -112,7 +112,7 @@ foreach ($vsnfields as $f) {
 function showHiddenFields()
 {
     global $osid, $osname, $osicon, $versions, $externid;
-    
+
     echo "<input type=hidden name=id value=\""
         . htmlspecialcharx($osid) . "\">"
         . "<input type=hidden name=osname value=\""
@@ -292,7 +292,7 @@ if ($geticon) {
             $osid = mysql_insert_id($db);
             $qosid = mysql_real_escape_string($osid, $db);
             $sql .= " [new ID=$osid]";
-            
+
             // add the special "all versions" version row
             $progress = "inserting OS version '*' record";
             $result = mysql_query(
@@ -385,7 +385,7 @@ if ($geticon) {
     else if ($editPriv
              && $_SERVER['REQUEST_METHOD'] == 'POST'
              && isset($_REQUEST['savevsn'])) {
-        
+
         // note that we're attempting a save
         $saving = true;
 
@@ -425,12 +425,12 @@ if ($geticon) {
     //
     // Check which mode we're in
     //
-    
+
     if ($editPriv && isset($_REQUEST['editvsn'])) {
     // -------------------------  EDIT VERSION -------------------------------
 
         pageHeader("Edit OS/Interpreter Version", "editvsn.browserid");
-        
+
         if ($saveErrMsg)
             echo "<p><span class=errmsg>$saveErrMsg</span><p>";
         else if ($saving) {
@@ -680,7 +680,7 @@ var vsnVals = [
         pageHeader($pagetitle);
         echo "<h1>$pagetitle</h1>"
             . "<a href=\"opsys\">Return to the OS list</a><br>";
-        
+
         if ($editPriv)
             echo "<a href=\"opsys?id=$osid&edit\">Edit this OS entry</a><br>";
 
@@ -715,7 +715,7 @@ var vsnVals = [
                versions of this operating system are considered
                equivalent for the purposes of IFDB's download &amp;
                installation advice.</i>";
-               
+
         } else {
             for ($i = 0 ; $i < count($dversions) ; $i++) {
                 $v = $dversions[$i];
@@ -905,7 +905,7 @@ var vsnVals = [
 
                 $intab = true;
             }
-            
+
             // show the OS name
             echo "<a href=\"opsys?id=$id\">$osname</a><br>";
 

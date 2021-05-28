@@ -11,7 +11,7 @@ function basePageHeader($title, $focusCtl, $extraOnLoad, $extraHead,
 //  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 //<html xmlns="http://www.w3.org/1999/xhtml">
 
-// $$$ UTF8 encoding - NOT CURRENTLY ACTIVE: 
+// $$$ UTF8 encoding - NOT CURRENTLY ACTIVE:
 // iconv_set_encoding("output_encoding", "UTF-8");
 // NOTE: if changing to UTF-8, also change the <meta> below to set
 // the charset clause in the Content_Type parameter to UTF-8.
@@ -29,7 +29,7 @@ function basePageHeader($title, $focusCtl, $extraOnLoad, $extraHead,
     <link rel="manifest" href="/favicons/site.webmanifest">
     <link rel="shortcut icon" href="/favicon.ico">
     <meta name="theme-color" content="#000000">
-    
+
    <link rel="search" type="application/opensearchdescription+xml"
          title="IFDB Search Plugin"
          href="<?php echo get_root_url() ?>plugins/ifdb-opensearchdesc.xml">
@@ -130,8 +130,8 @@ function pageHeader($title, $focusCtl = false, $extraOnLoad = false,
             <li class="<?= ($pagescript === 'personal') ? 'page-active':''; ?>"><a id="topbar-personal" href="/personal">My Activity</a></li>
             <li class="<?= ($pagescript === 'commentlog') ? 'page-active':''; ?>"><a id="topbar-inbox" href="/commentlog?mode=inbox">Inbox</a></li>
             </ul>
-    
-                
+
+
             <div class="block">
                 <a id="topbar-browse" href="/search?browse">Browse</a>|
                 <a id="topbar-search" href="/search">Search</a>
@@ -143,7 +143,7 @@ function pageHeader($title, $focusCtl = false, $extraOnLoad = false,
                 else
                     echo "<a id=\"topbar-login\" href=\"/login\">Log In</a>";
                 ?>
-            </div> 
+            </div>
         </nav>
    </form>
 </div>
@@ -226,7 +226,7 @@ function helpPageFooter()
 
 // --------------------------------------------------------------------------
 // Insert the <script> code for setting up for active checkboxes.
-// 
+//
 function ckboxSetup()
 {
 ?>

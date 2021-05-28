@@ -193,7 +193,7 @@ function replaceSelRange(ele, txt, selectNewText)
     if (r)
     {
         // replace the selection range with the new text
-        ele.value = ele.value.substr(0, r.start) 
+        ele.value = ele.value.substr(0, r.start)
                     + txt
                     + ele.value.substr(r.end);
 

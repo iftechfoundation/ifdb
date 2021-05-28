@@ -25,7 +25,7 @@ $errFlagged = false;
 // verifier function
 function verify() {
     global $usernum, $psw, $psw2, $oldpsw, $errFlagged;
-    
+
     // connect to the database
     $db = dbConnect();
     if ($db == false) {
@@ -124,7 +124,7 @@ if (!verify())
 
 <p>
 <form method=post action="changepsw" name="changepsw">
-   
+
    <table border=0>
       <tr>
          <td>
@@ -151,5 +151,5 @@ if (!verify())
 
    <br><br>
    <input type=submit value="Submit">
-    
+
 <?php pageFooter(); ?>

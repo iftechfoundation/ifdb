@@ -8,7 +8,7 @@ function xmlSend(url, statusSpanID, cbFunc, content, silentMode)
 
     if (statusSpanID)
         document.getElementById(statusSpanID).innerHTML = "";
-    
+
     if (window.XMLHttpRequest)
         req = new XMLHttpRequest();
     else if (window.ActiveXObject)
@@ -57,7 +57,7 @@ function xmlReqEvent(tracker)
                 if (lbl && lbl.length > 0)
                     msgspan.innerHTML = lbl[0].firstChild.data;
             }
-            
+
             var errmsg = resp.getElementsByTagName('error');
             if (errmsg && errmsg[0] && errmsg[0].firstChild)
                 alert(errmsg[0].firstChild.data);

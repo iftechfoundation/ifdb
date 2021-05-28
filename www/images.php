@@ -41,7 +41,7 @@ function addTempImageFile($filename, $cprStat, $cprTag)
 
     // ...but also presume no image will be stored
     $imageName = false;
-    
+
     // load the file
     $imgdata = file_get_contents($filename);
     $imginfo = getimagesize($filename);
@@ -109,7 +109,7 @@ function addTempImageFile($filename, $cprStat, $cprTag)
             for ($i = 4 ; $i < $cnt ; $i++)
                 unset($arr[$i]);
         }
-        
+
         // save the image in the array
         $arr[count($arr)] = array($imgdata, $imgtype, $newImageID,
                                   $cprStat, $cprTag);
@@ -180,7 +180,7 @@ function findTempImageIndex($name)
     // if there are no images, we're not going to find anything
     if (!isset($_SESSION['temp_images']))
         return -1;
-    
+
     // get the image list
     $images = $_SESSION['temp_images'];
 

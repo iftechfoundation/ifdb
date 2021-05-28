@@ -71,7 +71,7 @@ href="/contact.htm">contact us</a> to let us know about the problem.
    Location: <b><?php echo $_REQUEST['location']?></b><br>
 
 <?php
-}    
+}
 ?>
 
 </body>
