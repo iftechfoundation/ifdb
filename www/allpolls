@@ -122,11 +122,11 @@ if ($errMsg) {
         $having
         order by {$ord[0]}
         $limit", $db);
-        
+
     // get the row count
     $result2 = mysql_query("select found_rows()", $db);
     list($lstcnt) = mysql_fetch_row($result2);
-    
+
     // figure how many pages that makes
     $lastPage = ($pgAll ? 1 :
                  (int)floor(($lstcnt + $perPage - 1)/$perPage));
@@ -139,7 +139,7 @@ if ($errMsg) {
     // limit the page request to existing pages
     if ($pg > $lastPage)
         $pg = $lastPage;
-    
+
     if ($lstcnt == 0)
     {
         if ($gameid)

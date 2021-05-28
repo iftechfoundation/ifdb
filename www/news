@@ -133,7 +133,7 @@ $result2 = mysql_query("select found_rows()", $db);
 list($totcnt) = mysql_fetch_row($result2);
 
 $lastPage = (int)floor(($totcnt + $perPage - 1)/$perPage);
-    
+
 // set up the pagination control
 if ($item) {
     // item query - no page controls are needed

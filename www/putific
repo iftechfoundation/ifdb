@@ -116,7 +116,7 @@ function load_xml_file($fname, $fdesc)
             $errList[] = "line {$error->line}, col {$error->column}: "
                          . trim($error->message);
         }
-        
+
         // send the error reply
         replyError("XmlParse",
                    "The $fdesc can't be parsed because it contains "
@@ -190,7 +190,7 @@ $website = xcvt($xml->story->contacts->url);
 
 // version is special, since it can come from four places (in order of
 // precedence):
-// 
+//
 //   - story/releases/attached/release/version
 //   - story/releases/history/release/version
 //   - tads2/version
@@ -283,7 +283,7 @@ if ($website) $req["website"] = $website;
 
 // for a new game, the cover art is "none" by default
 $req["coverart"] = "none";
-   
+
 //foreach ($req as $k=>$v)       // DIAGNOSTICS
 //    echo "req[$k] => $v\n";
 
@@ -473,7 +473,7 @@ if ($artFile)
     // add it as a temporary image
     list($imgErrLong, $imgErrShort, $imgErrCode, $artImageName) =
         addTempImageFile($artFile, $statmap[$imgCprStat], $imgCprMsg);
-    
+
     // if that failed, abort
     if ($imgErrShort)
         replyError($imgErrCode, "An error occurred uploading the "
@@ -512,7 +512,7 @@ if ($artFile)
 //            . "\n";
     }
 }
-    
+
 // ------------------------------------------------------------------------
 //
 // Get the download links, if present.  These are provided via another
@@ -666,5 +666,5 @@ replyXml("<ok/>"
          . "<tuid>$newid</tuid>"
          . "<viewUrl>" . get_root_url() . "viewgame?id=$newid</viewUrl>"
          . "<editUrl>" . get_root_url() . "editgame?id=$newid</editUrl>");
-    
+
 ?>

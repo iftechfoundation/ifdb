@@ -26,7 +26,7 @@ $reqEmail = get_req_data("email");
 function verify() {
     global $actcode, $errFlagged, $altMsg, $reqsalt, $action,
            $nonce, $reviewProfile, $usernum, $reqEmail, $email, $db;
-    
+
     // connect to the database
     if ($db == false) {
         $errFlagged = "An error occurred accessing the user database. Please
@@ -51,10 +51,10 @@ function verify() {
         $usernum = mysql_real_escape_string($usernum, $db);
 
         // validate the nonce; failing that, check for the session admin flag
-		if (!validate_nonce($db, $task, $nonce, $errFlagged, true))
-		{
-			// not authorized
-			$errFlagged = "Error validating nonce: $errFlagged";
+        if (!validate_nonce($db, $task, $nonce, $errFlagged, true))
+        {
+            // not authorized
+            $errFlagged = "Error validating nonce: $errFlagged";
             return;
         }
 
@@ -95,7 +95,7 @@ function verify() {
                     // pick a new activation code
                     $newcode = sha1(md5_rand($usernum) . md5_rand($nonce));
                     $newcode = mysql_real_escape_string($newcode, $db);
-    
+
                     // update the code and set status to 'pending activation'
                     if (mysql_query(
                         "update users
@@ -224,7 +224,7 @@ function verify() {
                     // pick a new activation code
                     $newcode = sha1(md5_rand($usernum) . md5_rand($reqsalt));
                     $newcode = mysql_real_escape_string($newcode, $db);
-    
+
                     // update the code and set status to 'pending activation'
                     if (mysql_query(
                         "update users
@@ -239,10 +239,10 @@ function verify() {
                     $altMsg = "Account status changed to Pending Activation; "
                               . "email sent to "
                               . htmlspecialcharx($email) . ".";
-    
+
                 } else if ($action == 'delete') {
 
-					$errFlagged = "\"Delete with notice\" is no longer supported.";
+                    $errFlagged = "\"Delete with notice\" is no longer supported.";
                     $altMsg = "Account deleted; email sent to "
                               . htmlspecialcharx($email) . ".";
 
@@ -251,7 +251,7 @@ function verify() {
                     // presume success
                     $errFlagged = false;
 
-					if (mysql_query(
+                    if (mysql_query(
                         "update users
                          set acctstatus = 'B', sandbox = 1
                          where id = '$usernum'", $db) == false) {
@@ -264,25 +264,25 @@ function verify() {
                     // presume success
                     $errFlagged = false;
 
-					// close the account
-					if (!close_user_acct($db, $usernum, "B", $progress)) {
-						$errFlagged = "Error updating database: $progress";
-					}
+                    // close the account
+                    if (!close_user_acct($db, $usernum, "B", $progress)) {
+                        $errFlagged = "Error updating database: $progress";
+                    }
 
                     // delete the user
-					if (!$errFlagged) {
-						if (mysql_query(
-							"delete from users
-						 where id = '$usernum'", $db) == false) {
-							$errFlagged = "Error updating database. ";
-						}
-					}
+                    if (!$errFlagged) {
+                        if (mysql_query(
+                            "delete from users
+                         where id = '$usernum'", $db) == false) {
+                            $errFlagged = "Error updating database. ";
+                        }
+                    }
 
                     $altMsg = "Account deleted.";
                 }
             }
 
-            
+
         } else {
             $errFlagged = "This account has been disabled, and
                 is not currently eligible for activation. Please contact
@@ -319,7 +319,7 @@ if (strlen($actcode) != 40 && !$nonce) {
 
         if ($errFlagged)
             echo "<p><span class=errmsg><b>Error:</b> $errFlagged</span>";
-    
+
     } else if ($errFlagged) {
 ?>
 

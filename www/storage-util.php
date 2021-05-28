@@ -122,7 +122,7 @@ function getStorageFileList($path)
             if (filetype($spath) == "file")
                 $files[] = $info;
         }
-                    
+
         // done with the subdirectory traversal
         closedir($sh);
     }
@@ -164,7 +164,7 @@ function getStorageFileInfo($fpath, $fname)
     $secsInDay = 24*60*60;
     $yesterday = $today - $secsInDay;
     $sunday = $today - ($secsInDay * $now["wday"]);
-    
+
     // get the file's modification date, and generate a printable
     // version in a relative format based on the age
     $mtime = filemtime($fpath);
@@ -185,7 +185,7 @@ function getStorageFileInfo($fpath, $fname)
         // otherwise, show the full date with year
            $date = date(">M j, Y@g:i a", $mtime);
     }
-    
+
     $atDate = preg_replace(
         array("/>/", "/^@/", "/@/"),
         array("on ", "at ", " at "),
@@ -195,10 +195,10 @@ function getStorageFileInfo($fpath, $fname)
         array("", "", ", "),
         $date);
     $date = strtoupper($date{0}) . substr($date, 1);
-    
+
     // figure the plain formatted date as well
     $plainDate = date("n/j/Y g:i a", $mtime);
-    
+
     // get the size in bytes, and figure the display size
     $size = filesize($fpath);
     if ($size == 1)
@@ -215,7 +215,7 @@ function getStorageFileInfo($fpath, $fname)
         $dsize = round($size/(1024.0*1024.0), 0) . " MB";
     else
         $dsize = round($size/(1024.0*1024.0*1024.0), 2) . " GB";
-   
+
     // build and return the record
     return array("name" => $fname,
                  "path" => $fpath,

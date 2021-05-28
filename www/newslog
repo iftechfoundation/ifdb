@@ -77,7 +77,7 @@ if ($newsID) {
                 . str_replace("/\s+\d+:\d+\s+[AP]M$/", "", $hOldest[4])
                 . ".";
         }
-        
+
     } else {
         // didn't find any matches
         $errMsg = "The specified news item is not in the database. The "
@@ -259,7 +259,7 @@ if ($errMsg) {
             // display it
             if ($i > 0)
                 echo "<hr class=dots>";
-            
+
             echo "<div class=\"newsItemHeadline\">$headline</div>"
                 . "<div class=\"newsItemDateline\">$action "
                 . "by <a href=\"showuser?id=$userid\">$username</a>"
@@ -293,7 +293,7 @@ if ($errMsg) {
         $h = $hist[count($hist)-1];
         list($x, $x, $x, $x, $x, $createdOrig,
              $origUserID, $origUserName) = $h;
-        
+
         // fix up fields for display
         $headline = htmlspecialcharx($headline);
         $body = fixDesc($body, FixDescSpoiler);
@@ -435,7 +435,7 @@ if ($errMsg) {
 
 if ($returnLink)
     echo "<br>$returnLink<br>";
-    
+
 pageFooter();
 
 

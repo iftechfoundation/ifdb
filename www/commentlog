@@ -269,7 +269,7 @@ if ($userid == $curuser
             . "<a href=\"$catchup\">I'm caught up on these comments</a>"
             . " (this lets IFDB alert you to new messages "
             . "that arrive after these)</span><p>";
-    
+
     }
 }
 

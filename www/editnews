@@ -105,10 +105,10 @@ if ($sourceType == 'G') {
             $sourceInfo .=
                 "<h2>Guidelines</h2>"
                 . "<ul class=doublespace>"
-                
+
                 . "<li>The item should relate <b>directly</b> to "
                 . "this game"
-                
+
                 . "<li>It should be <b>news</b>, such as a "
                 . "release announcement, an alert on bugs "
                 . "or compatibility, word of upcoming "
@@ -164,10 +164,10 @@ if ($sourceType == 'G') {
             $sourceInfo .=
                 "<h2>Guidelines</h2>"
                 . "<ul class=doublespace>"
-                
+
                 . "<li>The item should relate <b>directly</b> to "
                 . "this competition"
-                
+
                 . "<li>It should be <b>news</b>, such as a notice or "
                 . "reminder to entrants or judges, a date change, etc.";
 
@@ -299,7 +299,7 @@ function showItem()
         $byline .= " (edited by <a href=\"showuser?id=$curuser\">"
                    . htmlspecialcharx($curuserName)
                    . "</a> on " . date("M j, Y") . ")";
-    
+
 
     // show it
     echo "<b>" . htmlspecialcharx($headline) . "</b><br>"
@@ -370,7 +370,7 @@ if ($newsID && !$errMsg) {
         $errMsg = "The specified news item isn't in the database. The "
                   . "link that you used to reach this page might be "
                   . "broken.";
-    } 
+    }
 }
 
 // if we're reinstating an older item, query it
@@ -468,9 +468,9 @@ if ($delete && $deleteConfirm) {
     exit();
 
 } else if (($publish || $preview) && ($body == "" || $headline == "")) {
-    
+
     $errMsg = "Please fill in the headline and body.";
-    
+
 } else if ($preview) {
 
     // show the preview
@@ -548,7 +548,7 @@ if ($delete && $deleteConfirm) {
                   . "contact us</a> if the problem persists (for reference, "
                   . "please pass along this error code: $progress).";
     }
-    
+
 }
 
 // show the page header and status, if desired
@@ -613,11 +613,11 @@ if ($show == "form") {
 
     </form>
     <?php
-    
+
 } else if ($show == "status") {
 
     echo "<p><a href=\"$hrefCancel\">Return</a>";
-    
+
 }
 
 pageFooter();

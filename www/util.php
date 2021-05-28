@@ -163,7 +163,7 @@ function urlencodex($str)
 // URL-encode from a string that's been HTML quoted
 function urlencodeFromHTML($str)
 {
-	return urlencode(utf8_encode(htmlspecialchars_decode($str)));
+    return urlencode(utf8_encode(htmlspecialchars_decode($str)));
 }
 
 // --------------------------------------------------------------------------
@@ -368,7 +368,7 @@ function generateTUID($db, $tableCol, $maxtries)
 
         if (!$tableCol)
             return $tuid;
-        
+
         // check each table for an existing entry with this TUID
         $found = false;
         foreach ($tableCol as $tc)
@@ -379,7 +379,7 @@ function generateTUID($db, $tableCol, $maxtries)
             // look for a row in $table with $col equal to this TUID value
             $result = mysql_query("select count(*) as c from `$table`
                 where `$col` = '$tuid'", $db);
-            
+
             // if we found it, keep iterating
             if (!$result || mysql_result($result, 0, "c") > 0) {
                 $found = true;
@@ -403,7 +403,7 @@ function echoStylesheetLink()
 {
     global $cssOverride;
     $db = dbConnect();
-    
+
     // check for a profile style
     $userid = checkPersistentLogin();
     $ssid = false;
@@ -448,7 +448,7 @@ function sendImageLdesc($title, $imageID)
     checkPersistentLogin();
     $curuser = (isset($_SESSION['logged_in']) && $_SESSION['logged_in'])
                ? $_SESSION['logged_in_as'] : false;
-    
+
     // parse the image ID:  <dbnum>:<image key>
     list ($dbnum, $key) = explode(":", $imageID);
 
@@ -502,7 +502,7 @@ function sendImageLdesc($title, $imageID)
               echo " - <a href=\"editImageCopyright?id="
                   . urlencode($imageID)
                   . "\">Edit the copyright data</a><br>";
-    
+
           } else if ($username || $created) {
               echo "<p>Uploaded to IFDB";
               if ($username) {
@@ -594,7 +594,7 @@ function sendImage($imgData, $imgFmt, $thumbnail, $flags = 0)
     if (!is_null($thumbnail)) {
         // get the thumbnail sizes
         list ($sx, $sy) = explode("x", $thumbnail);
-    
+
         // get the image data
         $source = imagecreatefromstring($imgData);
         $ix = imagesx($source);
@@ -663,7 +663,7 @@ function newTransparentImage($x, $y)
 {
     // create a true-color image of the given size
     $r = imagecreatetruecolor($x, $y);
-    
+
     // we want to set the transparency in the new image, not combine it
     imagealphablending($r, false);
 
@@ -793,7 +793,7 @@ function makePageControl($baseUrl, $curPage, $lastPage,
         }
         else
             $p .= "<span class=disabledCtl>&gt;&gt;</span> ";
-        
+
     } else {
 
         // add the current page/item indicator
@@ -836,7 +836,7 @@ function showSortingControls($formName, $dropName, $sortMap, $curSortBy,
                              $hidden, $url)
 {
     static $idSerial = 0;
-    
+
     // start the form
     echo "<form name=\"$formName\" method=\"get\" action=\"$url\" "
         . "class=\"sortingControls\">";
@@ -905,7 +905,7 @@ function spoilerWarningOpen($label = "Spoiler - click to show")
            . "</a>)</span>"
            . "<span class=\"hiddenSpoiler\" "
            . "id=\"s_spoiler$spoilerNum\">";
-    
+
     // consume the spoiler number
     $spoilerNum++;
 
@@ -938,7 +938,7 @@ function spoilerWarningScript()
             . "//-->\n"
             . "</script>";
 }
-    
+
 // -------------------------------------------------------------------------
 // Fix descriptive text to ensure proper formatting in an HTML page
 //
@@ -975,7 +975,7 @@ function fixDesc($desc, $specials = 0)
               'big', 'small', 'tt', 'sup', 'sub',
               'cite', 'blockquote',
               'ul', 'ol', 'li', 'dl', 'dt', 'dd'), 1);
-    
+
     // tags that trigger explicit line control mode
     $lineTags = valuesToKeys(array('p', 'br'), 1);
 
@@ -1005,7 +1005,7 @@ function fixDesc($desc, $specials = 0)
 
                 // note the length of the full tag from < to >
                 $tagLen = $gt + 1 - $ofs;
-                
+
                 // pull out the tag name
                 $tagName = trim(substr($desc, $ofs + 1, $gt - $ofs - 1));
 
@@ -1174,7 +1174,7 @@ function fixDesc($desc, $specials = 0)
                         // game="tuid"; also allow limited href="..." links
                         if (preg_match("/^game=([\"'])([a-z0-9]+)\\1$/i",
                                        $tagAttr, $match, 0, 0)) {
-                            
+
                             // it's an internal game reference - keep it
                             $desc = substr_replace(
                                 $desc, "<a href=\"viewgame?id={$match[2]}\">",
@@ -1193,7 +1193,7 @@ function fixDesc($desc, $specials = 0)
 
                             // note that we're in a retained <a>
                             $inAnchor = true;
-                            
+
                         } else {
                             // note a valid reference - quote it
                             $quoteIt = true;
@@ -1252,7 +1252,7 @@ function fixDesc($desc, $specials = 0)
                                 $curTag = closeTagForStackedTag($curTag);
                                 $desc = substr_replace(
                                     $desc, "</$curTag>", $tagOfs, 0);
-                                
+
                                 // move past it
                                 $len = strlen($curTag) + 3;
                                 $tagOfs += $len;
@@ -1290,12 +1290,12 @@ function fixDesc($desc, $specials = 0)
 
             // done with the '<'
             break;
-                    
+
         case '>':
             // convert these to "&gt"
             $desc = substr_replace($desc, "&gt;", $ofs, 1);
             break;
-            
+
         case '&':
             // if it's &lt;, &gt;, &#xxxxx;, &quot; or &amp;, leave it;
             // otherwise convert the & to &amp;
@@ -1320,7 +1320,7 @@ function fixDesc($desc, $specials = 0)
             // convert to &quot;
             $desc = substr_replace($desc, "&quot;", $ofs, 1);
             break;
-            
+
         case "'":
             // convert to &#039;
             $desc = substr_replace($desc, "&#039;", $ofs, 1);
@@ -1395,7 +1395,7 @@ function findEndTag($str, $tag, $ofs)
 
     // we're not nested yet
     $nesting = 0;
-    
+
     // scan from the given offset
     for ($len = strlen($str) ; $ofs < $len ; $ofs++)
     {
@@ -1479,7 +1479,7 @@ function summarizeHtml($str, $maxlen)
     {
         // get the current character
         $c = $str{$ofs};
-        
+
         // process the tag or ordinary text, as appropriate
         if ($inEnt)
         {
@@ -1612,13 +1612,13 @@ function initCap($str)
 function check_editing_privileges($db)
 {
     // make sure we're logged in at the session level
-	$curuser = $_SESSION['logged_in_as'];
-	if (!$curuser)
+    $curuser = $_SESSION['logged_in_as'];
+    if (!$curuser)
     {
         redirect_to_login_page();
         return false;
     }
-    
+
     // look up the user's account status in the database
     if (!($result = mysql_query("select acctstatus, profilestatus, sandbox from users where id='$curuser'", $db))
         || mysql_num_rows($result) == 0)
@@ -1681,7 +1681,7 @@ function check_editing_privileges($db)
         pageFooter();
         return false;
     }
-    
+
     // no objections found
     return true;
 }
@@ -1705,28 +1705,28 @@ function check_editing_privileges($db)
 //
 function getGameRatingsView($db)
 {
-	// assume sandbox 0
-	$sandbox = 0;
+    // assume sandbox 0
+    $sandbox = 0;
 
-	// if the user is logged in, look up their sandbox
+    // if the user is logged in, look up their sandbox
     $curuser = $_SESSION['logged_in_as'];
-	if ($curuser) {
-		$result = mysql_query("select sandbox from users where id='$curuser'", $db);
-		list($sandbox) = mysql_fetch_row($result);
-	}
+    if ($curuser) {
+        $result = mysql_query("select sandbox from users where id='$curuser'", $db);
+        list($sandbox) = mysql_fetch_row($result);
+    }
 
-	// figure the table based on the user's sandbox
-	switch ($sandbox)
-	{
-	default:
-	case 0:
-	    // normal user - show only reviews and ratings from other normal users
-		return "gameRatingsSandbox0";
+    // figure the table based on the user's sandbox
+    switch ($sandbox)
+    {
+    default:
+    case 0:
+        // normal user - show only reviews and ratings from other normal users
+        return "gameRatingsSandbox0";
 
-	case 1:
-		// troll - show ratings from normal users plus trolls
-		return "gameRatingsSandbox01";
-	}
+    case 1:
+        // troll - show ratings from normal users plus trolls
+        return "gameRatingsSandbox01";
+    }
 }
 
 // --------------------------------------------------------------------------
@@ -1797,14 +1797,14 @@ function getUserScores($db, $n)
         list($uid, $uanme, $score) = $rec;
         $n = ($i < 10 ? 10 : ($i < 25 ? 25 : ($i < 50 ? 50 : ($i < 100 ? 100 : 0))));
         $badge = ($n ? "Top $n Reviewer" : false);
-    
+
         $tab[$uid] = array($score, $badge);
     }
 
     // return the table
     return $tab;
 }
-    
+
 //
 // Get an array of the top N reviewers, sorted in descending rank order.
 //
@@ -1841,13 +1841,13 @@ function getTopReviewers($db, $n)
 function createFFTempTable($db)
 {
     // $$$ obsolete - we have views for these now
-    
+
 //    static $ffCreated = 0;
 //
 //    // only do this once per http transaction
 //    if ($ffCreated++)
 //        return;
-//    
+//
 //    // Set up a helper table with the various score components.
 //    // Some of the components are non-trivial to calculate, so we
 //    // pre-calculate them here to make it easy to add everything up
@@ -1860,7 +1860,7 @@ function createFFTempTable($db)
 //        //   -5 for each Unhelpful vote (min -100) on the review
 //        . "select
 //           reviews.userid as userid,
-//           max(if(review is null, 10, 100)) 
+//           max(if(review is null, 10, 100))
 //             + 5*(greatest(
 //                  -100,
 //                  least(
@@ -2043,7 +2043,7 @@ function showOSPopup($db, $fldName, $curOS, $flags)
            displaypriority,
            if(id=1, 0, 1) as orderkey
          from
-            operatingsystems 
+            operatingsystems
             left outer join osversions
               on operatingsystems.id = osversions.osid $joinFilter
          where
@@ -2051,7 +2051,7 @@ function showOSPopup($db, $fldName, $curOS, $flags)
             and displaypriority >= 0
          order by
             orderkey, displaypriority desc, osname, seq", $db);
-    
+
     // show each OS.version combination
     for ($i = 0 ; $i < mysql_num_rows($result) ; $i++) {
         list ($osid, $osname, $vsnname, $seq, $pri, $orderkey) =
@@ -2191,7 +2191,7 @@ function update_image_copyright($id, $userid, $date,
                                 $copyStat, $copyMsg, &$errMsg)
 {
     global $copyrightStatList;
-    
+
     // parse the image ID:  <dbnum>:<image key>
     list ($dbnum, $key) = explode(":", $id);
 
@@ -2223,7 +2223,7 @@ function update_image_copyright($id, $userid, $date,
         $errMsg = "No changes were specified.";
         return false;
     }
-    
+
     // update the row
     $key = mysql_real_escape_string($key, $db);
     $vars = implode(",", $vars);
@@ -2243,7 +2243,7 @@ function sqlStringOrNull($val, $db)
     else
         return "null";
 }
-    
+
 
 // --------------------------------------------------------------------------
 // Delete an image
@@ -2301,8 +2301,8 @@ function parseDateVal($val) {
     $dt = strtotime($val);
     if ($dt == false)
         return false;
-    
-    // format it as YYYY-MM-DD for passing to MySQL 
+
+    // format it as YYYY-MM-DD for passing to MySQL
     return strftime("%Y-%m-%d", $dt);
 }
 
@@ -2389,7 +2389,7 @@ function validate_ttf($data)
                       'gasp', 'hdmx', 'kern', 'LTSH', 'PCLT', 'VDMX',
                       'vhea', 'vmtx');
 
-    // check the tables 
+    // check the tables
     for ($i = 0 ; $i < $numTables ; $i++) {
 
         // unpack the table header
@@ -2417,7 +2417,7 @@ function validate_ttf($data)
             $b = unpack("Ncur/", substr($data, $tofs + 8, 4));
             $sum -= $b['cur'];
         }
-        
+
         $sum &= 0xFFFFFFFF;
         if ($sum != $tsum) {
             // echo "ttf: bad checksum for $tid block<br>";
@@ -2506,7 +2506,7 @@ function ttf_family_name($data)
 //
 function ttf_unpack_header($data)
 {
-    // unpack the offset table 
+    // unpack the offset table
     $ohdr = unpack("Nvsn/nnumTables/n3range", substr($data, 0, 12));
     $vsn = $ohdr['vsn'];
     $numTables = $ohdr['numTables'];
@@ -2522,7 +2522,7 @@ function ttf_unpack_dir($data, $tblnum)
 {
     // calculate the offset of the table
     $ofs = 12 + $tblnum*16;
-    
+
     // unpack the table directory
     $thdr = unpack("a4id/Ncksum/Nofs/Nlen/", substr($data, $ofs, 16));
     $tid = $thdr['id'];
@@ -2582,9 +2582,9 @@ function create_nonce($db, $id)
 // we'll fill in $errmsg with an error message and return false.
 function validate_nonce($db, $id, $nonce, &$errmsg, $singleUse)
 {
-	// note if this is a "review user profile" task
-	$reviewUserProfile = preg_match("/^review user profile /", $id);
-	
+    // note if this is a "review user profile" task
+    $reviewUserProfile = preg_match("/^review user profile /", $id);
+
     // calculate the hash value for the nonce
     $hash = sha1("$id:$nonce");
 
@@ -2607,33 +2607,33 @@ function validate_nonce($db, $id, $nonce, &$errmsg, $singleUse)
 
     // make sure we found a row
     if (mysql_num_rows($result) == 0)
-	{
-		// Check for session validation.  If this is a user review
-		// request, and the session has been validated for a previous
-		// user review, allow further user reviews without the nonce.
-		if ($reviewUserProfile && $_SESSION['admin_for_user_review'])
-		{
-			// It's a user profile review - allow it.  If we're
-			// deleting a nonce, look up the actual hash value.
-			if ($singleUse)
-			{
-				$result = mysql_query(
-					"select hash from nonces where nonceid = '$qid'", $db);
-				list($qhash) = mysql_fetch_row($result);
-			}
-		}
-		else
-		{
-			// authorized for the session even without nonces
-			$errFlagged = false;
-			$errmsg = "The nonce value was not found.";
-			return false;
-		}
+    {
+        // Check for session validation.  If this is a user review
+        // request, and the session has been validated for a previous
+        // user review, allow further user reviews without the nonce.
+        if ($reviewUserProfile && $_SESSION['admin_for_user_review'])
+        {
+            // It's a user profile review - allow it.  If we're
+            // deleting a nonce, look up the actual hash value.
+            if ($singleUse)
+            {
+                $result = mysql_query(
+                    "select hash from nonces where nonceid = '$qid'", $db);
+                list($qhash) = mysql_fetch_row($result);
+            }
+        }
+        else
+        {
+            // authorized for the session even without nonces
+            $errFlagged = false;
+            $errmsg = "The nonce value was not found.";
+            return false;
+        }
     }
 
-	// validate the session
-	if ($reviewUserProfile)
-		$_SESSION['admin_for_user_review'] = true;
+    // validate the session
+    if ($reviewUserProfile)
+        $_SESSION['admin_for_user_review'] = true;
 
     // if it's a single-use nonce, delete it
     if ($singleUse)
@@ -3013,7 +3013,7 @@ function x_http_get($url, $headersIn = null, &$headersOut = null,
     // break the reply into headers and body at the double CR-LF
     if ($msg)
     {
-        // get the headers and message 
+        // get the headers and message
         $msg = explode("\r\n\r\n", $msg);
         $headersOut = $msg[0];
 
@@ -3116,12 +3116,12 @@ function get_root_url() {
 // Checks if the userid is an admin
 //
 function check_admin_privileges($db, $userid) {
-	
-	$result = mysql_query("select privileges from users where id='$userid' and privileges='A'", $db);
-	if (mysql_num_rows($result)) return true;
-	
-	return false;
-    
+
+    $result = mysql_query("select privileges from users where id='$userid' and privileges='A'", $db);
+    if (mysql_num_rows($result)) return true;
+
+    return false;
+
 }
 
 function coverArtThumbnail($id, $size, $params = "") {

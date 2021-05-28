@@ -110,7 +110,7 @@ function showStarCtl($id, $init, $clickFunc, $leaveFunc)
 
     if (!$init)
         $init = 0;
-    
+
     if ($accessibility) {
         // accessible version - use a simple drop list
 
@@ -128,7 +128,7 @@ function showStarCtl($id, $init, $clickFunc, $leaveFunc)
             $str .= ">{$disps[$i]}</option>";
         }
         $str .= "</select>";
-    
+
     } else {
         // standard version - use the star images
 
@@ -137,7 +137,7 @@ function showStarCtl($id, $init, $clickFunc, $leaveFunc)
                . "starRatings['$id'] = $init;\r\n"
                . "//-->\r\n"
                . "</script>\r\n";
-        
+
         $str .= "<img id=\"{$id}\" "
                 . "style=\"vertical-align:middle;cursor:pointer;"
                 . "display: inline;\" "

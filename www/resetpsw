@@ -16,7 +16,7 @@ $psw2 = $_REQUEST['password2'];
 // verifier function
 function verify() {
     global $actcode, $activated, $errFlagged, $email, $psw, $psw2;
-    
+
     // connect to the database
     $db = dbConnect();
     if ($db == false) {
@@ -185,7 +185,7 @@ times, to confirm that you didn't make any mistakes typing it.)
 
 <p>
 <form method=post action="resetpsw" name="resetpsw">
-   
+
    <table border=0>
       <tr>
          <td>
@@ -213,7 +213,7 @@ times, to confirm that you didn't make any mistakes typing it.)
    <br><br>
    <input type=submit value="Submit">
    <input type=hidden name="a" id="a" value="<?php echo $actcode ?>">
-    
+
 <?php
    pageFooter();
 }

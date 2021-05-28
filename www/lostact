@@ -71,7 +71,7 @@ if ($errFlagged != false) {
        captchaSubForm($capKey, $capErrMsg, false);
        captchaFinish($capKey);
    ?>
-   
+
    <br><br>
    <input type=submit value="Submit">
 
@@ -88,7 +88,7 @@ pageFooter();
 function handlePost()
 {
     global $errFlagged;
-    
+
     // get the email address
     $email = $_REQUEST['userid'];
 
@@ -134,7 +134,7 @@ function handlePost()
                    . "If you don't remember your password, "
                    . "<a href=\"lostpass\">click here to reset it</a>.";
         break;
-    
+
     case 'R':
         $statErr = "This account is pending review. Sorry for the delay. "
                    . "Activation instructions will be sent to your registered "

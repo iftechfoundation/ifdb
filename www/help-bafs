@@ -7,29 +7,29 @@ helpPageHeader("Baf's Guide Identifiers");
 
 <h1><i>Baf's Guide</i> Identifiers</h1>
 
-<p>IFDB's predecessor, 
+<p>IFDB's predecessor,
 <a href="https://web.archive.org/web/20110109233058/http://www.wurb.com/if">
-<i>Baf's Guide to the IF Archive</i></a>, was an extensive catalog 
-of the games at the <a href="https://www.ifarchive.org">IF Archive</a>. 
-Baf's Guide included search and cross-referencing features, and 
-provided well-written capsule reviews for a huge selection of the 
+<i>Baf's Guide to the IF Archive</i></a>, was an extensive catalog
+of the games at the <a href="https://www.ifarchive.org">IF Archive</a>.
+Baf's Guide included search and cross-referencing features, and
+provided well-written capsule reviews for a huge selection of the
 IF Archive's games.
 
-<p>Baf's Guide assigned a unique number to each game in its 
-database. This number was designed to be a permanent ID for the 
-game. If you go to the 
-<a href="https://web.archive.org/web/20110109233058/http://www.wurb.com/if"> 
-Baf's Guide site</a> and navigate to a page for one of the games, 
+<p>Baf's Guide assigned a unique number to each game in its
+database. This number was designed to be a permanent ID for the
+game. If you go to the
+<a href="https://web.archive.org/web/20110109233058/http://www.wurb.com/if">
+Baf's Guide site</a> and navigate to a page for one of the games,
 the original URL of the game page should look something like this:
 
 <p><pre>
   http://www.wurb.com/if/game/395
 </pre>
 
-<p>The number at the end of the URL is the Baf's ID - in this 
+<p>The number at the end of the URL is the Baf's ID - in this
 case, 395.
 
-<p>Since Baf's Guide is no longer maintained, newer games won't 
+<p>Since Baf's Guide is no longer maintained, newer games won't
 have a Baf's Guide ID.
 
 <?php

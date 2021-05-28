@@ -159,7 +159,7 @@ EOD;
                 . "<p><span class=success>Your flag has been submitted."
                 . "</span>"
                 . "<p><a href=\"$srcpage\">Return</a>";
-    
+
         } else {
             // set up the error and fall through to the confirmation form
             $errMsg = "An error occurred updating the database (error "
@@ -185,7 +185,7 @@ if (!$confirm || $errMsg || $succMsg) {
     echo "<p><b>Please flag with care.</b> Flagging is an important part "
         . "of IFDB's community moderation system; please use this feature "
         . "responsibly to help improve IFDB for everyone.";
-    
+
     if ($flagType == 'spoiler') {
         echo " Note that "
         . "the review's author will see your screen name as the flagger, "
@@ -196,14 +196,14 @@ if (!$confirm || $errMsg || $succMsg) {
         . "even be aware of.  Please be courteous and helpful in explaining "
         . "what you think should be changed and why.";
     }
-     
+
     echo ""
         . "<p><form name=\"flag\" method=\"post\" action=\"reviewflag\">"
         . "<input type=hidden name=review value=\"$reviewID\">"
         . "<input type=hidden name=type value=\"$flagType\">"
         . "<input type=hidden name=src value=\"$srcpage\">"
         . "<input type=hidden name=confirm value=\"Y\">"
-        
+
         . "<b>Explain why you're flagging this review:</b><br> "
         . "<textarea cols=80 rows=5 name=\"notes\">"
         . htmlspecialcharx($notes)

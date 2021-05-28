@@ -249,7 +249,7 @@ function verify_write_access($fname, $verb)
     $errMsg = false;
     $imgdesc = false;
     $imgpic = false;
-    
+
     // make sure this is the current user's image
     $fname = mysql_real_escape_string($fname, $db);
     $result = mysql_query(
@@ -260,7 +260,7 @@ function verify_write_access($fname, $verb)
         $errMsg = "The requested picture was not found in the database.";
         $result = false;
     }
-    
+
     if ($result) {
         if (mysql_result($result, 0, "userid") != $curuser) {
             $errMsg = "Access denied - you can only $verb images "
@@ -409,7 +409,7 @@ if ($userid == $curuser
              set name = '$fname', `desc` = '$imgdesc'
              where name = '$oldfname' and userid = '$curuser'", $db);
     }
-    
+
     // done with our table locks
     mysql_query("unlock tables", $db);
 
@@ -424,7 +424,7 @@ if ($userid == $curuser
         $showEditForm = true;
 }
 
-    
+
 // show the edit form if applicable
 if ($showEditForm) {
 
@@ -555,9 +555,9 @@ per our <a href="tos">Terms of Service</a>.
    <p>Be aware that there's no guarantee that this user won't rename,
    change, or remove any of these images, so you might want to upload
    your own copies rather than linking directly to the originals.
-      
+
 </div>
-   
+
 <?php
 }
 
@@ -625,7 +625,7 @@ function validateImageForm()
         alert("Please select an image to upload.");
         return false;
     }
-    
+
     var fn = document.stylepicupload.imagefname.value;
     if (fn == "")
     {

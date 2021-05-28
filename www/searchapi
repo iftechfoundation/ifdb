@@ -8,7 +8,7 @@ include "login-check.php";
 function sendResponse($errmsg, $body)
 {
     global $xml;
-    
+
     if ($xml)
     {
         header("Content-Type: text/xml");

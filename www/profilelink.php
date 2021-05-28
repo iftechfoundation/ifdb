@@ -10,7 +10,7 @@
 //
 //  2. In the pageHeader call, include "<script src='xmlreq.js'></script>"
 //     in the extra header text.
-// 
+//
 //  3. Somewhere in the file, call profileLinkSupportFuncs() to generate
 //     the javascript support functions.  This generates a <script> section,
 //     so it can go almost anywhere in the main body of the html.
@@ -24,7 +24,7 @@
 //       onclick="javascript:aplOpen('fieldID', 'fieldName');return false;"
 //     as the link's script.  This will pop up the link box just under
 //     the field with the given ID.
-// 
+//
 
 
 // ------------------------------------------------------------------------
@@ -104,7 +104,7 @@ function aplOpen(fieldID, fieldName)
     var rc = getObjectRect(aplFieldEle);
     moveObject(aplDiv, rc.x, rc.y + rc.height);
 
-    // if the author field is empty, 
+    // if the author field is empty,
     if (au == "")
     {
         alert("Note: Remember that you need to enter the name to display "
@@ -238,7 +238,7 @@ function aplSearchDone(d)
 function profileLinkDiv()
 {
 ?>
-        
+
 <div id="aplDiv" class="edit-popup-frame"
   style="display:none; position:absolute; z-index:10000;">
    <div class="edit-popup-title" style="position:relative;">

@@ -242,7 +242,7 @@ if (isset($_REQUEST['reviewvotes'])) {
 
         include "reviews.php";
         $specialNames = initSpecialNames($db);
-        
+
         for ($i = 0 ; $i < mysql_num_rows($result) ; $i++) {
             $rec = mysql_fetch_array($result, MYSQL_ASSOC);
 
@@ -257,7 +257,7 @@ if (isset($_REQUEST['reviewvotes'])) {
             echo "<div class=indented>";
 
             echo "<p>$votername voted this review <b>" . ($rec['vote'] === 'Y' ? "helpful" : "unhelpful")  . "</b></p>";
-            
+
             showReview($db, $gameid, $rec, $specialNames, 3 /*SHOWREVIEW_NOVOTECTLS & SHOWREVIEW_NOCOMMENTCTLS*/);
 
             // end the listing
@@ -386,7 +386,7 @@ if (isset($_REQUEST['osvercheck'])) {
         for ($i = 0 ; $i < mysql_num_rows($result) ; $i++) {
             list($fmtidref, $fmtid, $osidref, $osid, $osvsnref, $osvsn) =
                 mysql_fetch_row($result);
-            
+
             echo "downloadhelp (format=$fmtidref, osid=$osidref, "
                 . "osvsnid=$osvsnref): "
                 . ($fmtid == "" ? "[broken FILETYPE reference]" : "")
@@ -416,7 +416,7 @@ if (isset($_REQUEST['osvercheck'])) {
         for ($i = 0 ; $i < mysql_num_rows($result) ; $i++) {
             list($fmtidref, $fmtid, $uidref, $uid) =
                 mysql_fetch_row($result);
-            
+
             echo "formatprivs (format=$fmtidref, user=$uidref): "
                 . ($fmtid == "" ? "[broken FILETYPE reference]" : "")
                 . ($uid == "" ? "[broken USERS reference] " : "")
@@ -444,7 +444,7 @@ if (isset($_REQUEST['osvercheck'])) {
         for ($i = 0 ; $i < mysql_num_rows($result) ; $i++) {
             list($osidref, $osid, $uidref, $uid) =
                 mysql_fetch_row($result);
-            
+
             echo "osprivs (OS=$osidref, user=$uidref): "
                 . ($osid == "" ? "[broken OS reference]" : "")
                 . ($uid == "" ? "[broken USERS reference] " : "")
@@ -485,7 +485,7 @@ if (isset($_REQUEST['osvercheck'])) {
             list($gameidref, $gameid, $fmtidref, $fmtid,
                  $osidref, $osid, $vsnidref, $vsnid) =
                 mysql_fetch_row($result);
-            
+
             echo "gamelinks (game=$gameidref, format=$fmtidref, "
                 . "OS=$osidref, OS version=$vsnidref): "
                 . ($gameid == "" ? "[broken GAME reference]" : "")
@@ -739,12 +739,12 @@ else if (isset($_REQUEST['users'])) {
         order by $orderBy, name
         limit $firstOnPage, $perPage", $db);
 
-	echo "<div style=\"margin: 1ex 0px;\">"
-		. "<form>"
-		. "Search by name or email: <input name=\"finduser\" type=\"text\" length=60>"
-		. "  <input type=\"submit\" name=\"go\" value=\"Find\">"
-		. "</form>"
-		. "</div>";
+    echo "<div style=\"margin: 1ex 0px;\">"
+        . "<form>"
+        . "Search by name or email: <input name=\"finduser\" type=\"text\" length=60>"
+        . "  <input type=\"submit\" name=\"go\" value=\"Find\">"
+        . "</form>"
+        . "</div>";
 
     echo "<table><tr><th>User Name</th><th>Email</th><th>Public Email</th>"
         . "<th>Status</th><th>Profile Status</th>"
@@ -793,100 +793,100 @@ else if (isset($_REQUEST['users'])) {
             . "<td>$priv</td><td>$created</td><td>$login</td></tr>";
     }
 
-	echo "</table><br><br><br>$pageCtl<br><br>"
-		. "<hr class=dots><br>";
-	
+    echo "</table><br><br><br>$pageCtl<br><br>"
+        . "<hr class=dots><br>";
+
 } else if (isset($_REQUEST['loginsfrom']) && $_REQUEST['loginsfrom'] != "") {
 
-	$qip = mysql_real_escape_string($_REQUEST['loginsfrom'], $db);
-	$result = mysql_query(
-		"select
-			u.id, u.name, u.email,
-			date_format(max(l.`when`), '%d-%b-%Y %H:%i')
-		 from
-			logins as l
-			join users as u
-			   on u.id = l.uid
-		 where
-			l.ip = '$qip'
-		 group by
-			u.id
-		 order by
-			l.`when` desc", $db);
+    $qip = mysql_real_escape_string($_REQUEST['loginsfrom'], $db);
+    $result = mysql_query(
+        "select
+            u.id, u.name, u.email,
+            date_format(max(l.`when`), '%d-%b-%Y %H:%i')
+         from
+            logins as l
+            join users as u
+               on u.id = l.uid
+         where
+            l.ip = '$qip'
+         group by
+            u.id
+         order by
+            l.`when` desc", $db);
 
-	echo "<h1>Logins from $qip</h1>"
-		. "<div style=\"margin: 1em 2em;\">"
-		. "<table>";
-	
-	for ($i = 0 ; $i < mysql_num_rows($result) ; $i++)
-	{
-		list($uid, $uname, $umail, $udate) = mysql_fetch_row($result);
-		$uname = htmlspecialcharx($uname);
-		$uamil = htmlspecialcharx($umail);
-		echo "<tr>"
-			. "<td style=\"padding: 0px 1ex\"><a href=\"adminops?user=$uid\">$uname</a></td>"
-			. "<td style=\"padding: 0px 1ex\">$umail</td>"
-			. "<td style=\"padding: 0px 1ex\">$udate</td>"
-			. "</tr>";
-	}
-	echo "</table></div><hr class=dots>";
+    echo "<h1>Logins from $qip</h1>"
+        . "<div style=\"margin: 1em 2em;\">"
+        . "<table>";
+
+    for ($i = 0 ; $i < mysql_num_rows($result) ; $i++)
+    {
+        list($uid, $uname, $umail, $udate) = mysql_fetch_row($result);
+        $uname = htmlspecialcharx($uname);
+        $uamil = htmlspecialcharx($umail);
+        echo "<tr>"
+            . "<td style=\"padding: 0px 1ex\"><a href=\"adminops?user=$uid\">$uname</a></td>"
+            . "<td style=\"padding: 0px 1ex\">$umail</td>"
+            . "<td style=\"padding: 0px 1ex\">$udate</td>"
+            . "</tr>";
+    }
+    echo "</table></div><hr class=dots>";
 
 } else if (isset($_REQUEST['finduser'])) {
 
-	echo "<h1>Search for user</h1>";
-	$fldlbl = "Name or email:";
-	$fldval = "";
+    echo "<h1>Search for user</h1>";
+    $fldlbl = "Name or email:";
+    $fldval = "";
 
-	if ($_REQUEST['finduser'] != "")
-	{
-		$upat = mysql_real_escape_string($_REQUEST['finduser'], $db);
-		$hupat = htmlspecialcharx($upat);
-		$upat = str_replace('*', '%', $upat);
-		if (!preg_match('/%/', $upat)) $upat = "%{$upat}%";
+    if ($_REQUEST['finduser'] != "")
+    {
+        $upat = mysql_real_escape_string($_REQUEST['finduser'], $db);
+        $hupat = htmlspecialcharx($upat);
+        $upat = str_replace('*', '%', $upat);
+        if (!preg_match('/%/', $upat)) $upat = "%{$upat}%";
 
-		$result = mysql_query(
-			"select
-               id, name, email, 
-		       date_format(created, '%d-%b-%Y'),
-		       date_format(lastlogin, '%d-%b-%Y')
+        $result = mysql_query(
+            "select
+               id, name, email,
+               date_format(created, '%d-%b-%Y'),
+               date_format(lastlogin, '%d-%b-%Y')
              from
                users
              where
                name like '$upat'
                or email like '$upat'
              order by
-			   name asc", $db);
+               name asc", $db);
 
-		echo "Users matching \"$hupat\":"
-			. "<div style=\"margin: 1ex 2em 2em 2em;\">"
-			. "<table>"
-			.  "<tr>"
-			.   "<th style=\"padding: 1ex 0px;\">User Name</th><th>Email</th><th>Created</th><th>Last Login</th>"
-			.  "</tr>";
+        echo "Users matching \"$hupat\":"
+            . "<div style=\"margin: 1ex 2em 2em 2em;\">"
+            . "<table>"
+            .  "<tr>"
+            .   "<th style=\"padding: 1ex 0px;\">User Name</th><th>Email</th><th>Created</th><th>Last Login</th>"
+            .  "</tr>";
 
-		for ($i = 0 ; $i < mysql_num_rows($result) ; $i++)
-		{
-			list($uid, $uname, $umail, $ucre, $ulogin) = mysql_fetch_row($result);
-			$uname = htmlspecialcharx($uname);
-			$umail = htmlspecialcharx($umail);
-			echo "<tr>"
-				.   "<td style=\"padding: 0px 1ex\"><a href=\"adminops?user=$uid\">$uname</a></td>"
-				.   "<td style=\"padding: 0px 1ex\">$umail</td>"
-				.   "<td style=\"padding: 0px 1ex\">$ucre</td>"
-				.   "<td style=\"padding: 0px 1ex\">$ulogin</td>"
-				. "</tr>";
-		}
+        for ($i = 0 ; $i < mysql_num_rows($result) ; $i++)
+        {
+            list($uid, $uname, $umail, $ucre, $ulogin) = mysql_fetch_row($result);
+            $uname = htmlspecialcharx($uname);
+            $umail = htmlspecialcharx($umail);
+            echo "<tr>"
+                .   "<td style=\"padding: 0px 1ex\"><a href=\"adminops?user=$uid\">$uname</a></td>"
+                .   "<td style=\"padding: 0px 1ex\">$umail</td>"
+                .   "<td style=\"padding: 0px 1ex\">$ucre</td>"
+                .   "<td style=\"padding: 0px 1ex\">$ulogin</td>"
+                . "</tr>";
+        }
 
-		echo "</table></div>";
-		$fldlbl = "New search: ";
-		$fldval = str_replace("\"", "&34;", $_REQUEST['finduser']);
-	}
+        echo "</table></div>";
+        $fldlbl = "New search: ";
+        $fldval = str_replace("\"", "&34;", $_REQUEST['finduser']);
+    }
 
-	echo "<form>"
-		. "$fldlbl <input name=\"finduser\" type=\"text\" length=60 value=\"$fldval\">"
-		. "  <input type=\"submit\" name=\"go\" value=\"Find\">"
-		. "</form>"
-		. "<hr class=dots>";
+    echo "<form>"
+        . "$fldlbl <input name=\"finduser\" type=\"text\" length=60 value=\"$fldval\">"
+        . "  <input type=\"submit\" name=\"go\" value=\"Find\">"
+        . "</form>"
+        . "<hr class=dots>";
 
 } else if (isset($_REQUEST['user']) && $_REQUEST['user'] != "") {
 
@@ -921,7 +921,7 @@ else if (isset($_REQUEST['users'])) {
                         "" => "Normal");
     $proStatName = $proStatMap[$proStat];
 
-	$sandboxMap = array(0 => "0 (Normal users)", 1 => "1 (Trolls)");
+    $sandboxMap = array(0 => "0 (Normal users)", 1 => "1 (Trolls)");
 
     $result = mysql_query(
         "select code, name from `privileges` order by name", $db);
@@ -986,12 +986,12 @@ else if (isset($_REQUEST['users'])) {
         }
         $privcode = mysql_real_escape_string($privcode, $db);
 
-		$oldSandbox = $sandbox;
-		$newSandbox = $_REQUEST['sandbox'];
+        $oldSandbox = $sandbox;
+        $newSandbox = $_REQUEST['sandbox'];
         // banned/closed users shouldn't show up
         if ($stat == 'B' || $stat == 'X') $newSandbox = 1;
-		if (isset($sandboxMap[$newSandbox]))
-			$sandbox = $newSandbox;
+        if (isset($sandboxMap[$newSandbox]))
+            $sandbox = $newSandbox;
 
         for ($i = 0 ; $i < count($formats) ; $i++) {
             $f = $formats[$i];
@@ -1068,7 +1068,7 @@ else if (isset($_REQUEST['users'])) {
 
     echo "<p><table width='90%' cellspacing=0 cellpadding=0 border=0>"
         . "<tr valign=top><td align=left>";
-    
+
     echo "Account status:<br><div class=indented>";
     foreach ($statMap as $k => $v) {
         echo "<label><input type=\"radio\" name=\"acctstat\" "
@@ -1096,16 +1096,16 @@ else if (isset($_REQUEST['users'])) {
     }
     echo "</div>";
 
-	echo "Sandbox:<br>"
-		. "<div class=indented>";
-	for ($sb = 0 ; $sb <= 1 ; $sb++) {
-		echo "<label><input type=\"radio\" name=\"sandbox\" "
-			. ($sandbox == $sb ? "checked " : "")
-			. "id=\"sandbox-$sb\" value=\"$sb\"> <label for=\"sandbox-$sb\">"
-			. $sandboxMap[$sb]
-			. "</label></label><br>";
-	}
-	echo "</div>";
+    echo "Sandbox:<br>"
+        . "<div class=indented>";
+    for ($sb = 0 ; $sb <= 1 ; $sb++) {
+        echo "<label><input type=\"radio\" name=\"sandbox\" "
+            . ($sandbox == $sb ? "checked " : "")
+            . "id=\"sandbox-$sb\" value=\"$sb\"> <label for=\"sandbox-$sb\">"
+            . $sandboxMap[$sb]
+            . "</label></label><br>";
+    }
+    echo "</div>";
 
     echo "Format Editing Privileges:<br><div class=indented>";
 
@@ -1144,13 +1144,13 @@ else if (isset($_REQUEST['users'])) {
     $n = mysql_num_rows($result);
     for ($i = 0 ; $i < $n ; $i++) {
         list($lip, $lwhen) = mysql_fetch_row($result);
-		$lipLink = "<a href=\"adminops?loginsfrom=$lip\">$lip</a>";
+        $lipLink = "<a href=\"adminops?loginsfrom=$lip\">$lip</a>";
         echo "<tr><td style='padding-right: 1em;'>$lwhen<td>$lipLink</td></tr>";
     }
 
     echo "</table>"
         . "</td></tr></table>";
-    
+
     echo "<p><a href=\"adminops?user=$uid&su\">Log in as $name</a>";
 
     echo "<p><input type=\"submit\" name=\"apply\" value=\"Apply\">"
@@ -1599,7 +1599,7 @@ else if (isset($_REQUEST['users'])) {
     }
 
     echo "<p>Rows successfully updated: $okCnt<br>";
-    
+
 } else if (isset($_REQUEST['cleanpix'])) {
 
     function adjustImageName($name)
@@ -1623,7 +1623,7 @@ else if (isset($_REQUEST['users'])) {
 
     if (!$ignoreVsnNull)
         echo "<input type=hidden name='showVsnNull' value=1>";
-    
+
     // fetch all the picture IDs
     $numImageDBs = (isLocalDev() ? 1 : 5);
     for ($pix = array(), $i = 0 ; $i < $numImageDBs ; $i++) {
@@ -1772,7 +1772,7 @@ else if (isset($_REQUEST['users'])) {
                 . "src=\"adminops?showimage=$id&thumbnail=100x100\"></a> "
                 . "unreferenced image <a href=\"adminops?showimage=$id\">"
                 . "$id</a><br clear=all>";
-            
+
             if (isset($_REQUEST['delete'])) {
                 if (delete_image($id))
                     echo " - deleted";
@@ -1798,7 +1798,7 @@ else if (isset($_REQUEST['users'])) {
     if ($ignoreVsnNull)
         echo "<br><a href=\"adminops?cleanpix&showVsnNull\">Show "
             . "null image warnings for old versions</a>";
-    
+
     if ($fldcnt != 0)
         echo "<p><input type=submit name=fixempties value=\"Apply Updates\">";
 
@@ -1843,7 +1843,7 @@ else if (isset($_REQUEST['users'])) {
         echo "*** not yet implemented ***<p><hr class=dots><p>";
 
     } else {
-        
+
         $result = mysql_query(
             "select
                filterID, filterName, ckBoxName, showName, endDate,
@@ -1885,7 +1885,7 @@ else if (isset($_REQUEST['users'])) {
 
     $errMsg = false;
     $showForm = true;
-    
+
     if ($filterID && !isset($_REQUEST['filterName'])) {
         $result = mysql_query(
             "select
@@ -1913,7 +1913,7 @@ else if (isset($_REQUEST['users'])) {
 
         if ($endDate == "''")
             $errMsg .= "Invalid end date - use DD-MON-YYYY format. ";
-        
+
         if (strpos("AC", $filterType) === false)
             $errMsg .= "Please select a filter type. ";
 
@@ -1992,7 +1992,7 @@ else if (isset($_REQUEST['users'])) {
        <p><input type=submit name=addfilterGo value="Save">
 
     </form>
-    
+
     <?php
     }
 
@@ -2033,7 +2033,7 @@ else if (isset($_REQUEST['users'])) {
 } else if (isset($_REQUEST['cleanUTF'])) {
 
     echo "<h1>Cleaning corrupted 8859-1 value</h1>";
-    
+
     $table = mysql_real_escape_string(get_req_data('table'), $db);
     $idcol = mysql_real_escape_string(get_req_data('idcol'), $db);
     $idval = mysql_real_escape_string(get_req_data('idval'), $db);
@@ -2093,7 +2093,7 @@ else if (isset($_REQUEST['users'])) {
                     $newval = iconv("UTF-8", "ISO-8859-1//IGNORE",
                                     approx_utf8($val));
                     break;
-                    
+
                 default:
                     $newval = $val;
                     break;
@@ -2131,13 +2131,13 @@ else if (isset($_REQUEST['users'])) {
 
     $result = mysql_query("select version();", $db);
     list($mysqlVsn) = mysql_fetch_row($result);
-    
+
     echo "System information:"
         . "<p>php version = $phpVsn"
         . "<br>MySQL version = $mysqlVsn";
 
     echo "<p><hr class=dots><p>";
-    
+
 }
 
 else if (isset($_REQUEST['addnews'])) {
@@ -2161,12 +2161,12 @@ else if (isset($_REQUEST['addnews'])) {
         } else {
             echo "<span class=errmsg>Error inserting item: "
                 . mysql_error($db) . "</span>";
-            
+
             $title = htmlspecialcharx(get_req_data('title'));
             $ldesc = htmlspecialcharx(get_req_data('ldesc'));
         }
     }
-    
+
     // show the form
     echo "<p><form name=\"newsform\" method=post action=\"adminops\">"
         . "<input type=hidden name=addnews value=1>"
@@ -2179,7 +2179,7 @@ else if (isset($_REQUEST['addnews'])) {
         . "<p><input type=submit name=submit value=\"Add Item\">"
         . "</form>"
         . "<p><hr class=dots><p>";
-    
+
 } else if (isset($_REQUEST['osfmtprivs'])) {
 
     // retrieve file format privileges
@@ -2233,7 +2233,7 @@ else if (isset($_REQUEST['addnews'])) {
 function check_table_utf8($table, $idcol, $cols)
 {
     global $db;
-    
+
     echo "<h3>Checking table $table...</h3><div class=indented>";
 
     $cols = implode(",", array_map("backquote", $cols));
@@ -2266,7 +2266,7 @@ function check_table_utf8($table, $idcol, $cols)
                            . "Apply with EF BF BD &rarr; &ouml;</a>";
                 $to8859Href = "<a href=\"$baseHref&xform=to8859\">"
                            . "Apply this change</a>";
-                    
+
                 echo "<span class=errmsg>$col [id=$id]</span><br><br>"
                     . "<span class=errmsg>Raw:</span> "
                     . hilitemarks(htmlspecialcharx($val), true)

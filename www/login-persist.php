@@ -41,7 +41,7 @@ function checkPersistentLogin()
             $_SESSION['logged_in'] = true;
             $_SESSION['logged_in_as'] = $userid;
             unset($_SESSION['provisional_logged_in_as']);
-            
+
             // clear the recommendation cache
             shoot_recommendation_cache();
 

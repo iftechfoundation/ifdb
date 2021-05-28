@@ -34,7 +34,7 @@ if ($imguser != $userid) {
     pageFooter();
     exit();
 }
-    
+
 
 // use the current database settings for any missing request settings
 if (!isset($_REQUEST['imgcopyright']))

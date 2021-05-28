@@ -67,7 +67,7 @@ for ($i = 0 ; $i < $rowcnt ; $i++)
         $info = explode("\r\n", $info);
     else
         $info = array("HTTP/1.1 404 Not Found");
-    
+
     $ok = false;
     if (strstr($info[0], '200 OK') !== false)
     {
@@ -129,7 +129,7 @@ function x_http_head($url)
            . "Connection: Close\r\n\r\n";
     fwrite($fp, $req);
 
-    // read the reply 
+    // read the reply
     for ($msg = "" ; !feof($fp) ; $msg .= fgets($fp, 128)) ;
 
     // done with the socket
