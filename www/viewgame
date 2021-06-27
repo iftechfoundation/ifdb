@@ -2431,7 +2431,8 @@ function dispTagTable(tableID, lst, editor, deleteTags)
                s = "<span class=\"cklabel\" onmouseover=\"javascript:"
                 + "ckboxOver('"+ck+"',false);return true;\" "
                 + "onmouseout=\"javascript:ckboxLeave('"+ck+"',false);"
-                + "return true;\" onclick=\"javascript:deleteTag('"+t
+                + "return true;\" onclick=\"javascript:deleteTag('"
+                + t.replace(/'/g,"\\'")
                 + "');return false;\">"
 	    	        + "<input type=image align=absmiddle border=0 id=\"ckImg"+ck+"\""
 	    	        + "src='delrow.gif' >";			
