@@ -42,7 +42,7 @@ function dbConnect()
     $dbinfo = localCredentials();
 
     // connect and select the correct database
-    $db = mysql_connect($dbinfo[0], $dbinfo[1], $dbinfo[2], true);
+    $db = mysql_connect($dbinfo[0], $dbinfo[1], $dbinfo[2]);
     mysql_set_charset($db, "latin1");
     if ($db != false)
         $result = mysql_select_db("ifdb", $db);
@@ -62,7 +62,7 @@ function imageDbConnect($dbnum)
     $dbinfo = localImageCredentials();
     
     // connect and select the database
-    $db = mysql_connect($dbinfo[0], $dbinfo[1], $dbinfo[2], true);
+    $db = mysql_connect($dbinfo[0], $dbinfo[1], $dbinfo[2]);
     if ($db != false)
         mysql_select_db("ifdb_images" . $dbnum, $db);
 
@@ -77,7 +77,7 @@ function storageDbConnect()
     $sdbinfo = localStorageCredentials();
 
     // connect and select the correct database
-    $sdb = mysql_connect($sdbinfo[0], $sdbinfo[1], $sdbinfo[2], true);
+    $sdb = mysql_connect($sdbinfo[0], $sdbinfo[1], $sdbinfo[2]);
     if ($sdb != false)
         $result = mysql_select_db("storage", $sdb);
 

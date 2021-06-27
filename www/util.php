@@ -2929,7 +2929,7 @@ function close_user_acct($db, $uid, $stat, &$progress)
 
     // unlock tables, if we haven't already
     if ($tableLocks)
-        mysql_query("unlock tables");
+        mysql_query("unlock tables", $db);
 
     // return the success/failure indication
     return $result;
