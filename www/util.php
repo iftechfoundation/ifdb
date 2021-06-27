@@ -1299,7 +1299,7 @@ function fixDesc($desc, $specials = 0)
         case '&':
             // if it's &lt;, &gt;, &#xxxxx;, &quot; or &amp;, leave it;
             // otherwise convert the & to &amp;
-            $therest = substr($desc, $ofs + 1, 7);
+            $therest = substr($desc, $ofs + 1, 8);
             if (strncasecmp($therest, "lt;", 3) == 0
                 || strncasecmp($therest, "gt;", 3) == 0) {
                 $ofs += 3;
@@ -1307,8 +1307,10 @@ function fixDesc($desc, $specials = 0)
                 $ofs += 4;
             } else if (strncasecmp($desc, "quot;", 5) == 0) {
                 $ofs += 5;
-            } else if (preg_match("/^#[0-9]{1,5};/", $therest, $match)) {
-                $ofs += strlen($match);
+            } else if (preg_match("/^#[0-9]{1,6};/", $therest, $matches)) {
+                $ofs += strlen($matches[0]);
+            } else if (preg_match("/^#[xX][0-9A-Fa-f]{1,6};/", $therest, $matches)) {
+                $ofs += strlen($matches[0]);
             } else {
                 // not recognized - make it an explicit &amp;
                 $desc = substr_replace($desc, "&amp;", $ofs, 1);
