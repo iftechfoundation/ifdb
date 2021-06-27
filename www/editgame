@@ -125,6 +125,7 @@ if (isset($_REQUEST['search']))
                 $id = $row['id'];
                 $title = htmlspecialcharx($row['title']);
                 $author = htmlspecialcharx($row['author']);
+                $author = collapsedAuthors($author);
 
                 echo "<p><a href=\"editgame?id=$id\"><i>$title</i></a>, "
                     . "by $author <span class=details style='padding-left:1em'>"

@@ -1765,6 +1765,7 @@ if (count($xrefs) != 0) {
     echo "<br>";
     for ($i = 0 ; $i < count($xrefs) ; $i++) {
         $x = $xrefs[$i];
+        $x['author'] = collapsedAuthors($x['author']);
         $fn = $x['fromname'];
         $fn = str_replace(array("<language>", "<system>"),
                           array($languageNameOnly, $system),
@@ -1798,6 +1799,7 @@ if (count($inrefs) != 0 && !$historyView) {
             
         for ( ; $i < $j ; ++$i) {
             $x = $inrefs[$i];
+            $x['author'] = collapsedAuthors($x['author']);
             echo "<span class=notes>"
                 . "<a href=\"viewgame?id={$x['fromid']}\">"
                 . "<i>{$x['title']}</i></a>"

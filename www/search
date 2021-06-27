@@ -1424,6 +1424,7 @@ else if ($term || $browse)
                 }
                 $title = output_encode(htmlspecialcharx($row['title']));
                 $author = output_encode(htmlspecialcharx($row['author']));
+                $author = collapsedAuthors($author);
                 $stars = $shouldHide ? "" : showStars($row['avgrating']);
                 $year = output_encode(htmlspecialcharx($row['pubyear']));
                 $art = $row['hasart'];

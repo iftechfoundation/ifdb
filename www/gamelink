@@ -88,6 +88,7 @@ if (isset($_REQUEST['id'])) {
             $title = htmlspecialcharx(mysql_result($result, $i, "title"));
             $titleParam = urlencode(mysql_result($result, $i, "title"));
             $author = htmlspecialcharx(mysql_result($result, $i, "author"));
+            $author = collapsedAuthors($author);
             echo "<a href=\"gamelink?id=$id&title=$titleParam\">"
                 . "$title</a>, by $author<br>";
         }

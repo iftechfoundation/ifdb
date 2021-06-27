@@ -353,6 +353,7 @@ if (count($recs) >= 2) {
         $gameid = $r['gameid'];
         $title = htmlspecialcharx($r['title']);
         $author = htmlspecialcharx($r['author']);
+        $author = collapsedAuthors($author);
         $hasart = $r['hasart'];
         list($summary, $len, $trunc) = summarizeHtml($r['desc'], 140);
         $summary = fixDesc($summary);

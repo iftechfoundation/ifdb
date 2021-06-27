@@ -145,6 +145,7 @@ if (mysql_num_rows($result) == 0) {
         // fix up fields for display
         $title = htmlspecialcharx($title);
         $author = htmlspecialcharx($author);
+        $author = collapsedAuthors($author);
 
         // show the entry
         echo "<p><a href=\"viewgame?id=$gameid\"><i>$title</i></a>, "

@@ -92,6 +92,7 @@ if (isset($_REQUEST['browse']))
 
                 $title = htmlspecialcharx($title);
                 $author = htmlspecialcharx($author);
+                $author = collapsedAuthors($author);
                 $mode = array();
                 if ($pgid) $mode[] = "on your play list";
                 if ($rating) $mode[] = "you rated it " . showStars($rating);
@@ -166,7 +167,7 @@ if (isset($_REQUEST['browse']))
                 $id = $row['id'];
                 $title = htmlspecialcharx($row['title']);
                 $author = htmlspecialcharx($row['author']);
-
+                $author = collapsedAuthors($author);
                 echo "<p><a href=\"review?id=$id&userid=$userid\"><i>$title</i></a>, "
                     . "by $author <span class=details style='padding-left:1em'>"
                     . "<a href=\"viewgame?id=$id\">View Listing</a> - "
@@ -196,6 +197,7 @@ if (mysql_num_rows($result) == 0)
 // get the game's title and author
 $title = htmlspecialcharx(mysql_result($result, 0, "title"));
 $author = htmlspecialcharx(mysql_result($result, 0, "author"));
+$author = collapsedAuthors($author);
 
 // get the logged-in username
 $result = mysql_query("select name, location, `privileges` from users

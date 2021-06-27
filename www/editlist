@@ -908,6 +908,7 @@ var listVals = [
             if (isset($item['tuid']) && $item['tuid'] != "") {
                 $tuid = jsSpecialChars($item['tuid']);
                 $author = jsSpecialChars($item['author']);
+                $author = collapsedAuthors($author);
                 $pubyear = jsSpecialChars($item['pubyear']);
                 $hasart = $item['hasart'];
             }
