@@ -12,9 +12,11 @@ The IFDB web app is a LAMP app (Linux, Apache, MySQL, PHP). The development envi
 
 3. Run `docker compose up`. That will launch a MySQL Docker container and an Apache container with PHP, available on port 8080.
 
-4. Go to `http://localhost:8080` on your machine. You should see IFDB running. You can login as `ifdbadmin` at `ifdb.org` with the password `secret` to sign in as an administrator. The administrator has access to the "system maintenance panel" at `http://localhost:8080/adminops`
+4. Go to `http://localhost:8080` on your machine. You should see IFDB running. You can login as `ifdbadmin` at `ifdb.org` with the password `secret` to sign in as an administrator. The administrator has access to the "system maintenance panel" at `http://localhost:8080/adminops`.
 
-5. Optionally, you can query the database using phpMyAdmin at `http://localhost:8081` or run `docker exec -it ifdb_db_1 mysql -psecret ifdb` to use the MySQL command-line interface.
+5. Alternatively, you can login as `test` at `ifdb.org` with the password `secret` to sign in as a regular test user named `Test Tester`.
+
+6. Optionally, you can query the database using phpMyAdmin at `http://localhost:8081` or run `docker exec -it ifdb_db_1 mysql -psecret ifdb` to use the MySQL command-line interface.
 
 # Database Changes
 
