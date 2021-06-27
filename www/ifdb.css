@@ -508,6 +508,7 @@ associated with a game.
 */
 table.tags {
     margin: 1ex 0 1em 0;
+    padding-left: .5em;
 }
 table.tags tr td {
     padding-right: 3em;

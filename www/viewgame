@@ -2253,10 +2253,7 @@ if (count($inrefs) != 0 && !$historyView) {
 //           >What's a tag?</a>
            ?>)
         </span></p>
-        <div class=indented>
-           <table id="tagTable" border=0 class=tags>
-           </table>
-        </div>
+        <table id="tagTable" border=0 class=tags></table>
         <?php
         if ($curuser) {
         ?>
