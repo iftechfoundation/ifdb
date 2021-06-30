@@ -1,6 +1,6 @@
 <?php
 
-include "pagetpl.php";
+include_once "pagetpl.php";
 include_once "util.php";
 
 // we have to be logged in to edit a game

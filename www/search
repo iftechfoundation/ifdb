@@ -6,7 +6,7 @@ include_once "session-start.php";
 include_once "login-persist.php";
 checkPersistentLogin();
 
-include "pagetpl.php";
+include_once "pagetpl.php";
 include_once "util.php";
 include_once "searchutil.php";
 

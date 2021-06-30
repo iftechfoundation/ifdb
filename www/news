@@ -5,7 +5,7 @@ include_once "dbconnect.php";
 $db = dbConnect();
 
 include_once "util.php";
-include "pagetpl.php";
+include_once "pagetpl.php";
 
 // check for RSS
 if (isset($_REQUEST['rss'])) {

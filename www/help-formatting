@@ -1,7 +1,7 @@
 <?php
 include_once "session-start.php";
 include_once "util.php";
-include "pagetpl.php";
+include_once "pagetpl.php";
 $review = isset($_REQUEST['review']);
 $comment = isset($_REQUEST['comment']);
 helpPageHeader("Formatting Hints");
