@@ -2,12 +2,12 @@
 
 include_once "session-start.php";
 
-include "pagetpl.php";
+include_once "pagetpl.php";
 include_once "util.php";
 include "starctl.php";
 
 // we have to be logged in to edit a competition
-include "login-check.php";
+include_once "login-check.php";
 if (!logged_in())
     exit();
 

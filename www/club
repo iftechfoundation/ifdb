@@ -1,11 +1,11 @@
 <?php
 
-include "pagetpl.php";
+include_once "pagetpl.php";
 include_once "util.php";
 include_once "captcha.php";
 include_once "news.php";
 include_once "rss.php";
-include "login-check.php";
+include_once "login-check.php";
 
 include_once "session-start.php";
 

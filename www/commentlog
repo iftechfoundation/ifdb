@@ -7,11 +7,11 @@ include_once "login-persist.php";
 $curuser = checkPersistentLogin();
 
 // include some utility modules
-include "pagetpl.php";
+include_once "pagetpl.php";
 include "reviews.php";
 include_once "util.php";
 include_once "commentutil.php";
-include "login-check.php";
+include_once "login-check.php";
 
 // connect to the database
 include_once "dbconnect.php";

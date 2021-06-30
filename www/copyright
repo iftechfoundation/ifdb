@@ -1,6 +1,6 @@
 <?php
 
-include "pagetpl.php";
+include_once "pagetpl.php";
 
 pageHeader("IFDB Copyright and Trademark Information");
 

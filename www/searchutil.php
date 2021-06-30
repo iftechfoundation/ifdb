@@ -3,6 +3,21 @@
 include_once "util.php";
 include_once "login-persist.php";
 
+// is the given string a name suffix?
+function isNameSuffix($s)
+{
+    return in_array(strtolower($s),
+                    array("jr", "jr.", "sr", "sr.", "phd", "ph.d.",
+                          "md", "m.d."));
+}
+
+function unNegate($w)
+{
+    if (substr($w, 0, 1) == '-')
+        $w = substr($w, 1);
+    return $w;
+}
+
 function doSearch($db, $term, $searchType, $sortby, $limit, $browse)
 {
     // we need the current user for some types of queries

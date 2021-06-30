@@ -2,7 +2,7 @@
 
 // we have to be logged in to do this
 include_once "session-start.php";
-include "login-check.php";
+include_once "login-check.php";
 if (!logged_in())
     exit();
 
