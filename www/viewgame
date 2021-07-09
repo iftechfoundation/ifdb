@@ -1645,13 +1645,13 @@ if ($curuser) {
 
 if ($ratingCntTot == 0) {
     echo "<img src=\"/blank.gif\" class=\"star0\" title=\"No Ratings\">
-       No member reviews yet";
+       No reviews yet";
     if ($embargoCnt == 0)
         echo " - <a href=\"review?id=$id&userid=$curuser\">be the first</a>";
 } else if ($ratingAvg == 0 && $memberReviewCnt == 0) {
     echo "<a href=\"viewgame?id=$id&ratings\" "
         . "title=\"View all ratings and reviews for this game\">"
-        . "$ratingCntTot member rating" . ($ratingCntTot != 1 ? "s" : "")
+        . "$ratingCntTot rating" . ($ratingCntTot != 1 ? "s" : "")
         . "</a><br>";
 } else {
     if (!$should_hide && $ratingAvg != 0) {
@@ -1665,12 +1665,12 @@ if ($ratingCntTot == 0) {
     if ($memberReviewCnt != 0) {
         $href = ($memberReviewCnt > $reviewsOnHomePage)
                 ? "viewgame?id=$id&reviews" : "#memberReviews";
-        echo "<a href=\"$href\">$memberReviewCnt member review"
+        echo "<a href=\"$href\">$memberReviewCnt review"
             . ($memberReviewCnt != 1 ? "s" : "")
             . "</a>";
     }
     else {
-        echo "No member reviews yet";
+        echo "No reviews yet";
         if ($embargoCnt == 0)
             echo " - <a href=\"review?id=$id&userid=$curuser\">be the first</a>";
     }
