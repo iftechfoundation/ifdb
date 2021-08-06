@@ -1713,7 +1713,7 @@ if ($embargoCnt > 0)
                <?php if (!isEmpty($license))
                    echo "License: $license<br>" ?>
                <?php if (!isEmpty($system))
-                   echo "Development System: $system<br>" ?>
+                   echo "Development System: <a href=\"search?searchfor=system:" . urlencodeFromHTML($system) . "\">$system</a><br>" ?>
                <?php if (!isEmpty($forgiveness))
                    echo "<a class=silent " . helpWinHRef("help-forgiveness")
 //                       href=\"needjs\"
