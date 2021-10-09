@@ -26,7 +26,7 @@ if ($uid) {
     $caughtUpDate = mysql_result($result, 0, "caughtupdate");
 }
 
-$debugflag = $adminPriv && get_req_data('debug') == 'yesDebug';
+$debugflag = get_req_data('debug') == 'yesDebug';
 if ($debugflag) echo "debug mode enabled...<br>";
 ?>
 
