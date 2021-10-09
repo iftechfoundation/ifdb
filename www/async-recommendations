@@ -1,0 +1,19 @@
+<?php
+include_once "session-start.php";
+include_once "dbconnect.php";
+include_once "util.php";
+include "pagetpl.php";
+include_once "login-persist.php";
+include "newitems.php";
+include_once "commentutil.php";
+
+$db = dbConnect();
+
+$uid = checkPersistentLogin();
+$quid = mysql_real_escape_string($uid, $db);
+
+$loggedIn = (isset($_SESSION['logged_in']) && $_SESSION['logged_in']);
+
+$async = true;
+include "components/ifdb-recommends.php";
+?>
