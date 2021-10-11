@@ -963,6 +963,7 @@ engine to match.
                join games as g on g.id = v.gameid
              where
                v.pollid = '$id'
+               and not u.sandbox
              order by
                v.votedate desc", $db);
 
@@ -1071,6 +1072,15 @@ function expandVote(id)
             exit();
         }
 
+        $sandbox = 0;
+
+        // if the user is logged in, look up their sandbox
+        $curuser = $_SESSION['logged_in_as'];
+        if ($curuser) {
+            $result = mysql_query("select sandbox from users where id='$curuser'", $db);
+            list($sandbox) = mysql_fetch_row($result);
+        }
+
         // query the votes
         $result = mysql_query(
             "select
@@ -1093,6 +1103,7 @@ function expandVote(id)
                  on v2.pollid = v.pollid and v2.gameid = v.gameid
              where
                v.pollid = '$id'
+               and u.Sandbox in (0, $sandbox)
              group by
                v.gameid, v.userid
              order by
