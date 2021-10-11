@@ -18,7 +18,7 @@ if ($loggedIn) {
         $recs = $_SESSION['ifdb_recommendations'];
         $recsrc = $_SESSION['ifdb_recommendations_source'];
 
-    } else {
+    } else if ($async) {
 
         // No recommendations are cached, so come up with some new ones
         // First, generate a list giving the "rating distance" from each
@@ -267,6 +267,27 @@ if ($loggedIn) {
                 if ($debugflag) echo "record count=" . count($recs) . "<br>";
             }
         }
+    } else {
+      ?>
+      <div id="recommendations">Loading...</div>
+      <script>
+        void function() {
+          var element = document.getElementById('recommendations')
+          var xhr = new XMLHttpRequest();
+          xhr.open("GET", '/async-recommendations', true);
+          xhr.onreadystatechange = function() {
+            if (xhr.readyState !== 4) return;
+            if (xhr.status == 200) {
+              element.innerHTML = xhr.responseText;
+            } else {
+              element.innerHTML = "<span class=errmsg>There was an error loading recommendations.</span>";
+            }
+          }
+          xhr.send();
+        }();
+      </script>
+      <?php
+      return;
     }
 }
 
