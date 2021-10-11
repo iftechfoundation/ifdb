@@ -1,6 +1,15 @@
 <?php
 //  ----------------------  poll sampler box - query -----------------------
 
+$sandbox = 0;
+
+// if the user is logged in, look up their sandbox
+$curuser = $_SESSION['logged_in_as'];
+if ($curuser) {
+    $result = mysql_query("select sandbox from users where id='$curuser'", $db);
+    list($sandbox) = mysql_fetch_row($result);
+}
+
 // set up the base query for polls
 $baseQuery = "select
                 p.pollid, p.title, p.`desc`, p.created, p.userid,
@@ -12,6 +21,8 @@ $baseQuery = "select
                 polls as p
                 left outer join pollvotes as v on v.pollid = p.pollid
                 join users as u on u.id = p.userid
+              where
+                sandbox in (0, $sandbox)
               group by
                 p.pollid";
 $limit = "limit 0, 5";
