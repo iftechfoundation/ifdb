@@ -17,6 +17,15 @@ $errMsg = false;
 include_once "dbconnect.php";
 $db = dbConnect();
 
+$sandbox = 0;
+
+// if the user is logged in, look up their sandbox
+$curuser = $_SESSION['logged_in_as'];
+if ($curuser) {
+    $result = mysql_query("select sandbox from users where id='$curuser'", $db);
+    list($sandbox) = mysql_fetch_row($result);
+}
+
 // get the club ID
 $qid = mysql_real_escape_string(get_req_data("id"), $db);
 if (!$qid) {
@@ -796,6 +805,7 @@ if (isset($_REQUEST['members']))
            join users as u on u.id = m.userid
          where
            m.clubid = '$qid'
+           and u.Sandbox in (0, $sandbox)
          order by
            $orderBy
          $limit", $db);
@@ -1009,7 +1019,9 @@ if ($membersPublic || $isMember)
 {
     $result = mysql_query(
         "select count(*) from clubmembers
-         where clubid = '$qid'", $db);
+         join users on clubmembers.userid = users.id
+         where clubid = '$qid'
+         and users.Sandbox in (0,$sandbox)", $db);
     list($mcnt) = mysql_fetch_row($result);
 
     echo "$mcnt member" . ($mcnt > 1 ? "s" : "")
