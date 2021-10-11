@@ -4,7 +4,15 @@
 
    <ol>
    <?php
-   $rlst = getTopReviewers($db, 4);
+   $topReviewersCacheFile = sys_get_temp_dir() . '/top-reviewers-cache';
+   $isFresh = filemtime($topReviewersCacheFile) > time()-25*3600;
+   if ($isFresh) {
+      $input = file_get_contents($topReviewersCacheFile);
+      if ($input) {
+         $rlst = unserialize($input);
+      }
+   }
+   if (!$rlst) $rlst = getTopReviewers($db, 4);
    $n = 1;
    foreach ($rlst as $r) {
       list($ruid, $runame, $rscore) = $r;
