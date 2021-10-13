@@ -289,6 +289,16 @@ if ($loggedIn) {
       <?php
       return;
     }
+} else {
+  $topGamesCacheFile = sys_get_temp_dir() . '/top-games-cache';
+  $isFresh = filemtime($topGamesCacheFile) > time()-25*3600;
+  if ($isFresh) {
+    $input = file_get_contents($topGamesCacheFile);
+    if ($input) {
+      $recs = unserialize($input);
+      $recsrc = 'generic';
+    }
+  }
 }
 
 // if our recommendation list is empty, pick some random 4- and 5-star

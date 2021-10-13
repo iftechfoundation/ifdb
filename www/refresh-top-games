@@ -1,0 +1,39 @@
+<?php
+include_once "dbconnect.php";
+include_once "util.php";
+
+// a cron job will call this to refresh the list of top-rated games
+
+$db = dbConnect();
+
+$maxpicks = 12;
+
+$result = mysql_query(
+        "select
+           games.id as gameid,
+           games.title as title,
+           games.author as author,
+           games.`desc` as `desc`,
+           (games.coverart is not null) as hasart,
+           starsort
+         from
+           games
+           join gameRatingsSandbox0 on games.id = gameid
+         where
+           starsort >= 4
+           and not (games.flags & " . FLAG_SHOULD_HIDE . ")
+         order by
+           starsort desc
+         limit
+           0, $maxpicks", $db);
+
+if (!$result) throw new Exception(mysql_error($db));
+
+$recs = array();
+for ($i = 0 ; $i < mysql_num_rows($result) ; $i++)
+    $recs[] = mysql_fetch_array($result, MYSQL_ASSOC);
+
+$output = serialize($recs);
+
+file_put_contents(sys_get_temp_dir() . '/top-games-cache', $output);
+?>
