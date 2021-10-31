@@ -737,8 +737,7 @@ function showNewItemsRSS($db, $showcnt)
                 }
                 $title .= $stars;
             }
-            list($summary, $len, $trunc) = summarizeHtml($r['review'], 140);
-            $desc = fixDesc($summary);
+            $desc = fixDesc($r['review'], FixDescSpoiler | FixDescRSS);
             $link = get_root_url() . "viewgame?id={$r['gameid']}"
                     . "&review={$r['reviewid']}";
             $pubDate = $r['d'];
