@@ -726,6 +726,17 @@ function showNewItemsRSS($db, $showcnt)
             if (!is_null($r['summary'])) {
                 $title .= ": \"{$r['summary']}\"";
             }
+            if ($r['rating']) {
+                $stars = " ";
+                for ($i = 0; $i < 5; $i++) {
+                    if ($i < $r['rating']) {
+                        $stars .= "&#9733;"; // &starf;
+                    } else {
+                        $stars .= "&#9734;"; // &star;
+                    }
+                }
+                $title .= $stars;
+            }
             list($summary, $len, $trunc) = summarizeHtml($r['review'], 140);
             $desc = fixDesc($summary);
             $link = get_root_url() . "viewgame?id={$r['gameid']}"
