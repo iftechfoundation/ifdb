@@ -1,3 +1,3 @@
 #!/bin/bash
 
-docker exec -it ifdb_db_1 mysql -psecret ifdb
+docker exec -it ifdb-db-1 mysql -psecret ifdb
