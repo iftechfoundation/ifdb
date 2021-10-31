@@ -718,10 +718,11 @@ function showNewItemsRSS($db, $showcnt)
         if ($pick == 'R')
         {
             $r = $row;
-            $title = "A review "
-                     . (is_null($r['special'])
-                        ? "by {$r['username']}" : "")
-                     . " of {$r['title']}";
+            if (is_null($r['special'])) {
+                $title = "{$r['username']} reviews \"{$r['title']}\"";
+            } else {
+                $title = "A review of \"{$r['title']}\"";
+            }
             list($summary, $len, $trunc) = summarizeHtml($r['review'], 140);
             $desc = fixDesc($summary);
             $link = get_root_url() . "viewgame?id={$r['gameid']}"
