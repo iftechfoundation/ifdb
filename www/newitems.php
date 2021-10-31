@@ -723,6 +723,9 @@ function showNewItemsRSS($db, $showcnt)
             } else {
                 $title = "A review of \"{$r['title']}\"";
             }
+            if (!is_null($r['summary'])) {
+                $title .= ": \"{$r['summary']}\"";
+            }
             list($summary, $len, $trunc) = summarizeHtml($r['review'], 140);
             $desc = fixDesc($summary);
             $link = get_root_url() . "viewgame?id={$r['gameid']}"
