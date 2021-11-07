@@ -3064,6 +3064,9 @@ dispTags();
                 $deletePageLink =
                     "- <a href=\"delgame?id=$id\">Delete This Page</a>";
             }
+        } else if ($adminPriv) {
+            $deletePageLink =
+                "- <a href=\"delgame?id=$id\">Delete This Page</a>";
         }
 
         // add the footer showing the version/edit links
