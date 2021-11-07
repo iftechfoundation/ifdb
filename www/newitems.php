@@ -718,12 +718,26 @@ function showNewItemsRSS($db, $showcnt)
         if ($pick == 'R')
         {
             $r = $row;
-            $title = "A review "
-                     . (is_null($r['special'])
-                        ? "by {$r['username']}" : "")
-                     . " of {$r['title']}";
-            list($summary, $len, $trunc) = summarizeHtml($r['review'], 140);
-            $desc = fixDesc($summary);
+            if (is_null($r['special'])) {
+                $title = "{$r['username']} reviews \"{$r['title']}\"";
+            } else {
+                $title = "A review of \"{$r['title']}\"";
+            }
+            if (!is_null($r['summary'])) {
+                $title .= ": \"{$r['summary']}\"";
+            }
+            if ($r['rating']) {
+                $stars = " ";
+                for ($i = 0; $i < 5; $i++) {
+                    if ($i < $r['rating']) {
+                        $stars .= "&#9733;"; // &starf;
+                    } else {
+                        $stars .= "&#9734;"; // &star;
+                    }
+                }
+                $title .= $stars;
+            }
+            $desc = fixDesc($r['review'], FixDescSpoiler | FixDescRSS);
             $link = get_root_url() . "viewgame?id={$r['gameid']}"
                     . "&review={$r['reviewid']}";
             $pubDate = $r['d'];
