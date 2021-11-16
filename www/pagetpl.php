@@ -111,7 +111,6 @@ function pageHeader($title, $focusCtl = false, $extraOnLoad = false,
                 
             <div class="nav-right">
                 <a id="topbar-browse" href="/search?browse">Browse</a>|
-                <a id="topbar-search" href="/search">Search</a>
                 <form class= "searchbar-wrapper" method="get" action="/search" name="search">
                         <input id="topbar-searchbar" type="text" name="searchbar" placeholder="Search for games...">
                         <button class="" id="topbar-search-go-button" aria-label="Search">
@@ -133,7 +132,6 @@ function pageHeader($title, $focusCtl = false, $extraOnLoad = false,
     function ToggleMobileMenu() {
         document.querySelector('#main-nav ul').classList.toggle('mobile-hidden');
         document.querySelector('.login-link').classList.toggle('mobile-hidden');
-        document.querySelector('#topbar-search').classList.toggle('mobile-hidden');
         document.querySelectorAll('#mobile-menu-toggle-button img').forEach(item => item.classList.toggle('mobile-hidden'));
     }
 
