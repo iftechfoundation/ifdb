@@ -112,13 +112,11 @@ function pageHeader($title, $focusCtl = false, $extraOnLoad = false,
             <div class="nav-right">
                 <a id="topbar-browse" href="/search?browse">Browse</a>|
                 <a id="topbar-search" href="/search">Search</a>
-                <form method="get" action="/search" name="search">
-                    <div class="searchbar-wrapper">
+                <form class= "searchbar-wrapper" method="get" action="/search" name="search">
                         <input id="topbar-searchbar" type="text" name="searchbar" placeholder="Search for games...">
                         <button class="" id="topbar-search-go-button" aria-label="Search">
                             <img src="img/search_small.svg" alt="">
                         </button>
-                    </div>
                 </form>
                 <?php
                 if (isset($_SESSION['logged_in']) && $_SESSION['logged_in'])
