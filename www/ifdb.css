@@ -2312,6 +2312,15 @@ span.sfl-save-autodesc {
         background: #202040;
         border-bottom: thin dotted #303060;
     }
+    .menu-toggle-button {
+        filter: invert(1);
+    }
+    .searchbar-wrapper {
+        border: 2px solid black;
+    }
+    #topbar-search-go-button {
+        filter: invert(1);
+    }
     table.downloads {
         background: #101030;
         border: thin dotted #303030;
