@@ -1171,6 +1171,10 @@ span.headlineRss {
         display: inline-block;
     }
 
+    #topbar-home{
+        display: none;
+    }
+
 }
 
 /*
