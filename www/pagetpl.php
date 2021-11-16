@@ -93,7 +93,7 @@ function pageHeader($title, $focusCtl = false, $extraOnLoad = false,
     <a href="/" aria-label="Home">
         <div class="topbar"></div>
     </a>
-    <div id="main-nav-wrapper" class="flexer" style="margin:0">
+    <div id="main-nav-wrapper">
         <button type="button" id="mobile-menu-toggle-button" class="menu-toggle-button" aria-label="Menu" onclick="ToggleMobileMenu()" class="hidden">
             <img src="img/menu.svg" alt="" class="mobile-hidden">
             <img src="img/close.svg" alt="">
@@ -109,7 +109,7 @@ function pageHeader($title, $focusCtl = false, $extraOnLoad = false,
             </ul>
     
                 
-            <div class="block">
+            <div class="nav-right">
                 <a id="topbar-browse" href="/search?browse">Browse</a>|
                 <a id="topbar-search" href="/search">Search</a>
                 <form method="get" action="/search" name="search">
