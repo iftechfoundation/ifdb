@@ -113,6 +113,7 @@ function pageHeader($title, $focusCtl = false, $extraOnLoad = false,
             <li class="<?= ($pagescript === 'editprofile') ? 'page-active':''; ?>"><a id="topbar-edit" href="/editprofile">Settings</a></li>
             <li class="<?= ($pagescript === 'personal') ? 'page-active':''; ?>"><a id="topbar-personal" href="/personal">My Activity</a></li>
             <li class="<?= ($pagescript === 'commentlog') ? 'page-active':''; ?>"><a id="topbar-inbox" href="/commentlog?mode=inbox">Inbox</a></li>
+            <a id="topbar-logout-mobile" class="login-link" href="/logout">Log Out</a>
             <?php endif ?>
             </ul>
     
