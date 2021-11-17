@@ -3,6 +3,8 @@
 include_once "util.php";
 include_once "login-persist.php";
 
+$isLoggedIn = (isset($_SESSION['logged_in']) && $_SESSION['logged_in']);
+
 function basePageHeader($title, $focusCtl, $extraOnLoad, $extraHead,
                         $ckbox, $bodyAttrs)
 {
@@ -76,6 +78,8 @@ function helpWinLink($href, $text)
 function pageHeader($title, $focusCtl = false, $extraOnLoad = false,
                     $extraHead = false, $ckbox = false, $bodyAttrs = "")
 {
+    global $isLoggedIn;
+
     // show the basic header
     basePageHeader($title, $focusCtl, $extraOnLoad, $extraHead,
                    $ckbox, $bodyAttrs);
@@ -94,18 +98,22 @@ function pageHeader($title, $focusCtl = false, $extraOnLoad = false,
         <div class="topbar"></div>
     </a>
     <div id="main-nav-wrapper">
+    <?php if ($isLoggedIn) : ?>
         <button type="button" id="mobile-menu-toggle-button" class="menu-toggle-button" aria-label="Menu" onclick="ToggleMobileMenu()" class="hidden">
             <img src="img/menu.svg" alt="" class="mobile-hidden">
             <img src="img/close.svg" alt="">
             <span>Menu</span>
         </button>
+    <?php endif ?>
         <nav id="main-nav" class="main-nav">
             <ul>
             <li class="<?= ($pagescript === 'home') ? 'page-active':''; ?>"><a id="topbar-home" href="/">Home</a></li>
+            <?php if ($isLoggedIn) : ?>
             <li class="<?= ($pagescript === 'showuser') ? 'page-active':''; ?>"><a id="topbar-profile" href="/showuser">Profile</a></li>
             <li class="<?= ($pagescript === 'editprofile') ? 'page-active':''; ?>"><a id="topbar-edit" href="/editprofile">Settings</a></li>
             <li class="<?= ($pagescript === 'personal') ? 'page-active':''; ?>"><a id="topbar-personal" href="/personal">My Activity</a></li>
             <li class="<?= ($pagescript === 'commentlog') ? 'page-active':''; ?>"><a id="topbar-inbox" href="/commentlog?mode=inbox">Inbox</a></li>
+            <?php endif ?>
             </ul>
     
                 
