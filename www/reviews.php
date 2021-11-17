@@ -481,7 +481,7 @@ function showReview($db, $gameid, $rec, $specialNames, $optionFlags = 0)
 		echo  "<div style=\"display:inline;position:relative;\">"
             . "<a href=\"#\" id=\"voteMenuLink_$reviewid\" "
             . "onclick=\"javascript:popVoteMenu('$reviewid');"
-            . "return false;\">More Options<img src=\"/blank.gif\" "
+            . "return false;\">More Options<img src=\"/img/blank.gif\" "
             . "class=\"popup-menu-arrow\"></a>"
 
             . "<div id=\"voteMenu_$reviewid\" style=\"display: none;"

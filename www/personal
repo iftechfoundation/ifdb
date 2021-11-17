@@ -59,7 +59,7 @@ if (mysql_num_rows($result) > 0) {
 
     $foundAuthorCredits = true;
 
-    headline("<img src=\"/blank.gif\" class=\"authored-list-icon\"> "
+    headline("<img src=\"/img/blank.gif\" class=\"authored-list-icon\"> "
              . "Your Authorship Credits");
 
     for ($i = 0 ; $i < mysql_num_rows($result) ; $i++) {
@@ -81,7 +81,7 @@ if (mysql_num_rows($result) > 0) {
 
 
 // ---------------------------- REVIEWS ------------------------------
-headline("<img src=\"/blank.gif\" class=\"review-list-icon\"> Your Reviews");
+headline("<img src=\"/img/blank.gif\" class=\"review-list-icon\"> Your Reviews");
 
 $maxreviews = 10;
 $result = mysql_query("select count(*) as c from reviews
@@ -138,7 +138,7 @@ echo "</div>";
 
 
 // ---------------------------- COMMENTS ------------------------------
-headline("<img src=\"/blank.gif\" class=\"list-message-icon\"> "
+headline("<img src=\"/img/blank.gif\" class=\"list-message-icon\"> "
          . "Your Discussions");
 
 // fetch my subscribed comments, with a limit of the 10 latest items
@@ -177,7 +177,7 @@ echo "</div>";
 
 // ---------------------------- CLUBS ------------------------------
 
-headline("<img src=\"/blank.gif\" class=\"club-list-icon\"> Your Clubs");
+headline("<img src=\"/img/blank.gif\" class=\"club-list-icon\"> Your Clubs");
 
 $result = mysql_query(
     "select
@@ -206,7 +206,7 @@ echo "</div>";
 
 
 // ---------------------------- LISTS ------------------------------
-headline("<img src=\"/blank.gif\" class=\"list-list-icon\"> "
+headline("<img src=\"/img/blank.gif\" class=\"list-list-icon\"> "
          . "Your Recommended Lists");
 
 $maxlists = 10;
@@ -240,7 +240,7 @@ echo "</div>";
 
 
 // ---------------------------- POLLS ------------------------------
-headline("<img src=\"/blank.gif\" class=\"poll-list-icon\"> Your Polls");
+headline("<img src=\"/img/blank.gif\" class=\"poll-list-icon\"> Your Polls");
 
 $maxpolls = 10;
 $result = mysql_query("select count(*) as c from polls
@@ -290,7 +290,7 @@ echo "</div>";
 
 // ---------------------- GAME I'VE PLAYED ---------------------------
 
-headline("<img src=\"/blank.gif\" class=\"playlists-icon\"> Your Play Lists");
+headline("<img src=\"/img/blank.gif\" class=\"playlists-icon\"> Your Play Lists");
 
 $maxgames = 5;
 $result = mysql_query(
@@ -426,7 +426,7 @@ if ($dh = @opendir($path))
 // if we found any files, show the section
 if ($found)
 {
-    headline("<img src=\"/blank.gif\" class=\"storage-file-icon\"> "
+    headline("<img src=\"/img/blank.gif\" class=\"storage-file-icon\"> "
              . "Your Saved Game Files");
 
     echo "<span class=notes><i>TADS games that you play on-line can "
@@ -441,7 +441,7 @@ if ($found)
 
 // ---------------------- GAME LISTINGS EDITED ---------------------------
 
-headline("<img src=\"/blank.gif\" class=\"game-list-icon\"> "
+headline("<img src=\"/img/blank.gif\" class=\"game-list-icon\"> "
          . "Your Catalog Contributions");
 
 $maxgames = 5;
@@ -498,7 +498,7 @@ echo "</div>";
 
 // ---------------------------- PROFILE ------------------------------
 
-headline("<img src=\"/blank.gif\" class=\"my-profile-icon\"> Your Profile");
+headline("<img src=\"/img/blank.gif\" class=\"my-profile-icon\"> Your Profile");
 
 echo "<a href=\"showuser?id=$uid\">View your public profile</a><br>"
    . "<a href=\"editprofile\">Edit your profile</a><br>"

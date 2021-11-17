@@ -910,7 +910,7 @@ if ($foundGame)
         echo "<a href=\"$parchment$pcUrl\" $ptarget "
             . "title=\"Play this game right now in your browser, using "
             . "the Parchment interpreter. No installation is required.\">"
-            . "<img src=\"/blank.gif\" class=\"play-online-button\" "
+            . "<img src=\"/img/blank.gif\" class=\"play-online-button\" "
             . "style=\"margin:0px 0px 0.3em 0px;cursor:pointer;\">"
             . "</a><br>";
     }
@@ -922,7 +922,7 @@ if ($foundGame)
         echo "<a href=\"{$t3launch}\" $ttarget "
             . "title=\"Play this game right now in your browser. No "
             . "installation is required.\">"
-            . "<img src=\"/blank.gif\" class=\"play-online-button\" "
+            . "<img src=\"/img/blank.gif\" class=\"play-online-button\" "
             . "style=\"margin:0px 0px 0.3em 0px;cursor:pointer;\">"
             . "</a><br>";
     }
@@ -934,7 +934,7 @@ if ($foundGame)
         echo "<a href=\"{$hexLaunch}\" $htarget "
 			. "title=\"Play this game right now in your browser. No "
             . "installation is required.\">"
-            . "<img src=\"/blank.gif\" class=\"play-online-button\" "
+            . "<img src=\"/img/blank.gif\" class=\"play-online-button\" "
             . "style=\"margin:0px 0px 0.3em 0px;cursor:pointer;\">"
             . "</a><br>";
 	}
@@ -943,7 +943,7 @@ if ($foundGame)
     echo "<a href=\"dladviser?id=$id\" "
         . "title=\"Get customized help for downloading and installing "
         . "this game\">"
-        . "<img src=\"/blank.gif\" class=\"dla-button\" "
+        . "<img src=\"/img/blank.gif\" class=\"dla-button\" "
         . "style=\"padding:0 0 0 0;margin:0 0 0 0\"></a><br>";
 
     echo "</td>";
@@ -1064,7 +1064,7 @@ if (count($links) == 0 && $dlnotes == "") {
               <a href=\"$url\"><b>$linktitle</b></a>$zipstar<br>";
 
         if ($compPri)
-            echo "<span class=dlzipmain><img src=\"/blank.gif\" "
+            echo "<span class=dlzipmain><img src=\"/img/blank.gif\" "
                 . "class=\"zip-contents-arrow\">Contains "
                 . "<b>$compPri</b></span><br>";
               
@@ -1308,11 +1308,11 @@ echo "updatePlaylistCount($playlistCnt); updateWishlistCount($wishlistCnt);"
          <td>
             <h3>RSS Feeds</h3>
             <a href="viewgame?id=<?php echo $id ?>&reviews&rss">
-               <img src="blank.gif" class="rss-icon">New member reviews</a>
+               <img src="img/blank.gif" class="rss-icon">New member reviews</a>
             <br><a href="viewgame?id=<?php echo $id ?>&downloads&rss">
-               <img src="blank.gif" class="rss-icon">Updates to downloadable files</a>
+               <img src="img/blank.gif" class="rss-icon">Updates to downloadable files</a>
             <br><a href="viewgame?id=<?php echo $id ?>&news&rss">
-               <img src="blank.gif" class="rss-icon">All updates to this page</a>
+               <img src="img/blank.gif" class="rss-icon">All updates to this page</a>
          </td>
       </tr>
    </table>
@@ -1644,7 +1644,7 @@ if ($curuser) {
 }
 
 if ($ratingCntTot == 0) {
-    echo "<img src=\"/blank.gif\" class=\"star0\" title=\"No Ratings\">
+    echo "<img src=\"/img/blank.gif\" class=\"star0\" title=\"No Ratings\">
        No reviews yet";
     if ($embargoCnt == 0)
         echo " - <a href=\"review?id=$id&userid=$curuser\">be the first</a>";
@@ -2125,7 +2125,7 @@ if (count($inrefs) != 0 && !$historyView) {
 
     // if we're showing the latest version, flag it
     if (!isset($_REQUEST['version']) || $_REQUEST['version'] == $pagevsn)
-        echo "<img src=\"/blank.gif\" class=\"current-version-marker\">&nbsp;";
+        echo "<img src=\"/img/blank.gif\" class=\"current-version-marker\">&nbsp;";
 
     echo "</td><td>
             <a href=\"viewgame?history&version=$pagevsn&id=$id\">
@@ -2182,7 +2182,7 @@ if (count($inrefs) != 0 && !$historyView) {
 
         // if this is the active version, highlight it
         if (isset($_REQUEST['version']) && $ivsn == $_REQUEST['version'])
-            echo "<img src=\"/blank.gif\" class=\"current-version-marker\">&nbsp;";
+            echo "<img src=\"/img/blank.gif\" class=\"current-version-marker\">&nbsp;";
 
         // show this version entry
         echo "</td><td><a href=\"viewgame?version=$ivsn&id=$id\">
@@ -2290,7 +2290,7 @@ if (count($inrefs) != 0 && !$historyView) {
                  <div style="position:absolute;top:2px;right:0px;
                     text-align:right;">
                     <a href="needjs" onclick="javascript:closeTags('tagEditor');
-                       return false;">Cancel<img src="/blank.gif"
+                       return false;">Cancel<img src="img/blank.gif"
                           class="popup-close-button"></a>
                  </div>
               </div>
@@ -2309,11 +2309,11 @@ if (count($inrefs) != 0 && !$historyView) {
                  </span>
                  <input type=text size=50 id="myTagFld"
                     style="vertical-align:middle;">
-                 <input type=image src="/blank.gif" class="add-button"
+                 <input type=image src="img/blank.gif" class="add-button"
                     id="viewgame-add-tags-button"
                     name="addTags" style="vertical-align:middle;"
                     onclick="javascript:addTags();return false;"><br>
-                 <input type=image src="/blank.gif" class="save-button"
+                 <input type=image src="img/blank.gif" class="save-button"
                     id="viewgame-save-tags-button"
                     name="saveTags" style="margin-top:1ex;"
                     onclick="javascript:saveTags();return false;">
@@ -2333,7 +2333,7 @@ if (count($inrefs) != 0 && !$historyView) {
            <div style="position:absolute;top:2px;right:0px;
               text-align:right;">
               <a href="needjs" onclick="javascript:closeTags('tagDeletor');
-                 return false;">Cancel<img src="/blank.gif"
+                 return false;">Cancel<img src="img/blank.gif"
                     class="popup-close-button"></a>
            </div>
         </div>
@@ -2343,7 +2343,7 @@ if (count($inrefs) != 0 && !$historyView) {
            <table id="deleteTagTable" border=0 class=tags
               style="font-size:85%;">
            </table>
-           <input type=image src="/blank.gif" class="save-button"
+           <input type=image src="img/blank.gif" class="save-button"
               id="viewgame-save-tags-button"
               name="saveTags" style="margin-top:1ex;"
               onclick="javascript:saveTagsDelete();return false;">

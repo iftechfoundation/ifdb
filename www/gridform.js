@@ -104,9 +104,9 @@ function gfGenForm(modelVar, newRowIdx)
                  + "onmouseout=\"javascript:window.status='';\" "
                  + "onclick=\"javascript:gfMoveRow('" + modelVar + "',"
                  + i + ",-1);return false;\">"
-                 + "<img src=\"/blank.gif\" class=\"grid-move-up\"></a> ";
+                 + "<img src=\"/img/blank.gif\" class=\"grid-move-up\"></a> ";
         else
-            s += "<img src=\"/blank.gif\" class=\"grid-move-blank\"> "
+            s += "<img src=\"/img/blank.gif\" class=\"grid-move-blank\"> "
 
         if (i + 1 < vals.length)
             s += "<a href=\"needjs\" title=\"Move down\" "
@@ -114,9 +114,9 @@ function gfGenForm(modelVar, newRowIdx)
                  + "onmouseout=\"javascript:window.status='';\" "
                  + "onclick=\"javascript:gfMoveRow('" + modelVar + "',"
                  + i + ",1);return false\">"
-                 + "<img src=\"/blank.gif\" class=\"grid-move-down\"></a> ";
+                 + "<img src=\"/img/blank.gif\" class=\"grid-move-down\"></a> ";
         else
-            s += "<img src=\"/blank.gif\" class=\"grid-move-blank\"> ";
+            s += "<img src=\"/img/blank.gif\" class=\"grid-move-blank\"> ";
 
         s += "</nobr></td><td>" + txt + "</td><td valign=\"" + ctlvalign + "\">";
 
@@ -129,7 +129,7 @@ function gfGenForm(modelVar, newRowIdx)
                  + "event,'" + modelVar + "'," + i + ");\" "
                  + "onclick=\"javascript:gfPostDelRow('" + modelVar + "',"
                  + i + ");return false\">"
-                 + "<img src=\"/blank.gif\" class=\"grid-remove-button\"></a> ";
+                 + "<img src=\"/img/blank.gif\" class=\"grid-remove-button\"></a> ";
 
         s += "</td></tr>";
     }
@@ -139,7 +139,7 @@ function gfGenForm(modelVar, newRowIdx)
          + "onmouseover=\"javascript:window.status='Add a new item';return true;\" "
          + "onmouseout=\"javascript:window.status='';\" "
          + "onclick=\"javascript:gfInsRow('" + modelVar + "',"
-         + i + ");return false;\"><img src=\"/blank.gif\" class=\""
+         + i + ");return false;\"><img src=\"/img/blank.gif\" class=\""
          + model.addbutton + "\"></a>"
          + (model.addExtra ? model.addExtra : "")
          + "</td></tr></table>";

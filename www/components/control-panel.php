@@ -1,7 +1,7 @@
 <?php
 function cpbtn($icon, $label, $href, $top) {
     echo "<a href=\"$href\">"
-    . "<div class=\"cpanelBtn" . ($top ? " cpanelBtnTop" : "") . "\"><img src=\"/blank.gif\" class=\"$icon cpanelBtnIcon\" alt=\"\">"
+    . "<div class=\"cpanelBtn" . ($top ? " cpanelBtnTop" : "") . "\"><img src=\"/img/blank.gif\" class=\"$icon cpanelBtnIcon\" alt=\"\">"
     . "$label"
     . "</div></a>";
 }

@@ -86,7 +86,7 @@ function pageHeader($title, $focusCtl = false, $extraOnLoad = false,
     checkPersistentLogin();
     $curuser = ((isset($_SESSION['logged_in']) && $_SESSION['logged_in'])
                 ? $_SESSION['logged_in_as'] : false);
-    $curarrow = "<img src=\"/blank.gif\" class=\"topbarcurarrow\">";
+    $curarrow = "<img src=\"/img/blank.gif\" class=\"topbarcurarrow\">";
     $homearrow = $profarrow = $editprofarrow = $yourarrow = $commentarrow =
         false;
     switch ($pagescript) {
@@ -314,7 +314,7 @@ function ckRbString($id, $label, $checked, $onUpdateFunc, $isRadio)
         . "onmouseover=\"javascript:ckboxOver('$id', $isRadio);return true;\" "
         . "onmouseout=\"javascript:ckboxLeave('$id', $isRadio);return true;\" "
         . "onclick=\"javascript:ckboxClick('$id', $isRadio, $onUpdateFunc);"
-        . "return false;\"><img src=\"/blank.gif\" class=\""
+        . "return false;\"><img src=\"/img/blank.gif\" class=\""
         . ($isRadio
            ? ($checked ? "radio-checked" : "radio-unchecked")
            : ($checked ? "ckbox-checked" : "ckbox-unchecked"))

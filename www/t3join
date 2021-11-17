@@ -189,7 +189,7 @@ if ($multiPass)
     if ($pswErrMsg)
         echo "<span class=errmsg>$pswErrMsg</span><br>";
 
-    echo "<img src=\"/blank.gif\" class=\"listarrow\">"
+    echo "<img src=\"/img/blank.gif\" class=\"listarrow\">"
         . ($pswErr ? "<span class=errmsg>" : "<span>")
         . "This is a private session - only invited guests can join. "
         . "Please enter the session code word: "
@@ -210,7 +210,7 @@ if ($userid)
     $username = htmlspecialcharx($username);
 
     // show that we're logged in
-    echo "<img src=\"/blank.gif\" class=\"listarrow\">"
+    echo "<img src=\"/img/blank.gif\" class=\"listarrow\">"
         . "You're logged in to IFDB as <b>$username</b>."
         . "This lets the game save and restore personalized "
         . "display preference settings for you on IFDB.";
@@ -241,7 +241,7 @@ function launchClick()
 else
 {
     // not logged in - show the game login page
-    echo "<img src=\"/blank.gif\" class=\"listarrow\">"
+    echo "<img src=\"/img/blank.gif\" class=\"listarrow\">"
         . "You aren't logged in to IFDB."
         . "<div class=notes style=\"margin-left: 1.5em;\">"
         . "If you log in, your saved games and preference settings "

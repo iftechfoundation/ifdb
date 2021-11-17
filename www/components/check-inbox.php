@@ -13,7 +13,7 @@ if ($quid) {
         echo "<div class=headline style=\"clear:right;\">"
             . "<span class=headlineRss>"
             . "<a href=\"commentlog?user=$quid&mode=inbox&rss\">"
-            . "<img src=\"blank.gif\" class=\"rss-icon\">Your Inbox (RSS)</a>"
+            . "<img src=\"img/blank.gif\" class=\"rss-icon\">Your Inbox (RSS)</a>"
             . "</span>"
             . "Your Discussions</div>";
 

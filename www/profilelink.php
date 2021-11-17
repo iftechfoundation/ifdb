@@ -248,7 +248,7 @@ function profileLinkDiv()
                text-align:right;">
             <a href="needjs"
              onclick="javascript:aplClose();return false;">
-               Close<img src="/blank.gif" class="popup-close-button"></a>
+               Close<img src="img/blank.gif" class="popup-close-button"></a>
          </span>
       </div>
    </div>

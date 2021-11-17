@@ -999,7 +999,7 @@ echo "</div>";
 echo "<h2 style='margin-bottom: 0.25ex;'>News</h2>"
    . "<div class=details style='margin-bottom: 1em;'>"
    . "<a href=\"club?id=$qid&news-rss\">"
-   . "<img src='blank.gif' class='rss-icon'>RSS Feed</a>"
+   . "<img src='img/blank.gif' class='rss-icon'>RSS Feed</a>"
    . "</div>"
    . "<div class=indented>";
 

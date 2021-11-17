@@ -333,7 +333,7 @@ if ($errMsg) {
     // add the RSS feed for this member's linked games
     echo "<div style='margin-top: 1.5ex;'><span class=details>"
         . "<a href=\"showuser?id=$uid&rss=gamenews\">"
-        . "<img src=\"blank.gif\" class=\"rss-icon\">"
+        . "<img src=\"img/blank.gif\" class=\"rss-icon\">"
         . "News about games authored by $username</a> (RSS Feed)</span></div>";
 
     // check for comments

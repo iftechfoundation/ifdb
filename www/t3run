@@ -152,7 +152,7 @@ if ($userid)
     $username = htmlspecialcharx($username);
 
     // show that we're logged in
-    echo "<img src=\"/blank.gif\" class=\"listarrow\">"
+    echo "<img src=\"/img/blank.gif\" class=\"listarrow\">"
         . "You're logged in to IFDB as <b>$username</b>."
         . "<div class=notes style=\"margin-left: 1.5em;\">"
         . "Saved game files that you create during this "
@@ -262,7 +262,7 @@ function launchClick(savedGame)
 else
 {
     // not logged in - show the game login page
-    echo "<img src=\"/blank.gif\" class=\"listarrow\">"
+    echo "<img src=\"/img/blank.gif\" class=\"listarrow\">"
         . "You aren't logged in to IFDB."
         . "<div class=notes style=\"margin-left: 1.5em;\">"
         . "If you log in, your saved games and preference settings "

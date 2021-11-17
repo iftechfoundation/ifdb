@@ -415,7 +415,7 @@ function helpListLink($title, $id, $tableWid, $params)
         . "<a href=\"javascript:void(0);\" class=\"silent\" "
         .    "onclick=\"javascript:openHelpList('$id', $tableWid, '$params');"
         .      "return false;\">"
-        . "<img border=0 src=\"/blank.gif\" class=\"listarrow\">$title</a>"
+        . "<img border=0 src=\"/img/blank.gif\" class=\"listarrow\">$title</a>"
         . "</div>";
 }
 
@@ -423,7 +423,7 @@ function helpExtLink($title, $url)
 {
     echo "<div class=\"searchHelpList\" id=\"helpList.$id\">"
         . "<a href=\"$url\" class=\"silent\">"
-        . "<img border=0 src=\"/blank.gif\" class=\"listarrow\">$title</a>"
+        . "<img border=0 src=\"/img/blank.gif\" class=\"listarrow\">$title</a>"
         . "</div>";
 }
 

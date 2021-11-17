@@ -326,7 +326,7 @@ function showFieldErrorDetail($col)
     if (isset($errDetail[$col]) && count($errDetail[$col]) != 0) {
         echo "<table border=0 cellspacing=0 cellpadding=0>
               <tr valign=top>
-              <td><img src=\"/blank.gif\" class=\"form-error-icon\"
+              <td><img src=\"/img/blank.gif\" class=\"form-error-icon\"
                   id=\"editgame-form-field-error\">&nbsp;&nbsp;</td>
               <td><span class=errmsg><i>";
 
@@ -355,7 +355,7 @@ init();
 if ($errMsg) {
     pageHeader($pagetitle);
     echo "<span class=errmsg>
-       <img src=\"/blank.gif\" class=\"form-error-icon\"
+       <img src=\"/img/blank.gif\" class=\"form-error-icon\"
          id=\"editgame-form-error\">
        <b>Error: $errMsg</b></span>";
 
@@ -552,7 +552,7 @@ else
         . "</span><br><br>";
 
 if ($saveErrMsg) {
-    echo "<span class=errmsg><img src=\"/blank.gif\"
+    echo "<span class=errmsg><img src=\"/img/blank.gif\"
               class=\"form-error-icon\" id=\"editgame-save-error\">
           $saveErrMsg</span><br><br>";
 }
@@ -1144,7 +1144,7 @@ function echoGridField($link, $fld, $isFirst = false)
          ?>
          &nbsp;&nbsp;
          <a href="needjs" onclick="javascript:closeLinkPopup();return false;">
-            Close<img src="/blank.gif" class="popup-close-button"></a>
+            Close<img src="img/blank.gif" class="popup-close-button"></a>
          </span>
    </div>
    <div class="edit-popup-win">
@@ -1453,7 +1453,7 @@ var linkModel = {
         + " <a href=\"needjs\" onkeydown=\"javascript:return linkEditBtnKey("
         + "event,'##');\" id=\"linkEditBtn##\">"
         + "<img alt=\"Edit this link\" "
-        + "border=0 src=\"/blank.gif\" class=\"grid-edit-button\" "
+        + "border=0 src=\"/img/blank.gif\" class=\"grid-edit-button\" "
         + "style=\"cursor:pointer;\" "
         + "onclick=\"javascript:postLinkPopup(event,'##');return false;\"></a>"
         + "<input type=hidden #2>"
@@ -1554,7 +1554,7 @@ var linkVals = [
                      ?>
                      <a href="needjs"
                         onclick="javascript:closeReviewPopup();return false;">
-                        Close<img src="/blank.gif" class="popup-close-button"></a>
+                        Close<img src="img/blank.gif" class="popup-close-button"></a>
                   </span>
                </div> 
                <div class="edit-popup-win">
@@ -1687,7 +1687,7 @@ var reviewModel = {
         + "reviewEditBtnKey(event,'##');\" onkeydown=\"javascript:return "
         + "reviewEditBtnKey(event,'##');\" id=\"reviewEditBtn##\">"
         + "<img alt=\"Edit this review\" "
-        + "border=0 src=\"/blank.gif\" class=\"grid-edit-button\" "
+        + "border=0 src=\"/img/blank.gif\" class=\"grid-edit-button\" "
         + "style=\"cursor:pointer;\" "
         + "onclick=\"javascript:postShowReviewPopup('##');return false;\"></a>"
         + "<input type=hidden #2>"
@@ -1829,7 +1829,7 @@ for ($i = 0 ; $i < count($reftypes) ; ++$i) {
        + "xrefEditBtnKey(event,'##');\" onkeydown=\"javascript:return "
        + "xrefEditBtnKey(event,'##');\" "
        + "id=\"xrefEditBtn##\"><img alt=\"Edit this reference\" "
-       + "border=0 src=\"/blank.gif\" class=\"grid-edit-button\" "
+       + "border=0 src=\"/img/blank.gif\" class=\"grid-edit-button\" "
        + "style=\"cursor:pointer;\" onclick=\"javascript:editXRef('##');"
        + "return false;\"></a></nobr>";
     },
@@ -1887,18 +1887,18 @@ for ($i = 0 ; $i < count($reftypes) ; ++$i) {
             <br><br>
             <input type=image alt="Save Changes"
                    value="Save Changes" name="save"
-                   src="/blank.gif" class="save-button"
+                   src="img/blank.gif" class="save-button"
                    id="editgame-save-button">
             &nbsp;
             <input type=image alt="Reset Form (Discard Changes)"
                    value="Reset Form (Discard Changes)"
                    name="discard" onclick="javascript:return confirmReset();"
-                   src="/blank.gif" class="reset-form-button"
+                   src="img/blank.gif" class="reset-form-button"
                    id="editgame-reset-button">
             &nbsp;
             <a href="<?php
                 echo ($id == "new" ? "home" : "viewgame?id=$id");
-                ?>"><img alt="Cancel" src="/blank.gif" class="cancel-button"
+                ?>"><img alt="Cancel" src="img/blank.gif" class="cancel-button"
                      id="editgame-cancel-button"></a>
 
             <br><br><span class=details>

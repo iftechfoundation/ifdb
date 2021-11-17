@@ -96,7 +96,7 @@ if ($item)
     echo "<a href=\"news\">More site news</a> - ";
 
 echo  "<a href=\"news?rss\">"
-   . "<img src=\"blank.gif\" class=\"rss-icon\">RSS Feed</a></a></span><p>";
+   . "<img src=\"img/blank.gif\" class=\"rss-icon\">RSS Feed</a></a></span><p>";
 
 // set up pagination
 $perPage = 15;
