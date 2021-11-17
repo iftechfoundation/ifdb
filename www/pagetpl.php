@@ -125,12 +125,11 @@ function pageHeader($title, $focusCtl = false, $extraOnLoad = false,
                             <img src="img/search_small.svg" alt="">
                         </button>
                 </form>
-                <?php
-                if (isset($_SESSION['logged_in']) && $_SESSION['logged_in'])
-                    echo "<a id=\"topbar-logout\" class=\"login-link\" href=\"/logout\">Log Out</a>";
-                else
-                    echo "<a id=\"topbar-login\" class=\"login-link\" href=\"/login\">Log In</a>";
-                ?>
+                <?php if ($isLoggedIn) : ?>
+                    <a id="topbar-logout" class="login-link" href="/logout">Log Out</a>
+                <?php else : ?>
+                    <a id="topbar-login" class="login-link" href="/login?dest=home">Log In</a>
+                <?php endif ?>
             </div> 
         </nav>
     </div>
