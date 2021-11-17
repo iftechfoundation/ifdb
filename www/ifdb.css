@@ -1021,7 +1021,7 @@ table.dlinst tr td {
 }
 
 table.dlinst tr td ul li {
-    list-style-image: url("/dlarrow.gif");
+    list-style-image: url("/img/dlarrow.gif");
     margin-top: 1em;
 }
 

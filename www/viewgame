@@ -2435,7 +2435,7 @@ function dispTagTable(tableID, lst, editor, deleteTags)
                 + t.replace(/'/g,"\\'")
                 + "');return false;\">"
 	    	        + "<input type=image align=absmiddle border=0 id=\"ckImg"+ck+"\""
-	    	        + "src='delrow.gif' >";			
+	    	        + "src='img/delrow.gif' >";			
 
             }
 
