@@ -2036,81 +2036,81 @@ star - e.g., star3h is 3-1/2 stars.  All of the various star graphics
 should be the same width and height.
 */
 img.star0 {
-    background: url('/star0.gif') no-repeat center center;
+    background: url('/img/star0.gif') no-repeat center center;
     vertical-align: middle;
     width: 56px;
     height: 13px;
 }
 img.star0h {
-    background: url('/star0h.gif') no-repeat center center;
+    background: url('/img/star0h.gif') no-repeat center center;
     vertical-align: middle;
     width: 56px;
     height: 13px;
 }
 img.star1 {
-    background: url('/star1.gif') no-repeat center center;
+    background: url('/img/star1.gif') no-repeat center center;
     vertical-align: middle;
     width: 56px;
     height: 13px;
 }
 img.star1h {
-    background: url('/star1h.gif') no-repeat center center;
+    background: url('/img/star1h.gif') no-repeat center center;
     vertical-align: middle;
     width: 56px;
     height: 13px;
 }
 img.star2 {
-    background: url('/star2.gif') no-repeat center center;
+    background: url('/img/star2.gif') no-repeat center center;
     vertical-align: middle;
     width: 56px;
     height: 13px;
 }
 img.star2h {
-    background: url('/star2h.gif') no-repeat center center;
+    background: url('/img/star2h.gif') no-repeat center center;
     vertical-align: middle;
     width: 56px;
     height: 13px;
 }
 img.star3 {
-    background: url('/star3.gif') no-repeat center center;
+    background: url('/img/star3.gif') no-repeat center center;
     vertical-align: middle;
     width: 56px;
     height: 13px;
 }
 img.star3h {
-    background: url('/star3h.gif') no-repeat center center;
+    background: url('/img/star3h.gif') no-repeat center center;
     vertical-align: middle;
     width: 56px;
     height: 13px;
 }
 img.star4 {
-    background: url('/star4.gif') no-repeat center center;
+    background: url('/img/star4.gif') no-repeat center center;
     vertical-align: middle;
     width: 56px;
     height: 13px;
 }
 img.star4h {
-    background: url('/star4h.gif') no-repeat center center;
+    background: url('/img/star4h.gif') no-repeat center center;
     vertical-align: middle;
     width: 56px;
     height: 13px;
 }
 img.star5 {
-    background: url('/star5.gif') no-repeat center center;
+    background: url('/img/star5.gif') no-repeat center center;
     vertical-align: middle;
     width: 56px;
     height: 13px;
 }
 
 img.newcomment {
-    background: url('/newcomment.png') no-repeat center center;
+    background: url('/img/newcomment.png') no-repeat center center;
     vertical-align: middle;
     width: 16px;
     height: 16px;
 }
 
 img.listarrow {
-    background: url('/list-arrow.gif') no-repeat center center;
+    background: url('/img/list-arrow.gif') no-repeat center center;
     vertical-align: middle;
     width: 12px;
     height: 10px;
@@ -2226,10 +2226,10 @@ span.sfl-save-autodesc {
         color: #ffffff;
     }
     div.topbar {
-        background: url("/dark-images/ifdb-topbar-midnight.jpg") #000030 no-repeat;
+        background: url("img/dark-images/ifdb-topbar-midnight.jpg") #000030 no-repeat;
     }
     div.smalltopbar {
-        background: url("/dark-images/ifdb-smalltopbar-midnight.jpg") #000030 no-repeat;
+        background: url("img/dark-images/ifdb-smalltopbar-midnight.jpg") #000030 no-repeat;
     }
     div.topctl {
         background: #202040;
@@ -2406,127 +2406,127 @@ span.sfl-save-autodesc {
         background: url("/dark-images/go-button-midnight.gif") no-repeat center center;
     }
     img.star0 {
-        background: url('/dark-images/star0-midnight.gif') no-repeat center center;
+        background: url('/img/dark-images/star0-midnight.gif') no-repeat center center;
         vertical-align: middle;
         width: 56px;
         height: 14px;
     }
     img.star0h {
-        background: url('/dark-images/star0h-midnight.gif') no-repeat center center;
+        background: url('/img/dark-images/star0h-midnight.gif') no-repeat center center;
         vertical-align: middle;
         width: 56px;
         height: 14px;
     }
     img.star1 {
-        background: url('/dark-images/star1-midnight.gif') no-repeat center center;
+        background: url('/img/dark-images/star1-midnight.gif') no-repeat center center;
         vertical-align: middle;
         width: 56px;
         height: 14px;
     }
     img.star1h {
-        background: url('/dark-images/star1h-midnight.gif') no-repeat center center;
+        background: url('/img/dark-images/star1h-midnight.gif') no-repeat center center;
         vertical-align: middle;
         width: 56px;
         height: 14px;
     }
     img.star2 {
-        background: url('/dark-images/star2-midnight.gif') no-repeat center center;
+        background: url('/img/dark-images/star2-midnight.gif') no-repeat center center;
         vertical-align: middle;
         width: 56px;
         height: 14px;
     }
     img.star2h {
-        background: url('/dark-images/star2h-midnight.gif') no-repeat center center;
+        background: url('/img/dark-images/star2h-midnight.gif') no-repeat center center;
         vertical-align: middle;
         width: 56px;
         height: 14px;
     }
     img.star3 {
-        background: url('/dark-images/star3-midnight.gif') no-repeat center center;
+        background: url('/img/dark-images/star3-midnight.gif') no-repeat center center;
         vertical-align: middle;
         width: 56px;
         height: 14px;
     }
     img.star3h {
-        background: url('/dark-images/star3h-midnight.gif') no-repeat center center;
+        background: url('/img/dark-images/star3h-midnight.gif') no-repeat center center;
         vertical-align: middle;
         width: 56px;
         height: 14px;
     }
     img.star4 {
-        background: url('/dark-images/star4-midnight.gif') no-repeat center center;
+        background: url('/img/dark-images/star4-midnight.gif') no-repeat center center;
         vertical-align: middle;
         width: 56px;
         height: 14px;
     }
     img.star4h {
-        background: url('/dark-images/star4h-midnight.gif') no-repeat center center;
+        background: url('/img/dark-images/star4h-midnight.gif') no-repeat center center;
         vertical-align: middle;
         width: 56px;
         height: 14px;
     }
     img.star5 {
-        background: url('/dark-images/star5-midnight.gif') no-repeat center center;
+        background: url('/img/dark-images/star5-midnight.gif') no-repeat center center;
         vertical-align: middle;
         width: 56px;
         height: 14px;
     }
     img.grid-move-up {
-        background: url('/dark-images/moveup-midnight.gif') no-repeat center center;
+        background: url('/img/dark-images/moveup-midnight.gif') no-repeat center center;
     }
     img.grid-move-down {
-        background: url('/dark-images/movedown-midnight.gif') no-repeat center center;
+        background: url('/img/dark-images/movedown-midnight.gif') no-repeat center center;
     }
     img.authored-list-icon {
-        background: url('/dark-images/authored-midnight.gif') no-repeat center center;
+        background: url('/img/dark-images/authored-midnight.gif') no-repeat center center;
     }
     img.game-search-icon {
-        background: url('/dark-images/search-midnight.gif') no-repeat center center;
+        background: url('/img/dark-images/search-midnight.gif') no-repeat center center;
     }
     img.list-search-icon {
-        background: url('/dark-images/findlist-midnight.gif') no-repeat center center;
+        background: url('/img/dark-images/findlist-midnight.gif') no-repeat center center;
     }
     img.list-list-icon {
-        background: url('/dark-images/findlist-midnight.gif') no-repeat center center;
+        background: url('/img/dark-images/findlist-midnight.gif') no-repeat center center;
     }
     img.browse-members-icon {
-        background: url('/dark-images/browsemembers-midnight.gif') no-repeat center center;
+        background: url('/img/dark-images/browsemembers-midnight.gif') no-repeat center center;
     }
     img.random-list-icon {
-        background: url('/dark-images/random-midnight.gif') no-repeat center center;
+        background: url('/img/dark-images/random-midnight.gif') no-repeat center center;
     }
     img.member-search-icon {
-        background: url('/dark-images/findmember-midnight.gif') no-repeat center center;
+        background: url('/img/dark-images/findmember-midnight.gif') no-repeat center center;
     }
     img.my-profile-icon {
-        background: url('/dark-images/findmember-midnight.gif') no-repeat center center;
+        background: url('/img/dark-images/findmember-midnight.gif') no-repeat center center;
     }
     img.browse-games-icon {
-        background: url('/dark-images/browsegames-midnight.gif') no-repeat center center;
+        background: url('/img/dark-images/browsegames-midnight.gif') no-repeat center center;
     }
     img.browse-lists-icon {
-        background: url('/dark-images/browselists-midnight.gif') no-repeat center center;
+        background: url('/img/dark-images/browselists-midnight.gif') no-repeat center center;
     }
     img.personal-page-icon {
-        background: url('/dark-images/personal-midnight.gif') no-repeat center center;
+        background: url('/img/dark-images/personal-midnight.gif') no-repeat center center;
     }
     img.create-list-icon {
-        background: url('/dark-images/createlist-midnight.gif') no-repeat center center;
+        background: url('/img/dark-images/createlist-midnight.gif') no-repeat center center;
     }
     img.create-game-icon {
-        background: url('/dark-images/newgame-midnight.gif') no-repeat center center;
+        background: url('/img/dark-images/newgame-midnight.gif') no-repeat center center;
     }
     img.edit-game-icon {
-        background: url('/dark-images/editgame-midnight.gif') no-repeat center center;
+        background: url('/img/dark-images/editgame-midnight.gif') no-repeat center center;
     }
     img.create-review-icon {
-        background: url('/dark-images/review-midnight.gif') no-repeat center center;
+        background: url('/img/dark-images/review-midnight.gif') no-repeat center center;
     }
     img.review-list-icon {
-        background: url('/dark-images/editgame-midnight.gif') no-repeat center center;
+        background: url('/img/dark-images/editgame-midnight.gif') no-repeat center center;
     }
     img.list-message-icon {
-        background: url('/dark-images/messages-midnight.gif') no-repeat center center;
+        background: url('/img/dark-images/messages-midnight.gif') no-repeat center center;
     }
     tr.oddRow {
         background: #101010;
