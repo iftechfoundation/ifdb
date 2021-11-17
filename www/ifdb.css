@@ -168,7 +168,7 @@ hyperlink isn't wanted.
 */
 div.topbar {
     width: 100%;
-    background: url("/ifdb-topbar.jpg") #c0c0c0 no-repeat;
+    background: url("/img/ifdb-topbar.jpg") #c0c0c0 no-repeat;
     height: 55px;
     max-width: 100ch;
     margin: 0 auto;
@@ -342,7 +342,7 @@ in proportion to the overall window size.
 */
 div.smalltopbar {
     width: 100%;
-    background: url("/ifdb-smalltopbar.jpg") #c0c0c0 no-repeat;
+    background: url("/img/ifdb-smalltopbar.jpg") #c0c0c0 no-repeat;
     height: 16px;
 }
 

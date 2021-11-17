@@ -178,7 +178,6 @@ function smallPageHeader($title, $focusCtl = false, $extraOnLoad = false,
 {
     basePageHeader($title, $focusCtl, $extraOnLoad, $extraHead, "", "");
     echo "<div class=\"smalltopbar\">"
-        // <img src=\"/ifdb-smalltopbar.jpg\">
         . "</div><div class=\"smallmain\">";
 }
 
@@ -216,7 +215,6 @@ function helpPageHeader($title)
 {
     basePageHeader($title, false, false, false, false, "");
     echo "<div class=\"smalltopbar\">"
-        // <img src=\"/ifdb-smalltopbar.jpg\">
         . "</div><div class=\"helpmain\">";
 }
 
