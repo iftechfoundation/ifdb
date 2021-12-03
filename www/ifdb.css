@@ -1180,6 +1180,7 @@ span.headlineRss {
         top: calc(55px + 2.5em);
         right: 0;
         background-color: #e8e8e8;
+        z-index: 1;
     }
 
     .mobile-menu ul a{
