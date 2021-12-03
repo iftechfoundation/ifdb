@@ -6,7 +6,7 @@ $height = $_REQUEST['h'];
 
 echo "<html>"
    . "<body style=\"margin: 0 0 0 0; padding: 0 0 0 0;\">"
-   . "<iframe src=\"$target\" "
+   . "<iframe src=\"/$target\" "
    . "frameborder=0 "
    . "style=\"height: $height; width: $width;\" scrolling=no>"
    . "</object>"
