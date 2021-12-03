@@ -1175,7 +1175,15 @@ span.headlineRss {
     }
 
     .mobile-menu ul{
-        flex-wrap: wrap;
+        display: block;
+        position: absolute;
+        top: calc(55px + 2.5em);
+        right: 0;
+        background-color: #e8e8e8;
+    }
+
+    .mobile-menu ul a{
+        width: 100%;
     }
 
 }
@@ -2318,6 +2326,9 @@ span.sfl-save-autodesc {
     div.topctl {
         background: #202040;
         border-bottom: thin dotted #303060;
+    }
+    div.topctl ul {
+        background: #202040;
     }
     .menu-toggle-button {
         filter: invert(1);
