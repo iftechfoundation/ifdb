@@ -115,6 +115,9 @@ function login()
 
     // if there's a redirect page, go there
     if (strlen($dest) != 0) {
+        if (substr($dest, 0, 1) !== "/") {
+           $dest = "/$dest";
+        }
         // go to the redirect page
         header("HTTP/1.1 301 Moved Permanently");
         header("Content-Type: text/html");
