@@ -3,6 +3,8 @@
 include_once "util.php";
 include_once "login-persist.php";
 
+$isLoggedIn = (isset($_SESSION['logged_in']) && $_SESSION['logged_in']);
+
 function basePageHeader($title, $focusCtl, $extraOnLoad, $extraHead,
                         $ckbox, $bodyAttrs)
 {
@@ -76,6 +78,8 @@ function helpWinLink($href, $text)
 function pageHeader($title, $focusCtl = false, $extraOnLoad = false,
                     $extraHead = false, $ckbox = false, $bodyAttrs = "")
 {
+    global $isLoggedIn;
+
     // show the basic header
     basePageHeader($title, $focusCtl, $extraOnLoad, $extraHead,
                    $ckbox, $bodyAttrs);
@@ -86,67 +90,71 @@ function pageHeader($title, $focusCtl = false, $extraOnLoad = false,
     checkPersistentLogin();
     $curuser = ((isset($_SESSION['logged_in']) && $_SESSION['logged_in'])
                 ? $_SESSION['logged_in_as'] : false);
-    $curarrow = "<img src=\"/img/blank.gif\" class=\"topbarcurarrow\">";
-    $homearrow = $profarrow = $editprofarrow = $yourarrow = $commentarrow =
-        false;
-    switch ($pagescript) {
-    case "home":
-        $homearrow = $curarrow;
-        break;
-
-    case "showuser":
-        if (!isset($query['id']) || $query['id'] == $curuser)
-            $profarrow = $curarrow;
-        break;
-
-    case "editprofile":
-        $editprofarrow = $curarrow;
-        break;
-
-    case "personal":
-        $yourarrow = $curarrow;
-        break;
-
-    case "commentlog":
-        $commentarrow = $curarrow;
-        break;
-    }
-
     // add the top bar for a regular window
 ?>
 
-<a href="/" aria-label="Home">
-    <div class="topbar"></div>
-</a>
-
-
 <div class="topctl">
-   <form method="get" action="/search" name="search">
+    <a href="/" aria-label="Home">
+        <div class="topbar"></div>
+    </a>
+    <div id="main-nav-wrapper">
+    <?php if ($isLoggedIn) : ?>
+        <button type="button" id="mobile-menu-toggle-button" class="menu-toggle-button" aria-label="Menu" onclick="ToggleMobileMenu()" class="hidden">
+            <img src="img/menu.svg" alt="" class="mobile-hidden">
+            <img src="img/close.svg" alt="">
+            <span>Menu</span>
+        </button>
+    <?php endif ?>
         <nav id="main-nav" class="main-nav">
             <ul>
             <li class="<?= ($pagescript === 'home') ? 'page-active':''; ?>"><a id="topbar-home" href="/">Home</a></li>
+            <?php if ($isLoggedIn) : ?>
             <li class="<?= ($pagescript === 'showuser') ? 'page-active':''; ?>"><a id="topbar-profile" href="/showuser">Profile</a></li>
             <li class="<?= ($pagescript === 'editprofile') ? 'page-active':''; ?>"><a id="topbar-edit" href="/editprofile">Settings</a></li>
             <li class="<?= ($pagescript === 'personal') ? 'page-active':''; ?>"><a id="topbar-personal" href="/personal">My Activity</a></li>
             <li class="<?= ($pagescript === 'commentlog') ? 'page-active':''; ?>"><a id="topbar-inbox" href="/commentlog?mode=inbox">Inbox</a></li>
+            <a id="topbar-logout-mobile" class="login-link" href="/logout">Log Out</a>
+            <?php endif ?>
             </ul>
     
                 
-            <div class="block">
+            <div class="nav-right">
                 <a id="topbar-browse" href="/search?browse">Browse</a>|
-                <a id="topbar-search" href="/search">Search</a>
-                <input id="topbar-searchbar" type="text" name="searchbar" placeholder="Search for games...">
-                <button class="go-button" id="topbar-search-go-button" aria-label="Go"></button>
-                <?php
-                if (isset($_SESSION['logged_in']) && $_SESSION['logged_in'])
-                    echo "<a id=\"topbar-logout\" href=\"/logout\">Log Out</a>";
-                else
-                    echo "<a id=\"topbar-login\" href=\"/login\">Log In</a>";
-                ?>
+                <form class= "searchbar-wrapper" method="get" action="/search" name="search">
+                        <input id="topbar-searchbar" type="text" name="searchbar" placeholder="Search for games...">
+                        <button class="" id="topbar-search-go-button" aria-label="Search">
+                            <img src="img/search_small.svg" alt="">
+                        </button>
+                </form>
+                <?php if ($isLoggedIn) : ?>
+                    <a id="topbar-logout" class="login-link" href="/logout">Log Out</a>
+                <?php else : ?>
+                    <a id="topbar-login" class="login-link" href="/login?dest=home">Log In</a>
+                <?php endif ?>
             </div> 
         </nav>
-   </form>
+    </div>
 </div>
+
+<script>
+    function ToggleMobileMenu() {
+        document.querySelector('#main-nav ul').classList.toggle('mobile-hidden');
+        document.querySelector('.login-link').classList.toggle('mobile-hidden');
+        document.querySelectorAll('#mobile-menu-toggle-button img').forEach(item => item.classList.toggle('mobile-hidden'));
+    }
+
+    (()=> {
+    
+    // The mobile menu should be closed by default
+    ToggleMobileMenu();
+
+    // If javascript is enabled, un-hide the mobile menu button & add the 'mobile-menu' class to the main nav wrapper,
+    document.querySelector('#mobile-menu-toggle-button').classList.remove('hidden');
+    document.querySelector('#main-nav-wrapper').classList.add('mobile-menu');
+    
+})()
+    
+</script>
 
 <div class="main">
 <?php

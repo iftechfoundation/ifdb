@@ -1319,6 +1319,10 @@ else if ($term || $browse)
         if ($searchType == "game") {
             echo "<div class=tipgroup>"
                 . "<div class=tipbox>"
+                . "<h1><a href=\"search\">Search tips</a></h1>"
+                . "Learn more about search syntax."
+                . "</div>"
+                . "<div class=tipbox>"
                 . "<h1><a href=\"editgame?id=new\">Add a game listing</a></h1>"
                 . "You can help improve IFDB by adding a game to our database."
                 . "</div>";

@@ -167,11 +167,8 @@ as the background image.  This can be set to zero size if the
 hyperlink isn't wanted.
 */
 div.topbar {
-    width: 100%;
     background: url("/img/ifdb-topbar.jpg") #c0c0c0 no-repeat;
     height: 55px;
-    max-width: 100ch;
-    margin: 0 auto;
 }
 a.topbar {
     height: 55px;
@@ -208,17 +205,58 @@ div.topctl table tr td {
     margin: 0 0 0 0;
     padding: 0 1em 0 1em;
 }
-div.topctl form {
-    font-size: 0.85em;
-    margin: 0px;
+
+.main-nav form {
+    margin: 0.25em 0.75em 0.25em 0.75em;
 }
 
-.main-nav{
+.searchbar-wrapper {
+    display: flex;
+    border: 2px solid #cfcfcf;
+    border-radius: 1em;
+}
+
+.searchbar-wrapper > input {
+    border: none;
+    padding-left: 0.5em;
+    border-radius: 1em 0 0 1em;
+    width: 100%;
+}
+
+.searchbar-wrapper > button {
+    border: none;
+    cursor: pointer;
+    border-radius: 0 1em 1em 0;
+    background-color: #FFFFFF;
+    padding: 0.1em;
+}   
+
+.searchbar-wrapper > button:hover, button:focus {
+    background-color: #e8e8e8
+}
+
+.main-nav {
     display: flex;
     flex-wrap: wrap;
     overflow: auto;
-    padding: 0em 1em 0em 1em;
     justify-content: space-between;
+    font-size: 0.85em;
+    flex: 1;
+    align-items: center;
+}
+
+#main-nav-wrapper{
+    padding: 0em 1em 0em 1em;
+    display: flex;
+    flex-wrap: wrap;
+}
+
+#topbar-logout-mobile{
+    display: none;
+}
+.nav-right{
+   display: flex;
+   align-items: center;
 }
 
 .main-nav ul{
@@ -249,6 +287,8 @@ div.topctl form {
 .page-active{
     font-weight: bold;
 }
+
+
 
 /*
 The "main" division is basically the rest of the page below the
@@ -1096,6 +1136,58 @@ span.headlineRss {
     }
 
 }
+
+.hidden{
+    display: none !important;
+}
+
+.menu-toggle-button{
+    display: none;
+    align-items: center;
+    align-self: start;
+    padding: 0.25em 0.75em 0.25em 0.75em;
+    border: none;
+    background: none;
+    cursor: pointer;
+}
+
+.menu-toggle-button:hover{
+    text-decoration: underline;
+    background-color: #dcdcdc;
+}
+
+@media (max-width: 55ch) {
+
+    .mobile-menu .mobile-hidden, #topbar-home {
+        display: none;
+    }
+
+    #main-nav-wrapper{
+        padding: 0;
+    }
+
+    #topbar-logout{
+        display: none;
+    }
+
+    #topbar-logout-mobile{
+        display: inline-block;
+    }
+
+    .mobile-menu #mobile-menu-toggle-button{
+        display: flex;
+    }
+
+    .mobile-menu ul{
+        flex-wrap: wrap;
+    }
+
+    .nav-right{
+        order: -1;
+    }
+
+}
+
 /*
 The "rightbar" table style is used for the little information
 boxes at the right of the home page and some other pages.
@@ -2234,6 +2326,15 @@ span.sfl-save-autodesc {
     div.topctl {
         background: #202040;
         border-bottom: thin dotted #303060;
+    }
+    .menu-toggle-button {
+        filter: invert(1);
+    }
+    .searchbar-wrapper {
+        border: 2px solid black;
+    }
+    #topbar-search-go-button {
+        filter: invert(1);
     }
     table.downloads {
         background: #101030;
