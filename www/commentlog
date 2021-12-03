@@ -209,7 +209,7 @@ if ($rss) {
         . "<p>This is a history of $expl."
         . "<p><span class=details>View $links - "
         . "<a href=\"commentlog?user=$userid&mode=$mode&rss\">"
-        . "<img src=\"/blank.gif\" class=\"rss-icon\">"
+        . "<img src=\"/img/blank.gif\" class=\"rss-icon\">"
         . "RSS Feed of this list</a></span>";
 
     // figure where we are in the list
@@ -253,7 +253,7 @@ if ($userid == $curuser
 
         $showNewIcon = true;
         echo "<p><span class=details><i>"
-            . "<img src='blank.gif' class='newcomment'> = this message is new "
+            . "<img src='img/blank.gif' class='newcomment'> = this message is new "
             . "since you last \"caught up\" on $dispDate</i> - "
             . "<a href=\"$catchup\">Catch up now</a>"
             . "</span><p>";
@@ -316,7 +316,7 @@ for ($i = 0 ; $i < count($comments) ; $i++) {
         list($ctxt, $len, $trunc) = summarizeHtml($ctxt, 210);
         $ctxt = fixDesc($ctxt, FixDescSpoiler);
         $newIcon = ($showNewIcon && $ccreDT > $caughtUpDate ?
-                    "<img src='blank.gif' class='newcomment'> " : "");
+                    "<img src='img/blank.gif' class='newcomment'> " : "");
 
         // display it
         echo "<p>$newIcon$ltitle"

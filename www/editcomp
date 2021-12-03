@@ -1071,7 +1071,7 @@ echo "<h1>$pageTitle</h1>";
 if ($errMsg) {
 
     foreach ($errMsg as $m) {
-        echo "<p><img src=\"/blank.gif\" class=\"form-error-icon\" "
+        echo "<p><img src=\"/img/blank.gif\" class=\"form-error-icon\" "
             . "id=\"editgame-form-field-error\">&nbsp;&nbsp;"
             . "<span class=errmsg>$m</span>";
     }
@@ -1087,7 +1087,7 @@ function showFieldErrorDetail($col)
     if (isset($errDetail[$col]) && count($errDetail[$col]) != 0) {
         echo "<table border=0 cellspacing=0 cellpadding=0>
               <tr valign=top>
-              <td><img src=\"/blank.gif\" class=\"form-error-icon\"
+              <td><img src=\"/img/blank.gif\" class=\"form-error-icon\"
                   id=\"editgame-form-field-error\">&nbsp;&nbsp;</td>
               <td><span class=errmsg><i>";
 
@@ -1272,7 +1272,7 @@ var divVals = [
 <?php
 
     echo "<input type=image alt='Return to the main form' "
-        . "src='/blank.gif' class='done-button' "
+        . "src='img/blank.gif' class='done-button' "
         . "name='divedit-done' value='Done' id='divedit-done-button'>"
         . "</form>";
 
@@ -1332,7 +1332,7 @@ function nthOrd(n)
             . "return true;\\\" "
             . "onmouseout=\\\"javascript:window.status='';\\\" "
             . "onclick=\\\"javascript:sortDivByPlace('divModel$i', divVals$i);"
-            . "return false;\\\"><img src='/blank.gif' "
+            . "return false;\\\"><img src='img/blank.gif' "
             . "class='sortByPlaceButton'></a>\", "
 
             . "name: 'divDiv$i', "
@@ -1436,7 +1436,7 @@ function divRowTpl(i, n, row)
               + "<i>Not set - click to select a game</i></a>"))
            + "</span><span style='padding-right: 3ex;'></span></td><td>"
            + "<a href='needjs' onclick=\"javascript:editGame("
-           + i + "," + n + ");return false;\"><img src='/blank.gif' "
+           + i + "," + n + ");return false;\"><img src='img/blank.gif' "
            + "class='grid-edit-button'></a>";
 }
 
@@ -1572,7 +1572,7 @@ function editGame(divno, rownum)
     showFieldErrorDetail("divisions");
 
     echo "<p><input type=image alt='Edit Divisions' "
-        . "src='/blank.gif' class='edit-div-button' "
+        . "src='img/blank.gif' class='edit-div-button' "
         . "name='divedit' value='Edit Divisions' id='edit-div-button'>"
         . "<div class=indented>";
 
@@ -1611,13 +1611,13 @@ function editGame(divno, rownum)
     echo "<p><hr class=dots></div><tr><td></td><td><br><br>"
 
         . "<input type=image alt='Save Changes' "
-        . "src='/blank.gif' class='save-button' "
+        . "src='img/blank.gif' class='save-button' "
         . "name='save' value='Save Changes' id='edit-save-button'>"
 
         . " &nbsp; "
 
         . "<input type=image alt='Reset Form (Discard Changes)' "
-        . "src='/blank.gif' class='reset-form-button' "
+        . "src='img/blank.gif' class='reset-form-button' "
         . "name='discard' value='Reset Form (Discard Changes)' id='edit-reset' "
         . "onclick=\"javascript:return confirm('"
         . ($compID == "new"
@@ -1630,7 +1630,7 @@ function editGame(divno, rownum)
         . " &nbsp; "
 
         . "<a href='" . ($compID == "new" ? "home" : "viewcomp?id=$compID")
-        . "'><img alt='Cancel' src='/blank.gif' class='cancel-button' "
+        . "'><img alt='Cancel' src='img/blank.gif' class='cancel-button' "
         . "id='edit-cancel-button'></a>"
 
         . "<br><br><span class=details>"

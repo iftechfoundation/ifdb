@@ -42,7 +42,7 @@ pageHeader("New User Registration", "newuser.userid", false,
 
 if ($errFlagged != false) {
     echo "<p><span class=errmsg>"
-        . "<img src=\"/blank.gif\" class=\"form-error-icon\"> "
+        . "<img src=\"/img/blank.gif\" class=\"form-error-icon\"> "
         . $errFlagged
         . "</span>";
 }

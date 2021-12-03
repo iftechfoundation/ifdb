@@ -699,7 +699,7 @@ function showStars($num)
     list($roundedNum, $starimg, $startxt) = roundStars($num);
 
     // return the image string
-    return "<img src=\"/blank.gif\" border=0 "
+    return "<img src=\"/img/blank.gif\" border=0 "
         . "class=\"star{$starimg}\" title=\"$startxt\">";
 }
 
@@ -864,7 +864,7 @@ function showSortingControls($formName, $dropName, $sortMap, $curSortBy,
     echo "</select>";
 
     // add the GO button
-    echo " <button src=\"/blank.gif\"
+    echo " <button src=\"/img/blank.gif\"
             class=\"go-button\" id=\"sort-go-button-$idSerial\"></button>";
 
     // consume the serial number

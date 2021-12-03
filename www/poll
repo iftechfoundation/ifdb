@@ -107,7 +107,7 @@ if ($userid && isset($_REQUEST['delPoll'])) {
 
             if ($formErrMsg) {
                 echo "<p><span class=errmsg>"
-                    . "<img src=\"/blank.gif\" class=\"form-error-icon\"> "
+                    . "<img src=\"/img/blank.gif\" class=\"form-error-icon\"> "
                     . "$formErrMsg</span></p>";
             }
 
@@ -192,7 +192,7 @@ if ($userid && isset($_REQUEST['editPoll'])) {
 
                 if ($formErrMsg) {
                     echo "<p><span class=errmsg>"
-                        . "<img src=\"/blank.gif\" class=\"form-error-icon\"> "
+                        . "<img src=\"/img/blank.gif\" class=\"form-error-icon\"> "
                         . "$formErrMsg</span></p>";
                 }
             
@@ -320,7 +320,7 @@ if (isset($_REQUEST['newPollGo'])) {
             . "to receive updates when votes come in, here's the "
             . "subscription link:<br>"
             . "<a href=\"$url&rss\">"
-            . "<img src=\"blank.gif\" class=\"rss-icon\">RSS Feed</a></p>";
+            . "<img src=\"img/blank.gif\" class=\"rss-icon\">RSS Feed</a></p>";
 
         pageFooter();
         exit();
@@ -494,7 +494,7 @@ if ($userid && $id && isset($_REQUEST['delVote'])) {
 
         if ($formErrMsg) {
             echo "<p><span class=errmsg>"
-                . "<img src=\"/blank.gif\" class=\"form-error-icon\"> "
+                . "<img src=\"/img/blank.gif\" class=\"form-error-icon\"> "
                 . "$formErrMsg</span></p>"
                 . "<p><a href=\"poll?id=$id\">Return to the poll page</a>";
         } else {
@@ -583,7 +583,7 @@ if ($userid && $id && isset($_REQUEST['addVote'])) {
 
         if ($formErrMsg) {
             echo "<p><span class=errmsg>"
-                . "<img src=\"/blank.gif\" class=\"form-error-icon\"> "
+                . "<img src=\"/img/blank.gif\" class=\"form-error-icon\"> "
                 . "$formErrMsg You might want to try again in "
                 . "a few minutes, or <a href=\"contact\">contact us</a> "
                 . "if the problem persists.</span><p>";
@@ -798,7 +798,7 @@ if ($userid && isset($_REQUEST['comment'])) {
 
                 if ($formErrMsg) {
                     echo "<p><span class=errmsg>"
-                        . "<img src=\"/blank.gif\" class=\"form-error-icon\"> "
+                        . "<img src=\"/img/blank.gif\" class=\"form-error-icon\"> "
                         . "$formErrMsg</span></p>";
                 }
             
@@ -861,7 +861,7 @@ rating, genre, or tags.
 <?php
 if ($newErrMsg) {
     echo "<p><span class=errmsg>"
-        . "<img src=\"/blank.gif\" class=\"form-error-icon\"> $newErrMsg"
+        . "<img src=\"/img/blank.gif\" class=\"form-error-icon\"> $newErrMsg"
         . "</span></p>";
 }
 ?>
@@ -1051,7 +1051,7 @@ function expandVote(id)
         echo "<h1>$title - an IFDB Poll</h1>"
             . "by <a href=\"showuser?id=$authid\">$authname</a>"
             . "<br><a href=\"poll?id=$id&rss\">"
-            . "<img border=0 src=\"/blank.gif\" class=\"rss-icon\"></a> "
+            . "<img border=0 src=\"/img/blank.gif\" class=\"rss-icon\"></a> "
             . "<span class=details><a href=\"poll?id=$id&rss\">"
             . "RSS Feed</a></span>"
             . "<p>" . fixDesc($desc)
@@ -1225,7 +1225,7 @@ function expandVote(id)
                         $aVote = "<a href=\"poll?id=$id&addVote"
                                  . "&game=$prvGameID\">";
                         echo " $aVote<img class=\"vote-checkmark\" "
-                            . "border=0 src=\"blank.gif\"></a> "
+                            . "border=0 src=\"img/blank.gif\"></a> "
                             . "{$aVote}Vote for this game</a>";
                     }
                     echo "</span>";

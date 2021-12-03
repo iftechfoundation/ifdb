@@ -734,7 +734,7 @@ if ($rowcnt != 0) {
 
 <?php
 if ($errMsg)
-    echo "<span class=errmsg><img src=\"/blank.gif\"
+    echo "<span class=errmsg><img src=\"/img/blank.gif\"
             class=\"form-error-icon\" id=\"review-save-error\">
         $errMsg</span><br><br>";
 ?>

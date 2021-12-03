@@ -213,7 +213,7 @@ if ($osid == "") {
             <p>";
 
         showOSPopup($db, "os", "", 0);
-        echo " <input type=image src=\"/blank.gif\" name=\"setOS\" "
+        echo " <input type=image src=\"/img/blank.gif\" name=\"setOS\" "
             . "id=\"dla-setos-1\" class=\"go-button\">"
             . "<input type=hidden name=\"id\" value=\"$id\">"
             . "</form>";
@@ -669,7 +669,7 @@ function startStep($flags)
     // show the step number in the margin
     $ret .= "<tr valign=top><td align=center style=\"padding-right:1em;\">"
             . ($stepnum <= 9
-               ? "<img src=\"blank.gif\" class=\"stepnum$stepnum\">"
+               ? "<img src=\"img/blank.gif\" class=\"stepnum$stepnum\">"
                : "<b><font size=+1>$stepnum</font></b>")
             . "</td><td>";
 
@@ -1661,7 +1661,7 @@ echo "<h1>Download Adviser for <i>$title</i></h1>"
 
    . "<span class=details>Show instructions for: </span>";
     showOSPopup($db, "os", $os, 0);
-    echo " <input type=image src=\"/blank.gif\" name=\"setOS\" "
+    echo " <input type=image src=\"/img/blank.gif\" name=\"setOS\" "
         . "class=\"go-button\" id=\"dla-setos-2\">"
         . "</form>";
 

@@ -364,7 +364,7 @@ function decodeProfiles($t)
 echo "<h1>$title</h1>"
    . "$desc"
    . "<p><span class=details><a href=\"viewcomp?id=$compID&rss\">"
-   .   "<img src='blank.gif' class='rss-icon'>News &amp; updates (RSS)</a>"
+   .   "<img src='img/blank.gif' class='rss-icon'>News &amp; updates (RSS)</a>"
    . "</span>"
    . "<h2>Details</h2>"
    . "<div class=\"hangindentedMore notes\">";
@@ -462,7 +462,7 @@ if ($historyView) {
         . "<table cellspacing=0 cellpadding=0 border=0>"
         . "<tr valign=baseline><td>";
 
-    $curVsnMarker = "<img src=\"/blank.gif\" class=\"current-version-marker\">"
+    $curVsnMarker = "<img src=\"/img/blank.gif\" class=\"current-version-marker\">"
                     . "&nbsp;";
 
     // start with the current database version of the page

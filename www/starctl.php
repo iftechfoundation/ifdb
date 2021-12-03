@@ -145,7 +145,7 @@ function showStarCtl($id, $init, $clickFunc, $leaveFunc)
                 . "onmousemove=\"javascript:mouseOverStarCtl('$id', event);\" "
                 . "onmouseout=\"javascript:mouseOutStarCtl('$id', event, $leaveFunc);\" "
                 . "onclick=\"javascript:mouseClickStarCtl('$id', event, $clickFunc);\" "
-                . "src=\"blank.gif\" class=\"star$init\">";
+                . "src=\"img/blank.gif\" class=\"star$init\">";
     }
 
     return $str;

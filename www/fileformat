@@ -431,7 +431,7 @@ if ($geticon) {
 
 
         echo "<p><input type=image name=save value=\"Save Changes\" "
-            . "src=\"/blank.gif\" class=\"save-button\" "
+            . "src=\"/img/blank.gif\" class=\"save-button\" "
             . "id=\"fileformat-save-dla-button\">"
             . "</form>";
 
@@ -720,7 +720,7 @@ if ($geticon) {
                  </td>
                  <td>
                     <input type=image name=save value="Save Changes"
-                     src="/blank.gif" class="save-button"
+                     src="img/blank.gif" class="save-button"
                      id="fileformat-save-format-button">
                  </td>
               </tr>
@@ -806,7 +806,7 @@ if ($geticon) {
                 . "Add a new Download Adviser entry: ";
             showOSPopup($db, "dla", "",
                         OSPOP_GENERIC_VSNS | OSPOP_DEFOS_OPTION);
-            echo " <input type=image src=\"/blank.gif\" "
+            echo " <input type=image src=\"/img/blank.gif\" "
                 . "class=\"go-button\" id=\"fileformat-add-dla\" "
                 . "name=\"goAddDLA\"><br><br>"
                 . "<i>Note: when an OS has multiple versions, you only need "

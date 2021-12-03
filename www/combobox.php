@@ -36,7 +36,7 @@ function makeComboBox($name, $textlen, $curval, $vals, $onSet = "null")
            . "onkeydown=\"javascript:return comboArrowKey("
            . "event,'$name',true,'${name}CBSel');\">"
            . "<img alt=\"Open List\" border=0 "
-           . "src=\"/blank.gif\" class=\"combobox-arrow\" "
+           . "src=\"/img/blank.gif\" class=\"combobox-arrow\" "
            . "onclick=\"javascript:postShowComboMenu("
            . "'$name',true,'{$name}CBSel');return false;\"></a>";
 

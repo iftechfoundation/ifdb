@@ -27,11 +27,11 @@ function getFileTypeList()
                         . "game on your system.",
                         "Self-contained, executable SETUP program that "
                         . "installs the game.",
-                        "setupicon.gif"),
+                        "img/setupicon.gif"),
         "Hints" => array("Hints",
                          "Hints for the game (this may contain spoilers).",
                          false,
-                         "hintfileicon.gif"),
+                         "img/hintfileicon.gif"),
         "Misc" => array("Miscellaneous",
                         false,
                         "Miscellaneous file(s).",
@@ -39,16 +39,16 @@ function getFileTypeList()
         "ReadMe" => array("ReadMe",
                           "Brief overview and installation notes.",
                           false,
-                          "readmeicon.gif"),
+                          "img/readmeicon.gif"),
         "Src" => array("Source Code",
                        "The source file(s) for the game.",
                        false,
-                       "srcfileicon.gif"),
+                       "img/srcfileicon.gif"),
         "Walk" => array("Walkthrough",
                         "Full instructions to solve the game. <b>Warning: "
                         . "contains spoilers.</b>",
                         false,
-                        "walkthruicon.gif"));
+                        "img/walkthruicon.gif"));
 }
 
 ?>

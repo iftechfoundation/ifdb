@@ -217,7 +217,7 @@ function imageUploadRadio($originalUrl, $noneLabel, $radioname, $curval,
         .      "return false;\" "
         .   "onfocus=\"javascript:imageUploadFocus('$ubtn', true);\" "
         .   "onblur=\"javascript:imageUploadFocus('$ubtn', false);\">"
-        . "<img src=\"/blank.gif\" class=\"upload-image-button\"></a>"
+        . "<img src=\"/img/blank.gif\" class=\"upload-image-button\"></a>"
         . "<iframe name=\"$ufr\" id=\"$ufr\" src=\"imageUpload?btn=$ubtn"
         .     "&fr=$ufr&thumbSize=$thumbSiz&radio=$radioname&tab=$utab"
         .     "&col0=$col0\" "

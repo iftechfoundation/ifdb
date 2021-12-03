@@ -167,7 +167,7 @@ as the background image.  This can be set to zero size if the
 hyperlink isn't wanted.
 */
 div.topbar {
-    background: url("/ifdb-topbar.jpg") #c0c0c0 no-repeat;
+    background: url("/img/ifdb-topbar.jpg") #c0c0c0 no-repeat;
     height: 55px;
 }
 a.topbar {
@@ -382,7 +382,7 @@ in proportion to the overall window size.
 */
 div.smalltopbar {
     width: 100%;
-    background: url("/ifdb-smalltopbar.jpg") #c0c0c0 no-repeat;
+    background: url("/img/ifdb-smalltopbar.jpg") #c0c0c0 no-repeat;
     height: 16px;
 }
 
@@ -1061,7 +1061,7 @@ table.dlinst tr td {
 }
 
 table.dlinst tr td ul li {
-    list-style-image: url("/dlarrow.gif");
+    list-style-image: url("/img/dlarrow.gif");
     margin-top: 1em;
 }
 
@@ -1514,7 +1514,7 @@ doesn't have a way to do that indirectly by reading the size from the
 image file, unfortunately.
 */
 .go-button {
-    background: url("/go-button.gif");
+    background: url("/img/go-button.gif");
     width: 16px;
     height: 16px;
     border: none;
@@ -1523,91 +1523,91 @@ image file, unfortunately.
     padding: 0;
 }
 input.save-button {
-    background: url("/savechanges.gif");
+    background: url("/img/savechanges.gif");
     width: 97px;
     height: 23px;
     border: none;
     vertical-align: middle;
 }
 input.reset-form-button {
-    background: url("/resetform.gif");
+    background: url("/img/resetform.gif");
     width: 46px;
     height: 23px;
     border: none;
     vertical-align: middle;
 }
 img.cancel-button {
-    background: url("/cancel.gif");
+    background: url("/img/cancel.gif");
     width: 54px;
     height: 23px;
     border: none;
     vertical-align: middle;
 }
 input.add-button {
-    background: url("/addbtn.gif");
+    background: url("/img/addbtn.gif");
     width: 45px;
     height: 23px;
     border: none;
     vertical-align: middle;
 }
 img.add-link-button {
-    background: url("/addlinkbtn.gif");
+    background: url("/img/addlinkbtn.gif");
     width: 78px;
     height: 23px;
     border: none;
     vertical-align: middle;
 }
 img.add-div-button {
-    background: url("/adddivbtn.gif");
+    background: url("/img/adddivbtn.gif");
     width: 111px;
     height: 23px;
     border: none;
     vertical-align: middle;
 }
 img.add-game-button {
-    background: url("/addgamebtn.gif");
+    background: url("/img/addgamebtn.gif");
     width: 85px;
     height: 23px;
     border: none;
     vertical-align: middle;
 }
 img.sortByPlaceButton {
-    background: url("/sortByPlaceBtn.gif");
+    background: url("/img/sortByPlaceBtn.gif");
     width: 107px;
     height: 23px;
     border: none;
     vertical-align: middle;
 }
 img.add-version-button {
-    background: url("/addvsnbtn.gif");
+    background: url("/img/addvsnbtn.gif");
     width: 86px;
     height: 23px;
     border: none;
     vertical-align: middle;
 }
 input.upload-image-button {
-    background: url("/uplimagebtn.gif");
+    background: url("/img/uplimagebtn.gif");
     width: 135px;
     height: 23px;
     border: none;
     vertical-align: middle;
 }
 img.upload-image-button {
-    background: url("/uplimagebtn.gif");
+    background: url("/img/uplimagebtn.gif");
     width: 135px;
     height: 23px;
     border: none;
     vertical-align: middle;
 }
 input.edit-div-button {
-    background: url("/editdivbtn.gif");
+    background: url("/img/editdivbtn.gif");
     width: 107px;
     height: 23px;
     border: none;
     vertical-align: middle;
 }
 input.done-button {
-    background: url("/donebtn.gif");
+    background: url("/img/donebtn.gif");
     width: 52px;
     height: 23px;
     border: none;
@@ -1624,14 +1624,14 @@ empty square of the same size as a normal button, to make the
 buttons align nicely.
 */
 img.grid-move-up {
-    background: url("/moveup.gif");
+    background: url("/img/moveup.gif");
     width: 27px;
     height: 21px;
     border: none;
     vertical-align: middle;
 }
 img.grid-move-down {
-    background: url("/movedown.gif");
+    background: url("/img/movedown.gif");
     width: 27px;
     height: 21px;
     border: none;
@@ -1644,14 +1644,14 @@ img.grid-move-blank {
     vertical-align: middle;
 }
 img.grid-remove-button {
-    background: url("/removebtn.gif");
+    background: url("/img/removebtn.gif");
     width: 67px;
     height: 23px;
     border: none;
     vertical-align: middle;
 }
 img.grid-edit-button {
-    background: url("/editbtn.gif");
+    background: url("/img/editbtn.gif");
     width: 47px;
     height: 23px;
     border: none;
@@ -1662,7 +1662,7 @@ img.grid-edit-button {
 Combo Box drop arrow
 */
 img.combobox-arrow {
-    background: url("/comboarrow.gif");
+    background: url("/img/comboarrow.gif");
     width: 17px;
     height: 18px;
     border: none;
@@ -1673,7 +1673,7 @@ img.combobox-arrow {
 Close button for pop-up subforms
 */
 img.popup-close-button {
-    background: url("/tbclose.gif");
+    background: url("/img/tbclose.gif");
     width: 16px;
     height: 10px;
     border: none;
@@ -1684,7 +1684,7 @@ img.popup-close-button {
 Popup menu indicator
 */
 img.popup-menu-arrow {
-    background: url("/menuarrow.gif");
+    background: url("/img/menuarrow.gif");
     width: 16px;
     height: 10px;
     border: none;
@@ -1696,55 +1696,55 @@ The various "step number" icons.  These are displayed, for example,
 to number the list items in a Download Adviser instruction list.
 */
 img.stepnum1 {
-    background: url("/step1.gif") transparent no-repeat center center;
+    background: url("/img/step1.gif") transparent no-repeat center center;
     width: 50px;
     height: 50px;
     vertical-align: middle;
 }
 img.stepnum2 {
-    background: url("/step2.gif") no-repeat center center;
+    background: url("/img/step2.gif") no-repeat center center;
     width: 50px;
     height: 50px;
     vertical-align: middle;
 }
 img.stepnum3 {
-    background: url("/step3.gif") no-repeat center center;
+    background: url("/img/step3.gif") no-repeat center center;
     width: 50px;
     height: 50px;
     vertical-align: middle;
 }
 img.stepnum4 {
-    background: url("/step4.gif") no-repeat center center;
+    background: url("/img/step4.gif") no-repeat center center;
     width: 50px;
     height: 50px;
     vertical-align: middle;
 }
 img.stepnum5 {
-    background: url("/step5.gif") no-repeat center center;
+    background: url("/img/step5.gif") no-repeat center center;
     width: 50px;
     height: 50px;
     vertical-align: middle;
 }
 img.stepnum6 {
-    background: url("/step6.gif") no-repeat center center;
+    background: url("/img/step6.gif") no-repeat center center;
     width: 50px;
     height: 50px;
     vertical-align: middle;
 }
 img.stepnum7 {
-    background: url("/step7.gif") no-repeat center center;
+    background: url("/img/step7.gif") no-repeat center center;
     width: 50px;
     height: 50px;
     vertical-align: middle;
 }
 img.stepnum8 {
-    background: url("/step8.gif") no-repeat center center;
+    background: url("/img/step8.gif") no-repeat center center;
     width: 50px;
     height: 50px;
     vertical-align: middle;
 }
 img.stepnum9 {
-    background: url("/step9.gif") no-repeat center center;
+    background: url("/img/step9.gif") no-repeat center center;
     width: 50px;
     height: 50px;
     vertical-align: middle;
@@ -1755,7 +1755,7 @@ Current-location arrow, used in the top navigation bar to indicate
 which page is currently being displayed
 */
 img.topbarcurarrow {
-    background: url("/topbarcurarrow.gif") no-repeat center center;
+    background: url("/img/topbarcurarrow.gif") no-repeat center center;
     width: 12px;
     height: 10px;
     border: none;
@@ -1766,91 +1766,91 @@ img.topbarcurarrow {
 Various icon images, used on the home page and elsewhere.
 */
 img.rss-icon {
-    background: url("/rss16.gif") no-repeat center center;
+    background: url("/img/rss16.gif") no-repeat center center;
     width: 16px;
     height: 16px;
     border: none;
     vertical-align: middle;
 }
 img.game-search-icon {
-    background: url("/search.gif") no-repeat center center;
+    background: url("/img/search.gif") no-repeat center center;
     width: 24px;
     height: 24px;
     border: none;
     vertical-align: middle;
 }
 img.competition-search-icon {
-    background: url("/findcompetition.gif") no-repeat center center;
+    background: url("/img/findcompetition.gif") no-repeat center center;
     width: 24px;
     height: 24px;
     border: none;
     vertical-align: middle;
 }
 img.browse-competitions-icon {
-    background: url("/browsecompetitions.gif") no-repeat center center;
+    background: url("/img/browsecompetitions.gif") no-repeat center center;
     width: 24px;
     height: 24px;
     border: none;
     vertical-align: middle;
 }
 img.club-search-icon {
-    background: url("/findclub.gif") no-repeat center center;
+    background: url("/img/findclub.gif") no-repeat center center;
     width: 24px;
     height: 24px;
     border: none;
     vertical-align: middle;
 }
 img.browse-clubs-icon {
-    background: url("/browseclubs.gif") no-repeat center center;
+    background: url("/img/browseclubs.gif") no-repeat center center;
     width: 24px;
     height: 24px;
     border: none;
     vertical-align: middle;
 }
 img.create-club-icon {
-    background: url("/newclub.gif") no-repeat center center;
+    background: url("/img/newclub.gif") no-repeat center center;
     width: 24px;
     height: 24px;
     border: none;
     vertical-align: middle;
 }
 img.list-search-icon {
-    background: url("/findlist.gif") no-repeat center center;
+    background: url("/img/findlist.gif") no-repeat center center;
     width: 24px;
     height: 24px;
     border: none;
     vertical-align: middle;
 }
 img.poll-search-icon {
-    background: url("/findpoll.gif") no-repeat center center;
+    background: url("/img/findpoll.gif") no-repeat center center;
     width: 24px;
     height: 24px;
     border: none;
     vertical-align: middle;
 }
 img.new-poll-icon {
-    background: url("/newpoll.gif") no-repeat center center;
+    background: url("/img/newpoll.gif") no-repeat center center;
     width: 24px;
     height: 24px;
     border: none;
     vertical-align: middle;
 }
 img.list-list-icon {
-    background: url("/findlist.gif") no-repeat center center;
+    background: url("/img/findlist.gif") no-repeat center center;
     width: 24px;
     height: 24px;
     border: none;
     vertical-align: middle;
 }
 img.list-message-icon {
-    background: url("/messages.gif") no-repeat center center;
+    background: url("/img/messages.gif") no-repeat center center;
     width: 24px;
     height: 24px;
     border: none;
     vertical-align: middle;
 }
 img.poll-list-icon {
-    background: url("/polls.gif") no-repeat center center;
+    background: url("/img/polls.gif") no-repeat center center;
     width: 24px;
     height: 24px;
     border: none;
@@ -1864,126 +1864,126 @@ img.game-list-icon {
     vertical-align: middle;
 }
 img.storage-file-icon {
-    background: url("/storage-files.gif") no-repeat center center;
+    background: url("/img/storage-files.gif") no-repeat center center;
     width: 24px;
     height: 24px;
     border: none;
     vertical-align: middle;
 }
 img.random-list-icon {
-    background: url("/random.gif") no-repeat center center;
+    background: url("/img/random.gif") no-repeat center center;
     width: 24px;
     height: 24px;
     border: none;
     vertical-align: middle;
 }
 img.member-search-icon {
-    background: url("/findmember.gif") no-repeat center center;
+    background: url("/img/findmember.gif") no-repeat center center;
     width: 24px;
     height: 24px;
     border: none;
     vertical-align: middle;
 }
 img.my-profile-icon {
-    background: url("/myprofile.gif") no-repeat center center;
+    background: url("/img/myprofile.gif") no-repeat center center;
     width: 24px;
     height: 24px;
     border: none;
     vertical-align: middle;
 }
 img.browse-games-icon {
-    background: url("/browsegames.gif") no-repeat center center;
+    background: url("/img/browsegames.gif") no-repeat center center;
     width: 24px;
     height: 24px;
     border: none;
     vertical-align: middle;
 }
 img.browse-lists-icon {
-    background: url("/browselists.gif") no-repeat center center;
+    background: url("/img/browselists.gif") no-repeat center center;
     width: 24px;
     height: 24px;
     border: none;
     vertical-align: middle;
 }
 img.browse-polls-icon {
-    background: url("/browsepolls.gif") no-repeat center center;
+    background: url("/img/browsepolls.gif") no-repeat center center;
     width: 24px;
     height: 24px;
     border: none;
     vertical-align: middle;
 }
 img.browse-members-icon {
-    background: url("/browsemembers.gif") no-repeat center center;
+    background: url("/img/browsemembers.gif") no-repeat center center;
     width: 24px;
     height: 24px;
     border: none;
     vertical-align: middle;
 }
 img.personal-page-icon {
-    background: url("/personal.gif") no-repeat center center;
+    background: url("/img/personal.gif") no-repeat center center;
     width: 24px;
     height: 24px;
     border: none;
     vertical-align: middle;
 }
 img.create-list-icon {
-    background: url("/createlist.gif") no-repeat center center;
+    background: url("/img/createlist.gif") no-repeat center center;
     width: 24px;
     height: 24px;
     border: none;
     vertical-align: middle;
 }
 img.create-game-icon {
-    background: url("/newgame.gif") no-repeat center center;
+    background: url("/img/newgame.gif") no-repeat center center;
     width: 24px;
     height: 24px;
     border: none;
     vertical-align: middle;
 }
 img.create-competition-icon {
-    background: url("/newcompetition.gif") no-repeat center center;
+    background: url("/img/newcompetition.gif") no-repeat center center;
     width: 24px;
     height: 24px;
     border: none;
     vertical-align: middle;
 }
 img.edit-game-icon {
-    background: url("/editgame.gif") no-repeat center center;
+    background: url("/img/editgame.gif") no-repeat center center;
     width: 24px;
     height: 24px;
     border: none;
     vertical-align: middle;
 }
 img.create-review-icon {
-    background: url("/review.gif") no-repeat center center;
+    background: url("/img/review.gif") no-repeat center center;
     width: 24px;
     height: 24px;
     border: none;
     vertical-align: middle;
 }
 img.review-list-icon {
-    background: url("/review.gif") no-repeat center center;
+    background: url("/img/review.gif") no-repeat center center;
     width: 24px;
     height: 24px;
     border: none;
     vertical-align: middle;
 }
 img.authored-list-icon {
-    background: url("/authored.gif") no-repeat center center;
+    background: url("/img/authored.gif") no-repeat center center;
     width: 24px;
     height: 24px;
     border: none;
     vertical-align: middle;
 }
 img.playlists-icon {
-    background: url("/playlists.gif") no-repeat center center;
+    background: url("/img/playlists.gif") no-repeat center center;
     width: 24px;
     height: 24px;
     border: none;
     vertical-align: middle;
 }
 img.style-gallery-icon {
-    background: url("/stylegallery.gif") no-repeat center center;
+    background: url("/img/stylegallery.gif") no-repeat center center;
     width: 24px;
     height: 24px;
     border: none;
@@ -1998,7 +1998,7 @@ img.empty-button-icon {
 
 /* checkmark vote */
 img.vote-checkmark {
-    background: url("/vote-checkmark.gif") no-repeat center center;
+    background: url("/img/vote-checkmark.gif") no-repeat center center;
     width: 20px;
     height: 20px;
     border: none;
@@ -2009,7 +2009,7 @@ img.vote-checkmark {
 Current Version arrow (for game version list page)
 */
 img.current-version-marker {
-    background: url("/vsnarrow.gif") no-repeat center center;
+    background: url("/img/vsnarrow.gif") no-repeat center center;
     width: 14px;
     height: 14px;
     border: none;
@@ -2020,7 +2020,7 @@ img.current-version-marker {
 ZIP/Archive main contents arrow
 */
 img.zip-contents-arrow {
-    background: url("/zipmain.gif") no-repeat center center;
+    background: url("/img/zipmain.gif") no-repeat center center;
     width: 16px;
     height: 14px;
     border: none;
@@ -2031,7 +2031,7 @@ img.zip-contents-arrow {
 Data entry form status icons
 */
 img.form-error-icon {
-    background: url("/erricon.gif") no-repeat center center;
+    background: url("/img/erricon.gif") no-repeat center center;
     width: 16px;
     height: 16px;
     border: none;
@@ -2042,7 +2042,7 @@ img.form-error-icon {
 Auto-install button graphic ("Play It Now")
 */
 img.auto-install-button {
-    background: url("/autoins.gif") no-repeat center center;
+    background: url("/img/autoins.gif") no-repeat center center;
     width: 100px;
     height: 23px;
     vertical-align: middle;
@@ -2053,7 +2053,7 @@ img.auto-install-button {
 Download adviser button ("Show Me How")
 */
 img.dla-button {
-    background: url("/dlhelpbtn.gif") no-repeat center center;
+    background: url("/img/dlhelpbtn.gif") no-repeat center center;
     width: 100px;
     height: 23px;
     vertical-align: middle;
@@ -2064,7 +2064,7 @@ img.dla-button {
 "Play Online" button
 */
 img.play-online-button {
-    background: url("/playonlinebtn.gif") no-repeat center center;
+    background: url("/img/playonlinebtn.gif") no-repeat center center;
     width: 100px;
     height: 23px;
     vertical-align: middle;
@@ -2078,42 +2078,42 @@ Javascript - these aren't for actual system controls, so we can
 completely customize the appearance.
 */
 img.ckbox-unchecked {
-    background: url("/ckbox0.gif") no-repeat center center;
+    background: url("/img/ckbox0.gif") no-repeat center center;
     width: 14px;
     height: 14px;
     vertical-align: middle;
     border: none;
 }
 img.ckbox-hovering {
-    background: url("/ckbox1.gif") no-repeat center center;
+    background: url("/img/ckbox1.gif") no-repeat center center;
     width: 14px;
     height: 14px;
     vertical-align: middle;
     border: none;
 }
 img.ckbox-checked {
-    background: url("/ckbox2.gif") no-repeat center center;
+    background: url("/img/ckbox2.gif") no-repeat center center;
     width: 14px;
     height: 14px;
     vertical-align: middle;
     border: none;
 }
 img.radio-unchecked {
-    background: url("/radio0.gif") no-repeat center center;
+    background: url("/img/radio0.gif") no-repeat center center;
     width: 14px;
     height: 14px;
     vertical-align: middle;
     border: none;
 }
 img.radio-hovering {
-    background: url("/radio1.gif") no-repeat center center;
+    background: url("/img/radio1.gif") no-repeat center center;
     width: 14px;
     height: 14px;
     vertical-align: middle;
     border: none;
 }
 img.radio-checked {
-    background: url("/radio2.gif") no-repeat center center;
+    background: url("/img/radio2.gif") no-repeat center center;
     width: 14px;
     height: 14px;
     vertical-align: middle;
@@ -2128,81 +2128,81 @@ star - e.g., star3h is 3-1/2 stars.  All of the various star graphics
 should be the same width and height.
 */
 img.star0 {
-    background: url('/star0.gif') no-repeat center center;
+    background: url('/img/star0.gif') no-repeat center center;
     vertical-align: middle;
     width: 56px;
     height: 13px;
 }
 img.star0h {
-    background: url('/star0h.gif') no-repeat center center;
+    background: url('/img/star0h.gif') no-repeat center center;
     vertical-align: middle;
     width: 56px;
     height: 13px;
 }
 img.star1 {
-    background: url('/star1.gif') no-repeat center center;
+    background: url('/img/star1.gif') no-repeat center center;
     vertical-align: middle;
     width: 56px;
     height: 13px;
 }
 img.star1h {
-    background: url('/star1h.gif') no-repeat center center;
+    background: url('/img/star1h.gif') no-repeat center center;
     vertical-align: middle;
     width: 56px;
     height: 13px;
 }
 img.star2 {
-    background: url('/star2.gif') no-repeat center center;
+    background: url('/img/star2.gif') no-repeat center center;
     vertical-align: middle;
     width: 56px;
     height: 13px;
 }
 img.star2h {
-    background: url('/star2h.gif') no-repeat center center;
+    background: url('/img/star2h.gif') no-repeat center center;
     vertical-align: middle;
     width: 56px;
     height: 13px;
 }
 img.star3 {
-    background: url('/star3.gif') no-repeat center center;
+    background: url('/img/star3.gif') no-repeat center center;
     vertical-align: middle;
     width: 56px;
     height: 13px;
 }
 img.star3h {
-    background: url('/star3h.gif') no-repeat center center;
+    background: url('/img/star3h.gif') no-repeat center center;
     vertical-align: middle;
     width: 56px;
     height: 13px;
 }
 img.star4 {
-    background: url('/star4.gif') no-repeat center center;
+    background: url('/img/star4.gif') no-repeat center center;
     vertical-align: middle;
     width: 56px;
     height: 13px;
 }
 img.star4h {
-    background: url('/star4h.gif') no-repeat center center;
+    background: url('/img/star4h.gif') no-repeat center center;
     vertical-align: middle;
     width: 56px;
     height: 13px;
 }
 img.star5 {
-    background: url('/star5.gif') no-repeat center center;
+    background: url('/img/star5.gif') no-repeat center center;
     vertical-align: middle;
     width: 56px;
     height: 13px;
 }
 
 img.newcomment {
-    background: url('/newcomment.png') no-repeat center center;
+    background: url('/img/newcomment.png') no-repeat center center;
     vertical-align: middle;
     width: 16px;
     height: 16px;
 }
 
 img.listarrow {
-    background: url('/list-arrow.gif') no-repeat center center;
+    background: url('/img/list-arrow.gif') no-repeat center center;
     vertical-align: middle;
     width: 12px;
     height: 10px;
@@ -2318,10 +2318,10 @@ span.sfl-save-autodesc {
         color: #ffffff;
     }
     div.topbar {
-        background: url("/dark-images/ifdb-topbar-midnight.jpg") #000030 no-repeat;
+        background: url("img/dark-images/ifdb-topbar-midnight.jpg") #000030 no-repeat;
     }
     div.smalltopbar {
-        background: url("/dark-images/ifdb-smalltopbar-midnight.jpg") #000030 no-repeat;
+        background: url("img/dark-images/ifdb-smalltopbar-midnight.jpg") #000030 no-repeat;
     }
     div.topctl {
         background: #202040;
@@ -2507,127 +2507,127 @@ span.sfl-save-autodesc {
         background: url("/dark-images/go-button-midnight.gif") no-repeat center center;
     }
     img.star0 {
-        background: url('/dark-images/star0-midnight.gif') no-repeat center center;
+        background: url('/img/dark-images/star0-midnight.gif') no-repeat center center;
         vertical-align: middle;
         width: 56px;
         height: 14px;
     }
     img.star0h {
-        background: url('/dark-images/star0h-midnight.gif') no-repeat center center;
+        background: url('/img/dark-images/star0h-midnight.gif') no-repeat center center;
         vertical-align: middle;
         width: 56px;
         height: 14px;
     }
     img.star1 {
-        background: url('/dark-images/star1-midnight.gif') no-repeat center center;
+        background: url('/img/dark-images/star1-midnight.gif') no-repeat center center;
         vertical-align: middle;
         width: 56px;
         height: 14px;
     }
     img.star1h {
-        background: url('/dark-images/star1h-midnight.gif') no-repeat center center;
+        background: url('/img/dark-images/star1h-midnight.gif') no-repeat center center;
         vertical-align: middle;
         width: 56px;
         height: 14px;
     }
     img.star2 {
-        background: url('/dark-images/star2-midnight.gif') no-repeat center center;
+        background: url('/img/dark-images/star2-midnight.gif') no-repeat center center;
         vertical-align: middle;
         width: 56px;
         height: 14px;
     }
     img.star2h {
-        background: url('/dark-images/star2h-midnight.gif') no-repeat center center;
+        background: url('/img/dark-images/star2h-midnight.gif') no-repeat center center;
         vertical-align: middle;
         width: 56px;
         height: 14px;
     }
     img.star3 {
-        background: url('/dark-images/star3-midnight.gif') no-repeat center center;
+        background: url('/img/dark-images/star3-midnight.gif') no-repeat center center;
         vertical-align: middle;
         width: 56px;
         height: 14px;
     }
     img.star3h {
-        background: url('/dark-images/star3h-midnight.gif') no-repeat center center;
+        background: url('/img/dark-images/star3h-midnight.gif') no-repeat center center;
         vertical-align: middle;
         width: 56px;
         height: 14px;
     }
     img.star4 {
-        background: url('/dark-images/star4-midnight.gif') no-repeat center center;
+        background: url('/img/dark-images/star4-midnight.gif') no-repeat center center;
         vertical-align: middle;
         width: 56px;
         height: 14px;
     }
     img.star4h {
-        background: url('/dark-images/star4h-midnight.gif') no-repeat center center;
+        background: url('/img/dark-images/star4h-midnight.gif') no-repeat center center;
         vertical-align: middle;
         width: 56px;
         height: 14px;
     }
     img.star5 {
-        background: url('/dark-images/star5-midnight.gif') no-repeat center center;
+        background: url('/img/dark-images/star5-midnight.gif') no-repeat center center;
         vertical-align: middle;
         width: 56px;
         height: 14px;
     }
     img.grid-move-up {
-        background: url('/dark-images/moveup-midnight.gif') no-repeat center center;
+        background: url('/img/dark-images/moveup-midnight.gif') no-repeat center center;
     }
     img.grid-move-down {
-        background: url('/dark-images/movedown-midnight.gif') no-repeat center center;
+        background: url('/img/dark-images/movedown-midnight.gif') no-repeat center center;
     }
     img.authored-list-icon {
-        background: url('/dark-images/authored-midnight.gif') no-repeat center center;
+        background: url('/img/dark-images/authored-midnight.gif') no-repeat center center;
     }
     img.game-search-icon {
-        background: url('/dark-images/search-midnight.gif') no-repeat center center;
+        background: url('/img/dark-images/search-midnight.gif') no-repeat center center;
     }
     img.list-search-icon {
-        background: url('/dark-images/findlist-midnight.gif') no-repeat center center;
+        background: url('/img/dark-images/findlist-midnight.gif') no-repeat center center;
     }
     img.list-list-icon {
-        background: url('/dark-images/findlist-midnight.gif') no-repeat center center;
+        background: url('/img/dark-images/findlist-midnight.gif') no-repeat center center;
     }
     img.browse-members-icon {
-        background: url('/dark-images/browsemembers-midnight.gif') no-repeat center center;
+        background: url('/img/dark-images/browsemembers-midnight.gif') no-repeat center center;
     }
     img.random-list-icon {
-        background: url('/dark-images/random-midnight.gif') no-repeat center center;
+        background: url('/img/dark-images/random-midnight.gif') no-repeat center center;
     }
     img.member-search-icon {
-        background: url('/dark-images/findmember-midnight.gif') no-repeat center center;
+        background: url('/img/dark-images/findmember-midnight.gif') no-repeat center center;
     }
     img.my-profile-icon {
-        background: url('/dark-images/findmember-midnight.gif') no-repeat center center;
+        background: url('/img/dark-images/findmember-midnight.gif') no-repeat center center;
     }
     img.browse-games-icon {
-        background: url('/dark-images/browsegames-midnight.gif') no-repeat center center;
+        background: url('/img/dark-images/browsegames-midnight.gif') no-repeat center center;
     }
     img.browse-lists-icon {
-        background: url('/dark-images/browselists-midnight.gif') no-repeat center center;
+        background: url('/img/dark-images/browselists-midnight.gif') no-repeat center center;
     }
     img.personal-page-icon {
-        background: url('/dark-images/personal-midnight.gif') no-repeat center center;
+        background: url('/img/dark-images/personal-midnight.gif') no-repeat center center;
     }
     img.create-list-icon {
-        background: url('/dark-images/createlist-midnight.gif') no-repeat center center;
+        background: url('/img/dark-images/createlist-midnight.gif') no-repeat center center;
     }
     img.create-game-icon {
-        background: url('/dark-images/newgame-midnight.gif') no-repeat center center;
+        background: url('/img/dark-images/newgame-midnight.gif') no-repeat center center;
     }
     img.edit-game-icon {
-        background: url('/dark-images/editgame-midnight.gif') no-repeat center center;
+        background: url('/img/dark-images/editgame-midnight.gif') no-repeat center center;
     }
     img.create-review-icon {
-        background: url('/dark-images/review-midnight.gif') no-repeat center center;
+        background: url('/img/dark-images/review-midnight.gif') no-repeat center center;
     }
     img.review-list-icon {
-        background: url('/dark-images/editgame-midnight.gif') no-repeat center center;
+        background: url('/img/dark-images/editgame-midnight.gif') no-repeat center center;
     }
     img.list-message-icon {
-        background: url('/dark-images/messages-midnight.gif') no-repeat center center;
+        background: url('/img/dark-images/messages-midnight.gif') no-repeat center center;
     }
     tr.oddRow {
         background: #101010;

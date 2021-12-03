@@ -232,7 +232,7 @@ if ($rss) {
         . "<p>This is a history of $expl."
         . "<p><span class=details>View $links - "
         . "<a href=\"reviewcommentlog?user=$userid&mode=$mode&rss\">"
-        . "<img src=\"/blank.gif\" class=\"rss-icon\">RSS Feed</a></span>";
+        . "<img src=\"/img/blank.gif\" class=\"rss-icon\">RSS Feed</a></span>";
 
     // figure where we are in the list
     $lastPage = (int)floor(($rowcnt + $perPage - 1)/$perPage);
