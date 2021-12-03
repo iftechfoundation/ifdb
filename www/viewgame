@@ -1424,7 +1424,7 @@ if (!isEmpty($genre)) {
                      ?>
                      <?php if (!isEmpty($pubYear)) echo "$pubYear<br>" ?>
                      <?php if (!isEmpty($website))
-                         echo "<br><a href=\"$website\">Web Site</a><br>" ?>
+                         echo "<br><a href=\"".htmlspecialcharx($website)."\">Web Site</a><br>" ?>
                   </span>
                </td>
             </tr>
@@ -1708,7 +1708,7 @@ if ($embargoCnt > 0)
                <?php if(!isEmpty($pubFull))
                   echo "First Publication Date: $pubFull<br>"; ?>
                Current Version: <?php
-                  echo !isEmpty($version) ? $version : "<i>Unknown</i>"
+                  echo !isEmpty($version) ? htmlspecialcharx($version) : "<i>Unknown</i>"
                ?><br>
                <?php if (!isEmpty($license))
                    echo "License: $license<br>" ?>
@@ -1741,13 +1741,13 @@ $caption = "<a class=silent " . helpWinHRef("help-ifid")
 if (count($ifids) == 0 || isEmpty($ifids[0]))
     echo "<span class=notes>$caption: <i>Unknown</i></span><br>";
 else if (count($ifids) == 1)
-    echo "<span class=notes>$caption: $ifids[0]</span><br>";
+    echo "<span class=notes>$caption: ".htmlspecialcharx($ifids[0])."</span><br>";
 else {
     echo "<table border=0 cellpadding=0 cellspacing=0>
         <tr><td><span class=notes>{$caption}s:&nbsp;</span></td>
-        <td><span class=notes>$ifids[0]</span></td></tr>";
+        <td><span class=notes>".htmlspecialcharx($ifids[0])."</span></td></tr>";
     for ($i = 1 ; $i < count($ifids) ; $i++)
-        echo "<tr><td></td><td><span class=notes>$ifids[$i]</span></td></tr>";
+        echo "<tr><td></td><td><span class=notes>".htmlspecialcharx($ifids[$i])."</span></td></tr>";
     echo "</table>";
 }
             ?>
@@ -2993,57 +2993,35 @@ dispTags();
         // send our xml request to ask.  So always start with an invisible
         // section, and enable it in javascript as needed.
 
-        echo "<div style=\"display:none;\">"
-            . "<h2>Links</h2>"
-            . "<div class=indented id=\"links-div\">";
+        if ($website || count($ifids) > 0) {
+            echo "<div id=\"links-div\" style=\"".($website ? "" : "display:none")."\">"
+                . "<h2>Links</h2>"
+                . "<div class=indented>";
+            
+            if ($website) {
+                echo "<a href=\"".htmlspecialcharx($website)."\"><i>$title</i> Web Site</a>\n";
+            }
 
+            if (count($ifids) > 0) {
+                echo "<div id=\"ifid-link\" style=\"display:none\"><a href=\"http://ifwiki.org/index.php?title=IFID:".htmlspecialcharx($ifids[0])."\">$title</a>"
+                    ." at <a href=\"http://ifwiki.org/index.php\">IF Wiki</a></div>";
+                $jifid = htmlspecialcharx(str_replace("\"", "&#34;", $ifids[0]));
+                ?>
+                <script>
+                    xmlSend("ifwiki-check?ifid=<?php echo $jifid ?>", null,
+                        function(doc) {
+                            if (xmlChildText(doc, "exists") == "yes") {
+                                document.getElementById("ifid-link").style.display = "";
+                                document.getElementById("links-div").style.display = "";
+                            }
+                        }, null);
+                </script>
+                <?php
+            }
+        }
 
         echo "</div>"
             . "</div>";
-        ?>
-        <script type="text/javascript">
-        function addLinkItem(name, url, page)
-        {
-            var div = document.getElementById("links-div");
-            div.parentNode.style.display = "block";
-            var txt;
-            if (page) {
-                txt = "<a href=\"" + url + page + "\"><i><?php
-                    echo str_replace("\"", "&#34;", $title)
-                    ?></i></a> at <a href=\"" + url + "\">"
-                    + name + "</a>";
-            } else {
-                txt = "<a href=\"" + url + "\">" + name + "</a>";
-            }
-            div.innerHTML += txt + "<br>";
-        }
-        <?php
-
-        // generate the official site link, if present
-        if ($website) {
-            echo "addLinkItem(\"<i>"
-                . str_replace("\"", "&#34;", $title)
-                . "</i> Web Site\", \""
-                . str_replace("\"", "%22", $website)
-                . "\", null);\n";
-        }
-
-        // generate a run-time check for an IF Wiki link, if we have an IFID
-        if (count($ifids) > 0) {
-            $jifid = str_replace("\"", "&#34;", $ifids[0]);
-        ?>
-            xmlSend("ifwiki-check?ifid=<?php echo $jifid ?>", null,
-                function(doc) {
-                    if (xmlChildText(doc, "exists") == "yes") {
-                        addLinkItem("IF Wiki", "http://ifwiki.org/index.php",
-                                    "?title=IFID:<?php echo $jifid ?>");
-                    }
-                }, null, true);
-        <?php
-        }
-        ?>
-        </script>
-        <?php
     }
 
 
