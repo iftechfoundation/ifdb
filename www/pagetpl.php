@@ -98,27 +98,8 @@ function pageHeader($title, $focusCtl = false, $extraOnLoad = false,
         <div class="topbar"></div>
     </a>
     <div id="main-nav-wrapper">
-    <?php if ($isLoggedIn) : ?>
-        <button type="button" id="mobile-menu-toggle-button" class="menu-toggle-button" aria-label="Menu" onclick="ToggleMobileMenu()" class="hidden">
-            <img src="img/menu.svg" alt="" class="mobile-hidden">
-            <img src="img/close.svg" alt="">
-            <span>Menu</span>
-        </button>
-    <?php endif ?>
         <nav id="main-nav" class="main-nav">
-            <ul>
-            <li class="<?= ($pagescript === 'home') ? 'page-active':''; ?>"><a id="topbar-home" href="/">Home</a></li>
-            <?php if ($isLoggedIn) : ?>
-            <li class="<?= ($pagescript === 'showuser') ? 'page-active':''; ?>"><a id="topbar-profile" href="/showuser">Profile</a></li>
-            <li class="<?= ($pagescript === 'editprofile') ? 'page-active':''; ?>"><a id="topbar-edit" href="/editprofile">Settings</a></li>
-            <li class="<?= ($pagescript === 'personal') ? 'page-active':''; ?>"><a id="topbar-personal" href="/personal">My Activity</a></li>
-            <li class="<?= ($pagescript === 'commentlog') ? 'page-active':''; ?>"><a id="topbar-inbox" href="/commentlog?mode=inbox">Inbox</a></li>
-            <a id="topbar-logout-mobile" class="login-link" href="/logout">Log Out</a>
-            <?php endif ?>
-            </ul>
-    
-                
-            <div class="nav-right">
+            <div class="nav-left">
                 <a id="topbar-browse" href="/search?browse">Browse</a>
                 <form class= "searchbar-wrapper" method="get" action="/search" name="search">
                         <input id="topbar-searchbar" type="text" name="searchbar" placeholder="Search for games...">
@@ -126,13 +107,28 @@ function pageHeader($title, $focusCtl = false, $extraOnLoad = false,
                             <img src="img/search_small.svg" alt="">
                         </button>
                 </form>
+            </div>
+            <div class="nav-right">
+                <ul>
                 <?php if ($isLoggedIn) : ?>
+                    <li class="<?= ($pagescript === 'showuser') ? 'page-active':''; ?>"><a id="topbar-profile" href="/showuser">Profile</a></li>
+                    <li class="<?= ($pagescript === 'editprofile') ? 'page-active':''; ?>"><a id="topbar-edit" href="/editprofile">Settings</a></li>
+                    <li class="<?= ($pagescript === 'personal') ? 'page-active':''; ?>"><a id="topbar-personal" href="/personal">My Activity</a></li>
+                    <li class="<?= ($pagescript === 'commentlog') ? 'page-active':''; ?>"><a id="topbar-inbox" href="/commentlog?mode=inbox">Inbox</a></li>
                     <a id="topbar-logout" class="login-link" href="/logout">Log Out</a>
                 <?php else : ?>
                     <a id="topbar-login" class="login-link" href="/login?dest=home">Log In</a>
                 <?php endif ?>
+                </ul>
             </div> 
         </nav>
+    <?php if ($isLoggedIn) : ?>
+        <button type="button" id="mobile-menu-toggle-button" class="menu-toggle-button" aria-label="Menu" onclick="ToggleMobileMenu()" class="hidden">
+            <img src="img/menu.svg" alt="" class="mobile-hidden">
+            <img src="img/close.svg" alt="">
+            <span>Menu</span>
+        </button>
+    <?php endif ?>
     </div>
 </div>
 
