@@ -1,7 +1,6 @@
 <?php
 include_once "session-start.php";
 
-include "pagetpl.php";
 include_once "dbconnect.php";
 include_once "util.php";
 
@@ -17,6 +16,7 @@ $_SESSION['logged_in_as'] = null;
 // clear the recommendation cache
 shoot_recommendation_cache();
 
+include "pagetpl.php";
 pageHeader("Logged out");
 ?>
 <h1>Logged Out</h1>

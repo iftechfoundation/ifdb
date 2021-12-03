@@ -1,11 +1,11 @@
 <?php
 
-include "pagetpl.php";
 include_once "captcha.php";
 include_once "akismet.php";
 
 include_once "session-start.php";
 include "login-check.php";
+include "pagetpl.php";
 include_once "util.php";
 if (provisionally_logged_in())
     $usernum = $_SESSION['provisional_logged_in_as'];
