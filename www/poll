@@ -595,7 +595,7 @@ if ($userid && $id && isset($_REQUEST['addVote'])) {
             . "<input type=hidden name=id value=\"$id\">"
             . "<input type=hidden name=gameID value=\"$gameid\">"
             . "<input type=hidden name=submitVote value=1>"
-            . "<p><b>Quick Quote:</b> A very short summary of why you like "
+            . "<p><b>Quick Quote:</b> A very short summary of why you "
             . "like this game - like the kind of review quote they'd "
             . "put on a movie poster. <i>Optional</i><br>"
             . "<input type=text name=quickQuote size=50 value=\""
