@@ -126,7 +126,7 @@ if ($xml && $enum)
             {
                 if (preg_match("/^(.*)\(.*\)/", $items[$i], $m))
                     $items[$i] = trim($m[1]);
-            }	
+            }    
             break;
         }
 
@@ -147,7 +147,7 @@ if ($xml && $enum)
     }
 
     // send the results
-	ini_set("default_charset", "ISO-8859-1");
+    ini_set("default_charset", "ISO-8859-1");
     header("Content-type: text/xml");
     header("Expires: Mon, 26 Jul 1997 05:00:00 GMT");
     header("Cache-Control: no-store, no-cache, must-revalidate");
@@ -1345,7 +1345,7 @@ else if ($term || $browse)
                     . "You can use lists to recommend games you like to other people."
                     . "</div>";
         }
-		
+        
         // if this is a poll search, show the poll tip box
         if ($searchType == "poll") {
             echo "<div class=tipbox>"

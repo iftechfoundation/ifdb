@@ -17,18 +17,18 @@ function getNewItems($db, $limit)
                          . "and filtertype = 'K') = 0";
     }
 
-	// Include only reviews from our sandbox or sandbox 0 (all users)
-	$sandbox = "(0)";
-	if ($curuser)
-	{
-		// get my sandbox
-		$mysandbox = 0;
-		$result = mysql_query("select sandbox from users where id='$curuser'", $db);
-		list($mysandbox) = mysql_fetch_row($result);
-		if ($mysandbox != 0)
-			$sandbox = "(0,$mysandbox)";
-	}
-	
+    // Include only reviews from our sandbox or sandbox 0 (all users)
+    $sandbox = "(0)";
+    if ($curuser)
+    {
+        // get my sandbox
+        $mysandbox = 0;
+        $result = mysql_query("select sandbox from users where id='$curuser'", $db);
+        list($mysandbox) = mysql_fetch_row($result);
+        if ($mysandbox != 0)
+            $sandbox = "(0,$mysandbox)";
+    }
+    
     // figure the LIMIT clause, if a row count limit was given
     $limit = ($limit ? "limit 0, " . ($limit + 1) : "");
 
@@ -250,18 +250,18 @@ function queryNewNews(&$items, $db, $limit, $sourceType,
                          . "and filtertype = 'K') = 0";
     }
 
-	// Include only reviews from our sandbox or sandbox 0 (all users)
-	$sandbox = "(0)";
-	if ($curuser)
-	{
-		// get my sandbox
-		$mysandbox = 0;
-		$result = mysql_query("select sandbox from users where id='$curuser'", $db);
-		list($mysandbox) = mysql_fetch_row($result);
-		if ($mysandbox != 0)
-			$sandbox = "(0,$mysandbox)";
-	}
-	
+    // Include only reviews from our sandbox or sandbox 0 (all users)
+    $sandbox = "(0)";
+    if ($curuser)
+    {
+        // get my sandbox
+        $mysandbox = 0;
+        $result = mysql_query("select sandbox from users where id='$curuser'", $db);
+        list($mysandbox) = mysql_fetch_row($result);
+        if ($mysandbox != 0)
+            $sandbox = "(0,$mysandbox)";
+    }
+    
     // query the data
     $result = mysql_query(
         "select
@@ -350,13 +350,13 @@ function showNewItemList($db, $items, $first, $last, $showFlagged, $allowHiddenB
         }
 
         // display the item according to its type
-		if (ENABLE_IMAGES) {
-			echo "<table border=\"0\" cellpadding=\"0\" "
-				. "cellspacing=\"0\" class=\"new-item\">"
-				. "<tr style=\"vertical-align: top;\">"
-				. "<td style=\"padding-right: 1em;\">";
-		}
-			
+        if (ENABLE_IMAGES) {
+            echo "<table border=\"0\" cellpadding=\"0\" "
+                . "cellspacing=\"0\" class=\"new-item\">"
+                . "<tr style=\"vertical-align: top;\">"
+                . "<td style=\"padding-right: 1em;\">";
+        }
+            
         if ($pick == 'R')
         {
             // it's a review
@@ -364,22 +364,22 @@ function showNewItemList($db, $items, $first, $last, $showFlagged, $allowHiddenB
 
             // show the image: user image if available, otherwise game
             // image, otherwise generic review icon
-			if (ENABLE_IMAGES) {
-				if ($r["haspic"]) {
-					echo "<a href=\"showuser?id={$r['userid']}\">"
-						. "<img border=0 src=\"showuser?id={$r['userid']}&pic"
-						. "&thumbnail=50x50\"></a>";
-				} else if ($r["hasart"]) {
-					echo "<a href=\"viewgame?id={$r['gameid']}\">"
-						. coverArtThumbnail($r['gameid'], 50)
-						. "</a>";
-				} else {
-					echo "<a href=\"viewgame?id={$r['gameid']}"
-						. "&review={$r['reviewid']}\">"
-						. "<img border=0 src=\"review50.gif\"></a>";
-				}
-				echo "</td><td>";
-			}
+            if (ENABLE_IMAGES) {
+                if ($r["haspic"]) {
+                    echo "<a href=\"showuser?id={$r['userid']}\">"
+                        . "<img border=0 src=\"showuser?id={$r['userid']}&pic"
+                        . "&thumbnail=50x50\"></a>";
+                } else if ($r["hasart"]) {
+                    echo "<a href=\"viewgame?id={$r['gameid']}\">"
+                        . coverArtThumbnail($r['gameid'], 50)
+                        . "</a>";
+                } else {
+                    echo "<a href=\"viewgame?id={$r['gameid']}"
+                        . "&review={$r['reviewid']}\">"
+                        . "<img border=0 src=\"review50.gif\"></a>";
+                }
+                echo "</td><td>";
+            }
 
             // summarize this review
             echo "<div class=\"new-review\">";
@@ -426,8 +426,8 @@ function showNewItemList($db, $items, $first, $last, $showFlagged, $allowHiddenB
             }
 
             echo "</div>";
-			if (ENABLE_IMAGES)
-				echo "</td>";
+            if (ENABLE_IMAGES)
+                echo "</td>";
         }
         else if ($pick == 'S')
         {
@@ -450,17 +450,17 @@ function showNewItemList($db, $items, $first, $last, $showFlagged, $allowHiddenB
 
             // show the image: user image if available, otherwise the
             // generic list icon
-			if (ENABLE_IMAGES) {
-				if ($l["haspic"]) {
-					echo "<a href=\"showuser?id={$l['userid']}\">"
-						. "<img border=0 src=\"showuser?id={$l['userid']}&pic"
-						. "&thumbnail=50x50\"></a>";
-				} else {
-					echo "<a href=\"viewlist?id={$l['id']}\">"
-						. "<img border=0 src=\"reclist50.gif\"></a>";
-				}
-				echo "</td><td>";
-			}
+            if (ENABLE_IMAGES) {
+                if ($l["haspic"]) {
+                    echo "<a href=\"showuser?id={$l['userid']}\">"
+                        . "<img border=0 src=\"showuser?id={$l['userid']}&pic"
+                        . "&thumbnail=50x50\"></a>";
+                } else {
+                    echo "<a href=\"viewlist?id={$l['id']}\">"
+                        . "<img border=0 src=\"reclist50.gif\"></a>";
+                }
+                echo "</td><td>";
+            }
 
             // summarize it
             echo "<div class=\"new-list\">"
@@ -479,17 +479,17 @@ function showNewItemList($db, $items, $first, $last, $showFlagged, $allowHiddenB
             
             // show the image: game cover art if available, otherwise the
             // generic game icon
-			if (ENABLE_IMAGES) {
-				if ($g["hasart"]) {
-					echo "<a href=\"viewgame?id={$g['id']}\">"
-						. coverArtThumbnail($g['id'], 50)
-						. "</a>";
-				} else {
-					echo "<a href=\"viewgame?id={$g['id']}\">"
-						. "<img border=0 src=\"game50.gif\"></a>";
-				}
-				echo "</td><td>";
-			}
+            if (ENABLE_IMAGES) {
+                if ($g["hasart"]) {
+                    echo "<a href=\"viewgame?id={$g['id']}\">"
+                        . coverArtThumbnail($g['id'], 50)
+                        . "</a>";
+                } else {
+                    echo "<a href=\"viewgame?id={$g['id']}\">"
+                        . "<img border=0 src=\"game50.gif\"></a>";
+                }
+                echo "</td><td>";
+            }
 
             // summarize this game
             echo "<div class=\"new-game\">"
@@ -531,17 +531,17 @@ function showNewItemList($db, $items, $first, $last, $showFlagged, $allowHiddenB
     
             // show the image: user image if available, otherwise the
             // generic list icon
-			if (ENABLE_IMAGES) {
-				if ($p["haspic"]) {
-					echo "<a href=\"showuser?id={$p['userid']}\">"
-						. "<img border=0 src=\"showuser?id={$p['userid']}&pic"
-						. "&thumbnail=50x50\"></a>";
-				} else {
-					echo "<a href=\"viewpoll?id={$p['pollid']}\">"
-						. "<img border=0 src=\"poll50.gif\"></a>";
-				}
-				echo "</td><td>";
-			}
+            if (ENABLE_IMAGES) {
+                if ($p["haspic"]) {
+                    echo "<a href=\"showuser?id={$p['userid']}\">"
+                        . "<img border=0 src=\"showuser?id={$p['userid']}&pic"
+                        . "&thumbnail=50x50\"></a>";
+                } else {
+                    echo "<a href=\"viewpoll?id={$p['pollid']}\">"
+                        . "<img border=0 src=\"poll50.gif\"></a>";
+                }
+                echo "</td><td>";
+            }
 
             // summarize this poll
             echo "<div class=\"new-poll\">"
@@ -594,21 +594,21 @@ function showNewItemList($db, $items, $first, $last, $showFlagged, $allowHiddenB
 
             // show the image: user image if available, otherwise game
             // image, otherwise generic review icon
-			if (ENABLE_IMAGES) {
-				if (isset($n["haspic"]) && $n["haspic"]) {
-					echo "<a href=\"showuser?id={$n['userID']}\">"
-						. "<img border=0 src=\"showuser?id={$n['userID']}&pic"
-						. "&thumbnail=50x50\"></a>";
-				} else if ($n["hasart"]) {
-					echo "<a href=\"viewgame?id={$n['gameid']}\">"
-						. coverArtThumbnail($gid, 50)
-						. "</a>";
-				} else {
-					echo "<a href=\"newslog?newsid=$nid\">"
-						. "<img border=0 src=\"news50.gif\"></a>";
-				}
-				echo "</td><td>";
-			}
+            if (ENABLE_IMAGES) {
+                if (isset($n["haspic"]) && $n["haspic"]) {
+                    echo "<a href=\"showuser?id={$n['userID']}\">"
+                        . "<img border=0 src=\"showuser?id={$n['userID']}&pic"
+                        . "&thumbnail=50x50\"></a>";
+                } else if ($n["hasart"]) {
+                    echo "<a href=\"viewgame?id={$n['gameid']}\">"
+                        . coverArtThumbnail($gid, 50)
+                        . "</a>";
+                } else {
+                    echo "<a href=\"newslog?newsid=$nid\">"
+                        . "<img border=0 src=\"news50.gif\"></a>";
+                }
+                echo "</td><td>";
+            }
 
             // summarize the item
             echo "<div class=\"$divclass\">"
@@ -633,12 +633,12 @@ function showNewItemList($db, $items, $first, $last, $showFlagged, $allowHiddenB
             $cdate = $c["fmtdate"];
 
             // show the generic competition icon
-			if (ENABLE_IMAGES) {
-				echo "<a href=\"viewcomp?id=$cid\">"
-					. "<img border=0 src=\"competition50.gif\">"
-					. "</a>";
-				echo "</td><td>";
-			}
+            if (ENABLE_IMAGES) {
+                echo "<a href=\"viewcomp?id=$cid\">"
+                    . "<img border=0 src=\"competition50.gif\">"
+                    . "</a>";
+                echo "</td><td>";
+            }
 
             // summarize the item
             echo "<div class=\"new-competition\">"
@@ -662,12 +662,12 @@ function showNewItemList($db, $items, $first, $last, $showFlagged, $allowHiddenB
             $cdate = $c["fmtdate"];
 
             // show the generic club icon
-			if (ENABLE_IMAGES) {
-				echo "<a href=\"viewcomp?id=$cid\">"
-					. "<img border=0 src=\"club50.gif\">"
-					. "</a>";
-				echo "</td><td>";
-			}
+            if (ENABLE_IMAGES) {
+                echo "<a href=\"viewcomp?id=$cid\">"
+                    . "<img border=0 src=\"club50.gif\">"
+                    . "</a>";
+                echo "</td><td>";
+            }
 
             // summarize the item
             echo "<div class=\"new-club\">"
@@ -679,8 +679,8 @@ function showNewItemList($db, $items, $first, $last, $showFlagged, $allowHiddenB
                 . "</div>";
         }
 
-		if (ENABLE_IMAGES)
-			echo "</tr></table>";
+        if (ENABLE_IMAGES)
+            echo "</tr></table>";
     }
 
     // indicate if there are more items

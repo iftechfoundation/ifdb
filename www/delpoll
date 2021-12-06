@@ -111,7 +111,7 @@ $result = mysql_query(
     "lock tables
        polls write,
        pollvotes write,
-	   pollcomments write", $db);
+       pollcomments write", $db);
 
 // we have no referencers yet
 $refs = array();
@@ -185,11 +185,11 @@ if (!isset($_REQUEST['confirm'])) {
     <p>If you click "Yes" below, the poll will be permanently
     deleted.  This action is irrevocable - it can't be undone. If you 
     change your mind later, you'll have to re-create the poll from
-	scratch, and all votes will have to be re-entered.
+    scratch, and all votes will have to be re-entered.
 
     <p>The main valid reason to delete a poll is that
     you've discovered that it's a duplicate, or the poll isn't
-	appropriate or doesn't ask a relevant question about IF works.
+    appropriate or doesn't ask a relevant question about IF works.
 
     <p>Keep in mind that if you delete a poll, any links from
     other web sites to the poll will be broken.  It's safest

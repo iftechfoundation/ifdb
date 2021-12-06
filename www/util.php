@@ -163,7 +163,7 @@ function urlencodex($str)
 // URL-encode from a string that's been HTML quoted
 function urlencodeFromHTML($str)
 {
-	return urlencode(utf8_encode(htmlspecialchars_decode($str)));
+    return urlencode(utf8_encode(htmlspecialchars_decode($str)));
 }
 
 // --------------------------------------------------------------------------
@@ -1614,8 +1614,8 @@ function initCap($str)
 function check_editing_privileges($db)
 {
     // make sure we're logged in at the session level
-	$curuser = $_SESSION['logged_in_as'];
-	if (!$curuser)
+    $curuser = $_SESSION['logged_in_as'];
+    if (!$curuser)
     {
         redirect_to_login_page();
         return false;
@@ -1707,28 +1707,28 @@ function check_editing_privileges($db)
 //
 function getGameRatingsView($db)
 {
-	// assume sandbox 0
-	$sandbox = 0;
+    // assume sandbox 0
+    $sandbox = 0;
 
-	// if the user is logged in, look up their sandbox
+    // if the user is logged in, look up their sandbox
     $curuser = $_SESSION['logged_in_as'];
-	if ($curuser) {
-		$result = mysql_query("select sandbox from users where id='$curuser'", $db);
-		list($sandbox) = mysql_fetch_row($result);
-	}
+    if ($curuser) {
+        $result = mysql_query("select sandbox from users where id='$curuser'", $db);
+        list($sandbox) = mysql_fetch_row($result);
+    }
 
-	// figure the table based on the user's sandbox
-	switch ($sandbox)
-	{
-	default:
-	case 0:
-	    // normal user - show only reviews and ratings from other normal users
-		return "gameRatingsSandbox0";
+    // figure the table based on the user's sandbox
+    switch ($sandbox)
+    {
+    default:
+    case 0:
+        // normal user - show only reviews and ratings from other normal users
+        return "gameRatingsSandbox0";
 
-	case 1:
-		// troll - show ratings from normal users plus trolls
-		return "gameRatingsSandbox01";
-	}
+    case 1:
+        // troll - show ratings from normal users plus trolls
+        return "gameRatingsSandbox01";
+    }
 }
 
 // --------------------------------------------------------------------------
@@ -2590,9 +2590,9 @@ function create_nonce($db, $id)
 // we'll fill in $errmsg with an error message and return false.
 function validate_nonce($db, $id, $nonce, &$errmsg, $singleUse)
 {
-	// note if this is a "review user profile" task
-	$reviewUserProfile = preg_match("/^review user profile /", $id);
-	
+    // note if this is a "review user profile" task
+    $reviewUserProfile = preg_match("/^review user profile /", $id);
+    
     // calculate the hash value for the nonce
     $hash = sha1("$id:$nonce");
 
@@ -2615,33 +2615,33 @@ function validate_nonce($db, $id, $nonce, &$errmsg, $singleUse)
 
     // make sure we found a row
     if (mysql_num_rows($result) == 0)
-	{
-		// Check for session validation.  If this is a user review
-		// request, and the session has been validated for a previous
-		// user review, allow further user reviews without the nonce.
-		if ($reviewUserProfile && $_SESSION['admin_for_user_review'])
-		{
-			// It's a user profile review - allow it.  If we're
-			// deleting a nonce, look up the actual hash value.
-			if ($singleUse)
-			{
-				$result = mysql_query(
-					"select hash from nonces where nonceid = '$qid'", $db);
-				list($qhash) = mysql_fetch_row($result);
-			}
-		}
-		else
-		{
-			// authorized for the session even without nonces
-			$errFlagged = false;
-			$errmsg = "The nonce value was not found.";
-			return false;
-		}
+    {
+        // Check for session validation.  If this is a user review
+        // request, and the session has been validated for a previous
+        // user review, allow further user reviews without the nonce.
+        if ($reviewUserProfile && $_SESSION['admin_for_user_review'])
+        {
+            // It's a user profile review - allow it.  If we're
+            // deleting a nonce, look up the actual hash value.
+            if ($singleUse)
+            {
+                $result = mysql_query(
+                    "select hash from nonces where nonceid = '$qid'", $db);
+                list($qhash) = mysql_fetch_row($result);
+            }
+        }
+        else
+        {
+            // authorized for the session even without nonces
+            $errFlagged = false;
+            $errmsg = "The nonce value was not found.";
+            return false;
+        }
     }
 
-	// validate the session
-	if ($reviewUserProfile)
-		$_SESSION['admin_for_user_review'] = true;
+    // validate the session
+    if ($reviewUserProfile)
+        $_SESSION['admin_for_user_review'] = true;
 
     // if it's a single-use nonce, delete it
     if ($singleUse)
@@ -3124,11 +3124,11 @@ function get_root_url() {
 // Checks if the userid is an admin
 //
 function check_admin_privileges($db, $userid) {
-	
-	$result = mysql_query("select privileges from users where id='$userid' and privileges='A'", $db);
-	if (mysql_num_rows($result)) return true;
-	
-	return false;
+    
+    $result = mysql_query("select privileges from users where id='$userid' and privileges='A'", $db);
+    if (mysql_num_rows($result)) return true;
+    
+    return false;
     
 }
 

@@ -51,10 +51,10 @@ function verify() {
         $usernum = mysql_real_escape_string($usernum, $db);
 
         // validate the nonce; failing that, check for the session admin flag
-		if (!validate_nonce($db, $task, $nonce, $errFlagged, true))
-		{
-			// not authorized
-			$errFlagged = "Error validating nonce: $errFlagged";
+        if (!validate_nonce($db, $task, $nonce, $errFlagged, true))
+        {
+            // not authorized
+            $errFlagged = "Error validating nonce: $errFlagged";
             return;
         }
 
@@ -242,7 +242,7 @@ function verify() {
     
                 } else if ($action == 'delete') {
 
-					$errFlagged = "\"Delete with notice\" is no longer supported.";
+                    $errFlagged = "\"Delete with notice\" is no longer supported.";
                     $altMsg = "Account deleted; email sent to "
                               . htmlspecialcharx($email) . ".";
 
@@ -251,7 +251,7 @@ function verify() {
                     // presume success
                     $errFlagged = false;
 
-					if (mysql_query(
+                    if (mysql_query(
                         "update users
                          set acctstatus = 'B', sandbox = 1
                          where id = '$usernum'", $db) == false) {
@@ -264,19 +264,19 @@ function verify() {
                     // presume success
                     $errFlagged = false;
 
-					// close the account
-					if (!close_user_acct($db, $usernum, "B", $progress)) {
-						$errFlagged = "Error updating database: $progress";
-					}
+                    // close the account
+                    if (!close_user_acct($db, $usernum, "B", $progress)) {
+                        $errFlagged = "Error updating database: $progress";
+                    }
 
                     // delete the user
-					if (!$errFlagged) {
-						if (mysql_query(
-							"delete from users
-						 where id = '$usernum'", $db) == false) {
-							$errFlagged = "Error updating database. ";
-						}
-					}
+                    if (!$errFlagged) {
+                        if (mysql_query(
+                            "delete from users
+                         where id = '$usernum'", $db) == false) {
+                            $errFlagged = "Error updating database. ";
+                        }
+                    }
 
                     $altMsg = "Account deleted.";
                 }

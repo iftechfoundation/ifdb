@@ -36,18 +36,18 @@ function getReviewQuery($db, $where)
                           . "and userfilters.userid = '$curuser'";
     }
         
-	// Include only reviews from our sandbox or sandbox 0 (all users)
-	$sandbox = "(0)";
-	if ($curuser)
-	{
-		// get my sandbox
-		$mysandbox = 0;
-		$result = mysql_query("select sandbox from users where id='$curuser'", $db);
-		list($mysandbox) = mysql_fetch_row($result);
-		if ($mysandbox != 0)
-			$sandbox = "(0,$mysandbox)";
-	}
-	
+    // Include only reviews from our sandbox or sandbox 0 (all users)
+    $sandbox = "(0)";
+    if ($curuser)
+    {
+        // get my sandbox
+        $mysandbox = 0;
+        $result = mysql_query("select sandbox from users where id='$curuser'", $db);
+        list($mysandbox) = mysql_fetch_row($result);
+        if ($mysandbox != 0)
+            $sandbox = "(0,$mysandbox)";
+    }
+    
     // Return the full query.  This is a bit tricky, because we want to
     // aggregate the helpfulness votes into the results.  There might be
     // no votes for a given review, so we have to do an outer join to pick
@@ -87,7 +87,7 @@ function getReviewQuery($db, $where)
            ($where)
            and ifnull(now() >= reviews.embargodate, 1)
            and $notPlonked
-		   and ifnull(users.sandbox, 0) in $sandbox
+           and ifnull(users.sandbox, 0) in $sandbox
          group by
            reviews.id";
 }
@@ -146,24 +146,24 @@ function displayReviewVote(reviewID, vote)
 {
     if (vote != null)
     {
-	    if (vote == "R")
-	    {
-	    	document.getElementById("voteStat_" + reviewID).innerHTML = "";
-	    	document.getElementById("voteRemove_" + reviewID).innerHTML = "";
-	    } 
-	    else {	    
-        	document.getElementById("voteStat_" + reviewID).innerHTML =
-       	  	   "<br>(You voted "
-	   	  	   + (vote == 'Y' ? "Yes" : "No")
-	   	  	   + ")";
-	    	document.getElementById("voteRemove_" + reviewID).innerHTML = "<a href=\"needjs\" "
+        if (vote == "R")
+        {
+            document.getElementById("voteStat_" + reviewID).innerHTML = "";
+            document.getElementById("voteRemove_" + reviewID).innerHTML = "";
+        } 
+        else {        
+            document.getElementById("voteStat_" + reviewID).innerHTML =
+                    "<br>(You voted "
+                    + (vote == 'Y' ? "Yes" : "No")
+                    + ")";
+            document.getElementById("voteRemove_" + reviewID).innerHTML = "<a href=\"needjs\" "
             + "onclick=\"javascript:sendReviewVote('" + reviewID + "', 'R');"
             + "return false;\">Remove vote</a> &nbsp; "
         }
     } 
-	else {
-	    document.getElementById("voteRemove_" + reviewID).innerHTML = "";				
-	}
+    else {
+        document.getElementById("voteRemove_" + reviewID).innerHTML = "";                
+    }
 }
 
 
@@ -473,12 +473,12 @@ function showReview($db, $gameid, $rec, $specialNames, $optionFlags = 0)
             . "onclick=\"javascript:sendReviewVote('$reviewid', 'R');"
             . "return false;\">Remove vote</a> &nbsp; </span>";
 
-			if (check_admin_privileges($db, $curuser)) {
-				echo "<a href=\"review?id=$gameid&userid=$userid\">Edit</a>&nbsp; ";
-			}
-			
-			
-		echo  "<div style=\"display:inline;position:relative;\">"
+            if (check_admin_privileges($db, $curuser)) {
+                echo "<a href=\"review?id=$gameid&userid=$userid\">Edit</a>&nbsp; ";
+            }
+            
+            
+        echo  "<div style=\"display:inline;position:relative;\">"
             . "<a href=\"#\" id=\"voteMenuLink_$reviewid\" "
             . "onclick=\"javascript:popVoteMenu('$reviewid');"
             . "return false;\">More Options<img src=\"/img/blank.gif\" "

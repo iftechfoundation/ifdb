@@ -772,10 +772,10 @@ function setRating(rating)
    </span>
    <p>
        Everything below is optional, so if you only want to enter
-	   a star rating, skip to the bottom of the page and click Preview
-	   to continue.  Please consider entering a brief review, though!
-	   Your rating will be even more helpful with some thoughts to
-	   explain it.
+       a star rating, skip to the bottom of the page and click Preview
+       to continue.  Please consider entering a brief review, though!
+       Your rating will be even more helpful with some thoughts to
+       explain it.
    </p>
 
    <p>
@@ -798,9 +798,9 @@ if (isset($missingFields['reviewbody']))
 ?>
 
    <table border=0 cellspacing=0 cellpadding=0>
-	  <tr><td><b>3. Enter your review:</b></td>
-		 <td align=right>
-			<span class=notes><i><?php
+      <tr><td><b>3. Enter your review:</b></td>
+         <td align=right>
+            <span class=notes><i><?php
 echo helpWinLink("help-formatting?review", "Formatting Hints");
 echo " - ";
 echo helpWinLink("help-review#spoilertags", "Hiding Spoilers");
@@ -808,15 +808,15 @@ echo helpWinLink("help-review#spoilertags", "Hiding Spoilers");
 //                  onclick="javascript:helpWin('help-formatting');return false;">
 //                    Formatting Hints
 //                 </a>
-			?></i></span>
-		 </td>
-	  </tr>
-	  <tr>
-		 <td colspan=2>
-			<textarea name="reviewbody" rows=15 cols=75>
+            ?></i></span>
+         </td>
+      </tr>
+      <tr>
+         <td colspan=2>
+            <textarea name="reviewbody" rows=15 cols=75>
 <?php echo htmlspecialcharx($reviewbody) ?></textarea>
-		 </td>
-	  </tr>
+         </td>
+      </tr>
    </table>
 
    </p>
@@ -855,10 +855,10 @@ if (isset($errDetail['embargoDate']))
 
    <p>
       <b>6. Special review type:</b><br><br>
-	  <div class=indented>
-		 <label><input type="radio" name="special" value="" id="special"
-		 <?php if (is_null($special) || $special == "") echo " checked" ?>>
-		 <label for="special">None</label></label><br>
+      <div class=indented>
+         <label><input type="radio" name="special" value="" id="special"
+         <?php if (is_null($special) || $special == "") echo " checked" ?>>
+         <label for="special">None</label></label><br>
 <?php
             // show a radio button for each special review type
             foreach ($specials as $s) {
@@ -879,33 +879,33 @@ if (isset($errDetail['embargoDate']))
                 }
             }
 ?>
-	  </div>
+      </div>
    </p>
 
    <p>
       <b>7. Other special instructions:</b><br>
 
-	  <div class=indented>
+      <div class=indented>
 
-		 <br>
-		 <label><input type="checkbox" id="cbOmitAvg" name="omitAvg" value=1
-		 <?php if ($omitAvg) echo "checked"; ?>><label for="cbOmitAvg">
-			Omit my rating from the game's average</label></label>
-		 
-		 <br><span class=notes>If you check this box, your rating will appear
-			with your review, but it won't be counted in the average member
-			rating for the game.</span>
-		 
-		 <br><br>
-		 
-		 <label><input type="checkbox" id="cbOldVsn" name="oldVersion" value=1 
-		 <?php if ($oldVersion) echo "checked"; ?>><label for="cbOldVsn">
-			This review is for an older version of the game</label></label>
-		 
-		 <br><span class=notes>Checking this box will add a note to this
-			effect when your review is displayed.</span>
-		 
-	  </div>
+         <br>
+         <label><input type="checkbox" id="cbOmitAvg" name="omitAvg" value=1
+         <?php if ($omitAvg) echo "checked"; ?>><label for="cbOmitAvg">
+            Omit my rating from the game's average</label></label>
+         
+         <br><span class=notes>If you check this box, your rating will appear
+            with your review, but it won't be counted in the average member
+            rating for the game.</span>
+         
+         <br><br>
+         
+         <label><input type="checkbox" id="cbOldVsn" name="oldVersion" value=1 
+         <?php if ($oldVersion) echo "checked"; ?>><label for="cbOldVsn">
+            This review is for an older version of the game</label></label>
+         
+         <br><span class=notes>Checking this box will add a note to this
+            effect when your review is displayed.</span>
+         
+      </div>
    </p>
 
    <p>

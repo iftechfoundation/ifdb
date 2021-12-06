@@ -19,7 +19,7 @@ function basePageHeader($title, $focusCtl, $extraOnLoad, $extraHead,
 // the charset clause in the Content_Type parameter to UTF-8.
 
 // instead, use ISO-8859-1
-	ini_set("default_charset", "ISO-8859-1");
+    ini_set("default_charset", "ISO-8859-1");
     iconv_set_encoding("output_encoding", "ISO-8859-1");
     iconv_set_encoding("input_encoding", "ISO-8859-1");
 ?>

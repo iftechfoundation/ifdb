@@ -65,7 +65,7 @@ function sendXmlContents($contents)
 
 function sendXml($contents)
 {
-	ini_set("default_charset", "ISO-8859-1");
+    ini_set("default_charset", "ISO-8859-1");
     header("Content-Type: text/xml");
     
     echo "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
@@ -241,7 +241,7 @@ $urlToOsBody = 'return $s;';
 $myosname = "(your operating system)";
 if ($result && mysql_num_rows($result)) {
     $extid = mysql_result($result, 0, "externid");
-	$myosname = mysql_result($result, 0, "name");
+    $myosname = mysql_result($result, 0, "name");
     if (isset($urlToOsMap[$extid])) {
         $urlToOsBody = $urlToOsMap[$extid];
     }
@@ -1744,66 +1744,66 @@ if ($missing) {
             echo startStep(0) . $h . endStep();
     }
 
-	// if it's empty, explain
-	if (count($helplist) == 0)
-	{
-		$forums = "<a href=\"http://www.intfiction.org/forum/\">intfiction.org forums</a>";
+    // if it's empty, explain
+    if (count($helplist) == 0)
+    {
+        $forums = "<a href=\"http://www.intfiction.org/forum/\">intfiction.org forums</a>";
 
-		// Special case: check to see if we have an executable for a different
-		// operating system or systems.
-		$result = mysql_query(
-			"select
+        // Special case: check to see if we have an executable for a different
+        // operating system or systems.
+        $result = mysql_query(
+            "select
                distinct operatingsystems.name as osname
              from
-		       gamelinks
-		       left outer join operatingsystems
-			     on operatingsystems.id = gamelinks.osid
+               gamelinks
+               left outer join operatingsystems
+                 on operatingsystems.id = gamelinks.osid
                left outer join filetypes as ftz
                  on ftz.id = gamelinks.compression,
                filetypes
              where
                filetypes.id = gamelinks.fmtid
                and filetypes.externid = 'executable'
-			   and gameid = '$qid'", $db);
-		for ($exeLinks = array(), $i = 0 ; $i < mysql_num_rows($result) ; $i++)
-			$exeLinks[] = mysql_fetch_array($result, MYSQL_ASSOC);
+               and gameid = '$qid'", $db);
+        for ($exeLinks = array(), $i = 0 ; $i < mysql_num_rows($result) ; $i++)
+            $exeLinks[] = mysql_fetch_array($result, MYSQL_ASSOC);
 
-		if (count($exeLinks) != 0)
-		{
-			if (count($exeLinks) == 1) {
-				$fpro = "this system";
-				$fthat = "that system";
-				$app = "this app";
-				$foreign = $exeLinks[0]['osname'];
-				$emuSearch = "\"$foreign emulator for $myosname\"";
-			}
-			else {
-				$emuSearch = "(for example) \"{$exeLinks[0]['osname']} emulator for $myosname\"";
-				$fpro = "these systems";
-				$fthat = "one of those systems";
-				$app = "one of these apps";
-				$foreign = array();
-				foreach ($exeLinks as $e) {
-					$foreign[] = $e['osname'];
-				}
-				if (($c = count($foreign)) > 2)
-					$foreign[$c-1] = "and " . $foreign[$c-1];
-				$foreign = implode(", ", $foreign);
-			}
-				
-			echo "This game appears to be available only as a native application for "
-				. "$foreign.  To run this game, you'll need to find a computer "
-				. "that runs $fthat.  Alternatively, it might be possible to use "
-				. "a \"virtual machine\" environment or emulator on your computer "
-				. "to run $app, but that requires technical expertise that's beyond "
-				. "what we can offer here.  Try a Web search for {$emuSearch}, "
-				. "or try asking on the {$forums}.";
-		}
-		else
-			echo "Sorry, but IFDB doesn't have any information about how to "
-				. "run this game on your system.  You might try contacting the "
-				. "game's author, or asking for help on the {$forums}.";
-	}
+        if (count($exeLinks) != 0)
+        {
+            if (count($exeLinks) == 1) {
+                $fpro = "this system";
+                $fthat = "that system";
+                $app = "this app";
+                $foreign = $exeLinks[0]['osname'];
+                $emuSearch = "\"$foreign emulator for $myosname\"";
+            }
+            else {
+                $emuSearch = "(for example) \"{$exeLinks[0]['osname']} emulator for $myosname\"";
+                $fpro = "these systems";
+                $fthat = "one of those systems";
+                $app = "one of these apps";
+                $foreign = array();
+                foreach ($exeLinks as $e) {
+                    $foreign[] = $e['osname'];
+                }
+                if (($c = count($foreign)) > 2)
+                    $foreign[$c-1] = "and " . $foreign[$c-1];
+                $foreign = implode(", ", $foreign);
+            }
+                
+            echo "This game appears to be available only as a native application for "
+                . "$foreign.  To run this game, you'll need to find a computer "
+                . "that runs $fthat.  Alternatively, it might be possible to use "
+                . "a \"virtual machine\" environment or emulator on your computer "
+                . "to run $app, but that requires technical expertise that's beyond "
+                . "what we can offer here.  Try a Web search for {$emuSearch}, "
+                . "or try asking on the {$forums}.";
+        }
+        else
+            echo "Sorry, but IFDB doesn't have any information about how to "
+                . "run this game on your system.  You might try contacting the "
+                . "game's author, or asking for help on the {$forums}.";
+    }
 
     // end the table
     echo "</table>";

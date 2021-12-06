@@ -77,28 +77,28 @@ mysql_query("delete from reviewvotes
 // insert a new vote
 
 if (strstr("YN", $vote)) {
-	$result = mysql_query("insert into reviewvotes
-    	(reviewid, userid, vote) values ('$qid', '$userid', '$vote')", $db);
+    $result = mysql_query("insert into reviewvotes
+        (reviewid, userid, vote) values ('$qid', '$userid', '$vote')", $db);
 
-	// explain what happened
-	if ($result) {
-	    sendResponse("Vote Recorded - Thanks!", false,
-	                 "Thanks for voting! Your vote has been recorded."
-	                 . (!isEmpty($oldvote)
-	                    ? "<p>This replaces your previous vote for this review. "
-	                    . "(Everyone gets one vote, so this doesn't count as an "
-	                    . "extra vote, but you <i>can</i> switch your vote at any "
-	                    . "time.)"
-	                    : ""));
-	} else {
-	    sendResponse("Not Saved", "An error occurred updating the database. "
-	                 . "Please try again later.", false);
-	}
+    // explain what happened
+    if ($result) {
+        sendResponse("Vote Recorded - Thanks!", false,
+                     "Thanks for voting! Your vote has been recorded."
+                     . (!isEmpty($oldvote)
+                        ? "<p>This replaces your previous vote for this review. "
+                        . "(Everyone gets one vote, so this doesn't count as an "
+                        . "extra vote, but you <i>can</i> switch your vote at any "
+                        . "time.)"
+                        : ""));
+    } else {
+        sendResponse("Not Saved", "An error occurred updating the database. "
+                     . "Please try again later.", false);
+    }
 } else {
-// Reset Vote result	
+// Reset Vote result    
     sendResponse("Vote Removed - Thanks!", false,
                  "Thanks for voting! Your vote has been removed.", false);
-	
+    
 }
 
 

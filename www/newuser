@@ -160,7 +160,7 @@ by there.</span><br>
    <b>Important:</b> by registering, you confirm that you agree to
       our <?php
          echo helpWinLink("/code-of-conduct?helpwin=1", "Code of Conduct");
-      ?>, our <?php		 
+      ?>, our <?php         
          echo helpWinLink("/tos?helpwin=1", "Terms of Service");
 //<a href="needjs"
 //        onclick="javascript:helpWin('/tos?helpwin=1');return false;">

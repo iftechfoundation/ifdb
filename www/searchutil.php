@@ -18,18 +18,18 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse)
                          . "and filtertype = 'K') = 0";
     }
 
-	// Include only reviews from our sandbox or sandbox 0 (all users)
-	$sandbox = "(0)";
-	if ($curuser)
-	{
-		// get my sandbox
-		$mysandbox = 0;
-		$result = mysql_query("select sandbox from users where id='$curuser'", $db);
-		list($mysandbox) = mysql_fetch_row($result);
-		if ($mysandbox != 0)
-			$sandbox = "(0,$mysandbox)";
-	}
-	
+    // Include only reviews from our sandbox or sandbox 0 (all users)
+    $sandbox = "(0)";
+    if ($curuser)
+    {
+        // get my sandbox
+        $mysandbox = 0;
+        $result = mysql_query("select sandbox from users where id='$curuser'", $db);
+        list($mysandbox) = mysql_fetch_row($result);
+        if ($mysandbox != 0)
+            $sandbox = "(0,$mysandbox)";
+    }
+    
     // assume no badge info
     $badges = false;
 
@@ -65,7 +65,7 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse)
                         on reclistitems.listid = reclists.id,
                       users";
         $baseWhere = "and reclists.userid = users.id "
-					 . "and users.sandbox in ($sandbox) "
+                     . "and users.sandbox in ($sandbox) "
                      . str_replace('#USERID#', 'reclists.userid',
                                    $andNotPlonked);
         $groupBy = "group by reclistitems.listid";
@@ -157,7 +157,7 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse)
         $tableList = "users as u";
         $orCurUser = ($curuser ? "or u.id = '$curuser'" : "");
         $baseWhere = "and u.acctstatus = 'A' "
-					 . "and u.sandbox in $sandbox "
+                     . "and u.sandbox in $sandbox "
                      . "and (ifnull(u.profilestatus, ' ') != 'R' $orCurUser)"
                      . str_replace('#USERID#', 'u.id', $andNotPlonked);
         $groupBy = "";
@@ -986,9 +986,9 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse)
                   . "An error occurred searching the database.</span><p>";
 
 // DEBUG
-//		if (get_req_data('debug') == 'SEARCH')
-//			$errMsg = "<p><span class=errmsg>Database error:</span><div style='margin: 1em 1em 1em 1em;'>" . mysql_error($db)
-//					  . "</div>Query:<div style='margin: 1em 1em 1em 1em;'>" . htmlspecialcharx($sql) . "</div>";
+//        if (get_req_data('debug') == 'SEARCH')
+//            $errMsg = "<p><span class=errmsg>Database error:</span><div style='margin: 1em 1em 1em 1em;'>" . mysql_error($db)
+//                      . "</div>Query:<div style='margin: 1em 1em 1em 1em;'>" . htmlspecialcharx($sql) . "</div>";
     }
 
     // return the results

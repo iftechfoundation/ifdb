@@ -452,14 +452,14 @@ function pingMultiUserSession(sid, gameid, title, author, started)
     }
 
     // ------- Authored Games -------
-	$gameRatingsView = getGameRatingsView($db);
+    $gameRatingsView = getGameRatingsView($db);
     $result = mysql_query(
         "select
            games.id as id, games.title as title, games.author as author,
            date_format(games.published, '%Y') as year,
            games.`desc` as `desc`,
            (coverart is not null) as hasart,
-		   grv.avgRating as rating,
+           grv.avgRating as rating,
            grv.numRatingsInAvg as ratingCnt,
            flags
          from
@@ -897,14 +897,14 @@ if ($unlock)
 {
     // admin details
     $adminUrl = "adminops?user=$uid";
-	$hhemail = htmlspecialcharx($realEmail);
-	$uuemail = urlencode($realEmail);
+    $hhemail = htmlspecialcharx($realEmail);
+    $uuemail = urlencode($realEmail);
     echo "<br><hr class=dots>"
-		. "User email: <b>$hhemail</b>"
-		. "<div style=\"margin: 0px 2em 1em 2em;\">"
-		. "<a href=\"https://www.google.com/search?q=%22{$uuemail}%22\" target=\"_blank\">Search Google</a><br>"
-		. "<a href=\"https://www.bing.com?q=%22{$uuemail}%22\" target=\"_blank\">Search Bing</a><br>"
-		. "</div>";
+        . "User email: <b>$hhemail</b>"
+        . "<div style=\"margin: 0px 2em 1em 2em;\">"
+        . "<a href=\"https://www.google.com/search?q=%22{$uuemail}%22\" target=\"_blank\">Search Google</a><br>"
+        . "<a href=\"https://www.bing.com?q=%22{$uuemail}%22\" target=\"_blank\">Search Bing</a><br>"
+        . "</div>";
 
     // Generate a list of other users who have logged in from the
     // same IP addresses as this user.  We've had occasional trouble

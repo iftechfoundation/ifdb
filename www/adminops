@@ -739,12 +739,12 @@ else if (isset($_REQUEST['users'])) {
         order by $orderBy, name
         limit $firstOnPage, $perPage", $db);
 
-	echo "<div style=\"margin: 1ex 0px;\">"
-		. "<form>"
-		. "Search by name or email: <input name=\"finduser\" type=\"text\" length=60>"
-		. "  <input type=\"submit\" name=\"go\" value=\"Find\">"
-		. "</form>"
-		. "</div>";
+    echo "<div style=\"margin: 1ex 0px;\">"
+        . "<form>"
+        . "Search by name or email: <input name=\"finduser\" type=\"text\" length=60>"
+        . "  <input type=\"submit\" name=\"go\" value=\"Find\">"
+        . "</form>"
+        . "</div>";
 
     echo "<table><tr><th>User Name</th><th>Email</th><th>Public Email</th>"
         . "<th>Status</th><th>Profile Status</th>"
@@ -793,100 +793,100 @@ else if (isset($_REQUEST['users'])) {
             . "<td>$priv</td><td>$created</td><td>$login</td></tr>";
     }
 
-	echo "</table><br><br><br>$pageCtl<br><br>"
-		. "<hr class=dots><br>";
-	
+    echo "</table><br><br><br>$pageCtl<br><br>"
+        . "<hr class=dots><br>";
+    
 } else if (isset($_REQUEST['loginsfrom']) && $_REQUEST['loginsfrom'] != "") {
 
-	$qip = mysql_real_escape_string($_REQUEST['loginsfrom'], $db);
-	$result = mysql_query(
-		"select
-			u.id, u.name, u.email,
-			date_format(max(l.`when`), '%d-%b-%Y %H:%i')
-		 from
-			logins as l
-			join users as u
-			   on u.id = l.uid
-		 where
-			l.ip = '$qip'
-		 group by
-			u.id
-		 order by
-			l.`when` desc", $db);
+    $qip = mysql_real_escape_string($_REQUEST['loginsfrom'], $db);
+    $result = mysql_query(
+        "select
+            u.id, u.name, u.email,
+            date_format(max(l.`when`), '%d-%b-%Y %H:%i')
+         from
+            logins as l
+            join users as u
+               on u.id = l.uid
+         where
+            l.ip = '$qip'
+         group by
+            u.id
+         order by
+            l.`when` desc", $db);
 
-	echo "<h1>Logins from $qip</h1>"
-		. "<div style=\"margin: 1em 2em;\">"
-		. "<table>";
-	
-	for ($i = 0 ; $i < mysql_num_rows($result) ; $i++)
-	{
-		list($uid, $uname, $umail, $udate) = mysql_fetch_row($result);
-		$uname = htmlspecialcharx($uname);
-		$uamil = htmlspecialcharx($umail);
-		echo "<tr>"
-			. "<td style=\"padding: 0px 1ex\"><a href=\"adminops?user=$uid\">$uname</a></td>"
-			. "<td style=\"padding: 0px 1ex\">$umail</td>"
-			. "<td style=\"padding: 0px 1ex\">$udate</td>"
-			. "</tr>";
-	}
-	echo "</table></div><hr class=dots>";
+    echo "<h1>Logins from $qip</h1>"
+        . "<div style=\"margin: 1em 2em;\">"
+        . "<table>";
+    
+    for ($i = 0 ; $i < mysql_num_rows($result) ; $i++)
+    {
+        list($uid, $uname, $umail, $udate) = mysql_fetch_row($result);
+        $uname = htmlspecialcharx($uname);
+        $uamil = htmlspecialcharx($umail);
+        echo "<tr>"
+            . "<td style=\"padding: 0px 1ex\"><a href=\"adminops?user=$uid\">$uname</a></td>"
+            . "<td style=\"padding: 0px 1ex\">$umail</td>"
+            . "<td style=\"padding: 0px 1ex\">$udate</td>"
+            . "</tr>";
+    }
+    echo "</table></div><hr class=dots>";
 
 } else if (isset($_REQUEST['finduser'])) {
 
-	echo "<h1>Search for user</h1>";
-	$fldlbl = "Name or email:";
-	$fldval = "";
+    echo "<h1>Search for user</h1>";
+    $fldlbl = "Name or email:";
+    $fldval = "";
 
-	if ($_REQUEST['finduser'] != "")
-	{
-		$upat = mysql_real_escape_string($_REQUEST['finduser'], $db);
-		$hupat = htmlspecialcharx($upat);
-		$upat = str_replace('*', '%', $upat);
-		if (!preg_match('/%/', $upat)) $upat = "%{$upat}%";
+    if ($_REQUEST['finduser'] != "")
+    {
+        $upat = mysql_real_escape_string($_REQUEST['finduser'], $db);
+        $hupat = htmlspecialcharx($upat);
+        $upat = str_replace('*', '%', $upat);
+        if (!preg_match('/%/', $upat)) $upat = "%{$upat}%";
 
-		$result = mysql_query(
-			"select
+        $result = mysql_query(
+            "select
                id, name, email, 
-		       date_format(created, '%d-%b-%Y'),
-		       date_format(lastlogin, '%d-%b-%Y')
+               date_format(created, '%d-%b-%Y'),
+               date_format(lastlogin, '%d-%b-%Y')
              from
                users
              where
                name like '$upat'
                or email like '$upat'
              order by
-			   name asc", $db);
+               name asc", $db);
 
-		echo "Users matching \"$hupat\":"
-			. "<div style=\"margin: 1ex 2em 2em 2em;\">"
-			. "<table>"
-			.  "<tr>"
-			.   "<th style=\"padding: 1ex 0px;\">User Name</th><th>Email</th><th>Created</th><th>Last Login</th>"
-			.  "</tr>";
+        echo "Users matching \"$hupat\":"
+            . "<div style=\"margin: 1ex 2em 2em 2em;\">"
+            . "<table>"
+            .  "<tr>"
+            .   "<th style=\"padding: 1ex 0px;\">User Name</th><th>Email</th><th>Created</th><th>Last Login</th>"
+            .  "</tr>";
 
-		for ($i = 0 ; $i < mysql_num_rows($result) ; $i++)
-		{
-			list($uid, $uname, $umail, $ucre, $ulogin) = mysql_fetch_row($result);
-			$uname = htmlspecialcharx($uname);
-			$umail = htmlspecialcharx($umail);
-			echo "<tr>"
-				.   "<td style=\"padding: 0px 1ex\"><a href=\"adminops?user=$uid\">$uname</a></td>"
-				.   "<td style=\"padding: 0px 1ex\">$umail</td>"
-				.   "<td style=\"padding: 0px 1ex\">$ucre</td>"
-				.   "<td style=\"padding: 0px 1ex\">$ulogin</td>"
-				. "</tr>";
-		}
+        for ($i = 0 ; $i < mysql_num_rows($result) ; $i++)
+        {
+            list($uid, $uname, $umail, $ucre, $ulogin) = mysql_fetch_row($result);
+            $uname = htmlspecialcharx($uname);
+            $umail = htmlspecialcharx($umail);
+            echo "<tr>"
+                .   "<td style=\"padding: 0px 1ex\"><a href=\"adminops?user=$uid\">$uname</a></td>"
+                .   "<td style=\"padding: 0px 1ex\">$umail</td>"
+                .   "<td style=\"padding: 0px 1ex\">$ucre</td>"
+                .   "<td style=\"padding: 0px 1ex\">$ulogin</td>"
+                . "</tr>";
+        }
 
-		echo "</table></div>";
-		$fldlbl = "New search: ";
-		$fldval = str_replace("\"", "&34;", $_REQUEST['finduser']);
-	}
+        echo "</table></div>";
+        $fldlbl = "New search: ";
+        $fldval = str_replace("\"", "&34;", $_REQUEST['finduser']);
+    }
 
-	echo "<form>"
-		. "$fldlbl <input name=\"finduser\" type=\"text\" length=60 value=\"$fldval\">"
-		. "  <input type=\"submit\" name=\"go\" value=\"Find\">"
-		. "</form>"
-		. "<hr class=dots>";
+    echo "<form>"
+        . "$fldlbl <input name=\"finduser\" type=\"text\" length=60 value=\"$fldval\">"
+        . "  <input type=\"submit\" name=\"go\" value=\"Find\">"
+        . "</form>"
+        . "<hr class=dots>";
 
 } else if (isset($_REQUEST['user']) && $_REQUEST['user'] != "") {
 
@@ -921,7 +921,7 @@ else if (isset($_REQUEST['users'])) {
                         "" => "Normal");
     $proStatName = $proStatMap[$proStat];
 
-	$sandboxMap = array(0 => "0 (Normal users)", 1 => "1 (Trolls)");
+    $sandboxMap = array(0 => "0 (Normal users)", 1 => "1 (Trolls)");
 
     $result = mysql_query(
         "select code, name from `privileges` order by name", $db);
@@ -986,12 +986,12 @@ else if (isset($_REQUEST['users'])) {
         }
         $privcode = mysql_real_escape_string($privcode, $db);
 
-		$oldSandbox = $sandbox;
-		$newSandbox = $_REQUEST['sandbox'];
+        $oldSandbox = $sandbox;
+        $newSandbox = $_REQUEST['sandbox'];
         // banned/closed users shouldn't show up
         if ($stat == 'B' || $stat == 'X') $newSandbox = 1;
-		if (isset($sandboxMap[$newSandbox]))
-			$sandbox = $newSandbox;
+        if (isset($sandboxMap[$newSandbox]))
+            $sandbox = $newSandbox;
 
         for ($i = 0 ; $i < count($formats) ; $i++) {
             $f = $formats[$i];
@@ -1096,16 +1096,16 @@ else if (isset($_REQUEST['users'])) {
     }
     echo "</div>";
 
-	echo "Sandbox:<br>"
-		. "<div class=indented>";
-	for ($sb = 0 ; $sb <= 1 ; $sb++) {
-		echo "<label><input type=\"radio\" name=\"sandbox\" "
-			. ($sandbox == $sb ? "checked " : "")
-			. "id=\"sandbox-$sb\" value=\"$sb\"> <label for=\"sandbox-$sb\">"
-			. $sandboxMap[$sb]
-			. "</label></label><br>";
-	}
-	echo "</div>";
+    echo "Sandbox:<br>"
+        . "<div class=indented>";
+    for ($sb = 0 ; $sb <= 1 ; $sb++) {
+        echo "<label><input type=\"radio\" name=\"sandbox\" "
+            . ($sandbox == $sb ? "checked " : "")
+            . "id=\"sandbox-$sb\" value=\"$sb\"> <label for=\"sandbox-$sb\">"
+            . $sandboxMap[$sb]
+            . "</label></label><br>";
+    }
+    echo "</div>";
 
     echo "Format Editing Privileges:<br><div class=indented>";
 
@@ -1144,7 +1144,7 @@ else if (isset($_REQUEST['users'])) {
     $n = mysql_num_rows($result);
     for ($i = 0 ; $i < $n ; $i++) {
         list($lip, $lwhen) = mysql_fetch_row($result);
-		$lipLink = "<a href=\"adminops?loginsfrom=$lip\">$lip</a>";
+        $lipLink = "<a href=\"adminops?loginsfrom=$lip\">$lip</a>";
         echo "<tr><td style='padding-right: 1em;'>$lwhen<td>$lipLink</td></tr>";
     }
 
