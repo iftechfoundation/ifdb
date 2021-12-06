@@ -160,7 +160,7 @@ by there.</span><br>
    <b>Important:</b> by registering, you confirm that you agree to
       our <?php
          echo helpWinLink("/code-of-conduct?helpwin=1", "Code of Conduct");
-      ?>, our <?php         
+      ?>, our <?php
          echo helpWinLink("/tos?helpwin=1", "Terms of Service");
 //<a href="needjs"
 //        onclick="javascript:helpWin('/tos?helpwin=1');return false;">
@@ -297,7 +297,7 @@ function handlePost()
             six characters.";
         return true;
     }
-    
+
     // set up the database connection
     $db = dbConnect();
     if ($db == false)
@@ -395,7 +395,7 @@ function handlePost()
                       . "problem persists. (Error code: NWI3712)";
         return true;
     }
-    
+
     // If the stopforumspam check turned up an obvious spammer, or the
     // email domain is one that we know from our own experience to be
     // mostly used by spammers, don't even allow the user to activate
@@ -404,7 +404,7 @@ function handlePost()
     {
         // use account statue 'R' - review needed
         $acctStatus = "R";
-        
+
         pageHeader("Registration Completed");
         ?>
         <h1>Registration Completed</h1>
@@ -414,7 +414,7 @@ function handlePost()
         a site administrator.  This extra step is needed
         due to the large number of fake accounts that spam operators
         have been creating on the site.
-        
+
         <p>Once your registration is approved, you'll receive email
         with instructions on activating your account.  Due to the need
         for human review, please allow a day or two for the email to

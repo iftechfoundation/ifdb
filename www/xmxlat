@@ -72,7 +72,7 @@ if (!preg_match("/^[a-z0-9@.]+$/i", $uid)
     echo "<html><title>Bad parameters</title>Bad parameters</html>";
     exit();
 }
-        
+
 
 if (!connect($dom, $uid, $psw, $mode == 'info')) {
     echo "<html><title>Unable to connect</title>Unable to connect</html>";
@@ -88,7 +88,7 @@ if (!$a) {
 
 if ($mode == 'info')
     exit();
-    
+
 header("Content-Type: video/x-ms-asf");
 echo $a;
 

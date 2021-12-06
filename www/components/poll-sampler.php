@@ -104,15 +104,15 @@ $colcnt++;
 $colWidth = floor(100/$colcnt) . "%";
 $colClass = "firstcol";
 
-// 
+//
 // if we found any polls, show the poll box
-// 
+//
 $rows = $pollRows;
 if (count($rows) > 0) {
     echo "<div class=\"block\"><div class=\"headline\">Vote!</div>"
         . "<p>Help other IFDB members find the games they're looking for "
         . "by voting in their polls.  Here are a few recent ones:</p>";
-    
+
     for ($i = 0 ; $i < count($rows) ; $i++) {
         // retrieve the values
         list($pollID, $pollTitle, $pollDesc, $pollDate, $pollUserID,

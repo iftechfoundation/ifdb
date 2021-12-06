@@ -103,7 +103,7 @@ table.srvlog td {
       <th>Time</th>
       <th>Status</th>
    </tr>
-    
+
 <?php
 
     // query the dispatch log
@@ -392,7 +392,7 @@ table.srvedit td.1 {
        .     ($sena ? " checked" : "")
        .    "><label> Enabled</label></label>"
        . "</tr></td>"
-       
+
        . "<tr><td>&nbsp;</td><td style=\"padding-top: 1em;\">"
        . "<input type=\"submit\" name=\"Apply\" value=\"Apply\"> &nbsp; ";
 
@@ -417,7 +417,7 @@ function confirmDeleteRow()
    echo  "<br><br><a href=\"t3servers\">Return to server list</a>"
        . "</td></tr>"
        . "</table>"
-       
+
        . "</form>";
 
     pageFooter();

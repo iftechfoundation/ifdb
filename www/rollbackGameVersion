@@ -71,23 +71,23 @@ foreach ($deltas as $colname => $colval)
     case "links":
         $locks[] = "gamelinks write";
         break;
-        
+
     case "ifids":
         $locks[] = "ifids write";
         break;
-        
+
     case "extreviews":
         $locks[] = "extreviews write, reviews write";
         break;
-            
+
     case "xrefs":
         $locks[] = "gamexrefs write";
         break;
-        
+
     case "profileLinks":
         $locks[] = "gameprofilelinks write";
         break;
-    
+
     default:
         // add others to the scalar column list
         $cols[] = "`{$colname}` = '" . mysql_real_escape_string($colval, $db) . "'";
@@ -98,7 +98,7 @@ foreach ($deltas as $colname => $colval)
 $cols[] = "pagevsn = '$pagevsn'";
 $cols[] = "editedby = '$editedby'";
 $cols[] = "moddate = '$moddate'";
-    
+
 $cols = implode(", ", $cols);
 
 // no errors yet
@@ -175,7 +175,7 @@ if (isset($deltas["profileLinks"])) {
     $pl = $deltas["profileLinks"];
     if (!update_profile_links($db, $gameid, $pl, $progress))
         addError("Updating profile links", "update_profile_links([" . implode(",", $pl) . "]) : {$progress}");
-}    
+}
 
 // update cross-references
 if (isset($deltas["xrefs"])) {
@@ -194,7 +194,7 @@ else
     $errors[] = "<div>Note: errors occurred rolling back game entry; version history record was not deleted</div>";
 
 // unlock tables
-runQuery("Unlocking tables", "unlock tables");    
+runQuery("Unlocking tables", "unlock tables");
 
 // show errors
 if (count($errors))

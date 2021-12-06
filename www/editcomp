@@ -29,7 +29,7 @@ if (!check_editing_privileges($db))
 
 // get the username
 $result = mysql_query(
-    "select name, location, `privileges` from users 
+    "select name, location, `privileges` from users
     where id = '$userid'", $db);
 list($username, $userloc, $userprivs) = mysql_fetch_row($result);
 $username = htmlspecialcharx($username);
@@ -112,7 +112,7 @@ $fields = array(
           "DD-MON-YYYY - The end of the qualifying period, or the "
           . "deadline for submitting entries",
           null, TypeDate),
-    
+
     array("Award date", "awarddate", 15,
           "DD-MON-YYYY (e.g., 16-Oct-2009) - The date the winners "
           . "were announced",
@@ -168,7 +168,7 @@ if ($compID == "new") {
 
         // set the page title
         $pageTitle = htmlspecialcharx($oldRec["title"]) . " - Edit";
-        
+
         // query the division list
         $result = mysql_query(
             "select divid, divname, divdesc
@@ -179,7 +179,7 @@ if ($compID == "new") {
         // fetch the division records
         for ($i = 0, $divs = array() ; $i < mysql_num_rows($result) ; $i++)
             $divs[] = mysql_fetch_array($result, MYSQL_ASSOC);
-        
+
         // add the division list to the main record
         $oldRec["divisions"] = $divs;
 
@@ -200,7 +200,7 @@ if ($compID == "new") {
         for ($j = 0, $games = array() ; $j < mysql_num_rows($result) ;
              $j++)
             $games[] = mysql_fetch_array($result, MYSQL_ASSOC);
-        
+
         // add the games list to the main record
         $oldRec["games"] = $games;
 
@@ -321,7 +321,7 @@ if ($_SERVER['REQUEST_METHOD'] == "POST") {
         // if the next item doesn't exist, we're done
         if (!isset($_REQUEST["gameid$i"]))
             break;
-    
+
         // load this game
         $game = array();
         $game["divid"] = $divid = get_req_data("gamediv$i");
@@ -347,7 +347,7 @@ if ($_SERVER['REQUEST_METHOD'] == "POST") {
         $games[$i]["oldIndex"] = $i;
     usort($games, "newGamesSorter");
 
-    // store the games list 
+    // store the games list
     $newRec["games"] = $games;
 
     // since this is a submission, populate the form with the submitted data
@@ -384,7 +384,7 @@ if (isset($_REQUEST['divedit-done'])) {
         }
     }
 }
-    
+
 
 // ------------------------------------------------------------------------
 //
@@ -414,7 +414,7 @@ function calcDeltas($oldRec, $newRec)
     // set up our internal list of fields - start with the display list,
     // and add our special internal fields
     $f = $fields;
-    
+
     // run through the fields and generate the list of differences
     $changesOld = array();
     $changesNew = array();
@@ -565,7 +565,7 @@ function saveDivisions($newDivs)
                compid = '$compID'
                and divid not in ('$keepList')", $db);
     }
-    
+
     return array($result, $progress);
 }
 
@@ -633,7 +633,7 @@ function saveProfileLinks($new, $role)
                  values ('$compID', '$uid', now(), '$role')", $db);
         }
     }
-    
+
     // delete everything not in the new list
     if ($result) {
         $progress = "DEL1147";
@@ -659,14 +659,14 @@ function parseProfileLinks(&$newRec, $field, &$errDetail)
 
     // trim out the profile links from the string for the plain version
     $newRec[$field] = preg_replace("/\s?\{[a-z0-9]+\}/i", "", $txt);
-    
+
     // look for the profile link pattern
     for ($ofs = 0, $proList = array() ;
          preg_match("/\{([a-z0-9]+)\}/i", $txt, $match,
                     PREG_OFFSET_CAPTURE, $ofs) ; $ofs = $match[0][1]+1) {
         // pull out this match and add it to the list
         $proList[] = $pro = mysql_real_escape_string($match[1][0], $db);
-        
+
         // validate it
         $result = mysql_query(
             "select id from users where id='$pro'", $db);
@@ -688,13 +688,13 @@ function saveNew($newRec)
 {
     global $db, $userid, $compID;
     $result = true;
-    
+
     // generate a TUID for the new entry
     $progress = "TUI8586";
     $newID = generateTUID($db, "competitions.compid", 10);
     if (!$newID)
         $result = false;
-    
+
     // insert the new main competition record
     if ($result) {
 
@@ -731,7 +731,7 @@ function saveNew($newRec)
     // insert the divisions
     if ($result)
         list($result, $progress) = saveDivisions($newRec["divisions"]);
-    
+
     // insert the games
     if ($result)
         list($result, $progress) = saveGames($newRec["games"], false);
@@ -749,7 +749,7 @@ function saveNew($newRec)
 
         // success - use the new TUID for the current record
         $compID = $newID;
-    
+
     } else if ($newID) {
 
         // failed - roll back as much as possible
@@ -828,10 +828,10 @@ function saveUpdates($newRec, $oldRec, $changesNew, $changesOld)
                compid = '$compID'", $db);
     }
 
-    // insert the divisions 
+    // insert the divisions
     if ($result)
         list($result, $progress) = saveDivisions($newRec["divisions"]);
-    
+
     // insert the games
     if ($result)
         list($result, $progress) = saveGames($newRec["games"], false);
@@ -900,7 +900,7 @@ if (!$errMsg && isset($_REQUEST["save"])) {
                 list($result, $progress) = saveNew($newRec);
 
             } else {
-                
+
                 // compute differences
                 list($changesOld, $changesNew) =
                     calcDeltas($oldRec, $newRec);
@@ -920,7 +920,7 @@ if (!$errMsg && isset($_REQUEST["save"])) {
                         "select pagevsn from competitions
                          where compid = '$compID'", $db);
                     list($pagevsn) = mysql_fetch_row($result);
-                    
+
                     if ($pagevsn != $newRec["pagevsn"]) {
                         $result = false;
                         $errMsg[] =
@@ -961,7 +961,7 @@ if (!$errMsg && isset($_REQUEST["save"])) {
                         . "error code: $progress."
                         . ($adminPriv ?
                            "<br>DB Error: " . mysql_error($db) : "");
-    
+
         }
 
         // if successful, do some additional cleanup
@@ -1083,7 +1083,7 @@ if ($succMsg) {
 function showFieldErrorDetail($col)
 {
     global $errDetail;
-    
+
     if (isset($errDetail[$col]) && count($errDetail[$col]) != 0) {
         echo "<table border=0 cellspacing=0 cellpadding=0>
               <tr valign=top>
@@ -1137,7 +1137,7 @@ function showHiddenFields($which)
         // run through the division list
         $divs = $dispRec["divisions"];
         for ($i = 0 ; $i < count($divs) ; $i++) {
-            
+
             // decode this division record
             $div = $divs[$i];
             $divID = htmlspecialcharx($div["divid"]);
@@ -1247,7 +1247,7 @@ var divVals = [
         $divid = $div["divid"];
         $divname = $div["divname"];
         $divdesc = $div["divdesc"];
-        
+
         // count up the games in this division
         for ($j = 0, $gameCnt = 0 ; $j < count($games) ; $j++)
         {
@@ -1415,7 +1415,7 @@ function divRowTpl(i, n, row)
         // placeholders with the appropriate run-time values wherever
         // they appear in the generated combo box string.
         echo jsSpecialChars(makeComboBox("gameplace#I#", 25, "#V#", $vals));
-        
+
      ?> &nbsp; ".replace(/#[IV]#/g, function(str) {
          if (str == "#I#") return "" + i + "_" + n;
          if (str == "#V#") return jsQuote(row[1]);
@@ -1454,7 +1454,7 @@ function editGame(divno, rownum)
             + encodeHTML(title) + "</i>";
 
         gameSearchPopupClose();
-    
+
     }, '');
 }
 
@@ -1556,7 +1556,7 @@ function editGame(divno, rownum)
         // add the help text
         if ($help)
             echo "$br<span class=details><i>$help</i></span>";
-        
+
         // end the row
         echo "</td></tr>";
     }
@@ -1649,7 +1649,7 @@ function editGame(divno, rownum)
     }
 
     echo "<p><a href=\"home\">IFDB Home</a>";
-    
+
 }
 
 pageFooter();

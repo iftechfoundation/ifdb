@@ -46,7 +46,7 @@
     if ($cnt)
         echo "<li><a class=silent href=\"search?browse&poll&sortby=new\">"
             . "$cnt Polls</a></li>";
-        
+
     $result = mysql_query("select count(*) as c from competitions", $db);
     $cnt = mysql_result($result, 0, "c");
     if ($cnt)

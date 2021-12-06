@@ -9,7 +9,7 @@
 //
 // call initReviewVote() somewhere in the <BODY> section, to insert the
 // javascript code for review voting
-// 
+//
 
 // --------------------------------------------------------------------------
 //
@@ -24,7 +24,7 @@ function getReviewQuery($db, $where)
 {
     // check for a logged-in user
     $curuser = checkPersistentLogin();
-    
+
     // If we're logged in, set up the review query modifiers for plonking
     // and promotions and demotions.
     $notPlonked = '1';
@@ -35,7 +35,7 @@ function getReviewQuery($db, $where)
                           . "on userfilters.targetuserid = reviews.userid "
                           . "and userfilters.userid = '$curuser'";
     }
-        
+
     // Include only reviews from our sandbox or sandbox 0 (all users)
     $sandbox = "(0)";
     if ($curuser)
@@ -47,7 +47,7 @@ function getReviewQuery($db, $where)
         if ($mysandbox != 0)
             $sandbox = "(0,$mysandbox)";
     }
-    
+
     // Return the full query.  This is a bit tricky, because we want to
     // aggregate the helpfulness votes into the results.  There might be
     // no votes for a given review, so we have to do an outer join to pick
@@ -110,7 +110,7 @@ global $specialCodes;
 function initSpecialNames($db)
 {
     global $specialCodes;
-    
+
     // query the special name list from the database
     $result = mysql_query("select id, name, code from specialreviewers", $db);
 
@@ -150,8 +150,8 @@ function displayReviewVote(reviewID, vote)
         {
             document.getElementById("voteStat_" + reviewID).innerHTML = "";
             document.getElementById("voteRemove_" + reviewID).innerHTML = "";
-        } 
-        else {        
+        }
+        else {
             document.getElementById("voteStat_" + reviewID).innerHTML =
                     "<br>(You voted "
                     + (vote == 'Y' ? "Yes" : "No")
@@ -160,9 +160,9 @@ function displayReviewVote(reviewID, vote)
             + "onclick=\"javascript:sendReviewVote('" + reviewID + "', 'R');"
             + "return false;\">Remove vote</a> &nbsp; "
         }
-    } 
+    }
     else {
-        document.getElementById("voteRemove_" + reviewID).innerHTML = "";                
+        document.getElementById("voteRemove_" + reviewID).innerHTML = "";
     }
 }
 
@@ -242,12 +242,12 @@ function showReview($db, $gameid, $rec, $specialNames, $optionFlags = 0)
     $showCommentCtls = !($optionFlags & SHOWREVIEW_NOCOMMENTCTLS);
     $addCommentOnly = ($optionFlags & SHOWREVIEW_COMMENTCTLSADDONLY);
     $adminReviewVotes = ($optionFlags & SHOWREVIEW_ADMINREVIEWVOTESLINK);
-    
+
     // get the current user, if we're logged in
     checkPersistentLogin();
     $curuser = isset($_SESSION['logged_in'])
                ? $_SESSION['logged_in_as'] : false;
-    
+
     // pull out the fields from the review record
     $reviewid = $rec['reviewid'];
     $qreviewid = mysql_real_escape_string($reviewid, $db);
@@ -476,8 +476,8 @@ function showReview($db, $gameid, $rec, $specialNames, $optionFlags = 0)
             if (check_admin_privileges($db, $curuser)) {
                 echo "<a href=\"review?id=$gameid&userid=$userid\">Edit</a>&nbsp; ";
             }
-            
-            
+
+
         echo  "<div style=\"display:inline;position:relative;\">"
             . "<a href=\"#\" id=\"voteMenuLink_$reviewid\" "
             . "onclick=\"javascript:popVoteMenu('$reviewid');"
@@ -527,7 +527,7 @@ function showReview($db, $gameid, $rec, $specialNames, $optionFlags = 0)
             . "</div>"
             . "</div>"
             . "</div>"
-            
+
             . "&nbsp;$barCommentCtls"
             . "&nbsp;<span id=\"voteMsg_$reviewid\" class=\"xmlstatmsg\">"
             . "</span><span id=\"voteStat_$reviewid\"></span>"
@@ -540,7 +540,7 @@ function showReview($db, $gameid, $rec, $specialNames, $optionFlags = 0)
         echo "<div class=smallfoot><span class=details>$commentCtls"
             . "</span></div>";
     }
-    
+
 
     echo "<br>";
 }

@@ -190,7 +190,7 @@ if ($userid)
     $savedir = STORAGE_DIR . "$userid/$gameid/save";
     $savefiles = getStorageFileList($savedir);
 
-    // if we have any saved games, offer the option to restore 
+    // if we have any saved games, offer the option to restore
     if (count($savefiles))
     {
         // we have saved games - show a "start a new game" link

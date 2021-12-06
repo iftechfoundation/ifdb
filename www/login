@@ -162,7 +162,7 @@ function login()
 // try logging in - if that returns false, our work here is done
 if (!login())
     exit();
-    
+
 // Figure the initial focus: if this is a GET with a user ID but no
 // password, assume the user ID field was pre-populated by the referring
 // page, so start in the password field.  Otherwise start in the user ID

@@ -50,7 +50,7 @@ $itimeStr = date("r", $itime);
 //
 //    css/images/<name>  -> a custom-style image with name <name>
 //       and owner <tuid>, from table STYLEPICS
-//  
+//
 if (preg_match("/^css\/ifdb\.css$/", $fname, $match)) {
 
     // it's "ifdb.css" - remap this to the root style sheet

@@ -21,7 +21,7 @@ function sendRSS($title, $link, $desc, $items, $limit)
 
     // get just the item bodies, and combine into a string
     $body = implode("", array_map("getRssItemBody", $items));
-    
+
     // send the RSS content-type header
     header("Content-Type: application/rss+xml");
     header("Expires: Mon, 26 Jul 1997 05:00:00 GMT");

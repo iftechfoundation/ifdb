@@ -48,7 +48,7 @@ function queryComments($db, $mode, $quid, $limit, $caughtUpDate, $keepPlonked)
         if ($sandbox != 0)
             $inSandbox = "uc.sandbox in (0, $sandbox)";
     }
-    
+
     switch ($mode) {
     case 'subscribed':
         // Add instructions to count the number of posts where this user
@@ -82,7 +82,7 @@ function queryComments($db, $mode, $quid, $limit, $caughtUpDate, $keepPlonked)
            c.modified, date_format(c.modified, '%M %e, %Y'),
            c.userid, uc.name, c.private,
 
-           rg.id, rg.title, r.userid, ru.name, 
+           rg.id, rg.title, r.userid, ru.name,
            u.id, u.name,
            l.title, l.userid, lu.name,
            p.title, p.userid, pu.name,
@@ -192,14 +192,14 @@ function queryComments($db, $mode, $quid, $limit, $caughtUpDate, $keepPlonked)
 
         // build the return list
         $comments[] = array($row, $link, $title, $ltitle);
-            
+
     }
 
     // return the results
     return array($comments, $rowcnt);
 }
 
-function showCommentPage($db, $itemAuthor, $srcID, $srcCode, 
+function showCommentPage($db, $itemAuthor, $srcID, $srcCode,
                          $mainPage, $commentPage, $perPage,
                          $title, $anchor)
 {
@@ -228,7 +228,7 @@ function showCommentPage($db, $itemAuthor, $srcID, $srcCode,
         if ($sandbox != 0)
             $inSandbox = "uc.sandbox in (0, $sandbox)";
     }
-    
+
     // query the comments
     $result = mysql_query(
         "select
@@ -376,7 +376,7 @@ function showComment($db,$commentPage, $itemAuthor, $cidx, $coutlst, $i)
     // get the logged-in user
     checkPersistentLogin();
     $curuser = $_SESSION['logged_in_as'];
-    
+
     // unpack the item
     $crec = $cidx[$coutlst[$i]];
     list($cid, $cpar, $ctxt, $cuserid, $cusername,
@@ -396,7 +396,7 @@ function showComment($db,$commentPage, $itemAuthor, $cidx, $coutlst, $i)
     if ($curuser && $curuser == $cuserid) {
         $ctls .= " | <a href=\"$commentPage&edit=$cid\">Edit</a>";
     } else if ($isAdmin) {
-        $ctls .= " | <a href=\"$commentPage&edit=$cid\">Edit</a>";        
+        $ctls .= " | <a href=\"$commentPage&edit=$cid\">Edit</a>";
     }
     if ($curuser == $cuserid || $curuser == $itemAuthor) {
         $ctls .= " | <a href=\"$commentPage&delete=$cid\">Delete</a>";
@@ -416,7 +416,7 @@ function showComment($db,$commentPage, $itemAuthor, $cidx, $coutlst, $i)
                    ($i == 0 ? "First" :
                     ($i+1 == count($coutlst) ? "Last" :
                      "")));
-    
+
     // start the comment section
     echo "<div class=$divClass>";
 
@@ -456,7 +456,7 @@ function revealPlonkedComment(ele)
 </script>
             <?php
         }
-    }        
+    }
 
     // show the comment body
     echo "<span class=details>"
@@ -495,7 +495,7 @@ function countComments($db, $srcCode, $qSrcID)
     checkPersistentLogin();
     $curuser = $_SESSION['logged_in_as'];
     $orOwner = ($curuser ? "or '$curuser' in (c.userid, c.private)" : "");
-    
+
     // Include only reviews from our sandbox or sandbox 0 (all users)
     $inSandbox = "uc.sandbox = 0";
     if ($curuser)
@@ -507,7 +507,7 @@ function countComments($db, $srcCode, $qSrcID)
         if ($sandbox != 0)
             $inSandbox = "uc.sandbox in (0, $sandbox)";
     }
-    
+
     $result = mysql_query(
         "select
            count(*)
@@ -519,7 +519,7 @@ function countComments($db, $srcCode, $qSrcID)
            and (c.source = '$srcCode' and c.sourceid = '$qSrcID')
            and ($inSandbox)",
         $db);
-    
+
     list($cnt) = mysql_fetch_row($result);
     return $cnt;
 }

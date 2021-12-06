@@ -190,10 +190,10 @@ if (!isset($_REQUEST['confirm'])) {
     echo "<h1>$title - Delete Listing</h1>";
     ?>
 
-    <b>Are you sure you want to delete this competition's listing?</b> 
+    <b>Are you sure you want to delete this competition's listing?</b>
 
     <p>If you click "Yes" below, the listing will be permanently
-    deleted.  This action is irrevocable - it can't be undone. If you 
+    deleted.  This action is irrevocable - it can't be undone. If you
     change your mind later, you'll have to re-enter the competition
     information from scratch.
 

@@ -332,7 +332,7 @@ function formCol($col, $val, $title, $input, $hint)
     }
     else
         echo $input;
-    
+
     echo showErrDetail($col);
     if ($hint)
         echo "<br><span class=details><i>$hint</i></span>";
@@ -376,7 +376,7 @@ if ($qid == "new")
         . "An IFDB club page isn't meant to be a full-service Web site, "
         . "though, which is why it includes a link to your club's "
         . "official site."
-        
+
         . "<p>Once created, a club listing can only be edited by a "
         . "\"club administrator.\"  You automatically become the first "
         . "administrator when you create a club, and you'll be "
@@ -452,7 +452,7 @@ $pswHint = "Note: the password is encrypted in the database and can't "
 if ($qid != "new" && $hasPassword)
     $pswHint = "The existing password will <b>not</b> be changed if "
                . "you leave this blank.<br>$pswHint";
-    
+
 $pswVis = ($hasPassword ? "" : "display:none;");
 
 formCol("password", "", "Password",
@@ -469,7 +469,7 @@ formCol("membersPublic", $membersPublic, "Membership",
         . "Make the club's membership public</label></label>",
         "If you check this box, the membership list will be visible "
         . "to everyone. If not, it will be visible only to club members.");
-            
+
 
 echo "<tr><td></td><td><p><input type=image alt='Save Changes' "
    . "value='Save Changes' name='save' "

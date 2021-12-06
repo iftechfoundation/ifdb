@@ -67,7 +67,7 @@ function sendXml($contents)
 {
     ini_set("default_charset", "ISO-8859-1");
     header("Content-Type: text/xml");
-    
+
     echo "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
         . "<autoinstall xmlns=\"http://ifdb.org/xmlns/autoinstall\">\n";
 
@@ -117,7 +117,7 @@ if ($xml) {
     $ifidsXml = implode("\n", array_map(
         create_function('$x', 'return "<ifid>$x</ifid>";'), $ifids));
 }
-    
+
 // presume we want executables if available, as they're easier to deal
 // with for novice users
 $noExes = $noInstallers = 0;
@@ -186,7 +186,7 @@ if ($osid == "") {
     if ($val)
         list ($osid, $osvsn) = $val;
 }
-    
+
 // If there's no OS setting (either from the profile defaults or the
 // request parameters), they need to choose one before we can proceed.
 if ($osid == "") {
@@ -510,7 +510,7 @@ function collapseEmptyLists($msg)
 {
     $listStack = array();
     $lsp = -1;
-    
+
     // scan the string
     for ($ret = "", $ofs = 0, $liOfs = -1 ; ; ) {
 
@@ -869,7 +869,7 @@ function handleFragment($frag)
 function processIncludes($str, $col)
 {
     global $db;
-    
+
     // canonicalize newlines
     $str = str_replace(array("\r\n", "\r"), array("\n", "\n"), $str);
 
@@ -916,7 +916,7 @@ function processIncludes($str, $col)
 function getFormatHelp($fmtid, $col)
 {
     global $db, $qosid, $osseq;
-    
+
     // look up the message in the database
     $qfmtid = mysql_real_escape_string($fmtid, $db);
     $sql = "select
@@ -973,7 +973,7 @@ function getFormatMessage($fmtid, $col, $params)
 
         // find the next tag
         list($tagofs, $ofs, $frag, $tag, $attrs) = findNextTag($msg, $ofs);
-        
+
         // add the plain text up to the tag to the output
         $ret .= handleFragment($frag);
 
@@ -1189,11 +1189,11 @@ function getDownloadURLInstructions($url, $localref, $comp, $localfile, $run)
 
     // check for compression
     if ($comp) {
-    
+
         // we have compression - we need to download the unarchiver
         $z = $zips[$comp];
         if ($z) {
-            
+
             // If we haven't already covered downloading the archiver,
             // do so now.  Add this as a separate, out-of-band top-level
             // step, since it's a pre-requisite rather than part of the
@@ -1234,7 +1234,7 @@ function getDownloadURLInstructions($url, $localref, $comp, $localfile, $run)
 
             // the result is the sublist
             $ret = closeHelpSublist();
-    
+
         } else {
             // this should never happen - we're missing the compression
             // format record
@@ -1259,7 +1259,7 @@ function getDownloadURLInstructions($url, $localref, $comp, $localfile, $run)
 function sayDownloadLink($link, $run)
 {
     global $urlToOs;
-    
+
     // get the parameters from the link
     $url = $link['url'];
     $comp = $link['compression'];
@@ -1273,7 +1273,7 @@ function sayDownloadLink($link, $run)
 // step number 1.
 $stepnum = 1;
 $storyDone = false;
-    
+
 // Remove any links that have compression formats that we can't handle.
 // This will prevent picking a package and then failing because it's
 // in the wrong compression format, when we would have succeeded if we'd
@@ -1417,7 +1417,7 @@ function sortForXmlStoryPick($a, $b)
 // the original version as a plain .z5 file and a translated version in
 // a ZIP file - our algorithm would pick the translated version.  So we now
 // use the dead simple approach of picking the first playable file.
-// 
+//
 //$zipXmlOrder = array(
 //    'zip' => 1, 'tar.Z' => 2, 'tar.gz' => 2, 'tar' => 3,
 //    'stuffit' => 4, 'sit.bin' => 4, 'sit.hqx' => 5);
@@ -1425,7 +1425,7 @@ function sortForXmlStoryPick($a, $b)
 //function sortForXmlStoryPick($a, $b)
 //{
 //    global $zipXmlOrder;
-//    
+//
 //    // get the compression formats
 //    $compa = $a['compexternid'];
 //    $compb = $b['compexternid'];
@@ -1590,7 +1590,7 @@ if ($xml) {
 
         // interpreter-based story file
         $fmtType = "storyfile";
-    
+
         // get the <interpreter> help records for the format
         $fmtInstall = getFormatHelp($xmlGameLink['fmtid'], "installer");
         if (!$fmtInstall)
@@ -1617,7 +1617,7 @@ if ($xml) {
 
     // set up the XML response
     $xml = "";
-        
+
     // add the IF Archive mirror setting, if available
     if ($mirrorUrlPref)
         $xml .= "<ifarchivemirror>$mirrorUrlPref</ifarchivemirror>";
@@ -1643,7 +1643,7 @@ if ($xml) {
 
     // send the XML instructions
     sendXml($xml);
-    
+
     // that's all for the XML version - we're done
     exit();
 }
@@ -1790,7 +1790,7 @@ if ($missing) {
                     $foreign[$c-1] = "and " . $foreign[$c-1];
                 $foreign = implode(", ", $foreign);
             }
-                
+
             echo "This game appears to be available only as a native application for "
                 . "$foreign.  To run this game, you'll need to find a computer "
                 . "that runs $fthat.  Alternatively, it might be possible to use "

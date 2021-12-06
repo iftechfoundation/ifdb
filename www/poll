@@ -37,7 +37,7 @@ $formSuccMsg = false;
 
 // check for poll deletion
 if ($userid && isset($_REQUEST['delPoll'])) {
-    
+
     // retrieve the poll data
     $result = mysql_query(
         "select title, `desc`, userid from polls where pollid = '$id'", $db);
@@ -100,7 +100,7 @@ if ($userid && isset($_REQUEST['delPoll'])) {
                                   . "or <a href=\"contact\">contact us</a> "
                                   . "if the problem persists.";
                 }
-            } 
+            }
 
             // if we got here, we haven't deleted yet, so ask for confirmation
             echo "<h1>Confirm Deletion</h1>";
@@ -195,7 +195,7 @@ if ($userid && isset($_REQUEST['editPoll'])) {
                         . "<img src=\"/img/blank.gif\" class=\"form-error-icon\"> "
                         . "$formErrMsg</span></p>";
                 }
-            
+
                 echo "<form name=\"editPoll\" method=\"post\" action=\"poll\">"
                     . "<h1>Edit Poll</h1>"
                     . "<b>Poll title:</b>  Complete the thought, \"I'm "
@@ -298,7 +298,7 @@ if (isset($_REQUEST['newPollGo'])) {
         // get my user name
         $result = mysql_query("select name from users where id='$userid'", $db);
         list($username) = mysql_fetch_row($result);
-        
+
         echo "<h1>New poll created!</h1>"
             . "<p>Your poll has been successfully created as follows:</p>"
             . "<div class=indented>"
@@ -472,7 +472,7 @@ if ($userid && $id && isset($_REQUEST['delVote'])) {
                       . "server problem, so you might want to try again "
                       . "in a few minutes.";
     }
-    
+
     // if this is a confirmation request, delete the row, otherwise prompt
     if (!$formErrMsg && get_req_data('confirm') == $gameID) {
 
@@ -512,7 +512,7 @@ if ($userid && $id && isset($_REQUEST['delVote'])) {
                 . "<a href=\"poll?id=$id\"><br>"
                 . "<b>No</b>, keep my vote and return to the poll page</a>";
         }
-        
+
         pageFooter();
         exit();
     }
@@ -588,7 +588,7 @@ if ($userid && $id && isset($_REQUEST['addVote'])) {
                 . "a few minutes, or <a href=\"contact\">contact us</a> "
                 . "if the problem persists.</span><p>";
         }
-        
+
         echo "<b>Poll: " . htmlspecialcharx($title) . "</b><br>"
             . "<b>Game: <i>$gameTitle</i>, by $gameAuthor</b>"
             . "<form name=\"voteForm\" method=\"post\" action=\"poll\">"
@@ -618,7 +618,7 @@ if ($userid && $id && isset($_REQUEST['addVote'])) {
         $matches = array();
         $gameTitle = get_req_data('addTitle');
         $qTitle = mysql_real_escape_string($gameTitle, $db);
-    
+
         // try looking up the title as a TUID first
         $result = mysql_query(
             "select id, title, author, coverart from games
@@ -673,7 +673,7 @@ if ($userid && $id && isset($_REQUEST['addVote'])) {
         pageHeader("Vote for a game", "addVoteForm.addTitle");
         echo "<h1>Vote for a game</h1>";
         echo "<b>Poll: " . htmlspecialcharx($title) . "</b><p>";
-        
+
         // title match - present the list of matches for confirmation (in
         // the case of a single match) or selection (if multiple matches)
         echo "Title search for <b>" . htmlspecialcharx($gameTitle)
@@ -689,7 +689,7 @@ if ($userid && $id && isset($_REQUEST['addVote'])) {
         else {
             echo "$cnt matching titles found:<p>";
         }
-    
+
         for ($i = 0 ; $i < count($matches) ; $i++) {
             $match = $matches[$i];
             echo "<p><a href=\"poll?addVote&id=$id&game={$match['id']}\">"
@@ -801,7 +801,7 @@ if ($userid && isset($_REQUEST['comment'])) {
                         . "<img src=\"/img/blank.gif\" class=\"form-error-icon\"> "
                         . "$formErrMsg</span></p>";
                 }
-            
+
                 echo "<form name=\"editCmt\" method=\"post\" action=\"poll\">"
                     . "<h1>Comment on $gameTitle</h1>"
                     . "Enter any comments you have about the game "
@@ -900,7 +900,7 @@ engine to match.
 } else if ($id) {
 
     // View a poll (either human-readable or as RSS)
-    
+
     // look up the poll information
     $result = mysql_query(
         "select
@@ -1171,7 +1171,7 @@ function expandVote(id)
             } else {
                 // last row
                 $gameID = '[end]';
-            }                
+            }
 
             // if we're on to a new game, start the new game listing
             if ($gameID != $curGameID) {
@@ -1235,7 +1235,7 @@ function expandVote(id)
                         . "<td colspan=2 style=\"padding-bottom: 1em;\">"
                         . "<hr class=dots></td></tr>";
                 }
-    
+
                 // if we've reached the last row, we're done
                 if ($i >= $cnt) {
                     // end the table
@@ -1295,7 +1295,7 @@ function expandVote(id)
                        . "Full review</a>)" :
                        ($rating ? " (" . showStars($rating) . ")" :
                         ""));
-                
+
                 echo "<span id=\"voteQ$i\">$qq "
                     . "<span class=details>["
                     . "<a title=\"Click to see more details\" href=\"needjs\" "
@@ -1318,7 +1318,7 @@ function expandVote(id)
         }
 
         echo "Just fill in the title of a game you'd like to vote for.";
-    
+
         // show the add-a-game form
         echo "<form name=\"addVoteForm\" method=\"get\" action=\"poll\">"
             . "<input type=hidden name=id value=\"$id\">"

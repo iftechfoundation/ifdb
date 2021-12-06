@@ -60,7 +60,7 @@ if (isset($_REQUEST['browse']))
                games as g
                left outer join playedgames as p
                   on p.gameid = g.id and p.userid = '$userid'
-               left outer join reviews as r 
+               left outer join reviews as r
                   on r.gameid = g.id and r.userid = '$userid'
              where
                (p.gameid is not null or r.rating is not null)
@@ -160,7 +160,7 @@ if (isset($_REQUEST['browse']))
                     . urlencode($searchFor) . "\">advanced search</a> tool."
                     . "</i></span>";
             }
-    
+
             for ($i = 0 ; $i < count($rows) ; $i++)
             {
                 $row = $rows[$i];
@@ -297,7 +297,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_REQUEST['delete'])) {
     $omitAvg = get_req_data("omitAvg");
     $oldVersion = get_req_data("oldVersion");
     addHiddenItems();
-    
+
     pageFooter();
     exit();
 }
@@ -305,7 +305,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_REQUEST['delete'])) {
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_REQUEST['cancelDelete'])) {
     // cancel delete - proceed on to the main form
 }
-    
+
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_REQUEST['confirmDelete'])) {
 
     // confirm delete - proceed with the deletion
@@ -361,7 +361,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_REQUEST['confirmDelete'])) {
 
         echo "<p><span class=details><a href=\"viewgame?id=$id\">Return "
             . "to the game overview</a></span>";
-    
+
     } else {
         echo "<h1>Review Not Found</h1>The review you are attempting
             to delete was not found in the database.";
@@ -370,7 +370,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_REQUEST['confirmDelete'])) {
     pageFooter();
     exit();
 }
-    
+
 
 // if we're posting, save the changes
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
@@ -507,7 +507,7 @@ up your existing review for further editing.
         // quote the fields - make the text fields null if they're empty
         $qsummary = mysql_real_escape_string($summary, $db);
         $qsummary = (trim($qsummary) == "" ? "NULL" : "'$qsummary'");
-        
+
         $qreview = mysql_real_escape_string($reviewbody, $db);
         $qreview = (trim($qreview) == "" ? "NULL" : "'$qreview'");
 
@@ -608,7 +608,7 @@ up your existing review for further editing.
         // clear the recommendation cache, since the new review gives
         // use new information for calculating user proximity
         shoot_recommendation_cache();
-        
+
         // if that succeeded, redirect back to the game's home page;
         // otherwise, return to the entry page with an error
 
@@ -692,7 +692,7 @@ by <?php echo $author ?><br>
 <p>Share your thoughts about this game with others in the IF community.
 Please follow our <?php
    echo helpWinLink("code-of-conduct", "code of conduct");
-?>, 
+?>,
 and please avoid spoilers (or use the <?php
 echo helpWinLink("help-review#spoilertags", "&lt;spoiler&gt; tag")
 ?>).
@@ -842,7 +842,7 @@ if (isset($errDetail['tags']))
 if (isset($errDetail['embargoDate']))
     echo "<span class=errmsg><i>{$errDetail['embargoDate']}</i></span><br>";
 ?>
-     <b>5. Embargo date:</b> 
+     <b>5. Embargo date:</b>
         <input type="text" name="embargoDate" length=30 value="<?php
           echo htmlspecialcharx($embargoDate) ?>"><br>
      <span class=notes>Optional.
@@ -891,20 +891,20 @@ if (isset($errDetail['embargoDate']))
          <label><input type="checkbox" id="cbOmitAvg" name="omitAvg" value=1
          <?php if ($omitAvg) echo "checked"; ?>><label for="cbOmitAvg">
             Omit my rating from the game's average</label></label>
-         
+
          <br><span class=notes>If you check this box, your rating will appear
             with your review, but it won't be counted in the average member
             rating for the game.</span>
-         
+
          <br><br>
-         
-         <label><input type="checkbox" id="cbOldVsn" name="oldVersion" value=1 
+
+         <label><input type="checkbox" id="cbOldVsn" name="oldVersion" value=1
          <?php if ($oldVersion) echo "checked"; ?>><label for="cbOldVsn">
             This review is for an older version of the game</label></label>
-         
+
          <br><span class=notes>Checking this box will add a note to this
             effect when your review is displayed.</span>
-         
+
       </div>
    </p>
 

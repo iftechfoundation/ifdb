@@ -186,7 +186,7 @@ if ($listid != 'new' && $_SERVER['REQUEST_METHOD'] == 'POST'
         $result = mysql_query(
             "delete from reclists where id = '$qlistid'", $db);
     }
-    
+
     if ($result) {
         $progress = "DEL6036";
         $result = mysql_query(
@@ -268,7 +268,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST'
             // look it up
             $result = mysql_query("select id from games where id='$tuid'", $db);
 
-            // if we didn't find it, flag that we 
+            // if we didn't find it, flag that we
             if (mysql_num_rows($result) == 0) {
                 // flag it as missing
                 $missing = true;
@@ -278,7 +278,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST'
                 unset($item['tuid']);
             }
         }
-        
+
         // put the item back in the master list, in case we modified it
         $listItems[$i] = $item;
     }
@@ -454,7 +454,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_REQUEST['preview'])) {
                        // show the options for this item
                        for ($j = 0 ; $j < count($match) ; $j++) {
 
-                           // start a new row 
+                           // start a new row
                            echo "<tr><td></td><td>";
 
                            // get the match
@@ -539,11 +539,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_REQUEST['preview'])) {
                // add hidden items for the entries, in case we need to go back
                addHiddenItems();
            ?>
-           
+
            <p>
            <input type="submit" value="Publish" name="publish"> &nbsp;&nbsp;
            <input type="submit" value="Continue Editing" name="edit">
-           
+
         </form>
 
         <?php
@@ -838,7 +838,7 @@ if ($listid != 'new')
             <p>For each game, you can add a brief comment explaining
             why you think this game belongs on this list, or why you're
             recommending it.
-            
+
             <p>
 
 <script type="text/javascript">

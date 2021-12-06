@@ -279,7 +279,7 @@ if ($errMsg) {
                     . "{$rec['embargodate']}.</i></span></div>";
 
             echo "<div class=indented>";
-            
+
             // display it
             if ($rec['review'] != "") {
                 // we have a full review

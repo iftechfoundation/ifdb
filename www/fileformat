@@ -111,7 +111,7 @@ if ($dlastr) {
         array('installer', FT_TEXT, FGRP_AUTOINSTALL,
               "One or more &lt;interpreter&gt; sections (giving automated "
               . "install instructions for this format's interpreter(s))"));
-   
+
     $dlarec = array();
     foreach ($dlafields as $f)
         $dlarec[$f[0]] = get_req_data($f[0]);
@@ -119,9 +119,9 @@ if ($dlastr) {
 
 function showHiddenFields()
 {
-    global $fmtid, $externid, $fmtname, $fmtdesc, 
+    global $fmtid, $externid, $fmtname, $fmtdesc,
         $fmtwebsite, $fmticon, $fmtclass, $fmtext;
-    
+
     echo "<input type=hidden name=id value=\""
         . htmlspecialcharx($fmtid) . "\">"
         . "<input type=hidden name=externid value=\""
@@ -162,7 +162,7 @@ if ($fmtid) {
         $oldext = mysql_result($result, 0, "extension");
     }
 }
-            
+
 
 // get the old settings for the selected DLA entry
 if ($dlastr) {
@@ -484,7 +484,7 @@ if ($geticon) {
         // note that we're trying to save
         $saving = true;
         $saveErrMsg = "";
-        
+
         // save the changes
         $qname = mysql_real_escape_string($fmtname, $db);
         $qdesc = mysql_real_escape_string($fmtdesc, $db);

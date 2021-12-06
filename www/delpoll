@@ -180,10 +180,10 @@ if (!isset($_REQUEST['confirm'])) {
     echo "<h1>$title - Delete Poll</h1>";
     ?>
 
-    <b>Are you sure you want to delete this poll?</b> 
+    <b>Are you sure you want to delete this poll?</b>
 
     <p>If you click "Yes" below, the poll will be permanently
-    deleted.  This action is irrevocable - it can't be undone. If you 
+    deleted.  This action is irrevocable - it can't be undone. If you
     change your mind later, you'll have to re-create the poll from
     scratch, and all votes will have to be re-entered.
 

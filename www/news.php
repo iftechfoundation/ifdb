@@ -156,7 +156,7 @@ function queryNewsRss(&$items, $db, $sourceType, $sourceID, $maxItems,
 //
 // Query news records for a given source.  Fills in rowcnt with the
 // full calculated row count.
-// 
+//
 function queryNews($db, $sourceType, $sourceID, $includeDeletions,
                    $limit, &$rowcnt)
 {
@@ -184,7 +184,7 @@ function queryNews($db, $sourceType, $sourceID, $includeDeletions,
         if ($mysandbox != 0)
             $sandbox = "(0,$mysandbox)";
     }
-    
+
     // if there's a limit clause, also calculate the row count
     $calcFoundRows = ($limit ? "sql_calc_found_rows" : "");
 

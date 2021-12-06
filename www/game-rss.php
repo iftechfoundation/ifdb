@@ -23,7 +23,7 @@ define("GAME_RSS_NEWS", 4);     // include only news items
 //   $extFeed is true if this is a feed for an item OTHER THAN the game
 //       itself (for example, the feed for games linked to an author).
 //       If this is true, we'll include the game's name in the title and
-//       description of each news item. 
+//       description of each news item.
 //
 function getGameRssItems($db, $id, $feedType, $gameTitle, $links, $extFeed)
 {

@@ -26,7 +26,7 @@ $reqEmail = get_req_data("email");
 function verify() {
     global $actcode, $errFlagged, $altMsg, $reqsalt, $action,
            $nonce, $reviewProfile, $usernum, $reqEmail, $email, $db;
-    
+
     // connect to the database
     if ($db == false) {
         $errFlagged = "An error occurred accessing the user database. Please
@@ -95,7 +95,7 @@ function verify() {
                     // pick a new activation code
                     $newcode = sha1(md5_rand($usernum) . md5_rand($nonce));
                     $newcode = mysql_real_escape_string($newcode, $db);
-    
+
                     // update the code and set status to 'pending activation'
                     if (mysql_query(
                         "update users
@@ -224,7 +224,7 @@ function verify() {
                     // pick a new activation code
                     $newcode = sha1(md5_rand($usernum) . md5_rand($reqsalt));
                     $newcode = mysql_real_escape_string($newcode, $db);
-    
+
                     // update the code and set status to 'pending activation'
                     if (mysql_query(
                         "update users
@@ -239,7 +239,7 @@ function verify() {
                     $altMsg = "Account status changed to Pending Activation; "
                               . "email sent to "
                               . htmlspecialcharx($email) . ".";
-    
+
                 } else if ($action == 'delete') {
 
                     $errFlagged = "\"Delete with notice\" is no longer supported.";
@@ -282,7 +282,7 @@ function verify() {
                 }
             }
 
-            
+
         } else {
             $errFlagged = "This account has been disabled, and
                 is not currently eligible for activation. Please contact
@@ -319,7 +319,7 @@ if (strlen($actcode) != 40 && !$nonce) {
 
         if ($errFlagged)
             echo "<p><span class=errmsg><b>Error:</b> $errFlagged</span>";
-    
+
     } else if ($errFlagged) {
 ?>
 

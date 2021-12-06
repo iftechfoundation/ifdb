@@ -164,7 +164,7 @@ if (!$errMsg) {
             // so keep the old value if we're not changing it this time)
             if (isset($deltas["games"]))
                 $gameDeltas = true;
-    
+
             // if this is the target version, we're done
             if ($pagevsn == $hVsn)
                 break;
@@ -334,7 +334,7 @@ function decodeProfiles($t)
     {
         // pull out this profile ID
         $pid = mysql_real_escape_string($match[1][0], $db);
-        
+
         // look up this user ID
         $result = mysql_query(
             "select name from users where id = '$pid'", $db);
@@ -543,7 +543,7 @@ if (!$historyView) {
         . "<i>This is version {$rec['pagevsn']} of this page, "
         . "edited by <a href=\"showuser?id=$editorID\">$editorName</a> "
         . " on $moddate. "
-        
+
         . "</i> - <a href=\"viewcomp?id=$compID&history&vsn=$pagevsn\">"
         . "View Update History</a> - "
         . "<a href=\"editcomp?id=$compID\">Edit This Page</a> - "

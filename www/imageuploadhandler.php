@@ -162,7 +162,7 @@ function imageUploadRadio($originalUrl, $noneLabel, $radioname, $curval,
     // apply a default to $noneLabel
     if (!$noneLabel)
         $noneLabel = "No Image";
-    
+
     // derive the control names
     $ubtn = "$radioname-uplbtn";
     $ufr = "$radioname-iframe";
@@ -264,9 +264,9 @@ imageTableUpdate("<?php echo "$utab"; ?>", "<?php echo $radioname; ?>", [<?php
 function getJustUploadedImage($prev)
 {
     global $imgErrMsg;
-    
+
     $images = isset($_SESSION['temp_images']) ? $_SESSION['temp_images'] : "";
-    
+
     if (isset($_REQUEST['uploadimage'])
         && isset($_FILES['imagefile'])
         && strlen($_FILES['imagefile']['tmp_name']) > 0
@@ -417,7 +417,7 @@ function setDefaultImageCopyright(def)
           <?php if ($rbval == '') echo "checked"?>
           onclick="javascript:setDefaultImageCopyright('');">
           <label for="icrNULL">Not specified.</label></label>
-          
+
 
        <p>Enter the image's copyright description, if applicable.
        For example: "Copyright 2000 by Big IF Games"<br>

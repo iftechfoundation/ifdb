@@ -13,7 +13,7 @@ function basePageHeader($title, $focusCtl, $extraOnLoad, $extraHead,
 //  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 //<html xmlns="http://www.w3.org/1999/xhtml">
 
-// $$$ UTF8 encoding - NOT CURRENTLY ACTIVE: 
+// $$$ UTF8 encoding - NOT CURRENTLY ACTIVE:
 // iconv_set_encoding("output_encoding", "UTF-8");
 // NOTE: if changing to UTF-8, also change the <meta> below to set
 // the charset clause in the Content_Type parameter to UTF-8.
@@ -31,7 +31,7 @@ function basePageHeader($title, $focusCtl, $extraOnLoad, $extraHead,
     <link rel="manifest" href="/favicons/site.webmanifest">
     <link rel="shortcut icon" href="/favicon.ico">
     <meta name="theme-color" content="#000000">
-    
+
    <link rel="search" type="application/opensearchdescription+xml"
          title="IFDB Search Plugin"
          href="<?php echo get_root_url() ?>plugins/ifdb-opensearchdesc.xml">
@@ -120,7 +120,7 @@ function pageHeader($title, $focusCtl = false, $extraOnLoad = false,
                     <a id="topbar-login" class="login-link" href="/login?dest=home">Log In</a>
                 <?php endif ?>
                 </ul>
-            </div> 
+            </div>
         </nav>
     <?php if ($isLoggedIn) : ?>
         <button type="button" id="mobile-menu-toggle-button" class="menu-toggle-button" aria-label="Menu" onclick="ToggleMobileMenu()" class="hidden">
@@ -140,16 +140,16 @@ function pageHeader($title, $focusCtl = false, $extraOnLoad = false,
     }
 
     (()=> {
-    
+
     // The mobile menu should be closed by default
     ToggleMobileMenu();
 
     // If javascript is enabled, un-hide the mobile menu button & add the 'mobile-menu' class to the main nav wrapper,
     document.querySelector('#mobile-menu-toggle-button').classList.remove('hidden');
     document.querySelector('#main-nav-wrapper').classList.add('mobile-menu');
-    
+
 })()
-    
+
 </script>
 
 <div class="main">
@@ -228,7 +228,7 @@ function helpPageFooter()
 
 // --------------------------------------------------------------------------
 // Insert the <script> code for setting up for active checkboxes.
-// 
+//
 function ckboxSetup()
 {
 ?>

@@ -140,7 +140,7 @@ if (count($tags) == 0) {
             . "<font size=$siz><span class=\"tagAge$color\">"
             . "$td</span></font></a></span> ";
     }
-    
+
 }
 
 echo "</center></div><p>"

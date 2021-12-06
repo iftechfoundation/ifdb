@@ -37,7 +37,7 @@ if (isset($_REQUEST['search']))
 {
     pageHeader("Edit a Game Listing", "editSearchForm.searchFor");
     echo "<h1>Edit a Game Listing</h1>";
-        
+
     $searchFor = get_req_data("searchFor");
 
     ?>
@@ -103,7 +103,7 @@ if (isset($_REQUEST['search']))
             // we're done; the browser will handle the rest via
             // the redirect
             exit();
-            
+
         }
         else
         {
@@ -118,7 +118,7 @@ if (isset($_REQUEST['search']))
                     . urlencode($searchFor) . "\">advanced search</a> tool."
                     . "</i></span>";
             }
-    
+
             for ($i = 0 ; $i < count($rows) ; $i++)
             {
                 $row = $rows[$i];
@@ -322,7 +322,7 @@ function addHiddenFields()
 function showFieldErrorDetail($col)
 {
     global $errDetail;
-    
+
     if (isset($errDetail[$col]) && count($errDetail[$col]) != 0) {
         echo "<table border=0 cellspacing=0 cellpadding=0>
               <tr valign=top>
@@ -344,7 +344,7 @@ function showFieldErrorDetail($col)
 // --------------------------------------------------------------------------
 
 // get the username
-$result = mysql_query("select name, location from users 
+$result = mysql_query("select name, location from users
     where id = '$userid'", $db);
 $username = mysql_result($result, 0, "name");
 $userloc = mysql_result($result, 0, "location");
@@ -403,7 +403,7 @@ if ($errMsg) {
             // if we've run out of linkurlN values, there are no more rows
             if (!isset($_POST["linkurl$i"]))
                 break;
-            
+
             // load up this record
             $link = array();
             $link['url'] = get_req_data("linkurl$i");
@@ -746,7 +746,7 @@ function showLinkPopup(event,linkNum)
         }, 1);
     } else
         oDiv.style.top = (nTop - linkPopupHeight) + "px";
-        
+
     oDiv.style.display = "";
 
     formatPopupOpen = true;
@@ -765,7 +765,7 @@ function showLinkPopup(event,linkNum)
 function updateFormatUI(byUser)
 {
     var ele, vis;
-    
+
     var selFmtG = document.getElementById("linkfmtG");
     var selFmtNG = document.getElementById("linkfmtNG");
     var selCmp = document.getElementById("linkcomp");
@@ -834,7 +834,7 @@ function saveLinkPopup()
         var hiddenAttrs = document.getElementById("linkattrs" + linkNum);
         var hiddenTitle = document.getElementById("linktitle" + linkNum);
         var hiddenDesc = document.getElementById("linkdesc" + linkNum);
-        
+
         var inpDisp = document.getElementById("linkdisp" + linkNum);
 
         var os = selOs.value;
@@ -939,7 +939,7 @@ function showReviewPopup(revNum)
         }, 1);
     } else
         oDiv.style.top = (nTop - reviewPopupHeight) + "px";
-        
+
     oDiv.style.display = "";
 
     reviewPopupOpen = true;
@@ -1045,7 +1045,7 @@ for ($i = 0 ; $i < count($fields) ; $i++) {
     // the data handling only, and have custom UI handling
     if ($title == "")
         continue;
-    
+
     // draw the label
     echo "<tr valign=top>
         <td align=right><b>$title:&nbsp;&nbsp;</b></td>
@@ -1352,8 +1352,8 @@ foreach ($linkfmts as $lf) {
    </table>
 </div>
 </div>
-            
-<?php      
+
+<?php
 
 
 // --------------------- add the download-link grid -----------------------
@@ -1556,7 +1556,7 @@ var linkVals = [
                         onclick="javascript:closeReviewPopup();return false;">
                         Close<img src="img/blank.gif" class="popup-close-button"></a>
                   </span>
-               </div> 
+               </div>
                <div class="edit-popup-win">
                   <b>Full URL to the review:</b><br>
                   <input id="extrevUrl" type=text size=80><br><br>
@@ -1799,7 +1799,7 @@ var xrefModel = {
     {
         return "<nobr><select @1><?php
 
-// populate the xref options from the database 
+// populate the xref options from the database
 $result = mysql_query(
     "select reftype, fromname from gamexreftypes", $db);
 $reftypes = array();
@@ -1836,7 +1836,7 @@ for ($i = 0 ; $i < count($reftypes) ; ++$i) {
     onAddRow: function(rownum) {
         editXRef(rownum);
     }
-   
+
 };
 <?php
     echo "var xrefVals = [";
@@ -1903,7 +1903,7 @@ for ($i = 0 ; $i < count($reftypes) ; ++$i) {
 
             <br><br><span class=details>
                <i>Your changes will be attributed to you as
-                  "<?php 
+                  "<?php
                       echo htmlspecialcharx($username);
                       if ($userloc != "")
                           echo " (" . htmlspecialcharx($userloc) . ")"
@@ -1916,7 +1916,7 @@ for ($i = 0 ; $i < count($reftypes) ; ++$i) {
             </span>
          </td>
       </tr>
-         
+
    </table>
 </form>
 

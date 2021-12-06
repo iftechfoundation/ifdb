@@ -28,7 +28,7 @@ if (array_search($mode, array('subscribed', 'reviews', 'comments')) === false)
     $mode = 'subscribed';
 
 // get the page number
-$pg = get_req_data('pg');    
+$pg = get_req_data('pg');
 if ($pg < 1)
     $pg = 1;
 

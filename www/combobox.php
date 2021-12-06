@@ -29,7 +29,7 @@ function makeComboBox($name, $textlen, $curval, $vals, $onSet = "null")
            . "event,'$name','${name}CBSel','D');\" "
            . "onkeypress=\"javascript:return comboFieldKey("
            . "event,'$name','{$name}CBSel','P');\">";
-    
+
     // add the drop arrow
     $txt .= "<a href=\"needjs\" onkeypress=\"javascript:return "
            . "comboArrowKey(event,'$name',true,'${name}CBSel');\" "
@@ -63,7 +63,7 @@ function makeComboBox($name, $textlen, $curval, $vals, $onSet = "null")
             $txt .= " selected";
         $txt .= ">$vals[$j]</option>";
     }
-    
+
     // end the list and the enclosing division
     $txt .= "</select></div>";
 
@@ -195,7 +195,7 @@ function showComboMenu(idEdit, setWidth, idFocus)
             }
         }
     }
-    
+
     return false;
 }
 

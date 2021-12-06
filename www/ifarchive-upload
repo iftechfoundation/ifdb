@@ -34,7 +34,7 @@ $fmtmap = array(
     "ADRIFT" => "adrift", "AdvSys" => "advsys", "AGT" => "agt",
     "Alan" => "alan2", "Alan 3" => "alan3",
     "Hugo" => "hugo");
-    
+
 $fmt = $fmtmap[$system];
 
 if ($author)
@@ -119,7 +119,7 @@ function setArchivePath(fmt, typ)
         path += pathmap[fmt];
     if (typ == "os" && osmap[fmt])
         path += osmap[fmt];
-    
+
     document.getElementById("archiveDir").value = path;
 
     if (typ == "fmt")
@@ -227,7 +227,7 @@ function setFileName()
         <option value="storyfile">Other System</option>
         <option value="executable">None - Native Application</option>
       </select>
-        
+
       <select style="margin-left: 1ex;" id="opsys" name="opsys"
            onchange="javascript:setArchivePath(document.getElementById('opsys').value,'os');">
         <option id=""<?php if(!$os) echo " selected";

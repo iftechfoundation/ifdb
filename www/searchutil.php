@@ -29,7 +29,7 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse)
         if ($mysandbox != 0)
             $sandbox = "(0,$mysandbox)";
     }
-    
+
     // assume no badge info
     $badges = false;
 
@@ -204,8 +204,8 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse)
     {
         // special keywords for tag search
         $specialMap = array(
-            "tag:" => array("tag", 0));        
-        
+            "tag:" => array("tag", 0));
+
         $selectList = "gt.tag as tag";
         $tableList = "gametags as gt";
         $groupBy = "group by gt.tag";
@@ -240,7 +240,7 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse)
             "wontplay:" => array("wontplay", 99),
             "license:" => array("license", 0),
             "format:" => array("/gameformat/", 99));
-                
+
 
         // SELECT parameters for game queries
         $selectList = "games.id as id,
@@ -518,7 +518,7 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse)
                 $txt = mysql_real_escape_string($txt, $db);
                 if ($txt != "")
                     $expr = "lower(ifids.ifid) = lower('$txt')";
-                else 
+                else
                     $expr = "ifids.ifid is null";
                 break;
 
@@ -534,7 +534,7 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse)
                 $op = (preg_match("/^y.*/i", $txt) ? "!=" : "=");
                 $expr = "gls.numGameLinks $op 0";
                 break;
- 
+
             case 'authorid':
                 // need to join the gameprofilelinks table to do this query
                 if (!isset($extraJoins[$col])) {
@@ -558,7 +558,7 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse)
 
                     // we need yes=not-null/no=null game ids
                     $op = (preg_match("/^y.*/i", $txt) ? "is not" : "is");
-                    $expr = "pg.gameid $op null";  
+                    $expr = "pg.gameid $op null";
                 }
                 break;
 
@@ -575,7 +575,7 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse)
 
                     // we need yes=not-null/no=null game ids
                     $op = (preg_match("/^y.*/i", $txt) ? "is not" : "is");
-                    $expr = "wl.gameid $op null";  
+                    $expr = "wl.gameid $op null";
                 }
                 break;
 
@@ -592,7 +592,7 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse)
 
                     // we need yes=not-null/no=null game ids
                     $op = (preg_match("/^y.*/i", $txt) ? "is not" : "is");
-                    $expr = "ul.gameid $op null";  
+                    $expr = "ul.gameid $op null";
                 }
                 break;
 
@@ -659,7 +659,7 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse)
                              union
                              select id3 from iso639x where name like '%$qtxt%'";
                     }
-                    
+
                     $result = mysql_query($sql, $db);
 
                     // build the expression - match the original string or any
@@ -708,7 +708,7 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse)
                 {
                     // note that we've added the joins for this query
                     $extraJoins[$col] = true;
-                    
+
                     // if we're logged in, we can see the membership lists
                     // for clubs we belong to, even if they're private
                     $orMember = $joinMyClubs = "";
@@ -733,7 +733,7 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse)
                     // only want to keep one row per user
                     $groupBy = "group by u.id";
                 }
-                
+
                 // quote the club name
                 $txt = mysql_real_escape_string(quoteSqlLike($txt), $db);
 
@@ -966,7 +966,7 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse)
         // fetch the results
         for ($rows = array(), $i = 0 ; $i < mysql_num_rows($result) ; $i++)
             $rows[] = mysql_fetch_array($result, MYSQL_ASSOC);
-        
+
 //        foreach ($rows as $row) {                 // DIAGNOSTICS
 //            echo "{";
 //            foreach ($row as $col=>$val) {

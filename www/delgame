@@ -155,7 +155,7 @@ if (!$adminPriv) {
 }
 
 // Check for references from reviews, recommended lists, play lists,
-// wish lists, or tags. 
+// wish lists, or tags.
 
 
 $result = mysql_query(
@@ -261,10 +261,10 @@ if (!isset($_REQUEST['confirm'])) {
     echo "<h1>$title - Delete Listing</h1>";
     ?>
 
-    <b>Are you sure you want to delete this game's listing?</b> 
+    <b>Are you sure you want to delete this game's listing?</b>
 
     <p>If you click "Yes" below, the game will be permanently
-    deleted.  This action is irrevocable - it can't be undone. If you 
+    deleted.  This action is irrevocable - it can't be undone. If you
     change your mind later, you'll have to re-enter the game's
     information from scratch.
 
@@ -341,7 +341,7 @@ if ($createFwd)
 
         if ($fwdErr)
             echo "<span class=errmsg>$fwdErr</span>";
-        
+
         ?>
 
         <p>A forwarding redirect will automatically redirect page views
@@ -352,7 +352,7 @@ if ($createFwd)
         listing instead of reaching a 404 Not Found error page.
 
         <p>To create a forwarding link, you must have already merged
-        this game's listing into another existing listing. 
+        this game's listing into another existing listing.
         Enter the target game's TUID below.
 
         <form name="fwdgame" method="post" action="delgame">
@@ -393,7 +393,7 @@ function applyFwd(id, title, author)
                value="Delete Game and Create Forward">
            <p><a href="viewgame?id=<?php echo $qid ?>">Cancel, return to the
               game's page</a>
-           
+
         </form>
         <?php
 
@@ -468,7 +468,7 @@ if ($result) {
     $result = mysql_query(
         "delete from games_history where id = '$qid'", $db);
 }
-    
+
 if ($result) {
     $progress = "GME5206";
     $result = mysql_query(
@@ -520,7 +520,7 @@ if ($cascade)
         if ($createFwd) {
             $progress = "UWS5252.u";
             $result = mysql_query(
-                "update unwishlists 
+                "update unwishlists
                  set gameid = '$fwdid'
                  where
                    gameid = '$qid'

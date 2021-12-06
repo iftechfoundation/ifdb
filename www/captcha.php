@@ -49,7 +49,7 @@ include_once "dbconnect.php";
 //    for a bot to get at them by inspecting the html source.
 //
 //   1. Somewhere in your file, at a suitable point in the HTML, call
-//      captchaAjaxForm($key) to generate the input form.  This is an 
+//      captchaAjaxForm($key) to generate the input form.  This is an
 //      in-line DIV with the input form.  This will be hidden until
 //      something triggers its display.
 //
@@ -115,7 +115,7 @@ function captchaMaskEmail($email, $maskMsg)
 
     // add it to the list of emails to expand
     $captchaEmailList[] = $email;
-    
+
     $maskA = $maskB = "";
     if ($maskMsg)
     {
@@ -134,11 +134,11 @@ function captchaMaskEmail($email, $maskMsg)
         if ($idx !== false) {
             $user = substr($email, 0, $idx);
             $domain = substr($email, $idx + 1);
-            
+
             $idx = strrpos($domain, '.');
             if ($idx === false)
                 $idx = strlen($domain) - 3;
-            
+
             $email = substr($user, 0, 2) . "...@"
                      . substr($domain, 0, 2) . "...";
 
@@ -177,7 +177,7 @@ function showCaptchaForm()
     document.getElementById("captchaFormDiv").style.display = "block";
     document.getElementById("captchaFormCont").innerHTML =
         "<div class=\"g-recaptcha\" data-sitekey=\"<?php echo RECAPTCHA_PUBLIC_KEY ?>\"></div>";
-    
+
     setCaptchaFocus();
 }
 function setCaptchaFocus()
@@ -300,7 +300,7 @@ function captchaFinish($sessionKey)
 
     // start with an empty XML reply
     $xml = "";
-    
+
     // generate the reply with all the emails
     if ($captchaEmailList)
     {

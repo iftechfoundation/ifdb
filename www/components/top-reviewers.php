@@ -23,9 +23,9 @@
    }
    ?>
    </ol>
-   
+
    <p><span class=details>
-         <a href="search?sortby=ffrank&browse=1&member=1">See all</a> | 
+         <a href="search?sortby=ffrank&browse=1&member=1">See all</a> |
          <?php echo helpWinLink("help-top-rev", "Who qualifies?") ?>
       </span>
 </div>

@@ -28,7 +28,7 @@ function getNewItems($db, $limit)
         if ($mysandbox != 0)
             $sandbox = "(0,$mysandbox)";
     }
-    
+
     // figure the LIMIT clause, if a row count limit was given
     $limit = ($limit ? "limit 0, " . ($limit + 1) : "");
 
@@ -127,7 +127,7 @@ function getNewItems($db, $limit)
     $result = mysql_query(
         "select
            reviews.id as reviewid, gameid, summary, review, rating, special,
-           games.title as title, 
+           games.title as title,
            users.id as userid, users.name as username,
            greatest(reviews.createdate,
                     ifnull(reviews.embargodate, '0000-00-00')) as d,
@@ -192,7 +192,7 @@ function getNewItems($db, $limit)
         $items[] = array('U', $row['d'], $row);
     }
 
-    // query game news updates 
+    // query game news updates
     queryNewNews(
         $items, $db, $limit, "G",
         "join games as g on g.id = n.sourceid",
@@ -261,7 +261,7 @@ function queryNewNews(&$items, $db, $limit, $sourceType,
         if ($mysandbox != 0)
             $sandbox = "(0,$mysandbox)";
     }
-    
+
     // query the data
     $result = mysql_query(
         "select
@@ -329,7 +329,7 @@ function showNewItemList($db, $items, $first, $last, $showFlagged, $allowHiddenB
             }
         }
     }
-    
+
     if ($showHiddenBanner) {
         $currentUrl = $_SERVER['REQUEST_URI'];
         if (strpos($currentUrl, '?') === false) {
@@ -344,7 +344,7 @@ function showNewItemList($db, $items, $first, $last, $showFlagged, $allowHiddenB
     {
         // get this item
         list($pick, $rawDate, $row) = $items[$idx];
-    
+
         if (!$showFlagged && $pick == 'R' && ($row['flags'] & FLAG_SHOULD_HIDE)) {
             continue;
         }
@@ -356,7 +356,7 @@ function showNewItemList($db, $items, $first, $last, $showFlagged, $allowHiddenB
                 . "<tr style=\"vertical-align: top;\">"
                 . "<td style=\"padding-right: 1em;\">";
         }
-            
+
         if ($pick == 'R')
         {
             // it's a review
@@ -394,7 +394,7 @@ function showNewItemList($db, $items, $first, $last, $showFlagged, $allowHiddenB
             echo "<a href=\"viewgame?id={$r['gameid']}\"><i><b>"
                 . output_encode(htmlspecialcharx($r['title']))
                 . "</b></i></a>";
-            
+
             if (!is_null($r['special'])) {
                 $result = mysql_query("select name from specialreviewers
                     where id = '{$r['special']}'", $db);
@@ -404,7 +404,7 @@ function showNewItemList($db, $items, $first, $last, $showFlagged, $allowHiddenB
                     . output_encode(htmlspecialcharx($r['summary']))
                     . "\" <span class=notes><i>{$r['fmtdate']}</i></span>";
             }
-    
+
             $stars = showStars($r['rating']);
             list($summary, $len, $trunc) = summarizeHtml($r['review'], 140);
             $summary = fixDesc($summary);
@@ -439,7 +439,7 @@ function showNewItemList($db, $items, $first, $last, $showFlagged, $allowHiddenB
         {
             // it's a list
             $l = $row;
-            
+
             // pull out the list record
             $itemcnt = $l['itemcnt'];
             $itemS = $itemcnt == 1 ? "" : "s";
@@ -476,7 +476,7 @@ function showNewItemList($db, $items, $first, $last, $showFlagged, $allowHiddenB
         {
             // it's a game
             $g = $row;
-            
+
             // show the image: game cover art if available, otherwise the
             // generic game icon
             if (ENABLE_IMAGES) {
@@ -513,7 +513,7 @@ function showNewItemList($db, $items, $first, $last, $showFlagged, $allowHiddenB
         {
             // it's a poll
             $p = $row;
-                 
+
             // pull out the poll record
             $pid = $p['pollid'];
             $uid = $p['userid'];
@@ -528,7 +528,7 @@ function showNewItemList($db, $items, $first, $last, $showFlagged, $allowHiddenB
                          ("$votecnt votes for $gamecnt game"
                           . ($gamecnt == 1 ? "" : "s"))));
             $fmtdate = $p['fmtdate'];
-    
+
             // show the image: user image if available, otherwise the
             // generic list icon
             if (ENABLE_IMAGES) {
@@ -559,7 +559,7 @@ function showNewItemList($db, $items, $first, $last, $showFlagged, $allowHiddenB
         {
             // it's a news item
             $n = $row;
-            
+
             // pull out the game news item
             $gid = $n['sourceID'];
             $gtitle = htmlspecialcharx($n['sourceTitle']);
@@ -580,7 +580,7 @@ function showNewItemList($db, $items, $first, $last, $showFlagged, $allowHiddenB
                 $divclass = "new-game-news";
                 $href = "viewgame?id=$gid";
                 break;
-                
+
             case 'C':
                 $href = "viewcomp?id=$gid";
                 $divclass = "new-comp-news";
@@ -624,7 +624,7 @@ function showNewItemList($db, $items, $first, $last, $showFlagged, $allowHiddenB
         {
             // it's a competition
             $c = $row;
-            
+
             // pull out the competition item
             $cid = $c["compid"];
             $ctitle = htmlspecialcharx($c["title"]);
@@ -713,7 +713,7 @@ function showNewItemsRSS($db, $showcnt)
     {
         // decode this item
         list($pick, $rawDate, $row) = $items[$idx];
-    
+
         // get the details on the next item
         if ($pick == 'R')
         {

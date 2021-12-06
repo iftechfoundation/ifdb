@@ -44,7 +44,7 @@ $sdb = storageDbConnect();
 // that the timestamp value is later than the last request from the same
 // server, and we verify that the time is within a reasonable interval
 // of the actual current time.
-// 
+//
 $id = get_req_data("id");
 $r = get_req_data("r");
 $t = get_req_data("t");

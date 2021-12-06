@@ -81,7 +81,7 @@ if (isset($_REQUEST['pic'])) {
 
     // get the thumbnail request if present
     $thumb = isset($_REQUEST['thumbnail']) ? $_REQUEST['thumbnail'] : null;
-    
+
     // send the image
     if (isset($_REQUEST['ldesc'])) {
         // send it as the full description page
@@ -418,11 +418,11 @@ function pingMultiUserSession(sid, gameid, title, author, started)
                 + " (started " + started + ") - <a href=\"t3join?id="
                 + sid + "\">Join this game</a><br>";
         }
-    
+
     }, null, true);
 }
         <?php
-    
+
         // run through the result set
         for ($i = 0 ; $i < $count ; $i++)
         {
@@ -533,7 +533,7 @@ function pingMultiUserSession(sid, gameid, title, author, started)
 
         echo "</div>";
     }
-           
+
 
     // ------- Lists -------
 
@@ -781,7 +781,7 @@ function pingMultiUserSession(sid, gameid, title, author, started)
 
             if ($pubdisp++ > 0) echo $sep;
             echo $wlHead;
-                    
+
             $result = mysql_query(
                 "select games.id, games.title, games.author
                  from games, wishlists
@@ -813,7 +813,7 @@ function pingMultiUserSession(sid, gameid, title, author, started)
 
             if ($pubdisp++ > 0) echo $sep;
             echo $uwHead;
-                    
+
             $result = mysql_query(
                 "select games.id, games.title, games.author
                  from games, unwishlists
@@ -962,7 +962,7 @@ if ($unlock)
         }
         echo "</table></div>";
     }
-    
+
 
     // add the admin links
     echo "<a href=\"{$adminUrl}\">Administer user acccount</a><br>";

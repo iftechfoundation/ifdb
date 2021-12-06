@@ -11,7 +11,7 @@ if ($loggedIn) {
     // some new selections.
 
     if ($debugflag) unset($_SESSION['ifdb_recommendations']);
-    
+
     if (isset($_SESSION['ifdb_recommendations'])) {
 
         // we have pre-cached recommendations
@@ -30,7 +30,7 @@ if ($loggedIn) {
         // ratings we have in common, and the closer those ratings, the
         // more similarity there is between our preferences.
         //
-        // It's possible that even the closest users by these metrics 
+        // It's possible that even the closest users by these metrics
         // will have little in common with us.  To avoid reporting bad
         // results from these closest-but-not-actually-close matches,
         // throw out anyone who doesn't have at least a few common
@@ -91,7 +91,7 @@ if ($loggedIn) {
             $result = mysql_query(
                 "create temporary table user_proximity as
                  select
-                   userid, 
+                   userid,
                    (cnt - $maxcnt)*(cnt - $maxcnt)
                    + (dist - $mindist)*(dist - $mindist) as dist
                  from
@@ -118,7 +118,7 @@ if ($loggedIn) {
                 if ($debugflag) echo "method 1<br>";
 
                 // Method 1: Pick games according to a CONSENSUS of like-minded
-                // users.  Calculate the weighted average rating for each game 
+                // users.  Calculate the weighted average rating for each game
                 // rated by like-minded users, weighting by "closeness," which
                 // we define as (max_distance - distance).
                 //
@@ -203,7 +203,7 @@ if ($loggedIn) {
             // apply method 2 if applicable
             if ($method == 2) {
                 if ($debugflag) echo "method 2<br>";
-                
+
                 // Method 2: Pick games that anyone in our proximity list
                 // rated highly (4-5 stars).  This method looks for INDIVIDUAL
                 // RECOMMENDATIONS from like-minded users, but doesn't take
@@ -397,12 +397,12 @@ if (count($recs) >= 2) {
                 . "<a href=\"viewgame?id=$gameid\" style=\"margin-right: 1em;\" aria-label=\"$title\">"
                 . coverArtThumbnail($gameid, 70)
                 . "</a></td><td>";
-        
+
         echo "<a href=\"viewgame?id=$gameid\"><i><b>$title</b></i></a>, "
             . "by $author<br>"
             . "<div class=indented><span class=details>"
             . "<i>$summary</i></span></div>";
-        
+
         if ($hasart)
             echo "</td></tr></table>";
     }
