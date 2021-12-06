@@ -67,7 +67,7 @@ if ($errFlagged != false) {
        captchaSubForm($capKey, $capErrMsg, false);
        captchaFinish($capKey);
    ?>
-   
+
    <br><br>
    <input type=submit value="Submit">
 
@@ -84,7 +84,7 @@ pageFooter();
 function handlePost()
 {
     global $errFlagged;
-    
+
     // get the email address
     $email = $_REQUEST['userid'];
 
@@ -168,7 +168,7 @@ function handlePost()
     $msg .= "browser's Address bar.\n\n";
     $msg .= "<p>Follow the instructions on the page linked above to\n";
     $msg .= "select a new password to replace the one you forgot.";
-    
+
 
     // build the headers
     $hdrs = "From: IFDB <noreply@ifdb.org>\r\n";

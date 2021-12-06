@@ -128,7 +128,7 @@ function getID() {
 function sendCoverArt()
 {
     global $errMsg, $db;
-    
+
     if (localImageCredentials() === null) {
         header("HTTP/1.1 302 Found");
         header("Location: https://" . PRODUCTION_SERVER_NAME . $_SERVER['REQUEST_URI']);
@@ -175,7 +175,7 @@ function sendCoverArt()
 
             // deserialize the deltas
             $deltas = unserialize($rec['deltas']);
-            
+
             // if this entry defines artwork, use the override
             if (isset($deltas['coverart']))
                 $imgname = $deltas['coverart'];
@@ -190,7 +190,7 @@ function sendCoverArt()
                 break;
             }
         }
-        
+
         // if we didn't find the requested version, give up
         if (!$foundvsn)
             exit("The requested version of the art image wasn't found");
@@ -219,7 +219,7 @@ function sendCoverArt()
 function showMemberReviewsHeader($rowcnt, $ratingsView, $showHisto)
 {
     global $ratingAvg, $ratingCntAvg, $ratingHisto, $id, $currentUserReview, $curuser;
-    
+
     // start the section
     $title = ($ratingsView ? "Reviews and Ratings" : "Member Reviews");
     echo "<a name='memberReviews'></a>"
@@ -327,7 +327,7 @@ if (isset($_REQUEST['coverart'])) {
 function init()
 {
     global $db, $id, $qid, $errMsg, $errCode;
-    
+
     // make sure we're connected
     if ($db == false) {
         $errMsg = "An error occurred connecting to the game database. Please
@@ -398,7 +398,7 @@ function checkRedirect($id)
                 $redir .= "&$key" . ($val ? "=$val" : "");
             }
         }
-        
+
         header("HTTP/1.1 301 Moved Permanently");
         header("Content-Type: text/html");
         header("Location: $redir");
@@ -407,7 +407,7 @@ function checkRedirect($id)
             . "automatically take you to the original in a moment. "
             . "(<a href=\"$redir\">Click here</a> if your "
             . "browser doesn't load the new page automatically.)";
-    
+
         exit();
     }
 }
@@ -449,7 +449,7 @@ if (isset($_REQUEST['rss'])) {
     else
         $feedType = GAME_RSS_ALL;
 
-    // get the RSS item list 
+    // get the RSS item list
     $items = getGameRssItems($db, $id, $feedType, $title, $links, false);
 
     // send it
@@ -501,11 +501,11 @@ if (isset($_REQUEST['ifiction']))
         echo "</viewgame>";
         exit();
     }
-    
+
     echo "<ifindex version=\"1.0\" "
         .    "xmlns=\"http://babel.ifarchive.org/protocol/iFiction/\">"
         . "<story>"
-        
+
         . "<colophon>"
         .    "<generator>ifdb.org/viewgame</generator>"
         .   "<generatorversion>1</generatorversion>"
@@ -557,7 +557,7 @@ if (isset($_REQUEST['ifiction']))
             "adrift" => "adrift",
             "advsys" => "advsys",
             "executable" => "executable");
-        
+
         foreach ($links as $l) {
             $xid = $l['fmtexternid'];
             if (isset($linkTypeMap[$xid])) {
@@ -585,7 +585,7 @@ if (isset($_REQUEST['ifiction']))
 
     xmlField("firstpublished",
              $pubFull ? date("Y-m-d", strtotime($pubFull)) : $pubYear);
-    
+
     xmlField("genre", $genre);
     xmlDescField("description", $rawDesc);
     xmlField("series", $seriesname);
@@ -594,9 +594,9 @@ if (isset($_REQUEST['ifiction']))
 
     echo "</bibliographic>"
         . "<contact>";
-    
+
     xmlField("url", $website);
-    
+
     echo "</contact>";
 
     echo "<ifdb xmlns=\"http://ifdb.org/api/xmlns\">";
@@ -615,7 +615,7 @@ if (isset($_REQUEST['ifiction']))
         xmlField("ratingCountTot", $ratingCntTot);
     }
     echo "</ifdb>";
-    
+
     // main end tags
     echo "</story>"
         . "</ifindex>";
@@ -892,14 +892,14 @@ for ($foundGame = $foundPC = $foundT3W = $foundHex = $pcUrl = $t3wUrl = $hexUrl 
         $t3wUrl = urlencode($link['url']);
     }
 
-	// check for an uncompressed Hugo executable
-	if (!$foundHex
+    // check for an uncompressed Hugo executable
+    if (!$foundHex
         && $link['fmtexternid'] == 'hugo'
         && !$link['compression'])
-	{
-		$foundHex = true;
-		$hexUrl = urlencode($link['url']);
-	}
+    {
+        $foundHex = true;
+        $hexUrl = urlencode($link['url']);
+    }
 }
 if ($foundGame)
 {
@@ -929,17 +929,17 @@ if ($foundGame)
             . "</a><br>";
     }
 
-	// if we have a Hugo game, set up a play-online link
-	if ($foundHex && $hexUrl) {
-		$hexLaunch = "http://textadventures.online/play/?story={$hexUrl}";
-		$htarget = (is_kindle() ? "" : "target=\"_blank\"");
+    // if we have a Hugo game, set up a play-online link
+    if ($foundHex && $hexUrl) {
+        $hexLaunch = "http://textadventures.online/play/?story={$hexUrl}";
+        $htarget = (is_kindle() ? "" : "target=\"_blank\"");
         echo "<a href=\"{$hexLaunch}\" $htarget "
-			. "title=\"Play this game right now in your browser. No "
+            . "title=\"Play this game right now in your browser. No "
             . "installation is required.\">"
             . "<img src=\"/img/blank.gif\" class=\"play-online-button\" "
             . "style=\"margin:0px 0px 0.3em 0px;cursor:pointer;\">"
             . "</a><br>";
-	}
+    }
 
     // Write the Download Adviser ("Show Me How") button
     echo "<a href=\"dladviser?id=$id\" "
@@ -1069,7 +1069,7 @@ if (count($links) == 0 && $dlnotes == "") {
             echo "<span class=dlzipmain><img src=\"/img/blank.gif\" "
                 . "class=\"zip-contents-arrow\">Contains "
                 . "<b>$compPri</b></span><br>";
-              
+
         if ($linkdesc) {
             $linkdesc = preg_replace(
                 "/([a-z0-9][\/.])([a-z0-9])/i", "$1$zwsp$2", $linkdesc);
@@ -1356,7 +1356,7 @@ if ($hasart) {
                <?php
 } // if ($hasart)
                ?>
-               
+
                <td>
                   <h1><?php echo $title ?></h1>
 
@@ -1395,7 +1395,7 @@ for ($i = 0, $acnt = count($authorList) ; $i < $acnt ; $i++) {
                         . "title=\"View $proName's profile\">profile</a><b>";
         }
     }
-    
+
     // quote the author's name for display and use in the search HREF
     $uau = urlencode($au);
     $dau = output_encode(htmlspecialcharx($au));
@@ -1798,7 +1798,7 @@ if (count($inrefs) != 0 && !$historyView) {
                 $x['toname']);
             echo "<span class=notes>" . initCap($toname) . " </span>";
         }
-            
+
         for ( ; $i < $j ; ++$i) {
             $x = $inrefs[$i];
             $x['author'] = collapsedAuthors($x['author']);
@@ -1828,7 +1828,7 @@ if (count($inrefs) != 0 && !$historyView) {
 ?>
 
 </div>
-   
+
 <?php
     // ---------------- Awards Section ----------------------------
     if ($detailView) {
@@ -2044,7 +2044,7 @@ if (count($inrefs) != 0 && !$historyView) {
 
                         // omit the body in this view
                         $showBody = false;
-    
+
                     } else {
                         // full mode - include the headline and summary
 
@@ -2062,7 +2062,7 @@ if (count($inrefs) != 0 && !$historyView) {
                     // show the body, unless we're in "links only" mode
                     // for external reviews
                     $showBody = ($offsiteMode != 'L');
-                    
+
                 } else if ($detailView) {
 
                     // any other special review
@@ -2264,10 +2264,10 @@ if (count($inrefs) != 0 && !$historyView) {
                <span id="myTagList" style="margin-right:1ex;"></span> -
                <a href="needjs" onclick="javascript:editTags();return false;"
                   >Edit</a>
-		    <?php if ($adminPriv) { ?>
+            <?php if ($adminPriv) { ?>
                <a href="needjs" onclick="javascript:deleteTags();return false;"
                   >Delete</a>
-			<?php } ?>
+            <?php } ?>
 
                <span class="xmlstatmsg" style="margin-left:1ex;"
                   id="tagStatusSpan"></span>
@@ -2371,7 +2371,7 @@ var dbTagList = [
              having tagcnt != 0
              order by tag", $db);
         $cnt = mysql_num_rows($result);
-    
+
         for ($i = 0 ; $i < $cnt ; $i++) {
             list($tag, $tagcnt, $gamecnt, $isMine) = mysql_fetch_row($result);
             $tag = jsSpecialChars($tag);
@@ -2421,14 +2421,14 @@ function dispTagTable(tableID, lst, editor, deleteTags)
 
             var ck = "tagCk" + i;
 
-                
-            if (!deleteTags) {    
-	            s = "<span class=\"cklabel\" onmouseover=\"javascript:"
-	                + "ckboxOver('"+ck+"',false);return true;\" "
-	                + "onmouseout=\"javascript:ckboxLeave('"+ck+"',false);"
-	                + "return true;\" onclick=\"javascript:ckboxClick('"+ck
-	                + "',false,doTagCkBox);return false;\">"
-		            + "<img align=absmiddle border=0 id=\"ckImg"+ck+"\"> "
+
+            if (!deleteTags) {
+                s = "<span class=\"cklabel\" onmouseover=\"javascript:"
+                    + "ckboxOver('"+ck+"',false);return true;\" "
+                    + "onmouseout=\"javascript:ckboxLeave('"+ck+"',false);"
+                    + "return true;\" onclick=\"javascript:ckboxClick('"+ck
+                    + "',false,doTagCkBox);return false;\">"
+                    + "<img align=absmiddle border=0 id=\"ckImg"+ck+"\"> "
             } else {
                s = "<span class=\"cklabel\" onmouseover=\"javascript:"
                 + "ckboxOver('"+ck+"',false);return true;\" "
@@ -2436,13 +2436,13 @@ function dispTagTable(tableID, lst, editor, deleteTags)
                 + "return true;\" onclick=\"javascript:deleteTag('"
                 + t.replace(/'/g,"\\'")
                 + "');return false;\">"
-	    	        + "<input type=image align=absmiddle border=0 id=\"ckImg"+ck+"\""
-	    	        + "src='img/delrow.gif' >";			
+                    + "<input type=image align=absmiddle border=0 id=\"ckImg"+ck+"\""
+                    + "src='img/delrow.gif' >";
 
             }
 
-            s += "<span id=\"ckLbl"+ck+"\">" + t + "</span></span>&nbsp;<span class=details id=\"tagCnt"+i+"\">";				
-            
+            s += "<span id=\"ckLbl"+ck+"\">" + t + "</span></span>&nbsp;<span class=details id=\"tagCnt"+i+"\">";
+
         }
         else
             s = "<span class=details title=\"Search for games tagged with "
@@ -2522,10 +2522,10 @@ function dispDeleteTags()
 
 function deleteTag(tag)
 {
-//	alert (tag);
+//    alert (tag);
 
     var c = "id=<?php echo $id ?>";
-	c += "&t=" + encodeURI8859(tag);
+    c += "&t=" + encodeURI8859(tag);
 
     //xmlSend("taggamedelete", "tagStatusSpan", cbSaveTags, c);
 
@@ -2540,7 +2540,7 @@ function deleteTag(tag)
 
     memTagList.splice (index, 1)
     dispDeleteTags();
-    
+
 
 }
 
@@ -2610,12 +2610,12 @@ function saveTagsDelete()
        {
           if (memTagList[j].tag == t.tag) found = true;
        }
-                 
-       if (!found) c += "&t" + (k++) + "=" + encodeURI8859(t.tag);              
-    }    
-    
+
+       if (!found) c += "&t" + (k++) + "=" + encodeURI8859(t.tag);
+    }
+
     dbTagList = memTagList;
-    
+
     dispTags();
     closeTags("tagDeletor");
     xmlSend("taggamedelete", "tagStatusSpan", cbSaveTags, c);
@@ -2632,7 +2632,7 @@ function cbSaveTags(resp)
         var gamecnt = tag.getElementsByTagName("gamecnt")[0].firstChild.data;
         var tagcnt = tag.getElementsByTagName("tagcnt")[0].firstChild.data;
         name = name.toLowerCase();
-        
+
         for (var j = 0 ; j < memTagList.length ; j++)
         {
             if (memTagList[j].tag.toLowerCase() == name)
@@ -2692,7 +2692,7 @@ dispTags();
         <?php
 
         echo "</div>";
-        
+
 
 //----------------------- MEMBER REVIEW SECTION ------------------------
 
@@ -2808,7 +2808,7 @@ dispTags();
                     $crdesc = fixDesc($crdescInfo[0]);
                     $crart = $c['hasart'];
 
-					$gameRatingsView = getGameRatingsView($db);
+                    $gameRatingsView = getGameRatingsView($db);
                     $result = mysql_query(
                         "select avgRating, numRatingsInAvg, numRatingsTotal
                          from $gameRatingsView
@@ -2826,7 +2826,7 @@ dispTags();
                             . "<a href=\"viewgame?id=$crid\">"
                             . coverArtThumbnail($crid, 80)
                             . "</a></td><td>";
-                    
+
                     echo "<a href=\"viewgame?id=$crid\"><b>$crtitle</b></a>"
                         . ", by $crauthor<br>";
 
@@ -2885,7 +2885,7 @@ dispTags();
                     echo "<p><span class=details>"
                         . "<a href=\"alllists?game=$id\">See all lists "
                         . "mentioning this game</a></span>";
-                        
+
                 echo "</div>";
             }
 
@@ -2923,7 +2923,7 @@ dispTags();
         } else if ($recView) {
 
             // We're explicitly in the Recommendations view, but we don't
-            // have any recommendations to show. 
+            // have any recommendations to show.
 
             // check to see if we've reviewed this game
             $reviewIt = false;
@@ -2999,7 +2999,7 @@ dispTags();
             echo "<div id=\"links-div\" style=\"".($website ? "" : "display:none")."\">"
                 . "<h2>Links</h2>"
                 . "<div class=indented>";
-            
+
             if ($website) {
                 echo "<a href=\"".htmlspecialcharx($website)."\"><i>$title</i> Web Site</a>\n";
             }
@@ -3189,7 +3189,7 @@ dispTags();
             game's main page</a></span><br>";
 
         $showHisto = !$should_hide;
-        
+
         // start the section
         showMemberReviewsHeader($realtotcnt, $ratingsView, $showHisto);
 
@@ -3231,7 +3231,7 @@ dispTags();
         echo "</div>";
 
     } // if ($reviewView)
-    
+
 } // if $(errMsg)
 
 pageFooter();

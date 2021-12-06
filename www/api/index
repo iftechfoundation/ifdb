@@ -54,7 +54,7 @@ directory.  You can use these exports to create local copies of the
 database for more computation-intensive analysis, without using any network
 bandwidth and without creating any load on the IFDB servers.  The
 exports are updated roughly quarterly, so they're not live, but
-they're always reasonably recent.  
+they're always reasonably recent.
 
 <p>It probably goes without saying, but the APIs are subject to change
 or withdrawal at any time.  If you're developing an application that

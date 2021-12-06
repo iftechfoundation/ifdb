@@ -21,7 +21,7 @@
 //   4. Create an <a href="needjs"> button with an onclick script
 //      that calls openGameSearchPopup('eleID', doneFunc, defaultTitle,
 //      openerBtn).
-// 
+//
 //      'eleID' is the ID of an object to align the popup under; this
 //      is usually a text input or <span> where the game name that we're
 //      searching for will be displayed after we make our selection.
@@ -88,7 +88,7 @@ function gameSearchPopupGo()
 
     if (txt.replace(/ /g, "") == "")
         return;
-    
+
     xmlSend("search?xml&searchfor=" + encodeURI8859(txt),
             null, gameSearchPopupDone, null);
 }
@@ -109,7 +109,7 @@ function gameSearchPopupDone(d)
                  + "','" + title.replace(/'/g, '\\\'').replace(/"/g, '&#34;')
                  + "','" + author.replace(/'/g, '\\\'').replace(/"/g, '&#34;')
                  + "');return false;\"><i>" + encodeHTML(title) + "</i></a>"
-                 + ", by " + encodeHTML(author) 
+                 + ", by " + encodeHTML(author)
                  + " - <a href=\"viewgame?id=" + id + "\" target=\"_blank\">"
                  + "view game</a><br>";
         }

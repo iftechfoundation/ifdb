@@ -128,10 +128,10 @@ echo "<h1>$title</h1>";
 if ($err) {
     // simply show the error message
     echo $expl;
-    
+
 } else if ($showList) {
     // do nothing just yet - we'll pick this up at the end
-    
+
 } else if ($confirm == 'Y') {
 
     // are we returning to the list?
@@ -152,7 +152,7 @@ if ($err) {
             "insert into userfilters (userid, targetuserid, filtertype)
              values ('$curuser', '$qTargetUser', '$newFilter')", $db);
     }
-        
+
     // formulate the result messages
     if ($result) {
         $succMsg = "Your change has been applied - $userl has been "
@@ -213,7 +213,7 @@ if ($showList) {
     $result = mysql_query(
         "select
           users.id, users.name, userfilters.filtertype
-         from 
+         from
           userfilters
           join users on userfilters.targetuserid = users.id
          where
@@ -251,10 +251,10 @@ if ($showList) {
             list($fuid, $funame, $ftype) = mysql_fetch_row($result);
             $funame = htmlspecialcharx($funame);
             $ftypename = $typeMap[$ftype];
-            
+
             echo "<p><a href=\"showuser?id=$fuid\">$funame</a>: $ftypename"
                 . "<br><div class=indented><span class=details>";
-            
+
             if ($ftype != 'P')
                 echo "<a href=\"userfilter?user=$fuid&action=promote$from\""
                     . ">Promote</a> &nbsp; ";
@@ -264,7 +264,7 @@ if ($showList) {
             if ($ftype != 'K')
                 echo "<a href=\"userfilter?user=$fuid&action=plonk$from\""
                     . ">Plonk</a> &nbsp; ";
-            
+
             echo "<a href=\"userfilter?user=$fuid&action=remove$from\""
                 . ">Remove filter</a></span></div>";
         }

@@ -156,7 +156,7 @@ function queryNewsRss(&$items, $db, $sourceType, $sourceID, $maxItems,
 //
 // Query news records for a given source.  Fills in rowcnt with the
 // full calculated row count.
-// 
+//
 function queryNews($db, $sourceType, $sourceID, $includeDeletions,
                    $limit, &$rowcnt)
 {
@@ -173,18 +173,18 @@ function queryNews($db, $sourceType, $sourceID, $includeDeletions,
                          . "and filtertype = 'K') = 0";
     }
 
-	// Include only reviews from our sandbox or sandbox 0 (all users)
-	$sandbox = "(0)";
-	if ($curuser)
-	{
-		// get my sandbox
-		$mysandbox = 0;
-		$result = mysql_query("select sandbox from users where id='$curuser'", $db);
-		list($mysandbox) = mysql_fetch_row($result);
-		if ($mysandbox != 0)
-			$sandbox = "(0,$mysandbox)";
-	}
-	
+    // Include only reviews from our sandbox or sandbox 0 (all users)
+    $sandbox = "(0)";
+    if ($curuser)
+    {
+        // get my sandbox
+        $mysandbox = 0;
+        $result = mysql_query("select sandbox from users where id='$curuser'", $db);
+        list($mysandbox) = mysql_fetch_row($result);
+        if ($mysandbox != 0)
+            $sandbox = "(0,$mysandbox)";
+    }
+
     // if there's a limit clause, also calculate the row count
     $calcFoundRows = ($limit ? "sql_calc_found_rows" : "");
 
@@ -228,7 +228,7 @@ function queryNews($db, $sourceType, $sourceID, $includeDeletions,
            and n.status in $statusList
            and nsuper.newsid is null
            $andNotPlonked
-		   and u.sandbox in $sandbox
+           and u.sandbox in $sandbox
          order by
            n.created desc
          $limit", $db);

@@ -45,7 +45,7 @@ $skey = "CAPTCHA.$skey";
 if (!isset($_SESSION[$skey]))
     replyErr("The session key is invalid. "
              . "Please refresh the page and try again.");
-    
+
 list($succReply) = $_SESSION[$skey];
 
 // Check to see if this is a reply with a code.  If there's a code,

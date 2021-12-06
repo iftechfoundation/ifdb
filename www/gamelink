@@ -3,7 +3,7 @@ include_once "util.php";
 include "pagetpl.php";
 
 $title = get_req_data('title');
-$titleForm = 
+$titleForm =
 "<form name=\"pickGame\" id=\"pickGame\" method=\"post\" action=\"gamelink\">
    <input type=\"text\" name=\"title\" id=\"title\"
        value=\"$title\">
@@ -32,7 +32,7 @@ if (isset($_REQUEST['id'])) {
          <p>
          <a href=\"viewgame?id=$id\">$title</a>
          <p>";
-             
+
 } else if (isset($_REQUEST['title'])) {
 
     include_once "dbconnect.php";

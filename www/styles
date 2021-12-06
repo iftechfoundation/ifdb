@@ -28,7 +28,7 @@ if ($setID) {
 
     // make sure we're logged in
     if ($userid) {
-    
+
         if ($setID == 'default') {
             $setVal = 'null';
             $newDesc = "the IFDB default";
@@ -180,7 +180,7 @@ if ($setID) {
                                       . "limit, so this new sheet cannot "
                                       . "be saved.";
                     }
-                    
+
                     // if we're okay, do the update
                     if ($result) {
                         // add the row
@@ -228,7 +228,7 @@ if ($setID) {
             if ($result)
                 $formSuccMsg = "Your changes have been saved.";
         }
-    
+
     } else {
         // this isn't a POST - use the database values to populate the form
         $formTitle = $dbTitle;
@@ -263,7 +263,7 @@ if ($setID) {
                           . "(error code $formErrCode). Please try again, "
                           . "or <a href=\"contact\">contact us</a> if "
                           . "the problem persists.";
-        
+
         if ($formErrMsg)
             echo "<span class=errmsg><b>$formErrMsg</b></span><p>";
 
@@ -316,11 +316,11 @@ if ($setID) {
         if ($curssid != $editID)
             echo "<input type=submit name=saveSetStyle id=saveSetStyle "
                 . "value=\"Save and Select as current style\">";
-        
+
         echo "<p><a href=\"styles\">Return to the main Custom Styles page "
             . " - discard changes</a>"
             . "</form>";
-            
+
     }
 
 } else if ($deleteID) {
@@ -350,7 +350,7 @@ if ($setID) {
 
         pageHeader("Please Confirm Deletion");
         echo "<h1>Please Confirm Deletion</h1>";
-        
+
         if ($userCnt > 0) {
             $usersWord = "user" . ($userCnt > 1 ? "s" : "");
             $usersAre = ($userCnt > 1 ? "are" : "is");
@@ -496,7 +496,7 @@ if ($setID) {
                 . urlencode($thumbSrc) . "\" type=\"text/html\" "
                 . "style=\"width: 100%; height: 12em;\" scrolling=yes>"
                 . "</iframe><br>";
-            
+
             echo "<span class=details>"
                 . "<a href=\"css?id=$ssid\" target=\"_blank\">"
                 . "View Source</a>"
@@ -526,13 +526,13 @@ if ($setID) {
             if ($pop != 0)
                 echo "; currently in use by $pop member"
                     . ($pop > 1 ? "s" : "");
-    
+
             echo "</i>)</span><br>$desc<br><br clear=all><hr class=dots>";
         }
 
         echo $pageCtl;
     }
-                
+
 
 } else {
     // ------ no other operation, so just show the basic profile page -------
@@ -612,7 +612,7 @@ if ($userid) {
             $author = htmlspecialcharx($author);
         }
     }
-    
+
     if ($ssid && $authorID) {
         $curssid = $ssid;
         echo "Your current style sheet is \"$title\", by "
@@ -716,7 +716,7 @@ if ($userid) {
         echo "You currently have no style sheets of your own - "
             . "<a href=\"styles?edit=new\">click here to create a new one</a>.";
     }
-    
+
 } else {
     echo "(To view or create your own stylesheets, you need to "
         . "<a href=\"login?dest=styles\">Log in</a> first.)";

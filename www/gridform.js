@@ -23,7 +23,7 @@ function gfGenForm(modelVar, newRowIdx)
     for (i = 0 ; i < vals.length ; ++i)
     {
         var txt;
-        
+
         if (model.rowfunc)
         {
             txt = model.rowfunc(i);
@@ -97,7 +97,7 @@ function gfGenForm(modelVar, newRowIdx)
         }
 
         s += "<tr><td valign=\"" + ctlvalign + "\"><nobr>";
-        
+
         if (i > 0)
             s += "<a href=\"needjs\" title=\"Move up\" "
                  + "onmouseover=\"javascript:window.status='Move up';return true;\" "
@@ -174,7 +174,7 @@ function gfReloadVals(modelVar)
     var fields = model.fields;
     var valcnt = vals.length;
     var row, fieldnum;
-    
+
     for (row = 0 ; row < valcnt ; ++row)
     {
         for (fieldnum = 0 ; fieldnum < fields.length ; ++fieldnum)
@@ -244,7 +244,7 @@ function gfDelRow(modelVar, n)
 
     if (!conf(n))
         return;
-    
+
     gfReloadVals(modelVar);
     var model = eval(modelVar), vals = eval(model.vals), i;
     vals.splice(n, 1);

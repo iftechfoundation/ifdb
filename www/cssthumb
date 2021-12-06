@@ -67,7 +67,7 @@ pageHeader("Sample Page");
          </tr>
       </table>
    </div>
-                  
+
    <div class=title>Sample Game</div>
    by Anonymous<br>
    <div class=smallhead><span class=details>3 of 5 people
@@ -75,6 +75,6 @@ pageHeader("Sample Page");
    <?php echo showStars(5) ?> <b>A fine example...</b>,
    <span class=details>April 1, 1979</span><br>
    <div class=smallhead><span class=details>by A. Reviewer</span></div>
-      
+
 </div>
-                     
+

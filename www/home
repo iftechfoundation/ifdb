@@ -81,7 +81,7 @@ if ($debugflag) echo "debug mode enabled...<br>";
             <p>The IFDB <b>Download Adviser</b> can help get you up and running with the games you find on IFDB. Just click <img src="dlhelpbtn.gif" align="absmiddle" alt='The "Show me how!" button'> in any game's Download box for customized, step-by-step instructions for running the game on your system.</p>
          </div>
       </div>
-      
+
       <div class="block">
          <?php include "components/ifdb-recommends.php"?>
       </div>
@@ -104,11 +104,11 @@ if ($debugflag) echo "debug mode enabled...<br>";
          <a href="newuser">Sign up now!</a>
       </div>
       <?php endif ?>
-      
+
       <div class="block">
          <?php include "components/database-stats.php"?>
       </div>
-      
+
       <div class="aside-box">
          <h3>IF Links</h3>
          <ul>
@@ -127,7 +127,7 @@ if ($debugflag) echo "debug mode enabled...<br>";
             <li><a href="https://xyzzyawards.org"><b>XYZZY Awards</b></a></li>
          </ul>
       </div>
-         
+
    </div>
 </div>
 

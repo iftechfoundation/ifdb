@@ -5,7 +5,7 @@ include_once "session-start.php";
 include "login-check.php";
 include_once "captcha.php";
 include_once "akismet.php";
-   
+
 if (!logged_in())
     exit();
 
@@ -280,7 +280,7 @@ if ($errMsg) {
         }
 
     } else {
-        
+
         // prepare the results for display
         $authorName = htmlspecialcharx($authorName);
         $oldText = fixDesc($oldText, FixDescSpoiler);
@@ -403,14 +403,14 @@ if ($errMsg) {
                 . htmlspecialchars($userAccountEmail)
                 . "<br>Source code: $srcCode"
                 . "<br>Source ID: $qSrcID<br>"
-                
+
                 . "<br>Message: "
                 . htmlspecialchars($commentText) . "<br><br>"
 
                 . "<a href=\"{$adminUrl}\">Manage this user</a>"
-                
+
                 . "<br><br>",
-                
+
                 "From: IFDB <noreply@ifdb.org>\r\n"
                 . "Content-type: Text/HTML\r\n"))
             {
@@ -463,7 +463,7 @@ if ($errMsg) {
 
             // success
             $succMsg = "Your comment has been recorded.";
-    
+
         } else {
             // set up the error and fall through to the confirmation form
             $errMsg = "An error occurred updating the database (error "
@@ -511,7 +511,7 @@ if (!$submit || $errMsg || !$captchaOK) {
    <li>Follow our <?php
 echo helpWinLink("code-of-conduct", "code of conduct")
    ?>.</li>
-   
+
    <li>Be courteous.
 
    <li>If you have criticisms, try to make them constructive.
@@ -602,7 +602,7 @@ echo helpWinLink("help-formatting?comment#spoilertags", "&lt;SPOILER&gt; tag")
             . "comments)</span><br>";
         captchaSubForm($captchaKey, $captchaErrMsg, "Verify Code");
     }
-    
+
     echo "<p><input type=submit name=submitBtn value=\"Save Changes\"> ";
 
     echo "<p>";

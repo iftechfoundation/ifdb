@@ -144,8 +144,8 @@ function showRecList($db, $qlistid, $ownerid, $ownername, $ownerloc,
         // get the comments, formatted for display
         $comments = fixdesc($item['comments']);
 
-	    // get the game ratings table, taking into account the user's sandbox
-		$gameRatingsView = getGameRatingsView($db);
+        // get the game ratings table, taking into account the user's sandbox
+        $gameRatingsView = getGameRatingsView($db);
 
         // get the game's average rating
         $rating = false;

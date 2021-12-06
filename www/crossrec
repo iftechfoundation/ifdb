@@ -72,7 +72,7 @@ if ($targetID && !$targetTitle) {
     echo "<span class=errmsg>$errMsg</span>";
     pageFooter();
     exit();
-}    
+}
 
 // check the mode
 if ($editMode) {
@@ -131,7 +131,7 @@ if ($editMode) {
 
         // build a LIKE title as well
         $titleLike = mysql_real_escape_string(quoteSqlLike($searchFor), $db);
-        
+
         // do a full-text search against titles
         $sql =
             "select
@@ -254,7 +254,7 @@ if ($editMode) {
 
             // get the notes
             $qNotes = mysql_real_escape_string(get_req_data('notes'), $db);
-            
+
             // insert or update, as applicable
             if ($oldRec) {
                 // record exists - just update the comment
@@ -390,7 +390,7 @@ if ($editMode) {
                 $stitle = htmlspecialcharx($stitle);
                 $sauthor = htmlspecialcharx($sauthor);
                 $notes = htmlspecialcharx($notes);
-    
+
                 // show it
                 echo "<p><a href=\"viewgame?id=$sid\"><i>$stitle</i></a>, "
                     . "by $sauthor &nbsp; <span class=details>"
@@ -417,7 +417,7 @@ if ($editMode) {
                 . "you what other people recommend.</i></span>";
         }
 
-                
+
         echo "<h2>Guidelines</h2>"
             . "The key feature of a suggestion is "
             . "that you think <b>people who like <i>$gTitle</i></b> would "
@@ -435,7 +435,7 @@ if ($editMode) {
         // show the form for adding a new item
         echo "<h3>Suggest a game</h3>$searchForm<p>$returnLink";
     }
-    
+
 } else {
 
     // view mode - list all cross-recommendations for the game
@@ -444,8 +444,8 @@ if ($editMode) {
     $pgAll = false;
     $pg = get_req_data('pg');
 
-	// get the game ratings table, taking into account the user's sandbox
-	$gameRatingsView = getGameRatingsView($db);
+    // get the game ratings table, taking into account the user's sandbox
+    $gameRatingsView = getGameRatingsView($db);
 
     // query the recommendations
     $result = mysql_query(

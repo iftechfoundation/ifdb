@@ -17,7 +17,7 @@ files, you MUST start the URL with a "/" to look in the root
 system directory.  We use that notation throughout this file
 when referring to system files to provide easy cut-and-paste
 examples.
-        
+
 2. We recommend that custom style sheets always import this style
 sheet as the "base" style sheet.  Doing this will provide default
 definitions for everything you don't explicitly override in the
@@ -39,7 +39,7 @@ style sheet, via the "background" style.  So, to replace a graphic
 with your own, you must:
 
    a. Upload the JPEG/GIF/PNG file via the style-graphic manager
-   
+
    b. Add an IMG definition for the class or ID of the image you wish
       to replace, like so:
 
@@ -229,7 +229,7 @@ div.topctl table tr td {
     border-radius: 0 1em 1em 0;
     background-color: #FFFFFF;
     padding: 0.1em;
-}   
+}
 
 .searchbar-wrapper > button:hover, button:focus {
     background-color: #e8e8e8
@@ -273,15 +273,15 @@ div.topctl table tr td {
 
 .main-nav li{
     list-style: none;
-    
-} 
+
+}
 
 .main-nav a{
     text-decoration: none;
     padding: 0.25em 0.75em 0.25em 0.75em;
     display: inline-block;
     white-space: nowrap;
-} 
+}
 
 .main-nav a:hover{
     text-decoration: underline;

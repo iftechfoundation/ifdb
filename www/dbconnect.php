@@ -60,7 +60,7 @@ function dbConnect()
 function imageDbConnect($dbnum)
 {
     $dbinfo = localImageCredentials();
-    
+
     // connect and select the database
     $db = mysql_connect($dbinfo[0], $dbinfo[1], $dbinfo[2]);
     if ($db != false)

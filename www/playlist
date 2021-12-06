@@ -233,7 +233,7 @@ if ($errMsg) {
                     . coverArtThumbnail($gameid, 100)
                     . "</a></td>"
                     . "<td>";
-            
+
             echo "<a href=\"viewgame?id=$gameid\"><i>$title</i></a>, "
                 . "by $author";
 

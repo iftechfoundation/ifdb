@@ -11,7 +11,7 @@ $ownerDesc = "author of this Recommended List";
 
 $baseUrl = "listcomment";
 $srcParamName = "list";
-   
+
 
 include "comment.php";
 
@@ -22,7 +22,7 @@ function getCommentReference($db, $listID)
     $result = mysql_query(
         "select
            l.id, l.title, l.desc, l.userid, u.name
-         from 
+         from
            reclists as l
            join users as u on u.id = l.userid
          where

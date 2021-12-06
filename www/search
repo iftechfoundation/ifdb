@@ -126,7 +126,7 @@ if ($xml && $enum)
             {
                 if (preg_match("/^(.*)\(.*\)/", $items[$i], $m))
                     $items[$i] = trim($m[1]);
-            }	
+            }
             break;
         }
 
@@ -147,7 +147,7 @@ if ($xml && $enum)
     }
 
     // send the results
-	ini_set("default_charset", "ISO-8859-1");
+    ini_set("default_charset", "ISO-8859-1");
     header("Content-type: text/xml");
     header("Expires: Mon, 26 Jul 1997 05:00:00 GMT");
     header("Cache-Control: no-store, no-cache, must-revalidate");
@@ -268,13 +268,13 @@ if ($pg == 'all') {
 
     $firstOnPage = 0;
     $lastOnPage = 0;
-    
+
 } else {
 
     // we can't be at a page number less than 1
     if ($pg < 1)
         $pg = 1;
-    
+
     // calculate where that puts us in the results
     $firstOnPage = ($pg - 1) * $perPage;
     $lastOnPage = $firstOnPage + $perPage - 1;
@@ -345,7 +345,7 @@ if ($term || $browse) {
         case "club":
             $redir = "club?id={$rows[0]['clubid']}";
             break;
-        
+
         // Does not apply to tags
         }
 
@@ -410,7 +410,7 @@ function helpListLink($title, $id, $tableWid, $params)
 {
     if (!$tableWid)
         $tableWid = 4;
-    
+
     echo "<div class=\"searchHelpList\" id=\"helpList.$id\">"
         . "<a href=\"javascript:void(0);\" class=\"silent\" "
         .    "onclick=\"javascript:openHelpList('$id', $tableWid, '$params');"
@@ -431,7 +431,7 @@ if (!$browse && !$xml) {
     $otherTabs = "<div class=\"browseLabel\">Searching</div>"
                  . "<div class=\"browseBar\">"
                  . "<div class=\"browseTabs\">";
-                 
+
     $tabClass = "browseTab firstBrowseTab";
     foreach ($browseTabs as $key => $label)
     {
@@ -442,7 +442,7 @@ if (!$browse && !$xml) {
             $otherTabs .= "<span class=\"$tabClass\">"
                           . "<a href=\"search?$key\">"
                           . "$label</a></span>";
-        
+
         $tabClass = "browseTab";
     }
     $otherTabs .= "</div></div>";
@@ -481,7 +481,7 @@ function populateHelpList(id, div, tableWid, params, xml)
         var match;
         if (id == "language" && (match = txt.match(/\((.+)\)/)))
             hrefParam = RegExp.$1;
-    
+
         s.push("<td class=\"searchHelpItem\"><nobr>"
                + "<a href=\"search?searchfor="
                + params.replace('@@', encodeURI8859(hrefParam))
@@ -494,7 +494,7 @@ function populateHelpList(id, div, tableWid, params, xml)
 
     div.innerHTML = "<table><tr>" + s.join("") + "</tr></table>";
 }
-   
+
 </script>
     <?php
 }
@@ -502,7 +502,7 @@ function populateHelpList(id, div, tableWid, params, xml)
 if ($xml) {
 
     // no UI in XML mode - this is an API request
-    
+
 }
 else if ($term || $browse) {
 
@@ -599,7 +599,7 @@ else if ($searchType == "poll") {
     can customize the search with the special modifiers below.
     Note that modifiers with ":" parameters
     have to go <i>last</i>, after regular search words.
-    
+
 
     <div class=indented>
 
@@ -644,7 +644,7 @@ else if ($searchType == "comp") {
     <p>By default, IFDB searches each competition's title, series name,
     description, and keywords for the
     words you enter, and show competitions that match at least one of your
-    search terms.  You can customize the search with the 
+    search terms.  You can customize the search with the
     special modifiers below.
     Note that modifiers with ":" parameters
     have to go <i>last</i>, after regular search words.
@@ -665,7 +665,7 @@ else if ($searchType == "comp") {
 
        <p><b>organizer:<i>name</i></b> shows competitions with <i>name</i>
        found in the Organizer names.
-       
+
        <p><b>judge:<i>name</i></b> shows competitions with <i>name</i>
        found in the Judge names.
 
@@ -771,7 +771,7 @@ else if ($searchType == "member") {
 
     <p>By default, IFDB searches each member's name for the
     words you enter, and shows members who match at least one of your
-    search terms.  You can customize the search with the 
+    search terms.  You can customize the search with the
     special modifiers below.
     Note that modifiers with ":" parameters
     have to go <i>last</i>, after regular search words.
@@ -826,16 +826,16 @@ else if ($searchType == "tag") {
 
     <p>By default, IFDB searches each tag name for the
     words you enter, and shows tags that match at least one of your
-    search terms.  You can customize the search with the 
+    search terms.  You can customize the search with the
     special modifiers below.
 
 
     <div class=indented>
 
        <?php echo $commonInstructions ?>
-        
+
     </div>
-        
+
     </div>
 
 
@@ -983,7 +983,7 @@ else {  // ...default is searching games
 
         <p><b>authorid:<i>id</i></b> lists games by the author with
             the given id.
-           
+
        <p><b>played:<i>yes</i>|<i>no</i></b> lists games that
             you have/haven't put on your played list (i.e. "I've played it").
             Only works if you are logged in with a user account.
@@ -1005,7 +1005,7 @@ else {  // ...default is searching games
        or IFID, enter the modifier with nothing after the colon.
        For example, to search for games that don't have publication
        date or language settings, enter <b>published: language:</b>.
-       
+
 
        <p>You can combine these modifiers to create more specific searches.
        For example, "outer space genre:science fiction published:-1990"
@@ -1266,7 +1266,7 @@ else if ($term || $browse)
     // if our page number puts us past the end of the result set,
     // just say that we're past the end of the results
     if ($rowcnt == 0) {
-        
+
         echo "<i>No results were found.</i>";
 
         if ($searchType == "game") {
@@ -1278,7 +1278,7 @@ else if ($term || $browse)
                 . "Click here</a> to add a new game."
                 . "</div>";
         }
-        
+
     } else if ($firstOnPage >= $rowcnt) {
         echo "<i>No more results were found.</i>";
     } else {
@@ -1345,7 +1345,7 @@ else if ($term || $browse)
                     . "You can use lists to recommend games you like to other people."
                     . "</div>";
         }
-		
+
         // if this is a poll search, show the poll tip box
         if ($searchType == "poll") {
             echo "<div class=tipbox>"
@@ -1672,7 +1672,7 @@ else if ($term || $browse)
                         . "</span>";
                 }
                 break;
-  
+
             case "tag":
                 // get the row data
                 $id = $row['tag'];
@@ -1706,7 +1706,7 @@ else if ($term || $browse)
     </form>
 
     <?php
-    
+
 }
 
 if (!$xml) {

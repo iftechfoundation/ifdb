@@ -165,7 +165,7 @@ if (mysql_num_rows($result) == 0) {
         for ($j = 0 ; $j < mysql_num_rows($res2) ; $j++)
             $vsns[] = mysql_fetch_row($res2);
 
-    
+
         foreach ($vsns as $v) {
             echo "page version {$v[0]} - "
                 . ($v[0] == 1 ? "created" : "edited") . " on {$v[1]}<br>";

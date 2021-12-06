@@ -133,7 +133,7 @@ if ($ratingOnlyCnt != 0) {
        Number of games: $ratingOnlyCnt
        <br><a href=\"allreviews?id=$uid&ratings=only\">See the list</a>";
 }
-    
+
 echo "</div>";
 
 
@@ -144,7 +144,7 @@ headline("<img src=\"/img/blank.gif\" class=\"list-message-icon\"> "
 // fetch my subscribed comments, with a limit of the 10 latest items
 list($comments, $commentCnt) = queryComments(
     $db, "subscribed", $quid, "limit 0, 10", false, false);
-    
+
 if ($commentCnt == 0) {
     echo "<span class=notes><i>You have no comments yet (either "
         . "comments that you posted, or comments by others on your "
@@ -154,7 +154,7 @@ if ($commentCnt == 0) {
 
     // show the list
     for ($i = 0 ; $i < count($comments) ; $i++) {
-        
+
         // get this comment
         list($rec, $link, $title, $ltitle) = $comments[$i];
 
@@ -230,7 +230,7 @@ if ($listCnt == 0) {
             . "<span class=details>"
             . "<a href=\"editlist?id=$listid\">Edit List</a></span><br>";
     }
-    
+
     echo "<p><a href=\"alllists?user=$uid\">"
         . "See all of your lists</a><br>";
 }
@@ -279,7 +279,7 @@ if ($pollCnt == 0) {
             . "</i></span> - <span class=details>"
             . "<a href=\"poll?id=$pollid&editPoll\">Edit Poll</a></span><br>";
     }
-    
+
     echo "<p><a href=\"allpolls?user=$uid\">"
         . "See all of your polls</a><br>";
 }
@@ -493,8 +493,8 @@ if (count($games) == 0) {
 }
 
 echo "</div>";
-    
-       
+
+
 
 // ---------------------------- PROFILE ------------------------------
 
@@ -521,7 +521,7 @@ echo "<td align=right valign=top>
              </tr>
              <tr>
                 <td>";
-                      
+
 // get the user's current score
 list($score, $rank, $rankName) = userScore($uid);
 

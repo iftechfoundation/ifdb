@@ -122,7 +122,7 @@ function clubErrExit($errMsg, $extra = false)
     echo "<span class=errmsg>$errMsg</span>";
     echo $extra
         . "<p><a href=\"club?id=$qid\">Return to the club page</a>";
-    
+
     pageFooter();
     exit();
 }
@@ -183,7 +183,7 @@ if (isset($_REQUEST['wishlist']) || isset($_REQUEST['playlist']))
         // make sure we're logged in so we can tell if we're a member
         if (!logged_in())
             exit();
-        
+
         // if we're not a member, explain the problem
         if (!$isMember) {
             clubErrExit("Sorry, but this club's membership list is private, "
@@ -293,7 +293,7 @@ if (isset($_REQUEST['wishlist']) || isset($_REQUEST['playlist']))
     // end the page
     echo "<p>$pageCtl";
     pageFooter();
-    
+
     // done
     exit();
 }
@@ -579,7 +579,7 @@ if (isset($_REQUEST['resignAdmin']))
 function enforceAdmin($userParam)
 {
     global $db, $qid, $isAdmin, $userid;
-    
+
     // get the user parameter, if applicable
     $targetUser = false;
     if ($userParam)
@@ -594,7 +594,7 @@ function enforceAdmin($userParam)
     {
         if (!$targetUser)
             clubErrExit("No user was specified in the request.");
-        
+
         // the target can't be self
         if ($targetUser == $userid)
             clubErrExit("You can't perform this operation on yourself.");
@@ -794,7 +794,7 @@ if (isset($_REQUEST['members']))
 
     // set up the ORDER BY clause for hte query
     $orderBy = "{$sortList[$sortby][0]} ,u.name";
-    
+
     // query members
     $result = mysql_query(
         "select sql_calc_found_rows
@@ -825,10 +825,10 @@ if (isset($_REQUEST['members']))
     $hids = array("id" => $qid, "members" => 1);
     showSortingControls("searchOrder", "sortby", $sortList, $sortby,
                         $hids, "club");
-    
+
     // show the paging controls
     $pageCtl = "<span class=details>"
-               . makePageControl("club?id=$qid&members&sortby=$sortby", 
+               . makePageControl("club?id=$qid&members&sortby=$sortby",
                                  $pg, $lastPage, $firstOnPage, $lastOnPage,
                                  $rowcnt, true, true, $pgAll)
                . "</span>";
@@ -863,7 +863,7 @@ if (isset($_REQUEST['members']))
                 . ($mloc ? "$mloc<br>" : "")
                 . "Joined $mjoin"
                 . "</span>";
-        
+
         if ($mpic) {
             echo "<table class=grid border=0 cellspacing=0 cellpadding=0>"
                 . "<tr><td>"
@@ -894,7 +894,7 @@ echo "<h1>$name</h1>"
    . $desc;
 
 // ----------------- Details section -----------------------
-    
+
 echo "<h2>Details</h2>"
    . "<div class=\"indented details\">";
 
@@ -968,13 +968,13 @@ if ($contacts)
                          . captchaMaskEmail($email, false)
                          . ")</span>";
         }
-        
+
         // put everything back together
         $contact = htmlspecialcharx($contact);
         $contact = $contact
                    . str_replace("#N#", $contact, $proLink)
                    . $emailLink;
-        
+
         // start a new row (except for the first row)
         if ($i > 0)
             echo "<tr><td></td>";

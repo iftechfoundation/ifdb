@@ -61,7 +61,7 @@ function getHelp($db, $fmtid, $osname)
     for ($os = $targetos ; $os ; $os = $parent) {
         // look up the current OS in the OS list
         $osInfo = $oslist[$os];
-    
+
         // pull out the fields from this OS list entry
         $parentId = $osInfo[0];
         $name = $osInfo[1];
