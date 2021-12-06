@@ -251,13 +251,17 @@ div.topctl table tr td {
     flex-wrap: wrap;
 }
 
-#topbar-logout-mobile{
-    display: none;
-}
 .nav-right{
    display: flex;
    align-items: center;
 }
+
+.nav-left{
+   display: flex;
+   align-items: center;
+   flex: 1;
+}
+
 
 .main-nav ul{
     margin: 0px;
@@ -1156,9 +1160,9 @@ span.headlineRss {
     background-color: #dcdcdc;
 }
 
-@media (max-width: 55ch) {
+@media (max-width: 75ch) {
 
-    .mobile-menu .mobile-hidden, #topbar-home {
+    .mobile-menu .mobile-hidden {
         display: none;
     }
 
@@ -1166,24 +1170,21 @@ span.headlineRss {
         padding: 0;
     }
 
-    #topbar-logout{
-        display: none;
-    }
-
-    #topbar-logout-mobile{
-        display: inline-block;
-    }
-
     .mobile-menu #mobile-menu-toggle-button{
         display: flex;
     }
 
     .mobile-menu ul{
-        flex-wrap: wrap;
+        display: block;
+        position: absolute;
+        top: calc(55px + 2.5em);
+        right: 0;
+        background-color: #e8e8e8;
+        z-index: 1;
     }
 
-    .nav-right{
-        order: -1;
+    .mobile-menu ul a{
+        width: 100%;
     }
 
 }
@@ -2326,6 +2327,9 @@ span.sfl-save-autodesc {
     div.topctl {
         background: #202040;
         border-bottom: thin dotted #303060;
+    }
+    div.topctl ul {
+        background: #202040;
     }
     .menu-toggle-button {
         filter: invert(1);
