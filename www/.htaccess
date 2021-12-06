@@ -48,6 +48,10 @@ RewriteRule ^users/([a-z0-9]+)/(.+)$ /userfile?u=$1&f=$2 [L]
 
 RewriteRule ^t3file/([a-z0-9]+)/(.+)$ /t3files?download=$1/$2 [L]
 
+RewriteRule ^images/(.*)$ /img/$1 [L,R=301,NE]
+RewriteRule ^dark-images/(.*)$ /img/dark-images/$1 [L,R=301,NE]
+RewriteRule ^([^/]*)\.(gif|jpg|png)$ /img/$1.$2 [L,R=301,NE]
+
 #RewriteCond %{SERVER_PORT} !^443$
 #RewriteRule ^login$ mylogin [R]
 
