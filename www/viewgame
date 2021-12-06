@@ -873,6 +873,9 @@ for ($foundGame = $foundPC = $foundT3W = $foundHex = $pcUrl = $t3wUrl = $hexUrl 
             || $link['fmtexternid'] == 'blorb/zcode'
             || $link['fmtexternid'] == 'glulx'
             || $link['fmtexternid'] == 'blorb/glulx'
+            || $link['fmtexternid'] == 'tads2'
+            || $link['fmtexternid'] == 'tads3'
+            || $link['fmtexternid'] == 'hugo'
             )
         && !$link['compression'])
     {
