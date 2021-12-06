@@ -880,7 +880,7 @@ for ($foundGame = $foundPC = $foundT3W = $foundHex = $pcUrl = $t3wUrl = $hexUrl 
         && !$link['compression'])
     {
         $foundPC = true;
-        $pcUrl = urlencode($link['url']);
+        $pcUrl = urlencode(urlToMirror($link['url']));
     }
 
     // check for a TADS 3 Web UI game
@@ -907,8 +907,7 @@ if ($foundGame)
 
     // if we have a Parchment-capable game, set up a play-with-Parchment link
     if ($foundPC && $pcUrl) {
-        $parchment = "http://iplayif.com/?story=";
-//        $parchment = "http://parchment.googlecode.com/svn/trunk/parchment.html?story=";
+        $parchment = "https://iplayif.com/?story=";
         $ptarget = (is_kindle() ? "" : "target=\"_blank\"");
         echo "<a href=\"$parchment$pcUrl\" $ptarget "
             . "title=\"Play this game right now in your browser, using "
