@@ -395,7 +395,7 @@ function saveChanges()
 
             // we need the captcha form step
             pageHeader("Update Profile", false, false,
-                       "<script src='xmlreq.js'></script");
+                       "<script src='xmlreq.js'></script>");
             captchaSupportScripts($captchaKey);
 
             ?>
@@ -619,7 +619,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST'
 
 // start the page
 pageHeader("Update Settings", "editprofile.email", false,
-           "<script src='xmlreq.js'></script");
+           "<script src='xmlreq.js'></script>");
 imageUploadScripts();
 captchaSupportScripts($captchaKey);
 
