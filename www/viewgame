@@ -856,7 +856,7 @@ echo helpWinLink("help-ifid", "IFID");
 // PC == "parchment capable" - a format that we can play with Parchment.
 // T3W == "tads 3 web UI"
 // HEX = Hugo file playable online with textadventures.online/play/?story=XXX
-for ($foundGame = $foundAny = $foundHtml = $foundPC = $foundT3W = $foundHex = $htmlUrl = $pcUrl = $t3wUrl = $hexUrl = false, $i = 0 ;
+for ($foundGame = $foundAny = $foundHtml = $foundPC = $foundT3W = $foundHex = $htmlUrl = $pcUrl = $adriftUrl = $t3wUrl = $hexUrl = false, $i = 0 ;
      $i < count($links) ; $i++)
 {
     // get this link
@@ -893,6 +893,25 @@ for ($foundGame = $foundAny = $foundHtml = $foundPC = $foundT3W = $foundHex = $h
         $pcUrl = urlencode(urlToMirror($link['url']));
     }
 
+    if (!$foundAny
+        && ($link['fmtexternid'] == 'adrift'
+            || $link['fmtexternid'] == 'adrift38'
+            || $link['fmtexternid'] == 'adrift39'
+            || $link['fmtexternid'] == 'adrift5'
+            || $link['fmtexternid'] == 'adrift5/blorb'
+            )
+        && !$link['compression'])
+    {
+        $foundAdrift = $foundAny = true;
+        if (preg_match('!^https?://www.adrift.co/cgi/download.cgi\?(\d+)!', $link['url'], $matches)) {
+            // download.cgi does a 302 redirect to the real download URL, which play.adrift.co can't cope with
+            // luckily, play.cgi does a 302 redirect to play.adrift.co with the canonical game URL
+            $adriftUrl = "https://www.adrift.co/cgi/play.cgi?" . $matches[1];
+        } else {
+            $adriftUrl = "http://play.adrift.co/?game=" . urlencode($link['url']);
+        }
+    }
+
     // check for a TADS 3 Web UI game
     if (!$foundAny
         && $link['fmtexternid'] == 'tads3web'
@@ -924,6 +943,17 @@ if ($foundGame)
         echo "<a href=\"$parchment$pcUrl\" $ptarget "
             . "title=\"Play this game right now in your browser, using "
             . "the Parchment interpreter. No installation is required.\">"
+            . "<img src=\"/img/blank.gif\" class=\"play-online-button\" "
+            . "style=\"margin:0px 0px 0.3em 0px;cursor:pointer;\">"
+            . "</a><br>";
+    }
+
+    // if we have an ADRIFT game, set up a play-online link
+    if ($foundAdrift && $adriftUrl) {
+        $atarget = (is_kindle() ? "" : "target=\"_blank\"");
+        echo "<a href=\"{$adriftUrl}\" $atarget "
+            . "title=\"Play this game right now in your browser. No "
+            . "installation is required.\">"
             . "<img src=\"/img/blank.gif\" class=\"play-online-button\" "
             . "style=\"margin:0px 0px 0.3em 0px;cursor:pointer;\">"
             . "</a><br>";
