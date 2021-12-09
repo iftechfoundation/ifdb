@@ -891,15 +891,6 @@ for ($foundGame = $foundPC = $foundT3W = $foundHex = $pcUrl = $t3wUrl = $hexUrl 
         $foundT3W = true;
         $t3wUrl = urlencode($link['url']);
     }
-
-    // check for an uncompressed Hugo executable
-    if (!$foundHex
-        && $link['fmtexternid'] == 'hugo'
-        && !$link['compression'])
-    {
-        $foundHex = true;
-        $hexUrl = urlencode($link['url']);
-    }
 }
 if ($foundGame)
 {
@@ -922,18 +913,6 @@ if ($foundGame)
         $t3launch = "t3run?id=$id&storyfile={$t3wUrl}";
         $ttarget = (is_kindle() ? "" : "target=\"_blank\"");
         echo "<a href=\"{$t3launch}\" $ttarget "
-            . "title=\"Play this game right now in your browser. No "
-            . "installation is required.\">"
-            . "<img src=\"/img/blank.gif\" class=\"play-online-button\" "
-            . "style=\"margin:0px 0px 0.3em 0px;cursor:pointer;\">"
-            . "</a><br>";
-    }
-
-    // if we have a Hugo game, set up a play-online link
-    if ($foundHex && $hexUrl) {
-        $hexLaunch = "http://textadventures.online/play/?story={$hexUrl}";
-        $htarget = (is_kindle() ? "" : "target=\"_blank\"");
-        echo "<a href=\"{$hexLaunch}\" $htarget "
             . "title=\"Play this game right now in your browser. No "
             . "installation is required.\">"
             . "<img src=\"/img/blank.gif\" class=\"play-online-button\" "
