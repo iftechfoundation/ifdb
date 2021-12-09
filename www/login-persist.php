@@ -1,5 +1,7 @@
 <?php
 
+include_once "session-start.php";
+
 include_once "dbconnect.php";
 include_once "util.php";
 
