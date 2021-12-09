@@ -1,5 +1,7 @@
 <?php
 
+include_once "util.php";
+
 $target = $_REQUEST['t'];
 $width = $_REQUEST['w'];
 $height = $_REQUEST['h'];
