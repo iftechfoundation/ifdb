@@ -313,14 +313,8 @@ function quoteSqlLike($s)
 // quote a SQL RLIKE term - escape regular-expression characters
 function quoteSqlRLike($s)
 {
-    for ($i = 0 ; $i < strlen($s) ; $i++) {
-        if (strpos('^$.*+?|(){}[]\\', $s{$i}) !== false) {
-            $repl = '[[.' . $s{$i} . '.]]';
-            $s = substr_replace($s, $repl, $i, 1);
-            $i += 6;
-        }
-    }
-    return $s;
+    // https://stackoverflow.com/a/53986553/54829
+    return preg_quote($s, '&');
 }
 
 // --------------------------------------------------------------------------
