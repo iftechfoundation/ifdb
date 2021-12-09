@@ -2055,17 +2055,6 @@ img.auto-install-button {
 }
 
 /*
-Download adviser button ("Show Me How")
-*/
-img.dla-button {
-    background: url("/img/dlhelpbtn.gif") no-repeat center center;
-    width: 100px;
-    height: 23px;
-    vertical-align: middle;
-    border: none;
-}
-
-/*
 "Play Online" button
 */
 img.play-online-button {

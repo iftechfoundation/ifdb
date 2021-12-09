@@ -980,13 +980,6 @@ if ($foundGame)
             . "</a><br>";
     }
 
-    // Write the Download Adviser ("Show Me How") button
-    echo "<a href=\"dladviser?id=$id\" "
-        . "title=\"Get customized help for downloading and installing "
-        . "this game\">"
-        . "<img src=\"/img/blank.gif\" class=\"dla-button\" "
-        . "style=\"padding:0 0 0 0;margin:0 0 0 0\"></a><br>";
-
     echo "</td>";
 }
                     ?>
