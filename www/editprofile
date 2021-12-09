@@ -923,62 +923,6 @@ captchaSupportScripts($captchaKey);
 
 </div>
 
-<h2>5. Download Preferences</h2>
-
-<div class=indented>
-<p><span class=details>The IFDB Download Adviser can give you
-customized help with downloading and installing each game that
-you want to play.  Just click the "Show Me How" button in the
-Downloads box on the game's home page.  The Download Adviser
-will customize its advice based on the settings below.</span>
-
-<p>
-
-   <table class=dataform border=0 cellspacing=0 cellpadding=0>
-
-      <tr valign=top>
-         <td align=right>
-            <nobr>Primary Operating System:</nobr>
-         </td>
-         <td>
-            <?php
-               showOSPopup($db, "defaultos", $defaultOS, OSPOP_NONE_OPTION);
-            ?>
-            <br>
-            <span class=microhelp>The Download Adviser will show help
-               for this OS by default</span>
-         </td>
-      </tr>
-
-      <tr valign=top><td>&nbsp;<br></td></tr>
-      <tr valign=top>
-         <td></td>
-         <td>
-            <label>
-               <input type="checkbox" name="noexes" id="noexes" value=1
-                  <?php if ($noExes) echo "checked" ?>>
-               <label for="noexes"> Avoid native Application files</label>
-               <br>
-               <span class=microhelp>If you check this box, the Download
-                  Adviser will only show <?php
-                     echo helpWinLink("help-storyfile", "Story File");
-//<a href="needjs"
-//                  onclick="javascript:helpWin('help-storyfile');return false;">
-//                     Story File</a>
-                  ?> downloads. Otherwise, Application files
-                     (installers and stand-alone executables) will be shown
-                     when available.  Applications are usually easier to
-                     install, but Story Files are usually smaller and are
-                     considered less risky (in terms of viruses, etc).
-                     </span>
-            </label>
-         </td>
-      </tr>
-
-   </table>
-
-</div>
-
 <br><br>
 <input type=submit value="Save Changes" name="save">
 <input type=submit value="Cancel" name="cancel">
