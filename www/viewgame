@@ -644,6 +644,9 @@ if ($hasart) {
     $extraHead .= get_root_url() . "viewgame?coverart&amp;id=$id\"/>";
 }
 
+$extraHead .= "<link rel=\"canonical\" href=\"";
+$extraHead .= get_root_url() . "viewgame?id=$id\" />";
+
 pageHeader("$title - Details", false, false,
            $extraHead, true);
 initReviewVote();
