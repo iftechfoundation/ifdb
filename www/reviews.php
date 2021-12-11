@@ -2,7 +2,7 @@
 
 // To use this module:
 //
-// include "pagetpl.php";
+// include_once "pagetpl.php";
 //
 // put the following extra text in the <HEAD> section:
 //    <script src="xmlreg.js"></script>

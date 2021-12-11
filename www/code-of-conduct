@@ -1,5 +1,5 @@
 <?php
-include "pagetpl.php";
+include_once "pagetpl.php";
 include_once "util.php";
 varPageHeader("IFDB Code of Conduct", false, get_req_data('helpwin'));
 

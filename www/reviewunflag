@@ -2,14 +2,14 @@
 
 // we have to be logged in to do this
 include_once "session-start.php";
-include "login-check.php";
+include_once "login-check.php";
 if (!logged_in())
     exit();
 
 $curuser = $_SESSION['logged_in_as'];
 
 // include some utility modules
-include "pagetpl.php";
+include_once "pagetpl.php";
 include "reviews.php";
 include_once "util.php";
 

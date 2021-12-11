@@ -7,7 +7,7 @@ include_once "login-persist.php";
 $userid = checkPersistentLogin();
 
 include_once "util.php";
-include "pagetpl.php";
+include_once "pagetpl.php";
 include_once "useractivation.php";
 
 include_once "dbconnect.php";

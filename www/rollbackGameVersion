@@ -9,7 +9,7 @@ $curuser = checkPersistentLogin();
 include_once "dbconnect.php";
 $db = dbConnect();
 
-include "pagetpl.php";
+include_once "pagetpl.php";
 include_once "util.php";
 include "starctl.php";
 include_once "rss.php";
