@@ -355,12 +355,12 @@ function generateTUID($db, $tableCol, $maxtries)
     for ($tries = 0, $result = 1 ; $result && $tries < $maxtries ; $tries++)
     {
         // generate a random ID
-        $tuid = base_convert(rand(0, 46655), 10, 36)
-                . base_convert(rand(0, 46655), 10, 36)
-                . base_convert(rand(0, 46655), 10, 36)
-                . base_convert(rand(0, 46655), 10, 36)
-                . base_convert(rand(0, 46655), 10, 36)
-                . base_convert(rand(0, 35), 10, 36);
+        $tuid = base_convert(strval(rand(0, 46655)), 10, 36)
+                . base_convert(strval(rand(0, 46655)), 10, 36)
+                . base_convert(strval(rand(0, 46655)), 10, 36)
+                . base_convert(strval(rand(0, 46655)), 10, 36)
+                . base_convert(strval(rand(0, 46655)), 10, 36)
+                . base_convert(strval(rand(0, 35)), 10, 36);
 
         if (!$tableCol)
             return $tuid;
