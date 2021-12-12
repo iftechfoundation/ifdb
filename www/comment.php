@@ -2,7 +2,7 @@
 
 // we have to be logged in to do this
 include_once "session-start.php";
-include "login-check.php";
+include_once "login-check.php";
 include_once "captcha.php";
 include_once "akismet.php";
 
@@ -12,7 +12,7 @@ if (!logged_in())
 $curuser = $_SESSION['logged_in_as'];
 
 // include some utility modules
-include "pagetpl.php";
+include_once "pagetpl.php";
 include_once "util.php";
 
 // connect to the database

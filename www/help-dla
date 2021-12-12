@@ -1,7 +1,7 @@
 <?php
 include_once "session-start.php";
 
-include "pagetpl.php";
+include_once "pagetpl.php";
 
 pageHeader("How the Download Adviser Works");
 

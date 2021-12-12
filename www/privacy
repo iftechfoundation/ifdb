@@ -1,6 +1,6 @@
 <?php
 include_once "util.php";
-include "pagetpl.php";
+include_once "pagetpl.php";
 varPageHeader("IFDB Privacy Policy", false, get_req_data('helpwin'));
 ?>
 
