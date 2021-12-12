@@ -1,12 +1,16 @@
 <?php
 
+include_once "util.php";
+
 $target = $_REQUEST['t'];
 $width = $_REQUEST['w'];
 $height = $_REQUEST['h'];
 
+$target = get_root_url() . htmlspecialcharx($target);
+
 echo "<html>"
    . "<body style=\"margin: 0 0 0 0; padding: 0 0 0 0;\">"
-   . "<iframe src=\"/$target\" "
+   . "<iframe src=\"$target\" "
    . "frameborder=0 "
    . "style=\"height: $height; width: $width;\" scrolling=no>"
    . "</object>"
