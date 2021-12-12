@@ -6,7 +6,7 @@ $target = $_REQUEST['t'];
 $width = $_REQUEST['w'];
 $height = $_REQUEST['h'];
 
-$target = get_root_url() . $target;
+$target = get_root_url() . htmlspecialcharx($target);
 
 echo "<html>"
    . "<body style=\"margin: 0 0 0 0; padding: 0 0 0 0;\">"
