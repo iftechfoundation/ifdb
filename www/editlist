@@ -1,13 +1,13 @@
 <?php
 
-include "pagetpl.php";
+include_once "pagetpl.php";
 include_once "util.php";
 include "lists.php";
 include_once "gamesearchpopup.php";
 
 // we have to be logged in to edit a game
 include_once "session-start.php";
-include "login-check.php";
+include_once "login-check.php";
 if (!logged_in())
     exit();
 

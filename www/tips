@@ -1,5 +1,5 @@
 <?php
-include "pagetpl.php";
+include_once "pagetpl.php";
 pageHeader("Tips on Using IFDB", false);
 ?>
 

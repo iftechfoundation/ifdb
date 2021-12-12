@@ -1,6 +1,6 @@
 <?php
 include_once "session-start.php";
-include "login-check.php";
+include_once "login-check.php";
 if (provisionally_logged_in())
     $usernum = $_SESSION['provisional_logged_in_as'];
 else if (logged_in())
@@ -8,7 +8,7 @@ else if (logged_in())
 else
     exit();
 
-include "pagetpl.php";
+include_once "pagetpl.php";
 include_once "dbconnect.php";
 
 // start the page

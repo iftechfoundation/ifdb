@@ -1,5 +1,7 @@
 <?php
 
+include_once "util.php";
+
 function connect($dom, $uid, $psw, $infoMode)
 {
     $u = "http://xmro.$dom/xstream/login_servlet.jsp";

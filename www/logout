@@ -16,7 +16,7 @@ $_SESSION['logged_in_as'] = null;
 // clear the recommendation cache
 shoot_recommendation_cache();
 
-include "pagetpl.php";
+include_once "pagetpl.php";
 pageHeader("Logged out");
 ?>
 <h1>Logged Out</h1>

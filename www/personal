@@ -1,13 +1,13 @@
 <?php
 
 include_once "session-start.php";
-include "login-check.php";
+include_once "login-check.php";
 if (!logged_in())
     exit();
 
 include_once "dbconnect.php";
 include_once "util.php";
-include "pagetpl.php";
+include_once "pagetpl.php";
 include_once "commentutil.php";
 include_once "storage-util.php";
 
