@@ -879,6 +879,12 @@ for ($foundGame = $foundAny = $foundHtml = $foundPC = $foundT3W = $foundHex = $h
         $htmlUrl = $link['url'];
     }
 
+    if (!$foundAny && stripos($link['title'], "Play Online") !== false)
+    {
+        $foundGame = $foundHtml = $foundAny = true;
+        $htmlUrl = $link['url'];
+    }
+
     // if this is the first Parchment-capable link, and it's not compressed,
     // note it so that we can set up a Parchment play link to it
     if (!$foundAny
