@@ -1,5 +1,6 @@
 <?php
 
+include_once "session-start.php";
 include_once "dbconnect.php";
 include_once "images.php";
 include_once "login-check.php";
@@ -28,9 +29,6 @@ function mysql_result($result, $row, $field = 0) {
     return $row[$field];
 }
 function mysql_insert_id($linkid) { return mysqli_insert_id($linkid); }
-
-define("PRODUCTION_SERVER_NAME", "ifdb.org");
-define("STAGING_SERVER_NAME", "dev.ifdb.org");
 
 // --------------------------------------------------------------------------
 //
@@ -3097,18 +3095,6 @@ function send_mail($to, $subject, $message, $additional_headers) {
     } else {
         return mail($to, $subject, $wrapped, $additional_headers);
     }
-}
-
-function isProduction() {
-    return $_SERVER['SERVER_NAME'] === PRODUCTION_SERVER_NAME;
-}
-
-function isStaging() {
-    return $_SERVER['SERVER_NAME'] === STAGING_SERVER_NAME;
-}
-
-function isLocalDev() {
-    return !isProduction() && !isStaging();
 }
 
 function get_root_url() {
