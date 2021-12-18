@@ -870,8 +870,22 @@ for ($foundGame = $foundHtml = $foundPC = $foundT3W = $foundHex = $htmlUrl = $pc
         $foundGame = true;
 
     $unboxUrl = false;
-    if ($link['compression'] && $link['compressedprimary'] && preg_match('!^https?://(www\.|mirror\.)?ifarchive\.org/!', $link['url'])) {
-        $unboxUrl = "https://unbox.ifarchive.org/?url={$link['url']}&find={$link['compressedprimary']}";
+    if ($link['compression'] && $link['compressedprimary']) {
+        if (preg_match('!^https?://(www\.|mirror\.)?ifarchive\.org/!', $link['url'])) {
+            $unboxUrl = "https://unbox.ifarchive.org/?url={$link['url']}&find={$link['compressedprimary']}";
+        } else {
+            $springThingUrl = preg_replace('!^https?://(www\.)?springthing\.net/(\d+)/files/(.*)$!',
+                'https://ifarchive.org/if-archive/games/springthing/$2/$3', $link['url']);
+            if ($springThingUrl !== $link['url']) {
+                $unboxUrl = "https://unbox.ifarchive.org/?url={$springThingUrl}&find={$link['compressedprimary']}";
+            } else {
+                $springThingUrl = preg_replace('!^https?://(www\.)?springthing\.net/(\d+)/stories/[^/]+/(.*)$!',
+                    'https://ifarchive.org/if-archive/games/springthing/$2/$3', $link['url']);
+                if ($springThingUrl !== $link['url']) {
+                    $unboxUrl = "https://unbox.ifarchive.org/?url={$springThingUrl}&find={$link['compressedprimary']}";
+                }
+            }
+        }
     }
 
     if ($link['fmtexternid'] == 'hypertextgame')
