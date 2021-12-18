@@ -869,13 +869,22 @@ for ($foundGame = $foundHtml = $foundPC = $foundT3W = $foundHex = $htmlUrl = $pc
     if ($link['isgame'])
         $foundGame = true;
 
-    if ($link['fmtexternid'] == 'hypertextgame'
-        && !$link['compression']
-        )
+    $unboxUrl = false;
+    if ($link['compression'] && $link['compressedprimary'] && preg_match('!^https?://(www\.|mirror\.)?ifarchive\.org/!', $link['url'])) {
+        $unboxUrl = "https://unbox.ifarchive.org/?url={$link['url']}&find={$link['compressedprimary']}";
+    }
+
+    if ($link['fmtexternid'] == 'hypertextgame')
     {
-        $foundHtml = true;
-        $htmlUrl = $link['url'];
-        break;
+        if (!$link['compression']) {
+            $foundHtml = true;
+            $htmlUrl = $link['url'];
+            break;
+        } else if ($unboxUrl) {
+            $foundHtml = true;
+            $htmlUrl = $unboxUrl;
+            break;
+        }
     }
 
     if (stripos($link['title'], "Play Online") !== false)
@@ -887,47 +896,62 @@ for ($foundGame = $foundHtml = $foundPC = $foundT3W = $foundHex = $htmlUrl = $pc
 
     // if this is the first Parchment-capable link, and it's not compressed,
     // note it so that we can set up a Parchment play link to it
-    if (($link['fmtexternid'] == 'zcode'
+    if ($link['fmtexternid'] == 'zcode'
             || $link['fmtexternid'] == 'blorb/zcode'
             || $link['fmtexternid'] == 'glulx'
             || $link['fmtexternid'] == 'blorb/glulx'
             || $link['fmtexternid'] == 'tads2'
             || $link['fmtexternid'] == 'tads3'
             || $link['fmtexternid'] == 'hugo'
-            )
-        && !$link['compression'])
+        )
     {
-        $foundPC = true;
-        $pcUrl = urlencode(urlToMirror($link['url']));
-        break;
+        if (!$link['compression']) {
+            $foundPC = true;
+            $pcUrl = urlencode(urlToMirror($link['url']));
+            break;
+        } else if ($unboxUrl) {
+            $foundPC = true;
+            $pcUrl = urlencode($unboxUrl);
+            break;
+        }
     }
 
-    if (($link['fmtexternid'] == 'adrift'
+    if ($link['fmtexternid'] == 'adrift'
             || $link['fmtexternid'] == 'adrift38'
             || $link['fmtexternid'] == 'adrift39'
             || $link['fmtexternid'] == 'adrift5'
             || $link['fmtexternid'] == 'adrift5/blorb'
-            )
-        && !$link['compression'])
+        )
     {
-        $foundAdrift = true;
-        if (preg_match('!^https?://www.adrift.co/cgi/download.cgi\?(\d+)!', $link['url'], $matches)) {
-            // download.cgi does a 302 redirect to the real download URL, which play.adrift.co can't cope with
-            // luckily, play.cgi does a 302 redirect to play.adrift.co with the canonical game URL
-            $adriftUrl = "https://www.adrift.co/cgi/play.cgi?" . $matches[1];
-        } else {
-            $adriftUrl = "http://play.adrift.co/?game=" . urlencode($link['url']);
+        if (!$link['compression']) {
+            $foundAdrift = true;
+            if (preg_match('!^https?://www.adrift.co/cgi/download.cgi\?(\d+)!', $link['url'], $matches)) {
+                // download.cgi does a 302 redirect to the real download URL, which play.adrift.co can't cope with
+                // luckily, play.cgi does a 302 redirect to play.adrift.co with the canonical game URL
+                $adriftUrl = "https://www.adrift.co/cgi/play.cgi?" . $matches[1];
+            } else {
+                $adriftUrl = "http://play.adrift.co/?game=" . urlencode($link['url']);
+            }
+            break;
+        } else if ($unboxUrl) {
+            $foundAdrift = true;
+            $adriftUrl = "http://play.adrift.co/?game=" . urlencode($unboxUrl);
+            break;
         }
-        break;
     }
 
     // check for a TADS 3 Web UI game
-    if ($link['fmtexternid'] == 'tads3web'
-        && !$link['compression'])
+    if ($link['fmtexternid'] == 'tads3web')
     {
-        $foundT3W = true;
-        $t3wUrl = urlencode($link['url']);
-        break;
+        if (!$link['compression']) {
+            $foundT3W = true;
+            $t3wUrl = urlencode($link['url']);
+            break;
+        } else if ($unboxUrl) {
+            $foundT3W = true;
+            $t3wUrl = urlencode($unboxUrl);
+            break;
+        }
     }
 }
 if ($foundGame)
