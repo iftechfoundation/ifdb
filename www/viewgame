@@ -859,7 +859,7 @@ echo helpWinLink("help-ifid", "IFID");
 // PC == "parchment capable" - a format that we can play with Parchment.
 // T3W == "tads 3 web UI"
 // HEX = Hugo file playable online with textadventures.online/play/?story=XXX
-for ($foundGame = $foundAny = $foundHtml = $foundPC = $foundT3W = $foundHex = $htmlUrl = $pcUrl = $adriftUrl = $t3wUrl = $hexUrl = false, $i = 0 ;
+for ($foundGame = $foundHtml = $foundPC = $foundT3W = $foundHex = $htmlUrl = $pcUrl = $adriftUrl = $t3wUrl = $hexUrl = false, $i = 0 ;
      $i < count($links) ; $i++)
 {
     // get this link
@@ -869,26 +869,25 @@ for ($foundGame = $foundAny = $foundHtml = $foundPC = $foundT3W = $foundHex = $h
     if ($link['isgame'])
         $foundGame = true;
 
-    if (!$foundAny
-        && $link['isgame']
-        && $link['fmtexternid'] == 'hypertextgame'
+    if ($link['fmtexternid'] == 'hypertextgame'
         && !$link['compression']
         )
     {
-        $foundHtml = $foundAny = true;
+        $foundHtml = true;
         $htmlUrl = $link['url'];
+        break;
     }
 
-    if (!$foundAny && stripos($link['title'], "Play Online") !== false)
+    if (stripos($link['title'], "Play Online") !== false)
     {
-        $foundGame = $foundHtml = $foundAny = true;
+        $foundGame = $foundHtml = true;
         $htmlUrl = $link['url'];
+        break;
     }
 
     // if this is the first Parchment-capable link, and it's not compressed,
     // note it so that we can set up a Parchment play link to it
-    if (!$foundAny
-        && ($link['fmtexternid'] == 'zcode'
+    if (($link['fmtexternid'] == 'zcode'
             || $link['fmtexternid'] == 'blorb/zcode'
             || $link['fmtexternid'] == 'glulx'
             || $link['fmtexternid'] == 'blorb/glulx'
@@ -898,12 +897,12 @@ for ($foundGame = $foundAny = $foundHtml = $foundPC = $foundT3W = $foundHex = $h
             )
         && !$link['compression'])
     {
-        $foundPC = $foundAny = true;
+        $foundPC = true;
         $pcUrl = urlencode(urlToMirror($link['url']));
+        break;
     }
 
-    if (!$foundAny
-        && ($link['fmtexternid'] == 'adrift'
+    if (($link['fmtexternid'] == 'adrift'
             || $link['fmtexternid'] == 'adrift38'
             || $link['fmtexternid'] == 'adrift39'
             || $link['fmtexternid'] == 'adrift5'
@@ -911,7 +910,7 @@ for ($foundGame = $foundAny = $foundHtml = $foundPC = $foundT3W = $foundHex = $h
             )
         && !$link['compression'])
     {
-        $foundAdrift = $foundAny = true;
+        $foundAdrift = true;
         if (preg_match('!^https?://www.adrift.co/cgi/download.cgi\?(\d+)!', $link['url'], $matches)) {
             // download.cgi does a 302 redirect to the real download URL, which play.adrift.co can't cope with
             // luckily, play.cgi does a 302 redirect to play.adrift.co with the canonical game URL
@@ -919,15 +918,16 @@ for ($foundGame = $foundAny = $foundHtml = $foundPC = $foundT3W = $foundHex = $h
         } else {
             $adriftUrl = "http://play.adrift.co/?game=" . urlencode($link['url']);
         }
+        break;
     }
 
     // check for a TADS 3 Web UI game
-    if (!$foundAny
-        && $link['fmtexternid'] == 'tads3web'
+    if ($link['fmtexternid'] == 'tads3web'
         && !$link['compression'])
     {
-        $foundT3W = $foundAny = true;
+        $foundT3W = true;
         $t3wUrl = urlencode($link['url']);
+        break;
     }
 }
 if ($foundGame)
