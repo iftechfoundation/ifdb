@@ -2199,7 +2199,7 @@ if ($embargoCnt > 0)
                         else
                             echo "<h2>".count($extReviews)." Off-Site Reviews</h2>";
 
-                        echo "<div class=indented>";
+                        echo "<div class='indented readMore'>";
                         $divStarted = true;
                     }
 
@@ -2209,11 +2209,9 @@ if ($embargoCnt > 0)
         }
     }
 
-    // end the division if we're not continuing with the detail view
-    if (!$detailView && $divStarted) {
-        echo "</div>";
-        $divStarted = false;
-    }
+    echo "<div class=expand><button>Read More</button></div>";
+
+    echo "</div>";
 
 
         // ---------------- News Section ----------------------------
