@@ -1457,13 +1457,13 @@ if (!isEmpty($seriesname)) {
         . "\">$seriesname</a><br>";
 }
                      ?>
+                     <?php if (!isEmpty($pubYear)) echo "$pubYear<br>" ?>
                      <?php
 if (!isEmpty($genre)) {
     echo "<a href=\"search?searchfor=genre:" . urlencodeFromHTML($genre)
         . "\">$genre</a><br>";
 }
                      ?>
-                     <?php if (!isEmpty($pubYear)) echo "$pubYear<br>" ?>
                      <?php if (!isEmpty($website))
                          echo "<br><a href=\"".htmlspecialcharx($website)."\">Web Site</a><br>" ?>
                   </span>
