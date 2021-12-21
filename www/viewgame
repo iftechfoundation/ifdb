@@ -1287,7 +1287,8 @@ if ($embargoCnt > 0)
 ////-->
 //</script>
         ?>
-   <table class=downloads id="downloadsTable">
+    <div class="readMore">
+    <table class=downloads id="downloadsTable">
        <tr>
            <td>
               <table width="100%" border=0 cellpadding=0 cellspacing=0>
@@ -1581,7 +1582,9 @@ if (count($links) == 0 && $dlnotes == "") {
          ?>
            </td>
        </tr>
-   </table>
+    </table>
+    <div class="expand"><button>Read More</button></div>
+    </div>
 
    <?php
    // ------------ end of the download table -----------------
