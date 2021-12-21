@@ -2383,6 +2383,9 @@ span.sfl-save-autodesc {
             color: #d0d0ff;
         }
     }
+    .readMore .expand {
+        background-image: linear-gradient(to bottom, rgba(0,0,0,0), black);
+    }
     span.dlzipmain {
         color: #d0d0ff;
     }
