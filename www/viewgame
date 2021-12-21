@@ -2219,10 +2219,10 @@ mouseOutRating(<?php echo $currentUserRating ?>);
         }
     }
 
-    echo "<div class=expand><button>Read More</button></div>";
-
-    echo "</div>";
-
+    if ($divStarted) {
+        echo "<div class=expand><button>Read More</button></div>";
+        echo "</div>";
+    }
 
         // ---------------- News Section ----------------------------
 
