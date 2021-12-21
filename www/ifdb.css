@@ -306,6 +306,7 @@ div.main {
     max-width: 100ch;
     padding: 1em 1em 1em 1em;
     margin: 0 auto;
+    position: relative;
 }
 
 .flexer{
@@ -566,10 +567,51 @@ The "downloadfloat" division is for the Download box on a game's
 main listing page.  This is a floating box on the right side of
 the page.
 */
-div.downloadfloat {
-    float: right;
-    margin: 0 0 2em 1em;
-    width: 35ex;
+@media (min-width: 60rem) {
+    div.downloadfloat {
+        position: absolute;
+        top: 0;
+        right: 0;
+        margin: 0 0 2em 1em;
+        width: 20rem;
+    }
+
+    table.downloads {
+        background: #F0F0F0;
+        border: thin dotted #e0e0e0;
+    }
+
+    table.downloads td {
+        font: 80%/140% Verdana, Arial, Helvetica, Sans-Serif;
+    }
+
+
+    table.downloads h3 {
+        color: #000080;
+    }
+
+    /*
+    The "gamerightbar" table is the box on a game's listing page,
+    underneath the Download box, where we display quick rating
+    input links ("Have you played this game?").
+    */
+    table.gamerightbar {
+        padding: 0 0 0 0;
+        margin: 0 0 0 0;
+        background: #F0F0F0;
+        border: thin dotted #e0e0e0;
+        width: 100%;
+        font-size: 80%;
+    }
+    table.gamerightbar h3 {
+        font: 100%/140% Verdana, Arial, Helvetica, Sans-Serif;
+        font-weight: bold;
+        color: #000080;
+        margin: 0 0 0.5em 0;
+    }
+    table.gamerightbar td {
+        padding: 0 0 0.5em 0;
+    }
 }
 
 /*
@@ -579,19 +621,15 @@ contents of the Download box.
 table.downloads {
     padding: 0;
     margin: 0;
-    background: #F0F0F0;
-    border: thin dotted #e0e0e0;
     width: 100%;
+    max-width: 60ch;
 }
 table.downloads h3 {
     font: 100%/140% Verdana, Arial, Helvetica, Sans-Serif;
     font-weight: bold;
-    color: #000080;
     margin: 0;
 }
-table.downloads td {
-   font: 80%/140% Verdana, Arial, Helvetica, Sans-Serif;
-}
+
 table.downloads td div.downloaditem {
     overflow: hidden;
 }
@@ -651,29 +689,6 @@ span.fmtnotes {
     font-size: 85%;
     line-height: 1.25em;
     color: #606060;
-}
-
-/*
-The "gamerightbar" table is the box on a game's listing page,
-underneath the Download box, where we display quick rating
-input links ("Have you played this game?").
-*/
-table.gamerightbar {
-    padding: 0 0 0 0;
-    margin: 0 0 0 0;
-    background: #F0F0F0;
-    border: thin dotted #e0e0e0;
-    width: 100%;
-    font-size: 80%;
-}
-table.gamerightbar h3 {
-    font: 100%/140% Verdana, Arial, Helvetica, Sans-Serif;
-    font-weight: bold;
-    color: #000080;
-    margin: 0 0 0.5em 0;
-}
-table.gamerightbar td {
-    padding: 0 0 0.5em 0;
 }
 
 /*
@@ -2354,12 +2369,24 @@ span.sfl-save-autodesc {
     #topbar-search-go-button {
         filter: invert(1);
     }
-    table.downloads {
-        background: #101030;
-        border: thin dotted #303030;
-    }
-    table.downloads h3 {
-        color: #d0d0ff;
+    @media (min-width: 60rem) {
+        table.downloads {
+            background: #101030;
+            border: thin dotted #303030;
+        }
+        table.downloads h3 {
+            color: #d0d0ff;
+        }
+        table.gamerightbar {
+            background: #101030;
+            border: thin dotted #303030;
+        }
+        table.gamerightbar td {
+            color: #d8d8d8;
+        }
+        table.gamerightbar td h3 {
+            color: #d0d0ff;
+        }
     }
     span.dlzipmain {
         color: #d0d0ff;
@@ -2389,16 +2416,6 @@ span.sfl-save-autodesc {
     table.botbar table tr.botbarhdr td {
         background: #383838;
         color: #f0f0f0;
-    }
-    table.gamerightbar {
-        background: #101030;
-        border: thin dotted #303030;
-    }
-    table.gamerightbar td {
-        color: #d8d8d8;
-    }
-    table.gamerightbar td h3 {
-        color: #d0d0ff;
     }
     table.rightbar {
         border-top: thin solid #303050;
