@@ -1429,38 +1429,35 @@ if ($foundGame)
     // if we have an HTML playable game, set up a play online link
     if ($foundHtml && $htmlUrl) {
         $ptarget = (is_kindle() ? "" : "target=\"_blank\"");
-        $playOnline = "<a href=\"$htmlUrl\" $ptarget "
+        echo "<a href=\"$htmlUrl\" $ptarget "
             . "title=\"Play this game right now in your browser. No "
             . "installation is required.\">"
             . "<img src=\"/img/blank.gif\" class=\"play-online-button viewgame__playOnline\" "
             . ">"
-            . "</a>";
-        echo $playOnline;
+            . "</a><br>";
     }
 
     // if we have a Parchment-capable game, set up a play-with-Parchment link
     if ($foundPC && $pcUrl) {
         $parchment = "https://iplayif.com/?story=";
         $ptarget = (is_kindle() ? "" : "target=\"_blank\"");
-        $playOnline =  "<a href=\"$parchment$pcUrl\" $ptarget "
+        echo "<a href=\"$parchment$pcUrl\" $ptarget "
             . "title=\"Play this game right now in your browser, using "
             . "the Parchment interpreter. No installation is required.\">"
             . "<img src=\"/img/blank.gif\" class=\"play-online-button viewgame__playOnline\" "
             . ">"
-            . "</a>";
-        echo $playOnline;
+            . "</a><br>";
     }
 
     // if we have an ADRIFT game, set up a play-online link
     if ($foundAdrift && $adriftUrl) {
         $atarget = (is_kindle() ? "" : "target=\"_blank\"");
-        $playOnline =  "<a href=\"{$adriftUrl}\" $atarget "
+        echo "<a href=\"{$adriftUrl}\" $atarget "
             . "title=\"Play this game right now in your browser. No "
             . "installation is required.\">"
             . "<img src=\"/img/blank.gif\" class=\"play-online-button viewgame__playOnline\" "
             . ">"
-            . "</a>";
-        echo $playOnline;
+            . "</a><br>";
     }
 
     echo "</td>";
