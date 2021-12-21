@@ -33,6 +33,7 @@ $historyView = false;
 $reviewView = false;
 $ratingsView = false;
 $oneReviewView = false;
+$downloadsView = false;
 $myCrossRecs = 0;
 
 // note if we're on IE6
@@ -809,6 +810,10 @@ echo helpWinLink("help-ifid", "IFID");
         // we're viewing a single review
         $oneReviewView = true;
     }
+    if (isset($_REQUEST['downloads'])) {
+        // we're viewing the downloads
+        $downloadsView = true;
+    }
     if (isset($_REQUEST['findmore'])) {
         // we're showing the 'recommendations' view
         $recView = true;
@@ -816,7 +821,7 @@ echo helpWinLink("help-ifid", "IFID");
 
     // the default view mode is the Detail view (this is the game's
     // "home page" view)
-    $detailView = !($historyView || $reviewView || $oneReviewView || $recView);
+    $detailView = !($historyView || $reviewView || $oneReviewView || $recView || $downloadsView);
 
     // in history view, use the default external review layout - we're
     // not showing the full normal view in this case, so the normal
@@ -826,8 +831,11 @@ echo helpWinLink("help-ifid", "IFID");
     }
 
 // ------------------------ DOWNLOADS -------------------------------
-    if ($detailView || $historyView) {
+    if ($detailView || $historyView || $downloadsView) {
 
+    if ($downloadsView)
+            echo "<p><a href=\"viewgame?id=$id\">Go to the "
+                . "main page for this game</a>";
         ?>
 <div class="downloadfloat">
    <table class=downloads id="downloadsTable">
@@ -1143,6 +1151,7 @@ if (count($links) == 0 && $dlnotes == "") {
 
    <?php
    // ------------ end of the download table -----------------
+   if (!$downloadsView) {
    ?>
 
    <p>
@@ -1307,6 +1316,7 @@ mouseOutRating(<?php echo $currentUserRating ?>);
 
 </div>
 <?php
+    } // if (!$downloadsView)
 
     } // if ($detailView || $historyView)
 
@@ -1745,7 +1755,7 @@ if ($embargoCnt > 0)
 
 <?php
     if ($foundGame) {
-        echo "<div class='mobile-only'>$playOnline</div>";
+        echo "<div class='mobile-only'>$playOnline <a href='viewgame?id=$id&downloads'>Downloads</a></div>";
     }
 
     } // if ($detailView)
