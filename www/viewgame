@@ -2205,7 +2205,53 @@ addEventListener('DOMContentLoaded', () => {
             echo "</div>";
 
 
-//--------------------------- TAGS SECTION -----------------------------
+//----------------------- MEMBER REVIEW SECTION ------------------------
+
+        // query up the member reviews, sorted by helpfulness - for ordering
+        // purposes, helpfulness is defined as helpful votes minus unhelpful
+        // votes; this way, each unhelpful vote essentially cancels out a
+        // helpful vote
+        $result = mysql_query(
+            $selectMemberReviews
+            . " order by $orderByUserFilter, "
+            . " netHelpful desc, moddate desc", $db);
+
+        $rowcnt = mysql_num_rows($result);
+        if ($rowcnt > 0) {
+
+            // we have some reviews - start off the section
+            $showcnt = $rowcnt;
+
+            // show the Member Reviews section header
+            $showHisto = !$should_hide;
+            showMemberReviewsHeader($rowcnt, false, $showHisto);
+
+            // if we have too many for this front page, limit it
+            if ($rowcnt > $reviewsOnHomePage) {
+                echo "<h3>Most Helpful Member Reviews</h3><br>";
+                $showcnt = $reviewsOnHomePage;
+            }
+
+            // show the top reviews
+            for ($i = 0 ; $i < $showcnt ; $i++) {
+                // fetch the review
+                $reviewRec = mysql_fetch_array($result, MYSQL_ASSOC);
+
+                // show it
+                showReview($db, $id, $reviewRec, $specialNames, 0 | ($adminPriv ? SHOWREVIEW_ADMINREVIEWVOTESLINK : 0));
+            }
+
+            // show the link to the full list of reviews, if there are more
+            if ($rowcnt > $reviewsOnHomePage) {
+                echo "<span class=details><a href=\"viewgame?id=$id&reviews\">
+                      See All $memberReviewCnt Member Reviews</a></span><br>";
+            }
+
+            // end the indented division
+            echo "</div>";
+        }
+
+    //--------------------------- TAGS SECTION -----------------------------
 
         echo "<h2><a name=\"tags\"></a>Tags</h2><div class=indented>";
 
@@ -2736,53 +2782,6 @@ dispTags();
         <?php
 
         echo "</div>";
-
-
-//----------------------- MEMBER REVIEW SECTION ------------------------
-
-        // query up the member reviews, sorted by helpfulness - for ordering
-        // purposes, helpfulness is defined as helpful votes minus unhelpful
-        // votes; this way, each unhelpful vote essentially cancels out a
-        // helpful vote
-        $result = mysql_query(
-            $selectMemberReviews
-            . " order by $orderByUserFilter, "
-            . " netHelpful desc, moddate desc", $db);
-
-        $rowcnt = mysql_num_rows($result);
-        if ($rowcnt > 0) {
-
-            // we have some reviews - start off the section
-            $showcnt = $rowcnt;
-
-            // show the Member Reviews section header
-            $showHisto = !$should_hide;
-            showMemberReviewsHeader($rowcnt, false, $showHisto);
-
-            // if we have too many for this front page, limit it
-            if ($rowcnt > $reviewsOnHomePage) {
-                echo "<h3>Most Helpful Member Reviews</h3><br>";
-                $showcnt = $reviewsOnHomePage;
-            }
-
-            // show the top reviews
-            for ($i = 0 ; $i < $showcnt ; $i++) {
-                // fetch the review
-                $reviewRec = mysql_fetch_array($result, MYSQL_ASSOC);
-
-                // show it
-                showReview($db, $id, $reviewRec, $specialNames, 0 | ($adminPriv ? SHOWREVIEW_ADMINREVIEWVOTESLINK : 0));
-            }
-
-            // show the link to the full list of reviews, if there are more
-            if ($rowcnt > $reviewsOnHomePage) {
-                echo "<span class=details><a href=\"viewgame?id=$id&reviews\">
-                      See All $memberReviewCnt Member Reviews</a></span><br>";
-            }
-
-            // end the indented division
-            echo "</div>";
-        }
 
     } // if ($detailView)
 
