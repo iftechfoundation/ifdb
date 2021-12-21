@@ -222,9 +222,8 @@ function showMemberReviewsHeader($rowcnt, $ratingsView, $showHisto)
     global $ratingAvg, $ratingCntAvg, $ratingHisto, $id, $currentUserReview, $curuser;
 
     // start the section
-    $title = ($ratingsView ? "Reviews and Ratings" : "Member Reviews");
     echo "<a name='memberReviews'></a>"
-        . "<h2>$title</h2><div class=indented>";
+        . "<h2>Ratings and Reviews</h2><div class=indented>";
 
     // count the ratings in the histogram, and get the maximum
     for ($cnt = $max = 0, $i = 1 ; $i <= 5 ; $i++) {
@@ -280,8 +279,6 @@ function showMemberReviewsHeader($rowcnt, $ratingsView, $showHisto)
     if ($showHisto) {
         echo "</td></tr></table>";
     }
-
-    echo "<br><br>";
 }
 
 // ------------------------------------------------------------------------
@@ -1771,7 +1768,7 @@ if ($embargoCnt > 0)
 <script type="text/javascript" nonce="<?php global $nonce; echo $nonce; ?>">
 addEventListener('DOMContentLoaded', () => {
     document.querySelectorAll(".readMore").forEach(section => {
-        if (!section.style.maxHeight && section.scrollHeight > window.innerHeight * 0.5) {
+        if (!section.style.maxHeight && section.scrollHeight > window.outerHeight * 0.4) {
             const expand = section.querySelector('.expand')
             expand.style.display = "block";
             const button = expand.querySelector('button');
@@ -2014,7 +2011,7 @@ addEventListener('DOMContentLoaded', () => {
 
             // if we have too many for this front page, limit it
             if ($rowcnt > $reviewsOnHomePage) {
-                echo "<h3>Most Helpful Member Reviews</h3><br>";
+                echo "<h3>$reviewsOnHomePage Most Helpful Member Reviews</h3>";
                 $showcnt = $reviewsOnHomePage;
             }
 

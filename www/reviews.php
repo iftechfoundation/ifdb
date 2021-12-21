@@ -336,7 +336,7 @@ function showReview($db, $gameid, $rec, $specialNames, $optionFlags = 0)
     } else {
         // this is an ordinary review - start with the helpfulness votes
         if ($helpful != 0 || $unhelpful != 0) {
-            echo "<p><div class=smallhead><span class=details>$helpful of
+            echo "<div class=smallhead><span class=details>$helpful of
                   $totalvotes people found the following review helpful:
                  ".($adminReviewVotes ? "<a href=\"/adminops?reviewvotes&reviewid=$reviewid\">Admin: Who?</a>" : "")."</span></div>";
         }
@@ -406,7 +406,10 @@ function showReview($db, $gameid, $rec, $specialNames, $optionFlags = 0)
     }
 
     // show the review body
-    echo "<p>$review</p>";
+    global $nonce;
+    echo "<style nonce='$nonce'>.review__body { max-width: 60ch; }</style>"
+        ."<div class=\"readMore review__body\" ><p>$review</p>"
+        .'<div class="expand"><button>Read More</button></div></div>';
 
     // set up the comment controls, if applicable
     $commentCtls = $barCommentCtl = "";
