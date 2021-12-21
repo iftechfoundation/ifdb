@@ -1192,7 +1192,7 @@ span.headlineRss {
 
 @media (max-width: 75ch) {
 
-    .mobile-menu .mobile-hidden {
+    .mobile-hidden.mobile-hidden {
         display: none;
     }
 
@@ -1225,6 +1225,12 @@ span.headlineRss {
         display: block;
     }
 
+}
+
+@media (min-width: 75ch) {
+    .mobile-only {
+        display: none;
+    }
 }
 
 /*
@@ -2046,6 +2052,7 @@ img.auto-install-button {
 "Play Online" button
 */
 img.play-online-button {
+    display: block;
     background: url("/img/playonlinebtn.gif") no-repeat center center;
     width: 100px;
     height: 23px;

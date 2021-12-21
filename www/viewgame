@@ -960,35 +960,38 @@ if ($foundGame)
     // if we have an HTML playable game, set up a play online link
     if ($foundHtml && $htmlUrl) {
         $ptarget = (is_kindle() ? "" : "target=\"_blank\"");
-        echo "<a href=\"$htmlUrl\" $ptarget "
+        $playOnline = "<a href=\"$htmlUrl\" $ptarget "
             . "title=\"Play this game right now in your browser. No "
             . "installation is required.\">"
             . "<img src=\"/img/blank.gif\" class=\"play-online-button viewgame__playOnline\" "
             . ">"
-            . "</a><br>";
+            . "</a>";
+        echo $playOnline;
     }
 
     // if we have a Parchment-capable game, set up a play-with-Parchment link
     if ($foundPC && $pcUrl) {
         $parchment = "https://iplayif.com/?story=";
         $ptarget = (is_kindle() ? "" : "target=\"_blank\"");
-        echo "<a href=\"$parchment$pcUrl\" $ptarget "
+        $playOnline =  "<a href=\"$parchment$pcUrl\" $ptarget "
             . "title=\"Play this game right now in your browser, using "
             . "the Parchment interpreter. No installation is required.\">"
             . "<img src=\"/img/blank.gif\" class=\"play-online-button viewgame__playOnline\" "
             . ">"
-            . "</a><br>";
+            . "</a>";
+        echo $playOnline;
     }
 
     // if we have an ADRIFT game, set up a play-online link
     if ($foundAdrift && $adriftUrl) {
         $atarget = (is_kindle() ? "" : "target=\"_blank\"");
-        echo "<a href=\"{$adriftUrl}\" $atarget "
+        $playOnline =  "<a href=\"{$adriftUrl}\" $atarget "
             . "title=\"Play this game right now in your browser. No "
             . "installation is required.\">"
             . "<img src=\"/img/blank.gif\" class=\"play-online-button viewgame__playOnline\" "
             . ">"
-            . "</a><br>";
+            . "</a>";
+        echo $playOnline;
     }
 
     echo "</td>";
@@ -1741,6 +1744,10 @@ if ($embargoCnt > 0)
          </span>
 
 <?php
+    if ($foundGame) {
+        echo "<div class='mobile-only'>$playOnline</div>";
+    }
+
     } // if ($detailView)
 
     // show the description, if it's present AND we're in Detail or
