@@ -146,8 +146,11 @@ function pageHeader($title, $focusCtl = false, $extraOnLoad = false,
     ToggleMobileMenu();
 
     // If javascript is enabled, un-hide the mobile menu button & add the 'mobile-menu' class to the main nav wrapper,
-    document.querySelector('#mobile-menu-toggle-button').classList.remove('hidden');
-    document.querySelector('#main-nav-wrapper').classList.add('mobile-menu');
+    const toggle = document.querySelector('#mobile-menu-toggle-button');
+    if (toggle) {
+        toggle.classList.remove('hidden');
+        document.querySelector('#main-nav-wrapper').classList.add('mobile-menu');
+    }
 
 })()
 
