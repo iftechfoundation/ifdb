@@ -697,7 +697,7 @@ $extraHead .= "
 <script type=\"text/javascript\" nonce=\"$nonce\">
 addEventListener('DOMContentLoaded', () => {
     document.querySelectorAll('.readMore').forEach(section => {
-        if (!section.style.maxHeight && section.scrollHeight > window.outerHeight * 0.4) {
+        if (!section.style.maxHeight && section.scrollHeight > Math.min(window.innerHeight, window.outerHeight) * 0.4) {
             const expand = section.querySelector('.expand')
             expand.style.display = 'block';
             const button = expand.querySelector('button');
