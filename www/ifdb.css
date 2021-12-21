@@ -1225,7 +1225,7 @@ span.headlineRss {
     left: 0;
     width: 100%;
     text-align: center;
-    background-image: linear-gradient(to bottom, transparent, white);
+    background-image: linear-gradient(to bottom, rgba(255,255,255,0), white);
     padding: 5em 0 1em;
 }
 
