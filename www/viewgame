@@ -1318,20 +1318,6 @@ mouseOutRating(<?php echo $currentUserRating ?>);
          </td>
       </tr>
    </table>
-   <p>
-   <table class=gamerightbar>
-      <tr>
-         <td>
-            <h3>RSS Feeds</h3>
-            <a href="viewgame?id=<?php echo $id ?>&reviews&rss">
-               <img src="img/blank.gif" class="rss-icon">New member reviews</a>
-            <br><a href="viewgame?id=<?php echo $id ?>&downloads&rss">
-               <img src="img/blank.gif" class="rss-icon">Updates to external links</a>
-            <br><a href="viewgame?id=<?php echo $id ?>&news&rss">
-               <img src="img/blank.gif" class="rss-icon">All updates to this page</a>
-         </td>
-      </tr>
-   </table>
 
 </div>
 <?php
@@ -3187,6 +3173,24 @@ if (count($inrefs) != 0 && !$historyView) {
             . "</div>";
     }
 
+
+//-------------------------- RSS FEEDS ---------------------------
+
+    if ($detailView) {
+
+?>
+
+<h2>RSS Feeds</h2>
+<a href="viewgame?id=<?php echo $id ?>&reviews&rss">
+    <img src="img/blank.gif" class="rss-icon">New member reviews</a>
+<br><a href="viewgame?id=<?php echo $id ?>&downloads&rss">
+    <img src="img/blank.gif" class="rss-icon">Updates to external links</a>
+<br><a href="viewgame?id=<?php echo $id ?>&news&rss">
+    <img src="img/blank.gif" class="rss-icon">All updates to this page</a>
+
+<?php
+
+    }
 
 //-------------------------- DETAIL VIEW FOOTER ---------------------------
     if ($detailView) {
