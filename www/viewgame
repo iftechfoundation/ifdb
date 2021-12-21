@@ -1819,7 +1819,7 @@ addEventListener('DOMContentLoaded', () => {
         if (mysql_num_rows($result) > 0)
         {
             // start the section
-            echo "<br><h2>Awards</h2><div class=hangindentedMore>";
+            echo "<h2>Awards</h2><div class=hangindentedMore>";
 
             // display the award rows
             $lastComp = false;
@@ -1859,19 +1859,6 @@ addEventListener('DOMContentLoaded', () => {
             echo "</div>";
         }
     }
-
-
-    // ---------------- News Section ----------------------------
-
-    // if there's news, and we're in the detail view, show the news
-    //
-    if ($detailView) {
-        newsSummary($db, "G", $qid, 3,
-                    "<br><h2>News</h2><div class=indented>",
-                    "</div>");
-    }
-
-    // --------------- end News section ----------------
 ?>
 
          <?php
@@ -2250,6 +2237,17 @@ addEventListener('DOMContentLoaded', () => {
             // end the indented division
             echo "</div>";
         }
+    
+        // ---------------- News Section ----------------------------
+
+        // if there's news, and we're in the detail view, show the news
+        //
+        newsSummary($db, "G", $qid, 3,
+                    "<h2>News</h2><div class=indented>",
+                    "</div>");
+        
+
+        // --------------- end News section ----------------
 
     //--------------------------- TAGS SECTION -----------------------------
 
