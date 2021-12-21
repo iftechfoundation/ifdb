@@ -884,8 +884,10 @@ span.activeBrowseTab, .activeBrowseTab a:hover {
 "indented" divisions show their contents slightly indented from the
 surrounding text.
 */
-div.indented {
-    margin-left: 1.5em;
+@media (min-width: 60ch) {
+    div.indented {
+        margin-left: 1.5em;
+    }
 }
 
 /*
