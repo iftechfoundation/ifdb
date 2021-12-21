@@ -1864,7 +1864,182 @@ addEventListener('DOMContentLoaded', () => {
          <?php
     } // if ($detailView || $historyView)
 
-//--------------------------- EDITORIAL REVIEWS ---------------------------
+    // if we're in History mode, show the page history
+    if ($historyView) {
+
+//----------------------- PAGE HISTORY SECTION ------------------------
+
+    // show the page history
+
+    // start off with the current version
+    echo "<h2>Page Update History</h2><div class=indented>
+            <table cellspacing=0 cellpadding=0 border=0>
+            <tr valign=baseline><td>";
+
+    // if we're showing the latest version, flag it
+    if (!isset($_REQUEST['version']) || $_REQUEST['version'] == $pagevsn)
+        echo "<img src=\"/img/blank.gif\" class=\"current-version-marker\">&nbsp;";
+
+    echo "</td><td>
+            <a href=\"viewgame?history&version=$pagevsn&id=$id\">
+            v.$pagevsn: $moddate2</a> -
+            <a href=\"showuser?id=$editedbyid\">$editedbyname</a>
+            (Current Version)
+            - <a href=\"editgame?id=$id\">Edit Page</a>";
+
+    if ($adminPriv) {
+        echo " - <a href=\"rollbackGameVersion?game=$id\">Delete Version</a>";
+    }
+
+    echo " - <a href=\"viewgame?id=$id\">Normal View</a>
+          <br>";
+
+    // query up the version history
+    $result = mysql_query("select pagevsn, editedby, users.name editorname,
+               date_format(moddate, '%d-%b-%Y %H:%i') moddate, deltas
+            from games_history
+              left outer join users on users.id = editedby
+            where games_history.id = '$qid'
+            order by pagevsn desc", $db);
+    $rowcnt = mysql_num_rows($result);
+    for ($i = 0 ; $i < $rowcnt ; $i++) {
+        // retrieve the row
+        list ($ivsn, $ieditor, $ieditorname, $idate, $deltas) =
+            mysql_fetch_row($result);
+
+        // make the user name safe for display
+        $ieditorname = htmlspecialcharx($ieditorname);
+
+        // set up the linked user name
+        if ($ieditor)
+            $iedlink = "<a href=\"showuser?id=$ieditor\">$ieditorname</a>";
+        else
+            $iedlink = "IFDB";
+
+        // deserialize the deltas
+        $deltas = unserialize($deltas);
+
+        // get the description of the changes
+        $changeList = getDeltaDesc($deltas);
+
+        // show which columns changed in the *next* version - each
+        // history record saves the old values for the columns edited
+        // in the *following* version
+        if ($changeList) {
+            echo "<div class=indented><span class=details>"
+                . "<i>Changed $changeList</i></span></div>";
+        }
+
+        // start the new row
+        echo "</td></tr><tr valign=baseline><td>";
+
+        // if this is the active version, highlight it
+        if (isset($_REQUEST['version']) && $ivsn == $_REQUEST['version'])
+            echo "<img src=\"/img/blank.gif\" class=\"current-version-marker\">&nbsp;";
+
+        // show this version entry
+        echo "</td><td><a href=\"viewgame?version=$ivsn&id=$id\">
+           v.$ivsn: {$idate}</a> - $iedlink<br>";
+    }
+
+    // the last version we show is always the first version
+    echo "<div class=indented><span class=details>
+        <i>Created page</i></span></div>";
+
+    // end the history table and division
+    echo "</td></tr></table></div>";
+
+    } // if ($historyView)
+
+
+    // -------------------------- DETAIL VIEW ------------------------------
+    //
+    if ($detailView) {
+
+        // show other (non-editorial) special reviews
+        $result = mysql_query(
+            "select reviews.id as reviewid,
+               rating, summary, review,
+               date_format(moddate, '%M %e, %Y') as moddate,
+               specialreviewers.id as special,
+               specialreviewers.name as specialname,
+               users.id as userid, users.name as username, location
+             from reviews, specialreviewers, users
+             where gameid = '$qid'
+               and reviews.special = specialreviewers.id
+               and users.id = reviews.userid
+               and editorial = 0
+               and ifnull(now() >= reviews.embargodate, 1)
+             order by displayrank", $db);
+
+        if (mysql_num_rows($result) != 0) {
+
+            // start an indented section if we haven't already
+            if (!$divStarted) {
+                echo "<div class=indented>";
+                $divStarted = true;
+            }
+
+            // show the reviews
+            for ($i = 0 ; $i < mysql_num_rows($result) ; $i++)
+                showReview($db, $id, mysql_fetch_array($result, MYSQL_ASSOC),
+                           $specialNames, 0 | ($adminPriv ? SHOWREVIEW_ADMINREVIEWVOTESLINK : 0));
+        }
+
+        // end the indented division if we started one
+        if ($divStarted)
+            echo "</div>";
+
+
+//----------------------- MEMBER REVIEW SECTION ------------------------
+
+        // query up the member reviews, sorted by helpfulness - for ordering
+        // purposes, helpfulness is defined as helpful votes minus unhelpful
+        // votes; this way, each unhelpful vote essentially cancels out a
+        // helpful vote
+        $result = mysql_query(
+            $selectMemberReviews
+            . " order by $orderByUserFilter, "
+            . " netHelpful desc, moddate desc", $db);
+
+        $rowcnt = mysql_num_rows($result);
+        if ($rowcnt > 0) {
+
+            // we have some reviews - start off the section
+            $showcnt = $rowcnt;
+
+            // show the Member Reviews section header
+            $showHisto = !$should_hide;
+            showMemberReviewsHeader($rowcnt, false, $showHisto);
+
+            // if we have too many for this front page, limit it
+            if ($rowcnt > $reviewsOnHomePage) {
+                echo "<h3>Most Helpful Member Reviews</h3><br>";
+                $showcnt = $reviewsOnHomePage;
+            }
+
+            // show the top reviews
+            for ($i = 0 ; $i < $showcnt ; $i++) {
+                // fetch the review
+                $reviewRec = mysql_fetch_array($result, MYSQL_ASSOC);
+
+                // show it
+                showReview($db, $id, $reviewRec, $specialNames, 0 | ($adminPriv ? SHOWREVIEW_ADMINREVIEWVOTESLINK : 0));
+            }
+
+            // show the link to the full list of reviews, if there are more
+            if ($rowcnt > $reviewsOnHomePage) {
+                echo "<span class=details><a href=\"viewgame?id=$id&reviews\">
+                      See All $memberReviewCnt Member Reviews</a></span><br>";
+            }
+
+            // end the indented division
+            echo "</div>";
+        }
+    
+    } // if ($detailView)
+
+    //--------------------------- EDITORIAL REVIEWS ---------------------------
 
     // we haven't started a nested division yet (we may or may not,
     // depending on what parts we end up displaying)
@@ -2065,187 +2240,15 @@ addEventListener('DOMContentLoaded', () => {
         $divStarted = false;
     }
 
-    // if we're in History mode, show the page history
-    if ($historyView) {
 
-//----------------------- PAGE HISTORY SECTION ------------------------
-
-    // show the page history
-
-    // start off with the current version
-    echo "<h2>Page Update History</h2><div class=indented>
-            <table cellspacing=0 cellpadding=0 border=0>
-            <tr valign=baseline><td>";
-
-    // if we're showing the latest version, flag it
-    if (!isset($_REQUEST['version']) || $_REQUEST['version'] == $pagevsn)
-        echo "<img src=\"/img/blank.gif\" class=\"current-version-marker\">&nbsp;";
-
-    echo "</td><td>
-            <a href=\"viewgame?history&version=$pagevsn&id=$id\">
-            v.$pagevsn: $moddate2</a> -
-            <a href=\"showuser?id=$editedbyid\">$editedbyname</a>
-            (Current Version)
-            - <a href=\"editgame?id=$id\">Edit Page</a>";
-
-    if ($adminPriv) {
-        echo " - <a href=\"rollbackGameVersion?game=$id\">Delete Version</a>";
-    }
-
-    echo " - <a href=\"viewgame?id=$id\">Normal View</a>
-          <br>";
-
-    // query up the version history
-    $result = mysql_query("select pagevsn, editedby, users.name editorname,
-               date_format(moddate, '%d-%b-%Y %H:%i') moddate, deltas
-            from games_history
-              left outer join users on users.id = editedby
-            where games_history.id = '$qid'
-            order by pagevsn desc", $db);
-    $rowcnt = mysql_num_rows($result);
-    for ($i = 0 ; $i < $rowcnt ; $i++) {
-        // retrieve the row
-        list ($ivsn, $ieditor, $ieditorname, $idate, $deltas) =
-            mysql_fetch_row($result);
-
-        // make the user name safe for display
-        $ieditorname = htmlspecialcharx($ieditorname);
-
-        // set up the linked user name
-        if ($ieditor)
-            $iedlink = "<a href=\"showuser?id=$ieditor\">$ieditorname</a>";
-        else
-            $iedlink = "IFDB";
-
-        // deserialize the deltas
-        $deltas = unserialize($deltas);
-
-        // get the description of the changes
-        $changeList = getDeltaDesc($deltas);
-
-        // show which columns changed in the *next* version - each
-        // history record saves the old values for the columns edited
-        // in the *following* version
-        if ($changeList) {
-            echo "<div class=indented><span class=details>"
-                . "<i>Changed $changeList</i></span></div>";
-        }
-
-        // start the new row
-        echo "</td></tr><tr valign=baseline><td>";
-
-        // if this is the active version, highlight it
-        if (isset($_REQUEST['version']) && $ivsn == $_REQUEST['version'])
-            echo "<img src=\"/img/blank.gif\" class=\"current-version-marker\">&nbsp;";
-
-        // show this version entry
-        echo "</td><td><a href=\"viewgame?version=$ivsn&id=$id\">
-           v.$ivsn: {$idate}</a> - $iedlink<br>";
-    }
-
-    // the last version we show is always the first version
-    echo "<div class=indented><span class=details>
-        <i>Created page</i></span></div>";
-
-    // end the history table and division
-    echo "</td></tr></table></div>";
-
-    } // if ($historyView)
-
-
-    // -------------------------- DETAIL VIEW ------------------------------
-    //
-    if ($detailView) {
-
-        // show other (non-editorial) special reviews
-        $result = mysql_query(
-            "select reviews.id as reviewid,
-               rating, summary, review,
-               date_format(moddate, '%M %e, %Y') as moddate,
-               specialreviewers.id as special,
-               specialreviewers.name as specialname,
-               users.id as userid, users.name as username, location
-             from reviews, specialreviewers, users
-             where gameid = '$qid'
-               and reviews.special = specialreviewers.id
-               and users.id = reviews.userid
-               and editorial = 0
-               and ifnull(now() >= reviews.embargodate, 1)
-             order by displayrank", $db);
-
-        if (mysql_num_rows($result) != 0) {
-
-            // start an indented section if we haven't already
-            if (!$divStarted) {
-                echo "<div class=indented>";
-                $divStarted = true;
-            }
-
-            // show the reviews
-            for ($i = 0 ; $i < mysql_num_rows($result) ; $i++)
-                showReview($db, $id, mysql_fetch_array($result, MYSQL_ASSOC),
-                           $specialNames, 0 | ($adminPriv ? SHOWREVIEW_ADMINREVIEWVOTESLINK : 0));
-        }
-
-        // end the indented division if we started one
-        if ($divStarted)
-            echo "</div>";
-
-
-//----------------------- MEMBER REVIEW SECTION ------------------------
-
-        // query up the member reviews, sorted by helpfulness - for ordering
-        // purposes, helpfulness is defined as helpful votes minus unhelpful
-        // votes; this way, each unhelpful vote essentially cancels out a
-        // helpful vote
-        $result = mysql_query(
-            $selectMemberReviews
-            . " order by $orderByUserFilter, "
-            . " netHelpful desc, moddate desc", $db);
-
-        $rowcnt = mysql_num_rows($result);
-        if ($rowcnt > 0) {
-
-            // we have some reviews - start off the section
-            $showcnt = $rowcnt;
-
-            // show the Member Reviews section header
-            $showHisto = !$should_hide;
-            showMemberReviewsHeader($rowcnt, false, $showHisto);
-
-            // if we have too many for this front page, limit it
-            if ($rowcnt > $reviewsOnHomePage) {
-                echo "<h3>Most Helpful Member Reviews</h3><br>";
-                $showcnt = $reviewsOnHomePage;
-            }
-
-            // show the top reviews
-            for ($i = 0 ; $i < $showcnt ; $i++) {
-                // fetch the review
-                $reviewRec = mysql_fetch_array($result, MYSQL_ASSOC);
-
-                // show it
-                showReview($db, $id, $reviewRec, $specialNames, 0 | ($adminPriv ? SHOWREVIEW_ADMINREVIEWVOTESLINK : 0));
-            }
-
-            // show the link to the full list of reviews, if there are more
-            if ($rowcnt > $reviewsOnHomePage) {
-                echo "<span class=details><a href=\"viewgame?id=$id&reviews\">
-                      See All $memberReviewCnt Member Reviews</a></span><br>";
-            }
-
-            // end the indented division
-            echo "</div>";
-        }
-    
         // ---------------- News Section ----------------------------
 
         // if there's news, and we're in the detail view, show the news
         //
+    if ($detailView) {
         newsSummary($db, "G", $qid, 3,
                     "<h2>News</h2><div class=indented>",
                     "</div>");
-        
 
         // --------------- end News section ----------------
 
