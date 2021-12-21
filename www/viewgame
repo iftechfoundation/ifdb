@@ -645,6 +645,27 @@ if ($hasart) {
 $extraHead .= "<link rel=\"canonical\" href=\"";
 $extraHead .= get_root_url() . "viewgame?id=$id\" />";
 
+$extraHead .= "
+<script>
+addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('.readMore').forEach(section => {
+        if (!section.style.maxHeight && section.scrollHeight > window.outerHeight * 0.4) {
+            const expand = section.querySelector('.expand')
+            expand.style.display = 'block';
+            const button = expand.querySelector('button');
+            button.addEventListener('click', () => {
+                expand.style.display = '';
+                section.style.maxHeight = section.scrollHeight + 'px';
+                section.addEventListener('transitionend', () => {
+                    section.style.maxHeight = 'max-content';
+                });
+            });
+        }
+    })
+})
+</script>
+";
+
 pageHeader("$title - Details", false, false,
            $extraHead, true);
 initReviewVote();
@@ -1739,25 +1760,6 @@ if ($embargoCnt > 0)
          <div class="readMore"><p><?php echo $desc ?></p>
             <div class="expand"><button>Read More</button></div>
         </div>
-<script>
-addEventListener('DOMContentLoaded', () => {
-    document.querySelectorAll(".readMore").forEach(section => {
-        if (!section.style.maxHeight && section.scrollHeight > window.outerHeight * 0.4) {
-            const expand = section.querySelector('.expand')
-            expand.style.display = "block";
-            const button = expand.querySelector('button');
-            button.addEventListener('click', () => {
-                expand.style.display = "";
-                section.style.maxHeight = section.scrollHeight + "px";
-                section.addEventListener("transitionend", () => {
-                    section.style.maxHeight = "max-content";
-                });
-            });
-        }
-    })
-})
-</script>
-
       </td>
    </tr>
 </table>
