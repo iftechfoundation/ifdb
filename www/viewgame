@@ -1765,7 +1765,28 @@ if ($embargoCnt > 0)
     if (!isEmpty($desc) && ($detailView || $historyView)) {
 ?>
          <h3>About the Story</h3>
-         <p><?php echo $desc ?></p>
+         <div class="readMore"><p><?php echo $desc ?></p>
+            <div class="expand"><button>Read More</button></div>
+        </div>
+<script type="text/javascript" nonce="<?php global $nonce; echo $nonce; ?>">
+addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll(".readMore").forEach(section => {
+        if (!section.style.maxHeight && section.scrollHeight > window.innerHeight * 0.5) {
+            const expand = section.querySelector('.expand')
+            expand.style.display = "block";
+            const button = expand.querySelector('button');
+            button.addEventListener('click', () => {
+                expand.style.display = "";
+                section.style.maxHeight = section.scrollHeight + "px";
+                section.addEventListener("transitionend", () => {
+                    section.style.maxHeight = "max-content";
+                });
+            });
+        }
+    })
+})
+</script>
+
 <?php
     }
 
@@ -1773,7 +1794,6 @@ if ($embargoCnt > 0)
     if ($detailView || $historyView) {
 ?>
 
-         <br>
          <h2>Game Details</h2>
          <div class=indented>
             <span class=notes>
