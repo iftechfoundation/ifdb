@@ -1290,14 +1290,16 @@ if ($embargoCnt > 0)
     // ------------------------ DOWNLOADS -------------------------------
     if ($detailView || $historyView || $downloadsView) {
 
-    if ($downloadsView)
-            echo "<p><a href=\"viewgame?id=$id\">Go to the "
-                . "main page for this game</a>";
-    
-        ?>
-<div class="downloadfloat">
+    if ($downloadsView) {
+        echo "<p><a href=\"viewgame?id=$id\">Go to the "
+            . "main page for this game</a>";
+        echo "<div>";
+    } else {
+        echo '<div class="downloadfloat">';
+    }
+?>
     <div class="readMore">
-    <table class=downloads id="downloadsTable">
+    <table class="<?php if (!$downloadsView) echo "downloads"?>" id="downloadsTable">
        <tr>
            <td>
               <table width="100%" border=0 cellpadding=0 cellspacing=0>
