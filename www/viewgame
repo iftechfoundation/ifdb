@@ -2304,7 +2304,13 @@ if ($embargoCnt > 0)
            (<?php echo helpWinLink("help-tags", "What's a tag?")
            ?>)
         </span></p>
-        <table id="tagTable" border=0 class=tags></table>
+        <style nonce="<?php global $nonce; echo $nonce; ?>">
+            .tagTable__container { max-width: 100%; }
+        </style>
+        <div class="readMore tagTable__container">
+            <div id="tagTable" border=0 class=tags></div>
+            <div class="expand"><button>Read More</button></div>
+        </div>
         <?php
         if ($curuser) {
         ?>
@@ -2483,8 +2489,7 @@ function doTagCkBox(id, stat)
 function dispTagTable(tableID, lst, editor, deleteTags)
 {
     var tbl = document.getElementById(tableID);
-    while (tbl.rows != null && tbl.rows.length != 0)
-        tbl.deleteRow(0);
+    tbl.innerHTML = "";
     var row = null, rownum = 0;
     for (var i = 0 ; i < lst.length ; i++) {
         var t = encodeHTML(lst[i].tag);
@@ -2493,9 +2498,8 @@ function dispTagTable(tableID, lst, editor, deleteTags)
         var cg = lst[i].gamecnt;
         var m = lst[i].isMine;
         var n = lst[i].isNew;
-        if (i % 4 == 0)
-            row = tbl.insertRow(rownum++);
-        var cell = row.insertCell(i % 4);
+        var cell = document.createElement("div");
+        tbl.appendChild(cell);
         var s;
         if (editor) {
 
