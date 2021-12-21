@@ -1287,72 +1287,6 @@ mouseOutRating(<?php echo $currentUserRating ?>);
          </td>
       </tr>
    </table>
-
-<?php if (!$should_hide) { ?>
-   <p>
-   <table class=gamerightbar>
-      <tr>
-         <td>
-            <h3>Playlists and Wishlists</h3>
-            <div class=indented>
-               <a href="whoselist?game=<?php echo $id ?>&type=playlist"
-                 class="silent">
-                  <span id='playlistCount'></span></a><br>
-               <a href="whoselist?game=<?php echo $id ?>&type=wishlist"
-                 class="silent">
-                  <span id='wishlistCount'></span></a><br>
-<?php
-//               <a href="whoselist?game=<#php echo $id #>&type=unwishlist"
-//                 class="silent">
-//                  <span id='unwishlistCount'></span></a>
-?>
-            </div>
-         </td>
-      </tr>
-   </table>
-
-<script type="text/javascript" nonce="<?php global $nonce; echo $nonce; ?>">
-<!--
-function updatePlaylistCount(n)
-{
-    document.getElementById("playlistCount").innerHTML =
-        "" + (n == 0 ? "No" : n) + " member" + (n == 1 ? " has" : "s have")
-        + " played this game";
-}
-function updateWishlistCount(n)
-{
-    document.getElementById("wishlistCount").innerHTML =
-        (n == 0 ? "It's not on any wish lists yet" :
-         "It's on " + n + " wish list" + (n == 1 ? "" : "s"));
-}
-function updateUnwishlistCount(n)
-{
-<?php
-//    document.getElementById("unwishlistCount").innerHTML =
-//        (n == 0 ? "It's not on any no-interest lists" :
-//         "It's on " + n + " no-interest list" + (n == 1 ? "" : "s"));
-?>
-}
-
-<?php
-$result = mysqli_execute_query($db,
-    "select count(userid) from playedgames where gameid=?", [$id]);
-list($playlistCnt) = mysql_fetch_row($result);
-
-$result = mysqli_execute_query($db,
-    "select count(userid) from wishlists where gameid=?", [$id]);
-list($wishlistCnt) = mysql_fetch_row($result);
-
-$result = mysqli_execute_query($db,
-    "select count(userid) from unwishlists where gameid=?", [$id]);
-list($unwishlistCnt) = mysql_fetch_row($result);
-
-echo "updatePlaylistCount($playlistCnt); updateWishlistCount($wishlistCnt);"
-   . "updateUnwishlistCount($unwishlistCnt);";
-?>
-//-->
-</script>
-<?php } ?>
    <p>
    <table class=gamerightbar>
       <tr>
@@ -1744,6 +1678,60 @@ if ($ratingCntTot == 0) {
             echo " - <a href=\"review?id=$id&userid=$curuser\">be the first</a>";
     }
 }
+
+if (!$should_hide) {
+    $result = mysqli_execute_query($db,
+        "select count(userid) from playedgames where gameid=?", [$id]);
+    list($playlistCnt) = mysql_fetch_row($result);
+
+    if ($playlistCnt) {
+        echo "<div class='details'><a id=playlistCount href='whoselist?game=$id&type=playlist' class='silent'>";
+        if ($playlistCnt === 1) {
+            echo "1 member has";
+        } else {
+            echo "$playlistCnt members have";
+        }
+        echo " played this game</a></div>";
+    }
+
+    $result = mysqli_execute_query($db,
+        "select count(userid) from wishlists where gameid=?", [$id]);
+    list($wishlistCnt) = mysql_fetch_row($result);
+
+    if ($wishlistCnt) {
+        echo "<div class='details'><a id=wishlistCount href='whoselist?game=$id&type=wishlist' class='silent'>It's on $wishlistCnt wishlist";
+        if ($wishlistCnt !== 1) {
+            echo "s";
+        }
+        echo "</a></div>";
+    }
+}
+
+?>
+<script type="text/javascript" nonce="<?php global $nonce; echo $nonce; ?>">
+<!--
+function updatePlaylistCount(n)
+{
+    document.getElementById("playlistCount").innerHTML =
+        "" + (n == 0 ? "No" : n) + " member" + (n == 1 ? " has" : "s have")
+        + " played this game";
+}
+function updateWishlistCount(n)
+{
+    document.getElementById("wishlistCount").innerHTML =
+        (n == 0 ? "It's not on any wish lists yet" :
+         "It's on " + n + " wish list" + (n == 1 ? "" : "s"));
+}
+function updateUnwishlistCount(n)
+{
+<?php
+//    document.getElementById("unwishlistCount").innerHTML =
+//        (n == 0 ? "It's not on any no-interest lists" :
+//         "It's on " + n + " no-interest list" + (n == 1 ? "" : "s"));
+?>
+}
+</script>
+<?php
 
 if ($embargoCnt > 0)
     echo "<br><i>Your review of this game is hidden until $embargoDate - "
