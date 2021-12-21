@@ -1469,6 +1469,7 @@ if (!isEmpty($seriesname)) {
         . "\">$seriesname</a><br>";
 }
                      ?>
+                     <?php if (!isEmpty($pubYear)) echo "$pubYear<br>" ?>
                      <?php
 if (!isEmpty($genre)) {
     $genres = explode(",", str_replace("/", ",", $genre));
@@ -1477,7 +1478,6 @@ if (!isEmpty($genre)) {
         $genres)) . "<br>";
 }
                      ?>
-                     <?php if (!isEmpty($pubYear)) echo "$pubYear<br>" ?>
                      <?php if (!isEmpty($website))
                          echo "<br><a href=\"".htmlspecialcharx($website)."\">Web Site</a><br>" ?>
                   </span>
