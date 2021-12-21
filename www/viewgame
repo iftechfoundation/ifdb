@@ -2219,10 +2219,10 @@ addEventListener('DOMContentLoaded', () => {
                 } else {
                     // this is for immediate display
                     if (!$divStarted) {
-                        if ($historyView)
-                            echo "<h2>Off-Site Reviews</h2>";
+                        if (count($extReviews) === 1)
+                            echo "<h2>1 Off-Site Review</h2>";
                         else
-                            echo "<h2>Editorial Reviews</h2>";
+                            echo "<h2>".count($extReviews)." Off-Site Reviews</h2>";
 
                         echo "<div class=indented>";
                         $divStarted = true;
