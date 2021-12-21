@@ -1464,6 +1464,7 @@ if (!isEmpty($genre)) {
         . "\">$genre</a><br>";
 }
                      ?>
+                     <?php if (!isEmpty($system)) echo "$system<br>" ?>
                      <?php if (!isEmpty($website))
                          echo "<br><a href=\"".htmlspecialcharx($website)."\">Web Site</a><br>" ?>
                   </span>
