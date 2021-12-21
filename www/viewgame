@@ -248,7 +248,7 @@ function showMemberReviewsHeader($rowcnt, $ratingsView, $showHisto)
         for ($i = 5 ; $i >= 1 ; $i--) {
             $num = $ratingHisto[$i];
             $pct = (int)($num*100 / $max);
-            echo "<tr><td>$i star:</td>"
+            echo "<tr><td>$i&nbsp;star:</td>"
                 . "<td><div class=ratingHistoBox>"
                 . "<div class='ratingHistoBar ratingHistoBar$i'\">"
                 . "<style nonce='$nonce'>\n"
