@@ -52,6 +52,8 @@ ALTER TABLE `users`
     ADD KEY `email` (`email`)
 ;
 
+ALTER TABLE `reviews` ADD KEY `user_game` (userid, gameid);
+
 --
 -- Table structure for table `formatprivs`
 --
