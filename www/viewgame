@@ -695,21 +695,33 @@ if (!$errCode) {
 global $nonce;
 $extraHead .= "
 <script type=\"text/javascript\" nonce=\"$nonce\">
-addEventListener('DOMContentLoaded', () => {
+function checkReadMoreSections() {
+    const windowHeight = Math.min(window.innerHeight, window.outerHeight);
     document.querySelectorAll('.readMore').forEach(section => {
-        if (!section.style.maxHeight && section.scrollHeight > Math.min(window.innerHeight, window.outerHeight) * 0.4) {
-            const expand = section.querySelector('.expand')
+        const expand = section.querySelector('.expand');
+        if (!section.style.maxHeight && section.scrollHeight > windowHeight * 0.4) {
             expand.style.display = 'block';
-            const button = expand.querySelector('button');
-            button.addEventListener('click', () => {
-                expand.style.display = '';
-                section.style.maxHeight = section.scrollHeight + 'px';
-                section.addEventListener('transitionend', () => {
-                    section.style.maxHeight = 'max-content';
-                });
-            });
+        } else {
+            expand.style.display = '';
         }
     })
+}
+
+addEventListener('resize', checkReadMoreSections);
+
+addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('.readMore').forEach(section => {
+        const expand = section.querySelector('.expand');
+        const button = expand.querySelector('button');
+        button.addEventListener('click', () => {
+            expand.style.display = '';
+            section.style.maxHeight = section.scrollHeight + 'px';
+            section.addEventListener('transitionend', () => {
+                section.style.maxHeight = 'max-content';
+            });
+        });
+    });
+    checkReadMoreSections();
 })
 </script>
 ";
