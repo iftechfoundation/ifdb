@@ -696,7 +696,9 @@ global $nonce;
 $extraHead .= "
 <script type=\"text/javascript\" nonce=\"$nonce\">
 function checkReadMoreSections() {
-    const windowHeight = Math.min(window.innerHeight, window.outerHeight);
+    const windowHeight = window.outerHeight ?
+        Math.min(window.innerHeight, window.outerHeight)
+        : window.innerHeight;
     document.querySelectorAll('.readMore').forEach(section => {
         const expand = section.querySelector('.expand');
         if (!section.style.maxHeight && section.scrollHeight > windowHeight * 0.4) {
