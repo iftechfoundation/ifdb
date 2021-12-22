@@ -3,8 +3,6 @@
 include_once "util.php";
 include_once "login-persist.php";
 
-$isLoggedIn = (isset($_SESSION['logged_in']) && $_SESSION['logged_in']);
-
 function basePageHeader($title, $focusCtl, $extraOnLoad, $extraHead,
                         $ckbox, $bodyAttrs)
 {
@@ -78,7 +76,8 @@ function helpWinLink($href, $text)
 function pageHeader($title, $focusCtl = false, $extraOnLoad = false,
                     $extraHead = false, $ckbox = false, $bodyAttrs = "")
 {
-    global $isLoggedIn;
+    checkPersistentLogin();
+    $isLoggedIn = (isset($_SESSION['logged_in']) && $_SESSION['logged_in']);
 
     // show the basic header
     basePageHeader($title, $focusCtl, $extraOnLoad, $extraHead,
@@ -87,7 +86,6 @@ function pageHeader($title, $focusCtl = false, $extraOnLoad = false,
     // get the actual current page
     $pagescript = basename($_SERVER['SCRIPT_FILENAME']);
     parse_str($_SERVER['QUERY_STRING'], $query);
-    checkPersistentLogin();
     $curuser = ((isset($_SESSION['logged_in']) && $_SESSION['logged_in'])
                 ? $_SESSION['logged_in_as'] : false);
     // add the top bar for a regular window
