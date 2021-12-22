@@ -648,7 +648,9 @@ $extraHead .= get_root_url() . "viewgame?id=$id\" />";
 $extraHead .= "
 <script>
 function checkReadMoreSections() {
-    const windowHeight = Math.min(window.innerHeight, window.outerHeight);
+    const windowHeight = window.outerHeight ?
+        Math.min(window.innerHeight, window.outerHeight)
+        : window.innerHeight;
     document.querySelectorAll('.readMore').forEach(section => {
         const expand = section.querySelector('.expand');
         if (!section.style.maxHeight && section.scrollHeight > windowHeight * 0.4) {
