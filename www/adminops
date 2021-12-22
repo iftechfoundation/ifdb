@@ -934,26 +934,6 @@ else if (isset($_REQUEST['users'])) {
         $priv[] = $privMap[$privcode{$c}];
     $privNames = implode(", ", $priv);
 
-    $result = mysql_query(
-        "select id, fmtname, userid
-         from filetypes
-           left outer join formatprivs
-             on formatprivs.fmtid = filetypes.id
-             and formatprivs.userid = '$quid'
-         order by fmtname", $db);
-    for ($formats = array(), $i = 0 ; $i < mysql_num_rows($result) ; $i++)
-        $formats[] = mysql_fetch_array($result, MYSQL_ASSOC);
-
-    $result = mysql_query(
-        "select id, name, userid
-         from operatingsystems
-           left outer join osprivs
-             on osprivs.osid = operatingsystems.id
-             and osprivs.userid = '$quid'
-         order by name", $db);
-    for ($oses = array(), $i = 0 ; $i < mysql_num_rows($result) ; $i++)
-        $oses[] = mysql_fetch_array($result, MYSQL_ASSOC);
-
     // check if we're logging in as the user
     if (isset($_REQUEST['su'])) {
         $_SESSION['logged_in_as'] = $quid;
@@ -1066,8 +1046,7 @@ else if (isset($_REQUEST['users'])) {
         . "<p>Remarks: $remarks<br>"
         . "<p>" . genNewUserAdminLinks(true, $actcode, $pswsalt);
 
-    echo "<p><table width='90%' cellspacing=0 cellpadding=0 border=0>"
-        . "<tr valign=top><td align=left>";
+    echo "<p>";
 
     echo "Account status:<br><div class=indented>";
     foreach ($statMap as $k => $v) {
@@ -1107,31 +1086,14 @@ else if (isset($_REQUEST['users'])) {
     }
     echo "</div>";
 
-    echo "Format Editing Privileges:<br><div class=indented>";
+    echo "<p><a href=\"adminops?user=$uid&su\">Log in as $name</a>";
 
-    foreach ($formats as $f) {
-        $k = $f['id'];
-        $v = $f['fmtname'];
-        $ck = ($f['userid'] != "" ? "checked" : "");
-        echo "<label><input type=\"checkbox\" name=\"fmt-$k\" $ck "
-            . "id=\"fmt-$k\" value=\"$k\"> <label for=\"fmt-$k\">"
-            . "$v</label></label><br>";
-    }
-    echo "</div>";
+    echo "<p><input type=\"submit\" name=\"apply\" value=\"Apply\">"
+        . "</form>";
 
-    echo "OS Privileges:<br><div class=indented>";
-    foreach ($oses as $o) {
-        $k = $o['id'];
-        $v = $o['name'];
-        $ck = ($o['userid'] != "" ? "checked" : "");
-        echo "<label><input type=\"checkbox\" name=\"os-$k\" $ck "
-            . "id=\"os-$k\" value=\"$k\"> <label for=\"os-$k\">"
-            . "$v</label></label><br>";
-    }
-    echo "</div>";
+    echo "<style>@media (min-width: 100ch) { div.main { display: grid; grid-template-columns: 1fr 30%; } }</style>";
 
-
-    echo "</td><td width='30%'>"
+    echo "<div>"
         . "<b>Login history:</b><br>"
         . "<table>";
 
@@ -1149,12 +1111,7 @@ else if (isset($_REQUEST['users'])) {
     }
 
     echo "</table>"
-        . "</td></tr></table>";
-
-    echo "<p><a href=\"adminops?user=$uid&su\">Log in as $name</a>";
-
-    echo "<p><input type=\"submit\" name=\"apply\" value=\"Apply\">"
-        . "</form>";
+        . "</div><div>";
 
     echo "<br><br><br><hr class=dots><br><br>";
 
