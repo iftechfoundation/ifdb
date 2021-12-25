@@ -345,11 +345,10 @@ function handlePost()
     }
 
     // Assume the new account status will be 'D' (pending activation), and
-    // that the profile status is 'R' (pending review).  The user activates
-    // the account by confirming the email address; the administrator
-    // approves the profile.
+    // that the profile status is '' (normal).  The user activates
+    // the account by confirming the email address.
     $acctStatus = "D";
-    $profileStatus = "R";
+    $profileStatus = "";
 
     // Check with Akismet for a spam mail judgment
     $ak = akNew();
