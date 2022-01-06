@@ -429,10 +429,7 @@ from (
               `ifdb`.`reviews`.`rating` AS `rating`,
               `ifdb`.`reviews`.`gameid` AS `gameid`,
               ifnull(`ifdb`.`reviews`.`RFlags`, 0) & 2 AS `omitted`,
-              ifnull(
-                `ifdb`.`reviews`.`special`,
-                `ifdb`.`reviews`.`review`
-              ) is not null AS `hasReview`
+              `ifdb`.`reviews`.`review` is not null AS `hasReview`
             from (
                 `ifdb`.`reviews`
                 left join `ifdb`.`users` on(`ifdb`.`reviews`.`userid` = `ifdb`.`users`.`id`)
@@ -442,6 +439,7 @@ from (
                 current_timestamp() > `ifdb`.`reviews`.`embargodate`,
                 1
               )
+              and `ifdb`.`reviews`.`special` is null
             group by `ifdb`.`reviews`.`rating`,
               `ifdb`.`reviews`.`gameid`,
               ifnull(`ifdb`.`reviews`.`RFlags`, 0) & 2,
@@ -597,10 +595,7 @@ from (
               `ifdb`.`reviews`.`rating` AS `rating`,
               `ifdb`.`reviews`.`gameid` AS `gameid`,
               ifnull(`ifdb`.`reviews`.`RFlags`, 0) & 2 AS `omitted`,
-              ifnull(
-                `ifdb`.`reviews`.`special`,
-                `ifdb`.`reviews`.`review`
-              ) is not null AS `hasReview`
+              `ifdb`.`reviews`.`review` is not null AS `hasReview`
             from (
                 `ifdb`.`reviews`
                 left join `ifdb`.`users` on(`ifdb`.`reviews`.`userid` = `ifdb`.`users`.`id`)
@@ -610,6 +605,7 @@ from (
                 current_timestamp() > `ifdb`.`reviews`.`embargodate`,
                 1
               )
+              and `ifdb`.`reviews`.`special` is null
             group by `ifdb`.`reviews`.`rating`,
               `ifdb`.`reviews`.`gameid`,
               ifnull(`ifdb`.`reviews`.`RFlags`, 0) & 2,
