@@ -35,7 +35,7 @@ function basePageHeader($title, $focusCtl, $extraOnLoad, $extraHead,
    <link rel="search" type="application/opensearchdescription+xml"
          title="IFDB Search Plugin"
          href="<?php echo get_root_url() ?>plugins/ifdb-opensearchdesc.xml">
-   <script src="ifdbutil.js"></script>
+   <script src="/ifdbutil.js"></script>
    <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
    <meta name="description" content="IFDB is a game catalog and recommendation engine for Interactive Fiction, also known as Text Adventures. IFDB is a collaborative, wiki-style community project.  Members can contribute game listings, reviews, recommendations, and more.">
    <title><?php echo $title ?></title>
@@ -105,7 +105,7 @@ function pageHeader($title, $focusCtl = false, $extraOnLoad = false,
                 <form class= "searchbar-wrapper" method="get" action="/search" name="search">
                         <input id="topbar-searchbar" type="text" name="searchbar" placeholder="Search for games...">
                         <button class="" id="topbar-search-go-button" aria-label="Search">
-                            <img src="img/search_small.svg" alt="">
+                            <img src="/img/search_small.svg" alt="">
                         </button>
                 </form>
             </div>
@@ -125,8 +125,8 @@ function pageHeader($title, $focusCtl = false, $extraOnLoad = false,
         </nav>
     <?php if ($isLoggedIn) : ?>
         <button type="button" id="mobile-menu-toggle-button" class="menu-toggle-button" aria-label="Menu" onclick="ToggleMobileMenu()" class="hidden">
-            <img src="img/menu.svg" alt="" class="mobile-hidden">
-            <img src="img/close.svg" alt="">
+            <img src="/img/menu.svg" alt="" class="mobile-hidden">
+            <img src="/img/close.svg" alt="">
             <span>Menu</span>
         </button>
     <?php endif ?>
