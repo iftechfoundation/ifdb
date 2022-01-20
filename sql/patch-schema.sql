@@ -265,7 +265,29 @@ SET character_set_client = @saved_cs_client;
 /*!50001 SET character_set_results     = utf8 */;
 /*!50001 SET collation_connection      = utf8_general_ci */;
 /*!50001 CREATE ALGORITHM=UNDEFINED */
-/*!50001 VIEW `gameRatings` AS select `reviews`.`gameid` AS `gameid`,avg(if((`reviews`.`RFlags` & 2),NULL,`reviews`.`rating`)) AS `avgRating`,std(if((`reviews`.`RFlags` & 2),NULL,`reviews`.`rating`)) AS `stdDevRating`,count(if((`reviews`.`RFlags` & 2),NULL,`reviews`.`rating`)) AS `numRatingsInAvg`,count(`reviews`.`rating`) AS `numRatingsTotal`,count(if(isnull(`reviews`.`special`),`reviews`.`review`,NULL)) AS `numMemberReviews` from `reviews` where ifnull((now() > `reviews`.`embargodate`),1) group by `reviews`.`gameid` */;
+/*!50001 VIEW `gameRatings` AS
+select `reviews`.`gameid` AS `gameid`,
+  avg(
+    if((`reviews`.`RFlags` & 2), NULL, `reviews`.`rating`)
+  ) AS `avgRating`,
+  std(
+    if((`reviews`.`RFlags` & 2), NULL, `reviews`.`rating`)
+  ) AS `stdDevRating`,
+  count(
+    if((`reviews`.`RFlags` & 2), NULL, `reviews`.`rating`)
+  ) AS `numRatingsInAvg`,
+  count(`reviews`.`rating`) AS `numRatingsTotal`,
+  count(
+    if(
+      isnull(`reviews`.`special`),
+      `reviews`.`review`,
+      NULL
+    )
+  ) AS `numMemberReviews`
+from `reviews`
+where ifnull((now() > `reviews`.`embargodate`), 1)
+group by `reviews`.`gameid`
+*/;
 /*!50001 SET character_set_client      = @saved_cs_client */;
 /*!50001 SET character_set_results     = @saved_cs_results */;
 /*!50001 SET collation_connection      = @saved_col_connection */;
@@ -284,7 +306,154 @@ SET character_set_client = @saved_cs_client;
 /*!50001 SET collation_connection      = utf8_general_ci */;
 /*!50001 CREATE ALGORITHM=UNDEFINED */
 /*!50013 DEFINER=`root`@`localhost` SQL SECURITY DEFINER */
-/*!50001 VIEW `gameRatingsSandbox0` AS select `averaged`.`gameid` AS `gameid`,`averaged`.`rated1` AS `rated1`,`averaged`.`rated2` AS `rated2`,`averaged`.`rated3` AS `rated3`,`averaged`.`rated4` AS `rated4`,`averaged`.`rated5` AS `rated5`,`averaged`.`numRatingsInAvg` AS `numRatingsInAvg`,`averaged`.`numRatingsTotal` AS `numRatingsTotal`,`averaged`.`numMemberReviews` AS `numMemberReviews`,`averaged`.`avgRating` AS `avgRating`,pow((pow(1 - `averaged`.`avgRating`,2) * `averaged`.`rated1` + pow(2 - `averaged`.`avgRating`,2) * `averaged`.`rated2` + pow(3 - `averaged`.`avgRating`,2) * `averaged`.`rated3` + pow(4 - `averaged`.`avgRating`,2) * `averaged`.`rated4` + pow(5 - `averaged`.`avgRating`,2) * `averaged`.`rated5`) / `averaged`.`numRatingsInAvg`,0.5) AS `stdDevRating`,(5 * (`averaged`.`rated5` + 1) + 4 * (`averaged`.`rated4` + 1) + 3 * (`averaged`.`rated3` + 1) + 2 * (`averaged`.`rated2` + 1) + 1 * (`averaged`.`rated1` + 1)) / (5 + `averaged`.`numRatingsInAvg`) - 1.65 * sqrt(((25 * (`averaged`.`rated5` + 1) + 16 * (`averaged`.`rated4` + 1) + 9 * (`averaged`.`rated3` + 1) + 4 * (`averaged`.`rated2` + 1) + 1 * (`averaged`.`rated1` + 1)) / (5 + `averaged`.`numRatingsInAvg`) - pow((5 * (`averaged`.`rated5` + 1) + 4 * (`averaged`.`rated4` + 1) + 3 * (`averaged`.`rated3` + 1) + 2 * (`averaged`.`rated2` + 1) + 1 * (`averaged`.`rated1` + 1)) / (5 + `averaged`.`numRatingsInAvg`),2)) / (6 + `averaged`.`numRatingsInAvg`)) AS `starsort` from (select `rating_counts`.`gameid` AS `gameid`,`rating_counts`.`rated1` AS `rated1`,`rating_counts`.`rated2` AS `rated2`,`rating_counts`.`rated3` AS `rated3`,`rating_counts`.`rated4` AS `rated4`,`rating_counts`.`rated5` AS `rated5`,`rating_counts`.`numRatingsInAvg` AS `numRatingsInAvg`,`rating_counts`.`numRatingsTotal` AS `numRatingsTotal`,`rating_counts`.`numMemberReviews` AS `numMemberReviews`,(`rating_counts`.`rated1` + `rating_counts`.`rated2` * 2 + `rating_counts`.`rated3` * 3 + `rating_counts`.`rated4` * 4 + `rating_counts`.`rated5` * 5) / `rating_counts`.`numRatingsInAvg` AS `avgRating` from (select `grouped`.`gameid` AS `gameid`,sum(case when `grouped`.`rating` = 1 and `grouped`.`omitted` = 0 then `grouped`.`count` else 0 end) AS `rated1`,sum(case when `grouped`.`rating` = 2 and `grouped`.`omitted` = 0 then `grouped`.`count` else 0 end) AS `rated2`,sum(case when `grouped`.`rating` = 3 and `grouped`.`omitted` = 0 then `grouped`.`count` else 0 end) AS `rated3`,sum(case when `grouped`.`rating` = 4 and `grouped`.`omitted` = 0 then `grouped`.`count` else 0 end) AS `rated4`,sum(case when `grouped`.`rating` = 5 and `grouped`.`omitted` = 0 then `grouped`.`count` else 0 end) AS `rated5`,sum(case when `grouped`.`rating` in (1,2,3,4,5) and `grouped`.`omitted` = 0 then `grouped`.`count` else 0 end) AS `numRatingsInAvg`,sum(case when `grouped`.`rating` in (1,2,3,4,5) then `grouped`.`count` else 0 end) AS `numRatingsTotal`,sum(case when `grouped`.`hasReview` then `grouped`.`count` else 0 end) AS `numMemberReviews` from (select count(`ifdb`.`reviews`.`id`) AS `count`,`ifdb`.`reviews`.`rating` AS `rating`,`ifdb`.`reviews`.`gameid` AS `gameid`,ifnull(`ifdb`.`reviews`.`RFlags`,0) & 2 AS `omitted`,ifnull(`ifdb`.`reviews`.`special`,`ifdb`.`reviews`.`review`) is not null AS `hasReview` from (`ifdb`.`reviews` left join `ifdb`.`users` on(`ifdb`.`reviews`.`userid` = `ifdb`.`users`.`id`)) where ifnull(`ifdb`.`users`.`Sandbox`,0) = 0 and ifnull(current_timestamp() > `ifdb`.`reviews`.`embargodate`,1) group by `ifdb`.`reviews`.`rating`,`ifdb`.`reviews`.`gameid`,ifnull(`ifdb`.`reviews`.`RFlags`,0) & 2,ifnull(`ifdb`.`reviews`.`special`,`ifdb`.`reviews`.`review`) is not null) `grouped` group by `grouped`.`gameid`) `rating_counts`) `averaged` */;
+/*!50001 VIEW `gameRatingsSandbox0` AS
+select `averaged`.`gameid` AS `gameid`,
+  `averaged`.`rated1` AS `rated1`,
+  `averaged`.`rated2` AS `rated2`,
+  `averaged`.`rated3` AS `rated3`,
+  `averaged`.`rated4` AS `rated4`,
+  `averaged`.`rated5` AS `rated5`,
+  `averaged`.`numRatingsInAvg` AS `numRatingsInAvg`,
+  `averaged`.`numRatingsTotal` AS `numRatingsTotal`,
+  `averaged`.`numMemberReviews` AS `numMemberReviews`,
+  `averaged`.`avgRating` AS `avgRating`,
+  pow(
+    (
+      pow(1 - `averaged`.`avgRating`, 2) * `averaged`.`rated1` 
+      + pow(2 - `averaged`.`avgRating`, 2) * `averaged`.`rated2` 
+      + pow(3 - `averaged`.`avgRating`, 2) * `averaged`.`rated3`
+      + pow(4 - `averaged`.`avgRating`, 2) * `averaged`.`rated4`
+      + pow(5 - `averaged`.`avgRating`, 2) * `averaged`.`rated5`
+    ) / `averaged`.`numRatingsInAvg`,
+    0.5
+  ) AS `stdDevRating`,
+(
+    5 * (`averaged`.`rated5` + 1)
+    + 4 * (`averaged`.`rated4` + 1)
+    + 3 * (`averaged`.`rated3` + 1)
+    + 2 * (`averaged`.`rated2` + 1)
+    + 1 * (`averaged`.`rated1` + 1)
+  ) / (5 + `averaged`.`numRatingsInAvg`) - 1.65 * sqrt(
+    (
+      (
+        25 * (`averaged`.`rated5` + 1)
+        + 16 * (`averaged`.`rated4` + 1)
+        + 9 * (`averaged`.`rated3` + 1)
+        + 4 * (`averaged`.`rated2` + 1)
+        + 1 * (`averaged`.`rated1` + 1)
+      ) / (5 + `averaged`.`numRatingsInAvg`) - pow(
+        (
+          5 * (`averaged`.`rated5` + 1)
+          + 4 * (`averaged`.`rated4` + 1)
+          + 3 * (`averaged`.`rated3` + 1)
+          + 2 * (`averaged`.`rated2` + 1)
+          + 1 * (`averaged`.`rated1` + 1)
+        ) / (5 + `averaged`.`numRatingsInAvg`),
+        2
+      )
+    ) / (6 + `averaged`.`numRatingsInAvg`)
+  ) AS `starsort`
+from (
+    select `rating_counts`.`gameid` AS `gameid`,
+      `rating_counts`.`rated1` AS `rated1`,
+      `rating_counts`.`rated2` AS `rated2`,
+      `rating_counts`.`rated3` AS `rated3`,
+      `rating_counts`.`rated4` AS `rated4`,
+      `rating_counts`.`rated5` AS `rated5`,
+      `rating_counts`.`numRatingsInAvg` AS `numRatingsInAvg`,
+      `rating_counts`.`numRatingsTotal` AS `numRatingsTotal`,
+      `rating_counts`.`numMemberReviews` AS `numMemberReviews`,
+(
+        `rating_counts`.`rated1`
+        + `rating_counts`.`rated2` * 2
+        + `rating_counts`.`rated3` * 3
+        + `rating_counts`.`rated4` * 4
+        + `rating_counts`.`rated5` * 5
+      ) / `rating_counts`.`numRatingsInAvg` AS `avgRating`
+    from (
+        select `grouped`.`gameid` AS `gameid`,
+          sum(
+            case
+              when `grouped`.`rating` = 1
+              and `grouped`.`omitted` = 0 then `grouped`.`count`
+              else 0
+            end
+          ) AS `rated1`,
+          sum(
+            case
+              when `grouped`.`rating` = 2
+              and `grouped`.`omitted` = 0 then `grouped`.`count`
+              else 0
+            end
+          ) AS `rated2`,
+          sum(
+            case
+              when `grouped`.`rating` = 3
+              and `grouped`.`omitted` = 0 then `grouped`.`count`
+              else 0
+            end
+          ) AS `rated3`,
+          sum(
+            case
+              when `grouped`.`rating` = 4
+              and `grouped`.`omitted` = 0 then `grouped`.`count`
+              else 0
+            end
+          ) AS `rated4`,
+          sum(
+            case
+              when `grouped`.`rating` = 5
+              and `grouped`.`omitted` = 0 then `grouped`.`count`
+              else 0
+            end
+          ) AS `rated5`,
+          sum(
+            case
+              when `grouped`.`rating` in (1, 2, 3, 4, 5)
+              and `grouped`.`omitted` = 0 then `grouped`.`count`
+              else 0
+            end
+          ) AS `numRatingsInAvg`,
+          sum(
+            case
+              when `grouped`.`rating` in (1, 2, 3, 4, 5) then `grouped`.`count`
+              else 0
+            end
+          ) AS `numRatingsTotal`,
+          sum(
+            case
+              when `grouped`.`hasReview` then `grouped`.`count`
+              else 0
+            end
+          ) AS `numMemberReviews`
+        from (
+            select count(`ifdb`.`reviews`.`id`) AS `count`,
+              `ifdb`.`reviews`.`rating` AS `rating`,
+              `ifdb`.`reviews`.`gameid` AS `gameid`,
+              ifnull(`ifdb`.`reviews`.`RFlags`, 0) & 2 AS `omitted`,
+              `ifdb`.`reviews`.`review` is not null AS `hasReview`
+            from (
+                `ifdb`.`reviews`
+                left join `ifdb`.`users` on(`ifdb`.`reviews`.`userid` = `ifdb`.`users`.`id`)
+              )
+            where ifnull(`ifdb`.`users`.`Sandbox`, 0) = 0
+              and ifnull(
+                current_timestamp() > `ifdb`.`reviews`.`embargodate`,
+                1
+              )
+              and `ifdb`.`reviews`.`special` is null
+            group by `ifdb`.`reviews`.`rating`,
+              `ifdb`.`reviews`.`gameid`,
+              ifnull(`ifdb`.`reviews`.`RFlags`, 0) & 2,
+              ifnull(
+                `ifdb`.`reviews`.`special`,
+                `ifdb`.`reviews`.`review`
+              ) is not null
+          ) `grouped`
+        group by `grouped`.`gameid`
+      ) `rating_counts`
+  ) `averaged`
+*/;
 /*!50001 SET character_set_client      = @saved_cs_client */;
 /*!50001 SET character_set_results     = @saved_cs_results */;
 /*!50001 SET collation_connection      = @saved_col_connection */;
@@ -303,7 +472,154 @@ SET character_set_client = @saved_cs_client;
 /*!50001 SET collation_connection      = utf8_general_ci */;
 /*!50001 CREATE ALGORITHM=UNDEFINED */
 /*!50013 DEFINER=`root`@`localhost` SQL SECURITY DEFINER */
-/*!50001 VIEW `gameRatingsSandbox01` AS select `averaged`.`gameid` AS `gameid`,`averaged`.`rated1` AS `rated1`,`averaged`.`rated2` AS `rated2`,`averaged`.`rated3` AS `rated3`,`averaged`.`rated4` AS `rated4`,`averaged`.`rated5` AS `rated5`,`averaged`.`numRatingsInAvg` AS `numRatingsInAvg`,`averaged`.`numRatingsTotal` AS `numRatingsTotal`,`averaged`.`numMemberReviews` AS `numMemberReviews`,`averaged`.`avgRating` AS `avgRating`,pow((pow(1 - `averaged`.`avgRating`,2) * `averaged`.`rated1` + pow(2 - `averaged`.`avgRating`,2) * `averaged`.`rated2` + pow(3 - `averaged`.`avgRating`,2) * `averaged`.`rated3` + pow(4 - `averaged`.`avgRating`,2) * `averaged`.`rated4` + pow(5 - `averaged`.`avgRating`,2) * `averaged`.`rated5`) / `averaged`.`numRatingsInAvg`,0.5) AS `stdDevRating`,(5 * (`averaged`.`rated5` + 1) + 4 * (`averaged`.`rated4` + 1) + 3 * (`averaged`.`rated3` + 1) + 2 * (`averaged`.`rated2` + 1) + 1 * (`averaged`.`rated1` + 1)) / (5 + `averaged`.`numRatingsInAvg`) - 1.65 * sqrt(((25 * (`averaged`.`rated5` + 1) + 16 * (`averaged`.`rated4` + 1) + 9 * (`averaged`.`rated3` + 1) + 4 * (`averaged`.`rated2` + 1) + 1 * (`averaged`.`rated1` + 1)) / (5 + `averaged`.`numRatingsInAvg`) - pow((5 * (`averaged`.`rated5` + 1) + 4 * (`averaged`.`rated4` + 1) + 3 * (`averaged`.`rated3` + 1) + 2 * (`averaged`.`rated2` + 1) + 1 * (`averaged`.`rated1` + 1)) / (5 + `averaged`.`numRatingsInAvg`),2)) / (6 + `averaged`.`numRatingsInAvg`)) AS `starsort` from (select `rating_counts`.`gameid` AS `gameid`,`rating_counts`.`rated1` AS `rated1`,`rating_counts`.`rated2` AS `rated2`,`rating_counts`.`rated3` AS `rated3`,`rating_counts`.`rated4` AS `rated4`,`rating_counts`.`rated5` AS `rated5`,`rating_counts`.`numRatingsInAvg` AS `numRatingsInAvg`,`rating_counts`.`numRatingsTotal` AS `numRatingsTotal`,`rating_counts`.`numMemberReviews` AS `numMemberReviews`,(`rating_counts`.`rated1` + `rating_counts`.`rated2` * 2 + `rating_counts`.`rated3` * 3 + `rating_counts`.`rated4` * 4 + `rating_counts`.`rated5` * 5) / `rating_counts`.`numRatingsInAvg` AS `avgRating` from (select `grouped`.`gameid` AS `gameid`,sum(case when `grouped`.`rating` = 1 and `grouped`.`omitted` = 0 then `grouped`.`count` else 0 end) AS `rated1`,sum(case when `grouped`.`rating` = 2 and `grouped`.`omitted` = 0 then `grouped`.`count` else 0 end) AS `rated2`,sum(case when `grouped`.`rating` = 3 and `grouped`.`omitted` = 0 then `grouped`.`count` else 0 end) AS `rated3`,sum(case when `grouped`.`rating` = 4 and `grouped`.`omitted` = 0 then `grouped`.`count` else 0 end) AS `rated4`,sum(case when `grouped`.`rating` = 5 and `grouped`.`omitted` = 0 then `grouped`.`count` else 0 end) AS `rated5`,sum(case when `grouped`.`rating` in (1,2,3,4,5) and `grouped`.`omitted` = 0 then `grouped`.`count` else 0 end) AS `numRatingsInAvg`,sum(case when `grouped`.`rating` in (1,2,3,4,5) then `grouped`.`count` else 0 end) AS `numRatingsTotal`,sum(case when `grouped`.`hasReview` then `grouped`.`count` else 0 end) AS `numMemberReviews` from (select count(`ifdb`.`reviews`.`id`) AS `count`,`ifdb`.`reviews`.`rating` AS `rating`,`ifdb`.`reviews`.`gameid` AS `gameid`,ifnull(`ifdb`.`reviews`.`RFlags`,0) & 2 AS `omitted`,ifnull(`ifdb`.`reviews`.`special`,`ifdb`.`reviews`.`review`) is not null AS `hasReview` from (`ifdb`.`reviews` left join `ifdb`.`users` on(`ifdb`.`reviews`.`userid` = `ifdb`.`users`.`id`)) where ifnull(`ifdb`.`users`.`Sandbox`,0) in (0,1) and ifnull(current_timestamp() > `ifdb`.`reviews`.`embargodate`,1) group by `ifdb`.`reviews`.`rating`,`ifdb`.`reviews`.`gameid`,ifnull(`ifdb`.`reviews`.`RFlags`,0) & 2,ifnull(`ifdb`.`reviews`.`special`,`ifdb`.`reviews`.`review`) is not null) `grouped` group by `grouped`.`gameid`) `rating_counts`) `averaged` */;
+/*!50001 VIEW `gameRatingsSandbox01` AS
+select `averaged`.`gameid` AS `gameid`,
+  `averaged`.`rated1` AS `rated1`,
+  `averaged`.`rated2` AS `rated2`,
+  `averaged`.`rated3` AS `rated3`,
+  `averaged`.`rated4` AS `rated4`,
+  `averaged`.`rated5` AS `rated5`,
+  `averaged`.`numRatingsInAvg` AS `numRatingsInAvg`,
+  `averaged`.`numRatingsTotal` AS `numRatingsTotal`,
+  `averaged`.`numMemberReviews` AS `numMemberReviews`,
+  `averaged`.`avgRating` AS `avgRating`,
+  pow(
+    (
+      pow(1 - `averaged`.`avgRating`, 2) * `averaged`.`rated1` 
+      + pow(2 - `averaged`.`avgRating`, 2) * `averaged`.`rated2` 
+      + pow(3 - `averaged`.`avgRating`, 2) * `averaged`.`rated3`
+      + pow(4 - `averaged`.`avgRating`, 2) * `averaged`.`rated4`
+      + pow(5 - `averaged`.`avgRating`, 2) * `averaged`.`rated5`
+    ) / `averaged`.`numRatingsInAvg`,
+    0.5
+  ) AS `stdDevRating`,
+(
+    5 * (`averaged`.`rated5` + 1)
+    + 4 * (`averaged`.`rated4` + 1)
+    + 3 * (`averaged`.`rated3` + 1)
+    + 2 * (`averaged`.`rated2` + 1)
+    + 1 * (`averaged`.`rated1` + 1)
+  ) / (5 + `averaged`.`numRatingsInAvg`) - 1.65 * sqrt(
+    (
+      (
+        25 * (`averaged`.`rated5` + 1)
+        + 16 * (`averaged`.`rated4` + 1)
+        + 9 * (`averaged`.`rated3` + 1)
+        + 4 * (`averaged`.`rated2` + 1)
+        + 1 * (`averaged`.`rated1` + 1)
+      ) / (5 + `averaged`.`numRatingsInAvg`) - pow(
+        (
+          5 * (`averaged`.`rated5` + 1)
+          + 4 * (`averaged`.`rated4` + 1)
+          + 3 * (`averaged`.`rated3` + 1)
+          + 2 * (`averaged`.`rated2` + 1)
+          + 1 * (`averaged`.`rated1` + 1)
+        ) / (5 + `averaged`.`numRatingsInAvg`),
+        2
+      )
+    ) / (6 + `averaged`.`numRatingsInAvg`)
+  ) AS `starsort`
+from (
+    select `rating_counts`.`gameid` AS `gameid`,
+      `rating_counts`.`rated1` AS `rated1`,
+      `rating_counts`.`rated2` AS `rated2`,
+      `rating_counts`.`rated3` AS `rated3`,
+      `rating_counts`.`rated4` AS `rated4`,
+      `rating_counts`.`rated5` AS `rated5`,
+      `rating_counts`.`numRatingsInAvg` AS `numRatingsInAvg`,
+      `rating_counts`.`numRatingsTotal` AS `numRatingsTotal`,
+      `rating_counts`.`numMemberReviews` AS `numMemberReviews`,
+(
+        `rating_counts`.`rated1`
+        + `rating_counts`.`rated2` * 2
+        + `rating_counts`.`rated3` * 3
+        + `rating_counts`.`rated4` * 4
+        + `rating_counts`.`rated5` * 5
+      ) / `rating_counts`.`numRatingsInAvg` AS `avgRating`
+    from (
+        select `grouped`.`gameid` AS `gameid`,
+          sum(
+            case
+              when `grouped`.`rating` = 1
+              and `grouped`.`omitted` = 0 then `grouped`.`count`
+              else 0
+            end
+          ) AS `rated1`,
+          sum(
+            case
+              when `grouped`.`rating` = 2
+              and `grouped`.`omitted` = 0 then `grouped`.`count`
+              else 0
+            end
+          ) AS `rated2`,
+          sum(
+            case
+              when `grouped`.`rating` = 3
+              and `grouped`.`omitted` = 0 then `grouped`.`count`
+              else 0
+            end
+          ) AS `rated3`,
+          sum(
+            case
+              when `grouped`.`rating` = 4
+              and `grouped`.`omitted` = 0 then `grouped`.`count`
+              else 0
+            end
+          ) AS `rated4`,
+          sum(
+            case
+              when `grouped`.`rating` = 5
+              and `grouped`.`omitted` = 0 then `grouped`.`count`
+              else 0
+            end
+          ) AS `rated5`,
+          sum(
+            case
+              when `grouped`.`rating` in (1, 2, 3, 4, 5)
+              and `grouped`.`omitted` = 0 then `grouped`.`count`
+              else 0
+            end
+          ) AS `numRatingsInAvg`,
+          sum(
+            case
+              when `grouped`.`rating` in (1, 2, 3, 4, 5) then `grouped`.`count`
+              else 0
+            end
+          ) AS `numRatingsTotal`,
+          sum(
+            case
+              when `grouped`.`hasReview` then `grouped`.`count`
+              else 0
+            end
+          ) AS `numMemberReviews`
+        from (
+            select count(`ifdb`.`reviews`.`id`) AS `count`,
+              `ifdb`.`reviews`.`rating` AS `rating`,
+              `ifdb`.`reviews`.`gameid` AS `gameid`,
+              ifnull(`ifdb`.`reviews`.`RFlags`, 0) & 2 AS `omitted`,
+              `ifdb`.`reviews`.`review` is not null AS `hasReview`
+            from (
+                `ifdb`.`reviews`
+                left join `ifdb`.`users` on(`ifdb`.`reviews`.`userid` = `ifdb`.`users`.`id`)
+              )
+            where ifnull(`ifdb`.`users`.`Sandbox`, 0) in (0, 1)
+              and ifnull(
+                current_timestamp() > `ifdb`.`reviews`.`embargodate`,
+                1
+              )
+              and `ifdb`.`reviews`.`special` is null
+            group by `ifdb`.`reviews`.`rating`,
+              `ifdb`.`reviews`.`gameid`,
+              ifnull(`ifdb`.`reviews`.`RFlags`, 0) & 2,
+              ifnull(
+                `ifdb`.`reviews`.`special`,
+                `ifdb`.`reviews`.`review`
+              ) is not null
+          ) `grouped`
+        group by `grouped`.`gameid`
+      ) `rating_counts`
+  ) `averaged`
+*/;
 /*!50001 SET character_set_client      = @saved_cs_client */;
 /*!50001 SET character_set_results     = @saved_cs_results */;
 /*!50001 SET collation_connection      = @saved_col_connection */;
@@ -321,7 +637,16 @@ SET character_set_client = @saved_cs_client;
 /*!50001 SET character_set_results     = utf8 */;
 /*!50001 SET collation_connection      = utf8_general_ci */;
 /*!50001 CREATE ALGORITHM=UNDEFINED */
-/*!50001 VIEW `gamelinkstats` AS select `games`.`id` AS `gameid`,count(`gamelinks`.`url`) AS `numLinks`,ifnull(sum((`gamelinks`.`attrs` & 1)),0) AS `numGameLinks` from (`games` left join `gamelinks` on((`gamelinks`.`gameid` = `games`.`id`))) group by `games`.`id` */;
+/*!50001 VIEW `gamelinkstats` AS
+select `games`.`id` AS `gameid`,
+  count(`gamelinks`.`url`) AS `numLinks`,
+  ifnull(sum((`gamelinks`.`attrs` & 1)), 0) AS `numGameLinks`
+from (
+    `games`
+    left join `gamelinks` on((`gamelinks`.`gameid` = `games`.`id`))
+  )
+group by `games`.`id`
+*/;
 /*!50001 SET character_set_client      = @saved_cs_client */;
 /*!50001 SET character_set_results     = @saved_cs_results */;
 /*!50001 SET collation_connection      = @saved_col_connection */;
@@ -339,7 +664,45 @@ SET character_set_client = @saved_cs_client;
 /*!50001 SET character_set_results     = utf8 */;
 /*!50001 SET collation_connection      = utf8_general_ci */;
 /*!50001 CREATE ALGORITHM=UNDEFINED */
-/*!50001 VIEW `gameratings` AS select `reviews`.`gameid` AS `gameid`,avg(if((ifnull(`reviews`.`RFlags`,0) & 2),NULL,`reviews`.`rating`)) AS `avgRating`,std(if((ifnull(`reviews`.`RFlags`,0) & 2),NULL,`reviews`.`rating`)) AS `stdDevRating`,count(if((ifnull(`reviews`.`RFlags`,0) & 2),NULL,`reviews`.`rating`)) AS `numRatingsInAvg`,count(`reviews`.`rating`) AS `numRatingsTotal`,count(if(isnull(`reviews`.`special`),`reviews`.`review`,NULL)) AS `numMemberReviews`,`users`.`Sandbox` AS `sandbox` from (`reviews` left join `users` on((`users`.`id` = `reviews`.`userid`))) where ifnull((now() > `reviews`.`embargodate`),1) group by `reviews`.`gameid` */;
+/*!50001 VIEW `gameratings` AS
+select `reviews`.`gameid` AS `gameid`,
+  avg(
+    if(
+      (ifnull(`reviews`.`RFlags`, 0) & 2),
+      NULL,
+      `reviews`.`rating`
+    )
+  ) AS `avgRating`,
+  std(
+    if(
+      (ifnull(`reviews`.`RFlags`, 0) & 2),
+      NULL,
+      `reviews`.`rating`
+    )
+  ) AS `stdDevRating`,
+  count(
+    if(
+      (ifnull(`reviews`.`RFlags`, 0) & 2),
+      NULL,
+      `reviews`.`rating`
+    )
+  ) AS `numRatingsInAvg`,
+  count(`reviews`.`rating`) AS `numRatingsTotal`,
+  count(
+    if(
+      isnull(`reviews`.`special`),
+      `reviews`.`review`,
+      NULL
+    )
+  ) AS `numMemberReviews`,
+  `users`.`Sandbox` AS `sandbox`
+from (
+    `reviews`
+    left join `users` on((`users`.`id` = `reviews`.`userid`))
+  )
+where ifnull((now() > `reviews`.`embargodate`), 1)
+group by `reviews`.`gameid`
+*/;
 /*!50001 SET character_set_client      = @saved_cs_client */;
 /*!50001 SET character_set_results     = @saved_cs_results */;
 /*!50001 SET collation_connection      = @saved_col_connection */;
@@ -357,7 +720,16 @@ SET character_set_client = @saved_cs_client;
 /*!50001 SET character_set_results     = utf8 */;
 /*!50001 SET collation_connection      = utf8_general_ci */;
 /*!50001 CREATE ALGORITHM=UNDEFINED */
-/*!50001 VIEW `userScores` AS select `userscoreitems`.`userid` AS `userid`,sum(`userscoreitems`.`score`) AS `score`,(max(`userscoreitems`.`isReview`) * sum(`userscoreitems`.`score`)) AS `rankingScore`,sum(`userscoreitems`.`isReview`) AS `reviewCount` from `userscoreitems` group by `userscoreitems`.`userid` */;
+/*!50001 VIEW `userScores` AS
+select `userscoreitems`.`userid` AS `userid`,
+  sum(`userscoreitems`.`score`) AS `score`,
+(
+    max(`userscoreitems`.`isReview`) * sum(`userscoreitems`.`score`)
+  ) AS `rankingScore`,
+  sum(`userscoreitems`.`isReview`) AS `reviewCount`
+from `userscoreitems`
+group by `userscoreitems`.`userid`
+*/;
 /*!50001 SET character_set_client      = @saved_cs_client */;
 /*!50001 SET character_set_results     = @saved_cs_results */;
 /*!50001 SET collation_connection      = @saved_col_connection */;
@@ -375,7 +747,70 @@ SET character_set_client = @saved_cs_client;
 /*!50001 SET character_set_results     = utf8 */;
 /*!50001 SET collation_connection      = utf8_general_ci */;
 /*!50001 CREATE ALGORITHM=UNDEFINED */
-/*!50001 VIEW `userscoreitems` AS select `reviews`.`userid` AS `userid`,(max(if(isnull(`reviews`.`review`),10,100)) + (5 * greatest(-(100),least(100,(ifnull(sum((`reviewvotes`.`vote` = _latin1'Y' and ifnull(`users`.`sandbox`, 0) = 0)),0) - ifnull(sum((`reviewvotes`.`vote` = _latin1'N' and ifnull(`users`.`sandbox`, 0) = 0)),0)))))) AS `score`,max(if(isnull(`reviews`.`review`),0,1)) AS `isReview` from ((`reviews` left join `reviewvotes` on((`reviewvotes`.`reviewid` = `reviews`.`id`)) left join `users` on ((`users`.`id` = `reviewvotes`.`userid`))) left join `specialreviewers` on((`reviews`.`special` = `specialreviewers`.`id`))) where ((isnull(`reviews`.`special`) or (not(`specialreviewers`.`editorial`))) and ifnull((now() >= `reviews`.`embargodate`),1)) group by `reviews`.`id` union all select `reviewvotes`.`userid` AS `userid`,count(`reviewvotes`.`vote`) AS `score`,0 AS `isReview` from `reviewvotes` group by `reviewvotes`.`userid` union all select `l`.`userid` AS `userid`,if((count(`i`.`gameid`) >= 5),25,0) AS `score`,0 AS `isReview` from (`reclists` `l` left join `reclistitems` `i` on((`i`.`listid` = `l`.`id`))) group by `l`.`userid` */;
+/*!50001 VIEW `userscoreitems` AS
+select `reviews`.`userid` AS `userid`,
+(
+    max(if(isnull(`reviews`.`review`), 10, 100)) + (
+      5 * greatest(
+        -(100),
+        least(
+          100,
+(
+            ifnull(
+              sum(
+                (
+                  `reviewvotes`.`vote` = _latin1 'Y'
+                  and ifnull(`users`.`sandbox`, 0) = 0
+                )
+              ),
+              0
+            ) - ifnull(
+              sum(
+                (
+                  `reviewvotes`.`vote` = _latin1 'N'
+                  and ifnull(`users`.`sandbox`, 0) = 0
+                )
+              ),
+              0
+            )
+          )
+        )
+      )
+    )
+  ) AS `score`,
+  max(if(isnull(`reviews`.`review`), 0, 1)) AS `isReview`
+from (
+    (
+      `reviews`
+      left join `reviewvotes` on((`reviewvotes`.`reviewid` = `reviews`.`id`))
+      left join `users` on ((`users`.`id` = `reviewvotes`.`userid`))
+    )
+    left join `specialreviewers` on((`reviews`.`special` = `specialreviewers`.`id`))
+  )
+where (
+    (
+      isnull(`reviews`.`special`)
+      or (not(`specialreviewers`.`editorial`))
+    )
+    and ifnull((now() >= `reviews`.`embargodate`), 1)
+  )
+group by `reviews`.`id`
+union all
+select `reviewvotes`.`userid` AS `userid`,
+  count(`reviewvotes`.`vote`) AS `score`,
+  0 AS `isReview`
+from `reviewvotes`
+group by `reviewvotes`.`userid`
+union all
+select `l`.`userid` AS `userid`,
+  if((count(`i`.`gameid`) >= 5), 25, 0) AS `score`,
+  0 AS `isReview`
+from (
+    `reclists` `l`
+    left join `reclistitems` `i` on((`i`.`listid` = `l`.`id`))
+  )
+group by `l`.`userid`
+*/;
 /*!50001 SET character_set_client      = @saved_cs_client */;
 /*!50001 SET character_set_results     = @saved_cs_results */;
 /*!50001 SET collation_connection      = @saved_col_connection */;
@@ -393,7 +828,21 @@ SET character_set_client = @saved_cs_client;
 /*!50001 SET character_set_results     = utf8 */;
 /*!50001 SET collation_connection      = utf8_general_ci */;
 /*!50001 CREATE ALGORITHM=UNDEFINED */
-/*!50001 VIEW `visreviews` AS select `reviews`.`id` AS `id`,`reviews`.`summary` AS `summary`,`reviews`.`review` AS `review`,`reviews`.`rating` AS `rating`,`reviews`.`userid` AS `userid`,`reviews`.`createdate` AS `createdate`,`reviews`.`moddate` AS `moddate`,`reviews`.`embargodate` AS `embargodate`,`reviews`.`special` AS `special`,`reviews`.`gameid` AS `gameid`,`reviews`.`RFlags` AS `RFlags` from `reviews` where ifnull((now() > `reviews`.`embargodate`),1) */;
+/*!50001 VIEW `visreviews` AS
+select `reviews`.`id` AS `id`,
+  `reviews`.`summary` AS `summary`,
+  `reviews`.`review` AS `review`,
+  `reviews`.`rating` AS `rating`,
+  `reviews`.`userid` AS `userid`,
+  `reviews`.`createdate` AS `createdate`,
+  `reviews`.`moddate` AS `moddate`,
+  `reviews`.`embargodate` AS `embargodate`,
+  `reviews`.`special` AS `special`,
+  `reviews`.`gameid` AS `gameid`,
+  `reviews`.`RFlags` AS `RFlags`
+from `reviews`
+where ifnull((now() > `reviews`.`embargodate`), 1)
+*/;
 /*!50001 SET character_set_client      = @saved_cs_client */;
 /*!50001 SET character_set_results     = @saved_cs_results */;
 /*!50001 SET collation_connection      = @saved_col_connection */;
