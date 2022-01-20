@@ -1,12 +1,5 @@
 @import url("/ifdb.css?v=1");
 
-img.dla-button {
-    background-image: none;
-    width: 0px;
-}
-span.fmtnotes {
-  display: none;
-}
 .rightbar {
    display: none;
 }
@@ -14,15 +7,3 @@ span.fmtnotes {
 div.tipbox {
    display: none;
 }
-
-div.downloadfloat {
-    float: none;
-    width: 100%;
-   margin-left: 2px
-}
-
-div.downloadfloat h3 {
- display:none;
-}
-
-

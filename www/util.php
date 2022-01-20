@@ -3125,7 +3125,7 @@ function coverArtThumbnail($id, $size, $params = "") {
     $x15 = round($size * 3 / 2);
     $x2 = $size * 2;
     $x3 = $size * 3;
-    return "<img srcset=\"$thumbnail{$size}x$size$params, $thumbnail{$x15}x$x15$params 1.5x, $thumbnail{$x2}x$x2$params 2x, $thumbnail{$x3}x$x3$params 3x\" src=\"/viewgame?id=$id&coverart&thumbnail={$size}x$size\" height=$size width=$size border=0 alt=\"\">";
+    return "<img style=\"max-width: 35vw; height: auto;\" srcset=\"$thumbnail{$size}x$size$params, $thumbnail{$x15}x$x15$params 1.5x, $thumbnail{$x2}x$x2$params 2x, $thumbnail{$x3}x$x3$params 3x\" src=\"/viewgame?id=$id&coverart&thumbnail={$size}x$size\" height=$size width=$size border=0 alt=\"\">";
 }
 
 // ----------------------------------------------------------------------------
