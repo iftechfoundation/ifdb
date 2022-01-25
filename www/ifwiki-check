@@ -6,7 +6,7 @@ $ifid = get_req_data("ifid");
 $qifid = strtoupper(urlencode($ifid));
 
 // look up the page on ifwiki.org
-$ch = curl_init("http://ifwiki.org/index.php?title=IFID:$qifid");
+$ch = curl_init("https://www.ifwiki.org/index.php?title=IFID:$qifid");
 curl_setopt($ch, CURLOPT_NOBODY, true);
 curl_setopt($ch, CURLOPT_TIMEOUT, 30);
 curl_exec($ch);
