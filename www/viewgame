@@ -3044,8 +3044,8 @@ dispTags();
             }
 
             if (count($ifids) > 0) {
-                echo "<div id=\"ifid-link\" style=\"display:none\"><a href=\"http://ifwiki.org/index.php?title=IFID:".htmlspecialcharx($ifids[0])."\">$title</a>"
-                    ." at <a href=\"http://ifwiki.org/index.php\">IF Wiki</a></div>";
+                echo "<div id=\"ifid-link\" style=\"display:none\"><a href=\"https://www.ifwiki.org/index.php?title=IFID:".htmlspecialcharx($ifids[0])."\">$title</a>"
+                    ." at <a href=\"https://www.ifwiki.org/index.php\">IF Wiki</a></div>";
                 $jifid = htmlspecialcharx(str_replace("\"", "&#34;", $ifids[0]));
                 ?>
                 <script>
