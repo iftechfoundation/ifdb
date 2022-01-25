@@ -16,8 +16,8 @@ helpPageHeader("Download Links");
 <ul>
 
    <li>Link directly to the file, rather than to a separate "gateway"
-page.  The Download Adviser generates its instructions assuming that
-links lead directly to downloadable files.
+page.  The "Play Online" button assumes that links lead directly to
+downloadable files.
 
    <li>If the game's author doesn't allow you to link directly to the
 file, don't add it as a download link; instead, link to the author's
@@ -76,7 +76,7 @@ directly to play the game.
    <li>For a game file, if you can't find the game's specific format
 in the list, choose "Story File."  This is the generic file type for
 interpreter-based games.  Always choose the specific type if the
-right one is in the list, though, since the Download Adviser can't
+right one is in the list, though, since the "Play Online" button can't
 offer any help for the generic Story File type.
 
    <li>For non-game files, the list offers a selection of common
@@ -105,7 +105,7 @@ the actual game file within the compressed file. Use Unix-style
 relative paths if necessary (ZIP uses "/" to separate directory names).
 For example, if you're linking to a ZIP file that contains a folder
 called Games and a Z-Machine file called MyGame.z5 within the folder,
-you'd enter "Games/MyGame.z5".  This lets the Download Adviser and
+you'd enter "Games/MyGame.z5".  This lets the "Play Online" button and
 other automated tools find the playable game file after unpacking the
 compressed file.  For non-game files, enter the filename of the most
 important file, as you see fit; you can leave this blank if "most

@@ -1,9 +1,5 @@
 @import url("/ifdb.css?v=1");
 
-img.dla-button {
-    background-image: none;
-    width: 0px;
-}
 span.fmtnotes {
   display: none;
 }

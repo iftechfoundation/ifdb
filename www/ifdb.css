@@ -642,8 +642,7 @@ span.zipstar {
 
 /*
 "fmtnotes" displays the description of a file format in a download
-listing.  This is used on game listing pages in the Download box,
-and also on the Download Adviser page.
+listing.  This is used on game listing pages in the Download box.
 */
 span.fmtnotes {
     font-size: 85%;
@@ -1053,25 +1052,6 @@ table.gamedataform tr td {
 }
 table.gamedataform tr td tr td {
     padding-bottom: 0em;
-}
-
-/*
-The "dlinst" table is used to display download instructions in
-the Download Adviser and for some IFDB browser plug-ins.
-*/
-table.dlinst tr td {
-    padding-top: 1em;
-    padding-bottom: 1em;
-}
-
-table.dlinst tr td ul li {
-    list-style-image: url("/img/dlarrow.gif");
-    margin-top: 1em;
-}
-
-table.dlinst tr td ul.normal li {
-    margin-top: 0;
-    list-style-image: none;
 }
 
 /*
@@ -1697,65 +1677,6 @@ img.popup-menu-arrow {
 }
 
 /*
-The various "step number" icons.  These are displayed, for example,
-to number the list items in a Download Adviser instruction list.
-*/
-img.stepnum1 {
-    background: url("/img/step1.gif") transparent no-repeat center center;
-    width: 50px;
-    height: 50px;
-    vertical-align: middle;
-}
-img.stepnum2 {
-    background: url("/img/step2.gif") no-repeat center center;
-    width: 50px;
-    height: 50px;
-    vertical-align: middle;
-}
-img.stepnum3 {
-    background: url("/img/step3.gif") no-repeat center center;
-    width: 50px;
-    height: 50px;
-    vertical-align: middle;
-}
-img.stepnum4 {
-    background: url("/img/step4.gif") no-repeat center center;
-    width: 50px;
-    height: 50px;
-    vertical-align: middle;
-}
-img.stepnum5 {
-    background: url("/img/step5.gif") no-repeat center center;
-    width: 50px;
-    height: 50px;
-    vertical-align: middle;
-}
-img.stepnum6 {
-    background: url("/img/step6.gif") no-repeat center center;
-    width: 50px;
-    height: 50px;
-    vertical-align: middle;
-}
-img.stepnum7 {
-    background: url("/img/step7.gif") no-repeat center center;
-    width: 50px;
-    height: 50px;
-    vertical-align: middle;
-}
-img.stepnum8 {
-    background: url("/img/step8.gif") no-repeat center center;
-    width: 50px;
-    height: 50px;
-    vertical-align: middle;
-}
-img.stepnum9 {
-    background: url("/img/step9.gif") no-repeat center center;
-    width: 50px;
-    height: 50px;
-    vertical-align: middle;
-}
-
-/*
 Current-location arrow, used in the top navigation bar to indicate
 which page is currently being displayed
 */
@@ -2048,17 +1969,6 @@ Auto-install button graphic ("Play It Now")
 */
 img.auto-install-button {
     background: url("/img/autoins.gif") no-repeat center center;
-    width: 100px;
-    height: 23px;
-    vertical-align: middle;
-    border: none;
-}
-
-/*
-Download adviser button ("Show Me How")
-*/
-img.dla-button {
-    background: url("/img/dlhelpbtn.gif") no-repeat center center;
     width: 100px;
     height: 23px;
     vertical-align: middle;

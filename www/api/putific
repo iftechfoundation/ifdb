@@ -482,7 +482,7 @@ multi-file wrappers like ZIP or Tar, it's up to you to pick the
 primary file, but there's one special consideration: if there's a
 playable version of the game within the archive, such as a story file
 or executable, you should always designate that as the primary file.
-This allows the Download Adviser to generate instructions for playing
+This allows the "Play Online" button to play the
 the game given the compressed file.  If there's no playable game file,
 pick whichever file is the most important, or whichever one the user
 would most directly want to open or view.  For example, for a ZIP
