@@ -114,7 +114,7 @@ if ($debugflag) echo "debug mode enabled...<br>";
          <ul>
             <li><a href="https://intfiction.org"><b>IF Community Forum</b></a>: Discuss playing IF, creating IF, and competitions.</li>
             <li><a href="https://planet-if.com"><b>Planet IF</b></a>: Read the latest posts from IF-related blogs.</li>
-            <li><a href="http://ifwiki.org"><b>IFWiki</b></a>: Explore IF history, theory, and other community knowledge.</li>
+            <li><a href="https://www.ifwiki.org"><b>IFWiki</b></a>: Explore IF history, theory, and other community knowledge.</li>
             <li><a href="https://narrascope.org"><b>NarraScope</b></a>: Attend a narrative games conference.</li>
          </ul>
       </div>
