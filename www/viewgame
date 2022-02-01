@@ -859,7 +859,7 @@ echo helpWinLink("help-ifid", "IFID");
 // PC == "parchment capable" - a format that we can play with Parchment.
 // T3W == "tads 3 web UI"
 // HEX = Hugo file playable online with textadventures.online/play/?story=XXX
-for ($foundGame = $foundAny = $foundHtml = $foundPC = $foundT3W = $foundHex = $htmlUrl = $pcUrl = $adriftUrl = $t3wUrl = $hexUrl = false, $i = 0 ;
+for ($foundGame = $foundHtml = $foundPC = $foundT3W = $foundHex = $htmlUrl = $pcUrl = $adriftUrl = $t3wUrl = $hexUrl = false, $i = 0 ;
      $i < count($links) ; $i++)
 {
     // get this link
@@ -869,65 +869,103 @@ for ($foundGame = $foundAny = $foundHtml = $foundPC = $foundT3W = $foundHex = $h
     if ($link['isgame'])
         $foundGame = true;
 
-    if (!$foundAny
-        && $link['isgame']
-        && $link['fmtexternid'] == 'hypertextgame'
-        && !$link['compression']
-        )
-    {
-        $foundHtml = $foundAny = true;
-        $htmlUrl = $link['url'];
+    $unboxUrl = false;
+    if ($link['compression'] && $link['compressedprimary']) {
+        if (preg_match('!^https?://(www\.|mirror\.)?ifarchive\.org/!', $link['url'])) {
+            $unboxUrl = "https://unbox.ifarchive.org/?url={$link['url']}&open={$link['compressedprimary']}";
+        } else {
+            $springThingUrl = preg_replace('!^https?://(www\.)?springthing\.net/(\d+)/files/(.*)$!',
+                'https://ifarchive.org/if-archive/games/springthing/$2/$3', $link['url']);
+            if ($springThingUrl !== $link['url']) {
+                $unboxUrl = "https://unbox.ifarchive.org/?url={$springThingUrl}&open={$link['compressedprimary']}";
+            } else {
+                $springThingUrl = preg_replace('!^https?://(www\.)?springthing\.net/(\d+)/stories/[^/]+/(.*)$!',
+                    'https://ifarchive.org/if-archive/games/springthing/$2/$3', $link['url']);
+                if ($springThingUrl !== $link['url']) {
+                    $unboxUrl = "https://unbox.ifarchive.org/?url={$springThingUrl}&open={$link['compressedprimary']}";
+                }
+            }
+        }
     }
 
-    if (!$foundAny && stripos($link['title'], "Play Online") !== false)
+    if ($link['fmtexternid'] == 'hypertextgame')
     {
-        $foundGame = $foundHtml = $foundAny = true;
+        if (!$link['compression']) {
+            $foundHtml = true;
+            $htmlUrl = $link['url'];
+            break;
+        } else if ($unboxUrl) {
+            $foundHtml = true;
+            $htmlUrl = $unboxUrl;
+            break;
+        }
+    }
+
+    if (stripos($link['title'], "Play Online") !== false)
+    {
+        $foundGame = $foundHtml = true;
         $htmlUrl = $link['url'];
+        break;
     }
 
     // if this is the first Parchment-capable link, and it's not compressed,
     // note it so that we can set up a Parchment play link to it
-    if (!$foundAny
-        && ($link['fmtexternid'] == 'zcode'
+    if ($link['fmtexternid'] == 'zcode'
             || $link['fmtexternid'] == 'blorb/zcode'
             || $link['fmtexternid'] == 'glulx'
             || $link['fmtexternid'] == 'blorb/glulx'
             || $link['fmtexternid'] == 'tads2'
             || $link['fmtexternid'] == 'tads3'
             || $link['fmtexternid'] == 'hugo'
-            )
-        && !$link['compression'])
+        )
     {
-        $foundPC = $foundAny = true;
-        $pcUrl = urlencode(urlToMirror($link['url']));
+        if (!$link['compression']) {
+            $foundPC = true;
+            $pcUrl = urlencode(urlToMirror($link['url']));
+            break;
+        } else if ($unboxUrl) {
+            $foundPC = true;
+            $pcUrl = urlencode($unboxUrl);
+            break;
+        }
     }
 
-    if (!$foundAny
-        && ($link['fmtexternid'] == 'adrift'
+    if ($link['fmtexternid'] == 'adrift'
             || $link['fmtexternid'] == 'adrift38'
             || $link['fmtexternid'] == 'adrift39'
             || $link['fmtexternid'] == 'adrift5'
             || $link['fmtexternid'] == 'adrift5/blorb'
-            )
-        && !$link['compression'])
+        )
     {
-        $foundAdrift = $foundAny = true;
-        if (preg_match('!^https?://www.adrift.co/cgi/download.cgi\?(\d+)!', $link['url'], $matches)) {
-            // download.cgi does a 302 redirect to the real download URL, which play.adrift.co can't cope with
-            // luckily, play.cgi does a 302 redirect to play.adrift.co with the canonical game URL
-            $adriftUrl = "https://www.adrift.co/cgi/play.cgi?" . $matches[1];
-        } else {
-            $adriftUrl = "http://play.adrift.co/?game=" . urlencode($link['url']);
+        if (!$link['compression']) {
+            $foundAdrift = true;
+            if (preg_match('!^https?://www.adrift.co/cgi/download.cgi\?(\d+)!', $link['url'], $matches)) {
+                // download.cgi does a 302 redirect to the real download URL, which play.adrift.co can't cope with
+                // luckily, play.cgi does a 302 redirect to play.adrift.co with the canonical game URL
+                $adriftUrl = "https://www.adrift.co/cgi/play.cgi?" . $matches[1];
+            } else {
+                $adriftUrl = "http://play.adrift.co/?game=" . urlencode($link['url']);
+            }
+            break;
+        } else if ($unboxUrl) {
+            $foundAdrift = true;
+            $adriftUrl = "http://play.adrift.co/?game=" . urlencode($unboxUrl);
+            break;
         }
     }
 
     // check for a TADS 3 Web UI game
-    if (!$foundAny
-        && $link['fmtexternid'] == 'tads3web'
-        && !$link['compression'])
+    if ($link['fmtexternid'] == 'tads3web')
     {
-        $foundT3W = $foundAny = true;
-        $t3wUrl = urlencode($link['url']);
+        if (!$link['compression']) {
+            $foundT3W = true;
+            $t3wUrl = urlencode($link['url']);
+            break;
+        } else if ($unboxUrl) {
+            $foundT3W = true;
+            $t3wUrl = urlencode($unboxUrl);
+            break;
+        }
     }
 }
 if ($foundGame)
