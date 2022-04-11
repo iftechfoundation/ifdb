@@ -214,16 +214,9 @@ function sendCoverArt()
 }
 
 // --------------------------------------------------------------------------
-// display the Member Review section header
-//
-function showMemberReviewsHeader($rowcnt, $ratingsView, $showHisto)
+function showHistogram()
 {
-    global $ratingAvg, $ratingCntAvg, $ratingHisto, $id, $currentUserReview, $curuser;
-
-    // start the section
-    $title = ($ratingsView ? "Reviews and Ratings" : "Member Reviews");
-    echo "<a name='memberReviews'></a>"
-        . "<h2>$title</h2><div class=indented>";
+    global $ratingAvg, $ratingCntAvg, $ratingHisto;
 
     // count the ratings in the histogram, and get the maximum
     for ($cnt = $max = 0, $i = 1 ; $i <= 5 ; $i++) {
@@ -233,8 +226,7 @@ function showMemberReviewsHeader($rowcnt, $ratingsView, $showHisto)
             $max = $cur;
     }
 
-    // show the histogram if desired
-    if ($showHisto && $cnt > 1) {
+    if ($cnt > 1) {
         echo "<table border=0 cellspacing=0 cellpadding=0><tr valign=top>"
             . "<td valign=top>"
             . "<table class=ratingHistogram border=0 cellspacing=0 cellpadding=0>";
@@ -254,25 +246,33 @@ function showMemberReviewsHeader($rowcnt, $ratingsView, $showHisto)
     }
 
     // show the statistics
-    if ($showHisto && $ratingCntAvg > 0) {
+    if ($ratingCntAvg > 0) {
         echo "<span class=details>Average Rating: "
             . showStars($ratingAvg)
             . "</span><br>";
     }
-    echo "<span class=details>Number of "
-        . ($ratingsView ? "Ratings" : "Reviews")
-        . ": $rowcnt<br>"
-        . "<a href=\"review?id=$id&userid=$curuser\">"
-        . ($currentUserReview ? "Revise your review" : "Write a review")
-        . "</a>"
-        . "</span>";
+    echo "<span class=details>Number of Ratings: $cnt</span>";
+    echo "</td></tr></table>";
+}
 
-    // finish the histogram table if applicable
-    if ($showHisto) {
-        echo "</td></tr></table>";
+// --------------------------------------------------------------------------
+// display the Member Review section header
+//
+function showMemberReviewsHeader($ratingsView)
+{
+    global $id, $currentUserReview, $curuser;
+
+    // start the section
+    $title = ($ratingsView ? "Reviews and Ratings" : "Member Reviews");
+    echo "<a name='memberReviews'></a>"
+        . "<h2>$title</h2><div class=indented>";
+    if ($ratingsView) {
+        showHistogram(true);
+    } else {
+        echo "<a href=\"review?id=$id&userid=$curuser\">"
+             . ($currentUserReview ? "Revise your review" : "Write a review")
+             . "</a><br><br>";
     }
-
-    echo "<br><br>";
 }
 
 // ------------------------------------------------------------------------
@@ -2763,6 +2763,14 @@ dispTags();
 
         echo "</div>";
 
+//------------------------- HISTOGRAM SECTION --------------------------
+
+
+if ($ratingCntTot > 1) {
+   echo "<h2>Ratings Breakdown</h2><div class=indented>";
+   showHistogram();
+   echo "</div>";
+}
 
 //----------------------- MEMBER REVIEW SECTION ------------------------
 
@@ -2782,8 +2790,7 @@ dispTags();
             $showcnt = $rowcnt;
 
             // show the Member Reviews section header
-            $showHisto = !$should_hide;
-            showMemberReviewsHeader($rowcnt, false, $showHisto);
+            showMemberReviewsHeader(false);
 
             // if we have too many for this front page, limit it
             if ($rowcnt > $reviewsOnHomePage) {
@@ -3161,7 +3168,7 @@ dispTags();
         } else {
 
             // start the section
-            showMemberReviewsHeader($memberReviewCnt, false, false);
+            showMemberReviewsHeader(false);
 
             // Show our single review.  Only show the "Add Comment"
             // button for the comment controls, since we're going to
@@ -3258,10 +3265,8 @@ dispTags();
         echo "<br><span class=notes><a href=\"viewgame?id=$id\">Return to the
             game's main page</a></span><br>";
 
-        $showHisto = !$should_hide;
-
         // start the section
-        showMemberReviewsHeader($realtotcnt, $ratingsView, $showHisto);
+        showMemberReviewsHeader($ratingsView);
 
         // show the reviews/ratings only if we have any
         if ($totcnt != 0) {
