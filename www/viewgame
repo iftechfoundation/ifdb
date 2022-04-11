@@ -1490,8 +1490,10 @@ if (!isEmpty($seriesname)) {
                      ?>
                      <?php
 if (!isEmpty($genre)) {
-    echo "<a href=\"search?searchfor=genre:" . urlencodeFromHTML($genre)
-        . "\">$genre</a><br>";
+    $genres = explode(",", str_replace("/", ",", $genre));
+    echo join(", ", array_map(
+        fn($genre) => "<a href=\"search?searchfor=genre:" . urlencodeFromHTML($genre) . "\">$genre</a>",
+        $genres)) . "<br>";
 }
                      ?>
                      <?php if (!isEmpty($pubYear)) echo "$pubYear<br>" ?>
