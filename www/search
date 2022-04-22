@@ -359,7 +359,7 @@ if (!$xml) {
 
     pageHeader($term == "" && $browse ? "Browse $searchTypeName"
                                       : "Search for $searchTypeName",
-               $browse ? "" : "advsearch.searchfor", false,
+               false, false,
                "<script src=\"xmlreq.js\"></script>");
 
     $commonInstructions =
