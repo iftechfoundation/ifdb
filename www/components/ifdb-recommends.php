@@ -3,7 +3,8 @@
 
 $recs = array();
 $maxpicks = 12;
-if ($loggedIn) {
+$overloaded = true;
+if ($loggedIn && !$overloaded) {
 
     // We're logged in, so we can try to come up with some collaborative
     // filtering selections.  First, look to see if we already have some
