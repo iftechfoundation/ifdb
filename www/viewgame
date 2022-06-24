@@ -340,7 +340,7 @@ function init()
 
     // check the game ID
     $id = getID();
-    if (is_null($id)) {
+    if (!$id) {
         if (!$errMsg) {
             $errMsg = "No game was specified in the request.";
             $errCode = "badRequest";
@@ -412,8 +412,16 @@ function checkRedirect($id)
     }
 }
 
-if ($errCode == "notFound")
+if ($errCode == "notFound") {
     checkRedirect($id);
+    header("HTTP/1.1 404 Not Found");
+} else if ($errCode == "versionNotFound") {
+    header("HTTP/1.1 404 Not Found");
+} else if ($errCode == "dbError") {
+    header("HTTP/1.1 500 Internal Server Error");
+} else if ($errCode == "badRequest") {
+    header("HTTP/1.1 400 Bad Request");
+}
 
 // Member review query - this selects REVIEWS (not just ratings, so
 // the 'review' field can't be null), BY MEMBERS (i.e., not special
@@ -439,7 +447,7 @@ if ($curuser) {
 }
 
 // check for an RSS feed request
-if (isset($_REQUEST['rss'])) {
+if (!$errMsg && isset($_REQUEST['rss'])) {
 
     // get the feed type
     if (isset($_REQUEST['reviews']))
