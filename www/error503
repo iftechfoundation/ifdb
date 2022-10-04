@@ -1,18 +1,23 @@
 <?php
-include_once "pagetpl.php";
-
-include_once "session-start.php";
-
 header("HTTP/1.1 503 Service Unavailable");
-pageHeader("503 - Service Unavailable");
 ?>
-<h1>Service Unavailable</h1>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<title>IFDB Service Unavailable</title>
+<style>
+html {
+    font: 1.4rem sans-serif;
+    max-width: 70ch;
+}
+</style>
+</head>
+<body>
+<h1>IFDB Service Unavailable</h1>
 
-<p><span class=details>HTTP Error 503</span>
+<p>HTTP Error 503
 
 <p>The server is temporarily unable due to maintenance downtime or capacity problems. Please try again later.
-
-
-<?php
-pageFooter();
-?>
+</body></html>
