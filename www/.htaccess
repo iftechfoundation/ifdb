@@ -34,8 +34,8 @@ RewriteCond %{HTTP_HOST} \.ifdb.org$
 RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301,NE]
 
 #Uncomment to enable maintenance mode
-#RewriteCond %{REQUEST_URI} "!/error503"
-#RewriteRule .* - [R=503,L]
+RewriteCond %{REQUEST_URI} "!/error503"
+RewriteRule .* - [R=503,L]
 
 RewriteRule ^$ home [L]
 RewriteRule ^index$ home [L]
