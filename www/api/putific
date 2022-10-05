@@ -37,6 +37,24 @@ jukeboxes, etc.  IFDB's own game listing format was designed with the
 iFiction spec in mind, so an iFiction input file maps to an IFDB
 listing with excellent fidelity.
 
+<h2>Examples</h2>
+
+<p>Code examples are available on
+<a href="https://github.com/iftechfoundation/ifdb/tree/main/examples/putific">Github</a>.
+As of this writing, we have code samples for Python, Node.js, and Bash/Curl.</p>
+
+<p>Note that you may want to test the API by setting up a local
+developer environment. See the
+<a href="https://github.com/iftechfoundation/ifdb/">README</a> for
+more details. However, the dev environment does not support uploading
+images, so you won't be able to see your cover art if you test locally.
+</p>
+
+<p>The example scripts are configured to point directly to the real
+IFDB site. If you create test entries, please clean them up, by visiting
+their game details page and clicking "Delete This Page" at the bottom
+of the page.
+</p>
 
 <h2>Basic protocol</h2>
 
