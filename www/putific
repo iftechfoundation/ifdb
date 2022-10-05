@@ -356,7 +356,7 @@ if (count($ifids) > 0)
 else
 {
     // Only allow the no-IFID option with an explicit override
-    if (get_req_data("requireIFID") == "no")
+    if (get_req_data("requireIFID") != "no")
         replyError("IfidMissing",
                    "The required IFID is missing from the iFiction record. "
                    . "The IFID is the unique identifier for this game "
