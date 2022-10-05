@@ -32,8 +32,9 @@ function replyXml($body)
 //
 // Reply with an error message
 //
-function replyError($code, $msg)
+function replyError($status, $code, $msg)
 {
+    http_response_code($status);
     replyXml("<error><code>$code</code><message>"
              . htmlspecialcharx(processError($msg))
              . "</message></error>");
@@ -60,7 +61,7 @@ function validateUpload($id, $desc, $required)
 
         // check for upload errors, and do php source validation
         if ($_FILES[$id]["error"] || !is_uploaded_file($fname))
-            replyError("BadAtt",
+            replyError(400, "BadAtt",
                        "A network error occurred uploading the $desc.");
 
         // looks good - return the filename
@@ -69,7 +70,7 @@ function validateUpload($id, $desc, $required)
     else if ($required)
     {
         // it's required, but it's not there - fail
-        replyError("MissingParam", "The request is invalid: "
+        replyError(400, "MissingParam", "The request is invalid: "
                    . "the required $desc is missing.");
     }
     else
@@ -90,7 +91,7 @@ $password = get_req_data("password");
 
 list($curuser, $errCode, $errMsg) = doLogin($db, $username, $password);
 if (!$curuser)
-    replyError("Login", "The IFDB login failed: $errCode.");
+    replyError(401, "Login", "The IFDB login failed: $errCode.");
 
 
 // ------------------------------------------------------------------------
@@ -118,7 +119,7 @@ function load_xml_file($fname, $fdesc)
         }
 
         // send the error reply
-        replyError("XmlParse",
+        replyError(400, "XmlParse",
                    "The $fdesc can't be parsed because it contains "
                    . "XML errors (" . implode("; ", $errList) . ")");
     }
@@ -289,7 +290,7 @@ $req["coverart"] = "none";
 
 // The title is required
 if (!$title)
-    replyError("MissingTitle",
+    replyError(400, "MissingTitle",
                "A title must be specified in the iFiction record.");
 
 // ------------------------------------------------------------------------
@@ -347,7 +348,7 @@ if (count($ifids) > 0)
     default:
         // two or more games matches: the IFIDs don't uniquely identify
         // a single game, so this is an error
-        replyError("IfidsNotUnique",
+        replyError(409, "IfidsNotUnique",
                    "The IFIDs in the iFiction record match more than "
                    . "one existing IFDB game listing. The IFIDs must "
                    . "uniquely identify a single game.");
@@ -357,7 +358,7 @@ else
 {
     // Only allow the no-IFID option with an explicit override
     if (get_req_data("requireIFID") != "no")
-        replyError("IfidMissing",
+        replyError(400, "IfidMissing",
                    "The required IFID is missing from the iFiction record. "
                    . "The IFID is the unique identifier for this game "
                    . "as defined in the Treaty of Babel specification. "
@@ -371,7 +372,7 @@ else
     $result = mysql_query(
         "select id from games where title like '$ltitle'", $db);
     if (mysql_num_rows($result) > 0)
-        replyError("TitleNotUnique",
+        replyError(409, "TitleNotUnique",
                    "This game's title is not unique: an existing "
                    . "IFDB listing for the same title already exists. "
                    . "To create a new listing for the same title, "
@@ -394,7 +395,7 @@ if ($gameid != "new")
 
     // if an error occurred, fail
     if (!$rec)
-        replyError("LoadRecord",
+        replyError(500, "LoadRecord",
                    "An error occurred loading the existing game record: "
                    . "$errMsgShort.");
 
@@ -409,7 +410,7 @@ if ($gameid != "new")
 
     // verify that we're the last editor
     if ($rec["editedby"] != $curuser)
-        replyError("CannotMerge",
+        replyError(409, "CannotMerge",
                    "You are attempting to update an existing IFDB listing, "
                    . "but this listing was last edited by another user. "
                    . "IFDB is a collaborative system that allows any member "
@@ -467,7 +468,7 @@ if ($artFile)
         "unspecified" => "");
 
     if (!isset($statmap[$imgCprStat]))
-        replyError("ImageCprInvalid",
+        replyError(400, "ImageCprInvalid",
                    "The image copyright status is invalid.");
 
     // add it as a temporary image
@@ -476,7 +477,7 @@ if ($artFile)
 
     // if that failed, abort
     if ($imgErrShort)
-        replyError($imgErrCode, "An error occurred uploading the "
+        replyError(500, $imgErrCode, "An error occurred uploading the "
                    . "Cover Art image: $imgErrShort.");
 
     // set the new record to point to the uploaded image for its cover art
