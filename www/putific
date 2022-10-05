@@ -357,7 +357,7 @@ if (count($ifids) > 0)
 else
 {
     // Only allow the no-IFID option with an explicit override
-    if (get_req_data("requireIFID") != "no")
+    if (get_req_data("requireIFID") != "no" && get_req_data("requireIFID") != "force")
         replyError(400, "IfidMissing",
                    "The required IFID is missing from the iFiction record. "
                    . "The IFID is the unique identifier for this game "
@@ -365,18 +365,21 @@ else
                    . "This must be provided to ensure that games are "
                    . "not listed multiple times in IFDB.");
 
-    // No IFIDs, so we're creating a new listing.  Since we have no
-    // other unique identifier for the new listing, at least require
-    // the title to be unique.
-    $ltitle = mysql_real_escape_string(quoteSqlLike($title), $db);
-    $result = mysql_query(
-        "select id from games where title like '$ltitle'", $db);
-    if (mysql_num_rows($result) > 0)
-        replyError(409, "TitleNotUnique",
-                   "This game's title is not unique: an existing "
-                   . "IFDB listing for the same title already exists. "
-                   . "To create a new listing for the same title, "
-                   . "an IFID must be provided for the new game.");
+    if (get_req_data("requireIFID") != "force") {
+        // No IFIDs, so we're creating a new listing.  Since we have no
+        // other unique identifier for the new listing, at least require
+        // the title to be unique.
+        // ... unless the user insists with "requireIFID=force" that this fine, actually
+        $ltitle = mysql_real_escape_string(quoteSqlLike($title), $db);
+        $result = mysql_query(
+            "select id from games where title like '$ltitle'", $db);
+        if (mysql_num_rows($result) > 0)
+            replyError(409, "TitleNotUnique",
+                    "This game's title is not unique: an existing "
+                    . "IFDB listing for the same title already exists. "
+                    . "To create a new listing for the same title, "
+                    . "an IFID must be provided for the new game.");
+    }
 
     // it's a new listing
     $gameid = "new";
