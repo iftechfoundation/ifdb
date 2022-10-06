@@ -2,3 +2,5 @@ node_modules
 cover-art
 cover-art.json
 microdata.json
+microdata-*.json
+*.zip
