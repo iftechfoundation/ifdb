@@ -1,7 +1,7 @@
 import {writeFile} from 'fs/promises';
 import microdata from 'microdata-node';
 
-const response = await fetch('https://ifcomp.org/ballot/');
+const response = await fetch('https://ifcomp.org/ballot/?alphabetize=1');
 const text = await response.text();
 
 const {items} = microdata.toJson(text);
