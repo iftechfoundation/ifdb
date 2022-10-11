@@ -4,20 +4,6 @@ import {XMLParser} from 'fast-xml-parser';
 const microdata = JSON.parse(await readFile('microdata-downloads.json', 'utf8'));
 const year = new Date().getFullYear();
 
-function escapeXml(unsafe) {
-    return unsafe.replace(/[<>&]/g, function (c) {
-        switch (c) {
-            case '<': return '&lt;';
-            case '>': return '&gt;';
-            case '&': return '&amp;';
-        }
-    });
-}
-
-function escapeRegex(string) {
-    return string.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
-}
-
 for (const game of microdata) {
     //if (game.tuid) continue;
     const queryString = `${game.name} published:${year}`;
