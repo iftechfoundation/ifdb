@@ -252,7 +252,7 @@ the current year and "author" is the author name from the iFiction
 record.  Ordinary text parameter; optional.
 
 <p><b>requireIFID</b>: This parameter can be supplied with the value
-"no" to override the usual rule that an IFID must be provided in the
+"no" to override the usual rule that a TUID/IFID must be provided in the
 iFiction record.  This should <b>never</b> be used by an IF IDE that's
 submitting an author's own game project for publication.  Any IF IDE
 that's using this API should conform to the Babel specification at
@@ -322,7 +322,8 @@ present, the API uses the TADS-specific item tads2/version, if
 present.
 
 <p><b>Required fields:</b> The iFiction file must minimally include
-the game's IFID(s), title, and author.  (The IFID requirement can be
+title, and author, as well as a unique identifier, which is either
+an IFDB TUID or the game's IFID(s). (The identifier requirement can be
 overridden with the <b>requireIFID</b> parameter, though, as described
 above.)  All other items are optional.
 
@@ -518,7 +519,7 @@ collection of source files, for example, you'd specify the format as
 
 <h2>Restrictions</h2>
 
-<p>If the submitted IFID refers to an existing IFDB listing, the
+<p>If the submitted TUID/IFID refers to an existing IFDB listing, the
 effect is to update the existing listing, as though using the standard
 IFDB listing editor Web interface.  Updating a listing is allowed
 <b>only</b> if the submitting user is the same as the last user who
@@ -658,16 +659,16 @@ from the following list:
    <li>XmlSyntax: an XML file attachment to the POST is not syntactically
        valid XML.
    <li>MissingTitle: the title is missing from the iFiction record.
-   <li>IfidsNotUnique: the IFIDs in the record match more than one game.
-       (This is only possible when multiple IFIDs are specified.  It means
-       that the different IFIDs match different games, which is not
+   <li>IfidsNotUnique: the TUID/IFIDs in the record match more than one game.
+       (This is only possible when multiple TUID/IFIDs are specified.  It means
+       that the different IDs match different games, which is not
        allowed since all IFIDs in the iFiction record must be for the
        same game.)
-   <li>IfidMissing: the IFID is missing from the iFiction record.
+   <li>IfidMissing: the TUID/IFID is missing from the iFiction record.
    <li>TitleNotUnique: the title is not unique.  This error can only occur
-       when no IFID is specified, and the IFID override option is selected.
-       If an IFID is specified, the title doesn't have to be unique since
-       the IFID definitively identifies the game.
+       when no TUID/IFID is specified, and the IFID override option is selected.
+       If a TUID/IFID is specified, the title doesn't have to be unique since
+       the ID definitively identifies the game.
    <li>LoadRecord: the game has an existing page, but an error occurred
        loading its database record.
    <li>CannotMerge: the game has an existing page, and the last version of
