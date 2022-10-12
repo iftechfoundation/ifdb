@@ -615,6 +615,35 @@ if (isset($_REQUEST['ifiction']))
         xmlField("url", get_root_url() . "viewgame?id=$id&coverart");
         echo "</coverart>";
     }
+    if ($links) {
+        // load the translation table for the file formats
+        $result = mysql_query(
+            "select id, externid from filetypes", $db);
+        for ($i = 0, $fmtMap = array() ; $i < mysql_num_rows($result) ; $i++) {
+            list($id, $ext) = mysql_fetch_row($result);
+            $fmtMap[$id] = $ext;
+        }
+        echo "<downloads><links>";
+        foreach ($links as $l) {
+            echo "<link>";
+            xmlField("url", $l['url']);
+            if ($l['title']) xmlField("title", $l['title']);
+            if ($l['desc']) xmlField("desc", $l['desc']);
+            if ($l['isgame']) echo "<isGame/>";
+            if ($l['fmtexternid']) xmlField("format", $l['fmtexternid']);
+            if (isset($l['osext'])) {
+                if (isset($l['osvsn'])) {
+                    xmlField("os", $l['osext'] . "." . $l['osvsnext']);
+                } else {
+                    xmlField("os", $l['osext'] . ".");
+                }
+            }
+            if ($l['compression']) xmlField("compression", $fmtMap[$l['compression']]);
+            if ($l['compressedprimary']) xmlField("compressedPrimary", $l['compressedprimary']);
+            echo "</link>";
+        }
+        echo "</links></downloads>";
+    }
     if (!$should_hide) {
         xmlField("averageRating", $ratingAvg);
         list($stars) = roundStars($ratingAvg);
