@@ -290,8 +290,11 @@ function getGameInfo($db, $id, $curuser, $requestVersion, &$errMsg, &$errCode)
             $result = mysql_query(
                 "select
                    operatingsystems.name as osname,
+                   operatingsystems.externid as osext,
                    if (osversions.name = '*',
                        operatingsystems.name, osversions.name) as osvsnname,
+                   if (osversions.name = '*',
+                       operatingsystems.name, osversions.externid) as osvsnext,
                    (icon is not null) as hasicon
                 from
                    operatingsystems, osversions
@@ -302,7 +305,9 @@ function getGameInfo($db, $id, $curuser, $requestVersion, &$errMsg, &$errCode)
 
             if (mysql_num_rows($result) > 0) {
                 $link['osname'] = mysql_result($result, 0, "osname");
+                $link['osext'] = mysql_result($result, 0, "osext");
                 $link['osvsnname'] = mysql_result($result, 0, "osvsnname");
+                $link['osvsnext'] = mysql_result($result, 0, "osvsnext");
                 $link['osicon'] = mysql_result($result, 0, "hasicon");
             }
         }
