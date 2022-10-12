@@ -153,6 +153,7 @@ $colMap = array();
 $colMap["title"] = array("bibliographic/title", "title");
 $colMap["eAuthor"] = array("bibliographic/author", "author");
 $colMap["ifids"] = array("identification/ifid", "IFID");
+$colMap["tuid"] = array("identification/tuid", "TUID");
 $colMap["published"] =
     array("bibliographic/firstpublished", "publication date");
 $colMap["version"] =
@@ -175,6 +176,8 @@ foreach ($xml->story->identification->ifid as $i) {
     $ifids[] = mysql_real_escape_string(xcvt($i), $db);
 }
 $ifid = implode(",", $ifids);
+
+$gameid = xcvt($xml->story->identification->tuid);
 
 $title = xcvt($xml->story->bibliographic->title);
 $author = xcvt($xml->story->bibliographic->author);
@@ -312,7 +315,7 @@ if (!$title)
 //  - If we have no IFIDs, we're creating a new game listing.  In
 //    this case we require that the new listing have a unique title.
 //
-$gameid = false;
+
 if (count($ifids) > 0)
 {
     // We have one or more IFIDs.  Look up the existing game(s)
@@ -336,13 +339,25 @@ if (count($ifids) > 0)
     switch (mysql_num_rows($result))
     {
     case 0:
-        // no matches: this is a new game
-        $gameid = "new";
+        // no matches
+        if (!$gameid) {
+            $gameid = "new";
+        }
         break;
 
     case 1:
         // one game matched: we're editing an existing game
-        list($gameid) = mysql_fetch_row($result);
+        if ($gameid) {
+            list($if_gameid) = mysql_fetch_row($result);
+            if ($gameid != $if_gameid) {
+                replyError(409, "IfidsNotUnique",
+                   "The IFID(s) in the iFiction record don't match "
+                   . "the TUID in IFDB. The TUID + IFIDs must "
+                   . "uniquely identify a single game.");
+            }
+        } else {
+            list($gameid) = mysql_fetch_row($result);
+        }
         break;
 
     default:
@@ -354,19 +369,19 @@ if (count($ifids) > 0)
                    . "uniquely identify a single game.");
     }
 }
-else
+else if (!$gameid)
 {
     // Only allow the no-IFID option with an explicit override
     if (get_req_data("requireIFID") != "no" && get_req_data("requireIFID") != "force")
         replyError(400, "IfidMissing",
-                   "The required IFID is missing from the iFiction record. "
+                   "The required IFID/TUID is missing from the iFiction record. "
                    . "The IFID is the unique identifier for this game "
                    . "as defined in the Treaty of Babel specification. "
                    . "This must be provided to ensure that games are "
                    . "not listed multiple times in IFDB.");
 
     if (get_req_data("requireIFID") != "force") {
-        // No IFIDs, so we're creating a new listing.  Since we have no
+        // No IFIDs or TUID, so we're creating a new listing.  Since we have no
         // other unique identifier for the new listing, at least require
         // the title to be unique.
         // ... unless the user insists with "requireIFID=force" that this fine, actually
@@ -397,10 +412,17 @@ if ($gameid != "new")
     list($rec, $errMsg, $errMsgShort) = loadGameRecord($db, $gameid);
 
     // if an error occurred, fail
-    if (!$rec)
-        replyError(500, "LoadRecord",
+    if (!$rec) {
+        if ($errMsgShort == "the specified game was not found in the database") {
+            replyError(404, "LoadRecord",
+                   "An error occurred loading the existing game record: "
+                   . "$errMsgShort.");    
+        } else {
+            replyError(500, "LoadRecord",
                    "An error occurred loading the existing game record: "
                    . "$errMsgShort.");
+        }
+    }
 
     // presume we won't be changing the cover art
     $req["coverart"] = $rec["coverart"];
