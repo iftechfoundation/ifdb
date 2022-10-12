@@ -9,9 +9,9 @@ URL=https://ifdb.org/putific
 #URL=http://localhost:8080/putific
 
 TMP_DIR=`mktemp -d`
-TMP_FILE="$TMP_DIR"/ifiction.xml
+IFICTION="$TMP_DIR"/ifiction.xml
 TIMESTAMP=$(date +%s)
-cat <<EOT > $TMP_FILE
+cat <<EOT > $IFICTION
 <?xml version="1.0" encoding="UTF-8"?>
 <ifindex version="1.0" xmlns="http://babel.ifarchive.org/protocol/iFiction/">
 <story>
@@ -23,10 +23,28 @@ cat <<EOT > $TMP_FILE
 </ifindex>
 EOT
 
+LINKS="$TMP_DIR"/links.xml
+cat <<EOT > $LINKS
+<?xml version="1.0" encoding="UTF-8"?>
+<downloads xmlns="http://ifdb.org/api/xmlns"><links>
+<link>
+<url>http://www.ifarchive.org/if-archive/games/palm/ACgames.zip</url>
+<title>ACgames.zip</title>
+<desc>converted to PalmOS .prc file</desc>
+<isGame/>
+<format>executable</format>
+<os>PalmOS.PalmOS-LoRes</os>
+<compression>zip</compression>
+<compressedPrimary>PHOTOPIA.PRC</compressedPrimary>
+</link>
+</links></downloads>
+EOT
+
 curl -v \
     -F username="$USERNAME" \
     -F password="$PASSWORD" \
-    -F ifiction=@$TMP_FILE \
+    -F ifiction=@$IFICTION \
+    -F links=@$LINKS \
     -F coverart=@cover.png \
     -F requireIFID=no \
     "$URL"
