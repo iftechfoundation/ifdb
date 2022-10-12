@@ -34,10 +34,26 @@ xml = """<?xml version="1.0" encoding="UTF-8"?>
 </ifindex>
 """ % time.time()
 
+links = """<?xml version="1.0" encoding="UTF-8"?>
+<downloads xmlns="http://ifdb.org/api/xmlns"><links>
+<link>
+<url>http://www.ifarchive.org/if-archive/games/palm/ACgames.zip</url>
+<title>ACgames.zip</title>
+<desc>converted to PalmOS .prc file</desc>
+<isGame/>
+<format>executable</format>
+<os>PalmOS.PalmOS-LoRes</os>
+<compression>zip</compression>
+<compressedPrimary>PHOTOPIA.PRC</compressedPrimary>
+</link>
+</links></downloads>
+"""
+
 body = (
     ('username', (None, username)),
     ('password', (None, password)),
     ('ifiction', ('ifiction.xml', xml, 'text/xml')),
+    ('links', ('links.xml', links, 'text/xml')),
     ('coverart', ('cover.png', open('cover.png', 'rb'), 'image/png')),
     ('requireIFID', (None, 'no')),
 )

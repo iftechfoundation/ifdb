@@ -25,6 +25,21 @@ const xml = `<?xml version="1.0" encoding="UTF-8"?>
 </ifindex>
 `;
 body.append('ifiction', new Blob([xml], { type: 'text/xml' }));
+const links = `<?xml version="1.0" encoding="UTF-8"?>
+<downloads xmlns="http://ifdb.org/api/xmlns"><links>
+<link>
+<url>http://www.ifarchive.org/if-archive/games/palm/ACgames.zip</url>
+<title>ACgames.zip</title>
+<desc>converted to PalmOS .prc file</desc>
+<isGame/>
+<format>executable</format>
+<os>PalmOS.PalmOS-LoRes</os>
+<compression>zip</compression>
+<compressedPrimary>PHOTOPIA.PRC</compressedPrimary>
+</link>
+</links></downloads>
+`;
+body.append('links', new Blob([links], { type: 'text/xml' }));
 body.append('requireIFID', 'no');
 
 if (typeof process !== 'undefined') {
