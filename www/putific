@@ -567,6 +567,7 @@ if ($linkFile)
     for ($i = 0, $osMap = array() ; $i < mysql_num_rows($result) ; $i++) {
         list($osid, $vsnid, $osext, $vsnext) = mysql_fetch_row($result);
         $osMap["$osext.$vsnext"] = array($osid, $vsnid);
+        $osMap["$osext."] = array($osid, null);
     }
 
     // get the original links from the existing record, if any
