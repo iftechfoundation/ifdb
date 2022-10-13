@@ -58,10 +58,6 @@ for (const game of games) {
     <ifindex version="1.0" xmlns="http://babel.ifarchive.org/protocol/iFiction/">
     <story>
     <identification><tuid>${tuid}</tuid></identification>
-    <bibliographic>
-    <title>${escapeXml(xml.ifindex.story.bibliographic.title)}</title>
-    <author>${escapeXml(xml.ifindex.story.bibliographic.author)}</author>
-    </bibliographic>
     </story>
     </ifindex>
     `
