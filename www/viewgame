@@ -609,6 +609,7 @@ if (isset($_REQUEST['ifiction']))
 
     echo "<ifdb xmlns=\"http://ifdb.org/api/xmlns\">";
     xmlField("tuid", $id);
+    xmlField("pageversion", $pagevsn);
     xmlField("link", get_root_url() . "viewgame?id=$id");
     if ($hasart) {
         echo "<coverart>";

@@ -430,20 +430,25 @@ if ($gameid != "new")
     // presume we won't be changing the links
     $req["links"] = $rec["links"];
 
-    // get the page version we're basing our changes on
-    $req["pagevsn"] = $rec["pagevsn"];
+    $lastversion = get_req_data("lastversion");
 
-    // verify that we're the last editor
-    if ($rec["editedby"] != $curuser)
-        replyError(409, "CannotMerge",
-                   "You are attempting to update an existing IFDB listing, "
-                   . "but this listing was last edited by another user. "
-                   . "IFDB is a collaborative system that allows any member "
-                   . "to edit a game listing. To ensure that your iFiction "
-                   . "updates don't overwrite the other user's changes, "
-                   . "please go to the IFDB Web site and review your "
-                   . "game's listing.  You can then edit the page via the "
-                   . "IFDB Web site if you still want to make any changes.");
+    if ($lastversion) {
+        $req["pagevsn"] = $lastversion;
+    } else {
+        // verify that we're the last editor
+        if ($rec["editedby"] == $curuser) {
+            // get the page version we're basing our own changes on
+            $req["pagevsn"] = $rec["pagevsn"];
+        } else {
+            replyError(409, "CannotMerge",
+                    "You are attempting to update an existing IFDB listing, "
+                    . "but this listing was last edited by another user. "
+                    . "IFDB is a collaborative system that allows any member "
+                    . "to edit a game listing. To ensure that your iFiction "
+                    . "updates don't overwrite the other user's changes, "
+                    . "please add a lastversion parameter to your request.");
+        }
+    }
 
     // Copy all of the parameters from the old record that aren't set
     // in the new record.  This ensures that manually edited fields
