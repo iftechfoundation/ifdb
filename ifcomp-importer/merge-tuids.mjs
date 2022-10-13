@@ -1,3 +1,4 @@
+import {url} from './settings.mjs';
 import {readFile, writeFile} from 'fs/promises';
 import {XMLParser} from 'fast-xml-parser';
 
@@ -7,7 +8,7 @@ const year = new Date().getFullYear();
 for (const game of microdata) {
     //if (game.tuid) continue;
     const queryString = `${game.name} published:${year}`;
-    const searchUrl = `https://ifdb.org/search?xml&game&searchfor=${escape(queryString)}`;
+    const searchUrl = `${url}/search?xml&game&searchfor=${escape(queryString)}`;
     console.log(searchUrl);
     let response;
     try {
