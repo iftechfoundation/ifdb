@@ -278,6 +278,16 @@ redundant listing for the same game.
 
 <p>Ordinary text parameter; optional.
 
+<p><b>lastversion</b>: This parameter represents the current
+version number of the page. This number is shown in the footer of
+the HTML page ("This is version N of this page") or in the XML
+version of the page in the &gt;pageversion&lt; field.
+
+<p>This parameter is required only when editing an IFDB listing, and
+only when another IFDB user has most recently edited the listing.
+When creating a new listing, or when editing a listing that you
+previously edited, the parameter is not required.
+
 <h2>iFiction records</h2>
 
 <p>The iFiction file included in the request must be syntactically
@@ -674,8 +684,8 @@ from the following list:
    <li>CannotMerge: the game has an existing page, and the last version of
        the page was edited by a different user.  The iFiction record can't
        be used to update the page because it might inadvertently overwrite
-       the other user's changes.  The user must manually update the page
-       via the IFDB Web interface.
+       the other user's changes.  The user must submit a &gt;lastversion&lt;
+       parameter.
    <li>ImageCprInvalid: the imageCopyrightStatus parameter value
        is invalid.
    <li>ImageFormatError: the image contents are invalid.  The image either
