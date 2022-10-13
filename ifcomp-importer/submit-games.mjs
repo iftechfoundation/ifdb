@@ -65,7 +65,6 @@ for (const game of games) {
 </story>
 </ifindex>
 `;
-    console.log(xml);
     body.append('ifiction', new Blob([xml], { type: 'text/xml' }));
     body.append('requireIFID', 'force');
     if (game.thumbnailArtUrl) {
