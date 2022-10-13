@@ -1,14 +1,9 @@
+import { username, password, url, compStartDate } from './settings.mjs';
 import { readFile } from 'fs/promises';
 
-const firstpublished = '2022-10-01';
-
-if ((Date.now() - new Date(firstpublished).getTime()) > 24 * 365 * 60 * 60 * 1000) {
-    throw new Error(`firstpublished date ${firstpublished} is more than a year ago`);
+if ((Date.now() - new Date(compStartDate).getTime()) > 24 * 365 * 60 * 60 * 1000) {
+    throw new Error(`compStartDate date ${compStartDate} is more than a year ago`);
 }
-
-const username = 'ifdbadmin@ifdb.org';
-const password = 'secret';
-const url = 'http://localhost:8080/putific';
 
 function escapeXml(unsafe) {
     return unsafe.replace(/[<>&'"]/g, function (c) {
@@ -64,7 +59,7 @@ for (const game of games) {
         <title>${escapeXml(game.name)}</title>
         <author>${authors}</author>
         ${description ? `<description>${description}</description>` : '' }
-        <firstpublished>${firstpublished}</firstpublished>
+        <firstpublished>${compStartDate}</firstpublished>
         ${game.genre ? `<genre>${escapeXml(game.genre)}</genre>` : ''}
     </bibliographic>
 </story>
@@ -86,7 +81,7 @@ for (const game of games) {
         body.append('coverart', new Blob([image], { type: mimeType }));
     }
 
-    const response = await fetch(url, {
+    const response = await fetch(`${url}/putific`, {
         method: 'post',
         body,
     });

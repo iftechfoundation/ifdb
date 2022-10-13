@@ -1,9 +1,9 @@
+import {compYear} from './settings.mjs';
 import {readFile, writeFile} from 'fs/promises';
 import JSZip from 'jszip';
 import leven from 'leven';
 
-const zipFileName = 'IFComp2022.zip';
-const urlBase = `https://ifarchive.org/if-archive/games/competition2022/`;
+const zipFileName = `IFComp${compYear}.zip`;
 const zipFileBytes = await readFile(zipFileName);
 const zip = await JSZip.loadAsync(zipFileBytes);
 const zipKeys = Object.keys(zip.files);

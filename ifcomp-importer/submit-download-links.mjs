@@ -1,11 +1,6 @@
-import { readFile, writeFile } from 'fs/promises';
+import { username, password, url, compYear } from './settings.mjs';
+import { readFile } from 'fs/promises';
 import { XMLParser } from 'fast-xml-parser';
-
-let url = 'https://ifdb.org';
-// url = 'http://localhost:8080'
-
-const username = 'ifdbadmin@ifdb.org';
-const password = 'secret';
 
 const games = JSON.parse(await readFile('microdata-downloads-tuids.json', 'utf8'));
 
@@ -45,7 +40,7 @@ for (const game of games) {
     }
     const xml = new XMLParser().parse(await response.text());
 
-    const downloadLink = "https://ifarchive.org/if-archive/games/competition2022/" + escape(zipFileName);
+    const downloadLink = `https://ifarchive.org/if-archive/games/competition${compYear}/${escape(zipFileName)}`;
     const downloadTitle = zipFileName.replace(/^Games\//, "");
     let fileType = "";
     if (zipMainFile) {
