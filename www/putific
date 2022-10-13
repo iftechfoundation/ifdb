@@ -292,7 +292,7 @@ $req["coverart"] = "none";
 //    echo "req[$k] => $v\n";
 
 // The title is required
-if (!$title)
+if ($gameid == "new" && !$title)
     replyError(400, "MissingTitle",
                "A title must be specified in the iFiction record.");
 
