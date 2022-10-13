@@ -90,6 +90,8 @@ for (const game of microdata) {
         
     } else if (game.gamePlatform === 'TADS') {
         result = findCandidatesMatchingExtension(game, zipKeys, ["t3"]);
+    } else if (game.gamePlatform === 'Windows executable') {
+        result = findCandidatesMatchingExtension(game, zipKeys, ["exe"]);
     } else {
         console.log(`no main file for ${game.gamePlatform} ${game.name}`)
     }
