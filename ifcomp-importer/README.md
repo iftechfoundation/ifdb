@@ -10,7 +10,7 @@ This importer is designed to grab the game list from https://ifcomp.org/ballot a
 2. Edit `settings.mjs`, putting in your username, password, and the compStartDate. (If you want to test the scripts against a local IFDB dev environment, also change the url to `http://localhost:8080`.)
 3. Run `node extract-microdata.mjs` to record the ballot data in `microdata.json`.
 4. Run `node process-cover-art.mjs` to download all of the cover art in the `cover-art` directory.
-5. Run `node submit-games.mjs` to submit all of the game listings.
+5. Run `node submit-games.mjs` to submit all of the game listings. (Note that when testing in a dev environment, uploaded images will not appear in the web UI.)
 
 ## Phase 2: Add IF Archive download links for each game on the ballot.
 
