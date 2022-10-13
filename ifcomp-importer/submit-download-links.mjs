@@ -58,6 +58,7 @@ for (const game of games) {
     const body = new FormData();
     body.append('username', username);
     body.append('password', password);
+    body.append('lastversion', xml.ifindex.story.ifdb.pageversion);
     const ifiction = `<?xml version="1.0" encoding="UTF-8"?>
     <ifindex version="1.0" xmlns="http://babel.ifarchive.org/protocol/iFiction/">
     <story>
