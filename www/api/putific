@@ -281,7 +281,7 @@ redundant listing for the same game.
 <p><b>lastversion</b>: This parameter represents the current
 version number of the page. This number is shown in the footer of
 the HTML page ("This is version N of this page") or in the XML
-version of the page in the &gt;pageversion&lt; field.
+version of the page in the &lt;pageversion&gt; field.
 
 <p>This parameter is required only when editing an IFDB listing, and
 only when another IFDB user has most recently edited the listing.
