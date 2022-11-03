@@ -890,10 +890,10 @@ function pingMultiUserSession(sid, gameid, title, author, started)
 }
 
 // ------------------------------------------------------------------------
-// if we're in administrative viewing "unlock" mode, aggregate the
+// if we're in administrative mode, aggregate the
 // various approval/ban links, and a search for the email address
 //
-if ($unlock)
+if ($admin)
 {
     // admin details
     $adminUrl = "adminops?user=$uid";
