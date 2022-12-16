@@ -374,8 +374,6 @@ if ($errMsg) {
         $ak = akNew();
         $ak->setCommentAuthor($userAccountName);
         $ak->setCommentAuthorEmail($userAccountEmail);
-        $ak->setCommentAuthorURL(
-            get_root_url() . "showuser?id=$curuser");
         $ak->setCommentContent($commentText);
 
         // notify ifdbadmin if it looks like spam
