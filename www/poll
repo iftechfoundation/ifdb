@@ -1296,14 +1296,31 @@ function expandVote(id)
                        ($rating ? " (" . showStars($rating) . ")" :
                         ""));
 
-                echo "<span id=\"voteQ$i\">$qq "
-                    . "<span class=details>["
-                    . "<a title=\"Click to see more details\" href=\"needjs\" "
-                    . "onclick=\"javascript:expandVote('$i');return false;\">"
-                    . "+</a>]</span></span>"
-                    . "<span id=\"voteF$i\" style=\"display:none;\">"
-                    . "$expQ $rv <i>--<a href=\"showuser?id=$voteUserID\">"
-                    . "$voteUserName</a></i></span>... ";
+				//Checking for anonymous poll by keyword anonymous
+				$keywords = '';
+
+				if ($id) {
+					$anonresult = mysql_query("select keywords from polls where pollid='$id'", $db);
+					list($keywords) = mysql_fetch_row($anonresult);
+				}
+				//Checking user privileges
+				if ($userid) {
+					$userresult = mysql_query(
+						"select `privileges` from users where id='$userid'", $db);
+					$userprivs = mysql_result($userresult, 0, "privileges");
+					$adminPriv = (strpos($userprivs, "A") !== false);
+				}
+
+				if($keywords!='anonymous' || $adminPriv){
+					echo "<span id=\"voteQ$i\">$qq "
+						. "<span class=details>["
+						. "<a title=\"Click to see more details\" href=\"needjs\" "
+						. "onclick=\"javascript:expandVote('$i');return false;\">"
+						. "+</a>]</span></span>"
+						. "<span id=\"voteF$i\" style=\"display:none;\">"
+						. "$expQ $rv <i>--<a href=\"showuser?id=$voteUserID\">"
+						. "$voteUserName</a></i></span>... ";
+				}
             }
         }
 
