@@ -310,7 +310,7 @@ if (isset($_REQUEST['newPollGo'])) {
             . "<p>Your new poll will appear on the IFDB home page, "
             . "inviting members to offer their suggestions.</p>"
             . "<p>If you'd like to post a note about your poll to "
-            . "<a href=\"news:rec.arts.int-fiction\">rec.arts.int-fiction</a> "
+            . "<a href=\"https://intfiction.org\">intfiction.org</a> "
             . "or to any other IF discussion groups, you can "
             . "include this Web link (URL) to your poll's main page: "
             . "</p><div class=indented>"
