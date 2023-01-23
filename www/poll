@@ -1073,6 +1073,11 @@ function expandVote(id)
             . "RSS Feed</a></span>"
             . "<p>" . fixDesc($desc)
             . "<p><span class=details>$commentCtl</span><p>"
+            . (
+                ($anonymous && $adminPriv && !isset($_REQUEST['unlock']))
+                ? "<p><a href='poll?id=$id&unlock=1'>Admin: View all votes</a></p>"
+                : ""
+              )
             . "<hr class=dots><p>";
 
         // add a join for votes by the current user, if there is one
@@ -1313,7 +1318,7 @@ function expandVote(id)
                        ($rating ? " (" . showStars($rating) . ")" :
                         ""));
 
-                if ($anonymous && $adminPriv)) {
+                if ($anonymous && $adminPriv && isset($_REQUEST['unlock'])) {
                     $anonymous = false;
                 }
 
