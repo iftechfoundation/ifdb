@@ -150,14 +150,15 @@ if ($userid && isset($_REQUEST['editPoll'])) {
 
     // retrieve the poll data
     $result = mysql_query(
-        "select title, keywords, `desc`, userid
+        "select title, keywords, `desc`, flags, userid
          from polls where pollid = '$id'", $db);
 
     if (mysql_num_rows($result) > 0) {
-        list($title, $keywords, $desc, $authid) = mysql_fetch_row($result);
+        list($title, $keywords, $desc, $flags, $authid) = mysql_fetch_row($result);
         $title = htmlspecialcharx($title);
         $keywords = htmlspecialcharx($keywords);
         $desc = htmlspecialcharx($desc);
+        $locked = $flags & POLL_FLAG_LOCKED;
         if ($authid == $userid) {
 
             // if this is a Save Changes request, apply the changes
@@ -166,6 +167,11 @@ if ($userid && isset($_REQUEST['editPoll'])) {
                 $title = get_req_data('title');
                 $keywords = get_req_data('keywords');
                 $desc = get_req_data('desc');
+                if (get_req_data('locked') == 'locked') {
+                    $flags |= POLL_FLAG_LOCKED;
+                } else {
+                    $flags &= ~POLL_FLAG_LOCKED;
+                }
 
                 // quote them for SQL
                 $qtitle = mysql_real_escape_string($title, $db);
@@ -178,7 +184,8 @@ if ($userid && isset($_REQUEST['editPoll'])) {
                      set
                        title = '$qtitle',
                        `desc` = '$qdesc',
-                       keywords = '$qkeywords'
+                       keywords = '$qkeywords',
+                       flags = $flags
                      where
                        pollid = '$id'", $db);
 
@@ -222,6 +229,14 @@ if ($userid && isset($_REQUEST['editPoll'])) {
                     . "match these terms in searches."
                     . "<br><input type=\"text\" size=70 name=\"keywords\" "
                     . "value=\"$keywords\">"
+                    . "<p><b>Lock Voting:</b> Prevent anyone from voting. "
+                    . "This allows you to declare an official winner."
+                    . "<br><input type='radio' name='locked' value='unlocked' "
+                    . ($locked ? '' : 'checked')
+                    . "> Unlocked: Allow voting"
+                    . "<br><input type='radio' name='locked' value='locked' "
+                    . ($locked ? 'checked' : '')
+                    . "> Locked: Prevent votes"
                     . "<p>"
                     . "<input type=hidden name=id value=\"$id\">"
                     . "<input type=hidden name=editPoll value=1>"
@@ -395,13 +410,21 @@ if ($userid && $id && isset($_REQUEST['submitVote'])) {
     if ($result) {
         $progress = "VPL7603";
         $result = mysql_query(
-            "select pollid from polls where pollid = '$id'", $db);
+            "select pollid, flags from polls where pollid = '$id'", $db);
         if (mysql_num_rows($result) == 0) {
             $formErrMsg = "The poll ID in the request is invalid. This could "
                           . "indicate that the poll's creator has deleted "
                           . "the poll, or could be due to a database or "
                           . "network problem.";
             $result = false;
+        }
+        if ($result) {
+            $flags = mysql_fetch_row($result)[1];
+            $locked = $flags & POLL_FLAG_LOCKED;
+            if ($locked) {
+                $formErrMsg = "This poll has been locked by its creator. You can't vote on it now.";
+                $result = false;
+            }
         }
     }
 
@@ -455,7 +478,7 @@ if ($userid && $id && isset($_REQUEST['delVote'])) {
     // get the vote information
     $gameID = mysql_real_escape_string(get_req_data('delVote'), $db);
     $result = mysql_query(
-        "select v.quickquote, v.notes, p.title, g.title, g.author
+        "select v.quickquote, v.notes, p.title, p.flags, g.title, g.author
          from
            pollvotes as v
            join polls as p on p.pollid = v.pollid
@@ -466,11 +489,12 @@ if ($userid && $id && isset($_REQUEST['delVote'])) {
            and v.gameid = '$gameID'", $db);
 
     if (mysql_num_rows($result) > 0) {
-        list($quickQuote, $notes, $pollTitle, $gameTitle, $gameAuthor) =
+        list($quickQuote, $notes, $pollTitle, $flags, $gameTitle, $gameAuthor) =
             mysql_fetch_row($result);
         $quickQuote = htmlspecialcharx($quickQuote);
         $notes = htmlspecialcharx($notes);
         $pollTitle = htmlspecialcharx($pollTitle);
+        $locked = $flags & POLL_FLAG_LOCKED;
         $gameTitle = htmlspecialcharx($gameTitle);
         $gameAuthor = htmlspecialcharx($gameAuthor);
     } else {
@@ -479,6 +503,10 @@ if ($userid && $id && isset($_REQUEST['delVote'])) {
                       . "deleted your vote, this might be a temporary "
                       . "server problem, so you might want to try again "
                       . "in a few minutes.";
+    }
+
+    if (!$formErrMsg && $locked) {
+        $formErrMsg = "This poll has been locked by its creator. You can't vote on it now.";
     }
 
     // if this is a confirmation request, delete the row, otherwise prompt
@@ -532,7 +560,7 @@ if ($userid && $id && isset($_REQUEST['addVote'])) {
 
     // add a game or vote for a game - get the poll info
     $result = mysql_query(
-        "select title from polls where pollid = '$id'", $db);
+        "select title, flags from polls where pollid = '$id'", $db);
     if (mysql_num_rows($result) == 0) {
         pageHeader("Poll not found");
         echo "<h1>Poll not found</h1>"
@@ -541,7 +569,16 @@ if ($userid && $id && isset($_REQUEST['addVote'])) {
         pageFooter();
         exit();
     }
-    list($title) = mysql_fetch_row($result);
+    list($title, $flags) = mysql_fetch_row($result);
+    $locked = $flags & POLL_FLAG_LOCKED;
+
+    if ($locked) {
+        pageHeader("Poll Locked");
+            echo "This poll has been locked by its creator. You can't vote on it now.<p>"
+                . "<a href=\"poll?id=$id\">Return to the poll page</a>";
+            pageFooter();
+            exit();
+    }
 
     // check for an explicit game TUID in the request
     if (isset($_REQUEST['game'])) {
@@ -941,6 +978,7 @@ administrators can see who voted for what.)
     $title = htmlspecialcharx($title);
     $authname = htmlspecialcharx($authname);
     $anonymous = $flags & POLL_FLAG_ANONYMOUS;
+    $locked = $flags & POLL_FLAG_LOCKED;
 
     if (isset($_REQUEST['rss'])) {
         // RSS mode
@@ -1242,13 +1280,17 @@ function expandVote(id)
                     // an Add My Vote link
                     echo "<span class=details>";
                     if ($prvUserVote) {
-                        echo " (You voted for this game - "
-                            . "<a href=\"poll?id=$prvID&addVote"
-                            . "&game=$prvGameID\">"
-                            . "Edit</a> | "
-                            . "<a href=\"poll?id=$prvID&delVote=$prvGameID\">"
-                            . "Delete</a> your vote)";
-                    } else {
+                        if ($locked) {
+                            echo " (You voted for this game)";
+                        } else {
+                            echo " (You voted for this game - "
+                                . "<a href=\"poll?id=$prvID&addVote"
+                                . "&game=$prvGameID\">"
+                                . "Edit</a> | "
+                                . "<a href=\"poll?id=$prvID&delVote=$prvGameID\">"
+                                . "Delete</a> your vote)";
+                        }
+                    } else if (!$locked) {
                         $aVote = "<a href=\"poll?id=$id&addVote"
                                  . "&game=$prvGameID\">";
                         echo " $aVote<img class=\"vote-checkmark\" "
@@ -1340,30 +1382,35 @@ function expandVote(id)
             }
         }
 
-        if ($cnt == 0) {
-            // use a special description when there's nothing to list
-            echo "There are no votes for games in this poll yet.  You "
-                . "can be the first voter! ";
+        if ($locked) {
+            echo "Voting in this poll has been locked by the poll creator.";
         } else {
-            // introduce the add-a-game form
-            echo "Is there another game that you think should be "
-                . "on this list? ";
+            if ($cnt == 0) {
+                // use a special description when there's nothing to list
+                echo "There are no votes for games in this poll yet.  You "
+                    . "can be the first voter! ";
+            } else {
+                // introduce the add-a-game form
+                echo "Is there another game that you think should be "
+                    . "on this list? ";
+            }
+
+            echo "Just fill in the title of a game you'd like to vote for.";
+
+            // show the add-a-game form
+            echo "<form name=\"addVoteForm\" method=\"get\" action=\"poll\">"
+                . "<input type=hidden name=id value=\"$id\">"
+                . "<input type=hidden name=addVote value=1>"
+                . "<b>Game Title</b> (<i>or</i> <a class=silent "
+                . helpWinHRef("help-tuid") . " title=\"What's a TUID?\">"
+                . "TUID</a> or <a class=silent " . helpWinHRef("help-ifid")
+                . " title=\"What's an IFID?\">IFID</a>): "
+                . "<input type=text size=60 name=\"addTitle\">"
+                . " <input type=submit value=\"Vote!\" "
+                . "name=\"addVoteBtn\">"
+                . "</form>";
         }
-
-        echo "Just fill in the title of a game you'd like to vote for.";
-
-        // show the add-a-game form
-        echo "<form name=\"addVoteForm\" method=\"get\" action=\"poll\">"
-            . "<input type=hidden name=id value=\"$id\">"
-            . "<input type=hidden name=addVote value=1>"
-            . "<b>Game Title</b> (<i>or</i> <a class=silent "
-            . helpWinHRef("help-tuid") . " title=\"What's a TUID?\">"
-            . "TUID</a> or <a class=silent " . helpWinHRef("help-ifid")
-            . " title=\"What's an IFID?\">IFID</a>): "
-            . "<input type=text size=60 name=\"addTitle\">"
-            . " <input type=submit value=\"Vote!\" "
-            . "name=\"addVoteBtn\">"
-            . "</form>";
+        
 
         if ($userid == $authid) {
             echo "<p><hr class=dots><p>"

@@ -64,6 +64,7 @@ define("FLAG_SHOULD_HIDE", 0x0001);
 // POLLS table FLAGS column bit values
 //
 define("POLL_FLAG_ANONYMOUS", 0x0001);
+define("POLL_FLAG_LOCKED", 0x0002);
 
 // --------------------------------------------------------------------------
 // shoot the recommendation cache
