@@ -61,6 +61,11 @@ define("GAMELINK_PENDING",  0x0002);
 define("FLAG_SHOULD_HIDE", 0x0001);
 
 // --------------------------------------------------------------------------
+// POLLS table FLAGS column bit values
+//
+define("POLL_FLAG_ANONYMOUS", 0x0001);
+
+// --------------------------------------------------------------------------
 // shoot the recommendation cache
 //
 function shoot_recommendation_cache()

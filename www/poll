@@ -31,6 +31,13 @@ if (($id == 'new'
 // note the user ID, if available
 $userid = $_SESSION['logged_in_as'];
 
+if ($userid) {
+    $userresult = mysql_query(
+        "select `privileges` from users where id='$userid'", $db);
+    $userprivs = mysql_result($userresult, 0, "privileges");
+    $adminPriv = (strpos($userprivs, "A") !== false);
+}
+
 // no error or success messages yet
 $formErrMsg = false;
 $formSuccMsg = false;
@@ -243,6 +250,7 @@ if (isset($_REQUEST['newPollGo'])) {
     $newTitle = trim(get_req_data('title'));
     $newKeywords = trim(get_req_data('keywords'));
     $newDesc = get_req_data('desc');
+    $newFlags = (get_req_data('anonymous') == 'anonymous') ? POLL_FLAG_ANONYMOUS : 0;
     $title = mysql_real_escape_string($newTitle, $db);
     $keywords = mysql_real_escape_string($newKeywords, $db);
     $desc = mysql_real_escape_string($newDesc, $db);
@@ -281,9 +289,9 @@ if (isset($_REQUEST['newPollGo'])) {
         $progress = "INS8103";
         $result = mysql_query(
             "insert into polls
-             (pollid, title, keywords, `desc`, created, userid)
+             (pollid, title, keywords, `desc`, created, userid, flags)
              values ('$tuid', '$title', '$keywords', '$desc',
-                     now(), '$userid')", $db);
+                     now(), '$userid', $newFlags)", $db);
     }
 
     // unlock tables
@@ -892,6 +900,14 @@ engine to match.
 <br><input type="text" size=70 name="keywords" value="<?php
     echo htmlspecialcharx($newKeywords)?>">
 
+<p><b>4. Choose public or anonymous voting.</b> In public polls,
+everyone can see who voted for each item in the poll. In anonymous
+polls, you can only only the number of votes for each poll item. (IFDB
+administrators can see who voted for what.)
+
+<div><input type="radio" name="anonymous" value="public" checked> Public: Show votes publicly.</div>
+<div><input type="radio" name="anonymous" value="anonymous"> Anonymous: Show only the number of votes for each poll item.</div>
+
 <p><input type="submit" value="Create It!" name="newPollGo">
 </form>
 
@@ -905,7 +921,7 @@ engine to match.
     $result = mysql_query(
         "select
            p.title, p.`desc`,
-           date_format(p.created, '%M %e, %Y'), p.userid, u.name
+           date_format(p.created, '%M %e, %Y'), p.flags, p.userid, u.name
          from
            polls as p
            left outer join users as u on u.id = p.userid
@@ -920,10 +936,11 @@ engine to match.
     }
 
     // fetch the poll row
-    list($title, $desc, $created, $authid, $authname) =
+    list($title, $desc, $created, $flags, $authid, $authname) =
         mysql_fetch_row($result);
     $title = htmlspecialcharx($title);
     $authname = htmlspecialcharx($authname);
+    $anonymous = $flags & POLL_FLAG_ANONYMOUS;
 
     if (isset($_REQUEST['rss'])) {
         // RSS mode
@@ -1296,22 +1313,11 @@ function expandVote(id)
                        ($rating ? " (" . showStars($rating) . ")" :
                         ""));
 
-                //Checking for anonymous poll by keyword anonymous
-                $keywords = '';
-
-                if ($id) {
-                    $anonresult = mysql_query("select keywords from polls where pollid='$id'", $db);
-                    list($keywords) = mysql_fetch_row($anonresult);
-                }
-                //Checking user privileges
-                if ($userid) {
-                    $userresult = mysql_query(
-                        "select `privileges` from users where id='$userid'", $db);
-                    $userprivs = mysql_result($userresult, 0, "privileges");
-                    $adminPriv = (strpos($userprivs, "A") !== false);
+                if ($anonymous && $adminPriv)) {
+                    $anonymous = false;
                 }
 
-                if($keywords!='anonymous' || $adminPriv){
+                if (!$anonymous) {
                     echo "<span id=\"voteQ$i\">$qq "
                         . "<span class=details>["
                         . "<a title=\"Click to see more details\" href=\"needjs\" "
