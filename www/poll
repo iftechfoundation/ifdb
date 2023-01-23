@@ -1000,6 +1000,11 @@ administrators can see who voted for what.)
             $notes = rss_encode(htmlspecialcharx($notes));
             $voteDate = rss_encode(
                 date("D, j M Y H:i:s ", strtotime($voteDate))) . 'UT';
+            if ($anonymous) {
+                $authName = 'Someone';
+                $quickQuote = null;
+                $notes = null;
+            }
 
             echo "<item>\r\n"
                 . "<title>$gameTitle"
