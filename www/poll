@@ -740,7 +740,7 @@ if ($userid && $id && isset($_REQUEST['addVote'])) {
             $match = $matches[$i];
             if ($anonymous) {
                 echo "<p><a href=\"poll?submitVote&id=$id&gameID={$match['id']}&quickQuote=&voteDesc=\">"
-                    . "Vote</a> =&gt; "
+                    . "Vote anonymously</a> =&gt; "
                     . "<a href=\"viewgame?id={$match['id']}\" "
                     . "target=\"_blank\">" . htmlspecialcharx($match['title'])
                     . "</a>, by " . htmlspecialcharx($match['author']);
@@ -1309,7 +1309,7 @@ function expandVote(id)
                                  . "&gameID=$prvGameID&quickQuote=&voteDesc=\">";
                             echo " $aVote<img class=\"vote-checkmark\" "
                                 . "border=0 src=\"img/blank.gif\"></a> "
-                                . "{$aVote}Vote for this game</a>";
+                                . "{$aVote}Vote for this game anonymously</a>";
                         } else {
                             $aVote = "<a href=\"poll?id=$id&addVote"
                                  . "&game=$prvGameID\">";
