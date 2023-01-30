@@ -160,6 +160,13 @@ function htmlspecialcharx($str)
         array('"', '<', '>'), array('&quot;', '&lt;', '&gt;'), $str);
 }
 
+// sometimes we want to display long file names containing underscores
+// but we want those strings to wrap properly, so we insert
+// zero-width space characters
+function zeroWidthSpaceUnderscores($str) {
+    return str_replace('_', '&#8203_', $str);
+}
+
 // extended URL encoding, with UTF8 conversion
 function urlencodex($str)
 {

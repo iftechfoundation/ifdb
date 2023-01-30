@@ -1110,7 +1110,9 @@ if (count($links) == 0 && $dlnotes == "") {
         $url = $link['url'];
         $zipped = (strcasecmp(substr($url, -4), ".zip") == 0);
         $fmtisgame = $link['isgame'];
-        $linktitle = output_encode(htmlspecialcharx($link['title']));
+        $linktitle = zeroWidthSpaceUnderscores(
+            output_encode(htmlspecialcharx($link['title'])
+        ));
         $linkdesc = output_encode(htmlspecialcharx($link['desc']));
         $fmtid = $link['fmtid'];
         $fmtexternid = $link['fmtexternid'];
@@ -1121,7 +1123,9 @@ if (count($links) == 0 && $dlnotes == "") {
         $fmticon = $link['fmticon'];
         $fmtclass = $link['fmtclass'];
         $fmtcomp = mysql_real_escape_string($link['compression'], $db);
-        $compPri = htmlspecialcharx($link['compressedprimary']);
+        $compPri = zeroWidthSpaceUnderscores(
+            htmlspecialcharx($link['compressedprimary'])
+        );
         $osname = isset($link['osname']) ? $link['osname'] : "";
         $osvsnname = isset($link['osvsnname']) ? $link['osvsnname'] : "";
         $osicon = isset($link['osicon']) ? $link['osicon'] : "";
