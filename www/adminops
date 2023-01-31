@@ -2194,6 +2194,62 @@ else if (isset($_REQUEST['editnews'])) {
             . "</form>"
             . "<p><hr class=dots><p>";
     }
+}
+
+else if (isset($_REQUEST['deletenews'])) {
+
+    echo "<h1>Delete a Site News item</h1>";
+    $showForm = true;
+    if (!isset($_REQUEST['item'])) {
+        echo "<span class=errmsg>No id specified</span>";
+        $showForm = false;
+    }
+    $id = mysql_real_escape_string(get_req_data('item'), $db);
+    if ($showForm && isset($_POST['go'])) {
+        $showForm = false;
+        $result = mysql_query(
+            "delete from sitenews where itemid=$id", $db);
+
+        if ($result) {
+            echo "<span class=success>Item $id was successfully deleted.</span>";
+        } else {
+            echo "<span class=errmsg>Error deleting item: "
+                . htmlspecialcharx(mysql_error($db)) . "</span>";
+        }
+    } else if ($showForm) {
+        $result = mysql_query(
+            "select title, ldesc from sitenews
+             where itemid=$id", $db);
+        if (!$result) {
+            echo "<span class=errmsg>Error loading item "
+                . htmlspecialcharx(mysql_error($db)) . ": </span>";
+            $showForm = false;
+        } else {
+            $cnt = mysql_num_rows($result);
+            if ($cnt) {
+                $row = mysql_fetch_array($result, MYSQL_ASSOC);
+                $title = htmlspecialcharx($row['title']);
+                $ldesc = htmlspecialcharx($row['ldesc']);
+            } else {
+                echo "<span class=errmsg>Error deleting item "
+                    . htmlspecialcharx($id) . ": No such ID</span>";
+                $showForm = false;
+            }
+        }
+    }
+
+    if ($showForm) {
+        // show the form
+        echo "<p><form name=\"newsform\" method=post action=\"adminops\">"
+            . "<input type=hidden name=deletenews value=1>"
+            . "<input type=hidden name=item value=$id>"
+            . "<input type=hidden name=go value=1>"
+            . "<p>Are you sure you want to delete news item $id?</p>"
+            . "<p><b>$title</b>: $ldesc"
+            . "<p><input type=submit name=submit value=\"Delete Item\">"
+            . "</form>"
+            . "<p><hr class=dots><p>";
+    }
 
 } else if (isset($_REQUEST['osfmtprivs'])) {
 
