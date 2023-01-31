@@ -2,6 +2,8 @@
 
 include_once "session-start.php";
 include_once "dbconnect.php";
+include_once "login-persist.php";
+$userid = checkPersistentLogin();
 $db = dbConnect();
 
 include_once "util.php";
@@ -164,6 +166,16 @@ for ($i = 0 ; $i < $rowcnt ; $i++) {
 
     // display the item
     echo "<p><b>$title</b>: $ldesc";
+
+    if ($item && $userid) {
+        $user_result = mysql_query(
+            "select `privileges` from users where id='$userid'", $db);
+        $userprivs = mysql_result($user_result, 0, "privileges");
+        $adminPriv = (strpos($userprivs, "A") !== false);
+    }
+    if ($adminPriv) {
+        echo "<p><a href='/adminops?editnews&item=".htmlspecialcharx($item)."'>Admin: Edit news item</a></p>";
+    }
 }
 
 echo "$pageCtlBreak$pageCtl<br>";
