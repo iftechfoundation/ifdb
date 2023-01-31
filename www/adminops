@@ -2102,7 +2102,8 @@ else if (isset($_REQUEST['addnews'])) {
              values ('$title', '$ldesc', now())", $db);
 
         if ($result) {
-            echo "<span class=success>The item was successfully added.</span>";
+            $id = mysql_insert_id($db);
+            echo "<span class=success>The item was successfully added. <a href='/news?item=$id'>View it now</a></span>";
             $title = "";
             $ldesc = "";
         } else {
