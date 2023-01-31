@@ -175,6 +175,7 @@ for ($i = 0 ; $i < $rowcnt ; $i++) {
     }
     if ($adminPriv) {
         echo "<p><a href='/adminops?editnews&item=".htmlspecialcharx($item)."'>Admin: Edit news item</a></p>";
+        echo "<p><a href='/adminops?deletenews&item=".htmlspecialcharx($item)."'>Admin: Delete news item</a></p>";
     }
 }
 
