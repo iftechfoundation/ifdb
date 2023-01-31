@@ -2091,7 +2091,7 @@ else if (isset($_REQUEST['addnews'])) {
 
     echo "<h1>Add a Site News item</h1>";
 
-    if (isset($_REQUEST['go'])) {
+    if (isset($_POST['go'])) {
 
         // apply the insert
         $title = mysql_real_escape_string(get_req_data('title'), $db);
@@ -2126,6 +2126,73 @@ else if (isset($_REQUEST['addnews'])) {
         . "<p><input type=submit name=submit value=\"Add Item\">"
         . "</form>"
         . "<p><hr class=dots><p>";
+}
+
+else if (isset($_REQUEST['editnews'])) {
+
+    echo "<h1>Edit a Site News item</h1>";
+    $showForm = true;
+    if (!isset($_REQUEST['item'])) {
+        echo "<span class=errmsg>No id specified</span>";
+        $showForm = false;
+    }
+    $id = mysql_real_escape_string(get_req_data('item'), $db);
+    if (isset($_POST['go'])) {
+
+        // apply the update
+        $title = mysql_real_escape_string(get_req_data('title'), $db);
+        $ldesc = mysql_real_escape_string(get_req_data('ldesc'), $db);
+
+        $result = mysql_query(
+            "update sitenews set title = '$title', ldesc = '$ldesc'
+             where itemid=$id", $db);
+
+        if ($result) {
+            echo "<span class=success>Item $id was successfully edited. <a href='/news?item=$id'>View it now</a></span>";
+        } else {
+            echo "<span class=errmsg>Error editing item: "
+                . htmlspecialcharx(mysql_error($db)) . "</span>";
+        }
+        $title = htmlspecialcharx(get_req_data('title'));
+        $ldesc = htmlspecialcharx(get_req_data('ldesc'));
+    } else if (isset($_REQUEST['item'])) {
+        $result = mysql_query(
+            "select title, ldesc from sitenews
+             where itemid=$id", $db);
+        if (!$result) {
+            echo "<span class=errmsg>Error loading item "
+                . htmlspecialcharx(mysql_error($db)) . ": </span>";
+            $showForm = false;
+        } else {
+            $cnt = mysql_num_rows($result);
+            if ($cnt) {
+                $row = mysql_fetch_array($result, MYSQL_ASSOC);
+                $title = htmlspecialcharx($row['title']);
+                $ldesc = htmlspecialcharx($row['ldesc']);
+            } else {
+                echo "<span class=errmsg>Error editing item "
+                    . htmlspecialcharx($id) . ": No such ID</span>";
+                $showForm = false;
+            }
+        }
+    }
+
+    if ($showForm) {
+
+        // show the form
+        echo "<p><form name=\"newsform\" method=post action=\"adminops\">"
+            . "<input type=hidden name=editnews value=1>"
+            . "<input type=hidden name=item value=$id>"
+            . "<input type=hidden name=go value=1>"
+            . "<p><b>Item Title:</b><br>"
+            . "<input type=text size=80 name=title value=\"$title\">"
+            . "<p><b>Description:</b><br>"
+            . "<textarea rows=10 cols=80 name=ldesc>"
+            . "$ldesc</textarea>"
+            . "<p><input type=submit name=submit value=\"Edit Item\">"
+            . "</form>"
+            . "<p><hr class=dots><p>";
+    }
 
 } else if (isset($_REQUEST['osfmtprivs'])) {
 
