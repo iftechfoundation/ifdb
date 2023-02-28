@@ -409,7 +409,7 @@ function saveChanges()
             <p>
             <form method=post action=editprofile name=confirmReal>
             <?php
-               captchaSubForm($captchaKey, $captchaErr);
+               captchaSubForm($captchaKey, $captchaErr, "");
                showHiddenFields();
             ?>
 
