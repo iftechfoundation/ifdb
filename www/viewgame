@@ -3158,7 +3158,8 @@ dispTags();
                 $deletePageLink =
                     "- <a href=\"delgame?id=$id\">Delete This Page</a>";
             }
-        } else if ($adminPriv) {
+        }
+        if ($adminPriv && !$deletePageLink) {
             $deletePageLink =
                 "- <a href=\"delgame?id=$id\">Delete This Page</a>";
         }
