@@ -1,10 +1,5 @@
 USE ifdb;
 
--- Jan 2022
-ALTER TABLE `polls`
-  ADD COLUMN `flags` int(11) NOT NULL DEFAULT 0
-;
-
 DROP TABLE IF EXISTS `audit`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
