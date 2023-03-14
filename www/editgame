@@ -762,10 +762,31 @@ function showLinkPopup(event,linkNum)
     return false;
 }
 
-function updateFormatUI(byUser)
+const playableFormats = new Set([
+    'hypertextgame',
+    'zcode',
+    'blorb/zcode',
+    'glulx',
+    'blorb/glulx',
+    'tads2',
+    'tads3',
+    'hugo',
+    'adrift',
+    'adrift38',
+    'adrift39',
+    'adrift5',
+    'adrift5/blorb',
+])
+
+function updateFormatUI(byUser)  
 {
     var ele, vis;
 
+    var linkUrl = document.getElementById("linkurl").value;
+    var linkUrlHost = "";
+    try {
+        linkUrlHost = new URL(document.getElementById("linkurl").value).host;
+    } catch (e) {}
     var selFmtG = document.getElementById("linkfmtG");
     var selFmtNG = document.getElementById("linkfmtNG");
     var selCmp = document.getElementById("linkcomp");
@@ -774,6 +795,7 @@ function updateFormatUI(byUser)
     var selOs = document.getElementById("linkos");
     var selIsg = document.getElementById("linkisgame");
     var selPend = document.getElementById("linkpending");
+    var playOnlineExplanation = document.getElementById("playOnlineExplanation");
     var fmt = fmtmap[selIsg.checked ? selFmtG.value : selFmtNG.value];
 
     selOs.style.display = ((fmt && fmt["exe"]) ? "" : "none");
@@ -783,6 +805,27 @@ function updateFormatUI(byUser)
     } else {
         priFld.style.display = "";
         priNA.style.display = "none";
+    }
+
+    var noButton = "According to the settings above, this link will <b>not</b> include a \"Play On-line\" button, because ";
+
+    if (/Play Online/i.test(document.getElementById("linktitle").value)) {
+        playOnlineExplanation.innerHTML = "According to the settings above, this link will include a \"Play On-line\" button.";
+    } else if (!selIsg.checked) {
+        playOnlineExplanation.innerHTML = noButton + 'the "playable game file" option is not checked.';
+    } else if (!selFmtG.value) {
+        playOnlineExplanation.innerHTML = noButton + 'the "File Type" is blank.';
+    } else if (!playableFormats.has(fmt.externid)) {
+        playOnlineExplanation.innerHTML = noButton + 'we don\'t have a way to play ' + fmt.name + ' game files online.';
+    } else if (selCmp.value && selCmp.value !== '17') {
+        var compressionName = document.querySelector('#linkcomp option[value="' + selCmp.value + '"]').innerHTML;
+        playOnlineExplanation.innerHTML = noButton + 'we don\'t have a way to play ' + compressionName + ' compressed files online.';
+    } else if (selCmp.value === '17' && !/\b(ifarchive\.org|springthing\.net)$/.test(linkUrlHost)) {
+        playOnlineExplanation.innerHTML = noButton + "we can only play ZIP files online when they're hosted on ifarchive.org.";
+    } else if (selCmp.value === '17' && !priFld.value) {
+        playOnlineExplanation.innerHTML = noButton + 'the "Main File" is blank.';
+    } else {
+        playOnlineExplanation.innerHTML = "According to the settings above, this link will include a \"Play On-line\" button.";
     }
 
     if (byUser && fmt && fmt.externid == "tads3web")
@@ -1160,7 +1203,7 @@ function echoGridField($link, $fld, $isFirst = false)
                      <b>URL:</b>
                   </td>
                   <td>
-                     <input type="text" name="linkurl" id="linkurl"
+                     <input type="text" name="linkurl" id="linkurl" oninput="javascript:updateFormatUI()"
                             size=80><br><span class=details>
                         The full URL, linking directly to the downloadable
                         file. For IF Archive links, use the <b>main</b> Archive
@@ -1177,7 +1220,7 @@ function echoGridField($link, $fld, $isFirst = false)
                   </td>
                   <td>
                      <input type="text" name="linktitle" id="linktitle"
-                            size=40>
+                            size=40 oninput="javascript:updateFormatUI()">
                      <br>
                      <span class=details>
                         A short title for the link: "Story File", "User's
@@ -1333,7 +1376,7 @@ foreach ($linkfmts as $lf) {
                   </td>
                   <td>
                      <input type="text" name="linkcomppri" id="linkcomppri"
-                            size=40>
+                            size=40 oninput="javascript:updateFormatUI()">
                      <input type="text" id="linkcomppriNA" value="N/A"
                             readonly size=40
                            style="background:#e0e0e0;color:#404040;">
@@ -1343,6 +1386,21 @@ foreach ($linkfmts as $lf) {
                         application within the compressed file. Choose the
                         most important file for other types, or just
                         leave it blank.
+                     </span>
+                  </td>
+               </tr>
+               <tr>
+                  <td colspan=2>
+                     <hr>
+                  </td>
+               </tr>
+               <tr valign=top>
+                  <td align=right>
+                     <b><nobr>"Play On-line" button:</nobr></b>
+                  </td>
+                  <td>
+                     <span id="playOnlineExplanation">
+                        According to the settings above, this link will <b>not</b> include a "Play On-line" button, because the "playable game file" option is not checked.
                      </span>
                   </td>
                </tr>
