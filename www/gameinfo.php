@@ -22,12 +22,8 @@ function fixUrl($url) {
 //
 function getGameInfo($db, $id, $curuser, $requestVersion, &$errMsg, &$errCode)
 {
-
-    // quote the ID string
-    $qid = mysql_real_escape_string($id, $db);
-
     // look up the game
-    $result = mysql_query(
+    $result = mysqli_execute_query($db,
        "select
             title, author, authorExt, published,
             version, license, `system`, `desc`, length(coverart) hasart, genre,
@@ -38,7 +34,7 @@ function getGameInfo($db, $id, $curuser, $requestVersion, &$errMsg, &$errCode)
             date_format(moddate, '%d-%b-%Y %H:%i') as moddate2,
             pagevsn, flags
         from games
-        where id = '$qid'", $db);
+        where id = ?", [$id]);
     if (mysql_num_rows($result) == 0) {
         $errMsg = "This game was not found in the database. If you reached
           this page through a link, you might want to notify the maintainer
@@ -51,31 +47,31 @@ function getGameInfo($db, $id, $curuser, $requestVersion, &$errMsg, &$errCode)
     $rec = mysql_fetch_array($result, MYSQL_ASSOC);
 
     // build the list of downloads
-    $result = mysql_query(
+    $result = mysqli_execute_query($db,
         "select
           url, title, `desc`, fmtid, osid, osvsn,
           compression, compressedprimary, attrs, displayorder
         from
           gamelinks
         where
-          gameid = '$qid'", $db);
+          gameid = ?", [$id]);
     $rows = mysql_num_rows($result);
     for ($i = 0, $links = array() ; $i < $rows ; $i++)
         $links[$i] = mysql_fetch_array($result, MYSQL_ASSOC);
 
     // build the list of IFIDS
-    $result = mysql_query("select ifid from ifids where gameid = '$qid'", $db);
+    $result = mysqli_execute_query($db, "select ifid from ifids where gameid = ?", [$id]);
     $rows = mysql_num_rows($result);
     for ($i = 0, $ifids = array() ; $i < $rows ; $i++)
         $ifids[] = mysql_result($result, $i, "ifid");
 
     // get the display rank of the external reviews
-    $result = mysql_query(
-        "select displayrank from specialreviewers where code='external'", $db);
+    $result = mysqli_execute_query($db,
+        "select displayrank from specialreviewers where code='external'");
     $extRevDisplayRank = mysql_result($result, 0, "displayrank");
 
     // fetch the external reviews
-    $result = mysql_query(
+    $result = mysqli_execute_query($db,
         "select
            x.url as url, r.rating as rating, r.summary as headline,
            r.review as summary,
@@ -86,20 +82,20 @@ function getGameInfo($db, $id, $curuser, $requestVersion, &$errMsg, &$errCode)
            join extreviews as x on x.reviewid = r.id
            join specialreviewers as sr on sr.id = r.special
          where
-           r.gameid = '$qid'
+           r.gameid = ?
            and ifnull(now() >= r.embargodate, 1)
          order by
-           x.displayorder", $db);
+           x.displayorder", [$id]);
     $rows = mysql_num_rows($result);
     for ($i = 0, $extrevs = array() ; $i < $rows ; $i++)
         $extrevs[] = mysql_fetch_array($result, MYSQL_ASSOC);
 
     // fetch the OUTGOING cross-references; arrange in display order
-    $result = mysql_query(
+    $result = mysqli_execute_query($db,
         "select reftype, toid as toID
          from gamexrefs
-         where fromid = '$qid'
-         order by displayorder", $db);
+         where fromid = ?
+         order by displayorder", [$id]);
 
     $rows = mysql_num_rows($result);
     for ($i = 0, $xrefs = array() ; $i < $rows ; $i++)
@@ -110,7 +106,7 @@ function getGameInfo($db, $id, $curuser, $requestVersion, &$errMsg, &$errCode)
     // the display order isn't meaningful when they're combined.  Instead,
     // group them by reference type so that we show all of the translations
     // together, all of the ports together, etc.
-    $result = mysql_query(
+    $result = mysqli_execute_query($db,
         "select
            x.reftype as reftype, t.toname as toname, t.tonames as tonames,
            x.fromid as fromid,
@@ -129,9 +125,9 @@ function getGameInfo($db, $id, $curuser, $requestVersion, &$errMsg, &$errCode)
            left outer join games as g
               on g.id = x.fromid
          where
-           x.toid = '$qid'
+           x.toid = ?
          order by
-           x.reftype, g.title, g.author", $db);
+           x.reftype, g.title, g.author", [$id]);
     echo mysql_error($db);
 
     $rows = mysql_num_rows($result);
@@ -152,15 +148,15 @@ function getGameInfo($db, $id, $curuser, $requestVersion, &$errMsg, &$errCode)
     if ($requestVersion && (int)$requestVersion != $rec['pagevsn']) {
 
         // query up the version history, in order from newest to oldest
-        $result = mysql_query(
+        $result = mysqli_execute_query($db,
             "select
                pagevsn, deltas,
                concat(date_format(moddate, '%e %M %Y at %l:%i'),
                       lower(date_format(moddate, '%p'))) as moddate,
                date_format(moddate, '%d-%b-%Y %H:%i') as moddate2
             from games_history
-            where id = '$qid'
-            order by pagevsn desc", $db);
+            where id = ?
+            order by pagevsn desc", [$id]);
 
         // we haven't found our target version yet
         $foundvsn = false;
@@ -265,14 +261,14 @@ function getGameInfo($db, $id, $curuser, $requestVersion, &$errMsg, &$errCode)
     // until we have the final rows, *then* go and manually do the join.
     for ($i = 0 ; $i < count($links) ; $i++) {
         $link = $links[$i];
-        $fmtid = mysql_real_escape_string($link['fmtid'], $db);
-        $fmtos = mysql_real_escape_string($link['osid'], $db);
-        $fmtosvsn = mysql_real_escape_string($link['osvsn'], $db);
-        $result = mysql_query("select
+        $fmtid = $link['fmtid'];
+        $fmtos = $link['osid'];
+        $fmtosvsn = $link['osvsn'];
+        $result = mysqli_execute_query($db, "select
               externid, fmtname, `desc`, fmtclass,
               (icon is not null) as hasicon
             from filetypes
-            where id = '$fmtid'", $db);
+            where id = ?", [$fmtid]);
         if (mysql_num_rows($result) > 0) {
             $link['fmtexternid'] = mysql_result($result, 0, "externid");
             $link['fmtname'] = mysql_result($result, 0, "fmtname");
@@ -284,10 +280,14 @@ function getGameInfo($db, $id, $curuser, $requestVersion, &$errMsg, &$errCode)
             echo "row not found for format $fmtid";
 
         if ($fmtos) {
-            $vsnWhere = ($fmtosvsn
-                         ? "osversions.vsnid = '$fmtosvsn'"
-                         : "osversions.name = '*'");
-            $result = mysql_query(
+            $params = [$fmtos, $fmtos];
+            if ($fmtosvsn) {
+                $vsnWhere = "osversions.vsnid = ?";
+                $params[] = $fmtosvsn;
+            } else {
+                $vsnWhere = "osversions.name = '*'";
+            }
+            $result = mysqli_execute_query($db,
                 "select
                    operatingsystems.name as osname,
                    operatingsystems.externid as osext,
@@ -299,9 +299,9 @@ function getGameInfo($db, $id, $curuser, $requestVersion, &$errMsg, &$errCode)
                 from
                    operatingsystems, osversions
                 where
-                   operatingsystems.id = '$fmtos'
-                   and osversions.osid = '$fmtos'
-                   and $vsnWhere", $db);
+                   operatingsystems.id = ?
+                   and osversions.osid = ?
+                   and $vsnWhere", $params);
 
             if (mysql_num_rows($result) > 0) {
                 $link['osname'] = mysql_result($result, 0, "osname");
@@ -330,7 +330,7 @@ function getGameInfo($db, $id, $curuser, $requestVersion, &$errMsg, &$errCode)
     for ($i = 0 ; $i < count($xrefs) ; $i++) {
 
         // look up the game and reference type
-        $result = mysql_query(
+        $result = mysqli_execute_query($db,
             "select
                g.title as toTitle, g.author as author,
                t.fromname as fromname
@@ -338,8 +338,8 @@ function getGameInfo($db, $id, $curuser, $requestVersion, &$errMsg, &$errCode)
                games as g
                join gamexreftypes as t
              where
-               g.id = '{$xrefs[$i]['toID']}'
-               and t.reftype = '{$xrefs[$i]['reftype']}'", $db);
+               g.id = ?
+               and t.reftype = ?", [$xrefs[$i]['toID'], $xrefs[$i]['reftype']]);
 
         list($xrefs[$i]['toTitle'],
              $xrefs[$i]['author'],
@@ -362,11 +362,11 @@ function getGameInfo($db, $id, $curuser, $requestVersion, &$errMsg, &$errCode)
             {
                 // look up the language as an ISO-639 code - just look up the part up
                 // to the hyphen; ignore anything after that
-                $qlang = mysql_real_escape_string($curlang, $db);
+                $qlang = $curlang;
                 if (($hpos = strpos($qlang, "-")) !== false)
                     $qlang = substr($qlang, 0, $hpos);
-                $result = mysql_query(
-                    "select name from iso639x where id2='$qlang' or id3='$qlang'", $db);
+                $result = mysqli_execute_query($db,
+                    "select name from iso639x where id2=? or id3=?", [$qlang, $qlang]);
                 if (mysql_num_rows($result)) {
                     $langnames[] = mysql_result($result, 0, "name");
                 }
@@ -380,8 +380,8 @@ function getGameInfo($db, $id, $curuser, $requestVersion, &$errMsg, &$errCode)
     }
 
     // look up the name of the editor
-    $result = mysql_query("select name from users
-        where id = '$editedbyid'", $db);
+    $result = mysqli_execute_query($db, "select name from users
+        where id = ?", [$editedbyid]);
     $editedbyname = ($result && mysql_num_rows($result))
                     ? htmlspecialcharx(mysql_result($result, 0, "name"))
                     : "";
@@ -390,27 +390,27 @@ function getGameInfo($db, $id, $curuser, $requestVersion, &$errMsg, &$errCode)
     $gameRatingsView = getGameRatingsView($db);
 
     // get the rating statistics
-    $result = mysql_query(
+    $result = mysqli_execute_query($db,
         "select
            numRatingsInAvg, numRatingsTotal, avgRating, numMemberReviews
          from
            $gameRatingsView
          where
-           gameid = '$qid'", $db);
+           gameid = ?", [$id]);
     list($ratingAvgCnt, $ratingTotCnt, $ratingAvg, $memberReviewCnt) =
         mysql_fetch_row($result);
 
     // get the rating histogram
-    $result = mysql_query(
+    $result = mysqli_execute_query($db,
         "select
            rating,
            count(if(RFlags & " . RFLAG_OMIT_AVG . ", null, rating))
          from
            reviews
          where
-           gameid = '$qid'
+           gameid = ?
            and ifnull(now() >= embargodate, 1)
-         group by rating", $db);
+         group by rating", [$id]);
     $ratingHisto = array(0, 0, 0, 0, 0, 0);
     for ($i = 0 ; $i < mysql_num_rows($result) ; $i++) {
         list($rating, $count) = mysql_fetch_row($result);
@@ -421,8 +421,8 @@ function getGameInfo($db, $id, $curuser, $requestVersion, &$errMsg, &$errCode)
     $currentUserRating = 0;
     $currentUserReview = "";
     if ($curuser) {
-        $result = mysql_query("select rating, review from reviews
-            where userid = '$curuser' and gameid = '$qid'", $db);
+        $result = mysqli_execute_query($db, "select rating, review from reviews
+            where userid = ? and gameid = ?", [$curuser, $id]);
         if (mysql_num_rows($result) > 0) {
             $currentUserRating = mysql_result($result, 0, "rating");
             $currentUserReview = mysql_result($result, 0, "review");
