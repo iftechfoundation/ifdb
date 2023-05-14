@@ -18,8 +18,8 @@ include_once "news.php";
 // check the user for ADMIN privileges
 $userprivs = $adminPriv = false;
 if ($curuser) {
-    $result = mysql_query(
-        "select `privileges` from users where id='$curuser'", $db);
+    $result = mysqli_execute_query($db,
+        "select `privileges` from users where id=?", [$curuser]);
     $userprivs = mysql_result($result, 0, "privileges");
     $adminPriv = (strpos($userprivs, "A") !== false);
 }
@@ -66,8 +66,8 @@ $offsiteMode = 'A';
 
 // if we're logged in, get the user's miscellaneous layout preferences
 if ($curuser) {
-    $result = mysql_query(
-        "select offsite_display from users where id = '$curuser'", $db);
+    $result = mysqli_execute_query($db,
+        "select offsite_display from users where id = ?", [$curuser]);
     if (mysql_num_rows($result) != 0)
         list($offsiteMode) = mysql_fetch_row($result);
 
@@ -102,9 +102,9 @@ function getID() {
         // that letters in IFIDs are always upper-case; we store them in
         // the database this way, so capitalize the request string before
         // looking it up.
-        $qifid = mysql_real_escape_string(strtoupper($_REQUEST['ifid']), $db);
-        $result = mysql_query("select gameid from ifids
-            where ifid = '$qifid'", $db);
+        $qifid = strtoupper($_REQUEST['ifid']);
+        $result = mysqli_execute_query($db, "select gameid from ifids
+            where ifid = ?", [$qifid]);
 
         // make sure we found a match
         if (mysql_num_rows($result) == 0) {
@@ -141,9 +141,8 @@ function sendCoverArt()
         exit($errMsg);
 
     // look up the game
-    $qid = mysql_real_escape_string($id, $db);
-    $result = mysql_query(
-        "select coverart, title, pagevsn from games where id = '$qid'", $db);
+    $result = mysqli_execute_query($db,
+        "select coverart, title, pagevsn from games where id = ?", [$id]);
     if (mysql_num_rows($result) == 0) {
         checkRedirect($id);
         exit("No game record found for ID");
@@ -160,11 +159,11 @@ function sendCoverArt()
     // if we're retrieving an old version, go back and find it
     if ($targVsn) {
         // query up the old versions from newest to oldest
-        $result = mysql_query(
+        $result = mysqli_execute_query($db,
             "select pagevsn, deltas
             from games_history
-            where id = '$qid'
-            order by pagevsn desc", $db);
+            where id = ?
+            order by pagevsn desc", [$id]);
 
         // scan for a version that overrides the current definition
         $rows = mysql_num_rows($result);
@@ -382,9 +381,8 @@ if (!$errMsg) {
 function checkRedirect($id)
 {
     global $db;
-    $qid = mysql_real_escape_string($id, $db);
-    $result = mysql_query(
-        "select fwdgameid from gamefwds where gameid = '$qid'", $db);
+    $result = mysqli_execute_query($db,
+        "select fwdgameid from gamefwds where gameid = ?", [$id]);
     if (mysql_num_rows($result) > 0)
     {
         // get the target game
@@ -618,8 +616,8 @@ if (isset($_REQUEST['ifiction']))
     }
     if ($links) {
         // load the translation table for the file formats
-        $result = mysql_query(
-            "select id, externid from filetypes", $db);
+        $result = mysqli_execute_query($db,
+            "select id, externid from filetypes");
         for ($i = 0, $fmtMap = array() ; $i < mysql_num_rows($result) ; $i++) {
             list($id, $ext) = mysql_fetch_row($result);
             $fmtMap[$id] = $ext;
@@ -1085,8 +1083,8 @@ if (count($links) == 0 && $dlnotes == "") {
                 $zips[$c][0] += 1;
             }
             else {
-                $result = mysql_query("select `desc` from filetypes
-                    where id = '" . mysql_real_escape_string($c, $db) . "'", $db);
+                $result = mysqli_execute_query($db, "select `desc` from filetypes
+                    where id = ?", [$c]);
                 $zips[$c] = array(1, "", mysql_result($result, 0, "desc"));
                 $zipnotes[] = $c;
             }
@@ -1122,7 +1120,7 @@ if (count($links) == 0 && $dlnotes == "") {
         $fmtdesc = $link['fmtdesc'];
         $fmticon = $link['fmticon'];
         $fmtclass = $link['fmtclass'];
-        $fmtcomp = mysql_real_escape_string($link['compression'], $db);
+        $fmtcomp = $link['compression'];
         $compPri = zeroWidthSpaceUnderscores(
             htmlspecialcharx($link['compressedprimary'])
         );
@@ -1159,8 +1157,6 @@ if (count($links) == 0 && $dlnotes == "") {
         if ($fmtcomp) {
             $z = $zips[$fmtcomp];
             if ($z[0] == 1) {
-                $result = mysql_query("select `desc` from filetypes
-                    where id = '$fmtcomp'", $db);
                 $zipnote = " <i>({$z[2]})</i>";
             }
             else
@@ -1218,16 +1214,16 @@ if (count($links) == 0 && $dlnotes == "") {
             <h3>Have you played this game?</h3>
             <?php
 if ($curuser) {
-    $result = mysql_query("select userid from playedgames
-        where userid='$curuser' and gameid='$qid'", $db);
+    $result = mysqli_execute_query($db, "select userid from playedgames
+        where userid=? and gameid=?", [$curuser, $id]);
     $played = mysql_num_rows($result) > 0;
 
-    $result = mysql_query("select userid from wishlists
-        where userid='$curuser' and gameid='$qid'", $db);
+    $result = mysqli_execute_query($db, "select userid from wishlists
+        where userid=? and gameid=?", [$curuser, $id]);
     $wishlist = mysql_num_rows($result) > 0;
 
-    $result = mysql_query("select userid from unwishlists
-        where userid='$curuser' and gameid='$qid'", $db);
+    $result = mysqli_execute_query($db, "select userid from unwishlists
+        where userid=? and gameid=?", [$curuser, $id]);
     $unwishlist = mysql_num_rows($result) > 0;
             ?>
             <script type="text/javascript">
@@ -1291,9 +1287,9 @@ function updateUnwishList(id, stat)
     $myCrossRecs = 0;
     if ($curuser)
     {
-        $result = mysql_query(
+        $result = mysqli_execute_query($db,
             "select count(*) from crossrecs
-             where userid = '$curuser' and fromgame = '$qid'", $db);
+             where userid = ? and fromgame = ?", [$curuser, $id]);
         list($myCrossRecs) = mysql_fetch_row($result);
     }
 
@@ -1400,16 +1396,16 @@ function updateUnwishlistCount(n)
 }
 
 <?php
-$result = mysql_query(
-    "select count(userid) from playedgames where gameid='$qid'", $db);
+$result = mysqli_execute_query($db,
+    "select count(userid) from playedgames where gameid=?", [$id]);
 list($playlistCnt) = mysql_fetch_row($result);
 
-$result = mysql_query(
-    "select count(userid) from wishlists where gameid='$qid'", $db);
+$result = mysqli_execute_query($db,
+    "select count(userid) from wishlists where gameid=?", [$id]);
 list($wishlistCnt) = mysql_fetch_row($result);
 
-$result = mysql_query(
-    "select count(userid) from unwishlists where gameid='$qid'", $db);
+$result = mysqli_execute_query($db,
+    "select count(userid) from unwishlists where gameid=?", [$id]);
 list($unwishlistCnt) = mysql_fetch_row($result);
 
 echo "updatePlaylistCount($playlistCnt); updateWishlistCount($wishlistCnt);"
@@ -1497,9 +1493,8 @@ for ($i = 0, $acnt = count($authorList) ; $i < $acnt ; $i++) {
         $au = substr_replace($au, "", $match[0][1], strlen($match[0][0]));
 
         // make sure the profile exists
-        $qpro = mysql_real_escape_string($pro, $db);
-        $result = mysql_query(
-            "select id, name from users where id='$qpro'", $db);
+        $result = mysqli_execute_query($db,
+            "select id, name from users where id=?", [$pro]);
         if (mysql_num_rows($result) != 0) {
             // build this profile link
             $hpro = urlencode($pro);
@@ -1563,10 +1558,13 @@ if (!isEmpty($genre)) {
         // who rated this game highly.
 
         // look for lists containing this game
+        $params = [$id];
         $sortMeLast = "";
-        if ($curuser)
-            $sortMeLast = "if(reclists.userid = '$curuser', 2, 1),";
-        $result = mysql_query(
+        if ($curuser) {
+            $sortMeLast = "if(reclists.userid = ?, 2, 1),";
+            $params[] = $curuser;
+        }
+        $result = mysqli_execute_query($db,
             "select
                 reclists.id as listid,
                 reclists.title as title,
@@ -1578,12 +1576,12 @@ if (!isEmpty($genre)) {
                 join reclistitems
                 join users
              where
-                reclistitems.gameid = '$qid'
+                reclistitems.gameid = ?
                 and reclists.id = reclistitems.listid
                 and users.id = reclists.userid
              group by reclistitems.listid
              order by $sortMeLast rand()
-             limit 0, 4", $db);
+             limit 0, 4", $params);
 
         // fetch the recommendation lists to show
         $listcnt = mysql_num_rows($result);
@@ -1591,11 +1589,14 @@ if (!isEmpty($genre)) {
             $lists[] = mysql_fetch_array($result, MYSQL_ASSOC);
 
         // look for polls with votes for this game
+        $params = [$id];
         $sortMeLast = "";
-        if ($curuser)
-            $sortMeLast = "if(v.userid = '$curuser' or p.userid = '$curuser'"
-                          . ", 2, 1),";
-        $result = mysql_query(
+        if ($curuser) {
+            $sortMeLast = "if(v.userid = ? or p.userid = ?, 2, 1),";
+            $params[] = $curuser;
+            $params[] = $curuser;
+        }
+        $result = mysqli_execute_query($db,
             "select
                p.pollid as pollid,
                p.title as title,
@@ -1607,13 +1608,13 @@ if (!isEmpty($genre)) {
                join pollvotes as v on v.pollid = p.pollid
                join users as u on u.id = p.userid
              where
-               v.gameid = '$qid'
+               v.gameid = ?
              group by
                p.pollid
              order by
                $sortMeLast rand()
              limit
-               0, 4", $db);
+               0, 4", $params);
 
         // fetch the polls
         $pollcnt = mysql_num_rows($result);
@@ -1752,13 +1753,13 @@ if (!isEmpty($genre)) {
 
 $embargoCnt = 0;
 if ($curuser) {
-    $result = mysql_query(
-        "select id, date_format(embargodate, '%M %e, %Y') from reviews
-         where userid = '$curuser' and gameid = '$qid'
-           and embargodate > now()", $db);
+    $result = mysqli_execute_query($db,
+        "select date_format(embargodate, '%M %e, %Y') from reviews
+         where userid = ? and gameid = ?
+           and embargodate > now()", [$curuser, $id]);
     $embargoCnt = mysql_num_rows($result);
     if ($embargoCnt > 0)
-        list($embargoID, $embargoDate) = mysql_fetch_row($result);
+        list($embargoDate) = mysql_fetch_row($result);
 }
 
 if ($ratingCntTot == 0) {
@@ -1950,7 +1951,7 @@ if (count($inrefs) != 0 && !$historyView) {
     if ($detailView) {
 
         // look up awards for this game
-        $result = mysql_query(
+        $result = mysqli_execute_query($db,
             "select
                c.compid, c.title,
                d.divname,
@@ -1960,9 +1961,9 @@ if (count($inrefs) != 0 && !$historyView) {
                join competitions as c on c.compid = g.compid
                join compdivs as d on d.divid = g.divid
              where
-               g.gameid = '$qid'
+               g.gameid = ?
              order by
-               lower(c.title), d.divno, lower(d.divname)", $db);
+               lower(c.title), d.divno, lower(d.divname)", [$id]);
 
         // if we have any rows, show the awards section
         if (mysql_num_rows($result) > 0)
@@ -2050,7 +2051,7 @@ if (count($inrefs) != 0 && !$historyView) {
         $srevs = array();
         if ($detailView) {
             // fetch the editorial review list
-            $result = mysql_query(
+            $result = mysqli_execute_query($db,
                 "select
                    r.rating as rating, r.summary as headline,
                    r.review as summary, sr.name as specialname, sr.code as code,
@@ -2062,12 +2063,12 @@ if (count($inrefs) != 0 && !$historyView) {
                    join specialreviewers as sr on sr.id = r.special
                    left outer join users as u on u.id = r.userid
                  where
-                   r.gameid = '$qid'
+                   r.gameid = ?
                    and sr.editorial != 0
                    and sr.code <> 'external'
                    and ifnull(now() >= r.embargodate, 1)
                  order by
-                   sr.displayrank", $db);
+                   sr.displayrank", [$id]);
 
             // collect the reviews
             for ($i = 0 ; $i < mysql_num_rows($result) ; $i++)
@@ -3151,11 +3152,10 @@ dispTags();
         $deletePageLink = "";
         if ($curuser != "" && $curuser == $editedbyid) {
             // look for other users in the version history
-            $qedby = mysql_real_escape_string($editedbyid, $db);
-            $result = mysql_query(
+            $result = mysqli_execute_query($db,
                 "select count(*) as c from games_history
-                 where id = '$qid'
-                 and ifnull(editedby, '') <> '$qedby'", $db);
+                 where id = ?
+                 and ifnull(editedby, '') <> ?", [$id, $editedbyid]);
             if (mysql_result($result, 0, "c") == 0) {
                 $deletePageLink =
                     "- <a href=\"delgame?id=$id\">Delete This Page</a>";
