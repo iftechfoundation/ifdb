@@ -194,7 +194,7 @@ function getStorageFileInfo($fpath, $fname)
         array("/>/", "/^@/", "/@/"),
         array("", "", ", "),
         $date);
-    $date = strtoupper($date{0}) . substr($date, 1);
+    $date = strtoupper($date[0]) . substr($date, 1);
 
     // figure the plain formatted date as well
     $plainDate = date("n/j/Y g:i a", $mtime);

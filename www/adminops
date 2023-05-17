@@ -776,9 +776,9 @@ else if (isset($_REQUEST['users'])) {
         $stat = isset($statMap[$statCode]) ? $statMap[$statCode] : "";
         $proStat = isset($proStatMap[$proStat]) ? $proStatMap[$proStat] : "";
         for ($priv = array(), $c = 0 ; $c < strlen($privcode) ; $c++) {
-            $priv[] = isset($privMap[$privcode{$c}])
-                      ? $privMap[$privcode{$c}]
-                      : "??? '{$privcode{$c}}'";
+            $priv[] = isset($privMap[$privcode[$c]])
+                      ? $privMap[$privcode[$c]]
+                      : "??? '{$privcode[$c]}'";
         }
         $priv = implode(", ", $priv);
 
@@ -931,7 +931,7 @@ else if (isset($_REQUEST['users'])) {
     }
 
     for ($priv = array(), $c = 0 ; $c < strlen($privcode) ; $c++)
-        $priv[] = $privMap[$privcode{$c}];
+        $priv[] = $privMap[$privcode[$c]];
     $privNames = implode(", ", $priv);
 
     // check if we're logging in as the user
@@ -2379,7 +2379,7 @@ function hilitemarks($str, $showcodes)
     $lst = array();
     $inMark = false;
     for ($i = 0 ; $i < strlen($str) ; $i++) {
-        $c = ord($str{$i});
+        $c = ord($str[$i]);
         if ($c >= 0x80)
             $lst[] = $c;
         if ($c >= 0x80 && !$inMark) {
@@ -2393,7 +2393,7 @@ function hilitemarks($str, $showcodes)
             $lst = array();
             $inMark = false;
         }
-        $ret .= $str{$i};
+        $ret .= $str[$i];
     }
 
     if ($inMark) {
@@ -2415,12 +2415,12 @@ function cleanutf8($str)
 {
     $ret = '';
     for ($i = 0 ; $i < strlen($str) ; $i++) {
-        $c = $str{$i};
+        $c = $str[$i];
         $n = ord($c);
         $ret .= $c;
         if ($n >= 0x80 && $i+1 < strlen($str)) {
             $i++;
-            $c = $str{$i};
+            $c = $str[$i];
             $n = ord($c);
             if (($n & 0xC0) == 0x80) {
                 $n &= 0x3F;
@@ -2428,9 +2428,9 @@ function cleanutf8($str)
                     $n |= 0x40;
             }
             $ret .= chr($n);
-            if ($i+1 < strlen($str) && ((ord($str{$i+1}) & 0xC0) == 0x80)) {
+            if ($i+1 < strlen($str) && ((ord($str[$i+1]) & 0xC0) == 0x80)) {
                 $i++;
-                $c = $str{$i};
+                $c = $str[$i];
                 $n = ord($c);
                 $n &= 0x3F;
                 if ($n != 0x20)

@@ -1005,7 +1005,7 @@ function fixDesc($desc, $specials = 0)
     $tagSp = -1;
     for ($ofs = 0 ; $ofs < strlen($desc) ; $ofs++) {
         // check what we're looking at
-        switch ($desc{$ofs}) {
+        switch ($desc[$ofs]) {
         case '<':
             // presume we won't need to quote it
             $quoteIt = false;
@@ -1347,8 +1347,8 @@ function fixDesc($desc, $specials = 0)
 
         default:
             // remove all other control characters
-            if ($desc{$ofs} < ' ')
-                $desc{$ofs} = ' ';
+            if ($desc[$ofs] < ' ')
+                $desc[$ofs] = ' ';
         }
     }
 
@@ -1414,7 +1414,7 @@ function findEndTag($str, $tag, $ofs)
     // scan from the given offset
     for ($len = strlen($str) ; $ofs < $len ; $ofs++)
     {
-        if ($str{$ofs} == '<') {
+        if ($str[$ofs] == '<') {
             // find the matching '>'
             $gt = strpos($str, '>', $ofs);
 
@@ -1493,7 +1493,7 @@ function summarizeHtml($str, $maxlen)
          $ofs < strlen($str) ; $ofs++)
     {
         // get the current character
-        $c = $str{$ofs};
+        $c = $str[$ofs];
 
         // process the tag or ordinary text, as appropriate
         if ($inEnt)
@@ -1577,7 +1577,7 @@ function summarizeHtml($str, $maxlen)
                     // skip consecutive spaces - they don't count as
                     // separate output length, since HTML collapses
                     // source-text whitespace on display
-                    while ($ofs+1 < strlen($str) && $str{$ofs+1} == ' ')
+                    while ($ofs+1 < strlen($str) && $str[$ofs+1] == ' ')
                         $ofs++;
                 }
                 else
