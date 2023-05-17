@@ -309,7 +309,7 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse)
 
         // find the end of this word
         $start = $ofs;
-        if ($term{$ofs} == '"') {
+        if ($term[$ofs] == '"') {
             // we have a quoted word
             $quoted = true;
 
@@ -317,9 +317,9 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse)
             // skip stuttered quotes
             for ($start++, $ofs++ ; $ofs < $len ; $ofs++) {
                 // check for a quote
-                if ($term{$ofs} == '"') {
+                if ($term[$ofs] == '"') {
                     // skip stuttered quotes
-                    if ($ofs+1 < $len && $term{$ofs+1} == '"')
+                    if ($ofs+1 < $len && $term[$ofs+1] == '"')
                         $ofs++;
                     else
                         break;
@@ -423,8 +423,8 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse)
         $likeSubExpr = $and = "";
         foreach ($words as $w) {
             $w = mysql_real_escape_string(quoteSqlLike($w), $db);
-            if ($w != "" && $w{0} != '"') {
-                if (strpos("+=<>\"", $w{0}) !== false)
+            if ($w != "" && $w[0] != '"') {
+                if (strpos("+=<>\"", $w[0]) !== false)
                     $w = substr($w, 1);
                 $likeSubExpr .= "$and $likeCol like '%$w%'";
                 $and = " and";
@@ -640,7 +640,7 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse)
                     if (count($nl) >= 2) {
                         $expr .= " or author rlike '[[:<:]]"
                                  . mysql_real_escape_string(
-                                     quoteSqlRLike($nl[1]{0}), $db)
+                                     quoteSqlRLike($nl[1][0]), $db)
                                  . ".*[[:space:]]+"
                                  . mysql_real_escape_string(
                                      quoteSqlRLike($nl[0]), $db)
