@@ -430,7 +430,7 @@ if ($showEditForm) {
 
     ?>
 
-<script type="text/javascript">
+<script type="text/javascript" nonce="<?php global $nonce; echo $nonce; ?>">
 <!--
 function validateImageForm()
 {
@@ -616,7 +616,7 @@ if ($rowcnt == 0) {
 if ($curuser == $userid) {
     ?>
 
-<script type="text/javascript">
+<script type="text/javascript" nonce="<?php global $nonce; echo $nonce; ?>">
 <!--
 function validateImageForm()
 {

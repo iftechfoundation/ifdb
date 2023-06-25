@@ -271,7 +271,7 @@ if ($loggedIn && !$overloaded) {
     } else {
       ?>
       <div id="recommendations">Loading...</div>
-      <script>
+      <script nonce="<?php global $nonce; echo $nonce; ?>">
         void function() {
           var element = document.getElementById('recommendations')
           var xhr = new XMLHttpRequest();

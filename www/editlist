@@ -841,7 +841,7 @@ if ($listid != 'new')
 
             <p>
 
-<script type="text/javascript">
+<script type="text/javascript" nonce="<?php global $nonce; echo $nonce; ?>">
 <!--
 var listModel = {
     "emptylabel": "<i>This list doesn't have any entries yet.</i>",

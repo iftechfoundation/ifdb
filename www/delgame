@@ -373,7 +373,7 @@ if ($createFwd)
                  ?>');return false;"
               >Find game by title</a>
 
-<script type="text/javascript">
+<script type="text/javascript" nonce="<?php global $nonce; echo $nonce; ?>">
 <!--
 function applyFwd(id, title, author)
 {

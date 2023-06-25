@@ -80,7 +80,7 @@ function comboSupportFuncs()
 {
 ?>
 
-<script type="text/javascript">
+<script type="text/javascript" nonce="<?php global $nonce; echo $nonce; ?>">
 <!--
 var activeCombo = false;
 var overComboMenu = false;

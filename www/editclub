@@ -435,7 +435,7 @@ $ckbox = "<label><input type=checkbox name=hasPassword value=1 "
          . "affecting existing members.</i></span>";
 
 ?>
-<script type="text/javascript">
+<script type="text/javascript" nonce="<?php global $nonce; echo $nonce; ?>">
 <!--
 function showHidePassword(show)
 {

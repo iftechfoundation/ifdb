@@ -439,7 +439,7 @@ function showComment($db,$commentPage, $itemAuthor, $cidx, $coutlst, $i)
         global $plonkedCommentNum;
         if ($plonkedCommentNum++ == 0) {
             ?>
-<script type="text/javascript">
+<script type="text/javascript" nonce="<?php global $nonce; echo $nonce; ?>">
 function revealPlonkedAuthor(ele, uid, uname)
 {
     ele = ele.parentNode;

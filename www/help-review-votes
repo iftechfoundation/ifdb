@@ -55,7 +55,7 @@ review may violate the
 <a href="/code-of-conduct">Code of Conduct</a> or the
 <a href="/tos">Terms of Service</a>.
 
-<script type="text/javascript">
+<script type="text/javascript" nonce="<?php global $nonce; echo $nonce; ?>">
 function openUserFilter()
 {
     if (window.opener

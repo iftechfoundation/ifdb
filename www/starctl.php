@@ -24,7 +24,7 @@ function initStarControls()
 
         ?>
 
-<script type="text/javascript">
+<script type="text/javascript" nonce="<?php global $nonce; echo $nonce; ?>">
 <!--
 function mouseClickStarCtl(id, e, clickFunc)
 {
@@ -51,7 +51,7 @@ function setStarCtlValue(id, val)
         // with automatic mouse rollover highlighting.
 
         ?>
-<script type="text/javascript">
+<script type="text/javascript" nonce="<?php global $nonce; echo $nonce; ?>">
 <!--
 var starRatings = {};
 function starsFromMouse(id, e)
@@ -131,8 +131,8 @@ function showStarCtl($id, $init, $clickFunc, $leaveFunc)
 
     } else {
         // standard version - use the star images
-
-        $str = "<script type=\"text/javascript\">\r\n"
+        global $nonce;
+        $str = "<script type=\"text/javascript\" nonce=\"$nonce\">\r\n"
                . "<!--\r\n"
                . "starRatings['$id'] = $init;\r\n"
                . "//-->\r\n"

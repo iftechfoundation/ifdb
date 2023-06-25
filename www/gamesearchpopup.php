@@ -41,7 +41,7 @@
 function gameSearchPopupSupportFuncs()
 {
 ?>
-<script type="text/javascript">
+<script type="text/javascript" nonce="<?php global $nonce; echo $nonce; ?>">
 <!--
 
 var gameSearchPopupDoneFunc;

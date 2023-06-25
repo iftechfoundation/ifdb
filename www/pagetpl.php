@@ -132,7 +132,7 @@ function pageHeader($title, $focusCtl = false, $extraOnLoad = false,
     </div>
 </div>
 
-<script>
+<script nonce="<?php global $nonce; echo $nonce; ?>">
     function ToggleMobileMenu() {
         document.querySelector('#main-nav ul').classList.toggle('mobile-hidden');
         document.querySelector('.login-link').classList.toggle('mobile-hidden');
@@ -235,7 +235,7 @@ function helpPageFooter()
 function ckboxSetup()
 {
 ?>
-<script type="text/javascript">
+<script type="text/javascript" nonce="<?php global $nonce; echo $nonce; ?>">
 <!--
 
 var ckboxStatus = [];

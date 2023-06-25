@@ -559,7 +559,7 @@ if ($saveErrMsg) {
 ?>
 
 <!-------------------------------------------------------------------------->
-<script type="text/javascript">
+<script type="text/javascript" nonce="<?php global $nonce; echo $nonce; ?>">
 <!--
 function helpWin(url) {
     win = window.open(url, null,
@@ -580,7 +580,7 @@ function confirmReset() {
 ?>
 
 <!-------------------------------------------------------------------------->
-<script type="text/javascript">
+<script type="text/javascript" nonce="<?php global $nonce; echo $nonce; ?>">
 <!--
 var formatPopupOpen = false;
 var overReviewPopup = false;
@@ -1417,7 +1417,7 @@ foreach ($linkfmts as $lf) {
 // --------------------- add the download-link grid -----------------------
 ?>
 
-<script type="text/javascript">
+<script type="text/javascript" nonce="<?php global $nonce; echo $nonce; ?>">
 <!--
 
 function uploadWindow()
@@ -1636,7 +1636,7 @@ var linkVals = [
                          "extrevSource", 80, "", array_keys($reviewSites),
                          "onComboSelectReviewSite");
                   ?>
-<script type="text/javascript">
+<script type="text/javascript" nonce="<?php global $nonce; echo $nonce; ?>">
 <!--
 var revSiteMap = {
     <?php
@@ -1703,7 +1703,7 @@ function onComboSelectReviewSite(val)
          </td>
       </tr>
 
-<script type="text/javascript">
+<script type="text/javascript" nonce="<?php global $nonce; echo $nonce; ?>">
 <!--
 function reviewPopupKey(event)
 {
@@ -1819,7 +1819,7 @@ var reviewVals = [
            gameSearchPopupDiv();
       ?>
 
-<script type="text/javascript">
+<script type="text/javascript" nonce="<?php global $nonce; echo $nonce; ?>">
 <!--
 
 function xrefEditBtnKey(event, n)

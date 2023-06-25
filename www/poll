@@ -1083,7 +1083,7 @@ administrators can see who voted for what.)
                 . "<hr class=dots><p>";
         }
 ?>
-<script type="text/javascript">
+<script type="text/javascript" nonce="<?php global $nonce; echo $nonce; ?>">
 <!--
 function expandVote(id)
 {

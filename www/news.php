@@ -70,7 +70,7 @@ function newsSummary($db, $sourceType, $sourceID, $maxItems,
         }
 
 ?>
-<script type="text/javascript">
+<script type="text/javascript" nonce="<?php global $nonce; echo $nonce; ?>">
 <!--
 
 function expandNews(n)

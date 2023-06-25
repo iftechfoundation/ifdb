@@ -754,7 +754,7 @@ if (isset($missingFields['rating']))
    ?>
    <span class=details>(<a href="needjs"
      onclick="setRating(0);return false;">Remove rating</a>)</span>
-<script type="text/javascript">
+<script type="text/javascript" nonce="<?php global $nonce; echo $nonce; ?>">
 <!--
 function setRating(rating)
 {

@@ -404,7 +404,7 @@ table.srvedit td.1 {
            . "&nbsp; ";
 
 ?>
-<script type="text/javascript">
+<script type="text/javascript" nonce="<?php global $nonce; echo $nonce; ?>">
 function confirmDeleteRow()
 {
     return confirm("Are you sure you want to permanently delete this "

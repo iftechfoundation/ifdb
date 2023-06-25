@@ -428,7 +428,7 @@ if (!$browse && !$xml) {
     echo $otherTabs;
 
     ?>
-<script type="text/javascript">
+<script type="text/javascript" nonce="<?php global $nonce; echo $nonce; ?>">
 
 function openHelpList(id, tableWid, params)
 {
@@ -1690,7 +1690,7 @@ else if ($term || $browse)
 
 if (!$xml) {
 ?>
-<script type="text/javascript">
+<script type="text/javascript" nonce="<?php global $nonce; echo $nonce; ?>">
 <!--
 function newSearch(typ)
 {

@@ -36,7 +36,7 @@ function imageUploadScripts()
    </div>
 </div>
 
-<script type="text/javascript">
+<script type="text/javascript" nonce="<?php global $nonce; echo $nonce; ?>">
 <!--
 
 var imageUploadFocusCtl = null;
@@ -231,7 +231,7 @@ function imageUploadRadio($originalUrl, $noneLabel, $radioname, $curval,
 
     // populate it via javascript
     ?>
-<script type="text/javascript">
+<script type="text/javascript" nonce="<?php global $nonce; echo $nonce; ?>">
 <!--
 imageTableUpdate("<?php echo "$utab"; ?>", "<?php echo $radioname; ?>", [<?php
 
@@ -341,7 +341,7 @@ function showImageCopyrightForm($defStatus, $defOwner)
         $defOwner = $defCC;
 
     ?>
-<script>
+<script nonce="<?php global $nonce; echo $nonce; ?>">
 <!--
 var imageCopyrightState = {
     lastAutoSet: "",

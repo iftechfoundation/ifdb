@@ -1230,7 +1230,7 @@ if ($curuser) {
         where userid='$curuser' and gameid='$qid'", $db);
     $unwishlist = mysql_num_rows($result) > 0;
             ?>
-            <script type="text/javascript">
+            <script type="text/javascript" nonce="<?php global $nonce; echo $nonce; ?>">
             <!--
 function updateRating(rating)
 {
@@ -1335,7 +1335,7 @@ function updateUnwishList(id, stat)
         . "</span><br></div></div>";
 
     ?>
-<script type="text/javascript">
+<script type="text/javascript" nonce="<?php global $nonce; echo $nonce; ?>">
 <!--
 mouseOutRating(<?php echo $currentUserRating ?>);
 //-->
@@ -1376,7 +1376,7 @@ mouseOutRating(<?php echo $currentUserRating ?>);
       </tr>
    </table>
 
-<script type="text/javascript">
+<script type="text/javascript" nonce="<?php global $nonce; echo $nonce; ?>">
 <!--
 function updatePlaylistCount(n)
 {
@@ -2467,7 +2467,7 @@ if (count($inrefs) != 0 && !$historyView) {
      </div>
   </div>
 
-<script type="text/javascript">
+<script type="text/javascript" nonce="<?php global $nonce; echo $nonce; ?>">
 <!--
 var dbTagList = [
 <?php
@@ -3123,7 +3123,7 @@ dispTags();
                     ." at <a href=\"https://www.ifwiki.org/index.php\">IF Wiki</a></div>";
                 $jifid = htmlspecialcharx(str_replace("\"", "&#34;", $ifids[0]));
                 ?>
-                <script>
+                <script nonce="<?php global $nonce; echo $nonce; ?>">
                     xmlSend("ifwiki-check?ifid=<?php echo $jifid ?>", null,
                         function(doc) {
                             if (xmlChildText(doc, "exists") == "yes") {

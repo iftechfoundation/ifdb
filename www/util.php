@@ -937,10 +937,11 @@ function spoilerWarningClose()
 function spoilerWarningScript()
 {
     static $didSpoilerScript = 0;
+    global $nonce;
     if ($didSpoilerScript++ != 0)
         return "";
     else
-        return "\n<script type=\"text/javascript\">\n"
+        return "\n<script type=\"text/javascript\" nonce=\"$nonce\">\n"
             . "<!--\n"
             . "function showSpoiler(id) { "
             . "document.getElementById(\"a_spoiler\" + id).style.display = "

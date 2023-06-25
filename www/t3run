@@ -225,7 +225,7 @@ if ($userid)
     }
 
     ?>
-<script type="text/javascript">
+<script type="text/javascript" nonce="<?php global $nonce; echo $nonce; ?>">
 function ckMultiChange()
 {
     var ck = document.getElementById("ckMulti");

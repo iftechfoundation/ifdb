@@ -34,7 +34,7 @@
 function profileLinkSupportFuncs()
 {
 ?>
-<script type="text/javascript">
+<script type="text/javascript" nonce="<?php global $nonce; echo $nonce; ?>">
 <!--
 
 var aplFieldEle = null, aplFieldRange = null, aplFieldFocus = null;

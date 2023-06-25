@@ -133,7 +133,7 @@ function initSpecialNames($db)
 function initReviewVote()
 {
 ?>
-<script type="text/javascript">
+<script type="text/javascript" nonce="<?php global $nonce; echo $nonce; ?>">
 <!--
 
 function sendReviewVote(reviewID, vote)
@@ -460,6 +460,7 @@ function showReview($db, $gameid, $rec, $specialNames, $optionFlags = 0)
             if (mysql_num_rows($result) > 0)
                 $oldvote = "'" . mysql_result($result, 0, "vote") . "'";
         }
+        global $nonce;
 
         echo "<div class=smallfoot><span class=details>"
             . "Was this review helpful to you? &nbsp; "
@@ -532,7 +533,7 @@ function showReview($db, $gameid, $rec, $specialNames, $optionFlags = 0)
             . "&nbsp;<span id=\"voteMsg_$reviewid\" class=\"xmlstatmsg\">"
             . "</span><span id=\"voteStat_$reviewid\"></span>"
             . "</span></div>"
-            . "<script type=\"text/javascript\">\r\n<!--\r\n"
+            . "<script type=\"text/javascript\" nonce=\"$nonce\">\r\n<!--\r\n"
             . "displayReviewVote('$reviewid', $oldvote);"
             . "\r\n//-->\r\n</script>\r\n";
 

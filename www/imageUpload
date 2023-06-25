@@ -18,7 +18,7 @@ if (isset($_REQUEST['setCopyright']))
     ?>
 <html>
 <body>
-<script type="text/javascript">
+<script type="text/javascript" nonce="<?php global $nonce; echo $nonce; ?>">
 <!--
 window.parent.imageCopyrightUpdated("<?php echo $errmsg ?>");
 //-->
@@ -46,7 +46,7 @@ $col0 = $_REQUEST['col0'];
    <?php echoStylesheetLink(); ?>
 </head>
 <body style="margin:0; padding:0; border:none;">
-<script type="text/javascript">
+<script type="text/javascript" nonce="<?php global $nonce; echo $nonce; ?>">
 <!--
 <?php
 
@@ -112,7 +112,7 @@ window.parent.imageUploadReady("<?php echo $btn ?>");
    </span>
 </form>
 
-<script type="text/javascript">
+<script type="text/javascript" nonce="<?php global $nonce; echo $nonce; ?>">
 <!--
 function uplStart()
 {

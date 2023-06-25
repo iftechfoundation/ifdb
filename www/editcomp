@@ -1212,7 +1212,7 @@ if ($show == "divform") {
     echo "<div id=\"divGridDiv\" style=\"margin: 2em 0 2em 0;\"></div>";
 
 ?>
-<script type="text/javascript">
+<script type="text/javascript" nonce="<?php global $nonce; echo $nonce; ?>">
 <!--
 var divModel = {
     rowhead: "Division Name</th><th>Description",
@@ -1294,7 +1294,7 @@ var divVals = [
     gameSearchPopupDiv();
 
 ?>
-<script type="text/javascript">
+<script type="text/javascript" nonce="<?php global $nonce; echo $nonce; ?>">
 <!--
 function checkClosePopup(event, byMouse)
 {

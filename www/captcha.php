@@ -167,7 +167,7 @@ function captchaSupportScripts($sessionKey, $okcb = false)
 {
 ?>
    <script src='https://www.google.com/recaptcha/api.js'></script>
-<script type="text/javascript">
+<script type="text/javascript" nonce="<?php global $nonce; echo $nonce; ?>">
 <!--
 var RecaptchaOptions = {
     theme: "white"

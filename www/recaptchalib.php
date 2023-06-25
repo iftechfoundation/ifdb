@@ -119,7 +119,8 @@ function recaptcha_get_html ($pubkey, $error = null, $use_ssl = true)
         if ($error) {
            $errorpart = "&amp;error=" . $error;
         }
-        return '<script type="text/javascript" src="'. $server . '/challenge?k=' . $pubkey . $errorpart . '"></script>
+        global $nonce;
+        return '<script type="text/javascript" src="'. $server . '/challenge?k=' . $pubkey . $errorpart . '" nonce="'.$nonce.'"></script>
 
     <noscript>
           <iframe src="'. $server . '/noscript?k=' . $pubkey . $errorpart . '" height="300" width="500" frameborder="0"></iframe><br/>

@@ -225,7 +225,7 @@ if ($userid)
         . "Start the game</a><br>";
 
     ?>
-<script type="text/javascript">
+<script type="text/javascript" nonce="<?php global $nonce; echo $nonce; ?>">
 function launchClick()
 {
     var codeWord = document.getElementById("sessionCodeWord");
@@ -312,7 +312,7 @@ else
 pageFooter();
 
 ?>
-<script type="text/javascript">
+<script type="text/javascript" nonce="<?php global $nonce; echo $nonce; ?>">
 function playWithoutLogin()
 {
     var mp = document.getElementById("sessionCodeWord").value;
