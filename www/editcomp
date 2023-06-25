@@ -1381,7 +1381,7 @@ function sortDivByPlace(modelVar, vals)
 
 function divRowTplFld(fldno, i, n, row, typ)
 {
-    var id = eval("divModel" + i).fields[fldno] + n;
+    var id = window["divModel" + i].fields[fldno] + n;
     return "<input name='" + id + "' id='" + id + "' "
         + typ + " value=\"" + jsQuote(row[fldno]) + "\">";
 }

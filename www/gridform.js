@@ -3,8 +3,8 @@
 function gfGenForm(modelVar, newRowIdx)
 {
     var i, j;
-    var model = eval(modelVar);
-    var vals = eval(model.vals);
+    var model = window[modelVar];
+    var vals = window[model.vals];
     var fields = model.fields;
     var d = document.getElementById(model.name);
     var s = "<table>";
@@ -169,8 +169,8 @@ function gfGenForm(modelVar, newRowIdx)
 
 function gfReloadVals(modelVar)
 {
-    var model = eval(modelVar);
-    var vals = eval(model.vals);
+    var model = window[modelVar];
+    var vals = window[model.vals];
     var fields = model.fields;
     var valcnt = vals.length;
     var row, fieldnum;
@@ -190,7 +190,7 @@ function gfReloadVals(modelVar)
 function gfInsRow(modelVar, n, newrow)
 {
     gfReloadVals(modelVar);
-    var model = eval(modelVar), vals = eval(model.vals), i;
+    var model = window[modelVar], vals = window[model.vals], i;
     var nrv = model.newRowVals;
 
     if (typeof(nrv) == "function")
@@ -237,7 +237,7 @@ function gfPostDelRow(modelVar, n)
 
 function gfDelRow(modelVar, n)
 {
-    var model = eval(modelVar);
+    var model = window[modelVar];
     var conf = model.confirmRemove || function(rownum) {
         return confirm("Do you really want to delete this row?");
     };
@@ -246,7 +246,7 @@ function gfDelRow(modelVar, n)
         return;
 
     gfReloadVals(modelVar);
-    var model = eval(modelVar), vals = eval(model.vals), i;
+    var model = window[modelVar], vals = window[model.vals], i;
     vals.splice(n, 1);
     gfGenForm(modelVar);
 }
@@ -254,7 +254,7 @@ function gfDelRow(modelVar, n)
 function gfMoveRow(modelVar, n, dir)
 {
     gfReloadVals(modelVar);
-    var model = eval(modelVar), vals = eval(model.vals);
+    var model = window[modelVar], vals = window[model.vals];
 
     var row = vals[n];
     vals.splice(n, 1);
