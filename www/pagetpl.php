@@ -46,16 +46,19 @@ function basePageHeader($title, $focusCtl, $extraOnLoad, $extraHead,
            ckboxSetup();
    ?>
    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+   <?php
+   if ($focusCtl) {
+        $extraOnLoad = "document.$focusCtl.focus();document.$focusCtl.select();$extraOnLoad";
+   }
+   if ($extraOnLoad) {
+        global $nonce;
+        echo "<script type='text/javascript' nonce='$nonce'>\n";
+        echo "addEventListener('load', function () { $extraOnLoad });\n";
+        echo "</script>";
+   }
+   ?>
 </head>
 <body<?php
-
-    if ($focusCtl) {
-        echo " onLoad=\"document.$focusCtl.focus();
-            document.$focusCtl.select();$extraOnLoad\"";
-    } else if ($extraOnLoad) {
-        echo " onLoad=\"$extraOnLoad\"";
-    }
-
     if ($bodyAttrs)
         echo " $bodyAttrs";
      ?>>
