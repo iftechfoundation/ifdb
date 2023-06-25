@@ -1,5 +1,6 @@
 <?php
 
+include_once "csp-nonce.php";
 include_once "util.php";
 include_once "login-persist.php";
 
