@@ -312,30 +312,39 @@ function ckboxKey(id, event, isRadio, onUpdateFunc)
 <?php
 }
 
+// this function is intended to create a <script> tag to replace inline event attributes
+function addEventListener($event, $code) {
+    global $nonce;
+    return "<script nonce='$nonce'>\n" .
+        "document.currentScript.parentElement.addEventListener('$event', function (event) {\n" .
+        "var result = (function(){ $code })();\nif (result === false) event.preventDefault();" .
+        "\n});\n" .
+        "</script>";
+}
+
 // --------------------------------------------------------------------------
 // Generate a checkbox
 //
 function ckRbString($id, $label, $checked, $onUpdateFunc, $isRadio)
 {
     $label = htmlspecialcharx($label);
-    return "<span class=\"cklabel\" "
-        . "onmouseover=\"javascript:ckboxOver('$id', $isRadio);return true;\" "
-        . "onmouseout=\"javascript:ckboxLeave('$id', $isRadio);return true;\" "
-        . "onclick=\"javascript:ckboxClick('$id', $isRadio, $onUpdateFunc);"
-        . "return false;\"><img src=\"/img/blank.gif\" class=\""
+    echo "<span class=\"cklabel\" >"
+        . addEventListener("mouseover", "ckboxOver('$id', $isRadio);")
+        . addEventListener("mouseout", "ckboxLeave('$id', $isRadio);")
+        . addEventListener("click", "ckboxClick('$id', $isRadio, $onUpdateFunc); return false")
+        . "<img src=\"/img/blank.gif\" class=\""
         . ($isRadio
            ? ($checked ? "radio-checked" : "radio-unchecked")
            : ($checked ? "ckbox-checked" : "ckbox-unchecked"))
         . "\" id=\"ckImg$id\"> "
-        . "<span id=\"ckLbl$id\"><a class=silent href=\"needjs\" "
-        . "onkeypress=\"javascript:ckboxKey("
-        . "'$id', event, $isRadio, $onUpdateFunc);return false;\""
-        . ">$label</a></span>"
+        . "<span id=\"ckLbl$id\"><a class=silent href=\"needjs\">"
+        . addEventListener("keypress", "ckboxKey('$id', event, $isRadio, $onUpdateFunc); return false")
+        . "$label</a></span>"
         . "</span>";
 }
 function ckRbWrite($id, $label, $checked, $onUpdateFunc, $isRadio)
 {
-    echo ckRbString($id, $label, $checked, $onUpdateFunc, $isRadio);
+    ckRbString($id, $label, $checked, $onUpdateFunc, $isRadio);
 }
 function checkboxWrite($id, $label, $checked, $onUpdateFunc)
 {
