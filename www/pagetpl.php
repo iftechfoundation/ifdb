@@ -322,6 +322,18 @@ function addEventListener($event, $code) {
         "</script>";
 }
 
+function addSiblingEventListeners($listeners) {
+    global $nonce;
+    $result = "<script nonce='$nonce'>\n";
+    foreach ($listeners as $listener) {
+        $result .= "document.currentScript.previousElementSibling.addEventListener('".$listener[0]."', function (event) {\n" .
+        "var result = (function(){ ". $listener[1] ." })();\nif (result === false) event.preventDefault();" .
+        "\n});\n";
+    }
+    $result .= "</script>";
+    return $result;
+}
+
 // --------------------------------------------------------------------------
 // Generate a checkbox
 //

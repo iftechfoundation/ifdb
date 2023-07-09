@@ -25,36 +25,35 @@ function makeComboBox($name, $textlen, $curval, $vals, $onSet = "null")
     // write the input field
     $txt = "<input type=\"text\" name=\"$name\" id=\"$name\" "
            . "size=$textlen value=\"" . htmlspecialcharx($curval)
-           . "\" onkeydown=\"javascript:return comboFieldKey("
-           . "event,'$name','${name}CBSel','D');\" "
-           . "onkeypress=\"javascript:return comboFieldKey("
-           . "event,'$name','{$name}CBSel','P');\">";
+           . "\">"
+           . addSiblingEventListeners([
+                ["keydown", "return comboFieldKey(event,'$name','${name}CBSel','D');"],
+                ["keypress", "return comboFieldKey(event,'$name','${name}CBSel','P');"],
+           ]);
 
     // add the drop arrow
-    $txt .= "<a href=\"needjs\" onkeypress=\"javascript:return "
-           . "comboArrowKey(event,'$name',true,'${name}CBSel');\" "
-           . "onkeydown=\"javascript:return comboArrowKey("
-           . "event,'$name',true,'${name}CBSel');\">"
+    $txt .= "<a href=\"needjs\">"
+           . addEventListener("keypress", "return comboArrowKey(event,'$name',true,'${name}CBSel');")
+           . addEventListener("keydown", "return comboArrowKey(event,'$name',true,'${name}CBSel');")
            . "<img alt=\"Open List\" border=0 "
-           . "src=\"/img/blank.gif\" class=\"combobox-arrow\" "
-           . "onclick=\"javascript:postShowComboMenu("
-           . "'$name',true,'{$name}CBSel');return false;\"></a>";
+           . "src=\"/img/blank.gif\" class=\"combobox-arrow\">"
+           . addSiblingEventListeners([["click", "postShowComboMenu("
+           . "'$name',true,'{$name}CBSel');return false;"]])
+           . "</a>";
 
     // set up the hidden division for the list
     $txt .= "<div id=\"{$name}CBDiv\" "
             . "style=\"position:absolute;display:none;top:0px; "
-            . "left:0px;z-index:20000\" "
-            . "onmouseover=\"javascript:overComboMenu=true;return true;\" "
-            . "onmouseout=\"javascript:overComboMenu=false;return true;\">";
+            . "left:0px;z-index:20000\">"
+            . addEventListener("mouseover", "overComboMenu=true;")
+            . addEventListener("mouseout", "overComboMenu=false;");
 
     // add the hidden list
-    $txt .= "<select size=10 id=\"{$name}CBSel\" "
-            . "onclick=\"javascript:setComboText('$name',this.value,$onSet);\" "
-            . "onkeypress=\"javascript:return comboKeyPress("
-            . "event,'$name',this,$onSet);\" "
-            . "onkeydown=\"javascript:return comboKeyPress("
-            . "event,'$name',this,$onSet);\" "
-            . "onblur=\"javascript:checkClosePopup(null, false);\">";
+    $txt .= "<select size=10 id=\"{$name}CBSel\">"
+            . addEventListener("click", "setComboText('$name',this.value,$onSet);")
+            . addEventListener("keypress", "return comboKeyPress(event,'$name',this,$onSet);")
+            . addEventListener("keydown", "return comboKeyPress(event,'$name',this,$onSet);")
+            . addEventListener("blur", "checkClosePopup(null, false);");
 
     // add the options
     for ($j = 0 ; $j < count($vals) ; $j++) {
