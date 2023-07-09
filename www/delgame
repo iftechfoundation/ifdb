@@ -366,12 +366,9 @@ if ($createFwd)
            <b>Target game for forwarding redirect (TUID):</b><br>
            <input name="fwdid" id="fwdid" type="text" size=50
                  value="<?php echo $fwdid ?>">
-           <a href="needjs"
-              onclick="javascript:openGameSearchPopup(
-                 'fwdid', applyFwd, '<?php
-   echo str_replace(array("'", '"'), array("\\'", "&#34;"), $title)
-                 ?>');return false;"
-              >Find game by title</a>
+           <a href="needjs"><?php echo addEventListener("click", "openGameSearchPopup(
+                 'fwdid', applyFwd, '" . str_replace(array("'", '"'), array("\\'", "&#34;"), $title) . "');return false;"); ?>
+              Find game by title</a>
 
 <script type="text/javascript" nonce="<?php global $nonce; echo $nonce; ?>">
 <!--
