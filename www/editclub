@@ -415,16 +415,17 @@ formCol("contacts", $contacts, "Contacts", "input(80)",
         . "<b>Bob Smith &lt;bob@ifclub.com&gt; <a class=silent href="
         . helpWinHRef("help-tuid") . "\">{TUID}</a></b>.  The {TUID} "
         . "is the IFDB profile link - "
-        . "<a href=\"needjs\" onclick=\"javascript:aplOpen("
-        . "'fld-contacts', 'Contacts');return false;\">Look up a profile</a>. "
+        . "<a href=\"needjs\">"
+        . addEventListener("click", "aplOpen('fld-contacts', 'Contacts');return false;")
+        . "Look up a profile</a>. "
         . "Separate contacts with commas if entering more than one. "
         . "E-mails will only be revealed after an \"enter the code\" "
         . "(CAPTCHA) test to block spam robots.");
 
 $ckbox = "<label><input type=checkbox name=hasPassword value=1 "
-         . "id='ckPassword' " . ($hasPassword ? "checked " : "")
-         . "onclick=\"javascript:showHidePassword(this.checked);"
-         . "return true;\"> <label for='ckPassword'>"
+         . "id='ckPassword' " . ($hasPassword ? "checked " : "") . ">"
+         . addSiblingEventListeners([["click", "showHidePassword(this.checked);"]])
+         . " <label for='ckPassword'>"
          . "Require new members to enter a password to join</label></label><br>"
          . "<span class=details><i>If you check this box, new members "
          . "will only be able to join if they know the password. "
