@@ -148,8 +148,8 @@ function captchaMaskEmail($email, $maskMsg)
 
     // generate the reveal link
     $link = "<span id=\"emailMasker$emailNum\">$maskA<a href=\"#\" "
-            . "onclick=\"javascript:showCaptchaForm();return false;\" "
             . "title=\"Click to reveal the full email address\">"
+            . addEventListener('click', "showCaptchaForm(); return false;")
             . "$email</a>$maskB</span>";
 
     // advance the counter
@@ -279,8 +279,8 @@ function captchaSolved(response)
 function captchaAjaxForm($sessionKey)
 {
     echo "<div id='captchaFormDiv' style='display:none;'>"
-        . "<form name='captchaAjaxForm' "
-        . "onsubmit='javascript:submitCaptchaForm();return false;'>"
+        . "<form name='captchaAjaxForm'>"
+        . addEventListener('submit', 'submitCaptchaForm();return false;')
 //        . getCaptchaSubForm($sessionKey, false, false)
         . "<div id='captchaFormCont'></div>"
         . "<div><span id='captchaStatusMsg'></span></div>"
