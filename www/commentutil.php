@@ -423,15 +423,19 @@ function showComment($db,$commentPage, $itemAuthor, $cidx, $coutlst, $i)
     // if it's plonked, wrap it in a click-through hider
     if ($plonked) {
         echo "<span class=details><i>You've plonked this comment's author</i>"
-            . " - <span><a href=\"needjs\" onclick=\"javascript:"
-            . "revealPlonkedAuthor(this, '$cuserid', '"
-            . str_replace(array('"', '\''),
-                          array("'+String.fromCharCode(34)+'", "\\'"),
-                          $cusername)
-            . "');return false;\">Reveal author</a></span>"
+            . " - <span><a href=\"needjs\">"
+            . addEventListener("click", "revealPlonkedAuthor(this, '$cuserid', '"
+                . str_replace(array('"', '\''),
+                            array("'+String.fromCharCode(34)+'", "\\'"),
+                            $cusername)
+                . "');return false;")
+            . "Reveal author</a></span>"
             . "<span style=\"display:none;\">"
-            . " | <a href=\"needjs\" onclick=\"javascript:"
-            . "revealPlonkedComment(this);return false;\">Reveal comment</a>"
+            . " | <a href=\"needjs\">"
+            . addEventListener(
+                "click", "revealPlonkedComment(this);return false;"
+            )
+            . "Reveal comment</a>"
             . "</span>"
             . "</span>"
             . "<div style=\"display: none;\">";

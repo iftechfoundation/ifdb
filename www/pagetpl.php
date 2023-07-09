@@ -317,7 +317,7 @@ function addEventListener($event, $code) {
     global $nonce;
     return "<script nonce='$nonce'>\n" .
         "document.currentScript.parentElement.addEventListener('$event', function (event) {\n" .
-        "var result = (function(){ $code })();\nif (result === false) event.preventDefault();" .
+        "var result = (function(){ $code }).apply(event.target);\nif (result === false) event.preventDefault();" .
         "\n});\n" .
         "</script>";
 }
@@ -327,7 +327,7 @@ function addSiblingEventListeners($listeners) {
     $result = "<script nonce='$nonce'>\n";
     foreach ($listeners as $listener) {
         $result .= "document.currentScript.previousElementSibling.addEventListener('".$listener[0]."', function (event) {\n" .
-        "var result = (function(){ ". $listener[1] ." })();\nif (result === false) event.preventDefault();" .
+        "var result = (function(){ ". $listener[1] ." }).apply(event.target);\nif (result === false) event.preventDefault();" .
         "\n});\n";
     }
     $result .= "</script>";
