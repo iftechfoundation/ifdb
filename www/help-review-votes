@@ -26,7 +26,7 @@ you) see this user's reviews throughout IFDB.  If you Promote the
 user, you'll see her reviews listed first when viewing a game; if you
 Demote her, her reviews will move to the end of the list.
 (You can view and change your promotions and demotions via the
- <a href="userfilter?list" onclick="return openUserFilter();">user filter
+ <a href="userfilter?list">user filter
 editor</a>.)
 
 <p><a name="plonk"><b>Plonk this user:</b></a>
@@ -36,9 +36,7 @@ If you plonk a user, <b>all</b> of her reviews will be omitted when
 you view game pages throughout IFDB.  This only affects you - it won't
 actually delete the user's reviews or hide them when other members
 view the same game pages.  (You can change your mind and un-plonk
-someone later via the <a href="userfilter?list"
-onclick="javascript:window.opener.location = 'userfilter?list';return false;"
->user filter editor</a>.)
+someone later via the <a href="userfilter?list">user filter editor</a>.)
 
 <p><b>Flag spoilers:</b> Mark this review as containing
 <b>unhidden</b> spoilers.  A spoiler gives away a secret that you're
@@ -56,19 +54,18 @@ review may violate the
 <a href="/tos">Terms of Service</a>.
 
 <script type="text/javascript" nonce="<?php global $nonce; echo $nonce; ?>">
-function openUserFilter()
-{
-    if (window.opener
-        && window.opener != window
-        && !window.opener.closed)
-    {
-        window.opener.location = "userfilter?list";
-        window.close();
-        return false;
-    }
-    else
-        return true;
-}
+document.querySelectorAll('a[href="userfilter?list"]').forEach(function (link) {
+    link.addEventListener('click', function (event) {
+        if (window.opener
+            && window.opener != window
+            && !window.opener.closed)
+        {
+            window.opener.location = "userfilter?list";
+            window.close();
+            event.preventDefault();
+        }
+    });
+})
 </script>
 
 <?php
