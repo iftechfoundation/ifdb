@@ -99,21 +99,13 @@ function gfGenForm(modelVar, newRowIdx)
         s += "<tr><td valign=\"" + ctlvalign + "\"><nobr>";
 
         if (i > 0)
-            s += "<a href=\"needjs\" title=\"Move up\" "
-                 + "onmouseover=\"javascript:window.status='Move up';return true;\" "
-                 + "onmouseout=\"javascript:window.status='';\" "
-                 + "onclick=\"javascript:gfMoveRow('" + modelVar + "',"
-                 + i + ",-1);return false;\">"
+            s += "<a href=\"needjs\" class='"+modelVar+"MoveUp' x-i='"+i+"' title=\"Move up\">"
                  + "<img src=\"/img/blank.gif\" class=\"grid-move-up\"></a> ";
         else
             s += "<img src=\"/img/blank.gif\" class=\"grid-move-blank\"> "
 
         if (i + 1 < vals.length)
-            s += "<a href=\"needjs\" title=\"Move down\" "
-                 + "onmouseover=\"javascript:window.status='Move down';return true;\" "
-                 + "onmouseout=\"javascript:window.status='';\" "
-                 + "onclick=\"javascript:gfMoveRow('" + modelVar + "',"
-                 + i + ",1);return false\">"
+            s += "<a href=\"needjs\" class='"+modelVar+"MoveDown' x-i='"+i+"' title=\"Move down\">"
                  + "<img src=\"/img/blank.gif\" class=\"grid-move-down\"></a> ";
         else
             s += "<img src=\"/img/blank.gif\" class=\"grid-move-blank\"> ";
@@ -121,30 +113,48 @@ function gfGenForm(modelVar, newRowIdx)
         s += "</nobr></td><td>" + txt + "</td><td valign=\"" + ctlvalign + "\">";
 
         if (model.allowRemove == null || model.allowRemove(i))
-            s += "<a href=\"needjs\" title=\"Remove\" "
-                 + "onmouseover=\"javascript:window.status='Remove';"
-                 + "return true;\" "
-                 + "onmouseout=\"javascript:window.status='';\" "
-                 + "onkeypress=\"javascript:return gfDelRowBtnKey("
-                 + "event,'" + modelVar + "'," + i + ");\" "
-                 + "onclick=\"javascript:gfPostDelRow('" + modelVar + "',"
-                 + i + ");return false\">"
+            s += "<a href=\"needjs\" class='"+modelVar+"Remove' x-i='"+i+"' title=\"Remove\">"
                  + "<img src=\"/img/blank.gif\" class=\"grid-remove-button\"></a> ";
 
         s += "</td></tr>";
     }
 
     s += "<tr><td></td><td>"
-         + "<a href=\"#\" title=\"Add a new item\" "
-         + "onmouseover=\"javascript:window.status='Add a new item';return true;\" "
-         + "onmouseout=\"javascript:window.status='';\" "
-         + "onclick=\"javascript:gfInsRow('" + modelVar + "',"
-         + i + ");return false;\"><img src=\"/img/blank.gif\" class=\""
+         + "<a href=\"#\" class='"+modelVar+"Add' title=\"Add a new item\">"
+         + "<img src=\"/img/blank.gif\" class=\""
          + model.addbutton + "\"></a>"
          + (model.addExtra ? model.addExtra : "")
          + "</td></tr></table>";
 
     d.innerHTML = s;
+
+    d.querySelectorAll("." + modelVar + "MoveUp").forEach(function (link) {
+        link.addEventListener('click', function (event) {
+            event.preventDefault();
+            gfMoveRow(modelVar, link.getAttribute("x-i"), -1);
+        })
+    });
+
+    d.querySelectorAll("." + modelVar + "MoveDown").forEach(function (link) {
+        link.addEventListener('click', function (event) {
+            event.preventDefault();
+            gfMoveRow(modelVar, link.getAttribute("x-i"), 1);
+        })
+    });
+
+    d.querySelectorAll("." + modelVar + "Remove").forEach(function (link) {
+        link.addEventListener('click', function (event) {
+            event.preventDefault();
+            gfDelRow(modelVar, link.getAttribute("x-i"));
+        })
+    });
+
+    d.querySelectorAll("." + modelVar + "Add").forEach(function (link) {
+        link.addEventListener('click', function (event) {
+            event.preventDefault();
+            gfInsRow(modelVar, i);
+        })
+    });
 
     if (model.activateListeners) model.activateListeners();
 
