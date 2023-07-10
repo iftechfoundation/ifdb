@@ -107,8 +107,7 @@ window.parent.imageUploadReady("<?php echo $btn ?>");
    <input type="hidden" name="tab" value="<?php echo $tab ?>">
    <input type="hidden" name="col0" value="<?php echo $col0 ?>">
    <span id="uplFileSpan" class="details">
-      Select an image file: <input type="file" name="uplFile" id="uplFile"
-         onchange="javascript:uplStart();">
+      Select an image file: <input type="file" name="uplFile" id="uplFile">
    </span>
 </form>
 
@@ -119,11 +118,10 @@ function uplStart()
     setTimeout(function() {
         document.uplUploadForm.submit();
 
-        var ele = document.getElementById("uplFileSpan");
-        ele.innerHTML = "<input type=\"file\" name=\"uplFile\" id=\"uplFile\" "
-                        + "onchange=\"javascript:uplStart();\">";
+        uplFile.value = "";
     }, 100);
 }
+uplFile.addEventListener('change', function() { uplStart(); });
 function uplSelect()
 {
     var ele = document.getElementById("uplFile");
