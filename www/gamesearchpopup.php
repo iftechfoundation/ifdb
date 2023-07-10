@@ -104,11 +104,8 @@ function gameSearchPopupDone(d)
             var title = lst[i].getElementsByTagName('title')[0].firstChild.data;
             var author = lst[i].getElementsByTagName('author')[0].firstChild.data;
 
-            s += "<a href=\"needjs\" onclick=\"javascript:"
-                 + "gameSearchPopupSetID('" + id
-                 + "','" + title.replace(/'/g, '\\\'').replace(/"/g, '&#34;')
-                 + "','" + author.replace(/'/g, '\\\'').replace(/"/g, '&#34;')
-                 + "');return false;\"><i>" + encodeHTML(title) + "</i></a>"
+            s += "<a href=\"needjs\" id='gameSearchPopupLink"+i+"'><i>"
+                 + encodeHTML(title) + "</i></a>"
                  + ", by " + encodeHTML(author)
                  + " - <a href=\"viewgame?id=" + id + "\" target=\"_blank\">"
                  + "view game</a><br>";
@@ -117,6 +114,17 @@ function gameSearchPopupDone(d)
             s = "<b><i>(No matching games found.)</i></b>";
 
         document.getElementById("gameSearchPopupResults").innerHTML = s;
+        for (var i = 0; i < lst.length; i++) {
+            (function(i) {
+                window['gameSearchPopupLink'+i].addEventListener('click', function(event) {
+                    event.preventDefault();
+                    var id = lst[i].getElementsByTagName('tuid')[0].firstChild.data;
+                    var title = lst[i].getElementsByTagName('title')[0].firstChild.data;
+                    var author = lst[i].getElementsByTagName('author')[0].firstChild.data;
+                    gameSearchPopupSetID(id, title, author);
+                })
+            })(i);
+        }
         document.getElementById("gameSearchPopupStep2").style.display = "block";
         setTimeout(function() {
             var ele = document.getElementById("gameSearchPopupDiv");
@@ -152,8 +160,13 @@ function gameSearchPopupDiv()
              <b>Select a Game</b>
              <span style="position:absolute;top:2px;right:2px;
                    text-align:right;">
-                <a href="needjs"
-                 onclick="javascript:gameSearchPopupClose();return false;">
+                <a href="needjs">
+                   <script type="text/javascript" nonce="<?php global $nonce; echo $nonce; ?>">
+                      document.currentScript.parentElement.addEventListener('click', function (event) {
+                        event.preventDefault();
+                        gameSearchPopupClose();
+                      })
+                   </script>
                    Close<img src="img/blank.gif" class="popup-close-button"></a>
              </span>
           </div>
@@ -163,12 +176,23 @@ function gameSearchPopupDiv()
               echo helpWinLink("help-ifid", "IFID") ?>, or <?php
               echo helpWinLink("help-tuid", "TUID") ?>:
           <br>
-          <input id="gameSearchPopupSearchBox" type=text size=50
-              onkeypress="javascript:return gameSearchPopupKey(event);"
-              onkeydown="javascript:return gameSearchPopupKey(event);">
+          <input id="gameSearchPopupSearchBox" type=text size=50>
           <input type=submit name="gameSearchPopupGoBtn"
-              id="gameSearchPopupGoBtn" value="Search"
-              onclick="javascript:gameSearchPopupGo();return false;">
+              id="gameSearchPopupGoBtn" value="Search">
+          <script type="text/javascript" nonce="<?php global $nonce; echo $nonce; ?>">
+            gameSearchPopupSearchBox.addEventListener('keypress', function (event) {
+                var result = gameSearchPopupKey(event);
+                if (result === false) event.preventDefault();
+            });
+            gameSearchPopupSearchBox.addEventListener('keydown', function (event) {
+                var result = gameSearchPopupKey(event);
+                if (result === false) event.preventDefault();
+            });
+            gameSearchPopupGoBtn.addEventListener('click', function (event) {
+                event.preventDefault();
+                gameSearchPopupGo();
+            });
+          </script>
           <div id="gameSearchPopupStep2" style="display:none;">
              <p><b>Step 2:</b> Click on a result below to select it:
 
