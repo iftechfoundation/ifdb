@@ -146,6 +146,8 @@ function gfGenForm(modelVar, newRowIdx)
 
     d.innerHTML = s;
 
+    if (model.activateListeners) model.activateListeners();
+
     if (model.popups)
     {
         for (var p in model.popups)
