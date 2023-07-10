@@ -514,11 +514,11 @@ if ($errMsg) {
         // start the page
         pageHeader($pagetitle, "editgame.title",
                    "gfGenForm('linkModel');gfGenForm('reviewModel');"
-                   . "gfGenForm('xrefModel');",
+                   . "gfGenForm('xrefModel');"
+                   . "\ndocument.body.addEventListener('mousedown', function (event) { checkClosePopup(event, true); });",
                    "<script src=\"gridform.js\"></script>"
                    . "<script src=\"xmlreq.js\"></script>",
-                   false,
-                   "onmousedown=\"checkClosePopup(event,true);\"");
+                   false);
 
         initStarControls();
         imageUploadScripts();
@@ -536,19 +536,10 @@ if ($id == "new")
         . helpWinLink("help-add-game", "Guidelines for adding new games")
         . " - "
         . helpWinLink("help-edit-game", "Guidelines for game listing")
-//       <a href=\"needjs\"
-//         onclick=\"javascript:helpWin('help-add-game');return false;\">
-//          Guidelines for adding new games</a> -
-//       <a href=\"needjs\"
-//          onclick=\"javascript:helpWin('help-edit-game');return false;\">
-//          Guidelines for game listings</a>"
         . "</span><br><br>";
 else
     echo "<p><span class=notes> "
         . helpWinLink("help-edit-game", "Guidelines for game listings")
-//          <a href=\"needjs\"
-//           onclick=\"javascript:helpWin('help-edit-game');return false;\">
-//           Guidelines for game listings</a>
         . "</span><br><br>";
 
 if ($saveErrMsg) {
@@ -1155,7 +1146,8 @@ echo "<span class=details><i>List downloads for the game itself
    . "<br>"
    . "<div style=\"margin-top: 1ex; margin-bottom: 1ex;\">"
    . "<b>Are you the author of this game?</b> "
-   . "<a href=\"needjs\" onclick=\"javascript:uploadWindow();return false;\">"
+   . "<a href=\"needjs\">"
+   . addEventListener("click", "uploadWindow();return false;")
    . "Upload it to the IF Archive</a></div>";
 
 
@@ -1171,22 +1163,33 @@ function echoGridField($link, $fld, $isFirst = false)
 // ---------------  display the hidden download-link editor ----------------
 ?>
 <div id="linkpopup" class="edit-popup-frame"
-     style="position:absolute;display:none;top:0px;left:0px;z-index:10000;"
-     onmouseover="javascript:overLinkPopup=true;return true;"
-     onmouseout="javascript:overLinkPopup=false;return true;"
-     onkeydown="javascript:return linkPopupKey(event);"
-     onkeypress="javascript:return linkPopupKey(event);">
+     style="position:absolute;display:none;top:0px;left:0px;z-index:10000;">
+   <script type="text/javascript" nonce="<?php global $nonce; echo $nonce; ?>">
+    linkpopup.addEventListener('mouseover', function () { overLinkPopup=true });
+    linkpopup.addEventListener('mouseout', function () { overLinkPopup=false });
+    linkpopup.addEventListener('keydown', function (event) {
+        var result = linkPopupKey(event);
+        if (result === false) event.preventDefault();
+    });
+    linkpopup.addEventListener('keypress', function (event) {
+        var result = linkPopupKey(event);
+        if (result === false) event.preventDefault();
+    });
+   </script>
    <div style="position:relative;" class="edit-popup-title">
       <div style="text-align:center;"><b>Edit Link</b></div>
       <span style="position:absolute;top:2px;right:4px;">
          <?php
            echo helpWinLink("help-links", "Help");
-//         <a href="needjs"
-//          onclick="javascript:helpWin('help-links');return false;">
-//            Help</a>
          ?>
          &nbsp;&nbsp;
-         <a href="needjs" onclick="javascript:closeLinkPopup();return false;">
+         <a href="needjs">
+            <script type="text/javascript" nonce="<?php global $nonce; echo $nonce; ?>">
+                document.currentScript.parentElement.addEventListener('click', function (event) {
+                    event.preventDefault();
+                    closeLinkPopup();
+                })
+            </script>
             Close<img src="img/blank.gif" class="popup-close-button"></a>
          </span>
    </div>
@@ -1203,8 +1206,12 @@ function echoGridField($link, $fld, $isFirst = false)
                      <b>URL:</b>
                   </td>
                   <td>
-                     <input type="text" name="linkurl" id="linkurl" oninput="javascript:updateFormatUI()"
+                     <input type="text" name="linkurl" id="linkurl"
                             size=80><br><span class=details>
+                        <script type="text/javascript" nonce="<?php global $nonce; echo $nonce; ?>">
+                            linkurl.addEventListener('input', function() {updateFormatUI();})
+                        </script>
+
                         The full URL, linking directly to the downloadable
                         file. For IF Archive links, use the <b>main</b> Archive
                         only (http://www.ifarchive.org/if-archive/...) -
@@ -1220,7 +1227,10 @@ function echoGridField($link, $fld, $isFirst = false)
                   </td>
                   <td>
                      <input type="text" name="linktitle" id="linktitle"
-                            size=40 oninput="javascript:updateFormatUI()">
+                            size=40>
+                        <script type="text/javascript" nonce="<?php global $nonce; echo $nonce; ?>">
+                            linktitle.addEventListener('input', function() {updateFormatUI();})
+                        </script>
                      <br>
                      <span class=details>
                         A short title for the link: "Story File", "User's
@@ -1251,8 +1261,10 @@ function echoGridField($link, $fld, $isFirst = false)
                   <td>
                      <label>
                      <input type="checkbox" value="1"
-                         name="linkisgame" id="linkisgame"
-                         onclick="javascript:updateIsGame();return true;">
+                         name="linkisgame" id="linkisgame">
+                         <script type="text/javascript" nonce="<?php global $nonce; echo $nonce; ?>">
+                            linkisgame.addEventListener('click', function() {updateIsGame();})
+                        </script>
                      <label for="linkisgame"> This is a playable game file
                         <i><b>or</b></i> it <b>contains</b> a playable game
                         </label></label>
@@ -1296,8 +1308,10 @@ function echoGridField($link, $fld, $isFirst = false)
                      <b>File Type:</b>
                   </td>
                   <td>
-                     <select name="linkfmtG" id="linkfmtG"
-                             onchange="javascript:updateFormatUI(true)">
+                     <select name="linkfmtG" id="linkfmtG">
+                            <script type="text/javascript" nonce="<?php global $nonce; echo $nonce; ?>">
+                                linkfmtG.addEventListener('change', function() {updateFormatUI(true);})
+                            </script>
                         <?php
 // write out the GAME formats
 foreach ($linkfmts as $lf) {
@@ -1310,8 +1324,10 @@ foreach ($linkfmts as $lf) {
                         ?>
                      </select>
                      <select name="linkfmtNG" id="linkfmtNG"
-                             style="display:none;"
-                             onchange="javascript:updateFormatUI(true)">
+                             style="display:none;">
+                             <script type="text/javascript" nonce="<?php global $nonce; echo $nonce; ?>">
+                                linkfmtNG.addEventListener('change', function() {updateFormatUI(true);})
+                            </script>
                         <?php
 // write out the NON-GAME formats
 foreach ($linkfmts as $lf) {
@@ -1354,8 +1370,10 @@ foreach ($oslist as $os) {
                      <b><nobr>Compression:</nobr></b>
                   </td>
                   <td>
-                     <select name="linkcomp" id="linkcomp"
-                        onchange="javascript:updateFormatUI(false)">
+                     <select name="linkcomp" id="linkcomp">
+                        <script type="text/javascript" nonce="<?php global $nonce; echo $nonce; ?>">
+                            linkcomp.addEventListener('change', function() {updateFormatUI(false);})
+                        </script>
                         <option value="">None</option>
                         <?php
 // write out the compression formats
@@ -1376,7 +1394,10 @@ foreach ($linkfmts as $lf) {
                   </td>
                   <td>
                      <input type="text" name="linkcomppri" id="linkcomppri"
-                            size=40 oninput="javascript:updateFormatUI()">
+                            size=40>
+                            <script type="text/javascript" nonce="<?php global $nonce; echo $nonce; ?>">
+                                linkcomppri.addEventListener('input', function() {updateFormatUI();})
+                            </script>
                      <input type="text" id="linkcomppriNA" value="N/A"
                             readonly size=40
                            style="background:#e0e0e0;color:#404040;">
@@ -1508,12 +1529,10 @@ var linkModel = {
                "linkcomp", "linkcomppri"],
 
     "rowtpl": "<nobr><input type=\"text\" readonly #1 size=100>"
-        + " <a href=\"needjs\" onkeydown=\"javascript:return linkEditBtnKey("
-        + "event,'##');\" id=\"linkEditBtn##\">"
+        + " <a href=\"needjs\" id=\"linkEditBtn##\">"
         + "<img alt=\"Edit this link\" "
         + "border=0 src=\"/img/blank.gif\" class=\"grid-edit-button\" "
-        + "style=\"cursor:pointer;\" "
-        + "onclick=\"javascript:postLinkPopup(event,'##');return false;\"></a>"
+        + "style=\"cursor:pointer;\"></a>"
         + "<input type=hidden #2>"
         + "<input type=hidden #3>"
         + "<input type=hidden #4>"
@@ -1523,7 +1542,18 @@ var linkModel = {
         + "<input type=hidden #8>"
         + "<input type=hidden #9>"
         + "<input type=hidden #10>"
-        + "</nobr>"
+        + "</nobr>",
+
+    "activateListeners": function() {
+        for (var i = 0; i < linkVals.length; i++) {
+            (function(i) {
+                window['linkEditBtn' + i].addEventListener('click', function(event) {
+                    event.preventDefault();
+                    postLinkPopup(event, i);
+                });
+            })(i);
+        }
+    }
 };
 var linkVals = [
     <?php
@@ -1593,11 +1623,19 @@ var linkVals = [
             ?>
             <div id="reviewpopup" class="edit-popup-frame"
                  style="position:absolute; display:none; top:0px; left:0px;
-                        z-index:10000;"
-                 onmouseover="javascript:overReviewPopup=true;return true;"
-                 onmouseout="javascript:overReviewPopup=false;return true;"
-                 onkeypress="javascript:return reviewPopupKey(event);"
-                 onkeydown="javascript:return reviewPopupKey(event);">
+                        z-index:10000;">
+               <script type="text/javascript" nonce="<?php global $nonce; echo $nonce; ?>">
+                    reviewpopup.addEventListener('mouseover', function () { overReviewPopup=true });
+                    reviewpopup.addEventListener('mouseout', function () { overReviewPopup=false });
+                    reviewpopup.addEventListener('keydown', function (event) {
+                        var result = reviewPopupKey(event);
+                        if (result === false) event.preventDefault();
+                    });
+                    reviewpopup.addEventListener('keypress', function (event) {
+                        var result = reviewPopupKey(event);
+                        if (result === false) event.preventDefault();
+                    });
+               </script>
                <div style="position:relative;" class="edit-popup-title">
                   <div style="text-align:center;">
                      <b>Edit Review Link</b>
@@ -1606,12 +1644,14 @@ var linkVals = [
                         text-align:right;">
                      <?php
 //                         echo helpWinLink("help-ext-reviews", "Help");
-//                     <a href="needjs"
-//                        onclick="javascript:helpWin('help-ext-reviews');return false;">
-//                        Help</a> &nbsp;&nbsp;
                      ?>
-                     <a href="needjs"
-                        onclick="javascript:closeReviewPopup();return false;">
+                     <a href="needjs">
+                        <script type="text/javascript" nonce="<?php global $nonce; echo $nonce; ?>">
+                            document.currentScript.parentElement.addEventListener('click', function(event) {
+                                event.preventDefault();
+                                closeReviewPopup();
+                            });
+                        </script>
                         Close<img src="img/blank.gif" class="popup-close-button"></a>
                   </span>
                </div>
@@ -1663,9 +1703,13 @@ function onComboSelectReviewSite(val)
                   <b>Rating:</b> <?php
                       echo showStarCtl("extrevStarCtl", 0,
                                        "setExtRevRating", "null");
-                  ?> <a href="needjs" onclick="javascript:setExtRevRating(0);
-                      setStarCtlValue('extrevStarCtl',0);return false;"
-                      >Remove rating</a><br>
+                  ?> <a href="needjs"><script type="text/javascript" nonce="<?php global $nonce; echo $nonce; ?>">
+                        document.currentScript.parentElement.addEventListener('click', function(event) {
+                            event.preventDefault();
+                            setExtRevRating(0);
+                            setStarCtlValue('extrevStarCtl',0);
+                        })
+                    </script>Remove rating</a><br>
                   <input type=hidden name=extrevRating id=extrevRating value=0>
                   <span class=details>If the site uses a different rating
                      system, pick the closest equivalent star rating (e.g.,
@@ -1683,8 +1727,6 @@ function onComboSelectReviewSite(val)
                      own words, or enter a brief excerpt from the
                      full review (a paragraph or two). - <?php
                        echo helpWinLink("help-formatting", "Formatting hints");
-//                     <a href="needjs" onclick="javascript:helpWin(
-//                        'help-formatting');return false;">Formatting hints</a>
                      ?>
                   </span><br>
                   <textarea id="extrevSummary" rows=5 cols=80></textarea>
@@ -1741,20 +1783,28 @@ var reviewModel = {
                 "extrevRating", "extrevHeadline", "extrevSummary"],
 
     "rowtpl": "<nobr><input type=text readonly #1 size=100>"
-        + " <a href=\"needjs\" onkeypress=\"javascript:return "
-        + "reviewEditBtnKey(event,'##');\" onkeydown=\"javascript:return "
-        + "reviewEditBtnKey(event,'##');\" id=\"reviewEditBtn##\">"
+        + " <a href=\"needjs\" id=\"reviewEditBtn##\">"
         + "<img alt=\"Edit this review\" "
         + "border=0 src=\"/img/blank.gif\" class=\"grid-edit-button\" "
-        + "style=\"cursor:pointer;\" "
-        + "onclick=\"javascript:postShowReviewPopup('##');return false;\"></a>"
+        + "style=\"cursor:pointer;\"></a>"
         + "<input type=hidden #2>"
         + "<input type=hidden #3>"
         + "<input type=hidden #4>"
         + "<input type=hidden #5>"
         + "<input type=hidden #6>"
         + "<input type=hidden #7>"
-        + "</nobr>"
+        + "</nobr>",
+    
+    "activateListeners": function() {
+        for (var i = 0; i < reviewVals.length; i++) {
+            (function(i) {
+                window['reviewEditBtn' + i].addEventListener('click', function(event) {
+                    event.preventDefault();
+                    postShowReviewPopup(i);
+                });
+            })(i);
+        }
+    }
 };
 var reviewVals = [
     <?php
@@ -1878,21 +1928,32 @@ for ($i = 0 ; $i < count($reftypes) ; ++$i) {
 ?></select> <input type=\"hidden\" #2><input type=\"hidden\" #3>"
        + "<span id=\"xrefDispTitle##\" style=\"padding: 0 1em 0 1em;\">"
        + (xrefVals[rownum][1] == ""
-          ? "<a href=\"needjs\" onclick=\"javascript:editXRef('##');"
-          + "return false;\"><i>Not set - click to select a game</i></a>"
+          ? "<a href=\"needjs\" xref-name=\"##\"><i>Not set - click to select a game</i></a>"
           : "<a href=\"viewgame?id=$2\" class=\"silent\" target=\"_blank\">"
           + "<i>$3</i></a>")
        + "</td><td>"
-       + "<a href=\"#\" onkeypress=\"javascript:return "
-       + "xrefEditBtnKey(event,'##');\" onkeydown=\"javascript:return "
-       + "xrefEditBtnKey(event,'##');\" "
-       + "id=\"xrefEditBtn##\"><img alt=\"Edit this reference\" "
+       + "<a href=\"#\" id=\"xrefEditBtn##\"><img alt=\"Edit this reference\" "
        + "border=0 src=\"/img/blank.gif\" class=\"grid-edit-button\" "
-       + "style=\"cursor:pointer;\" onclick=\"javascript:editXRef('##');"
-       + "return false;\"></a></nobr>";
+       + "style=\"cursor:pointer;\"></a></nobr>";
     },
     onAddRow: function(rownum) {
         editXRef(rownum);
+    },
+    activateListeners: function() {
+        for (var i = 0; i < xrefVals.length; i++) {
+            (function(i) {
+                window['xrefEditBtn' + i].addEventListener('click', function(event) {
+                    event.preventDefault();
+                    editXRef(i);
+                });
+                document.querySelectorAll("a[xref-name=\""+i+"\"]").forEach(function (xrefLink) {
+                    xrefLink.addEventListener('click', function (event) {
+                        event.preventDefault();
+                        editXRef(i);
+                    });
+                });
+            })(i);
+        }
     }
 
 };
@@ -1950,9 +2011,15 @@ for ($i = 0 ; $i < count($reftypes) ; ++$i) {
             &nbsp;
             <input type=image alt="Reset Form (Discard Changes)"
                    value="Reset Form (Discard Changes)"
-                   name="discard" onclick="javascript:return confirmReset();"
+                   name="discard"
                    src="img/blank.gif" class="reset-form-button"
                    id="editgame-reset-button">
+                   <script type="text/javascript" nonce="<?php global $nonce; echo $nonce; ?>">
+                       window['editgame-reset-button'].addEventListener('click', function (event) {
+                          var result = confirmReset();
+                          if (result === false) event.preventDefault();
+                       });
+                   </script>
             &nbsp;
             <a href="<?php
                 echo ($id == "new" ? "home" : "viewgame?id=$id");
