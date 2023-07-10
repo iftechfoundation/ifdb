@@ -212,11 +212,11 @@ function imageUploadRadio($originalUrl, $noneLabel, $radioname, $curval,
     // add the upload button
     echo "</tr><tr><td>&nbsp;<br></td></tr><tr valign=middle>"
         . "<td colspan='$tableCols'>"
-        . "<a href=\"#\" id=\"$ubtn\" "
-        .   "onclick=\"javascript:imageUploadSelect('$ubtn','$ufr');"
-        .      "return false;\" "
-        .   "onfocus=\"javascript:imageUploadFocus('$ubtn', true);\" "
-        .   "onblur=\"javascript:imageUploadFocus('$ubtn', false);\">"
+        . "<a href=\"#\" id=\"$ubtn\">"
+        . addEventListener('click', "imageUploadSelect('$ubtn','$ufr');"
+        .      "return false;")
+        . addEventListener('focus', "imageUploadFocus('$ubtn',true);")
+        . addEventListener('blur', "imageUploadFocus('$ubtn',false);")
         . "<img src=\"/img/blank.gif\" class=\"upload-image-button\"></a>"
         . "<iframe name=\"$ufr\" id=\"$ufr\" src=\"imageUpload?btn=$ubtn"
         .     "&fr=$ufr&thumbSize=$thumbSiz&radio=$radioname&tab=$utab"
@@ -374,7 +374,8 @@ function setDefaultImageCopyright(def)
 
        <label><input type=radio name="imgcopyright" value="C" id="icrC"
           <?php if ($rbval == 'C') echo "checked"?>
-          onclick="javascript:setDefaultImageCopyright('defCC');">
+          >
+          <?php echo addSiblingEventListeners([["click", "setDefaultImageCopyright('defCC');"]]); ?>
           <label for="icrC">I own the copyright and hereby license the
              image under a
              <a href="http://creativecommons.org/licenses/by/3.0/us/"
@@ -383,21 +384,24 @@ function setDefaultImageCopyright(def)
 
        <br><label><input type=radio name="imgcopyright" value="L" id="icrL"
           <?php if ($rbval == 'L') echo "checked"?>
-          onclick="javascript:setDefaultImageCopyright('defOwner');">
+          >
+          <?php echo addSiblingEventListeners([["click", "setDefaultImageCopyright('defOwner');"]]); ?>
           <label for="icrL">The image is covered by a "Free Software" license
           that allows its use on IFDB. For example, it's part of a free game.
           </label></label>
 
        <br><label><input type=radio name="imgcopyright" value="U" id="icrU"
           <?php if ($rbval == 'U') echo "checked"?>
-          onclick="javascript:setDefaultImageCopyright('defOwner');">
+          >
+          <?php echo addSiblingEventListeners([["click", "setDefaultImageCopyright('defOwner');"]]); ?>
           <label for="icrU">The copyright owner has granted special
              permission for the image to be used on IFDB.
           </label></label>
 
        <br><label><input type=radio name="imgcopyright" value="F" id="icrF"
           <?php if ($rbval == 'F') echo "checked"?>
-          onclick="javascript:setDefaultImageCopyright('defOwner');">
+          >
+          <?php echo addSiblingEventListeners([["click", "setDefaultImageCopyright('defOwner');"]]); ?>
           <label for="icrF">I believe this copyrighted image can be
              legally used on IFDB under the
              <a href="http://en.wikipedia.org/wiki/Fair_use"
@@ -407,7 +411,8 @@ function setDefaultImageCopyright(def)
 
        <br><label><input type=radio name="imgcopyright" value="P" id="icrP"
           <?php if ($rbval == 'P') echo "checked"?>
-          onclick="javascript:setDefaultImageCopyright('');">
+          >
+          <?php echo addSiblingEventListeners([["click", "setDefaultImageCopyright('');"]]); ?>
           <label for="icrP">This image is not copyrighted (it's in the
              <a href="http://en.wikipedia.org/wiki/Public_domain"
                 target="_blank">public
@@ -415,7 +420,8 @@ function setDefaultImageCopyright(def)
 
        <br><label><input type=radio name="imgcopyright" value="" id="icrNULL"
           <?php if ($rbval == '') echo "checked"?>
-          onclick="javascript:setDefaultImageCopyright('');">
+          >
+          <?php echo addSiblingEventListeners([["click", "setDefaultImageCopyright('');"]]); ?>
           <label for="icrNULL">Not specified.</label></label>
 
 
