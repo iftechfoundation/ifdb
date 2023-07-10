@@ -875,10 +875,7 @@ var listModel = {
         else
         {
             var iid = "disptitle" + row;
-            s += (row+1) + ". <span id=\"" + iid + "\"><a href=\"needjs\" "
-                 + "onclick=\"javascript:openGameSearchPopup('" + iid
-                 + "', function(tuid,t,a) { setGameItem('" + row
-                 + "',tuid,t,a); },'');return false;\">"
+            s += (row+1) + ". <span id=\"" + iid + "\"><a href=\"needjs\">"
                  + "<i>Click to select a game</i></a></span>";
         }
         s += "<br><table border=0 cellspacing=0 cellpadding=0>"
@@ -895,7 +892,22 @@ var listModel = {
             s += "<br>&nbsp;<br>";
 
         return s;
-    }
+    },
+    "activateListeners": function() {
+        for (var i = 0; i < listVals.length; i++) {
+            (function(i) {
+                var iid = 'disptitle' + i;
+                if (window[iid]) {
+                    window[iid].querySelector('a').addEventListener('click', function(event) {
+                        event.preventDefault();
+                        openGameSearchPopup(iid, function (tuid,t,a) {
+                            setGameItem(i,tuid,t,a);
+                        });
+                    });
+                }
+            })(i);
+        }
+    },
 };
 var listVals = [
     <?php
