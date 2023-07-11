@@ -463,8 +463,13 @@ if ($mainErrMsg)
 ?>
 
 <form name="stylepicedit" id="stylepicedit"
-      method="post" action="stylepics" align=center
-      onsubmit="javascript:return validateImageForm();">
+      method="post" action="stylepics" align=center>
+   <script type="text/javascript" nonce="<?php global $nonce; echo $nonce; ?>">
+      stylepicedit.addEventListener('submit', function (event) {
+        var result = validateImageForm();
+        if (result === false) event.preventDefault();
+      });
+   </script>
 
    <input type="hidden" name="formid" value="edit">
    <input type="hidden" name="oldfname" value="<?php
@@ -662,8 +667,13 @@ function applyDefaultFilename()
 
     <form name="stylepicupload" id="stylepicupload" class="stylepicform"
           method="post" enctype="multipart/form-data"
-          action="stylepics" align=center
-          onsubmit="javascript:return validateImageForm();">
+          action="stylepics" align=center>
+        <script type="text/javascript" nonce="<?php global $nonce; echo $nonce; ?>">
+            stylepicupload.addEventListener('submit', function (event) {
+                var result = validateImageForm();
+                if (result === false) event.preventDefault();
+            });
+        </script>
 
        <h2>Upload a new image</h2>
 
@@ -681,8 +691,12 @@ function applyDefaultFilename()
        <b>1. Select a file to upload from your computer:</b><br>
        <span class=notes>Accepted formats: JPEG, GIF, and PNG for images;
        TTF (TrueType) for fonts.</span><br>
-       <input type="file" name="imagefile" id="imagefile"
-              onchange="applyDefaultFilename();">
+       <input type="file" name="imagefile" id="imagefile">
+        <script type="text/javascript" nonce="<?php global $nonce; echo $nonce; ?>">
+            imagefile.addEventListener('change', function (event) {
+                applyDefaultFilename();
+            });
+        </script>
 
        <br><br><b>2. Name on server:</b><br>
        <span class=notes>Must be unique among your images;
