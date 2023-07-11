@@ -368,7 +368,7 @@ if ($userid == $curuser
 
     // verify access
     list($result, $mainErrMsg, $oldfname, $olddesc, $imgpic) =
-        verify_write_access(get_req_data('oldfname', "edit"));
+        verify_write_access(get_req_data('oldfname'), "edit");
 
     // get the new field values from the request parameters
     $fname = mysql_real_escape_string(get_req_data('newfname'), $db);
@@ -445,7 +445,7 @@ function validateImageForm()
         alert("The server filename you entered is too long.");
         return false;
     }
-    if (fn.search(/[][{}:\/\\*?"'%& \t]/) >= 0)
+    if (fn.search(/[\[\]{}:\/\\*?"'%& \t]/) >= 0)
     {
         alert("The server filename contains invalid characters.");
         return false;
