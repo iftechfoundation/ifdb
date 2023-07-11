@@ -114,11 +114,10 @@ function showStarCtl($id, $init, $clickFunc, $leaveFunc)
     if ($accessibility) {
         // accessible version - use a simple drop list
 
-        $str = "<select id=\"$id\" "
-               . "onchange=\"javascript:mouseClickStarCtl("
-               .   "'$id', event, $clickFunc);\" "
-               . "onblur=\"javascript:mouseOutStrCtl("
-               .   "'$id', event, $leaveFunc);\">";
+        $str = "<select id=\"$id\">"
+               . addEventListener('change', "mouseClickStarCtl('$id', event, $clickFunc);")
+               . addEventListener('blur', "mouseOutStarCtl('$id', event, $leaveFunc);")
+               ;
         $disps = array("Not Rated", "1 Star", "2 Stars", "3 Stars",
                        "4 Stars", "5 Stars");
         for ($i = 0 ; $i <= 5 ; $i++) {
@@ -141,11 +140,13 @@ function showStarCtl($id, $init, $clickFunc, $leaveFunc)
         $str .= "<img id=\"{$id}\" "
                 . "style=\"vertical-align:middle;cursor:pointer;"
                 . "display: inline;\" "
-                . "onmouseover=\"javascript:mouseOverStarCtl('$id', event);\" "
-                . "onmousemove=\"javascript:mouseOverStarCtl('$id', event);\" "
-                . "onmouseout=\"javascript:mouseOutStarCtl('$id', event, $leaveFunc);\" "
-                . "onclick=\"javascript:mouseClickStarCtl('$id', event, $clickFunc);\" "
-                . "src=\"img/blank.gif\" class=\"star$init\">";
+                . "src=\"img/blank.gif\" class=\"star$init\">"
+                . addSiblingEventListeners([
+                    ['mouseover', "mouseOverStarCtl('$id', event);"],
+                    ['mousemove', "mouseOverStarCtl('$id', event);"],
+                    ['mouseout', "mouseOutStarCtl('$id', event, $leaveFunc);"],
+                    ['click', "mouseClickStarCtl('$id', event, $clickFunc);"],
+                ]);
     }
 
     return $str;
