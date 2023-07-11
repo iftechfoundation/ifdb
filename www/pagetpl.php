@@ -65,16 +65,11 @@ function basePageHeader($title, $focusCtl, $extraOnLoad, $extraHead,
 <?php
 }
 
-function helpWinHRef($href)
-{
-    return "href=\"$href\" target=\"IFDBHelp\" "
-        . "onclick=\"javascript:helpWin('$href');return false;\"";
-}
-
 function helpWinLink($href, $text)
 {
-    $href = helpWinHRef($href);
-    return "<a $href>$text</a>";
+    return "<a href=\"$href\" target=\"IFDBHelp\">"
+        . addEventListener("click", "helpWin('$href');return false;")
+        . "$text</a>";
 }
 
 function pageHeader($title, $focusCtl = false, $extraOnLoad = false,
