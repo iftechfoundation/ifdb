@@ -720,8 +720,6 @@ if (is_null(getID()) && get_req_data('ifid') != "") {
 
     <p>IFDB doesn't have a listing matching the <?php
 echo helpWinLink("help-ifid", "IFID");
-//    <a href="needjs"
-//     onclick="javascript:helpWin('help-ifid');return false;">IFID</a>
     ?>
     "<?php echo htmlspecialcharx(get_req_data('ifid')) ?>."  This
     could mean one of several things:
@@ -1306,8 +1304,8 @@ function updateUnwishList(id, stat)
                       "updateRating", "mouseOutRating")
         . " <span id=\"ratingSaveMsg\" class=xmlstatmsg></span><br>"
         . ($currentUserReview != "" ? "" :
-           "<span id=\"clearRatingSpan\"><a href=\"needjs\" "
-           . "onclick=\"javascript:clearRating();return false\">"
+           "<span id=\"clearRatingSpan\"><a href=\"needjs\">"
+           . addEventListener("click", "clearRating();return false")
            . "Remove rating</a><br></span>")
         . "<a href=\"review?id=$id&userid=$curuser\">"
         . ($currentUserReview != "" ? "Revise my review" : "Review it")
@@ -1832,8 +1830,6 @@ if ($embargoCnt > 0)
                    echo "Development System: <a href=\"search?searchfor=system:" . urlencodeFromHTML($system) . "\">$system</a><br>" ?>
                <?php if (!isEmpty($forgiveness))
                    echo "<a class=silent " . helpWinHRef("help-forgiveness")
-//                       href=\"needjs\"
-//                     onclick=\"javascript:helpWin('help-forgiveness');return false;\"
                        . " title=\"What does this mean?\">"
                        . "Forgiveness Rating</a>: $forgiveness<br>" ?>
                <?php if(!isEmpty($bafsid))
@@ -1850,8 +1846,6 @@ if ($embargoCnt > 0)
             <?php
 
 $caption = "<a class=silent " . helpWinHRef("help-ifid")
-//              href=\"needjs\"
-//              onclick=\"javascript:helpWin('help-ifid');return false;\"
            . " title=\"What's an IFID?\">IFID</a>";
 
 if (count($ifids) == 0 || isEmpty($ifids[0]))
@@ -1869,8 +1863,6 @@ else {
             ?>
             <span class=notes>
               <a class=silent <?php echo helpWinHRef("help-tuid");
-//                 href="needjs"
-//                 onclick="javascript:helpWin('help-tuid');return false;"
                  ?> title="What's a TUID?">TUID</a>:
                  <?php echo htmlspecialcharx($id) ?>
             </span><br>
@@ -2364,9 +2356,6 @@ if (count($inrefs) != 0 && !$historyView) {
         <span class=details style="margin-left: 1ex;">
            - <a href="showtags?limit=50">View the most common tags</a>
            (<?php echo helpWinLink("help-tags", "What's a tag?")
-     //<a href="needjs"
-//           onclick="javascript:helpWin('help-tags');return false;"
-//           >What's a tag?</a>
            ?>)
         </span></p>
         <table id="tagTable" border=0 class=tags></table>
@@ -2376,11 +2365,19 @@ if (count($inrefs) != 0 && !$historyView) {
             <span class=details>
                <b>Your tags:</b>
                <span id="myTagList" style="margin-right:1ex;"></span> -
-               <a href="needjs" onclick="javascript:editTags();return false;"
-                  >Edit</a>
+               <a href="needjs"><script type="text/javascript" nonce="<?php global $nonce; echo $nonce; ?>">
+                  document.currentScript.parentElement.addEventListener('click', function (event) {
+                    event.preventDefault();
+                    editTags();
+                  })
+                </script>Edit</a>
             <?php if ($adminPriv) { ?>
-               <a href="needjs" onclick="javascript:deleteTags();return false;"
-                  >Delete</a>
+               <a href="needjs"><script type="text/javascript" nonce="<?php global $nonce; echo $nonce; ?>">
+                  document.currentScript.parentElement.addEventListener('click', function (event) {
+                    event.preventDefault();
+                    deleteTags();
+                  })
+                </script>Delete</a>
             <?php } ?>
 
                <span class="xmlstatmsg" style="margin-left:1ex;"
@@ -2405,13 +2402,23 @@ if (count($inrefs) != 0 && !$historyView) {
                  </div>
                  <div style="position:absolute;top:2px;right:0px;
                     text-align:right;">
-                    <a href="needjs" onclick="javascript:closeTags('tagEditor');
-                       return false;">Cancel<img src="img/blank.gif"
+                    <a href="needjs"><script type="text/javascript" nonce="<?php global $nonce; echo $nonce; ?>">
+                        document.currentScript.parentElement.addEventListener('click', function (event) {
+                            event.preventDefault();
+                            closeTags();
+                        })
+                    </script>Cancel<img src="img/blank.gif"
                           class="popup-close-button"></a>
                  </div>
               </div>
-              <form name="tagForm" onsubmit="javascript:addTags();return false;"
+              <form name="tagForm"
                  style="padding:1ex 1ex 0.5ex 1ex; margin:0 0 0 0;">
+                 <script type="text/javascript" nonce="<?php global $nonce; echo $nonce; ?>">
+                  document.currentScript.parentElement.addEventListener('submit', function (event) {
+                    event.preventDefault();
+                    addTags();
+                  })
+                </script>
                  <span class=details>Tags you added are shown below with
                     checkmarks.  To remove one of your tags, simply
                     un-check it.
@@ -2427,12 +2434,23 @@ if (count($inrefs) != 0 && !$historyView) {
                     style="vertical-align:middle;">
                  <input type=image src="img/blank.gif" class="add-button"
                     id="viewgame-add-tags-button"
-                    name="addTags" style="vertical-align:middle;"
-                    onclick="javascript:addTags();return false;"><br>
+                    name="addTags" style="vertical-align:middle;">
+                    <script type="text/javascript" nonce="<?php global $nonce; echo $nonce; ?>">
+                        document.getElementById('viewgame-add-tags-button').addEventListener('click', function (event) {
+                            event.preventDefault();
+                            addTags();
+                        })
+                    </script>
+                <br>
                  <input type=image src="img/blank.gif" class="save-button"
                     id="viewgame-save-tags-button"
-                    name="saveTags" style="margin-top:1ex;"
-                    onclick="javascript:saveTags();return false;">
+                    name="saveTags" style="margin-top:1ex;">
+                    <script type="text/javascript" nonce="<?php global $nonce; echo $nonce; ?>">
+                        document.getElementById('viewgame-save-tags-button').addEventListener('click', function (event) {
+                            event.preventDefault();
+                            saveTags();
+                        })
+                    </script>
               </form>
            </div>
         </div>
@@ -2448,21 +2466,36 @@ if (count($inrefs) != 0 && !$historyView) {
            </div>
            <div style="position:absolute;top:2px;right:0px;
               text-align:right;">
-              <a href="needjs" onclick="javascript:closeTags('tagDeletor');
-                 return false;">Cancel<img src="img/blank.gif"
+              <a href="needjs"><script type="text/javascript" nonce="<?php global $nonce; echo $nonce; ?>">
+                  document.currentScript.parentElement.addEventListener('click', function (event) {
+                    event.preventDefault();
+                    closeTags('tagDeletor');
+                  })
+                </script>Cancel<img src="img/blank.gif"
                     class="popup-close-button"></a>
            </div>
         </div>
-        <form name="tagForm" onsubmit="javascript:addTags();return false;"
+        <form name="tagForm"
            style="padding:1ex 1ex 0.5ex 1ex; margin:0 0 0 0;">
+           <script type="text/javascript" nonce="<?php global $nonce; echo $nonce; ?>">
+                document.currentScript.parentElement.addEventListener('submit', function (event) {
+                    event.preventDefault();
+                    addTags();
+                })
+            </script>
            <span class=details></span>
            <table id="deleteTagTable" border=0 class=tags
               style="font-size:85%;">
            </table>
            <input type=image src="img/blank.gif" class="save-button"
-              id="viewgame-save-tags-button"
-              name="saveTags" style="margin-top:1ex;"
-              onclick="javascript:saveTagsDelete();return false;">
+              id="viewgame-save-tags-button-delete"
+              name="saveTags" style="margin-top:1ex;">
+              <script type="text/javascript" nonce="<?php global $nonce; echo $nonce; ?>">
+                document.getElementById('viewgame-save-tags-button-delete').addEventListener('click', function (event) {
+                    event.preventDefault();
+                    saveTagsDelete();
+                })
+            </script>
         </form>
      </div>
   </div>
@@ -2537,19 +2570,10 @@ function dispTagTable(tableID, lst, editor, deleteTags)
 
 
             if (!deleteTags) {
-                s = "<span class=\"cklabel\" onmouseover=\"javascript:"
-                    + "ckboxOver('"+ck+"',false);return true;\" "
-                    + "onmouseout=\"javascript:ckboxLeave('"+ck+"',false);"
-                    + "return true;\" onclick=\"javascript:ckboxClick('"+ck
-                    + "',false,doTagCkBox);return false;\">"
+                s = "<span class=\"cklabel\" x-ck='"+i+"'>"
                     + "<img align=absmiddle border=0 id=\"ckImg"+ck+"\"> "
             } else {
-               s = "<span class=\"cklabel\" onmouseover=\"javascript:"
-                + "ckboxOver('"+ck+"',false);return true;\" "
-                + "onmouseout=\"javascript:ckboxLeave('"+ck+"',false);"
-                + "return true;\" onclick=\"javascript:deleteTag('"
-                + t.replace(/'/g,"\\'")
-                + "');return false;\">"
+               s = "<span class=\"cklabel\" x-ck='"+i+"'>"
                     + "<input type=image align=absmiddle border=0 id=\"ckImg"+ck+"\""
                     + "src='img/delrow.gif' >";
 
@@ -2584,6 +2608,24 @@ function dispTagTable(tableID, lst, editor, deleteTags)
             }
         }
         cell.innerHTML = s;
+        cell.querySelectorAll('.cklabel').forEach(function (cklabel) {
+            var ck = "tagCk" + cklabel.getAttribute('x-ck');
+            cklabel.addEventListener('mouseover', function (event) {
+                ckboxOver(ck, false);
+            });
+            cklabel.addEventListener('mouseout', function (event) {
+                ckboxLeave(ck, false);
+            });
+            cklabel.addEventListener('click', function (event) {
+                event.preventDefault();
+                if (deleteTags) {
+                    var tag = lst[cklabel.getAttribute('x-ck')].tag;
+                    deleteTag(tag);
+                } else {
+                    ckboxClick(ck, false, doTagCkBox);
+                }
+            });
+        })
 
         if (editor)
             ckboxCheck(ck, false, m);
