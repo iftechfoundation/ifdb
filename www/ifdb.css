@@ -1655,6 +1655,14 @@ img.combobox-arrow {
 }
 
 /*
+Combo Box hidden list
+*/
+.combobox-list {
+    display: none;
+    position: absolute;
+}
+
+/*
 Close button for pop-up subforms
 */
 img.popup-close-button {
