@@ -698,9 +698,6 @@ echo helpWinLink("help-review#spoilertags", "&lt;spoiler&gt; tag")
 ?>).
 If you haven't written reviews here before, please read our <?php
    echo helpWinLink("help-review", "review guidelines");
-//
-//<a href="needjs" onclick="javascript:helpWin('help-review');return false;">
-//   review guidelines</a>
 ?>.
 
 <?php
@@ -752,16 +749,17 @@ if (isset($missingFields['rating']))
         initStarControls();
         echo showStarCtl("ratingStars", $rating, "setRating", "null");
    ?>
-   <span class=details>(<a href="needjs"
-     onclick="setRating(0);return false;">Remove rating</a>)</span>
+   <span class=details>(<a id="removeRating" href="needjs">Remove rating</a>)</span>
 <script type="text/javascript" nonce="<?php global $nonce; echo $nonce; ?>">
-<!--
+document.getElementById('removeRating').addEventListener('click', function (event) {
+    event.preventDefault();
+    setRating(0);
+})
 function setRating(rating)
 {
     document.getElementById("rating").value = rating;
     setStarCtlValue("ratingStars", rating);
 }
-//-->
 </script>
    <input type=hidden name="rating" id="rating" value="<?php echo $rating ?>">
 
@@ -804,10 +802,6 @@ if (isset($missingFields['reviewbody']))
 echo helpWinLink("help-formatting?review", "Formatting Hints");
 echo " - ";
 echo helpWinLink("help-review#spoilertags", "Hiding Spoilers");
-//                 <a href="needjs"
-//                  onclick="javascript:helpWin('help-formatting');return false;">
-//                    Formatting Hints
-//                 </a>
             ?></i></span>
          </td>
       </tr>
