@@ -909,12 +909,9 @@ function spoilerWarningOpen($label = "Spoiler - click to show")
     static $spoilerNum = 0;
 
     // set up the text
-    $ret = "<span class=\"spoilerButton\" "
+    $ret = "<span class=\"spoilerButton\""
            . "id=\"a_spoiler$spoilerNum\">("
-           . "<a href=\"#\">"
-           . addEventListener("click", "showSpoiler('$spoilerNum'); return false;")
-           . "$label"
-           . "</a>)</span>"
+           . "<a href=\"#\" x-num='$spoilerNum'>$label</a>)</span>"
            . "<span class=\"hiddenSpoiler\" "
            . "id=\"s_spoiler$spoilerNum\">";
 
@@ -948,6 +945,12 @@ function spoilerWarningScript()
             . "document.getElementById(\"s_spoiler\" + id).style.display = "
             . "\"inline\";"
             . "}\n"
+            . "document.querySelectorAll('.spoilerButton a').forEach(function (link) {\n"
+            . "  link.addEventListener('click', function (event) {\n"
+            . "    event.preventDefault();\n"
+            . "    showSpoiler(event.target.getAttribute('x-num'));\n"
+            . "  });"
+            . "});"
             . "//-->\n"
             . "</script>";
 }
@@ -1378,7 +1381,7 @@ function fixDesc($desc, $specials = 0)
     // if we found a spoiler tag, add the necessary script if we haven't
     // already done so
     if ($foundSpoiler)
-        $desc = spoilerWarningScript() . $desc;
+        $desc .= spoilerWarningScript();
 
     // return the result
     return output_encode($desc);
