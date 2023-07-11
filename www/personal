@@ -70,9 +70,6 @@ if (mysql_num_rows($result) > 0) {
 
     echo "<p><span class=details>"
         . helpWinLink("help-gameprofilelink", "How do I edit this list?")
-//        . "<a href=\"needjs\" "
-//        . "onclick=\"javascript:helpWin('help-gameprofilelink');return false;\""
-//        . ">How do I edit this list?</a>
         . "</span>";
 
     echo "</div>";
@@ -531,12 +528,6 @@ if ($rankName)
 echo "Number of reviews written: $fullReviewCnt<br>Your "
    . "<a class=silent title=\"What's this?\" " . helpWinHRef("help-ff")
    . "><i>Frequent Fiction</i> Points:</a> $score<br>"
-
-// href=\"needjs\" "
-//   . "onclick=\"javascript:helpWin('help-ff');return false;\" "
-//   . "title=\"What's this?\"><i>Frequent Fiction</i> Points:</a>"
-//   . " $score<br>
-
    . "</td></tr></table>";
 
 // ----------------------- authorship help box ---------------------------
@@ -552,9 +543,6 @@ if (!$foundAuthorCredits) {
                     If you're the author of any of the games listed in IFDB,
                     you can link them to your profile. "
         . helpWinLink("help-gameprofilelink", "Learn more...")
-//                    <a href=\"needjs\"
-//                      onclick=\"javascript:helpWin('help-gameprofilelink');return false;\"
-//                      >Learn more...</a>
         . "</td></tr></table>";
 }
 
