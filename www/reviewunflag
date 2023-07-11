@@ -44,8 +44,9 @@ pageHeader("Delete Flag");
 
 if (mysql_num_rows($result) == 0) {
     echo "This flag has already been deleted."
-        . "<p><a href=\"needjs\" onclick=\"javascript:window.close();"
-        . "return false;\">Close window</a>";
+        . "<p><a href=\"needjs\">"
+        . addEventListener('click', "window.close(); return false;")
+        . "Close window</a>";
 
     pageFooter();
     exit();
@@ -64,8 +65,9 @@ if (!$flagName) $errMsg = "Invalid flag type.";
 if ($reviewOwner != $curuser)
 {
     echo "You can only delete flags on your own reviews."
-        . "<p><a href=\"needjs\" onclick=\"javascript:window.close();"
-        . "return false;\">Close window</a>";
+        . "<p><a href=\"needjs\">"
+        . addEventListener('click', "window.close(); return false;")
+        . "Close window</a>";
 
     pageFooter();
     exit();
@@ -89,8 +91,9 @@ if ($confirm == 'Y' && !$errMsg) {
         echo "<span class=success>This flag has been successfully "
             . "deleted.</span>"
 
-            . "<p><a href=\"needjs\" onclick=\"javascript:window.close();"
-            . "return false;\">Close window</a>";
+            . "<p><a href=\"needjs\">"
+            . addEventListener('click', "window.close(); return false;")
+            . "Close window</a>";
 
     } else {
 
@@ -119,8 +122,9 @@ if (!$confirm || $errMsg) {
         . "you honestly feel the flag is not warranted."
         . "<p><a href=\"reviewunflag?review=$reviewID&flagger=$flagger"
         . "&type=$flagType&confirm=Y\">Yes, delete this flag</a><br>"
-        . "<a href=\"needjs\" onclick=\"javascript:window.close();"
-        . "return false;\">No, keep flag and close window</a>";
+        . "<a href=\"needjs\">"
+        . addEventListener('click', "window.close(); return false;")
+        . "No, keep flag and close window</a>";
 }
 
 pageFooter();
