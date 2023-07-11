@@ -35,13 +35,13 @@ function genNewUserAdminLinks($verbose, $actcode, $salt)
         . ($verbose ? "<b>Approve</b> - " : "")
         . "Send activation email</a>"
         . "$br<a href=\"" . get_root_url() . "userconfirm?"
-        . "a=$actcode&s=$salt&c=flush\" "
-        . "onclick='javascript:return confirm(\"Do you really want to delete this user?\");' >"
+        . "a=$actcode&s=$salt&c=flush\">"
+        . addEventListener('click', "return confirm(\"Do you really want to delete this user?\");")
         . ($verbose ? "<b>Delete</b> - " : "")
         . "Delete user completely</a>"
         . "$br<a href=\"" . get_root_url() . "userconfirm?"
-        . "a=$actcode&s=$salt&c=ban\" "
-        . "onclick='javascript:return confirm(\"Do you really want to ban this user?\");' >"
+        . "a=$actcode&s=$salt&c=ban\">"
+        . addEventListener('click', "return confirm(\"Do you really want to ban this user?\");")
         . ($verbose ? "<b>Ban</b> - " : "")
         . "Forbid login; hide reviews, comments, and profile</a>";
 }
