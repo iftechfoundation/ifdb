@@ -1125,6 +1125,10 @@ span.headlineRss {
     display: none !important;
 }
 
+.displayNone {
+    display: none;
+}
+
 .menu-toggle-button{
     display: none;
     align-items: center;
