@@ -573,8 +573,12 @@ echo helpWinLink("help-formatting?comment#spoilertags", "&lt;SPOILER&gt; tag")
             . htmlspecialcharx($privateToName) . ".</span>";
     }
 
+    global $nonce;
     echo "<form name=\"comment\" id=\"commentForm\" "
-        . "method=\"post\" action=\"$baseUrl\" style=\"margin-top: 1em;\">"
+        . "method=\"post\" action=\"$baseUrl\">"
+        .  "<style nonce='$nonce'>\n"
+        . "#commentForm { margin-top: 1em; }\n"
+        . "</style>\n"
         . "<input type=hidden name=$srcParamName value=\"$srcID\">"
         . "<input type=hidden name=edit value=\"$commentID\">"
         . "<input type=hidden name=replyto value=\"$parentID\">"
