@@ -391,9 +391,8 @@ function helpListLink($title, $id, $tableWid, $params)
         $tableWid = 4;
 
     echo "<div class=\"searchHelpList\" id=\"helpList.$id\">"
-        . "<a href=\"javascript:void(0);\" class=\"silent\" "
-        .    "onclick=\"javascript:openHelpList('$id', $tableWid, '$params');"
-        .      "return false;\">"
+        . "<a href=\"javascript:void(0);\" class=\"silent\">"
+        . addEventListener('click', "openHelpList('$id', $tableWid, '$params'); return false;")
         . "<img border=0 src=\"/img/blank.gif\" class=\"listarrow\">$title</a>"
         . "</div>";
 }
@@ -956,8 +955,6 @@ else {  // ...default is searching games
        <p><b>ifid:<i>xxx</i></b> searches for a game with the given IFID.
        (<?php
           echo helpWinLink("help-ifid", "What's an IFID?");
-//<a href="needjs" onclick="javascript:helpWin('help-ifid');return false;"
-//          >What's an IFID?</a>
        ?>)
 
         <p><b>authorid:<i>id</i></b> lists games by the author with
