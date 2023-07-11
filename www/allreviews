@@ -77,7 +77,13 @@ if ($errMsg) {
 
     echo "<a href=\"showuser?id=$uid\">View this member's profile</a><br><br>";
 
-    echo "<div style=\"margin-bottom:0.5ex;\"><span class=details>Show ";
+    global $nonce;
+    echo "<style nonce='$nonce'>\n"
+        . ".allreviews__showreviews { margin-bottom:0.5ex; }"
+        . ".allreviews__tags span { margin: 0 0.5ex 0 0.5ex; }"
+        . "</style>";
+
+    echo "<div class=\"allreviews__showreviews\"><span class=details>Show ";
     $hrefReviews = "<a href=\"allreviews?id=$uid\">reviews only</a>";
     $hrefRatings = "<a href=\"allreviews?id=$uid&ratings=only\">"
                    . "ratings only</a>";
@@ -104,12 +110,11 @@ if ($errMsg) {
             $tags[] = mysql_result($result, $i, "tag");
 
         // display the tag list
-        echo "<span class=details>View this member's reviews by tag: ";
+        echo "<span class='details allreviews__tags'>View this member's reviews by tag: ";
         foreach ($tags as $t) {
             $tu = urlencode($t);
             $td = htmlspecialcharx($t);
-            echo "<span style=\"margin: 0 0.5ex 0 0.5ex;\">"
-                . "<a href=\"allreviews?id=$uid&tag=$tu\">$td</a></span> ";
+            echo "<span><a href=\"allreviews?id=$uid&tag=$tu\">$td</a></span> ";
         }
 
         if ($qtag)
@@ -245,6 +250,9 @@ if ($errMsg) {
 
         echo "$pageCtl<br><br><br>";
 
+        global $nonce;
+        echo "<style nonce='$nonce'>.allreviews__headline { margin-bottom:0.5em; }</style>";
+
         // fetch and display each review
         for ($i = 0 ; $i < mysql_num_rows($result) ; $i++) {
             // retrieve the result
@@ -260,7 +268,7 @@ if ($errMsg) {
             // add some spacing between the headline and the review, but
             // only if there's going to be a review
             if ($rec['review'] != "")
-                $headlineDiv = "<div style=\"margin-bottom:0.5em;\">";
+                $headlineDiv = "<div class=\"allreviews__headline\">";
             else
                 $headlineDiv = "<div>";
 
