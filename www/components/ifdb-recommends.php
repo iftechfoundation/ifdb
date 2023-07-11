@@ -411,8 +411,6 @@ if (count($recs) >= 2) {
     // explain the source
     echo "<p><span class=details><i>";
     $href = helpWinHRef("help-crossrec");
-//    $href = "href=\"needjs\" "
-//            . "onclick=\"javascript:helpWin('help-crossrec');return false;\"";
     if ($recsrc == 'generic') {
         echo "These are a few randomly-selected games with high
              average member ratings.  If you ";

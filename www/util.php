@@ -855,9 +855,8 @@ function showSortingControls($formName, $dropName, $sortMap, $curSortBy,
         . "class=\"sortingControls\">";
 
     // add the drop-down list
-    echo "<select name=\"$dropName\" "
-        . "onchange=\"javascript:document.getElementById("
-        . "'sort-go-button-$idSerial').click();\">";
+    echo "<select name=\"$dropName\">"
+        . addEventListener("change", "document.getElementById('sort-go-button-$idSerial').click();");
 
     // add the option values for the list
     foreach ($sortMap as $key => $val) {
@@ -912,9 +911,9 @@ function spoilerWarningOpen($label = "Spoiler - click to show")
     // set up the text
     $ret = "<span class=\"spoilerButton\" "
            . "id=\"a_spoiler$spoilerNum\">("
-           . "<a href=\"#\" onclick=\"javascript:"
-           . "showSpoiler('$spoilerNum');"
-           . "return false;\">$label"
+           . "<a href=\"#\">"
+           . addEventListener("click", "showSpoiler('$spoilerNum'); return false;")
+           . "$label"
            . "</a>)</span>"
            . "<span class=\"hiddenSpoiler\" "
            . "id=\"s_spoiler$spoilerNum\">";
