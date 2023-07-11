@@ -131,21 +131,21 @@ function gfGenForm(modelVar, newRowIdx)
     d.querySelectorAll("." + modelVar + "MoveUp").forEach(function (link) {
         link.addEventListener('click', function (event) {
             event.preventDefault();
-            gfMoveRow(modelVar, link.getAttribute("x-i"), -1);
+            gfMoveRow(modelVar, Number(link.getAttribute("x-i")), -1);
         })
     });
 
     d.querySelectorAll("." + modelVar + "MoveDown").forEach(function (link) {
         link.addEventListener('click', function (event) {
             event.preventDefault();
-            gfMoveRow(modelVar, link.getAttribute("x-i"), 1);
+            gfMoveRow(modelVar, Number(link.getAttribute("x-i")), 1);
         })
     });
 
     d.querySelectorAll("." + modelVar + "Remove").forEach(function (link) {
         link.addEventListener('click', function (event) {
             event.preventDefault();
-            gfDelRow(modelVar, link.getAttribute("x-i"));
+            gfDelRow(modelVar, Number(link.getAttribute("x-i")));
         })
     });
 
