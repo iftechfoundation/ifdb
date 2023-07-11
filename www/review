@@ -844,13 +844,14 @@ if (isset($errDetail['tags']))
    </p>
    <p>
 <?php
+
 if (isset($errDetail['embargoDate']))
     echo "<span class=errmsg><i>{$errDetail['embargoDate']}</i></span><br>";
 ?>
      <b>5. Embargo date:</b>
         <input type="date" name="embargoDate" min="<?php echo date("Y-m-d") ?>"
           length=30 value="<?php
-          echo htmlspecialcharx($embargoDate) ?>"><br>
+          echo date("Y-m-d", strtotime($embargoDate)) ?>"><br>
      <span class=notes>Optional.
         Your review and rating will be hidden from everyone
         else until this date. You can use this to hide your review until a
