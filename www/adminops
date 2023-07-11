@@ -1093,7 +1093,8 @@ else if (isset($_REQUEST['users'])) {
     echo "<p><input type=\"submit\" name=\"apply\" value=\"Apply\">"
         . "</form>";
 
-    echo "<style>@media (min-width: 100ch) { div.main { display: grid; grid-template-columns: 1fr 30%; } }</style>";
+    global $nonce;
+    echo "<style nonce='$nonce'>@media (min-width: 100ch) { div.main { display: grid; grid-template-columns: 1fr 30%; } }</style>";
 
     echo "<div>"
         . "<b>Login history:</b><br>"
@@ -2270,9 +2271,10 @@ else if (isset($_REQUEST['deletenews'])) {
            join operatingsystems as o on o.id = p.osid
          order by username", $db);
 
+    global $nonce;
     // show the data
     echo "<p><h1>File format and operating system editor privilege list</h1>"
-        . "<style type='text/css'>\r\n"
+        . "<style nonce='$nonce' type='text/css'>\r\n"
         . "table.osfmtprivs td {"
         . "padding: 0px 1em; }"
         . "\r\n</style>\r\n"

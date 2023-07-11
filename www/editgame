@@ -1045,7 +1045,7 @@ function setExtRevRating(rating)
 </script>
 
 <noscript>
-   <style type="text/css">
+   <style nonce="<?php global $nonce; echo $nonce; ?>" type="text/css">
       #editGameForm {
           display: none;
       }

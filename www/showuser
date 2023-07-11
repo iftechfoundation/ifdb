@@ -936,9 +936,10 @@ if ($admin)
     $nRows = mysql_num_rows($result);
     if ($nRows > 0)
     {
+        global $nonce;
         echo "Other users who have logged in from the same IP address:"
             . "<div style=\"margin: 0px 2em 1em 2em;\">"
-            . "<style type=\"text/css\">"
+            . "<style nonce='$nonce' type=\"text/css\">"
             . "#otherLoginTab td { padding: 0px 1ex; }"
             . "</style>"
             . "<table id=\"otherLoginTab\">";

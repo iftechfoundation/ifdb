@@ -80,7 +80,7 @@ if (isset($_REQUEST['log']))
 
     // set up the table
 ?>
-<style type="text/css">
+<style nonce="<?php global $nonce; echo $nonce; ?>" type="text/css">
 table.srvlog {
     border: 1px solid gray;
     border-collapse: collapse;
@@ -358,7 +358,7 @@ function editGameServer($row)
     // display the edit form
 ?>
 
-<style type="text/css">
+<style nonce="<?php global $nonce; echo $nonce; ?>" type="text/css">
 table.srvedit {
 }
 table.srvedit td {
@@ -449,7 +449,7 @@ $result = mysql_query(
 
 ?>
 
-<style type="text/css">
+<style nonce="<?php global $nonce; echo $nonce; ?>" type="text/css">
 table.servers {
     border: 1px solid gray;
     border-collapse: collapse;
