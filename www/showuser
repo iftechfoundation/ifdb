@@ -287,8 +287,6 @@ if ($errMsg) {
         echo "Last visited $lastlogin<br>";
 
     echo "Profile ID (<a class=silent " . helpWinHRef("help-tuid")
-//        . "<a href=\"needjs\" onclick=\"javascript:helpWin("
-//        . "'help-tuid');return false;\" class=silent"
         . ">TUID</a>): $uid<br>";
 
     if ($pubemail != "" && !$pendingReview) {
@@ -299,10 +297,6 @@ if ($errMsg) {
                 echo "<i>Note: this address might be "
                     . "\"cloaked\" against spam - "
                     . helpWinLink("help-spamcloaking", "Help")
-//                    . "<a href=\"needjs\" "
-//                    . "onclick=\"javascript:helpWin('help-spamcloaking');"
-//                    . "return false;\">"
-//                    . "Help</a>"
                     . "</i><br>";
             }
         }
