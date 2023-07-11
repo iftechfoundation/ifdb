@@ -148,8 +148,8 @@ function captchaMaskEmail($email, $maskMsg)
 
     // generate the reveal link
     $link = "<span id=\"emailMasker$emailNum\">$maskA<a href=\"#\" "
-            . "onclick=\"javascript:showCaptchaForm();return false;\" "
             . "title=\"Click to reveal the full email address\">"
+            . addEventListener('click', "showCaptchaForm(); return false;")
             . "$email</a>$maskB</span>";
 
     // advance the counter
@@ -166,8 +166,8 @@ function captchaMaskEmail($email, $maskMsg)
 function captchaSupportScripts($sessionKey, $okcb = false)
 {
 ?>
-   <script src='https://www.google.com/recaptcha/api.js'></script>
-<script type="text/javascript">
+   <script src='https://www.google.com/recaptcha/api.js' nonce="<?php global $nonce; echo $nonce; ?>"></script>
+<script type="text/javascript" nonce="<?php global $nonce; echo $nonce; ?>">
 <!--
 var RecaptchaOptions = {
     theme: "white"
@@ -279,8 +279,8 @@ function captchaSolved(response)
 function captchaAjaxForm($sessionKey)
 {
     echo "<div id='captchaFormDiv' style='display:none;'>"
-        . "<form name='captchaAjaxForm' "
-        . "onsubmit='javascript:submitCaptchaForm();return false;'>"
+        . "<form name='captchaAjaxForm'>"
+        . addEventListener('submit', 'submitCaptchaForm();return false;')
 //        . getCaptchaSubForm($sessionKey, false, false)
         . "<div id='captchaFormCont'></div>"
         . "<div><span id='captchaStatusMsg'></span></div>"

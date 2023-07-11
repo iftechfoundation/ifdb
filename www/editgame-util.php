@@ -49,12 +49,18 @@ define("TypeDateOrYear", 5);
 
 // field descriptors
 global $fields;
+global $nonce;
 $fields = array(
     array("Title", "title", 60, "Required", null, TypeString),
     array("Author(s)", "eAuthor", 60,
           "Required; enter Anonymous if the work is unattributed.
-           - <a href=\"needjs\"
-            onclick=\"javascript:aplOpen('eAuthor', 'Author');return false;\">
+           - <a href=\"needjs\">
+            <script type='text/javascript' nonce='$nonce'>
+                document.currentScript.parentElement.addEventListener('click', function(event) {
+                    event.preventDefault();
+                    aplOpen('eAuthor', 'Author');
+                });
+            </script>
             Link to author's profile</a> - "
           . helpWinLink("help-author", "Tips"),
           null, TypeString),

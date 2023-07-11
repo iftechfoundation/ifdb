@@ -1,5 +1,6 @@
 <?php
 
+include_once "csp-nonce.php";
 include_once "util.php";
 include_once "login-persist.php";
 
@@ -45,32 +46,30 @@ function basePageHeader($title, $focusCtl, $extraOnLoad, $extraHead,
            ckboxSetup();
    ?>
    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+   <?php
+   if ($focusCtl) {
+        $extraOnLoad = "document.$focusCtl.focus();document.$focusCtl.select();$extraOnLoad";
+   }
+   if ($extraOnLoad) {
+        global $nonce;
+        echo "<script type='text/javascript' nonce='$nonce'>\n";
+        echo "addEventListener('load', function () { $extraOnLoad });\n";
+        echo "</script>";
+   }
+   ?>
 </head>
 <body<?php
-
-    if ($focusCtl) {
-        echo " onLoad=\"document.$focusCtl.focus();
-            document.$focusCtl.select();$extraOnLoad\"";
-    } else if ($extraOnLoad) {
-        echo " onLoad=\"$extraOnLoad\"";
-    }
-
     if ($bodyAttrs)
         echo " $bodyAttrs";
      ?>>
 <?php
 }
 
-function helpWinHRef($href)
-{
-    return "href=\"$href\" target=\"IFDBHelp\" "
-        . "onclick=\"javascript:helpWin('$href');return false;\"";
-}
-
 function helpWinLink($href, $text)
 {
-    $href = helpWinHRef($href);
-    return "<a $href>$text</a>";
+    return "<a href=\"$href\" target=\"IFDBHelp\">"
+        . addEventListener("click", "helpWin('$href');return false;")
+        . "$text</a>";
 }
 
 function pageHeader($title, $focusCtl = false, $extraOnLoad = false,
@@ -131,7 +130,7 @@ function pageHeader($title, $focusCtl = false, $extraOnLoad = false,
     </div>
 </div>
 
-<script>
+<script nonce="<?php global $nonce; echo $nonce; ?>">
     function ToggleMobileMenu() {
         document.querySelector('#main-nav ul').classList.toggle('mobile-hidden');
         document.querySelector('.login-link').classList.toggle('mobile-hidden');
@@ -234,7 +233,7 @@ function helpPageFooter()
 function ckboxSetup()
 {
 ?>
-<script type="text/javascript">
+<script type="text/javascript" nonce="<?php global $nonce; echo $nonce; ?>">
 <!--
 
 var ckboxStatus = [];
@@ -308,30 +307,51 @@ function ckboxKey(id, event, isRadio, onUpdateFunc)
 <?php
 }
 
+// this function is intended to create a <script> tag to replace inline event attributes
+function addEventListener($event, $code) {
+    global $nonce;
+    return "<script nonce='$nonce'>\n" .
+        "document.currentScript.parentElement.addEventListener('$event', function (event) {\n" .
+        "var result = (function(){ $code }).apply(event.target);\nif (result === false) event.preventDefault();" .
+        "\n});\n" .
+        "</script>";
+}
+
+function addSiblingEventListeners($listeners) {
+    global $nonce;
+    $result = "<script nonce='$nonce'>\n";
+    foreach ($listeners as $listener) {
+        $result .= "document.currentScript.previousElementSibling.addEventListener('".$listener[0]."', function (event) {\n" .
+        "var result = (function(){ ". $listener[1] ." }).apply(event.target);\nif (result === false) event.preventDefault();" .
+        "\n});\n";
+    }
+    $result .= "</script>";
+    return $result;
+}
+
 // --------------------------------------------------------------------------
 // Generate a checkbox
 //
 function ckRbString($id, $label, $checked, $onUpdateFunc, $isRadio)
 {
     $label = htmlspecialcharx($label);
-    return "<span class=\"cklabel\" "
-        . "onmouseover=\"javascript:ckboxOver('$id', $isRadio);return true;\" "
-        . "onmouseout=\"javascript:ckboxLeave('$id', $isRadio);return true;\" "
-        . "onclick=\"javascript:ckboxClick('$id', $isRadio, $onUpdateFunc);"
-        . "return false;\"><img src=\"/img/blank.gif\" class=\""
+    echo "<span class=\"cklabel\" >"
+        . addEventListener("mouseover", "ckboxOver('$id', $isRadio);")
+        . addEventListener("mouseout", "ckboxLeave('$id', $isRadio);")
+        . addEventListener("click", "ckboxClick('$id', $isRadio, $onUpdateFunc); return false")
+        . "<img src=\"/img/blank.gif\" class=\""
         . ($isRadio
            ? ($checked ? "radio-checked" : "radio-unchecked")
            : ($checked ? "ckbox-checked" : "ckbox-unchecked"))
         . "\" id=\"ckImg$id\"> "
-        . "<span id=\"ckLbl$id\"><a class=silent href=\"needjs\" "
-        . "onkeypress=\"javascript:ckboxKey("
-        . "'$id', event, $isRadio, $onUpdateFunc);return false;\""
-        . ">$label</a></span>"
+        . "<span id=\"ckLbl$id\"><a class=silent href=\"needjs\">"
+        . addEventListener("keypress", "ckboxKey('$id', event, $isRadio, $onUpdateFunc); return false")
+        . "$label</a></span>"
         . "</span>";
 }
 function ckRbWrite($id, $label, $checked, $onUpdateFunc, $isRadio)
 {
-    echo ckRbString($id, $label, $checked, $onUpdateFunc, $isRadio);
+    ckRbString($id, $label, $checked, $onUpdateFunc, $isRadio);
 }
 function checkboxWrite($id, $label, $checked, $onUpdateFunc)
 {

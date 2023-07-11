@@ -18,7 +18,7 @@ if (isset($_REQUEST['setCopyright']))
     ?>
 <html>
 <body>
-<script type="text/javascript">
+<script type="text/javascript" nonce="<?php global $nonce; echo $nonce; ?>">
 <!--
 window.parent.imageCopyrightUpdated("<?php echo $errmsg ?>");
 //-->
@@ -46,7 +46,7 @@ $col0 = $_REQUEST['col0'];
    <?php echoStylesheetLink(); ?>
 </head>
 <body style="margin:0; padding:0; border:none;">
-<script type="text/javascript">
+<script type="text/javascript" nonce="<?php global $nonce; echo $nonce; ?>">
 <!--
 <?php
 
@@ -118,23 +118,21 @@ window.parent.imageUploadReady("<?php echo $btn ?>");
    <input type="hidden" name="tab" value="<?php echo $tab ?>">
    <input type="hidden" name="col0" value="<?php echo $col0 ?>">
    <span id="uplFileSpan" class="details">
-      Select an image file: <input type="file" name="uplFile" id="uplFile"
-         onchange="javascript:uplStart();">
+      Select an image file: <input type="file" name="uplFile" id="uplFile">
    </span>
 </form>
 
-<script type="text/javascript">
+<script type="text/javascript" nonce="<?php global $nonce; echo $nonce; ?>">
 <!--
 function uplStart()
 {
     setTimeout(function() {
         document.uplUploadForm.submit();
 
-        var ele = document.getElementById("uplFileSpan");
-        ele.innerHTML = "<input type=\"file\" name=\"uplFile\" id=\"uplFile\" "
-                        + "onchange=\"javascript:uplStart();\">";
+        uplFile.value = "";
     }, 100);
 }
+uplFile.addEventListener('change', function() { uplStart(); });
 function uplSelect()
 {
     var ele = document.getElementById("uplFile");

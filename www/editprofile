@@ -774,9 +774,6 @@ captchaSupportScripts($captchaKey);
                "cloaked" if you've manually obscured your address to prevent
                spam (<?php
                  echo helpWinLink("help-spamcloaking", "explain");
-//<a href="needjs"
-//               onclick="javascript:helpWin('help-spamcloaking');return false;"
-//               >explain</a>
                ?>) - we'll warn other users about this if so.
             </span>
          </td>

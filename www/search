@@ -391,9 +391,8 @@ function helpListLink($title, $id, $tableWid, $params)
         $tableWid = 4;
 
     echo "<div class=\"searchHelpList\" id=\"helpList.$id\">"
-        . "<a href=\"javascript:void(0);\" class=\"silent\" "
-        .    "onclick=\"javascript:openHelpList('$id', $tableWid, '$params');"
-        .      "return false;\">"
+        . "<a href=\"javascript:void(0);\" class=\"silent\">"
+        . addEventListener('click', "openHelpList('$id', $tableWid, '$params'); return false;")
         . "<img border=0 src=\"/img/blank.gif\" class=\"listarrow\">$title</a>"
         . "</div>";
 }
@@ -428,7 +427,7 @@ if (!$browse && !$xml) {
     echo $otherTabs;
 
     ?>
-<script type="text/javascript">
+<script type="text/javascript" nonce="<?php global $nonce; echo $nonce; ?>">
 
 function openHelpList(id, tableWid, params)
 {
@@ -956,8 +955,6 @@ else {  // ...default is searching games
        <p><b>ifid:<i>xxx</i></b> searches for a game with the given IFID.
        (<?php
           echo helpWinLink("help-ifid", "What's an IFID?");
-//<a href="needjs" onclick="javascript:helpWin('help-ifid');return false;"
-//          >What's an IFID?</a>
        ?>)
 
         <p><b>authorid:<i>id</i></b> lists games by the author with
@@ -1615,9 +1612,9 @@ else if ($term || $browse)
                     $badge[] = "<b>{$badgeInfo[1]}</b>";
                 }
                 if ($score) {
-                    $badge[] = "$score <a class=silent "
-                               . helpWinHRef("help-ff")
-                               . "><i>Frequent Fiction</i></a> point"
+                    $badge[] = "$score "
+                               . helpWinLink("help-ff", "<i>Frequent Fiction</i>")
+                               . " point"
                                . ($score == 1 ? "" : "s");
                 }
                 if ($badge) {
@@ -1690,7 +1687,7 @@ else if ($term || $browse)
 
 if (!$xml) {
 ?>
-<script type="text/javascript">
+<script type="text/javascript" nonce="<?php global $nonce; echo $nonce; ?>">
 <!--
 function newSearch(typ)
 {

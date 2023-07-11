@@ -605,7 +605,7 @@ if ($osid == "new" || $osid != 0) {
                  </td>
                  <td>
 
-<script type="text/javascript">
+<script type="text/javascript" nonce="<?php global $nonce; echo $nonce; ?>">
 <!--
 var vsnGridModel = {
    "emptylabel": "<i>No versions are defined for this OS.</i>",

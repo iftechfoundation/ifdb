@@ -90,16 +90,16 @@ $fields = array(
 
     array("Organizers", "organizersExt", 80,
           "The people who organize the competition - "
-          . "<a href=\"needjs\" "
-          . "onclick=\"javascript:aplOpen('organizersExt', 'Organizers');"
-          . "return false;\">Link to profile</a>",
+          . "<a href=\"needjs\">"
+          . addEventListener("click", "aplOpen('organizersExt', 'Organizers'); return false;")
+          . "Link to profile</a>",
           null, TypeString),
 
     array("Judges", "judgesExt", 80,
           "For a juried competition, the names of the judges - "
-          . "<a href=\"needjs\" "
-          . "onclick=\"javascript:aplOpen('judgesExt', 'Judges');"
-          . "return false;\">Link to profile</a>",
+          . "<a href=\"needjs\">"
+          . addEventListener("click", "aplOpen('judgesExt', 'Judges'); return false;")
+          . "Link to profile</a>",
           null, TypeString),
 
     array("Opening date", "qualopen", 15,
@@ -1045,11 +1045,10 @@ else if ($show == "form") {
 
     // showing the form - set up the form page
     pageHeader($pageTitle, "editcomp.title",
-               "initGrids();",
+               "initGrids();\ndocument.body.addEventListener('mousedown', function (event) { checkClosePopup(event, true); });",
                "<script src=\"gridform.js\"></script>"
                . "<script src=\"xmlreq.js\"></script>",
-               false,
-               "onmousedown=\"checkClosePopup(event, true);\"");
+               false);
 
 
 
@@ -1212,7 +1211,7 @@ if ($show == "divform") {
     echo "<div id=\"divGridDiv\" style=\"margin: 2em 0 2em 0;\"></div>";
 
 ?>
-<script type="text/javascript">
+<script type="text/javascript" nonce="<?php global $nonce; echo $nonce; ?>">
 <!--
 var divModel = {
     rowhead: "Division Name</th><th>Description",
@@ -1294,7 +1293,7 @@ var divVals = [
     gameSearchPopupDiv();
 
 ?>
-<script type="text/javascript">
+<script type="text/javascript" nonce="<?php global $nonce; echo $nonce; ?>">
 <!--
 function checkClosePopup(event, byMouse)
 {
@@ -1327,12 +1326,8 @@ function nthOrd(n)
         echo "var divModel$i = { "
             . "addbutton: 'add-game-button', "
 
-            . "addExtra: \" <a href='#' title='Sort by Place' "
-            . "onmouseover=\\\"javascript:window.status='Sort by Place';"
-            . "return true;\\\" "
-            . "onmouseout=\\\"javascript:window.status='';\\\" "
-            . "onclick=\\\"javascript:sortDivByPlace('divModel$i', divVals$i);"
-            . "return false;\\\"><img src='img/blank.gif' "
+            . "addExtra: \" <a href='#' id='sortDivByPlaceButton$i' title='Sort by Place'>"
+            . "<img src='img/blank.gif' "
             . "class='sortByPlaceButton'></a>\", "
 
             . "name: 'divDiv$i', "
@@ -1351,6 +1346,7 @@ function nthOrd(n)
             . "} else p = '1st Place'; "
             . "return ['', p, '', '', '$divid']; },"
             . "onAddRow: function(n) { editGame('$i',n); }, "
+            . "activateListeners: function() { activateListeners('$i',this); }, "
             . "rowfunc: function(n) "
             .           "{ return divRowTpl({$i}, n, divVals{$i}[n]); } "
             . "};";
@@ -1381,7 +1377,7 @@ function sortDivByPlace(modelVar, vals)
 
 function divRowTplFld(fldno, i, n, row, typ)
 {
-    var id = eval("divModel" + i).fields[fldno] + n;
+    var id = window["divModel" + i].fields[fldno] + n;
     return "<input name='" + id + "' id='" + id + "' "
         + typ + " value=\"" + jsQuote(row[fldno]) + "\">";
 }
@@ -1431,12 +1427,11 @@ function divRowTpl(i, n, row)
         + (row[2]
            ? ("<a href=\"viewgame?id=" + row[0] + "\" target='_blank'><i>"
               + encodeHTML(row[2]) + "</i></a>")
-           : ("<a href='needjs' onclick=\"javascript:editGame("
-              + i + "," + n + ");return false;\">"
+           : ("<a href='needjs' class='editLink"+i+"_"+n+"'>"
               + "<i>Not set - click to select a game</i></a>"))
            + "</span><span style='padding-right: 3ex;'></span></td><td>"
-           + "<a href='needjs' onclick=\"javascript:editGame("
-           + i + "," + n + ");return false;\"><img src='img/blank.gif' "
+           + "<a href='needjs' class='editLink"+i+"_"+n+"'>"
+           + "<img src='img/blank.gif' "
            + "class='grid-edit-button'></a>";
 }
 
@@ -1456,6 +1451,86 @@ function editGame(divno, rownum)
         gameSearchPopupClose();
 
     }, '');
+}
+
+function activateListeners(divno, model)
+{
+    document.querySelector('#sortDivByPlaceButton' + divno).addEventListener('click', function(event) {
+        event.preventDefault();
+        sortDivByPlace('divModel' + divno, window["divVals"+divno]);
+    });
+
+    for (var i = 0; i < model.vals.length; i++) {
+        var idx = "" + divno + "_" + i;
+        (function(i){
+            document.querySelectorAll('a.editLink' + idx).forEach(function(editLink) {
+                console.log({editLink});
+                editLink.addEventListener('click', function(event) {
+                    event.preventDefault();
+                    editGame(divno, i);
+                });
+            });
+        })(i);
+
+        document.querySelectorAll('#gameplace'+idx).forEach(function(comboField) {
+            console.log({comboField});
+            comboField.addEventListener('keydown', function(event) {
+                var result = comboFieldKey(event,comboField.name,comboField.name + 'CBSel','D');
+                if (result === false) event.preventDefault();
+            });
+            comboField.addEventListener('keypress', function(event) {
+                var result = comboFieldKey(event,comboField.name,comboField.name + 'CBSel','P');
+                if (result === false) event.preventDefault();
+            });
+        });
+        document.querySelectorAll('a[x-name=gameplace'+idx+']').forEach(function(comboArrow) {
+            console.log({comboArrow});
+            comboArrow.addEventListener('click', function (event) {
+                event.preventDefault();
+                var name = comboArrow.getAttribute("x-name");
+                postShowComboMenu(name,true,name+'CBSel');
+            })
+            comboArrow.addEventListener('keydown', function(event) {
+                var name = comboArrow.getAttribute("x-name");
+                var result = comboArrowKey(event,name,name + 'CBSel','D');
+                if (result === false) event.preventDefault();
+            });
+            comboArrow.addEventListener('keydown', function(event) {
+                var name = comboArrow.getAttribute("x-name");
+                var result = comboArrowKey(event,name,name + 'CBSel','D');
+                if (result === false) event.preventDefault();
+            });
+        });
+
+        document.querySelectorAll('#gameplace'+idx+"CBDiv").forEach(function(comboList) {
+            console.log({comboList});
+            comboList.addEventListener('mouseover', function () {
+                overComboMenu = true;
+            });
+            comboList.addEventListener('mouseout', function () {
+                overComboMenu = false;
+            });
+        });
+
+        document.querySelectorAll('#gameplace'+idx+"CBSel").forEach(function(comboSelect) {
+            console.log({comboSelect});
+            var name = comboSelect.id.substring(0, comboSelect.id.length - 5);
+            comboSelect.addEventListener('click', function (event) {
+                setComboText(name,event.target.value,null);
+            });
+            comboSelect.addEventListener('keypress', function (event) {
+                var result = comboKeyPress(event,name,event.target,null);
+                if (result === false) event.preventDefault();
+            });
+            comboSelect.addEventListener('keydown', function (event) {
+                var result = comboKeyPress(event,name,event.target,null);
+                if (result === false) event.preventDefault();
+            });
+            comboSelect.addEventListener('blur', function (event) {
+                checkClosePopup(null, false);
+            });
+        });
+    }
 }
 
 <?php
@@ -1618,14 +1693,15 @@ function editGame(divno, rownum)
 
         . "<input type=image alt='Reset Form (Discard Changes)' "
         . "src='img/blank.gif' class='reset-form-button' "
-        . "name='discard' value='Reset Form (Discard Changes)' id='edit-reset' "
-        . "onclick=\"javascript:return confirm('"
-        . ($compID == "new"
-           ? "This will discard all of the data you\\'ve entered and reset "
-           . "to a blank form."
-           : "This will discard all of the changes you\\'ve made and "
-           . "reset to the last saved data from the database.")
-        . " Do you wish to proceed?');\">"
+        . "name='discard' value='Reset Form (Discard Changes)' id='edit-reset'>"
+        . addSiblingEventListeners([["click", "return confirm('"
+            . ($compID == "new"
+                ? "This will discard all of the data you\\'ve entered and reset "
+                . "to a blank form."
+                : "This will discard all of the changes you\\'ve made and "
+                . "reset to the last saved data from the database.")
+            . " Do you wish to proceed?');"
+        ]])
 
         . " &nbsp; "
 

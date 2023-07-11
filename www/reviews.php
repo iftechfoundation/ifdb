@@ -133,7 +133,7 @@ function initSpecialNames($db)
 function initReviewVote()
 {
 ?>
-<script type="text/javascript">
+<script type="text/javascript" nonce="<?php global $nonce; echo $nonce; ?>">
 <!--
 
 function sendReviewVote(reviewID, vote)
@@ -156,9 +156,11 @@ function displayReviewVote(reviewID, vote)
                     "<br>(You voted "
                     + (vote == 'Y' ? "Yes" : "No")
                     + ")";
-            document.getElementById("voteRemove_" + reviewID).innerHTML = "<a href=\"needjs\" "
-            + "onclick=\"javascript:sendReviewVote('" + reviewID + "', 'R');"
-            + "return false;\">Remove vote</a> &nbsp; "
+            document.getElementById("voteRemove_" + reviewID).innerHTML = "<a href=\"needjs\">Remove vote</a> &nbsp; ";
+            document.getElementById("voteRemove_" + reviewID).querySelector('a').addEventListener('click', function (event) {
+                event.preventDefault();
+                sendReviewVote(reviewID, 'R');
+            })
         }
     }
     else {
@@ -460,18 +462,19 @@ function showReview($db, $gameid, $rec, $specialNames, $optionFlags = 0)
             if (mysql_num_rows($result) > 0)
                 $oldvote = "'" . mysql_result($result, 0, "vote") . "'";
         }
+        global $nonce;
 
         echo "<div class=smallfoot><span class=details>"
             . "Was this review helpful to you? &nbsp; "
-            . "<a href=\"needjs\" "
-            . "onclick=\"javascript:sendReviewVote('$reviewid', 'Y');"
-            . "return false;\">Yes</a> &nbsp; "
-            . "<a href=\"needjs\""
-            . "onclick=\"javascript:sendReviewVote('$reviewid', 'N');"
-            . "return false;\">No</a> &nbsp; "
-            . "<span id=\"voteRemove_$reviewid\"><a href=\"needjs\" "
-            . "onclick=\"javascript:sendReviewVote('$reviewid', 'R');"
-            . "return false;\">Remove vote</a> &nbsp; </span>";
+            . "<a href=\"needjs\">"
+            . addEventListener('click', "sendReviewVote('$reviewid', 'Y'); return false;")
+            . "Yes</a> &nbsp; "
+            . "<a href=\"needjs\">"
+            . addEventListener('click', "sendReviewVote('$reviewid', 'N'); return false;")
+            . "No</a> &nbsp; "
+            . "<span id=\"voteRemove_$reviewid\"><a href=\"needjs\">"
+            . addEventListener('click', "sendReviewVote('$reviewid', 'R'); return false;")
+            . "Remove vote</a> &nbsp; </span>";
 
             if (check_admin_privileges($db, $curuser)) {
                 echo "<a href=\"review?id=$gameid&userid=$userid\">Edit</a>&nbsp; ";
@@ -479,16 +482,16 @@ function showReview($db, $gameid, $rec, $specialNames, $optionFlags = 0)
 
 
         echo  "<div style=\"display:inline;position:relative;\">"
-            . "<a href=\"#\" id=\"voteMenuLink_$reviewid\" "
-            . "onclick=\"javascript:popVoteMenu('$reviewid');"
-            . "return false;\">More Options<img src=\"/img/blank.gif\" "
+            . "<a href=\"#\" id=\"voteMenuLink_$reviewid\">"
+            . addEventListener('click', "popVoteMenu('$reviewid'); return false;")
+            . "More Options<img src=\"/img/blank.gif\" "
             . "class=\"popup-menu-arrow\"></a>"
 
             . "<div id=\"voteMenu_$reviewid\" style=\"display: none;"
-            . "position:absolute;left:0px;z-index:20000;\" "
-            . "onclick=\"javascript:closePopupMenu(null);return true;\" "
-            . "onkeypress=\"javascript:return popupMenuKey("
-            . "event,'$reviewid');\"><br>"
+            . "position:absolute;left:0px;z-index:20000;\">"
+            . addEventListener('click', "closePopupMenu(null);")
+            . addEventListener('keypress', "return popupMenuKey(event,'$reviewid');")
+            . "<br>"
             . "<div class=\"popupMenu\">"
             . "<table border=0 cellspacing=0 cellpadding=0>"
             . "<tr><td><a href=\"userfilter?user=$userid&action=promote\" "
@@ -520,8 +523,7 @@ function showReview($db, $gameid, $rec, $specialNames, $optionFlags = 0)
             . "<tr><td><a href=\"userfilter?list\">"
             . "<nobr>View my user filters</nobr></a>"
             . "</tr></td>"
-            . "<tr><td><a " . helpWinHRef("help-review-votes")
-            . "><nobr>Explain these options</nobr></a>"
+            . "<tr><td>" . helpWinLink("help-review-votes", "<nobr>Explain these options</nobr>")
             . "</tr></td>"
             . "</table>"
             . "</div>"
@@ -532,7 +534,7 @@ function showReview($db, $gameid, $rec, $specialNames, $optionFlags = 0)
             . "&nbsp;<span id=\"voteMsg_$reviewid\" class=\"xmlstatmsg\">"
             . "</span><span id=\"voteStat_$reviewid\"></span>"
             . "</span></div>"
-            . "<script type=\"text/javascript\">\r\n<!--\r\n"
+            . "<script type=\"text/javascript\" nonce=\"$nonce\">\r\n<!--\r\n"
             . "displayReviewVote('$reviewid', $oldvote);"
             . "\r\n//-->\r\n</script>\r\n";
 

@@ -54,8 +54,9 @@ function newsSummary($db, $sourceType, $sourceID, $maxItems,
 
             // display it
             echo "<div class=\"newsItemHeadline\">"
-                . "<a href=\"needjs\" onclick=\"javascript:expandNews($i);"
-                . "return false;\">$newshead</a>"
+                . "<a href=\"needjs\">"
+                . addEventListener('click', "expandNews($i); return false;")
+                . "$newshead</a>"
                 . " <span class=\"newsItemDate\">$newsdate</span>"
                 . "</div>"
                 . "<div id=\"newsBody$i\" class=\"newsItemBody\" "
@@ -70,7 +71,7 @@ function newsSummary($db, $sourceType, $sourceID, $maxItems,
         }
 
 ?>
-<script type="text/javascript">
+<script type="text/javascript" nonce="<?php global $nonce; echo $nonce; ?>">
 <!--
 
 function expandNews(n)

@@ -91,9 +91,7 @@ if ($errFlagged != false) {
             Password:
          <td>
             <input type="password" name="password" id="password" size=30
-               value="<?php echo get_req_data('password') ?>"
-               onpropertychange="javascript:onPasswordChange(this);return true;"
-               oninput="javascript:onPasswordChange(this);return true;">
+               value="<?php echo get_req_data('password') ?>">
             <span style='font-size: 80%; padding-left:2em;'>Strength:
                <span id="pswStrength">&nbsp;</span>
             </span>
@@ -103,13 +101,19 @@ if ($errFlagged != false) {
             Confirm Password:
          <td>
             <input type="password" name="password2" id="password2" size=30
-               value="<?php echo get_req_data('password2') ?>"
-               onpropertychange="javascript:onPassConfChange(this);return true;"
-               oninput="javascript:onPassConfChange(this);return true;">
+               value="<?php echo get_req_data('password2') ?>">
             <span style='font-size: 80%; padding-left:2em;'>Match:
                <span id="confMatch">&nbsp;</span>
             </span>
    </table>
+   <script type="text/javascript" nonce="<?php global $nonce; echo $nonce; ?>">
+        document.getElementById('password').addEventListener('input', function(event) {
+            onPasswordChange(event.target);
+        });
+        document.getElementById('password2').addEventListener('input', function(event) {
+            onPassConfChange(event.target);
+        });
+    </script>
 <script type="text/javascript" src="passwords.js">
 </script>
 
@@ -162,14 +166,8 @@ by there.</span><br>
          echo helpWinLink("/code-of-conduct?helpwin=1", "Code of Conduct");
       ?>, our <?php
          echo helpWinLink("/tos?helpwin=1", "Terms of Service");
-//<a href="needjs"
-//        onclick="javascript:helpWin('/tos?helpwin=1');return false;">
-//         Terms of Service</a>
       ?>, and our <?php
          echo helpWinLink("/privacy?helpwin=1", "Privacy Policy");
-//<a href="needjs"
-//        onclick="javascript:helpWin('/privacy?helpwin=1');return false;">
-//         Privacy Policy</a>
       ?>.
 
    <br><br>

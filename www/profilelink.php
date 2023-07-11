@@ -21,7 +21,7 @@
 //
 //  5. For each field where you want to be able to insert a profile
 //     link, use
-//       onclick="javascript:aplOpen('fieldID', 'fieldName');return false;"
+//       addEventListener("click", "aplOpen('fieldID', 'fieldName');return false;")
 //     as the link's script.  This will pop up the link box just under
 //     the field with the given ID.
 //
@@ -34,7 +34,7 @@
 function profileLinkSupportFuncs()
 {
 ?>
-<script type="text/javascript">
+<script type="text/javascript" nonce="<?php global $nonce; echo $nonce; ?>">
 <!--
 
 var aplFieldEle = null, aplFieldRange = null, aplFieldFocus = null;
@@ -211,14 +211,20 @@ function aplSearchDone(d)
         {
             var nm = lst[i].getElementsByTagName('name')[0].firstChild.data;
             var id = lst[i].getElementsByTagName('tuid')[0].firstChild.data;
-            s += "<a href=\"needjs\" onclick=\"aplInsertID('" + id + "');"
-                 + "return false;\">" + encodeHTML(nm) + "</a>"
+            s += "<a href=\"needjs\" x-id='"+id+"'>"
+                 + encodeHTML(nm) + "</a>"
                  + " - <a href=\"showuser?id=" + id + "\" target=\"_blank\">"
                  + "view profile</a><br>";
         }
         if (s == "")
             s = "<b><i>(No member profiles found.)</i></b>";
         document.getElementById("aplSearchResults").innerHTML = s;
+        document.getElementById("aplSearchResults").querySelectorAll('a[x-id]').forEach(function (link) {
+            link.addEventListener('click', function (event) {
+                event.preventDefault();
+                aplInsertID(event.target.getAttribute('x-id'));
+            })
+        })
         document.getElementById("aplStep2").style.display = "";
     }
 }
@@ -246,8 +252,13 @@ function profileLinkDiv()
          <b>Add Link to Member Profile</b>
          <span style="position:absolute;top:2px;right:2px;
                text-align:right;">
-            <a href="needjs"
-             onclick="javascript:aplClose();return false;">
+            <a href="needjs">
+               <script type="text/javascript" nonce="<?php global $nonce; echo $nonce; ?>">
+                 document.currentScript.parentElement.addEventListener('click', function(event) {
+                    event.preventDefault();
+                    aplClose();
+                 });
+               </script>
                Close<img src="img/blank.gif" class="popup-close-button"></a>
          </span>
       </div>
@@ -255,10 +266,19 @@ function profileLinkDiv()
    <div class="edit-popup-win">
       <p><b>Step 1:</b> Search for an IFDB profile by member name.
       <br>
-      <input id="aplSearchBox" type=text size=50
-         onkeypress="javascript:return aplPopupKey(event);">
+      <input id="aplSearchBox" type=text size=50>
       <input type=submit name="aplSearchGo" id="aplSearchGo"
-         value="Search" onclick="javascript:aplSearch();return false;">
+         value="Search">
+      <script type="text/javascript" nonce="<?php global $nonce; echo $nonce; ?>">
+        aplSearchBox.addEventListener('keypress', function(event) {
+            var result = aplPopupKey(event);
+            if (result === false) event.preventDefault();
+        })
+        aplSearchGo.addEventListener('click', function (event) {
+            event.preventDefault();
+            aplSearch();
+        })
+      </script>
       <div id="aplStep2" style="display:none;">
          <p><b>Step 2:</b> Click in the <span id="aplFieldName">text</span>
             field above to move the caret <b>just after</b> the displayed

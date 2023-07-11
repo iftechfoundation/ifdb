@@ -6,6 +6,8 @@ include_once "util.php";
 include_once "pagetpl.php";
 include_once "dbconnect.php";
 
+global $nonce;
+
 // we have to be logged in to upload a game
 include_once "login-check.php";
 if (!logged_in())
@@ -56,7 +58,7 @@ $result = mysql_query(
     "select id, fmtname, externid, fmtclass
      from filetypes
      order by fmtname", $db);
-echo "<script type=\"text/javascript\">\r\n<!--\r\n"
+echo "<script type=\"text/javascript\" nonce=\"$nonce\">\r\n<!--\r\n"
    . "var fmtExtMap = { ";
 for ($rowcnt = mysql_num_rows($result), $fmts = false, $i = 0 ;
      $i < $rowcnt ; $i++) {
@@ -81,7 +83,7 @@ echo "\" \": 0 };\r\n";
 echo "</script>\r\n";
 
 ?>
-<script type="text/javascript">
+<script type="text/javascript" nonce="<?php global $nonce; echo $nonce; ?>">
 var pathmap = {
     "tads2" : "/tads",
     "tads3" : "/tads",
@@ -164,7 +166,10 @@ games there, to reach players and for historical preservation.</p>
 
 </ul>
 
-<script type="text/javascript">
+<form id="uploadForm" action="http://upload.ifarchive.org/cgi-bin/upload.py"
+      method="POST" enctype="multipart/form-data">
+
+<script type="text/javascript" nonce="<?php global $nonce; echo $nonce; ?>">
 function doSubmit()
 {
     var fname = document.getElementById("uploadFileName").value;
@@ -197,21 +202,21 @@ function setFileName()
     var vis = (fname && fname.match(/.*\.zip/i)) ? "" : "none";
     document.getElementById("zipPrimaryRow").style.display = vis;
 }
-</script>
 
-<form action="http://upload.ifarchive.org/cgi-bin/upload.py"
-      method="POST" enctype="multipart/form-data"
-      onsubmit="javascript:return doSubmit();">
+uploadForm.addEventListener('submit', function (event) {
+    var result = doSubmit();
+    if (result === false) event.preventDefault();
+});
+</script>
 
  <input type="hidden" name="ifdbid" value="<?php echo $uploadID ?>"/>
 
 <table border="0" cellspacing="5">
   <tr><td align=right>Filename:</td><td>&nbsp;</td>
     <td><input type="file" name="file.1" size="35" maxlength="100"
-         id="uploadFileName" onchange="javascript:setFileName();" /></td></tr>
+         id="uploadFileName"></td></tr>
   <tr><td align=right>Game file format:</td><td>&nbsp;</td>
-     <td><select name="gameFormat" id="gameFormat"
-         onchange="javascript:setArchivePath(document.getElementById('gameFormat').value,'fmt');">
+     <td><select name="gameFormat" id="gameFormat">
         <option id="storyfile"<?php if (!$fmt) echo " selected";
         ?>>Please Select</option><?php
         foreach ($fmts as $f) {
@@ -228,8 +233,7 @@ function setFileName()
         <option value="executable">None - Native Application</option>
       </select>
 
-      <select style="margin-left: 1ex;" id="opsys" name="opsys"
-           onchange="javascript:setArchivePath(document.getElementById('opsys').value,'os');">
+      <select style="margin-left: 1ex;" id="opsys" name="opsys">
         <option id=""<?php if(!$os) echo " selected";
         ?>>Please Select</option><?php
         foreach ($oses as $o) {
@@ -245,6 +249,15 @@ function setFileName()
         <option value="">Other</option>
       </select>
      </td></tr>
+     <script type="text/javascript" nonce="<?php global $nonce; echo $nonce; ?>">
+        document.getElementById('uploadFileName').addEventListener('change', function() { setFileName(); });
+        document.getElementById('gameFormat').addEventListener('change', function() {
+            setArchivePath(document.getElementById('gameFormat').value,'fmt');
+        });
+        document.getElementById('opsys').addEventListener('change', function() {
+            setArchivePath(document.getElementById('opsys').value,'os');
+        });
+     </script>
   <tr style="display:none;" valign=top id="zipPrimaryRow">
      <td align=right>Name of game file in ZIP:</td>
      <td>&nbsp;</td>
@@ -286,7 +299,7 @@ function setFileName()
 </table>
 </form>
 
-<script type="text/javascript">
+<script type="text/javascript" nonce="<?php global $nonce; echo $nonce; ?>">
 setArchivePath("<?php echo $fmt ?>", "fmt");
 </script>
 

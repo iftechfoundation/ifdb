@@ -101,8 +101,8 @@ if ($editMode) {
         . "<input type=text size=80 name=searchfor id=searchfor "
         . "value=\"$searchFor\">"
         . " <input type=submit name=submit value=\"Search\"><br>"
-        . "<span class=microhelp>Enter a game title or <a class=silent "
-        . helpWinHRef("help-tuid") . ">TUID</a></span>"
+        . "<span class=microhelp>Enter a game title or "
+        . helpWinLink("help-tuid", "TUID") . "</span>"
         . "</form>";
 
     $returnLink = "<a href=\"viewgame?id=$gameID\">"
