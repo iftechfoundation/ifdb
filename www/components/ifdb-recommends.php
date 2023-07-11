@@ -410,16 +410,15 @@ if (count($recs) >= 2) {
 
     // explain the source
     echo "<p><span class=details><i>";
-    $href = helpWinHRef("help-crossrec");
     if ($recsrc == 'generic') {
         echo "These are a few randomly-selected games with high
              average member ratings.  If you ";
         if (!$loggedIn)
             echo "<a href=\"login\">log in</a> and ";
         echo "rate a few games yourself, IFDB can offer customized
-              recommendations (<a $href>explain</a>).";
+              recommendations (".helpWinLink("help-crossrec", "explain").").";
     } else {
-        echo "<a $href>Why did IFDB recommend these?</a>";
+        echo helpWinLink("help-crossrec", "Why did IFDB recommend these?");
     }
     echo "</i></span></div>";
 }

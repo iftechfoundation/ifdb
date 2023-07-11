@@ -523,8 +523,7 @@ function showReview($db, $gameid, $rec, $specialNames, $optionFlags = 0)
             . "<tr><td><a href=\"userfilter?list\">"
             . "<nobr>View my user filters</nobr></a>"
             . "</tr></td>"
-            . "<tr><td><a " . helpWinHRef("help-review-votes")
-            . "><nobr>Explain these options</nobr></a>"
+            . "<tr><td>" . helpWinLink("help-review-votes", "<nobr>Explain these options</nobr>")
             . "</tr></td>"
             . "</table>"
             . "</div>"

@@ -286,8 +286,8 @@ if ($errMsg) {
     if ($lastlogin != "")
         echo "Last visited $lastlogin<br>";
 
-    echo "Profile ID (<a class=silent " . helpWinHRef("help-tuid")
-        . ">TUID</a>): $uid<br>";
+    echo "Profile ID (" . helpWinLink("help-tuid", "TUID")
+        . "): $uid<br>";
 
     if ($pubemail != "" && !$pendingReview) {
         if (!$emailcaptcha) {

@@ -219,8 +219,8 @@ if ($userid && isset($_REQUEST['editPoll'])) {
                     . "<p><b>Details:</b> Explain what kind of game "
                     . "you're looking for, to help voters fine-tune their "
                     . "suggestions."
-                    . " &nbsp; <span class=details>(<a "
-                    . helpWinHRef("help-formatting"). ">Formatting Hints</a>)"
+                    . " &nbsp; <span class=details>("
+                    . helpWinLink("help-formatting", "Formatting Hints"). ")"
                     . "</span>"
                     . "<br><textarea name=\"desc\" rows=4 cols=70>"
                     . "$desc</textarea>"
@@ -649,8 +649,8 @@ if ($userid && $id && isset($_REQUEST['addVote'])) {
             . "<p><b>Details:</b> Explain why you think this is a good "
             . "recommendation for the poll.  Just a sentence or two - "
             . "no need to write a full review here. <i>Optional</i>"
-            . " &nbsp; <span class=details>(<a "
-            . helpWinHRef("help-formatting"). ">Formatting Hints</a>)"
+            . " &nbsp; <span class=details>("
+            . helpWinLink("help-formatting", "Formatting Hints"). ")"
             . "</span>"
             . "<br><textarea name=voteDesc rows=3 cols=70>"
             . htmlspecialcharx($voteDesc) . "</textarea>"
@@ -863,9 +863,9 @@ if ($userid && isset($_REQUEST['comment'])) {
                     . "this to give voters feedback about how well you "
                     . "think this game fits what you're looking for, or "
                     . "just to share your own thoughts about the game. "
-                    . "(<span class=details><a "
-                    . helpWinHRef("help-formatting")
-                    . ">Formatting Hints</a>)</span><br>"
+                    . "(<span class=details>"
+                    . helpWinLink("help-formatting", "Formatting Hints")
+                    . ")</span><br>"
                     . "<textarea rows=4 cols=70 name=\"commentText\">"
                     . "$comment</textarea>"
                     . "<p><input type=submit name=commentBtn "
@@ -933,8 +933,8 @@ completes the thought, "I'm looking for..."
 <p><b>2. Explain in a little more detail what you're looking for.</b>
 Tell everyone in a couple of sentences more specifically what you're
 interested in, to help respondents fine-tune their suggestions.
-&nbsp; <span class=details>(<a <?php echo helpWinHRef("help-formatting")
-?>>Formatting Hints</a>)</span>
+&nbsp; <span class=details>(<?php echo helpWinLink("help-formatting", "Formatting Hints")
+?>)</span>
 <br><textarea name="desc" rows=4 cols=70><?php
     echo htmlspecialcharx($newDesc)
 ?></textarea>
@@ -1422,10 +1422,10 @@ function expandVote(id)
             echo "<form name=\"addVoteForm\" method=\"get\" action=\"poll\">"
                 . "<input type=hidden name=id value=\"$id\">"
                 . "<input type=hidden name=addVote value=1>"
-                . "<b>Game Title</b> (<i>or</i> <a class=silent "
-                . helpWinHRef("help-tuid") . " title=\"What's a TUID?\">"
-                . "TUID</a> or <a class=silent " . helpWinHRef("help-ifid")
-                . " title=\"What's an IFID?\">IFID</a>): "
+                . "<b>Game Title</b> (<i>or</i> "
+                . helpWinLink("help-tuid", "TUID")
+                . " or " . helpWinLink("help-ifid", "IFID")
+                . "): "
                 . "<input type=text size=60 name=\"addTitle\">"
                 . " <input type=submit value=\"Vote!\" "
                 . "name=\"addVoteBtn\">"

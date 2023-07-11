@@ -1612,9 +1612,9 @@ else if ($term || $browse)
                     $badge[] = "<b>{$badgeInfo[1]}</b>";
                 }
                 if ($score) {
-                    $badge[] = "$score <a class=silent "
-                               . helpWinHRef("help-ff")
-                               . "><i>Frequent Fiction</i></a> point"
+                    $badge[] = "$score "
+                               . helpWinLink("help-ff", "<i>Frequent Fiction</i>")
+                               . " point"
                                . ($score == 1 ? "" : "s");
                 }
                 if ($badge) {

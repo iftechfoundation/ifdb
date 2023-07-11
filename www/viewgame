@@ -1829,13 +1829,11 @@ if ($embargoCnt > 0)
                <?php if (!isEmpty($system))
                    echo "Development System: <a href=\"search?searchfor=system:" . urlencodeFromHTML($system) . "\">$system</a><br>" ?>
                <?php if (!isEmpty($forgiveness))
-                   echo "<a class=silent " . helpWinHRef("help-forgiveness")
-                       . " title=\"What does this mean?\">"
-                       . "Forgiveness Rating</a>: $forgiveness<br>" ?>
+                   echo helpWinLink("help-forgiveness", "Forgiveness Rating")
+                       . ": $forgiveness<br>" ?>
                <?php if(!isEmpty($bafsid))
-                   echo "<a class=silent " . helpWinHRef("help-bafs")
-                       . " title=\"What's a Baf's Guide ID?\">
-                        Baf's Guide ID</a>:
+                   echo helpWinLink("help-bafs", "Baf's Guide ID")
+                       . ":
                      <a class=silent
                       href=\"https://web.archive.org/web/20110100000000/http://www.wurb.com/if/game/$bafsid\"
                         title=\"Go to the Baf's Guide listing for this game\">
@@ -1845,8 +1843,7 @@ if ($embargoCnt > 0)
             </span>
             <?php
 
-$caption = "<a class=silent " . helpWinHRef("help-ifid")
-           . " title=\"What's an IFID?\">IFID</a>";
+$caption = helpWinLink("help-ifid", "IFID");
 
 if (count($ifids) == 0 || isEmpty($ifids[0]))
     echo "<span class=notes>$caption: <i>Unknown</i></span><br>";
@@ -1862,8 +1859,8 @@ else {
 }
             ?>
             <span class=notes>
-              <a class=silent <?php echo helpWinHRef("help-tuid");
-                 ?> title="What's a TUID?">TUID</a>:
+              <?php echo helpWinLink("help-tuid", "TUID");
+                 ?>:
                  <?php echo htmlspecialcharx($id) ?>
             </span><br>
 

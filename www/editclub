@@ -412,8 +412,8 @@ formCol("url", $url, "Web site", "input(80)",
         "The club's official Web site URL (http://...)");
 formCol("contacts", $contacts, "Contacts", "input(80)",
         "Contact information for club officials: use the format "
-        . "<b>Bob Smith &lt;bob@ifclub.com&gt; <a class=silent href="
-        . helpWinHRef("help-tuid") . "\">{TUID}</a></b>.  The {TUID} "
+        . "<b>Bob Smith &lt;bob@ifclub.com&gt; "
+        . helpWinLink("help-tuid", "{TUID}") . "</b>.  The {TUID} "
         . "is the IFDB profile link - "
         . "<a href=\"needjs\">"
         . addEventListener("click", "aplOpen('fld-contacts', 'Contacts');return false;")

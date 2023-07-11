@@ -246,8 +246,8 @@ $pollCnt = mysql_result($result, 0, "c");
 
 if ($pollCnt == 0) {
     echo "<span class=notes><i>You haven't created any Polls yet.</i></span> "
-        . "<span class=details>(<a " . helpWinHRef("help-polls")
-        . ">What's a Poll?</a>)</span><p>";
+        . "<span class=details>(" . helpWinLink("help-polls", "What's a Poll?")
+        . ")</span><p>";
 } else {
     $result = mysql_query(
         "select
@@ -526,8 +526,8 @@ if ($rankName)
     echo "You're a <b>$rankName</b>!<br>";
 
 echo "Number of reviews written: $fullReviewCnt<br>Your "
-   . "<a class=silent title=\"What's this?\" " . helpWinHRef("help-ff")
-   . "><i>Frequent Fiction</i> Points:</a> $score<br>"
+   . helpWinLink("help-ff", "<i>Frequent Fiction</i> Points")
+   . ": $score<br>"
    . "</td></tr></table>";
 
 // ----------------------- authorship help box ---------------------------
