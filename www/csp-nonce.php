@@ -29,4 +29,4 @@ function random_str(
 global $nonce;
 $nonce = random_str(8);
 
-header("Content-Security-Policy: default-src 'self' ifdb.org 'nonce-$nonce'; style-src 'self' 'unsafe-inline'; script-src-attr 'unsafe-inline';");
+header("Content-Security-Policy: default-src 'self' ifdb.org 'nonce-$nonce'; style-src 'self' 'unsafe-inline';");
