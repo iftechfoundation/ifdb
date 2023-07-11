@@ -460,9 +460,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             echo "<p><b>Tags:</b> " . htmlspecialcharx($tags);
 
         if ($embargoDate) {
-            $dispDate = date("F j, Y", strtotime($embargoDate));
-            echo "<p><b>This review will be hidden from other users "
-                . "until $dispDate.</b>";
+            if (strtotime($embargoDate) < strtotime("now")){
+                echo "<p><span class=\"warning\">The embargo date is in the past."
+                    . "This review will be published immediately!</span>";
+            } else {
+                $dispDate = date("F j, Y", strtotime($embargoDate));
+                echo "<p><b>This review will be hidden from other users "
+                    . "until $dispDate.</b>";
+            }
         }
 
 ?>
@@ -843,13 +848,14 @@ if (isset($errDetail['embargoDate']))
     echo "<span class=errmsg><i>{$errDetail['embargoDate']}</i></span><br>";
 ?>
      <b>5. Embargo date:</b>
-        <input type="text" name="embargoDate" length=30 value="<?php
+        <input type="date" name="embargoDate" min="<?php echo date("Y-m-d") ?>"
+          length=30 value="<?php
           echo htmlspecialcharx($embargoDate) ?>"><br>
      <span class=notes>Optional.
         Your review and rating will be hidden from everyone
         else until this date. You can use this to hide your review until a
         competition is over, for example. If you don't enter a date, your
-        review will be published immediately. Format like this: 15-Apr-2007.
+        review will be published immediately.
         </span>
    </p>
 
