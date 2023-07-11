@@ -399,8 +399,8 @@ table.srvedit td.1 {
    // add a Delete button, except for a new entry
    if ($applyID != 'NEW')
    {
-       echo "<input type=\"submit\" name=\"ApplyDelete\" value=\"Delete\" "
-           . "onclick=\"javascript:return confirmDeleteRow();\"> "
+       echo "<input type=\"submit\" name=\"ApplyDelete\" value=\"Delete\"> "
+           .   addSiblingEventListeners([['click', "return confirmDeleteRow();"]])
            . "&nbsp; ";
 
 ?>

@@ -221,7 +221,8 @@ if ($userid)
 
     // show the launch link
     echo "<br><br>"
-        . "<a href=\"#\" onclick=\"javascript:launchClick();return false;\">"
+        . "<a href=\"#\">"
+        . addEventListener('click', "launchClick();return false;")
         . "Start the game</a><br>";
 
     ?>
@@ -284,8 +285,8 @@ else
         .   "><label for=\"ckPersist\"> Remember me</label>"
         .   "</label></td>"
         . "</tr><tr><td>&nbsp;</td><td style=\"padding-top: 1.5ex;\">"
-        .   "<input type=\"submit\" name=\"login\" value=\"Log In to IFDB\" "
-        .     "onclick=\"javascript:return clickLogInButton();\">"
+        .   "<input type=\"submit\" name=\"login\" value=\"Log In to IFDB\">"
+        .     addSiblingEventListeners([["click", "return clickLogInButton();"]])
         . "</td></tr></table>"
         . "<input type=\"hidden\" name=\"id\" value=\"$sid\">"
         . "<input type=\"hidden\" name=\"storyfile\" value=\""
@@ -297,8 +298,8 @@ else
         . "</td>"
 
         . "<td style=\"border-left: 1px dotted #4040ff; padding-left: 2em;\">"
-        . "<a href=\"#\" "
-        .    "onclick=\"javascript:playWithoutLogin();return false;\">"
+        . "<a href=\"#\">"
+        .    addEventListener("click", "playWithoutLogin();return false;")
         . "Play without logging in</a><br>"
         . "<div class=details style=\"margin-top: 1em;\">"
         . "If you choose this option, the game won't be able to "

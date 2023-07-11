@@ -165,8 +165,8 @@ if ($userid)
 
     // add the multi-user option
     echo "<br>"
-        . "<label><input type=\"checkbox\" id=\"ckMulti\" "
-        .    "onclick=\"javascript:ckMultiChange();\">"
+        . "<label><input type=\"checkbox\" id=\"ckMulti\">"
+        .    addSiblingEventListeners([["click", "ckMultiChange();"]])
         . "<label for=\"ckMulti\">"
         .   " Enable multi-user play"
         . "</label></label>"
@@ -195,8 +195,8 @@ if ($userid)
     {
         // we have saved games - show a "start a new game" link
         echo "<br><ul class=doublespace>"
-            . "<li><a href=\"#\" "
-            .   "onclick=\"javascript:launchClick();return false;\">"
+            . "<li><a href=\"#\">"
+            .   addEventListener('click', "launchClick();return false;")
             . "Start a new game</a><br>";
 
         // show the saved games
@@ -205,8 +205,9 @@ if ($userid)
             // get the information for this entry
             $fname = $f["name"];
             $links = array(
-                "<a href=\"#\" onclick=\"javascript:launchClick("
-                . "'$fname');return false;\">Restore this game</a>");
+                "<a href=\"#\">"
+                .   addEventListener('click', "launchClick('$fname');return false;")
+                . "Restore this game</a>");
             $desc = getSaveFileDesc(
                 $f, array("Saved game #\$: ", "Saved game: "), $links);
             echo "<li>$desc";
@@ -219,8 +220,8 @@ if ($userid)
     {
         // no saved games - show a simple "Start the game" link
         echo "<br>"
-            . "<a href=\"#\" "
-            .   "onclick=\"javascript:launchClick();return false;\">"
+            . "<a href=\"#\">"
+            .   addEventListener('click', "launchClick();return false;")
             . "Start the game</a><br>";
     }
 
