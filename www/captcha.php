@@ -278,7 +278,7 @@ function captchaSolved(response)
 //
 function captchaAjaxForm($sessionKey)
 {
-    echo "<div id='captchaFormDiv' style='display:none;'>"
+    echo "<div id='captchaFormDiv' class='hidden'>"
         . "<form name='captchaAjaxForm'>"
         . addEventListener('submit', 'submitCaptchaForm();return false;')
 //        . getCaptchaSubForm($sessionKey, false, false)
