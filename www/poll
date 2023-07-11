@@ -1393,8 +1393,8 @@ function expandVote(id)
                 if (!$anonymous) {
                     echo "<span id=\"voteQ$i\">$qq "
                         . "<span class=details>["
-                        . "<a title=\"Click to see more details\" href=\"needjs\" "
-                        . "onclick=\"javascript:expandVote('$i');return false;\">"
+                        . "<a title=\"Click to see more details\" href=\"needjs\">"
+                        . addEventListener('click', "expandVote('$i');return false;")
                         . "+</a>]</span></span>"
                         . "<span id=\"voteF$i\" style=\"display:none;\">"
                         . "$expQ $rv <i>--<a href=\"showuser?id=$voteUserID\">"
