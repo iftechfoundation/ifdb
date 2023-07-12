@@ -857,7 +857,7 @@ if ($geticon) {
             echo "<a href=\"fileformat?id=$id\">"
                 . "<img border=0 src=\"fileformat?geticon=$id\"></a>";
 
-        echo "</td><td style=\"padding-bottom: 1em;\">"
+        echo "</td><td class='fileformat__cell'>"
             . "<a href=\"fileformat?id=$id\">$name</a><br>"
             . "External ID: $extid<br>"
             . "Extension(s): $exts<br>"
@@ -867,6 +867,12 @@ if ($geticon) {
     }
 
     echo "</table>";
+
+    global $nonce;
+    echo "<style nonce='$nonce'>\n"
+        . ".fileformat__cell { padding-bottom: 1em; }\n"
+        . "</style>\n";
+
 }
 
 pageFooter();
