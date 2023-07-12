@@ -21,9 +21,14 @@ $result = mysql_query(
 list($username, $caughtUpDate) = mysql_fetch_row($result);
 
 pageHeader("$username's IFDB Activity");
-echo "<div style=\"width: 100%;\">
+global $nonce;
+echo "<style nonce='$nonce'>\n"
+    . "#personal__main { padding-right: 1em; }\n"
+    . "</style>\n";
+
+echo "<div>
     <table width=\"100%\" cellpadding=0 cellspacing=0>
-    <tr valign=top><td style=\"padding-right: 1em;\">";
+    <tr valign=top><td id='personal__main'>";
 
 $divclass = "headline headline1";
 function headline($text)
@@ -138,6 +143,10 @@ echo "</div>";
 headline("<img src=\"/img/blank.gif\" class=\"list-message-icon\"> "
          . "Your Discussions");
 
+echo "<style nonce='$nonce'>\n"
+    . ".personal__ccre { padding-left: 3ex; }\n"
+    . "</style>\n";
+
 // fetch my subscribed comments, with a limit of the 10 latest items
 list($comments, $commentCnt) = queryComments(
     $db, "subscribed", $quid, "limit 0, 10", false, false);
@@ -162,7 +171,7 @@ if ($commentCnt == 0) {
              $cuid, $cuname) = $rec;
 
         // quote the names
-        echo "$ltitle<span class=details style='padding-left: 3ex;'>"
+        echo "$ltitle<span class='details personal__ccre'>"
             . "<i>$ccre</i></span><br>";
     }
 
@@ -175,6 +184,10 @@ echo "</div>";
 // ---------------------------- CLUBS ------------------------------
 
 headline("<img src=\"/img/blank.gif\" class=\"club-list-icon\"> Your Clubs");
+
+echo "<style nonce='$nonce'>\n"
+    . ".personal__cjoined { margin-left: 1.5em; }\n"
+    . "</style>\n";
 
 $result = mysql_query(
     "select
@@ -195,7 +208,7 @@ if ($clubCnt == 0) {
         list($cid, $cname, $cjoined) = mysql_fetch_row($result);
         $cname = htmlspecialcharx($cname);
         echo "<a href=\"club?id=$cid\">$cname</a> "
-            . "<span class=details style=\"margin-left: 1.5em;\">"
+            . "<span class='details personal__cjoined'>"
             . "<i>Joined $cjoined</i></span><br>";
     }
 }
@@ -239,6 +252,10 @@ echo "</div>";
 // ---------------------------- POLLS ------------------------------
 headline("<img src=\"/img/blank.gif\" class=\"poll-list-icon\"> Your Polls");
 
+echo "<style nonce='$nonce'>\n"
+    . ".personal__votecnt { padding-left: 1em; }\n"
+    . "</style>\n";
+
 $maxpolls = 10;
 $result = mysql_query("select count(*) as c from polls
     where userid = '$quid'", $db);
@@ -268,7 +285,7 @@ if ($pollCnt == 0) {
         list($pollid, $title, $votecnt, $gamecnt) = mysql_fetch_row($result);
         $title = htmlspecialcharx($title);
         echo "<a href=\"poll?id=$pollid\">$title</a> "
-            . "<span class=details style=\"padding-left: 1em;\"><i>"
+            . "<span class='details personal__votecnt'><i>"
             . ($votecnt == 0 ? "No votes" :
                "$votecnt vote"
                . ($votecnt == 1 ? "" :
