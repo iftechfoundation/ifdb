@@ -10,7 +10,12 @@ if ($quid) {
 
     if ($inboxCnt) {
 
-        echo "<div class=headline style=\"clear:right;\">"
+        global $nonce;
+        echo "<style nonce='$nonce'>\n"
+            . ".check-inbox__headline { clear: right; }\n"
+            . "</style>\n";
+
+        echo "<div class='headline check-inbox__headline'>"
             . "<span class=headlineRss>"
             . "<a href=\"commentlog?user=$quid&mode=inbox&rss\">"
             . "<img src=\"img/blank.gif\" class=\"rss-icon\">Your Inbox (RSS)</a>"
