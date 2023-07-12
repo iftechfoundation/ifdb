@@ -240,10 +240,14 @@ if ($errFlagged != false)
     echo "<font color=red><b>$errFlagged</b></font><p>";
    ?>
 
+   <style nonce="<?php global $nonce; echo $nonce; ?>">
+      .login__links { padding-bottom: 1em; }
+   </style>
+
    <table border=0>
       <tr>
          <td>&nbsp;</td>
-         <td  style="padding-bottom: 1em;">
+         <td  class="login__links">
             <span class=details>
                <a href="newuser">New user</a> |
                <a href="lostpass">Lost password</a> |
