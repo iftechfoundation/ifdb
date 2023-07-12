@@ -112,6 +112,13 @@ if (count($rows) > 0) {
     echo "<div class=\"block\"><div class=\"headline\">Vote!</div>"
         . "<p>Help other IFDB members find the games they're looking for "
         . "by voting in their polls.  Here are a few recent ones:</p>";
+    
+    global $nonce;
+    echo "<style nonce='$nonce'>\n"
+        . ".poll-sampler__poll { margin-left: 1em; text-indent: -1em; }\n"
+        . ".poll-sampler__create { margin-top: 1ex; }\n"
+        . "</style>\n";
+
 
     for ($i = 0 ; $i < count($rows) ; $i++) {
         // retrieve the values
@@ -124,13 +131,13 @@ if (count($rows) > 0) {
         $pollUserName = htmlspecialcharx($pollUserName);
 
         // display it
-        echo "<div style=\"margin-left: 1em; text-indent: -1em;\">"
+        echo "<div class='poll-sampler__poll'>"
             . "<a href=\"poll?id=$pollID\"><b>$pollTitle</b></a>, "
             . "by <a href=\"showuser?id=$pollUserID\">$pollUserName</a>"
             . "</div>";
     }
 
-    echo "<div class=\"details\" style=\"margin-top: 1ex;\">"
+    echo "<div class=\"details poll-sampler__create\">"
         . "<a href=\"search?browse&poll&sortby=new\">Browse all polls</a> | "
         . "<a href=\"poll?id=new\">Create a poll</a> | "
         . helpWinLink("help-polls", "What are polls?")
