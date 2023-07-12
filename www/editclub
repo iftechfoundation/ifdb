@@ -454,10 +454,16 @@ if ($qid != "new" && $hasPassword)
     $pswHint = "The existing password will <b>not</b> be changed if "
                . "you leave this blank.<br>$pswHint";
 
-$pswVis = ($hasPassword ? "" : "display:none;");
+$pswVis = ($hasPassword ? "" : "displayNone");
+
+global $nonce;
+echo "<style nonce='$nonce'>\n"
+    . "#passwordDiv { padding-top: 1em; }\n"
+    . "</style>\n";
+
 
 formCol("password", "", "Password",
-        "$ckbox<div id='passwordDiv' style=\"padding-top:1em;$pswVis\">"
+        "$ckbox<div id='passwordDiv' class='$pswVis'>"
         . "Please type the new password twice to confirm:<br>"
         . "<input type='password' size='20' name='password'><br>"
         . "<input type='password' size='20' name='password2'>",
