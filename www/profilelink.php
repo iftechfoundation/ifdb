@@ -45,7 +45,7 @@ function aplOpen(fieldID, fieldName)
     aplFieldFocus = aplFieldEle.onfocus;
     document.getElementById("aplFieldName").innerHTML = fieldName;
     var aplDiv = document.getElementById("aplDiv");
-    aplDiv.style.display = "";
+    aplDiv.style.display = "initial";
     var au = aplFieldEle.value;
 
     // get the selection range, normalized so end>start
@@ -225,7 +225,7 @@ function aplSearchDone(d)
                 aplInsertID(event.target.getAttribute('x-id'));
             })
         })
-        document.getElementById("aplStep2").style.display = "";
+        document.getElementById("aplStep2").style.display = "initial";
     }
 }
 
@@ -245,13 +245,33 @@ function profileLinkDiv()
 {
 ?>
 
-<div id="aplDiv" class="edit-popup-frame"
-  style="display:none; position:absolute; z-index:10000;">
-   <div class="edit-popup-title" style="position:relative;">
-      <div style="text-align:center;">
+<style nonce="<?php global $nonce; echo $nonce; ?>">
+#aplDiv {
+    display:none;
+    position:absolute;
+    z-index:10000;
+}
+#aplDiv .edit-popup-title {
+    position: relative;
+}
+#aplDiv .edit-popup-title div {
+    text-align: center;
+}
+#aplDiv .edit-popup-title span {
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    text-align: right;
+}
+#aplSearchResults {
+    margin-top:1ex;
+}
+</style>
+<div id="aplDiv" class="edit-popup-frame">
+   <div class="edit-popup-title">
+      <div>
          <b>Add Link to Member Profile</b>
-         <span style="position:absolute;top:2px;right:2px;
-               text-align:right;">
+         <span>
             <a href="needjs">
                <script type="text/javascript" nonce="<?php global $nonce; echo $nonce; ?>">
                  document.currentScript.parentElement.addEventListener('click', function(event) {
@@ -279,7 +299,7 @@ function profileLinkDiv()
             aplSearch();
         })
       </script>
-      <div id="aplStep2" style="display:none;">
+      <div id="aplStep2" class="displayNone">
          <p><b>Step 2:</b> Click in the <span id="aplFieldName">text</span>
             field above to move the caret <b>just after</b> the displayed
             name of the person you're linking to.
@@ -287,7 +307,7 @@ function profileLinkDiv()
          <p><b>Step 3:</b> Click on a result below to insert a
          link to that member's profile.
 
-         <div id="aplSearchResults" style="margin-top:1ex;">
+         <div id="aplSearchResults">
          </div>
       </div>
    </div>
