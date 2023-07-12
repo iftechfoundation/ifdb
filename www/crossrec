@@ -536,8 +536,16 @@ if ($editMode) {
         . "liked <a href=\"viewgame?id=$gameID\"><i>$gTitle</i></a>, "
         . "by $gAuthor:"
         . "<p>$pageCtl<p><hr class=dots>"
-        . "<div style=\"width: 100%;\">"
+        . "<div width=\"100%;\">"
         . "<table border=0 cellspacing=0 cellpadding=0 width=\"100%\">";
+
+    global $nonce;
+    echo "<style nonce='$nonce'>\n"
+        . ".crossrec__listingRow { padding: 1ex 0 1ex 0; }\n"
+        . ".crossrec__artCell { padding-right: 2em; width: 80px; }\n"
+        . ".crossrec__emptyCell { width: 1px; }\n"
+        . "</style>\n";
+
 
     for ($i = $firstOnPage ; $i <= $lastOnPage ; $i++) {
         // unpack the game record
@@ -550,15 +558,15 @@ if ($editMode) {
         $toDesc = fixDesc($toDesc);
 
         // show the game listing
-        echo "<tr valign=top style=\"padding: 1ex 0 1ex 0;\">";
+        echo "<tr valign=top class='crossrec__listingRow'>";
 
         if ($toArt) {
-            echo "<td style=\"padding-right: 2em; width: 80px;\">"
+            echo "<td class='crossrec__artCell'>"
                 . "<a href=\"viewgame?id=$toID\">"
                 . coverArtThumbnail($toID, 80)
                 . "(toArt=$toArt)</a></td>";
         } else {
-            echo "<td style=\"width: 1px;\"></td>";
+            echo "<td class='crossrec__emptyCell'></td>";
         }
 
         echo "<td><a href=\"viewgame?id=$toID\"><b>$toTitle</b></a>, "
