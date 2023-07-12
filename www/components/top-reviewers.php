@@ -4,6 +4,11 @@
 
    <ol>
    <?php
+   global $nonce;
+   echo "<style nonce='$nonce'>\n"
+      . ".top-reviewers__reviewer { padding: 0 1.5ex 0 1ex; }\n"
+      . "</style>\n";
+
    $topReviewersCacheFile = sys_get_temp_dir() . '/top-reviewers-cache';
    $isFresh = filemtime($topReviewersCacheFile) > time()-25*3600;
    if ($isFresh) {
@@ -17,7 +22,7 @@
    foreach ($rlst as $r) {
       list($ruid, $runame, $rscore) = $r;
       $runame = htmlspecialcharx($runame);
-      echo "<li><span style='padding: 0 1.5ex 0 1ex;' class=details><i>#$n</i></span>"
+      echo "<li><span class='details top-reviewers__reviewer'><i>#$n</i></span>"
          . "<a class=silent href=\"showuser?id=$ruid\">$runame</a></li>";
       $n++;
    }
