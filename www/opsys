@@ -605,6 +605,9 @@ if ($osid == "new" || $osid != 0) {
                  </td>
                  <td>
 
+<style nonce="<?php global $nonce; echo $nonce; ?>">
+    #vsnGridDiv tr:first-child { font-size:85%; }
+</style>
 <script type="text/javascript" nonce="<?php global $nonce; echo $nonce; ?>">
 <!--
 var vsnGridModel = {
@@ -612,7 +615,6 @@ var vsnGridModel = {
    "addbutton": "add-version-button",
 
    "rowhead": "Version Name</th><th>External ID</th>",
-    "rowheadattr": "style=\"font-size:85%;\"",
 
    "name": "vsnGridDiv",
    "vals": "vsnVals",
