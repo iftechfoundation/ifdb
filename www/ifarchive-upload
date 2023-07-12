@@ -199,7 +199,7 @@ function doSubmit()
 function setFileName()
 {
     var fname = document.getElementById("uploadFileName").value;
-    var vis = (fname && fname.match(/.*\.zip/i)) ? "" : "none";
+    var vis = (fname && fname.match(/.*\.zip/i)) ? "table-row" : "none";
     document.getElementById("zipPrimaryRow").style.display = vis;
 }
 
@@ -233,7 +233,11 @@ uploadForm.addEventListener('submit', function (event) {
         <option value="executable">None - Native Application</option>
       </select>
 
-      <select style="margin-left: 1ex;" id="opsys" name="opsys">
+      <style nonce="<?php global $nonce; echo $nonce; ?>">
+        #opsys { margin-left: 1ex; }
+      </style>
+
+      <select id="opsys" name="opsys">
         <option id=""<?php if(!$os) echo " selected";
         ?>>Please Select</option><?php
         foreach ($oses as $o) {
@@ -258,7 +262,7 @@ uploadForm.addEventListener('submit', function (event) {
             setArchivePath(document.getElementById('opsys').value,'os');
         });
      </script>
-  <tr style="display:none;" valign=top id="zipPrimaryRow">
+  <tr class="displayNone" valign=top id="zipPrimaryRow">
      <td align=right>Name of game file in ZIP:</td>
      <td>&nbsp;</td>
      <td><input type="text" name="zipPrimary" size=35 maxlength="100"
