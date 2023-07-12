@@ -1222,8 +1222,8 @@ function echoGridField($link, $fld, $isFirst = false)
    </div>
    <div class="edit-popup-win">
    <style nonce="<?php global $nonce; echo $nonce; ?>">
-        .edit-popup-win table {
-            font-size:100%;
+        #linkpopup .edit-popup-win table {
+            meh-font-size:100%;
         }
    </style>
 
