@@ -30,6 +30,11 @@ if ($_REQUEST['userid'] && check_admin_privileges($db, $userid)) {
     $userid = $_REQUEST['userid'];
 }
 
+global $nonce;
+echo "<style nonce='$nonce'>\n"
+    . ".review__links { padding-left:1em; }\n"
+    . "</style>\n";
+
 // ------------------------------------------------------------------------
 //
 // if we're in Browse mode, show suggestions for games to review, and
@@ -99,8 +104,7 @@ if (isset($_REQUEST['browse']))
                 $mode = implode(", ", $mode);
 
                 echo "<p><a href=\"review?id=$id&userid=$userid\"><i>$title</i></a>"
-                    . ", by $author <span class=details "
-                    . "style='padding-left:1em;'>($mode) - "
+                    . ", by $author <span class='details review__links'>($mode) - "
                     . "<a href=\"review?id=$id&userid=$userid\">Write a Review</a> - "
                     . "<a href=\"viewgame?id=$id\">View Listing</a></span>";
             }
@@ -169,7 +173,7 @@ if (isset($_REQUEST['browse']))
                 $author = htmlspecialcharx($row['author']);
                 $author = collapsedAuthors($author);
                 echo "<p><a href=\"review?id=$id&userid=$userid\"><i>$title</i></a>, "
-                    . "by $author <span class=details style='padding-left:1em'>"
+                    . "by $author <span class='details review__links'>"
                     . "<a href=\"viewgame?id=$id\">View Listing</a> - "
                     . "<a href=\"review?id=$id&userid=$userid\">Write a Review</a></span>";
             }
