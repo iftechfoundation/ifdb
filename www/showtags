@@ -125,6 +125,12 @@ if (count($tags) == 0) {
         . "Click on a tag to list games associated with the tag."
         . "<p><div class=indented><center>";
 
+    global $nonce;
+    echo "<style nonce='$nonce'>\n"
+        . ".showtags__tag { margin: 0 1em 0 1em; white-space: nowrap; }\n"
+        . "</style>\n";
+
+
     // show the tags
     foreach ($tags as $t) {
         $freq = $t['freq'];
@@ -135,7 +141,7 @@ if (count($tags) == 0) {
         $siz = calcDistBin($freq, $freqBins);
         $color = calcDistBin($age, $ageBins);
 
-        echo "<span style=\"margin: 0 1em 0 1em; white-space: nowrap;\">"
+        echo "<span class='showtags__tag'>"
             . "<a class=silent href=\"search?searchfor=tag:$tu\">"
             . "<font size=$siz><span class=\"tagAge$color\">"
             . "$td</span></font></a></span> ";
