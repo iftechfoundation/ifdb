@@ -376,6 +376,11 @@ if (count($recs) >= 2) {
 
     // start the section
     echo "<div class=headline>IFDB Recommends...</div><div>";
+    global $nonce;
+    echo "<style nonce='$nonce'>\n"
+        . ".ifdb-recommends__artLink { margin-right: 1em; }\n"
+        . "</style>\n";
+
 
     // show the first three entries
     for ($i = 0 ; $i < count($recs) && $i < 3 ; $i++) {
@@ -395,7 +400,7 @@ if (count($recs) >= 2) {
         if ($hasart)
             echo "<table border=0 cellspacing=0 cellpadding=0>"
                 . "<tr valign=top><td>"
-                . "<a href=\"viewgame?id=$gameid\" style=\"margin-right: 1em;\" aria-label=\"$title\">"
+                . "<a href=\"viewgame?id=$gameid\" class=\"ifdb-recommends__artLink\" aria-label=\"$title\">"
                 . coverArtThumbnail($gameid, 70)
                 . "</a></td><td>";
 
