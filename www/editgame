@@ -119,6 +119,12 @@ if (isset($_REQUEST['search']))
                     . "</i></span>";
             }
 
+            global $nonce;
+            echo "<style nonce='$nonce'>\n"
+                . ".editgame__searchlinks { padding-left: 1em; }\n"
+                . "</style>\n";
+
+
             for ($i = 0 ; $i < count($rows) ; $i++)
             {
                 $row = $rows[$i];
@@ -128,7 +134,7 @@ if (isset($_REQUEST['search']))
                 $author = collapsedAuthors($author);
 
                 echo "<p><a href=\"editgame?id=$id\"><i>$title</i></a>, "
-                    . "by $author <span class=details style='padding-left:1em'>"
+                    . "by $author <span class='details editgame__searchlinks'>"
                     . "<a href=\"viewgame?id=$id\">View Listing</a> - "
                     . "<a href=\"editgame?id=$id\">Edit</a></span>";
             }
@@ -738,7 +744,7 @@ function showLinkPopup(event,linkNum)
     } else
         oDiv.style.top = (nTop - linkPopupHeight) + "px";
 
-    oDiv.style.display = "";
+    oDiv.style.display = "block";
 
     formatPopupOpen = true;
 
@@ -833,11 +839,11 @@ function updateIsGame()
     var selG = document.getElementById("linkfmtG");
     var selNG = document.getElementById("linkfmtNG");
     if (document.getElementById("linkisgame").checked) {
-        selG.style.display = "";
+        selG.style.display = "initial";
         selNG.style.display = "none";
     } else {
         selG.style.display = "none";
-        selNG.style.display = "";
+        selNG.style.display = "initial";
     }
     updateFormatUI(false);
 }
@@ -974,7 +980,7 @@ function showReviewPopup(revNum)
     } else
         oDiv.style.top = (nTop - reviewPopupHeight) + "px";
 
-    oDiv.style.display = "";
+    oDiv.style.display = "block";
 
     reviewPopupOpen = true;
 
@@ -1138,13 +1144,18 @@ for ($i = 0 ; $i < count($fields) ; $i++) {
 echo "<tr valign=top>
    <td align=right><b>Download Links:&nbsp;&nbsp;</b></td><td>";
 
+global $nonce;
+echo "<style nonce='$nonce'>\n"
+    . "#editgame__ifarchive { margin-top: 1ex; margin-bottom: 1ex; }\n"
+    . "</style>\n";
+
 // show the help for links above the list
 echo "<span class=details><i>List downloads for the game itself
          (if available), hints, walkthroughs, etc. - "
    . helpWinLink("help-link-policy", "Link Policy")
    . "</i></span>"
    . "<br>"
-   . "<div style=\"margin-top: 1ex; margin-bottom: 1ex;\">"
+   . "<div id='editgame__ifarchive'>"
    . "<b>Are you the author of this game?</b> "
    . "<a href=\"needjs\">"
    . addEventListener("click", "uploadWindow();return false;")
@@ -1162,8 +1173,24 @@ function echoGridField($link, $fld, $isFirst = false)
 
 // ---------------  display the hidden download-link editor ----------------
 ?>
-<div id="linkpopup" class="edit-popup-frame"
-     style="position:absolute;display:none;top:0px;left:0px;z-index:10000;">
+<div id="linkpopup" class="edit-popup-frame">
+   <style nonce="<?php global $nonce; echo $nonce; ?>">
+     #linkpopup {
+        position:absolute;
+        display:none;
+     }
+     #linkpopup .edit-popup-title {
+        position: relative;
+     }
+     #linkpopup .edit-popup-title div {
+        text-align: center;
+     }
+     #linkpopup .edit-popup-title span {
+        position: absolute;
+        top: 2px;
+        right: 4px;
+     }
+   </style>
    <script type="text/javascript" nonce="<?php global $nonce; echo $nonce; ?>">
     linkpopup.addEventListener('mouseover', function () { overLinkPopup=true });
     linkpopup.addEventListener('mouseout', function () { overLinkPopup=false });
@@ -1176,9 +1203,9 @@ function echoGridField($link, $fld, $isFirst = false)
         if (result === false) event.preventDefault();
     });
    </script>
-   <div style="position:relative;" class="edit-popup-title">
-      <div style="text-align:center;"><b>Edit Link</b></div>
-      <span style="position:absolute;top:2px;right:4px;">
+   <div class="edit-popup-title">
+      <div><b>Edit Link</b></div>
+      <span>
          <?php
            echo helpWinLink("help-links", "Help");
          ?>
@@ -1194,12 +1221,17 @@ function echoGridField($link, $fld, $isFirst = false)
          </span>
    </div>
    <div class="edit-popup-win">
+   <style nonce="<?php global $nonce; echo $nonce; ?>">
+        .edit-popup-win table {
+            font-size:100%;
+        }
+   </style>
 
-   <table style="font-size:100%;" border=0 cellspacing=0 cellpadding=0>
+   <table border=0 cellspacing=0 cellpadding=0>
       <tr valign=top>
          <td>
 
-            <table style="font-size:100%;"
+            <table
                    class=dataform border=0 cellspacing=0 cellpadding=0>
                <tr valign=top>
                   <td align=right>
@@ -1324,7 +1356,7 @@ foreach ($linkfmts as $lf) {
                         ?>
                      </select>
                      <select name="linkfmtNG" id="linkfmtNG"
-                             style="display:none;">
+                             class='displayNone'>
                              <script type="text/javascript" nonce="<?php global $nonce; echo $nonce; ?>">
                                 linkfmtNG.addEventListener('change', function() {updateFormatUI(true);})
                             </script>
@@ -1399,8 +1431,13 @@ foreach ($linkfmts as $lf) {
                                 linkcomppri.addEventListener('input', function() {updateFormatUI();})
                             </script>
                      <input type="text" id="linkcomppriNA" value="N/A"
-                            readonly size=40
-                           style="background:#e0e0e0;color:#404040;">
+                            readonly size=40>
+                     <style nonce="<?php global $nonce; echo $nonce; ?>">
+                         #linkcomppriNA[readonly] {
+                            background:#e0e0e0;
+                            color:#404040;
+                         }
+                     </style>
                      <br>
                      <span class=details>
                         For a game, this is the name of the Story File or
@@ -1522,8 +1559,6 @@ var linkModel = {
 
     "addbutton": "add-link-button",
 
-    "rowheadattr": "style=\"font-size:85%;\"",
-
     "fields": ["linkdisp", "linkurl", "linktitle", "linkdesc", "linkattrs",
                "linkfmt", "linkos", "linkosvsn",
                "linkcomp", "linkcomppri"],
@@ -1532,7 +1567,7 @@ var linkModel = {
         + " <a href=\"needjs\" id=\"linkEditBtn##\">"
         + "<img alt=\"Edit this link\" "
         + "border=0 src=\"/img/blank.gif\" class=\"grid-edit-button\" "
-        + "style=\"cursor:pointer;\"></a>"
+        + "></a>"
         + "<input type=hidden #2>"
         + "<input type=hidden #3>"
         + "<input type=hidden #4>"
@@ -1621,9 +1656,24 @@ var linkVals = [
 
 // -----------------------  off-site review pop-up -------------------------
             ?>
-            <div id="reviewpopup" class="edit-popup-frame"
-                 style="position:absolute; display:none; top:0px; left:0px;
-                        z-index:10000;">
+            <div id="reviewpopup" class="edit-popup-frame">
+               <style nonce="<?php global $nonce; echo $nonce; ?>">
+                    #reviewpopup {
+                        position:absolute;
+                        display:none;
+                    }
+                    #reviewpopup .edit-popup-title {
+                        position: relative;
+                    }
+                    #reviewpopup .edit-popup-title div {
+                        text-align: center;
+                    }
+                    #reviewpopup .edit-popup-title span {
+                        position: absolute;
+                        top: 2px;
+                        right: 4px;
+                    }
+               </style>
                <script type="text/javascript" nonce="<?php global $nonce; echo $nonce; ?>">
                     reviewpopup.addEventListener('mouseover', function () { overReviewPopup=true });
                     reviewpopup.addEventListener('mouseout', function () { overReviewPopup=false });
@@ -1636,15 +1686,11 @@ var linkVals = [
                         if (result === false) event.preventDefault();
                     });
                </script>
-               <div style="position:relative;" class="edit-popup-title">
-                  <div style="text-align:center;">
+               <div class="edit-popup-title">
+                  <div>
                      <b>Edit Review Link</b>
                   </div>
-                  <span style="position:absolute;top:2px;right:4px;
-                        text-align:right;">
-                     <?php
-//                         echo helpWinLink("help-ext-reviews", "Help");
-                     ?>
+                  <span>
                      <a href="needjs">
                         <script type="text/javascript" nonce="<?php global $nonce; echo $nonce; ?>">
                             document.currentScript.parentElement.addEventListener('click', function(event) {
@@ -1777,7 +1823,6 @@ var reviewModel = {
     "name": "reviewGridDiv",
     "vals": "reviewVals",
     "addbutton": "add-link-button",
-    "rowheadattr": "style=\"font-size:85%;\"",
 
     "fields": ["extrevDisp", "extrevUrl", "extrevSource", "extrevSourceUrl",
                 "extrevRating", "extrevHeadline", "extrevSummary"],
@@ -1786,7 +1831,7 @@ var reviewModel = {
         + " <a href=\"needjs\" id=\"reviewEditBtn##\">"
         + "<img alt=\"Edit this review\" "
         + "border=0 src=\"/img/blank.gif\" class=\"grid-edit-button\" "
-        + "style=\"cursor:pointer;\"></a>"
+        + "></a>"
         + "<input type=hidden #2>"
         + "<input type=hidden #3>"
         + "<input type=hidden #4>"
@@ -1868,7 +1913,11 @@ var reviewVals = [
            // generate HTML for the search popup
            gameSearchPopupDiv();
       ?>
-
+<style nonce="<?php global $nonce; echo $nonce; ?>">
+    .editgame__xrefDispTitle {
+        padding: 0 1em 0 1em;
+    }
+</style>
 <script type="text/javascript" nonce="<?php global $nonce; echo $nonce; ?>">
 <!--
 
@@ -1900,7 +1949,6 @@ var xrefModel = {
     name: "xrefGridDiv",
     vals: "xrefVals",
     addbutton: "add-link-button",
-    rowheadattr: "style=\"font-size:85%;\"",
     fields: ["xrefReftype", "xrefID", "xrefTitle"],
     popups: ["xrefReftype"],
     rowtpl: function(rownum)
@@ -1926,7 +1974,7 @@ for ($i = 0 ; $i < count($reftypes) ; ++$i) {
     echo "<option value=\\\"$rid\\\">$rname</option>";
 }
 ?></select> <input type=\"hidden\" #2><input type=\"hidden\" #3>"
-       + "<span id=\"xrefDispTitle##\" style=\"padding: 0 1em 0 1em;\">"
+       + "<span id=\"xrefDispTitle##\" class='editgame__xrefDispTitle'>"
        + (xrefVals[rownum][1] == ""
           ? "<a href=\"needjs\" xref-name=\"##\"><i>Not set - click to select a game</i></a>"
           : "<a href=\"viewgame?id=$2\" class=\"silent\" target=\"_blank\">"
@@ -1934,7 +1982,7 @@ for ($i = 0 ; $i < count($reftypes) ; ++$i) {
        + "</td><td>"
        + "<a href=\"#\" id=\"xrefEditBtn##\"><img alt=\"Edit this reference\" "
        + "border=0 src=\"/img/blank.gif\" class=\"grid-edit-button\" "
-       + "style=\"cursor:pointer;\"></a></nobr>";
+       + "></a></nobr>";
     },
     onAddRow: function(rownum) {
         editXRef(rownum);
