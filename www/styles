@@ -492,7 +492,7 @@ if ($setID) {
 
             echo "<table style=\"float: right; width:45%;\"><tr><td>";
 
-            echo "<iframe src=\"iframe?w=55em&h=30em&t="
+            echo "<iframe src=\"iframe?t="
                 . urlencode($thumbSrc) . "\" type=\"text/html\" "
                 . "style=\"width: 100%; height: 12em;\" scrolling=yes>"
                 . "</iframe><br>";

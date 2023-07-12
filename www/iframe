@@ -2,17 +2,20 @@
 
 include_once "util.php";
 
-$target = $_REQUEST['t'];
-$width = $_REQUEST['w'];
-$height = $_REQUEST['h'];
+$target = htmlspecialcharx($_REQUEST['t']);
 
-$target = get_root_url() . htmlspecialcharx($target);
+$target = get_root_url() . $target;
 
 echo "<html>"
-   . "<body style=\"margin: 0 0 0 0; padding: 0 0 0 0;\">"
+   . "<head>"
+   . "<style nonce='$nonce'>\n"
+   . "body { margin: 0; padding: 0;}\n"
+   . "iframe { height: 30em; width: 55em; }\n"
+   . "</style>\n"
+   . "<body>"
    . "<iframe src=\"$target\" "
    . "frameborder=0 "
-   . "style=\"height: $height; width: $width;\" scrolling=no>"
+   . "scrolling=no>"
    . "</object>"
    . "</body>"
    . "</html>";
