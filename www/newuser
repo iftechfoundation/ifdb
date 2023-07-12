@@ -120,6 +120,44 @@ if ($errFlagged != false) {
     </script>
 <script type="text/javascript" src="passwords.js">
 </script>
+<style nonce="<?php global $nonce; echo $nonce; ?>">
+    #pswStrength .meter.green {
+        border:1px solid green;
+    }
+    #pswStrength .meter.orange {
+        border:1px solid #ff8000;
+    }
+    #pswStrength .meter.red {
+        border:1px solid red;
+    }
+    #pswStrength .full.green {
+        background:green;
+    }
+    #pswStrength .full.orange {
+        background:#ff8000;
+    }
+    #pswStrength .full.red {
+        background:red;
+    }
+    #pswStrength .label {
+        padding-left:1ex;
+    }
+    #pswStrength .label.green {
+        color: green;
+    }
+    #pswStrength .label.orange {
+        color: #ff8000;
+    }
+    #pswStrength .label.red {
+        color: red;
+    }
+    #confMatch .green {
+        color: green;
+    }
+    #confMatch .red {
+        color: red;
+    }
+</style>
 
 <p>
 <span class=details>
