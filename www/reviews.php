@@ -224,6 +224,21 @@ function popupMenuKey(e, id)
 
 //-->
 </script>
+<style nonce="<?php global $nonce; echo $nonce; ?>">
+.reviews__moreOptions {
+    display: inline;
+    position: relative;
+}
+.reviews__voteMenu {
+    display: none;
+    position: absolute;
+    left: 0px;
+    z-index: 20000;
+}
+.reviews__separator {
+    height: 1ex;
+}
+</style>
 <?php
 }
 
@@ -481,14 +496,13 @@ function showReview($db, $gameid, $rec, $specialNames, $optionFlags = 0)
             }
 
 
-        echo  "<div style=\"display:inline;position:relative;\">"
+        echo  "<div class='reviews__moreOptions'>"
             . "<a href=\"#\" id=\"voteMenuLink_$reviewid\">"
             . addEventListener('click', "popVoteMenu('$reviewid'); return false;")
             . "More Options<img src=\"/img/blank.gif\" "
             . "class=\"popup-menu-arrow\"></a>"
 
-            . "<div id=\"voteMenu_$reviewid\" style=\"display: none;"
-            . "position:absolute;left:0px;z-index:20000;\">"
+            . "<div id=\"voteMenu_$reviewid\" class='reviews__voteMenu'>"
             . addEventListener('click', "closePopupMenu(null);")
             . addEventListener('keypress', "return popupMenuKey(event,'$reviewid');")
             . "<br>"
@@ -519,7 +533,7 @@ function showReview($db, $gameid, $rec, $specialNames, $optionFlags = 0)
             . "<tr><td><a href=\"viewgame?id=$gameid&review=$reviewid\" "
             . "title=\"Direct link to this review\"><nobr>Direct link</nobr></a>"
             . "</tr></td>"
-            . "<tr style=\"height:1ex;\"><td></td></tr>"
+            . "<tr class='reviews__separator'><td></td></tr>"
             . "<tr><td><a href=\"userfilter?list\">"
             . "<nobr>View my user filters</nobr></a>"
             . "</tr></td>"
