@@ -379,63 +379,6 @@ if (mysql_num_rows($result) > $maxgames)
 
 echo "</div>";
 
-
-// ---------------------- STORAGE SERVER FILES ---------------------------
-
-// check for storage server files
-$path = STORAGE_DIR . $uid;
-$found = false;
-if ($dh = @opendir($path))
-{
-    // scan game directory entries
-    while (($fname = readdir($dh)) !== false)
-    {
-        // if it's a directory, scan it
-        $fpath = "$path/$fname";
-        if (filetype($fpath) == "dir" && $fname != "." && $fname != "..")
-        {
-            // look for a saved game or data file
-            $subs = array("save", "data");
-            foreach ($subs as $sub)
-            {
-                if ($sh = opendir("$fpath/$sub"))
-                {
-                    while (($sname = readdir($sh)) !== false)
-                    {
-                        if (filetype("$fpath/$sub/$sname") == "file")
-                        {
-                            $found = true;
-                            break;
-                        }
-                    }
-                    closedir($sh);
-                }
-                if ($found)
-                    break;
-            }
-        }
-        if ($found)
-            break;
-    }
-    closedir($dh);
-}
-
-// if we found any files, show the section
-if ($found)
-{
-    headline("<img src=\"/img/blank.gif\" class=\"storage-file-icon\"> "
-             . "Your Saved Game Files");
-
-    echo "<span class=notes><i>TADS games that you play on-line can "
-        . "store saved games and other files on IFDB.  Click the link "
-        . "below to view and manage your saved game files."
-        . "</i></span>"
-        . "<p>"
-        . "<a href=\"t3files\">Manage my files</a>";
-
-    echo "</div>";
-}
-
 // ---------------------- GAME LISTINGS EDITED ---------------------------
 
 headline("<img src=\"/img/blank.gif\" class=\"game-list-icon\"> "
