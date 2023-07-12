@@ -1362,7 +1362,16 @@ else if ($term || $browse)
         // show the page controls at the top of the results;
         // if all of the results fit on one page, don't bother with
         // the page controls
-        echo "<div style=\"margin: 1em 0 2em 0\">";
+        global $nonce;
+        echo "<style nonce='$nonce'>\n"
+            . ".search__rowcnt { margin: 1em 0 2em 0; }\n"
+            . ".search__xlink { padding-left: 2em; }\n"
+            . ".search__badge { padding-left: 2em; }\n"
+            . ".search__pageCtl { margin: 2em 0 2em 0; }\n"
+            . ".search__dots { margin: 1em 0 1em 0; }\n"
+            . "</style>\n";
+
+        echo "<div class='search__rowcnt'>";
         if ($pg == 1 && $rowcnt < $perPage)
             echo "$rowcnt result" . ($rowcnt != 1 ? "s" : "") . " found";
         else
@@ -1412,7 +1421,7 @@ else if ($term || $browse)
                 $rdev = $row['ratingdev'];
                 $xlink = "";
                 if ($extraLinkA) {
-                    $xlink = "<span class=details style='padding-left:2em;'>"
+                    $xlink = "<span class='details search__xlink'>"
                              . str_replace("##", $id, $extraLinkA)
                              . "</span>";
                 }
@@ -1618,7 +1627,7 @@ else if ($term || $browse)
                                . ($score == 1 ? "" : "s");
                 }
                 if ($badge) {
-                    $badge = "<span style='padding-left: 2em;' class=details>"
+                    $badge = "<span class='details search__badge'>"
                              . implode("; ", $badge)
                              . "</span>";
                 }
@@ -1663,13 +1672,13 @@ else if ($term || $browse)
 
         // add the page controls again at the bottom, if applicable
         if ($pg != 1 || $rowcnt > $perPage)
-            echo "<div style=\"margin: 2em 0 2em 0;\">$pageCtl</div>";
+            echo "<div class='search__pageCtl'>$pageCtl</div>";
     }
 
 
     // add another search box at the bottom
     ?>
-    <hr class=dots style="margin: 1em 0 1em 0;">
+    <hr class='dots search__dots'>
     <form name="advsearch2" method="get" action="search">
        <center>
           <input type="text" name="searchfor" id="searchfor2" size=50
