@@ -767,6 +767,9 @@ as you want in each one.
 
 
    <p>
+   <style nonce="<?php global $nonce; echo $nonce; ?>">
+        .editlist__titleLabel { white-space: nowrap; }
+   </style>
    <table class="dataform" border=0 cellspacing=0 cellpadding=0>
 
       <tr>
@@ -783,7 +786,7 @@ if ($listid != 'new')
 
       <tr><td>&nbsp;</td></tr>
       <tr valign=top>
-         <td align=right><span style="white-space: nowrap">
+         <td align=right><span class="editlist__titleLabel">
             <b>Name the list:</b>
          </span></td>
          <td>
