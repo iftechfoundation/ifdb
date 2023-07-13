@@ -351,10 +351,16 @@ function showNewItemList($db, $items, $first, $last, $showFlagged, $allowHiddenB
 
         // display the item according to its type
         if (ENABLE_IMAGES) {
+            global $nonce;
+            echo "<style nonce='$nonce'>\n"
+                . ".new-item tr:first-child { vertical-align: top }\n"
+                . ".new-item td:first-child { padding-right: 1em }\n"
+                . "</style>\n";
+
             echo "<table border=\"0\" cellpadding=\"0\" "
                 . "cellspacing=\"0\" class=\"new-item\">"
-                . "<tr style=\"vertical-align: top;\">"
-                . "<td style=\"padding-right: 1em;\">";
+                . "<tr>"
+                . "<td>";
         }
 
         if ($pick == 'R')

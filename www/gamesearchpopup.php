@@ -153,13 +153,38 @@ function gameSearchPopupDiv()
 {
 ?>
 
-    <div id="gameSearchPopupDiv" class="edit-popup-frame"
-      style="display:none; position:absolute; z-index:10000; width:80ex;">
-       <div class="edit-popup-title" style="position:relative;">
-          <div style="text-align:center;">
+    <style nonce="<?php global $nonce; echo $nonce; ?>">
+        #gameSearchPopupDiv {
+            display: none;
+            position: absolute;
+            width: 80ex;
+            z-index: 10000;
+        }
+
+        #gameSearchPopupDiv .edit-popup-title {
+            position: relative;
+        }
+
+        #gameSearchPopupDiv .edit-popup-title div {
+            text-align: center;
+        }
+        #gameSearchPopupDiv .edit-popup-title div span {
+            position: absolute;
+            top: 2px;
+            right: 2px;
+            text-align: right;
+        }
+        #gameSearchPopupResults {
+            margin-top:1ex;
+            max-height: 20em;
+            overflow: auto;
+        }
+    </style>
+    <div id="gameSearchPopupDiv" class="edit-popup-frame">
+       <div class="edit-popup-title">
+          <div>
              <b>Select a Game</b>
-             <span style="position:absolute;top:2px;right:2px;
-                   text-align:right;">
+             <span>
                 <a href="needjs">
                    <script type="text/javascript" nonce="<?php global $nonce; echo $nonce; ?>">
                       document.currentScript.parentElement.addEventListener('click', function (event) {
@@ -193,11 +218,10 @@ function gameSearchPopupDiv()
                 gameSearchPopupGo();
             });
           </script>
-          <div id="gameSearchPopupStep2" style="display:none;">
+          <div id="gameSearchPopupStep2" class="displayNone">
              <p><b>Step 2:</b> Click on a result below to select it:
 
-             <div id="gameSearchPopupResults" style="margin-top:1ex;
-                  max-height: 20em; overflow: auto;">
+             <div id="gameSearchPopupResults">
              </div>
           </div>
        </div>

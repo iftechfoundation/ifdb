@@ -430,7 +430,7 @@ function showComment($db,$commentPage, $itemAuthor, $cidx, $coutlst, $i)
                             $cusername)
                 . "');return false;")
             . "Reveal author</a></span>"
-            . "<span style=\"display:none;\">"
+            . "<span class='displayNone'>"
             . " | <a href=\"needjs\">"
             . addEventListener(
                 "click", "revealPlonkedComment(this);return false;"
@@ -438,7 +438,7 @@ function showComment($db,$commentPage, $itemAuthor, $cidx, $coutlst, $i)
             . "Reveal comment</a>"
             . "</span>"
             . "</span>"
-            . "<div style=\"display: none;\">";
+            . "<div class='displayNone'>";
 
         global $plonkedCommentNum;
         if ($plonkedCommentNum++ == 0) {

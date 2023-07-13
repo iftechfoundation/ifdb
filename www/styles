@@ -471,6 +471,12 @@ if ($setID) {
         showSortingControls("searchOrder", "sort", $sortList, $sortBy,
                             array('gallery' => '1'), "styles");
         echo "<hr class=dots>";
+        global $nonce;
+        echo "<style nonce='$nonce'>\n"
+            . ".styles__table { float: right; width:45%; }\n"
+            . ".styles__iframe { width: 100%; height: 12em; }\n"
+            . "</style>\n";
+
 
         // display the current results
         for ($i = 0 ; $i < $rowcnt ; $i++) {
@@ -490,11 +496,11 @@ if ($setID) {
             $thumbSrc = "viewgame?id=$zorkTUID&cssOverride=$ssid";
 //                      "cssthumb?css=$ssid";
 
-            echo "<table style=\"float: right; width:45%;\"><tr><td>";
+            echo "<table class=\"styles__table\"><tr><td>";
 
-            echo "<iframe src=\"iframe?w=55em&h=30em&t="
+            echo "<iframe src=\"iframe?t="
                 . urlencode($thumbSrc) . "\" type=\"text/html\" "
-                . "style=\"width: 100%; height: 12em;\" scrolling=yes>"
+                . "class=\"styles__iframe\" scrolling=yes>"
                 . "</iframe><br>";
 
             echo "<span class=details>"
@@ -557,9 +563,13 @@ if ($showBasicPage) {
     // --------------------- current profile display ---------------------
 
     pageHeader("Custom Styles");
+    global $nonce;
+    echo "<style nonce='$nonce'>\n"
+        . "table.styles__rightbar { width: 25ex; }\n"
+        . "</style>\n";
+
 ?>
-<table class=rightbar cellpadding=0 cellspacing=0 align=right
-       style="width:25ex;">
+<table class='rightbar styles__rightbar' cellpadding=0 cellspacing=0 align=right>
    <tr align=center>
       <td><h3>Quick Links</h3></td>
    </tr>

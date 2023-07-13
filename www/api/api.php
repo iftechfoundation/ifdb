@@ -9,7 +9,13 @@ function apiPageHeader($title)
 {
     pageHeader("$title (IFDB API)");
 
-    echo "<div style='margin-top: 2em;' class='details'>"
+    global $nonce;
+    echo "<style nonce='$nonce'>\n"
+        . ".api__header, .api__footer { margin-top: 2em; }\n"
+        . "</style>\n";
+
+
+    echo "<div class='details api__header'>"
         . "<a href='index'>IFDB APIs</a> &gt; $title"
         . "</div>"
         . "<h1>The $title API</h1>";
@@ -17,7 +23,7 @@ function apiPageHeader($title)
 
 function apiPageFooter()
 {
-    echo "<div style='margin-top: 2em;' class='details'>"
+    echo "<div class='details api__footer'>"
         . "<a href='index'>API Index</a>"
         . "</div>";
     pageFooter();

@@ -207,6 +207,13 @@ if ($errMsg) {
 
         echo "$pageCtl<br><br><br>";
 
+        global $nonce;
+        echo "<style nonce='$nonce'>\n"
+            . ".playlist__artCell { padding-right: 1em; }\n"
+            . ".playlist__reviewLink { padding-left: 3ex; }\n"
+            . "</style>\n";
+
+
         // fetch and display each game on the list
         for ($i = 0 ; $i < mysql_num_rows($result) ; $i++) {
             // retrieve the result
@@ -228,7 +235,7 @@ if ($errMsg) {
 
             if ($hasart)
                 echo "<p><table border=0 cellspacing=0 cellpadding=0>"
-                    . "<tr valign=top><td style=\"padding-right: 1em;\">"
+                    . "<tr valign=top><td class='playlist__artCell'>"
                     . "<a href=\"viewgame?id=$gameid\">"
                     . coverArtThumbnail($gameid, 100)
                     . "</a></td>"
@@ -238,7 +245,7 @@ if ($errMsg) {
                 . "by $author";
 
             if ($listtype == "reviewideas")
-                echo "<span class=details style='padding-left: 3ex;'>"
+                echo "<span class='details playlist__reviewLink'>"
                     . "<a href=\"review?id=$gameid\">Write a review</a>"
                     . "</span>";
 

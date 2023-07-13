@@ -42,9 +42,7 @@ function makeComboBox($name, $textlen, $curval, $vals, $onSet = "null")
            . "</a>";
 
     // set up the hidden division for the list
-    $txt .= "<div id=\"{$name}CBDiv\" "
-            . "style=\"position:absolute;display:none;top:0px; "
-            . "left:0px;z-index:20000\">"
+    $txt .= "<div id=\"{$name}CBDiv\" class='combobox-list'>"
             . addEventListener("mouseover", "overComboMenu=true;")
             . addEventListener("mouseout", "overComboMenu=false;");
 
@@ -177,7 +175,7 @@ function showComboMenu(idEdit, setWidth, idFocus)
         oMenu.style.width = (nWidth + 18) + "px";
         oSel.style.width = (nWidth + 18) + "px";
     }
-    oMenu.style.display = "";
+    oMenu.style.display = "block";
     activeCombo = idMenu;
     if (idFocus)
         document.getElementById(idFocus).focus();

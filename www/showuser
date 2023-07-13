@@ -269,8 +269,17 @@ if ($errMsg) {
             . "title=\"View image at full size\">"
             . "<img src=\"showuser?id=$uid&pic&thumbnail=250x250\" border=0>"
             . "</a></td><td>";
+    
+    global $nonce;
+    echo "<style nonce='$nonce'>\n"
+        . "h1 { margin-bottom:0.1em; }\n"
+        . ".showuser__rss { margin-top:1.5ex; }\n"
+        . ".showuser__commentCtl { margin-top:1.5ex; }\n"
+        . ".showuser__clubJoin { margin-left:2em; }\n"
+        . "</style>\n";
 
-    echo "<h1 style=\"margin-bottom:0.1em;\">$username</h1>";
+
+    echo "<h1>$username</h1>";
 
     echo "<span class=details>";
 
@@ -325,7 +334,7 @@ if ($errMsg) {
     echo "<p>$profile";
 
     // add the RSS feed for this member's linked games
-    echo "<div style='margin-top: 1.5ex;'><span class=details>"
+    echo "<div class='showuser__rss'><span class=details>"
         . "<a href=\"showuser?id=$uid&rss=gamenews\">"
         . "<img src=\"img/blank.gif\" class=\"rss-icon\">"
         . "News about games authored by $username</a> (RSS Feed)</span></div>";
@@ -350,7 +359,7 @@ if ($errMsg) {
                    . "Add a comment on this profile</a>";
 
     // show the controls
-    echo "<div style='margin-top: 1.5ex;'><span class=details>$commentCtl"
+    echo "<div class='showuser__commentCtl'><span class=details>$commentCtl"
         . "</span></div>";
 
     // if we're showing comments, show them in lieu of the full page
@@ -796,7 +805,7 @@ if ($errMsg) {
             list($clubid, $clubname, $joindate) = mysql_fetch_row($result);
             $clubname = htmlspecialcharx($clubname);
             echo "<a href=\"club?id=$clubid\">$clubname</a>"
-                . " <span style=\"margin-left: 2em\" class=details><i>"
+                . " <span class='details showuser__clubJoin'><i>"
                 . "joined $joindate</i></span><br>";
         }
 
@@ -814,9 +823,14 @@ if ($admin)
     $adminUrl = "adminops?user=$uid";
     $hhemail = htmlspecialcharx($realEmail);
     $uuemail = urlencode($realEmail);
+    global $nonce;
+    echo "<style nonce='$nonce'>\n"
+        . ".showuser__adminSection { margin: 0px 2em 1em 2em; }\n"
+        . "</style>\n";
+
     echo "<br><hr class=dots>"
         . "User email: <b>$hhemail</b>"
-        . "<div style=\"margin: 0px 2em 1em 2em;\">"
+        . "<div class='showuser__adminSection'>"
         . "<a href=\"https://www.google.com/search?q=%22{$uuemail}%22\" target=\"_blank\">Search Google</a><br>"
         . "<a href=\"https://www.bing.com?q=%22{$uuemail}%22\" target=\"_blank\">Search Bing</a><br>"
         . "</div>";
@@ -857,9 +871,10 @@ if ($admin)
     $nRows = mysql_num_rows($result);
     if ($nRows > 0)
     {
+        global $nonce;
         echo "Other users who have logged in from the same IP address:"
-            . "<div style=\"margin: 0px 2em 1em 2em;\">"
-            . "<style type=\"text/css\">"
+            . "<div class='showuser__adminSection'>"
+            . "<style nonce='$nonce' type=\"text/css\">"
             . "#otherLoginTab td { padding: 0px 1ex; }"
             . "</style>"
             . "<table id=\"otherLoginTab\">";

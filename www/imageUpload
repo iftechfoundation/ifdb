@@ -44,8 +44,11 @@ $col0 = $_REQUEST['col0'];
 <title>Image Upload</title>
 <head>
    <?php echoStylesheetLink(); ?>
+   <style nonce="<?php global $nonce; echo $nonce; ?>">
+     body { margin:0; padding:0; border:none; }
+   </style>
 </head>
-<body style="margin:0; padding:0; border:none;">
+<body>
 <script type="text/javascript" nonce="<?php global $nonce; echo $nonce; ?>">
 <!--
 <?php

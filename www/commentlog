@@ -320,13 +320,18 @@ for ($i = 0 ; $i < count($comments) ; $i++) {
 
         // display it
         echo "<p>$newIcon$ltitle"
-            . "<span class=details style='padding-left: 3ex;'><i>$ccre"
+            . "<span class='details commentlog__ccre'><i>$ccre"
             . ($cmod != $ccre ? " (updated $cmod)" : "")
             . "</i></span><br><div class=indented>$ctxt<br>"
             . "<span class=details><a href=\"$link\">"
             . "View discussion</a></span></div>";
     }
 }
+
+global $nonce;
+echo "<style nonce='$nonce'>\n"
+    . ".commentlog__ccre { padding-left: 3ex; }\n"
+    . "</style>\n";
 
 
 // end the page

@@ -1208,9 +1208,12 @@ if ($show == "divform") {
     showHiddenFields(SHF_MAIN | SHF_GAMES);
 
     // set up the division grid
-    echo "<div id=\"divGridDiv\" style=\"margin: 2em 0 2em 0;\"></div>";
+    echo "<div id=\"divGridDiv\"></div>";
 
 ?>
+<style nonce="<?php global $nonce; echo $nonce; ?>">
+    #divGridDiv { margin: 2em 0 2em 0; }
+</style>
 <script type="text/javascript" nonce="<?php global $nonce; echo $nonce; ?>">
 <!--
 var divModel = {
@@ -1293,6 +1296,9 @@ var divVals = [
     gameSearchPopupDiv();
 
 ?>
+<style nonce="<?php global $nonce; echo $nonce; ?>">
+    .editcomp__editPadding { padding-right: 3ex; }
+</style>
 <script type="text/javascript" nonce="<?php global $nonce; echo $nonce; ?>">
 <!--
 function checkClosePopup(event, byMouse)
@@ -1429,7 +1435,7 @@ function divRowTpl(i, n, row)
               + encodeHTML(row[2]) + "</i></a>")
            : ("<a href='needjs' class='editLink"+i+"_"+n+"'>"
               + "<i>Not set - click to select a game</i></a>"))
-           + "</span><span style='padding-right: 3ex;'></span></td><td>"
+           + "</span><span class='editcomp__editPadding'></span></td><td>"
            + "<a href='needjs' class='editLink"+i+"_"+n+"'>"
            + "<img src='img/blank.gif' "
            + "class='grid-edit-button'></a>";
@@ -1674,8 +1680,14 @@ function activateListeners(divno, model)
         showFieldErrorDetail("games_$divID");
 
         // add the placeholder DIV for the grid for this division's games
-        echo  "<div class=indented style='margin-top:1ex;' id='divDiv$i'>"
+        echo  "<div class='indented editcomp__divDiv' id='divDiv$i'>"
             . "</div>";
+
+        global $nonce;
+        echo "<style nonce='$nonce'>\n"
+            . ".editcomp__divDiv { margin-top: 1ex; }\n"
+            . "</style>\n";
+
     }
 
     $displayName = $username;

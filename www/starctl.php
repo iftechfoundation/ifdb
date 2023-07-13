@@ -135,11 +135,12 @@ function showStarCtl($id, $init, $clickFunc, $leaveFunc)
                . "<!--\r\n"
                . "starRatings['$id'] = $init;\r\n"
                . "//-->\r\n"
-               . "</script>\r\n";
+               . "</script>\r\n"
+               . "<style nonce='$nonce'>\n"
+               . "#$id { vertical-align:middle;cursor:pointer; display: inline; }\n"
+               . "</style>\n";
 
         $str .= "<img id=\"{$id}\" "
-                . "style=\"vertical-align:middle;cursor:pointer;"
-                . "display: inline;\" "
                 . "src=\"img/blank.gif\" class=\"star$init\">"
                 . addSiblingEventListeners([
                     ['mouseover', "mouseOverStarCtl('$id', event);"],

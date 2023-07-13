@@ -1002,8 +1002,8 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse)
 
 // DEBUG
 //        if (get_req_data('debug') == 'SEARCH')
-//            $errMsg = "<p><span class=errmsg>Database error:</span><div style='margin: 1em 1em 1em 1em;'>" . mysql_error($db)
-//                      . "</div>Query:<div style='margin: 1em 1em 1em 1em;'>" . htmlspecialcharx($sql) . "</div>";
+//            $errMsg = "<p><span class=errmsg>Database error:</span><p>" . mysql_error($db)
+//                      . "</p>Query:<p>" . htmlspecialcharx($sql) . "</p>";
     }
 
     // return the results

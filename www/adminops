@@ -243,6 +243,9 @@ if (isset($_REQUEST['reviewvotes'])) {
         include "reviews.php";
         $specialNames = initSpecialNames($db);
 
+        global $nonce;
+        echo "<style nonce='$nonce'>.reviewvotes__byline { margin-bottom:0.5em; }</style>";
+
         for ($i = 0 ; $i < mysql_num_rows($result) ; $i++) {
             $rec = mysql_fetch_array($result, MYSQL_ASSOC);
 
@@ -250,7 +253,7 @@ if (isset($_REQUEST['reviewvotes'])) {
             $gameid = $rec['gameid'];
             $title = htmlspecialcharx($rec['title']);
             $author = htmlspecialcharx($rec['author']);
-            echo "<div style=\"margin-bottom:0.5em;\">"
+            echo "<div class=\"reviewvotes__byline\">"
                 . "<a href=\"viewgame?id=$gameid\"><b><i>$title</i></b></a>"
                 . ", by $author</div>";
 
@@ -739,7 +742,9 @@ else if (isset($_REQUEST['users'])) {
         order by $orderBy, name
         limit $firstOnPage, $perPage", $db);
 
-    echo "<div style=\"margin: 1ex 0px;\">"
+    global $nonce;
+    echo "<style nonce='$nonce'>#adminops__searchform { margin: 1ex 0px; }</style>";
+    echo "<div id=\"adminops__searchform\">"
         . "<form>"
         . "Search by name or email: <input name=\"finduser\" type=\"text\" length=60>"
         . "  <input type=\"submit\" name=\"go\" value=\"Find\">"
@@ -814,8 +819,14 @@ else if (isset($_REQUEST['users'])) {
          order by
             l.`when` desc", $db);
 
+
+    global $nonce;
+    echo "<style nonce='$nonce'>\n"
+        . ".adminops__loginsfrom { margin: 1em 2em; }"
+        . ".adminops__loginsfrom td { padding: 0px 1ex; }"
+        . "</style>";
     echo "<h1>Logins from $qip</h1>"
-        . "<div style=\"margin: 1em 2em;\">"
+        . "<div class=\"adminops__loginsfrom\">"
         . "<table>";
 
     for ($i = 0 ; $i < mysql_num_rows($result) ; $i++)
@@ -824,9 +835,9 @@ else if (isset($_REQUEST['users'])) {
         $uname = htmlspecialcharx($uname);
         $uamil = htmlspecialcharx($umail);
         echo "<tr>"
-            . "<td style=\"padding: 0px 1ex\"><a href=\"adminops?user=$uid\">$uname</a></td>"
-            . "<td style=\"padding: 0px 1ex\">$umail</td>"
-            . "<td style=\"padding: 0px 1ex\">$udate</td>"
+            . "<td><a href=\"adminops?user=$uid\">$uname</a></td>"
+            . "<td>$umail</td>"
+            . "<td>$udate</td>"
             . "</tr>";
     }
     echo "</table></div><hr class=dots>";
@@ -857,11 +868,18 @@ else if (isset($_REQUEST['users'])) {
              order by
                name asc", $db);
 
+        global $nonce;
+        echo "<style nonce='$nonce'>\n"
+            . ".adminops__finduser__container { margin: 1ex 2em 2em 2em; }"
+            . ".adminops__finduser__container th { padding: 1ex 0px; }"
+            . ".adminops__finduser__container td { padding: 0px 1ex; }"
+            . "</style>";
+
         echo "Users matching \"$hupat\":"
-            . "<div style=\"margin: 1ex 2em 2em 2em;\">"
+            . "<div class=\"adminops__finduser__container\">"
             . "<table>"
             .  "<tr>"
-            .   "<th style=\"padding: 1ex 0px;\">User Name</th><th>Email</th><th>Created</th><th>Last Login</th>"
+            .   "<th>User Name</th><th>Email</th><th>Created</th><th>Last Login</th>"
             .  "</tr>";
 
         for ($i = 0 ; $i < mysql_num_rows($result) ; $i++)
@@ -870,10 +888,10 @@ else if (isset($_REQUEST['users'])) {
             $uname = htmlspecialcharx($uname);
             $umail = htmlspecialcharx($umail);
             echo "<tr>"
-                .   "<td style=\"padding: 0px 1ex\"><a href=\"adminops?user=$uid\">$uname</a></td>"
-                .   "<td style=\"padding: 0px 1ex\">$umail</td>"
-                .   "<td style=\"padding: 0px 1ex\">$ucre</td>"
-                .   "<td style=\"padding: 0px 1ex\">$ulogin</td>"
+                .   "<td><a href=\"adminops?user=$uid\">$uname</a></td>"
+                .   "<td>$umail</td>"
+                .   "<td>$ucre</td>"
+                .   "<td>$ulogin</td>"
                 . "</tr>";
         }
 
@@ -1093,7 +1111,11 @@ else if (isset($_REQUEST['users'])) {
     echo "<p><input type=\"submit\" name=\"apply\" value=\"Apply\">"
         . "</form>";
 
-    echo "<style>@media (min-width: 100ch) { div.main { display: grid; grid-template-columns: 1fr 30%; } }</style>";
+    global $nonce;
+    echo "<style nonce='$nonce'>\n"
+        . "@media (min-width: 100ch) { div.main { display: grid; grid-template-columns: 1fr 30%; } }\n"
+        . ".adminops__loginhistory { padding-right: 1em; }\n"
+        . "</style>";
 
     echo "<div>"
         . "<b>Login history:</b><br>"
@@ -1109,7 +1131,7 @@ else if (isset($_REQUEST['users'])) {
     for ($i = 0 ; $i < $n ; $i++) {
         list($lip, $lwhen) = mysql_fetch_row($result);
         $lipLink = "<a href=\"adminops?loginsfrom=$lip\">$lip</a>";
-        echo "<tr><td style='padding-right: 1em;'>$lwhen<td>$lipLink</td></tr>";
+        echo "<tr><td class='adminops__loginhistory'>$lwhen<td>$lipLink</td></tr>";
     }
 
     echo "</table>"
@@ -1950,6 +1972,12 @@ else if (isset($_REQUEST['users'])) {
     echo "<h2>UTF-8 Scan</h2><br>";
     iconv_set_encoding("output_encoding", "ISO-8859-1");
 
+    global $nonce;
+    echo "<style nonce='$nonce'>\n"
+    . ".hilite__yellow { background: #FFFF00; }\n"
+    . ".hilite__cyan { font-size: 80%; font-style: italic;background: #80FFFF; color: #808080; };"
+    . "</style>";
+
     check_table_utf8("extreviews", "gameid",
                      array("url", "sourcename", "sourceurl"));
     check_table_utf8("gamelinks", "gameid",
@@ -2270,9 +2298,10 @@ else if (isset($_REQUEST['deletenews'])) {
            join operatingsystems as o on o.id = p.osid
          order by username", $db);
 
+    global $nonce;
     // show the data
     echo "<p><h1>File format and operating system editor privilege list</h1>"
-        . "<style type='text/css'>\r\n"
+        . "<style nonce='$nonce' type='text/css'>\r\n"
         . "table.osfmtprivs td {"
         . "padding: 0px 1em; }"
         . "\r\n</style>\r\n"
@@ -2383,7 +2412,7 @@ function hilitemarks($str, $showcodes)
         if ($c >= 0x80)
             $lst[] = $c;
         if ($c >= 0x80 && !$inMark) {
-            $ret .= "<span style=\"background: #FFFF00\">";
+            $ret .= "<span class=\"hilite__yellow\">";
             $inMark = true;
         }
         else if ($c < 0x80 && $inMark) {
@@ -2406,8 +2435,7 @@ function hilitemarks($str, $showcodes)
 }
 function listmarks($lst)
 {
-    return "<span style=\"font-size: 80%; font-style: italic;"
-        . "background: #80FFFF; color: #808080;\">"
+    return "<span class=\"hilite__cyan\">"
         . implode(" ", array_map("dechex", $lst))
         . "</span>";
 }

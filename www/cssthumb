@@ -27,9 +27,13 @@ if (mysql_num_rows($result) > 0) {
 
 pageHeader("Sample Page");
 
+global $nonce;
+echo "<style nonce='$nonce'>\n"
+    . "table.cssthumb { width: 8em; float:right; margin-left: 1em; }\n"
+    . "</style>\n";
+
 ?>
-   <table class=rightbar cellpadding=0 cellspacing=0
-          style="width: 8em; float:right; margin-left: 1em;">
+   <table class='rightbar cssthumb' cellpadding=0 cellspacing=0>
       <tr class=boxhead>
          <td><h3>Like it?</h3></td>
       </tr>

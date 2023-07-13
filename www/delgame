@@ -379,8 +379,11 @@ function applyFwd(id, title, author)
 }
 //-->
 </script>
+<style nonce="<?php global $nonce; echo $nonce; ?>">
+.delgame__notes { padding-left: 2em; }
+</style>
 
-           <p><b>Notes:</b> <span class=details style="padding-left: 2em;">
+           <p><b>Notes:</b> <span class='details delgame__notes'>
               <i>Optional; saved with the redirect record for future
               reference</i></span><br>
            <textarea name="fwdnotes" cols=80 rows=5><?php

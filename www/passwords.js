@@ -14,12 +14,12 @@ function onPasswordChange(fld)
               && (hasLower || hasUpper)
               && (hasDigit || hasOther || (hasLower && hasUpper)))
              || len >= 8)
-        strength = ["Medium", "#ff8000", 4];
+        strength = ["Medium", "orange", 4];
     else if ((len >= 4
               && (hasLower || hasUpper)
               && (hasDigit || hasOther || (hasLower && hasUpper)))
              || len >= 6)
-        strength = ["Medium", "#ff8000", 3];
+        strength = ["Medium", "orange", 3];
     else if (len >= 3)
         strength = ["Weak", "red", 2];
     else if (len >= 1)
@@ -28,11 +28,10 @@ function onPasswordChange(fld)
         strength = ["Weak", "red", 0];
 
     document.getElementById("pswStrength").innerHTML =
-        "<span style='background:" + strength[1] + ";border:1px solid "
-        + strength[1] + ";'>"  + nbsp(strength[2]) + "</span>"
-        + "<span style='border:1px solid " + strength[1] + "'>"
+        "<span class='meter full "+strength[1]+"'>"  + nbsp(strength[2]) + "</span>"
+        + "<span class='meter " + strength[1] +"'>"
         + nbsp(5 - strength[2]) + "</span>"
-        + "<span style='padding-left:1ex;color:" + strength[1] + "'>"
+        + "<span class='label " + strength[1] +"'>"
         + strength[0] + "</span> ";
 
     onPassConfChange(document.getElementById("password2"));
@@ -47,7 +46,7 @@ function onPassConfChange(fld)
     var p1 = document.getElementById("password").value;
     var p2 = fld.value;
     document.getElementById("confMatch").innerHTML =
-        (p1 == p2 ? "<span style='color:green;'>OK</span>"
-                  : "<span style='color:red;'>No</span>");
+        (p1 == p2 ? "<span class='green'>OK</span>"
+                  : "<span class='red'>No</span>");
 }
 onPasswordChange(document.getElementById("password"));

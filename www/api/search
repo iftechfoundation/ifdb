@@ -95,7 +95,7 @@ type, containing a list of zero or more "item" tags for the individual
 results.
 
 <p>
-<style type="text/css">
+<style nonce="<?php global $nonce; echo $nonce; ?>" type="text/css">
 <!--
 table.typemap {
     border: 1px solid #808080;

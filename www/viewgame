@@ -234,6 +234,10 @@ function showMemberReviewsHeader($rowcnt, $ratingsView, $showHisto)
 
     // show the histogram if desired
     if ($showHisto && $cnt > 1) {
+        global $nonce;
+        echo "<style nonce='$nonce'>\n"
+            . ".viewgame__histogramEnd { padding-left: 2em; }\n"
+            . "</style>\n";
         echo "<table border=0 cellspacing=0 cellpadding=0><tr valign=top>"
             . "<td valign=top>"
             . "<table class=ratingHistogram border=0 cellspacing=0 cellpadding=0>";
@@ -244,12 +248,16 @@ function showMemberReviewsHeader($rowcnt, $ratingsView, $showHisto)
             $pct = (int)($num*100 / $max);
             echo "<tr><td>$i star:</td>"
                 . "<td><div class=ratingHistoBox>"
-                . "<div class=ratingHistoBar style=\"width: $pct%;\">"
+                . "<div class='ratingHistoBar ratingHistoBar$i'\">"
+                . "<style nonce='$nonce'>\n"
+                . ".ratingHistoBar$i { width: $pct%; }\n"
+                . "</style>\n"
                 . "</div></div></td>"
                 . "<td align=right>($num)</td></tr>";
         }
 
-        echo "</table></td><td style=\"padding-left: 2em;\" valign=top>";
+        echo "</table></td><td class=\"viewgame__histogramEnd\" valign=top>";
+
     }
 
     // show the statistics
@@ -821,61 +829,6 @@ echo helpWinLink("help-ifid", "IFID");
 
         ?>
 <div class="downloadfloat">
-        <?php
-//
-//  This script fixes up the width of the table at run-time to limit it to
-//  the desired size.  We use an off-screen template table to get the
-//  correct size, then after loading the page we figure the difference
-//  in size between the template table and the real table, and shrink the
-//  real table if necessary.  The trick is that we have to shrink a DIV
-//  within the real table, because browsers refuse to respect a table width
-//  that shrinks the table below the content width, even width overflow:hidden
-//  on the table.  They'll even refuse this on <TD>.  The solution is to put
-//  the overflow:hidden on a DIV within a <TD>.  The snag with doing this
-//  statically via CSS is that we can't mix width units to figure the
-//  exact static size for the DIV with all of the padding and margins and
-//  so on.  But we *can* do it via JS.  The template table lets the browser
-//  do the regular layout work for us to figure the desired layout of the
-//  table.  Everything is in pixels at that point, so we can simply figure
-//  the difference between the template table width and the real table width,
-//  and take any excess out of those inner DIVs.
-//
-//  I've disabled this for now because I found an even easier solution that
-//  fixes the particular case I've encountered in the wild.  The case is that
-//  someone stuck a really long URL in the filedesc field for a game ("Me
-//  Princess Adore"), and IE treats the whole thing as one word for layout.
-//  The other browsers will break the line at '/'.  So, new solution: rewrite
-//  the filedesc by inserting &#8203; (unicode zero-width space, &zswp) after
-//  each slash.  IE then happily breaks the line after a slash as needed, so
-//  problem solved.  If someone comes back and sticks an unbroken 70-letter
-//  alpha string in another game's filedesc, I'll probably re-enable this
-//  script, since it does seem to work.  I'm just disabling it for now out
-//  of an abundance of caution, since it doesn't seem very necessary right now.
-//
-//   <table class=downloads style="position: absolute; top: -1000px;" id="dlWidthProbe">
-//      <tr><td></td></tr>
-//   </table>
-//<script type="text/javascript">
-//<!--
-//setTimeout(function() {
-//    var prc = getObjectRect(document.getElementById("dlWidthProbe"));
-//    var trc = getObjectRect(document.getElementById("downloadsTable"));
-//    if (trc.width > prc.width)
-//    {
-//        var rrc = getObjectRect(document.getElementById("dlItem0"));
-//        var newWidth = rrc.width - (trc.width - prc.width);
-//        for (var i = 0 ; ; ++i)
-//        {
-//            var iele = document.getElementById("dlItem" + i);
-//            if (!iele)
-//                break;
-//            iele.style.width = newWidth + "px";
-//        }
-//    }
-//}, 10);
-////-->
-//</script>
-        ?>
    <table class=downloads id="downloadsTable">
        <tr>
            <td>
@@ -991,7 +944,13 @@ for ($foundGame = $foundHtml = $foundPC = $foundHex = $htmlUrl = $pcUrl = $adrif
 }
 if ($foundGame)
 {
-    echo "<td align=right valign=middle style=\"position:relative;\">\r\n";
+    echo "<td align=right valign=middle class='viewgame__foundGame'>\r\n";
+    global $nonce;
+    echo "<style nonce='$nonce'>\n"
+        . ".viewgame__foundGame { position: relative; }\n"
+        . ".viewgame__playOnline { margin:0px 0px 0.3em 0px;cursor:pointer; }\n"
+        . "</style>\n";
+
 
     // if we have an HTML playable game, set up a play online link
     if ($foundHtml && $htmlUrl) {
@@ -999,8 +958,8 @@ if ($foundGame)
         echo "<a href=\"$htmlUrl\" $ptarget "
             . "title=\"Play this game right now in your browser. No "
             . "installation is required.\">"
-            . "<img src=\"/img/blank.gif\" class=\"play-online-button\" "
-            . "style=\"margin:0px 0px 0.3em 0px;cursor:pointer;\">"
+            . "<img src=\"/img/blank.gif\" class=\"play-online-button viewgame__playOnline\" "
+            . ">"
             . "</a><br>";
     }
 
@@ -1011,8 +970,8 @@ if ($foundGame)
         echo "<a href=\"$parchment$pcUrl\" $ptarget "
             . "title=\"Play this game right now in your browser, using "
             . "the Parchment interpreter. No installation is required.\">"
-            . "<img src=\"/img/blank.gif\" class=\"play-online-button\" "
-            . "style=\"margin:0px 0px 0.3em 0px;cursor:pointer;\">"
+            . "<img src=\"/img/blank.gif\" class=\"play-online-button viewgame__playOnline\" "
+            . ">"
             . "</a><br>";
     }
 
@@ -1022,8 +981,8 @@ if ($foundGame)
         echo "<a href=\"{$adriftUrl}\" $atarget "
             . "title=\"Play this game right now in your browser. No "
             . "installation is required.\">"
-            . "<img src=\"/img/blank.gif\" class=\"play-online-button\" "
-            . "style=\"margin:0px 0px 0.3em 0px;cursor:pointer;\">"
+            . "<img src=\"/img/blank.gif\" class=\"play-online-button viewgame__playOnline\" "
+            . ">"
             . "</a><br>";
     }
 
@@ -1135,7 +1094,7 @@ if (count($links) == 0 && $dlnotes == "") {
         }
 
         // generate the information
-        echo "<tr valign=top><td style='width: 0;' id='dlIcon$i'>";
+        echo "<tr valign=top><td id='dlIcon$i'>";
 
         $iconsrc = ($osicon ? "opsys?geticon=$fmtos" :
                     ($fmticon ? "fileformat?geticon=$fmtid" :
@@ -1265,9 +1224,14 @@ function updateUnwishList(id, stat)
     }
 
     initStarControls();
+    global $nonce;
+    echo "<style nonce='$nonce'>\n"
+        . ".viewgame__playedSection { margin: 1.25ex 0 0.75ex 0; }\n"
+        . "</style>\n";
+
     echo "<div class=indented>"
 
-        . "<div style=\"margin: 1.25ex 0 0.75ex 0;\">"
+        . "<div class='viewgame__playedSection'>"
         . "<span id=\"ratingCaption\"><b>Rate it:</b></span> "
         . showStarCtl("ratingStars", $currentUserRating,
                       "updateRating", "mouseOutRating")
@@ -1285,7 +1249,7 @@ function updateUnwishList(id, stat)
         . "</a>"
         . "</div>"
 
-        . "<div style=\"margin: 1.25ex 0 0.75ex 0;\">";
+        . "<div class='viewgame__playedSection'>";
     checkboxWrite("ckPlayed", "I've played it", $played, "updatePlayed");
     echo " (<a href=\"playlist?type=played\">view</a>)"
         . " &nbsp; <span id=\"ckPlaySaveMsg\" class=\"xmlstatmsg\">"
@@ -1409,8 +1373,11 @@ echo "updatePlaylistCount($playlistCnt); updateWishlistCount($wishlistCnt);"
 //------------------------- MAIN SUMMARY -------------------------
 
 ?>
+<style nonce="<?php global $nonce; echo $nonce; ?>">
+    .viewgame__mainSummary { margin: 0; padding: 0; }
+</style>
 
-<div style="margin:0 0 0 0;padding:0 0 0 0;">
+<div class='viewgame__mainSummary'>
 <table cellspacing=0 cellpadding=0 border=0>
    <tr valign=top>
       <td>
@@ -2324,9 +2291,51 @@ if (count($inrefs) != 0 && !$historyView) {
         echo "<h2><a name=\"tags\"></a>Tags</h2><div class=indented>";
 
         ?>
+        <style nonce="<?php global $nonce; echo $nonce; ?>">
+            .viewgame__commonTags { margin-left: 1ex; }
+            #myTagList { margin-right: 1ex; }
+            #tagStatusSpan { margin-left: 1ex; }
+            .viewgame__tagEditorContainer { position:relative;height:0px; }
+            #tagEditor, #tagDeletor {
+                position:absolute;
+                z-index:10000;
+                top:-5em;
+                left:0px;
+                display:none;
+                background:#ffffff;
+                border:3px solid #b0d8ff;
+                padding:0;
+            }
+            .viewgame__header {
+                position:relative;
+                padding:2px;
+                background:#b0d8e8;
+                font-size:80%;
+                text-align:center;
+            }
+            .viewgame__cancel {
+                position:absolute;
+                top:2px;
+                right:0px;
+                text-align:right;
+            }
+            #tagEditor form[name=tagForm], #tagDeletor form[name=tagForm] {
+                padding:1ex 1ex 0.5ex 1ex;
+                margin:0;
+            }
+            #editTagTable, #deleteTagTable {
+                font-size:85%;
+            }
+            #myTagFld, #viewgame-add-tags-button {
+                vertical-align: middle;
+            }
+            #viewgame-save-tags-button, #viewgame-save-tags-button-delete {
+                margin-top: 1ex;
+            }
+        </style>
 
         <p><span id="tagPre" class=details></span>
-        <span class=details style="margin-left: 1ex;">
+        <span class='details viewgame__commonTags'>
            - <a href="showtags?limit=50">View the most common tags</a>
            (<?php echo helpWinLink("help-tags", "What's a tag?")
            ?>)
@@ -2337,7 +2346,7 @@ if (count($inrefs) != 0 && !$historyView) {
         ?>
             <span class=details>
                <b>Your tags:</b>
-               <span id="myTagList" style="margin-right:1ex;"></span> -
+               <span id="myTagList"></span> -
                <a href="needjs"><script type="text/javascript" nonce="<?php global $nonce; echo $nonce; ?>">
                   document.currentScript.parentElement.addEventListener('click', function (event) {
                     event.preventDefault();
@@ -2353,7 +2362,7 @@ if (count($inrefs) != 0 && !$historyView) {
                 </script>Delete</a>
             <?php } ?>
 
-               <span class="xmlstatmsg" style="margin-left:1ex;"
+               <span class="xmlstatmsg"
                   id="tagStatusSpan"></span>
             </span>
         <?php
@@ -2364,17 +2373,13 @@ if (count($inrefs) != 0 && !$historyView) {
         }
         ?>
 
-        <div style="position:relative;height:0px;">
-           <div style="position:absolute; z-index:10000; top:-5em; left:0px;
-              display:none;background:#ffffff;border:3px solid #b0d8ff;
-              padding:0;"  id="tagEditor">
-              <div style="position:relative;padding:2px;
-                 background:#b0d8e8;font-size:80%;">
-                 <div style="text-align:center;">
+        <div class="viewgame__tagEditorContainer">
+           <div id="tagEditor">
+              <div class='viewgame__header'>
+                 <div>
                     <b>Edit Tags</b>
                  </div>
-                 <div style="position:absolute;top:2px;right:0px;
-                    text-align:right;">
+                 <div class='viewgame__cancel'>
                     <a href="needjs"><script type="text/javascript" nonce="<?php global $nonce; echo $nonce; ?>">
                         document.currentScript.parentElement.addEventListener('click', function (event) {
                             event.preventDefault();
@@ -2384,8 +2389,7 @@ if (count($inrefs) != 0 && !$historyView) {
                           class="popup-close-button"></a>
                  </div>
               </div>
-              <form name="tagForm"
-                 style="padding:1ex 1ex 0.5ex 1ex; margin:0 0 0 0;">
+              <form name="tagForm">
                  <script type="text/javascript" nonce="<?php global $nonce; echo $nonce; ?>">
                   document.currentScript.parentElement.addEventListener('submit', function (event) {
                     event.preventDefault();
@@ -2396,18 +2400,16 @@ if (count($inrefs) != 0 && !$historyView) {
                     checkmarks.  To remove one of your tags, simply
                     un-check it.
                  </span>
-                 <table id="editTagTable" border=0 class=tags
-                    style="font-size:85%;">
+                 <table id="editTagTable" border=0 class=tags>
                  </table>
                  <br>
                  <span class=details>
                  Enter new tags here (use commas to separate tags):<br>
                  </span>
-                 <input type=text size=50 id="myTagFld"
-                    style="vertical-align:middle;">
+                 <input type=text size=50 id="myTagFld">
                  <input type=image src="img/blank.gif" class="add-button"
                     id="viewgame-add-tags-button"
-                    name="addTags" style="vertical-align:middle;">
+                    name="addTags">
                     <script type="text/javascript" nonce="<?php global $nonce; echo $nonce; ?>">
                         document.getElementById('viewgame-add-tags-button').addEventListener('click', function (event) {
                             event.preventDefault();
@@ -2417,7 +2419,7 @@ if (count($inrefs) != 0 && !$historyView) {
                 <br>
                  <input type=image src="img/blank.gif" class="save-button"
                     id="viewgame-save-tags-button"
-                    name="saveTags" style="margin-top:1ex;">
+                    name="saveTags">
                     <script type="text/javascript" nonce="<?php global $nonce; echo $nonce; ?>">
                         document.getElementById('viewgame-save-tags-button').addEventListener('click', function (event) {
                             event.preventDefault();
@@ -2428,17 +2430,13 @@ if (count($inrefs) != 0 && !$historyView) {
            </div>
         </div>
 
-<div style="position:relative;height:0px;">
-     <div style="position:absolute; z-index:10000; top:-5em; left:0px;
-        display:none;background:#ffffff;border:3px solid #b0d8ff;
-        padding:0;"  id="tagDeletor">
-        <div style="position:relative;padding:2px;
-           background:#b0d8e8;font-size:80%;">
-           <div style="text-align:center;">
+<div class="viewgame__tagEditorContainer">
+     <div id="tagDeletor">
+        <div class='viewgame__header'>
+           <div>
               <b>Delete Tags</b>
            </div>
-           <div style="position:absolute;top:2px;right:0px;
-              text-align:right;">
+           <div class='viewgame__cancel'>
               <a href="needjs"><script type="text/javascript" nonce="<?php global $nonce; echo $nonce; ?>">
                   document.currentScript.parentElement.addEventListener('click', function (event) {
                     event.preventDefault();
@@ -2448,8 +2446,7 @@ if (count($inrefs) != 0 && !$historyView) {
                     class="popup-close-button"></a>
            </div>
         </div>
-        <form name="tagForm"
-           style="padding:1ex 1ex 0.5ex 1ex; margin:0 0 0 0;">
+        <form name="tagForm">
            <script type="text/javascript" nonce="<?php global $nonce; echo $nonce; ?>">
                 document.currentScript.parentElement.addEventListener('submit', function (event) {
                     event.preventDefault();
@@ -2457,12 +2454,11 @@ if (count($inrefs) != 0 && !$historyView) {
                 })
             </script>
            <span class=details></span>
-           <table id="deleteTagTable" border=0 class=tags
-              style="font-size:85%;">
+           <table id="deleteTagTable" border=0 class=tags>
            </table>
            <input type=image src="img/blank.gif" class="save-button"
               id="viewgame-save-tags-button-delete"
-              name="saveTags" style="margin-top:1ex;">
+              name="saveTags">
               <script type="text/javascript" nonce="<?php global $nonce; echo $nonce; ?>">
                 document.getElementById('viewgame-save-tags-button-delete').addEventListener('click', function (event) {
                     event.preventDefault();
@@ -2682,7 +2678,7 @@ function editTags()
                          isMine: t.isMine};
     }
 
-    document.getElementById("tagEditor").style.display = "";
+    document.getElementById("tagEditor").style.display = "initial";
     dispEditTags();
     document.getElementById("myTagFld").focus();
 }
@@ -2696,7 +2692,7 @@ function deleteTags()
                          isMine: t.isMine};
     }
 
-    document.getElementById("tagDeletor").style.display = "";
+    document.getElementById("tagDeletor").style.display = "initial";
     dispDeleteTags();
 }
 
@@ -3125,7 +3121,7 @@ dispTags();
         // section, and enable it in javascript as needed.
 
         if ($website || count($ifids) > 0) {
-            echo "<div id=\"links-div\" style=\"".($website ? "" : "display:none")."\">"
+            echo "<div id=\"links-div\" class=\"".($website ? "" : "displayNone")."\">"
                 . "<h2>Links</h2>"
                 . "<div class=indented>";
 
@@ -3134,7 +3130,7 @@ dispTags();
             }
 
             if (count($ifids) > 0) {
-                echo "<div id=\"ifid-link\" style=\"display:none\"><a href=\"https://www.ifwiki.org/index.php?title=IFID:".htmlspecialcharx($ifids[0])."\">$title</a>"
+                echo "<div id=\"ifid-link\" class=\"displayNone\"><a href=\"https://www.ifwiki.org/index.php?title=IFID:".htmlspecialcharx($ifids[0])."\">$title</a>"
                     ." at <a href=\"https://www.ifwiki.org/index.php\">IF Wiki</a></div>";
                 $jifid = htmlspecialcharx(str_replace("\"", "&#34;", $ifids[0]));
                 ?>
@@ -3142,8 +3138,8 @@ dispTags();
                     xmlSend("ifwiki-check?ifid=<?php echo $jifid ?>", null,
                         function(doc) {
                             if (xmlChildText(doc, "exists") == "yes") {
-                                document.getElementById("ifid-link").style.display = "";
-                                document.getElementById("links-div").style.display = "";
+                                document.getElementById("ifid-link").style.display = "initial";
+                                document.getElementById("links-div").style.display = "initial";
                             }
                         }, null);
                 </script>

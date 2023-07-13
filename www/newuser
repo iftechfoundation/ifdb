@@ -50,7 +50,13 @@ if ($errFlagged != false) {
 ?>
 
 <p>
-<form method=post action="newuser" name="newuser">
+<style nonce="<?php global $nonce; echo $nonce; ?>">
+    #newuser table { margin-top: 1ex; margin-left: 2em; }
+    .newuser__label { padding-right: 1em; }
+    .newuser__strength { font-size: 80%; padding-left:2em; }
+    .newuser__captcha { margin-left: 2em; }
+</style>
+<form method=post id="newuser" action="newuser" name="newuser">
 
    <span class=details>
    Your email address is your IFDB user ID:  you'll use it to log
@@ -59,17 +65,16 @@ if ($errFlagged != false) {
    Your email address won't be displayed to other users by default.
    </span>
    <br>
-   <table border=0 cellpadding=0 cellspacing=0
-          style="margin-top: 1ex; margin-left: 2em;">
+   <table border=0 cellpadding=0 cellspacing=0>
       <tr>
-         <td style="padding-right: 1em;" width=0>
+         <td class="newuser__label" width=0>
             Email Address:
          <td>
             <input type="text" name="userid" id="userid" size=30
                   value="<?php echo get_req_data("userid")?>">
 
       <tr>
-         <td style="padding-right: 1em;" width=0>
+         <td class="newuser__label" width=0>
             Confirm Email:
          <td>
             <input type="text" name="userid2" id="userid2" size=30
@@ -84,25 +89,24 @@ if ($errFlagged != false) {
     of capital letters, lower-case letters, and digits or punctuation marks.
    </span>
    <br>
-   <table border=0 cellpadding=0 cellspacing=0
-          style="margin-top: 1ex; margin-left: 2em;">
+   <table border=0 cellpadding=0 cellspacing=0>
       <tr>
-         <td style="padding-right: 1em;" width=0>
+         <td class="newuser__label" width=0>
             Password:
          <td>
             <input type="password" name="password" id="password" size=30
                value="<?php echo get_req_data('password') ?>">
-            <span style='font-size: 80%; padding-left:2em;'>Strength:
+            <span class='newuser__strength'>Strength:
                <span id="pswStrength">&nbsp;</span>
             </span>
 
       <tr>
-         <td style="padding-right: 1em;" width=0>
+         <td class="newuser__label" width=0>
             Confirm Password:
          <td>
             <input type="password" name="password2" id="password2" size=30
                value="<?php echo get_req_data('password2') ?>">
-            <span style='font-size: 80%; padding-left:2em;'>Match:
+            <span class='newuser__strength'>Match:
                <span id="confMatch">&nbsp;</span>
             </span>
    </table>
@@ -116,6 +120,44 @@ if ($errFlagged != false) {
     </script>
 <script type="text/javascript" src="passwords.js">
 </script>
+<style nonce="<?php global $nonce; echo $nonce; ?>">
+    #pswStrength .meter.green {
+        border:1px solid green;
+    }
+    #pswStrength .meter.orange {
+        border:1px solid #ff8000;
+    }
+    #pswStrength .meter.red {
+        border:1px solid red;
+    }
+    #pswStrength .full.green {
+        background:green;
+    }
+    #pswStrength .full.orange {
+        background:#ff8000;
+    }
+    #pswStrength .full.red {
+        background:red;
+    }
+    #pswStrength .label {
+        padding-left:1ex;
+    }
+    #pswStrength .label.green {
+        color: green;
+    }
+    #pswStrength .label.orange {
+        color: #ff8000;
+    }
+    #pswStrength .label.red {
+        color: red;
+    }
+    #confMatch .green {
+        color: green;
+    }
+    #confMatch .red {
+        color: red;
+    }
+</style>
 
 <p>
 <span class=details>
@@ -126,31 +168,17 @@ href="https://intfiction.org/">Interactive Fiction Community Forum</a> or
 other IF forums, we recommend using the same name you're known
 by there.</span><br>
 
-   <table border=0 cellpadding=0 cellspacing=0
-          style="margin-top: 1ex; margin-left: 2em;">
+   <table border=0 cellpadding=0 cellspacing=0>
       <tr>
-         <td style="padding-right: 1em;" width=0>
+         <td class="newuser__label" width=0>
             Screen Name:
          <td>
             <input type="text" name="dname" id="dname" size=30
                   value="<?php echo get_req_data('dname') ?>">
    </table>
 
-<!--
    <p>
-   Remarks: <span class=details><i>Please enter a brief comment here
-      showing you know something about IFDB's subject matter.  This
-      is to help keep spammers away, and won't be shown to other users.
-      <?php echo helpWinLink("help-new-user-remarks", "Help with this") ?>
-      </i></span>
-   <br>
-   <textarea name="remarks" id="remarks" rows=5 cols=80
-      style="margin-left: 2em;"><?php
-      echo htmlspecialcharx(get_req_data('remarks')) ?></textarea>
--->
-
-   <p>
-   <div style="margin-left: 2em;">
+   <div class='newuser__captcha'>
    <?php
       captchaSupportScripts($capKey);
       captchaSubForm($capKey, $capErrMsg, "");

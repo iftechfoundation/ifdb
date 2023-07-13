@@ -1125,6 +1125,10 @@ span.headlineRss {
     display: none !important;
 }
 
+.displayNone {
+    display: none;
+}
+
 .menu-toggle-button{
     display: none;
     align-items: center;
@@ -1652,6 +1656,14 @@ img.combobox-arrow {
     height: 18px;
     border: none;
     vertical-align: middle;
+}
+
+/*
+Combo Box hidden list
+*/
+.combobox-list {
+    display: none;
+    position: absolute;
 }
 
 /*

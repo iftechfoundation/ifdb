@@ -426,14 +426,18 @@ function showPasswordForm($errMsg)
     if ($errMsg)
         echo "<p><span class=errmsg>$errMsg</span>";
 
+    global $nonce;
     echo "<p><form name='clubPasswordForm' method='get' action='club'>"
         . "<input type='hidden' name='id' value='$qid'>"
         . "<input type='hidden' name='join' value='1'>"
         . "<b>Club password:</b> "
         . "<input type='password' name='password' size='20'>"
         . "<input type='submit' name='submit' value='Join' "
-        . "style='margin-left:1em;'>"
-        . "</form>";
+        . "class='club__join'>"
+        . "</form>"
+        .  "<style nonce='$nonce'>\n"
+        . ".club__join { margin-left: 1em; }\n"
+        . "</style>\n";
 
     pageFooter();
     exit();
@@ -663,15 +667,20 @@ if (isset($_REQUEST["removeMember"]))
 
         // show the confirmation page
         pageHeader("$name - Remove Member");
+        global $nonce;
         echo "<h1>$name - Remove Member</h1>"
 
             . "You are removing the following user from this club's "
             . "membership:"
 
-            . "<div class=indented style='margin-top:1em;margin-bottom:1em;'>"
+            . "<div class='indented club__removemember'>"
             . "<a href='showuser?id=$targ'>$tname</a>"
             . ($tloc ? "<br><span class=details>$tloc</span>" : "")
             . "</div>"
+
+            .  "<style nonce='$nonce'>\n"
+            . ".club__removemember { margin-top:1em; margin-bottom:1em; }\n"
+            . "</style>\n"
 
             . "Do you want to proceed?"
 
@@ -713,14 +722,19 @@ if (isset($_REQUEST["makeAdmin"]))
 
         // show the confirmation page
         pageHeader("$name - Make Administrator");
+        global $nonce;
         echo "<h1>$name - Make Administrator</h1>"
 
             . "You are making the following user into a club administrator:"
 
-            . "<div class=indented style='margin-top:1em;margin-bottom:1em;'>"
+            . "<div class='indented club__adminname'>"
             . "<a href='showuser?id=$targ'>$tname</a>"
             . ($tloc ? "<br><span class=details>$tloc</span>" : "")
             . "</div>"
+
+            . "<style nonce='$nonce'>\n"
+            . ".club__adminname { margin-top:1em; margin-bottom:1em; }\n"
+            . "</style>\n"
 
             . "Note that once a user is an administrator, they have full "
             . "admin privileges for the club.  <b>You will not be able "
@@ -834,6 +848,11 @@ if (isset($_REQUEST['members']))
                . "</span>";
     echo $pageCtl;
 
+    global $nonce;
+    echo "<style nonce='$nonce'>\n"
+        . ".club__adminlinks { padding-left: 2em; }\n"
+        . "</style>\n";
+
     // show the data
     for ($i = 0 ; $i < mysql_num_rows($result) ; $i++)
     {
@@ -849,10 +868,10 @@ if (isset($_REQUEST['members']))
         echo "<p>";
         $main = "<a href=\"showuser?id=$mid\"><b>$mname</b></a>"
                 . ($madmin
-                   ? "<span style='padding-left:2em' class=details>"
+                   ? "<span class='details club__adminlinks'>"
                    . "<i>Club Administrator</i></span>"
                    : ($isAdmin
-                      ? "<span style='padding-left:2em' class=details>"
+                      ? "<span class='details club__adminlinks'>"
                       . "<a href=\"club?id=$qid&removeMember=$mid\">"
                       . "Remove Member</a> | "
                       . "<a href=\"club?id=$qid&makeAdmin=$mid\">"
@@ -964,9 +983,13 @@ if ($contacts)
             parseContact($contact, "/\s*<([^>@]+@[^>@]+)>/");
         if ($email) {
             $foundEmail = true;
-            $emailLink = "<span style=\"padding-left: 1em;\">("
+            global $nonce;
+            $emailLink = "<span class='club__email'>("
                          . captchaMaskEmail($email, false)
-                         . ")</span>";
+                         . ")</span>"
+                         . "<style nonce='$nonce'>\n"
+                         . ".club__email { padding-left: 1em; }\n"
+                         . "</style>\n";
         }
 
         // put everything back together
@@ -996,8 +1019,14 @@ echo "</div>";
 
 // ---------------- News Section ----------------------------
 
-echo "<h2 style='margin-bottom: 0.25ex;'>News</h2>"
-   . "<div class=details style='margin-bottom: 1em;'>"
+global $nonce;
+echo "<style nonce='$nonce'>\n"
+    . ".club__newsheader { margin-bottom: 0.25ex; }\n"
+    . ".club__newsdetails { margin-bottom: 1em; }\n"
+    . "</style>\n";
+
+echo "<h2 class='club__newsheader'>News</h2>"
+   . "<div class='details club__newsdetails'>"
    . "<a href=\"club?id=$qid&news-rss\">"
    . "<img src='img/blank.gif' class='rss-icon'>RSS Feed</a>"
    . "</div>"

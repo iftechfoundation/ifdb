@@ -17,31 +17,35 @@ explain in your review why you chose the score you did.
 determine what the different levels mean.  As a rough guide,
 though, we recommend something like this:<p>
 
+<style nonce="<?php global $nonce; echo $nonce; ?>">
+    .help-stars__cell { padding-right: 1em; }
+</style>
+
 <table cellpadding=0 cellspacing=0>
 
 <tr valign=baseline>
-<td style="padding-right: 1em;"><?php echo showStars(1); ?></td>
+<td class='help-stars__cell'><?php echo showStars(1); ?></td>
 <td>A terrible game; completely unrecommended</td>
 </tr>
 
 <tr valign=baseline>
-<td style="padding-right: 1em;"><?php echo showStars(2); ?></td>
+<td class='help-stars__cell'><?php echo showStars(2); ?></td>
 <td>A badly flawed game, but maybe worth a look</td>
 </tr>
 
 <tr valign=baseline>
-<td style="padding-right: 1em;"><?php echo showStars(3); ?></td>
+<td class='help-stars__cell'><?php echo showStars(3); ?></td>
 <td>An average game; or a mixed bag, with some real strengths
 but some serious weaknesses</td>
 </tr>
 
 <tr valign=baseline>
-<td style="padding-right: 1em;"><?php echo showStars(4); ?></td>
+<td class='help-stars__cell'><?php echo showStars(4); ?></td>
 <td>A very good game, highly recommended</td>
 </tr>
 
 <tr valign=baseline>
-<td style="padding-right: 1em;"><?php echo showStars(5); ?></td>
+<td class='help-stars__cell'><?php echo showStars(5); ?></td>
 <td>An excellent, exceptional game</td>
 </tr>
 

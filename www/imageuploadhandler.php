@@ -8,8 +8,17 @@ function imageUploadScripts()
 {
     ?>
 
-<div id="imageUploadCopyrightForm" class="edit-popup-frame"
-  style="position:absolute;display:none;z-index:100;">
+<style nonce="<?php global $nonce; echo $nonce; ?>">
+    #imageUploadCopyrightForm {
+        position: absolute;
+        display: none;
+        z-index: 100;
+    }
+    #imageUploadCopyrightTab td:first-child {
+        padding-right: 1em;
+    }
+</style>
+<div id="imageUploadCopyrightForm" class="edit-popup-frame">
    <div class="edit-popup-win">
       <form name="imageUploadCopyrightForm" method="post"
           action="imageUpload" target="imageUploadCopyrightFormTarget">
@@ -18,7 +27,7 @@ function imageUploadScripts()
             id="imageCopyrightFormID">
          <table id="imageUploadCopyrightTab">
             <tr>
-               <td style="padding-right: 1em;">
+               <td>
                </td>
                <td>
                   <b>Please indicate the copyright status of this image:</b><p>
@@ -31,7 +40,7 @@ function imageUploadScripts()
          </center>
       </form>
       <iframe src="" name="imageUploadCopyrightFormTarget"
-          id="imageUploadCopyrightFormTarget" style="display:none;">
+          id="imageUploadCopyrightFormTarget" class="displayNone">
       </iframe>
    </div>
 </div>
@@ -168,6 +177,13 @@ function imageUploadRadio($originalUrl, $noneLabel, $radioname, $curval,
     $ufr = "$radioname-iframe";
     $utab = "$radioname-table";
 
+    global $nonce;
+    echo "<style nonce='$nonce'>\n"
+        . ".imageuploadhandler__cell { padding-right: 4ex; }\n"
+        . ".imageuploadhandler__ufr { display:none; width: 80ex; height:2em; border: none; }\n"
+        . "</style>\n";
+
+
     // start a table for the image buttons
     echo "<table border=0 cellpadding=0 cellspacing=0 id=\"$utab\">"
         . "<tr valign=middle>";
@@ -180,7 +196,7 @@ function imageUploadRadio($originalUrl, $noneLabel, $radioname, $curval,
     if ($originalUrl)
     {
         // display the column for the existing database image
-        echo "<td style='padding-right: 4ex;'>"
+        echo "<td class='imageuploadhandler__cell'>"
             . "<label><input type=\"radio\" name=\"$radioname\" "
             . "value=\"old\" id=\"$radioname-old\"";
         if ($curval == "old")
@@ -197,7 +213,7 @@ function imageUploadRadio($originalUrl, $noneLabel, $radioname, $curval,
 
     // add placeholders for the uploaded images
     for ($j = 0 ; $j < MAX_TEMP_IMAGES ; $j++)
-        echo "<td style='padding-right: 4ex;'></td>";
+        echo "<td class='imageuploadhandler__cell'></td>";
 
     // add the "no image" option
     echo "</tr><tr><td>&nbsp;<br></td></tr>"
@@ -221,7 +237,7 @@ function imageUploadRadio($originalUrl, $noneLabel, $radioname, $curval,
         . "<iframe name=\"$ufr\" id=\"$ufr\" src=\"imageUpload?btn=$ubtn"
         .     "&fr=$ufr&thumbSize=$thumbSiz&radio=$radioname&tab=$utab"
         .     "&col0=$col0\" "
-        .   "style=\"display:none; width: 80ex; height:2em; border: none;\">"
+        .   "class=\"imageuploadhandler__ufr\">"
         . "</iframe>"
         . "</td>"
         . "</tr>";
@@ -370,7 +386,11 @@ function setDefaultImageCopyright(def)
 //-->
    </script>
 
-    <div class=indented style="font-size:90%;">
+   <style nonce="<?php global $nonce; echo $nonce; ?>">
+        .imageuploadhandler__labels { font-size:90%; }
+    </style>
+
+    <div class='indented imageuploadhandler__labels'>
 
        <label><input type=radio name="imgcopyright" value="C" id="icrC"
           <?php if ($rbval == 'C') echo "checked"?>

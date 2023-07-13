@@ -1087,7 +1087,7 @@ administrators can see who voted for what.)
 <!--
 function expandVote(id)
 {
-    document.getElementById('voteF' + id).style.display = "";
+    document.getElementById('voteF' + id).style.display = "initial";
     document.getElementById('voteQ' + id).style.display = "none";
 }
 //-->
@@ -1254,9 +1254,16 @@ function expandVote(id)
                 // if applicable
                 if ($i == 0) {
                     // start the table
-                    echo "<div style=\"width: 100%;\">"
+                    global $nonce;
+                    echo "<div>"
                         . "<table cellpadding=0 cellspacing=0 "
-                        . "border=0 width=\"100%\">";
+                        . "border=0 width=\"100%\">"
+                        . "<style nonce='$nonce'>\n"
+                        . ".poll__dots { padding-bottom: 1em; }\n"
+                        . ".poll__row { padding-bottom: 1em; vertical-align:top; }\n"
+                        . ".poll__artCell { padding-right: 2em; width: 80px; }\n"
+                        . "</style>\n";
+
                 } else {
                     // add some space
                     echo "<br><br>";
@@ -1322,7 +1329,7 @@ function expandVote(id)
 
                     // end the table row
                     echo "</td></tr><tr>"
-                        . "<td colspan=2 style=\"padding-bottom: 1em;\">"
+                        . "<td colspan=2 class='poll__dots'>"
                         . "<hr class=dots></td></tr>";
                 }
 
@@ -1336,16 +1343,16 @@ function expandVote(id)
                 }
 
                 // start the new row
-                echo "<tr style=\"padding-bottom: 1em; vertical-align:top;\">";
+                echo "<tr class='poll__row'>";
 
                 // show the cover art if available
                 if ($coverArt) {
-                    echo "<td style=\"padding-right: 2em; width: 80px;\">"
+                    echo "<td class='poll__artCell'>"
                         . "<a href=\"viewgame?id=$gameID\">"
                         . coverArtThumbnail($gameID, 80)
                         . "</a></td>";
                 } else {
-                    echo "<td style=\"width: 1px;\"></td>";
+                    echo "<td width='1px'></td>";
                 }
 
                 // show the basic game listing
@@ -1396,7 +1403,7 @@ function expandVote(id)
                         . "<a title=\"Click to see more details\" href=\"needjs\">"
                         . addEventListener('click', "expandVote('$i');return false;")
                         . "+</a>]</span></span>"
-                        . "<span id=\"voteF$i\" style=\"display:none;\">"
+                        . "<span id=\"voteF$i\" class=\"displayNone\">"
                         . "$expQ $rv <i>--<a href=\"showuser?id=$voteUserID\">"
                         . "$voteUserName</a></i></span>... ";
                 }

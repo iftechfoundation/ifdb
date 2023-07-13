@@ -14,9 +14,15 @@ function listMatchItem($match, $num, $showArt, $rating, $hrefTarget)
 
     if ($hrefTarget != "")
         $hrefTarget = " target=\"$hrefTarget\"";
+    
+    global $nonce;
+    echo "<style nonce='$nonce'>\n"
+        . ".lists__art { margin-right: 1em;margin-bottom: 0.5em; float: left; }\n"
+        . "</style>\n";
+
 
     if ($art)
-        echo "<a href=\"viewgame?id=$id\"$hrefTarget style=\"margin-right: 1em;margin-bottom: 0.5em; float: left;\">"
+        echo "<a href=\"viewgame?id=$id\"$hrefTarget class=\"lists__art\">"
             . coverArtThumbnail($id, 100)
             . "</a>";
 
