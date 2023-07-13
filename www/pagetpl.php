@@ -155,8 +155,8 @@ function pageHeader($title, $focusCtl = false, $extraOnLoad = false,
 
     // If javascript is enabled, un-hide the mobile menu button & add the 'mobile-menu' class to the main nav wrapper,
     const toggle = document.querySelector('#mobile-menu-toggle-button');
-    toggle.addEventListener('click', function () { ToggleMobileMenu(); });
     if (toggle) {
+        toggle.addEventListener('click', function () { ToggleMobileMenu(); });    
         toggle.classList.remove('hidden');
         document.querySelector('#main-nav-wrapper').classList.add('mobile-menu');
     }
