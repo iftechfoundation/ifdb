@@ -483,7 +483,7 @@ if ($succMsg) {
 }
 
 pageHeader($title, "commentForm.commentField", false,
-           "<script src=\"xmlreq.js\"></script>");
+           scriptSrc('/xmlreq.js'));
 captchaSupportScripts($captchaKey);
 
 if (!$submit || $errMsg || !$captchaOK) {

@@ -889,7 +889,7 @@ if (isset($_REQUEST['members']))
 // --------------------------- Standard View --------------------------------
 
 $pageTitle = "$name - Club Details";
-pageHeader($pageTitle, false, false, "<script src=\"xmlreq.js\"></script>");
+pageHeader($pageTitle, false, false, scriptSrc('/xmlreq.js'));
 echo "<h1>$name</h1>"
    . $desc;
 

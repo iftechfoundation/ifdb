@@ -353,7 +353,7 @@ $membersPublic = ($membersPublic == 'Y');
 // start the page
 $pageTitle = ($qid == "new" ? "Create a Club Listing" : "$name - Edit Club");
 pageHeader("Edit Club", "clubform.name", false,
-           "<script src=\"xmlreq.js\"></script>");
+           scriptSrc('/xmlreq.js'));
 echo "<h1>$pageTitle</h1>";
 
 // add profile link support

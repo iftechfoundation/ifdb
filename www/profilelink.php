@@ -8,7 +8,7 @@
 //
 //  1. Include this file
 //
-//  2. In the pageHeader call, include "<script src='xmlreq.js'></script>"
+//  2. In the pageHeader call, include scriptSrc('/xmlreq.js')
 //     in the extra header text.
 //
 //  3. Somewhere in the file, call profileLinkSupportFuncs() to generate

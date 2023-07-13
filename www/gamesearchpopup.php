@@ -8,7 +8,7 @@
 //   1. Include this file in your php script.
 //
 //   2. In the pageHeader() extra headers, include
-//      "<script src='xmlreq.js'></script>"
+//      scriptSrc('/xmlreq.js')
 //
 //   2. Somewhere in the HTML body, call gameSearchPopupSupportFuncs() to
 //      generate the javascript support functions.  This generates an
