@@ -452,12 +452,12 @@ function echoStylesheetLink()
     $ssid = false;
     if ($userid && !$cssOverride) {
         $result = mysql_query(
-            "select u.stylesheetid, s.userid
+            "select u.stylesheetid, s.userid, s.modified
              from users as u
                join stylesheets as s on s.stylesheetid = u.stylesheetid
              where u.id='$userid'", $db);
         if (mysql_num_rows($result) > 0)
-            list($ssid, $ssauthor) = mysql_fetch_row($result);
+            list($ssid, $ssauthor, $ssmodified) = mysql_fetch_row($result);
     }
 
     // check for a temporary CSS override
@@ -465,21 +465,29 @@ function echoStylesheetLink()
         $db = dbConnect();
         $ssid = mysql_real_escape_string($cssOverride, $db);
         $result = mysql_query(
-            "select userid from stylesheets
+            "select userid, modified from stylesheets
              where stylesheetid = '$ssid'", $db);
-        $ssauthor = mysql_result($result, 0, "userid");
+        list($ssauthor, $ssmodified) = mysql_fetch_row($result);
     }
 
     // If we found a custom style sheet selection, use it;
-    if ($ssid)
-        echo "<link rel=\"stylesheet\"
-               href=\"/users/$ssauthor/css/$ssid.css\">";
+    if ($ssid) {
+        $stylesheet = "/users/$ssauthor/css/$ssid.css";
+        $mtime = strtotime($ssmodified);
+        echo "<link rel=\"stylesheet\" href=\"$stylesheet?t=$mtime\">";
+    }
     // otherwise, use the mobile stylesheet if we're on mobile
-    else if (is_mobile())
-        echo "<link rel=\"stylesheet\" href=\"/legacy-mobile-styles.css?v=1\">";
+    else if (is_mobile()) {
+        $stylesheet = "/legacy-mobile-styles.css";
+        $mtime = filemtime($_SERVER['DOCUMENT_ROOT'] . $stylesheet);
+        echo "<link rel=\"stylesheet\" href=\"$stylesheet?t=$mtime\">";
+    }
     // or the regular stylesheet if we're not
-    else
-        echo "<link rel=\"stylesheet\" href=\"/ifdb.css?v=1\">";
+    else {
+        $stylesheet = "/ifdb.css";
+        $mtime = filemtime($_SERVER['DOCUMENT_ROOT'] . $stylesheet);
+        echo "<link rel=\"stylesheet\" href=\"$stylesheet?t=$mtime\">";
+    }
 }
 
 // --------------------------------------------------------------------------
