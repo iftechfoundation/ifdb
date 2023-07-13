@@ -497,7 +497,7 @@ if ($geticon) {
         // we can edit it - show the editing form
         pageHeader("Edit OS/Interpreter", "editos.osname",
                    "gfGenForm('vsnGridModel');",
-                   "<script src=\"gridform.js\"></script>");
+                   scriptSrc('/gridform.js'));
 
         imageUploadScripts();
 

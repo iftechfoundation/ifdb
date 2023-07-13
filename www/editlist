@@ -725,8 +725,8 @@ for ($i = 0 ; $i < count($listItems) ; $i++) {
 
 pageHeader($pagetitle, $errMsg ? false : "editlist.title",
            "gfGenForm('listModel');",
-           "<script src=\"gridform.js\"></script>"
-          . "<script src=\"xmlreq.js\"></script>");
+           scriptSrc('/gridform.js')
+          . scriptSrc('/xmlreq.js'));
 echo "<h1>$pagetitle</h1>";
 
 gameSearchPopupSupportFuncs();

@@ -522,8 +522,8 @@ if ($errMsg) {
                    "gfGenForm('linkModel');gfGenForm('reviewModel');"
                    . "gfGenForm('xrefModel');"
                    . "\ndocument.body.addEventListener('mousedown', function (event) { checkClosePopup(event, true); });",
-                   "<script src=\"gridform.js\"></script>"
-                   . "<script src=\"xmlreq.js\"></script>",
+                   scriptSrc('/gridform.js')
+                   . scriptSrc('/xmlreq.js'),
                    false);
 
         initStarControls();

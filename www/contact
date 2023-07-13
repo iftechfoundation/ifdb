@@ -5,7 +5,7 @@ include_once "util.php";
 include_once "captcha.php";
 
 varPageHeader("Contacting Us", false, get_req_data('helpwin'),
-              false, "<script src=\"xmlreq.js\"></script>");
+              false, scriptSrc('/xmlreq.js'));
 
 $capkey = "contact";
 captchaSupportScripts($capkey);

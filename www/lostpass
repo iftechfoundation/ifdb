@@ -27,7 +27,7 @@ if (!$showForm)
 // Main form display
 //
 pageHeader("Lost Password", "lostpass.userid", false,
-           "<script src=\"xmlreq.js\"></script>");
+           scriptSrc('/xmlreq.js'));
 
 ?>
 

@@ -232,7 +232,7 @@ if ($rss == 'gamenews')
     exit();
 }
 
-pageHeader($pageTitle, false, false, "<script src=\"xmlreq.js\"></script>");
+pageHeader($pageTitle, false, false, scriptSrc('/xmlreq.js'));
 
 $captchaKey = "showuser.$uid";
 captchaSupportScripts($captchaKey);

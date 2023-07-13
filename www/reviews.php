@@ -5,7 +5,7 @@
 // include_once "pagetpl.php";
 //
 // put the following extra text in the <HEAD> section:
-//    <script src="xmlreg.js"></script>
+//    scriptSrc('/xmlreq.js')
 //
 // call initReviewVote() somewhere in the <BODY> section, to insert the
 // javascript code for review voting

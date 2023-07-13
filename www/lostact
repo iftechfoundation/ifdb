@@ -27,7 +27,7 @@ if (!$showForm)
 // Main form display
 //
 pageHeader("Missing Activation Email", "lostact.userid", false,
-           "<script src=\"xmlreq.js\"></script>");
+           scriptSrc('/xmlreq.js'));
 
 ?>
 

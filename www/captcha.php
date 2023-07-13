@@ -14,7 +14,7 @@ include_once "dbconnect.php";
 //   1. Include this file in your php file
 //
 //   2. In your pageHeader() extra header text, include
-//       "<script src=\"xmlreq.js\"></script>"
+//       scriptSrc('/xmlreq.js')
 //
 //   3. Generate a "key" for the captcha session (see below).  This is
 //      a unique key for the $_SESSION array to identify this captcha

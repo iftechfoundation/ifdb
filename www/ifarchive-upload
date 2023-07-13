@@ -15,7 +15,7 @@ if (!logged_in())
 $userid = $_SESSION['logged_in_as'];
 
 pageHeader("IF Archive File Upload", false, false,
-           "<script src=\"xmlreq.js\"></script>");
+           scriptSrc('/xmlreq.js'));
 
 include_once "captcha.php";
 $capkey = "archive-upload";

@@ -1036,8 +1036,8 @@ if ($show == "divform") {
     // showing the division editor form
     pageHeader($pageTitle, false,
                "gfGenForm('divModel');",
-               "<script src=\"gridform.js\"></script>"
-               . "<script src=\"xmlreq.js\"></script>",
+               scriptSrc('/gridform.js')
+               . scriptSrc('/xmlreq.js'),
                false, false);
 
 }
@@ -1046,8 +1046,8 @@ else if ($show == "form") {
     // showing the form - set up the form page
     pageHeader($pageTitle, "editcomp.title",
                "initGrids();\ndocument.body.addEventListener('mousedown', function (event) { checkClosePopup(event, true); });",
-               "<script src=\"gridform.js\"></script>"
-               . "<script src=\"xmlreq.js\"></script>",
+               scriptSrc('/gridform.js')
+               . scriptSrc('/xmlreq.js'),
                false);
 
 
