@@ -978,18 +978,16 @@ function spoilerWarningScript()
 {
     static $didSpoilerScript = 0;
     global $nonce;
-    if ($didSpoilerScript++ != 0)
-        return "";
-    else
-        return "\n<script type=\"text/javascript\" nonce=\"$nonce\">\n"
-            . "<!--\n"
-            . "function showSpoiler(id) { "
+    $result = "\n<script type=\"text/javascript\" nonce=\"$nonce\">\n";
+    if ($didSpoilerScript++ == 0) {
+        $result .= "function showSpoiler(id) { "
             . "document.getElementById(\"a_spoiler\" + id).style.display = "
             . "\"none\";"
             . "document.getElementById(\"s_spoiler\" + id).style.display = "
             . "\"inline\";"
-            . "}\n"
-            . "document.querySelectorAll('.spoilerButton a').forEach(function (link) {\n"
+            . "};\n";
+    }
+    $result .= "document.currentScript.parentElement.querySelectorAll('.spoilerButton a').forEach(function (link) {\n"
             . "  link.addEventListener('click', function (event) {\n"
             . "    event.preventDefault();\n"
             . "    showSpoiler(event.target.getAttribute('x-num'));\n"
@@ -997,6 +995,7 @@ function spoilerWarningScript()
             . "});"
             . "//-->\n"
             . "</script>";
+    return $result;
 }
 
 // -------------------------------------------------------------------------
