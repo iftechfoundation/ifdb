@@ -121,7 +121,7 @@ function pageHeader($title, $focusCtl = false, $extraOnLoad = false,
             </div>
         </nav>
     <?php if ($isLoggedIn) : ?>
-        <button type="button" id="mobile-menu-toggle-button" class="menu-toggle-button" aria-label="Menu" onclick="ToggleMobileMenu()" class="hidden">
+        <button type="button" id="mobile-menu-toggle-button" class="menu-toggle-button" aria-label="Menu" class="hidden">
             <img src="/img/menu.svg" alt="" class="mobile-hidden">
             <img src="/img/close.svg" alt="">
             <span>Menu</span>
@@ -144,6 +144,7 @@ function pageHeader($title, $focusCtl = false, $extraOnLoad = false,
 
     // If javascript is enabled, un-hide the mobile menu button & add the 'mobile-menu' class to the main nav wrapper,
     const toggle = document.querySelector('#mobile-menu-toggle-button');
+    toggle.addEventListener('click', function () { ToggleMobileMenu(); });
     if (toggle) {
         toggle.classList.remove('hidden');
         document.querySelector('#main-nav-wrapper').classList.add('mobile-menu');
