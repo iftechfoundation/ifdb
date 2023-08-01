@@ -234,8 +234,8 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse)
         // special keywords for game search:  "keyword:" => descriptor
         $specialMap = array(
             "genre:" => array("genre", 0),
-            "published:" => array("date_format(published, '%Y')", 1),
-            "added:" => array("date_format(created, '%Y')", 1),
+            "published:" => array("published", 4),
+            "added:" => array("created", 4),
             "system:" => array("system", 0),
             "series:" => array("seriesname", 0),
             "tag:" => array("tags", 3),
@@ -513,6 +513,32 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse)
             $expr = "$col rlike '[[:<:]]"
                     . mysql_real_escape_string(quoteSqlRLike($txt), $db)
                     . "[[:>:]]'";
+            break;
+        case 4:
+            // timestamps
+            $year = "date_format($col, '%Y')";
+            if ($txt == "")
+                $expr = "$col is null";
+            else if (preg_match("/^([0-9.]+)-([0-9.]+)$/", $txt, $m))
+                $expr = "$year >= '{$m[1]}' AND $year <= '{$m[2]}'";
+            else if (preg_match("/^([0-9.]+)[+-]$/", $txt, $m))
+                $expr = "$year >= '{$m[1]}'";
+            else if (preg_match("/^-([0-9.]+)$/", $txt, $m))
+                $expr = "$year <= '{$m[1]}'";
+            else if (preg_match("/^[0-9.]+$/", $txt))
+                $expr = "$year = '$txt'";
+            else if (preg_match("/^([0-9.]+)d-([0-9.]+)d$/", $txt, $m))
+                $expr = "$col >= date_sub(now(), interval {$m[1]} day) AND $col <= date_sub(now(), interval {$m[2]} day)";
+            else if (preg_match("/^([0-9.]+)d[+-]$/", $txt, $m))
+                $expr = "$col >= date_sub(now(), interval {$m[1]} day)";
+            else if (preg_match("/^-([0-9.]+)d$/", $txt, $m))
+                $expr = "$col <= date_sub(now(), interval {$m[1]} day)";
+            else if (preg_match("/^([0-9.]+)d$/", $txt, $m)) {
+                $day = $m[1];
+                $dayBefore = $day + 1;
+                $expr = "$col >= date_sub(now(), interval $dayBefore day) AND $col <= date_sub(now(), interval $day day)";
+            } else
+                $expr = "$year = '" . mysql_real_escape_string($txt, $db) . "'";
             break;
 
         case 99:

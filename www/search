@@ -909,7 +909,10 @@ else {  // ...default is searching games
           to 2000.  <b>published:1990</b> lists only games published
           in 1990.  <b>published:1990-</b> lists games published in 1990
           or later, and <b>published:-2000</b> lists games published in
-          2000 or earlier.
+          2000 or earlier. You can also search for games published within
+          the last few days. <b>published:30d-</b> searches for games published
+          within the last 30 days. <b>published:90d-30d</b> searches for games
+          published within the last 90 days, but more than 30 days ago.
 
        <p><b>added:<i>year-year</i></b> only shows games with
           listings added to the database on dates in the given range.
@@ -917,7 +920,10 @@ else {  // ...default is searching games
           from 2007 to 2020. <b>added:2007</b> shows games added
           in 2007. <b>added:2007-</b> shows games added in 2007
           or later, and <b>added:-2020</b> shows games added in
-          2020 or earlier.
+          2020 or earlier. You can also search for games added within
+          the last few days. <b>added:30d-</b> searches for games added
+          within the last 30 days. <b>added:90d-30d</b> searches for games
+          added within the last 90 days, but more than 30 days ago.
 
        <p><b>language:<i>code</i></b> lists games written in the given
           spoken language.  You can use the English name of the language,
