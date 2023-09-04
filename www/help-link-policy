@@ -2,10 +2,10 @@
 include_once "session-start.php";
 include_once "util.php";
 include_once "pagetpl.php";
-helpPageHeader("Policy for Download Links");
+helpPageHeader("Policy for External Links");
 ?>
 
-<h1>Policy for Download Links</h1>
+<h1>Policy for External Links</h1>
 
 <p>Please link only to <b>legal</b> downloads.  This means that
 the copyright owner must explicitly allow the download.

@@ -56,11 +56,11 @@ echo "<style nonce='$nonce'>\n"
                <table width="100%" border=0 cellpadding=0 cellspacing=0>
                   <tr>
                      <td valign=top>
-                        <h3>Download</h3>
+                        <h3>External Links</h3>
                      </td>
                   </tr>
                </table>
-               <i>This is where the download information goes.</i>
+               <i>This is where the external link information goes.</i>
                <table class=downloadlist>
                   <tr valign=top>
                      <td>

@@ -78,7 +78,7 @@ if ($debugflag) echo "debug mode enabled...<br>";
 
          <div id="download-advisor-aside" class="column col-sidebar">
             <div class="headline">New to IF?</div>
-            <p>IFDB can help get you up and running with the games you find on IFDB. Just click <img src="img/playonlinebtn.gif" align="absmiddle" alt='The "Play On-line" button'> in any game's Download box to play the game right in your browser.</p>
+            <p>IFDB can help get you up and running with the games you find on IFDB. Just click <img src="img/playonlinebtn.gif" align="absmiddle" alt='The "Play On-line" button'> in any game's External Links box to play the game right in your browser.</p>
          </div>
       </div>
 

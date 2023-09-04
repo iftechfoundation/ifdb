@@ -6,18 +6,18 @@ include_once "pagetpl.php";
 include_once "dbconnect.php";
 $db = dbConnect();
 
-helpPageHeader("Download Links");
+helpPageHeader("External Links");
 ?>
 
-<h1>Download Links</h1>
+<h1>External Links</h1>
 
-<p><b>URL:</b> Enter the full URL to the downloadable file.
+<p><b>URL:</b> Enter the full URL.
 
 <ul>
 
-   <li>Link directly to the file, rather than to a separate "gateway"
-page.  The "Play Online" button assumes that links lead directly to
-downloadable files.
+   <li>When linking to a downloadable file, link directly to the file,
+rather than to a separate "gateway" page.  The "Play Online" button
+assumes that links lead directly to downloadable files.
 
    <li>If the game's author doesn't allow you to link directly to the
 file, don't add it as a download link; instead, link to the author's
@@ -32,15 +32,15 @@ to the main IF Archive URL.
 </ul>
 
 <p><b>Title:</b> Enter a short title for the link, for display in
-the Download box on the game's page.
+the External Links box on the game's page.
 
 <p><b>Description:</b> If the file's purpose isn't obvious enough
 from the title, you can add a brief description here.
 This is optional.  <b>Don't</b> use this to describe the game itself,
 since that belongs in the main game description.
 
-<p><b>"This is a playable game file":</b> This tells the Download
-Adviser and other tools whether or not this file contains the actual
+<p><b>"This is a playable game file":</b> This tells the "Play Online"
+button and other tools whether or not this file contains the actual
 game program.
 
 <ul>
