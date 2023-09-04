@@ -1142,7 +1142,7 @@ for ($i = 0 ; $i < count($fields) ; $i++) {
 // ---------------  time for the download link section ---------------------
 //echo "<tr><td>&nbsp;<br></td></tr>";
 echo "<tr valign=top>
-   <td align=right><b>Download Links:&nbsp;&nbsp;</b></td><td>";
+   <td align=right><b>External Links:&nbsp;&nbsp;</b></td><td>";
 
 global $nonce;
 echo "<style nonce='$nonce'>\n"
@@ -1244,9 +1244,9 @@ function echoGridField($link, $fld, $isFirst = false)
                             linkurl.addEventListener('input', function() {updateFormatUI();})
                         </script>
 
-                        The full URL, linking directly to the downloadable
-                        file. For IF Archive links, use the <b>main</b> Archive
-                        only (http://www.ifarchive.org/if-archive/...) -
+                        The full URL. When linking to a downloadable file, link directly to the downloadable
+                        file, if possible. For IF Archive links, use the <b>main</b> Archive
+                        only (https://ifarchive.org/if-archive/...) -
                         <b>don't</b> link to mirrors.
                      </span>
                   </td>
@@ -1280,7 +1280,7 @@ function echoGridField($link, $fld, $isFirst = false)
                      <textarea name="linkdesc" id="linkdesc"
                                rows=3 cols=60></textarea><br>
                      <span class=details>
-                        A brief description to display in the Download box.
+                        A brief description to display in the External Links box.
                         Optional.
                      </span>
                   </td>
@@ -1631,7 +1631,7 @@ var linkVals = [
 
             <div id="linkGridDiv">
                <noscript>
-                  <i>JavaScript must be enabled to edit the download links.</i>
+                  <i>JavaScript must be enabled to edit the external links.</i>
                </noscript>
             </div>
          </td>

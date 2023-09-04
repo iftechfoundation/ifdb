@@ -173,7 +173,7 @@ function getGameRssItems($db, $id, $feedType, $gameTitle, $links, $extFeed)
                 $ldescs = implode("; ", $ldescs);
 
                 // for an external listing, add the game title
-                $ttl = ($extFeed ? "$gameTitle downloads " : $ltitles);
+                $ttl = ($extFeed ? "$gameTitle external links " : $ltitles);
 
                 // build the item XML
                 $item = "<item>"

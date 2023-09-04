@@ -2,12 +2,12 @@
 include_once "session-start.php";
 include_once "util.php";
 include_once "pagetpl.php";
-helpPageHeader("Pending Download Links");
+helpPageHeader("Pending External Links");
 ?>
 
-<h1>Pending Download Links</h1>
+<h1>Pending External Links</h1>
 
-<p>The "pending" checkbox for a game download link tells IFDB that the
+<p>The "pending" checkbox for an external link tells IFDB that the
 file isn't available for download yet, but will be soon.  If you check
 this box, IFDB will do two things:
 

@@ -182,10 +182,10 @@ required.
 <p><b>ifiction</b>: the iFiction XML file upload.  Use content-type
 text/xml.  The file name and suffix aren't important; the server
 ignores these and always tries to parse this file as XML regardless of
-the filename.  See the <a href="#links">download links</a> section
+the filename.  See the <a href="#links">external links</a> section
 for details on the XML format.  File upload parameter; required.
 
-<p><b>links</b>: the downloadable file link list.  This is an XML
+<p><b>links</b>: the external link list.  This is an XML
 attachment, like the iFiction file.  Use content-type text/xml.  The
 file name and suffix are ignored; this is always treated as an
 XML file.  File upload parameter; optional.
@@ -338,21 +338,21 @@ overridden with the <b>requireIFID</b> parameter, though, as described
 above.)  All other items are optional.
 
 
-<h2><a name="links">Download links</h2>
+<h2><a name="links">External links</h2>
 
-<p>The request can optionally provide a list of downloadable files to
+<p>The request can optionally provide a list of external links (including downloadable files) to
 add to the game listing.  You will usually want to include at least a
 link to the downloadable story file, but you can also include any
 desired supplemental files (such as hints, maps, instructions,
 walk-throughs, or "feelies").  These are listed on the game's IFDB
-page in the "Downloads" section.
+page in the "External Links" section.
 
 <p>Note that IFDB doesn't host game downloads.  It only links to them.
-The download section is simply a list of URLs to files on other
+The External Links section is simply a list of URLs to files on other
 servers; you don't attach any of the actual game files to the request,
 just pointers to them.
 
-<p>The download list is specified via an XML file, attached to the
+<p>The external links list is specified via an XML file, attached to the
 request via the <b>links</b> parameter.  The XML content is formatted
 as follows:
 
@@ -562,23 +562,23 @@ existing listing.  The restriction is simply that all IFIDs in the
 iFiction record that already exist on IFDB must all point to the same
 listing.
 
-<p>The download links specified through the API are purely additive.
-When the API is used to update an existing listing, the download links
-in the request are merged with the download links from the existing
+<p>The external links specified through the API are purely additive.
+When the API is used to update an existing listing, the external links
+in the request are merged with the external links from the existing
 record.  The merging is by URL:
 
 <p>
 <ul>
 
-   <li>For an existing download link with a URL matching a
-   download link in the API request, the data from the request (title,
+   <li>For an existing external link with a URL matching an
+   external link in the API request, the data from the request (title,
    description, etc) replaces the existing data.
 
    <li>For an existing link with a URL that <i>doesn't</i> match any
    link in the API request, the existing link is kept with no changes.
 
    <li>For a link in the API request that doesn't match any URL in
-   the existing download links, the API request link is added to the
+   the existing external links, the API request link is added to the
    list, after all of the existing links.
 
 </ul>
@@ -597,7 +597,7 @@ existing link to the old game in the interim, so that users viewing
 the page will find something to download, even if it's not necessarily
 fully up to date yet.
 
-<p>The reason that the download links are additive is that the links
+<p>The reason that the external links are additive is that the links
 presented through the request API are presumably the files published
 directly by the author of the game, but existing links might refer to
 other "unofficial" files created by third parties, such as hints or
@@ -605,7 +605,7 @@ walk-throughs.  We don't want to delete those third-party files just
 because the author is updating her published files.  So, we simply
 retain any existing links without changes when they're not mentioned
 in the request.  In the simplest case, when the request doesn't
-include any download links, this means that we make no changes
+include any external links, this means that we make no changes
 at all to the existing links.
 
 
