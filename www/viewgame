@@ -3157,22 +3157,7 @@ dispTags();
 
         // if this is our page, and we own all the versions, offer
         // deletion
-        $deletePageLink = "";
-        if ($curuser != "" && $curuser == $editedbyid) {
-            // look for other users in the version history
-            $result = mysqli_execute_query($db,
-                "select count(*) as c from games_history
-                 where id = ?
-                 and ifnull(editedby, '') <> ?", [$id, $editedbyid]);
-            if (mysql_result($result, 0, "c") == 0) {
-                $deletePageLink =
-                    "- <a href=\"delgame?id=$id\">Delete This Page</a>";
-            }
-        }
-        if ($adminPriv && !$deletePageLink) {
-            $deletePageLink =
-                "- <a href=\"delgame?id=$id\">Delete This Page</a>";
-        }
+        $deletePageLink = "- <a href=\"delgame?id=$id\">Delete This Page</a>";
 
         // add the footer showing the version/edit links
         $editedby =

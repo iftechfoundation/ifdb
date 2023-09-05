@@ -21,10 +21,11 @@ $db = dbConnect();
 
 // check for special privileges
 $result = mysql_query(
-    "select `privileges` from users where id='$userid'", $db);
+    "select `name`, `privileges` from users where id='$userid'", $db);
 $adminPriv =
     $result
     && strpos(mysql_result($result, 0, "privileges"), "A") !== false;
+$userName = htmlspecialcharx(mysql_result($result, 0, "name"));
 
 // Check for cascade mode.
 $cascade = (get_req_data("refmode") == "cascade");
@@ -37,6 +38,126 @@ $confirmParam = "&confirm"
 $qid = mysql_real_escape_string(get_req_data("id"), $db);
 if ($qid == "")
     errExit("The game listing ID was not specified in the request.");
+
+// make sure it's a valid game
+$result = mysql_query(
+    "select title, editedby from games where id = '$qid'", $db);
+if (mysql_num_rows($result) == 0)
+    errExit("The specified game is not in the database.");
+
+$title = htmlspecialcharx(mysql_result($result, 0, "title"));
+$editedby = mysql_result($result, 0, "editedby");
+
+if (!$adminPriv) {
+    $reasons = [
+        "spam" => "The game listing is spam.",
+        "not_if" => "The game is not interactive fiction. (Please explain why below.)",
+        "oops" => "The listing is blank, created as a test, or created by mistake.",
+        "duplicate" => "The game listing is a duplicate of another listing. (Please include a link to the other listing below.)",
+        "code_of_conduct" => "The game listing violates the <a href=\"/code-of-conduct\">IFDB Code of Conduct</a>.",
+        "copyright" => "The game listing violates the game creator's copyright.",
+        "not_available" => "The game is no longer available to play. (Note that if there are reviews or ratings on the game listing, we might decide not to delete the listing.)",
+        "other" => "There's another reason. I'll explain below.",
+        "author" => "I'm the author of this game.",
+        "author_privacy" => "I'm trying to remove my name from IFDB. (Note: You can anonymize the game, changing the author name to \"Anonymous,\" instead of deleting the game listing.)",
+        "author_playing" => "I don't want anyone to play the game any more.",
+        "author_commenting" => "I want to prevent people from commenting on the game.",
+    ];
+    if (isset($_POST['notes'])) {
+        $root = get_root_url();
+        $submitted_reasons = "";
+        foreach ($reasons as $key => $text) {
+            if (isset($_POST[$key])) {
+                $submitted_reasons .= "<li>$text</li>";
+            }
+        }
+        if ($submitted_reasons === "" && $_POST['notes'] === "") {
+            errExit("You must provide a reason why the game should be deleted. <p><a href='{$root}delgame?id=$qid'>Go Back</a>");
+        }
+        $notes = "(none)";
+        if ($_POST['notes'] !== "") {
+            $notes = nl2br(htmlspecialchars($_POST['notes']));
+        }
+        $body = <<<EOD
+            IFDB game deletion request
+
+            <p>
+                Game to Delete: <a href="{$root}viewgame?id=$qid">$title</a>
+                <br>Requesting User: <a href="{$root}showuser?id=$userid">$userName</a>
+                <br>Reasons:<ul>$submitted_reasons</ul>
+                Note: $notes
+            </p>
+EOD;
+        $msg = "$body<p><a href='{$root}delgame?id=$qid'>Delete the game</a></p>";
+        $hdrs = "From: IFDB <noreply@ifdb.org>\r\n"
+            . "Content-type: Text/HTML\r\n";
+
+        $success = send_mail("ifdbadmin@ifdb.org",
+            "IFDB delete game request - $title", $msg, $hdrs);
+        
+        if (!$success) {
+            errExit("There was an error emailing the IFDB moderation team. Please email us at ifdbadmin@ifdb.org with your deletion request.");
+        }
+
+        pageHeader("Delete Game Listing - $title");
+        ?>
+        <h1>Deletion Request Submitted</h1>
+        <p>The IFDB moderation team will review your request. (We're all volunteers, so please be patient.)</p>
+        <hr>
+        <?=$body?>
+        <?php
+        pageFooter();
+        exit();
+    } else {
+        pageHeader("Delete Game Listing - $title");
+        global $nonce;
+        ?>
+        <h1>Delete Game Listing - <?=$title?></h1>
+        <p>Please provide a reason why the game listing for <a href="/viewgame?id=<?=$qid?>"><?=$title?></a> should be deleted.
+        The IFDB moderation team will review your request.</p>
+        <p>Note: <b>IFDB doesn't store any games</b> - just metadata <i>about</i> the games, such as bibliography and reviews. Deleting a listing on IFDB won't delete the game itself, or any of its copies.</p>
+        <form method="post">
+            <style nonce="<?=$nonce?>">
+                #notes {
+                    font-family: inherit;
+                    width: 60ch;
+                }
+                #author_section {
+                    padding-left: 4ch;
+                }
+            </style>
+            <?php
+            foreach ($reasons as $key => $text) {
+                if (strpos($key, "author") === 0) {
+                    continue;
+                }
+                ?>
+                <p><input type="checkbox" name="<?=$key?>" id="<?=$key?>"> <label for="<?=$key?>"><?=$text?></label></p>
+                <?php
+            }
+            ?>
+            <p>Are you the author of the game?</p>
+            <p><input type="checkbox" name="author" id="author"> <label for="author">I'm the author of this game.</label></p>
+            <div id="author_section">
+                <?php
+                    foreach ($reasons as $key => $text) {
+                        if ($key !== "author" && strpos($key, "author") === 0) {
+                            ?>
+                            <p><input type="checkbox" name="<?=$key?>" id="<?=$key?>"> <label for="<?=$key?>"><?=$text?></label></p>
+                            <?php    
+                        }
+                    }
+                ?>
+            </div>
+            <p><label for="notes">(Optional) Please provide additional detail, explaining why this game listing should be deleted.</label></p>
+            <p><textarea id="notes" name="notes"></textarea></p>
+            <p><button>Submit Deletion Request</button>
+        </form>
+        <?php
+        pageFooter();
+        exit();
+    }
+}
 
 // Flag a referential integrity violation.  This explains why the deletion
 // isn't allowed.  If the reference is overridable, it means that we can
@@ -56,11 +177,7 @@ function refErrExit($refs)
     }
 
     // explain the problem
-    if ($override)
-        $msg = "Warning! This game listing is referenced elsewhere on IFDB:";
-    else
-        $msg = "This game listing can't be deleted because it's referenced "
-               . "elsewhere on IFDB:";
+    $msg = "Warning! This game listing is referenced elsewhere on IFDB:";
 
     // add the list of referencers
     $msg .= "<p><ul>";
@@ -102,15 +219,6 @@ function pgErrExit($msg)
     errExit($msg);
 }
 
-// make sure it's a valid game
-$result = mysql_query(
-    "select title, editedby from games where id = '$qid'", $db);
-if (mysql_num_rows($result) == 0)
-    errExit("The specified game is not in the database.");
-
-$title = htmlspecialcharx(mysql_result($result, 0, "title"));
-$editedby = mysql_result($result, 0, "editedby");
-
 // lock the tables that we'll be checking or updating
 $result = mysql_query(
     "lock tables games write, gamefwds write,
@@ -126,7 +234,7 @@ $result = mysql_query(
 // we have no referencers yet
 $refs = array();
 
-// make sure it's our game; admin privs overide this
+// only admins can delete games
 if (!$adminPriv) {
     // we can only delete our own listings
     $result = mysql_query(
@@ -267,17 +375,6 @@ if (!isset($_REQUEST['confirm'])) {
     deleted.  This action is irrevocable - it can't be undone. If you
     change your mind later, you'll have to re-enter the game's
     information from scratch.
-
-    <p>The main valid reason to delete a game listing is that
-    you've discovered that it's a duplicate - that is, that there
-    was already a listing for the same game before you created
-    this one.
-
-    <p>Keep in mind that if you delete a listing, any links from
-    other web sites to the listing will be broken.  It's safest
-    to delete a listing that you created very recently, because
-    it's less likely that anyone will have found it and linked
-    to it.
 
     <p>Do you still want to delete this listing?
     <?php
