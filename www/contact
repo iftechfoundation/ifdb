@@ -39,6 +39,39 @@ database, you can add a new listing yourself.
 link at the bottom of the game's main page.  To add a game, click
 the "Add a new game listing" link on the IFDB home page.
 
+<h3>Violations of our code of conduct</h3>
+
+<p>If you see behavior on IFDB that violates our <a href="/code-of-conduct">code of conduct</a>, email us
+at <a href="mailto:ifdbadmin@ifdb.org">ifdbadmin@ifdb.org</a>, including
+a link to the problem.</p>
+
+<h3>Deleting a game listing</h3>
+
+<p>You can file a request to delete a game listing by clicking the
+    "Delete this page" link at the bottom of the game's main page.</p>
+
+<p>Typical reasons to delete a game's listing include:</p>
+
+    <ul>
+        <li>Non-IF spam</li>
+        <li>Listing is blank, created as a test or by mistake</li>
+        <li>Duplicate of another listing</li>
+    </ul>
+
+<p>We avoid deleting reviews of any game, unless the review
+    is a violation of our code of conduct. Since deleting the game listing
+    would also delete its reviews, we avoid deleting game listings that
+    have reviews.</p>
+
+<p>If you're the author of a game and you would like to remove a listing
+    for your own game, be advised that our goal is to allow our users
+    to review any work of IF, especially any game that has been submitted
+    for publication in a competition or game jam. We usually won't delete
+    critical reviews simply because an author requests it.</p>
+
+<p>(If you're the author of a game and you would like to remove your
+    <i>name</i> from IFDB, we can edit the game listing to change the
+    author's name to "Anonymous.")</p>
 
 <h3>Reporting broken links</h3>
 
