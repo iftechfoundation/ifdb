@@ -33,8 +33,8 @@ This can only happen once the "big zip file" is available, and all links are vis
 3. `submit-games.mjs`: This script reads `microdata.json` and `cover-art.json`, and uses the IFDB [putific API](https://ifdb.org/api/putific) to create results for all games.
 
     Initially, we'll create the IFDB entries based on the ballot alone; it will take a few days for IF Archive to accept and process the "big zip" of all competition entries. Once that ZIP is available on ifarchive.org, we can compute and set download links.
-4. `compute-download-links.mjs`: Computes the correct download link (including the game file in the download ZIP) using the big zip as input. This generates `microdata-downloads.json` from `microdata.json`.
-5. `merge-tuids.mjs`: Rather than assuming that `submit-games.mjs` was run, we search IFDB for games published in the current year that match the title of the given IFComp game; this gives us the IFDB "TUID" ID of each game in IFComp. This generates `microdata-downloads-tuids.json` from `microdata-downloads.json`.
+4. `merge-tuids.mjs`: Rather than assuming that `submit-games.mjs` was run, we search IFDB for games published in the current year that match the title of the given IFComp game; this gives us the IFDB "TUID" ID of each game in IFComp. This generates `microdata-tuids.json` from `microdata.json`.
+4. `compute-download-links.mjs`: Computes the correct download link (including the game file in the download ZIP) using the big zip as input. This generates `microdata-downloads-tuids.json` from `microdata-tuids.json`.
 6. `submit-download-links.mjs`: Automatically submits IF Archive download links for all IFComp games, based on `microdata-downloads-tuids.json`.
 
 

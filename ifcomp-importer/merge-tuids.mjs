@@ -2,7 +2,7 @@ import {url} from './settings.mjs';
 import {readFile, writeFile} from 'fs/promises';
 import {XMLParser} from 'fast-xml-parser';
 
-const microdata = JSON.parse(await readFile('microdata-downloads.json', 'utf8'));
+const microdata = JSON.parse(await readFile('microdata.json', 'utf8'));
 const year = new Date().getFullYear();
 
 for (const game of microdata) {
@@ -33,4 +33,4 @@ for (const game of microdata) {
     }
 }
 
-await writeFile('microdata-downloads-tuids.json', JSON.stringify(microdata, null, 2), 'utf8');
+await writeFile('microdata-tuids.json', JSON.stringify(microdata, null, 2), 'utf8');

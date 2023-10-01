@@ -7,7 +7,7 @@ const zipFileName = `IFComp${compYear}.zip`;
 const zipFileBytes = await readFile(zipFileName);
 const zip = await JSZip.loadAsync(zipFileBytes);
 const zipKeys = Object.keys(zip.files);
-const microdata = JSON.parse(await readFile('microdata.json', 'utf8')).sort((a,b) => a.name.localeCompare(b.name));
+const microdata = JSON.parse(await readFile('microdata-tuids.json', 'utf8')).sort((a,b) => a.name.localeCompare(b.name));
 const gameZipFileNames = new Set(zipKeys.filter(key => /^Games\/.*\.zip$/.test(key)));
 
 for (const game of microdata) {
@@ -97,4 +97,4 @@ for (const game of microdata) {
     }
 }
 
-await writeFile('microdata-downloads.json', JSON.stringify(microdata, null, 2), 'utf8');
+await writeFile('microdata-downloads-tuids.json', JSON.stringify(microdata, null, 2), 'utf8');
