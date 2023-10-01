@@ -67,7 +67,16 @@ for ($i = 0, $tags = array() ; ; $i++) {
 // make sure we process any persistent login state
 $userid = checkPersistentLogin();
 if (!$userid) {
-    sendResponse("401 Unauthorized", "Not Saved", "To tag a game, please log in.", false, false);
+    if ($xml) {
+        $username = get_req_data("username");
+        $password = get_req_data("password");
+
+        list($userid, $errCode, $errMsg) = doLogin($db, $username, $password);
+        if (!$userid)
+        sendResponse("401 Unauthorized", "Not Saved", "Please specify a valid username and password to login.", false, false);
+    } else {
+        sendResponse("401 Unauthorized", "Not Saved", "To tag a game, please log in.", false, false);
+    }
 }
 
 if (isEmpty($id))
