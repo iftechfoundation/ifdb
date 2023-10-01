@@ -81,6 +81,9 @@ the iFiction XML format.  This allows client programs, such as IF
 browsers or "jukeboxes", to take advantage of IFDB's structured data
 about most of the IF games in circulation.
 
+<p><a href="gametags"><b>gametags</b></a>: View the current list of
+tags associated with an IFDB listing.
+
 <h2>Note on XML namespaces</h2>
 
 <p>Most of the APIs reply with XML and/or take XML content parameters,
