@@ -1,0 +1,67 @@
+<?php
+
+include_once "session-start.php";
+include_once "api.php";
+
+apiPageHeader("gametags");
+
+?>
+
+<p>The gametags API lets applications read tags on IFDB games.</p>
+
+<h2>Protocol</h2>
+
+<p>The gametags API is implemented as an http XML web service at
+<tt>https://ifdb.org/gametags</tt>. All parameters are passed as
+POST data with the HTTP request. As typical for HTTP, there's no
+session state or context; the entire transaction is carried out as
+the single request.
+
+<h2>Parameter names and values</h2>
+
+<p><b>id</b>: the <a href="https://ifdb.org/help-tuid">TUID</a> for
+the game you want to update. Ordinary text parameter; required.
+
+<p><b>mine_only</b>: if this parameter is set, then we'll only return
+the tags that your username has set on the current game. Boolean
+parameter; optional.
+
+<p><b>username</b>: the IFDB username for the account under which the
+listing will be created.  Ordinary text parameter; required if
+<tt>mine_only</tt> is true.
+
+<p><b>password</b>: the user's IFDB password. Ordinary text parameter;
+required if <tt>mine_only</tt> is true.
+
+<h2>Reply format</h2>
+
+<p>The server replies to the request with an XML object describing the
+result.  The response has this tag structure for a successful
+transaction:
+
+<p><pre>
+&lt;response&gt;
+    &lt;tag&gt;
+        &lt;name&gt;example&lt;/name&gt;
+        &lt;tagcnt&gt;1&lt;/tagcnt&gt;
+        &lt;gamecnt&gt;1&lt;/gamecnt&gt;
+    &lt;/tag&gt;
+&lt;/response&gt;
+</pre>
+
+<p>The <tt>tagcnt</tt> tag shows how many users have used that tag on the
+currently selected game. (Normally, <tt>tagcnt</tt> will be 1, because
+it's unusual for a player to add a tag when the game already has that
+tag.)
+
+<p>The <tt>gamecnt</tt> tag shows how many games have used that tag.
+
+<p>On error, the reply has this structure:
+
+<p><pre>
+&lt;response&gt;
+    &lt;error&gt;Please specify a valid username and password to login.&lt;/error&gt;
+&lt;/response&gt;
+</pre>
+
+

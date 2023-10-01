@@ -1,0 +1,102 @@
+<?php
+include_once "session-start.php";
+include_once "util.php";
+include_once "pagetpl.php";
+include_once "login-check.php";
+
+function sendResponse($status, $errmsg, $tagInfo)
+{
+    header("HTTP/1.1 $status");
+    header("Content-Type: text/xml");
+    header("Expires: Mon, 26 Jul 1997 05:00:00 GMT");
+    header("Cache-Control: no-store, no-cache, must-revalidate");
+
+    echo "<?xml version=\"1.0\" encoding=\"UTF-8\" ?><response>"
+        . ($errmsg ? "<error>$errmsg</error>" : "")
+        . $tagInfo
+        . "</response>";
+
+    exit();
+}
+
+// connect to the database
+include_once "dbconnect.php";
+$db = dbConnect();
+if ($db == false)
+    sendResponse("500 Internal Server Error", "An error occurred connecting to the database. "
+                 . "Please try again later.", false, false);
+
+$id = get_req_data('id');
+$qid = mysql_real_escape_string($id, $db);
+$result = mysql_query("select id from games where id = '$qid'", $db);
+if (mysql_num_rows($result) == 0)
+    sendResponse("404 Not Found", 
+                 "This tag request refers to a non-existent game.",
+                 false, false);
+
+$mine_only = get_req_data('mine_only');
+if ($mine_only) {
+    $username = get_req_data("username");
+    $password = get_req_data("password");
+    list($userid, $errCode, $errMsg) = doLogin($db, $username, $password);
+    if (!$userid) {
+        sendResponse("401 Unauthorized", "Not Saved", "Please specify a valid username and password to login.", false, false);
+    }
+}
+
+if ($result) {
+
+    $mine_only_clause = "";
+    if ($mine_only) {
+        $mine_only_clause = "AND userid = '$userid'";
+    }
+    $result = mysql_query(
+        "select tag from gametags where gameid = '$qid' $mine_only_clause", $db);
+
+    for ($i = 0, $allTags = array(), $tagList = array(), $cnt = mysql_num_rows($result) ; $i < $cnt ; $i++) {
+        $curTag = mysql_result($result, $i, "tag");
+        $allTags[] = $curTag;
+        $tagList[] = "'" . mysql_real_escape_string($curTag, $db) . "'";
+    }
+
+    if (count($allTags) != 0) {
+        $allTags = implode(",", $allTags);
+        $allTags = '\'' . mysql_real_escape_string($allTags, $db) . '\'';
+        $tagList = implode(",", $tagList);
+    } else {
+        $allTags = "null";
+        $tagList = "";
+    }
+}
+
+
+$tagInfo = "";
+if ($result && $tagList) {
+
+    $result = mysql_query(
+        "select
+           tag,
+           sum(gameid = '$qid') as tagcnt,
+           count(distinct gameid) as gamecnt
+         from gametags
+         where tag in ($tagList)
+         group by tag
+         having tagcnt != 0", $db);
+
+    for ($i = 0, $tagInfo, $cnt = mysql_num_rows($result) ;
+         $i < $cnt ; $i++) {
+        list($tag, $tagCnt, $gameCnt) = mysql_fetch_row($result);
+        $tagInfo .= "<tag><name>" . htmlspecialcharx($tag) . "</name>"
+                    . "<tagcnt>$tagCnt</tagcnt>"
+                    . "<gamecnt>$gameCnt</gamecnt>"
+                    . "</tag>";
+    }
+}
+
+// explain what happened
+if ($result) {
+    sendResponse("200 OK", false, $tagInfo);
+} else {
+    sendResponse("500 Internal Server Error", "An error occurred updating the database. "
+                 . "Please try again later.", false);
+}
