@@ -5,10 +5,11 @@ include_once "util.php";
 include_once "pagetpl.php";
 include_once "login-check.php";
 
-function sendResponse($statmsg, $errmsg, $detail, $tagInfo)
+function sendResponse($status, $statmsg, $errmsg, $detail, $tagInfo)
 {
     global $xml;
 
+    header("HTTP/1.1 $status");
     if ($xml)
     {
         header("Content-Type: text/xml");
@@ -38,8 +39,8 @@ function sendResponse($statmsg, $errmsg, $detail, $tagInfo)
 include_once "dbconnect.php";
 $db = dbConnect();
 if ($db == false)
-    sendResponse("Not Saved", "An error occurred connecting to the database. "
-                 . "Please try again later.", false);
+    sendResponse("500 Internal Server Error", "Not Saved", "An error occurred connecting to the database. "
+                 . "Please try again later.", false, false);
 
 // get the request parameters
 $id = get_req_data('id');
@@ -65,23 +66,21 @@ for ($i = 0, $tags = array() ; ; $i++) {
 
 // make sure we process any persistent login state
 $userid = checkPersistentLogin();
-if (!$userid && !$xml && !logged_in(true))
-    exit();
-
-if (!$userid)
-    sendResponse("Not Saved", "To tag a game, please log in.", false);
+if (!$userid) {
+    sendResponse("401 Unauthorized", "Not Saved", "To tag a game, please log in.", false, false);
+}
 
 if (isEmpty($id))
     sendResponse(
-        "Not Saved", "No game was specified in the tag request.", false);
+        "400 Bad Request", "Not Saved", "No game was specified in the tag request.", false, false);
 
 // make sure the game is valid
 $qid = mysql_real_escape_string($id, $db);
 $result = mysql_query("select id from games where id = '$qid'", $db);
 if (mysql_num_rows($result) == 0)
-    sendResponse("Not Saved",
+    sendResponse("404 Not Found", "Not Saved",
                  "This tag request refers to a non-existent game.",
-                 false);
+                 false, false);
 
 // delete any old tags set by this user
 mysql_query(
@@ -149,10 +148,10 @@ if ($result && $tagList) {
 
 // explain what happened
 if ($result) {
-    sendResponse("Saved", false,
+    sendResponse("200 OK", "Saved", false,
                  "Your tags have been saved.", $tagInfo);
 } else {
-    sendResponse("Not Saved", "An error occurred updating the database. "
+    sendResponse("500 Internal Server Error", "Not Saved", "An error occurred updating the database. "
                  . "Please try again later.", false, false);
 }
 
