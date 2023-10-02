@@ -4,3 +4,4 @@ cover-art.json
 microdata.json
 microdata-*.json
 *.zip
+settings.mjs
