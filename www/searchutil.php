@@ -249,6 +249,7 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse)
             "author:" => array("author", 99),
             "authorid:" => array("authorid", 99),
             "ifid:" => array("/ifid/", 99),
+            "tuid:" => array("/tuid/", 99),
             "downloadable:" => array("/downloadable/", 99),
             "played:" => array("played", 99),
             "willplay:" => array("willplay", 99),
@@ -544,6 +545,10 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse)
         case 99:
             // special-case handling
             switch ($col) {
+            case '/tuid/':
+                $txt = mysql_real_escape_string($txt, $db);
+                $expr = "games.id = lower('$txt')";
+                break;
             case '/ifid/':
                 // we need to join the IFIDS table for this query
                 if (!isset($extraJoins[$col])) {

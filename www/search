@@ -963,6 +963,11 @@ else {  // ...default is searching games
           echo helpWinLink("help-ifid", "What's an IFID?");
        ?>)
 
+       <p><b>tuid:<i>xxx</i></b> searches for a game with the given TUID.
+       (<?php
+          echo helpWinLink("help-tuid", "What's a TUID?");
+       ?>)
+
         <p><b>authorid:<i>id</i></b> lists games by the author with
             the given id.
 
