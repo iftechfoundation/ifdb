@@ -11,6 +11,8 @@ This importer is designed to grab the game list from https://ifcomp.org/ballot a
 3. Run `node extract-microdata.mjs` to record the ballot data in `microdata.json`.
 4. Run `node process-cover-art.mjs` to download all of the cover art in the `cover-art` directory.
 5. Run `node submit-games.mjs` to submit all of the game listings. (Note that when testing in a dev environment, uploaded images will not appear in the web UI.)
+6. Run `node merge-tuids.mjs` to record the IFDB TUIDs in `microdata-tuids.json`.
+7. Run `node tag-games.mjs` to tag each game with the "IFComp YYYY" tag.
 
 ## Phase 2: Add IF Archive download links for each game on the ballot.
 
@@ -40,9 +42,4 @@ This can only happen once the "big zip file" is available, and all links are vis
 
 TODO
 
-* create an API to tag games https://github.com/iftechfoundation/ifdb-suggestion-tracker/issues/366
-* Tag games with "IFComp YYYY" tag
 * Allow bulk-adding games to competitions https://github.com/iftechfoundation/ifdb-suggestion-tracker/issues/367
-
-* compute IFIDs for games that are missing them
-* inject IFIDs when we find them
