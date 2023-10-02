@@ -13,6 +13,7 @@ This importer is designed to grab the game list from https://ifcomp.org/ballot a
 5. Run `node submit-games.mjs` to submit all of the game listings. (Note that when testing in a dev environment, uploaded images will not appear in the web UI.)
 6. Run `node merge-tuids.mjs` to record the IFDB TUIDs in `microdata-tuids.json`.
 7. Run `node tag-games.mjs` to tag each game with the "IFComp YYYY" tag.
+8. In the web UI, create a new competition, open the JS console, and copy and paste the contents of `entrant-creator.js`. It will prompt you for a tag name, and populate the main division with the list of games.
 
 ## Phase 2: Add IF Archive download links for each game on the ballot.
 
