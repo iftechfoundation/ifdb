@@ -28,7 +28,20 @@ function escapeXml(unsafe) {
     });
 }
 
-let tasks = [];
+// verify that all zips are present
+let tasks = games.map(game => async () => {
+    if (!game.zipFileName) return;
+    const url = `https://ifarchive.org/if-archive/games/competition${compYear}/${game.zipFileName}`;
+    console.log(url);
+    const response = await fetch(url, { method: 'head' });
+    if (!response.ok) {
+        throw new Error(`failed fetching ${game.title} ${url}: ${response.status} ${response.statusText} ${await response.text()}`)
+    }
+})
+
+for await (const result of runTasks(10, tasks.values())) { }
+
+tasks = [];
 
 for (const game of games) {
     tasks.push(async () => {
