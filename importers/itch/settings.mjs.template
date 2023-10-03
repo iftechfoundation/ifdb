@@ -2,5 +2,9 @@ export const username = 'ifdbadmin@ifdb.org';
 export const password = 'secret';
 // the compStartDate will be the "first published on" date for IFDB listings
 export const compStartDate = '2022-10-01';
+// jamEntriesUrl should end in /entries
+export const jamEntriesUrl = 'https://itch.io/jam/parsercomp-2022/entries';
+// all created entries will be tagged
+export const tagName = 'ParserComp 2022';
 export const url = 'https://ifdb.org';
 // export const url = 'http://localhost:8080';

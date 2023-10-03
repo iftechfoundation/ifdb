@@ -1,5 +1,6 @@
-import { username, password, url, compStartDate } from './settings.mjs';
+import { username, password, url, compStartDate, tagName } from './settings.mjs';
 import { readFile } from 'fs/promises';
+import { XMLParser } from 'fast-xml-parser';
 
 if ((Date.now() - new Date(compStartDate).getTime()) > 24 * 365 * 60 * 60 * 1000) {
     throw new Error(`compStartDate date ${compStartDate} is more than a year ago`);
@@ -85,6 +86,19 @@ for (const game of games) {
         if (!code) code = "unknown";
         if (!errors[code]) errors[code] = [];
         errors[code].push({ title: game.title, status, statusText, text });
+    } else {
+        const xml = new XMLParser().parse(text);
+        const tuid = xml.putific.tuid;
+        const result = await fetch(`${url}/taggame?xml`, {
+            method: 'post',
+            body: new URLSearchParams({
+                username,
+                password,
+                id: tuid,
+                t0: tagName,
+            }),
+        }).then(r => r.text());
+        if (/<error>/.test(result)) throw new Error(result);
     }
 }
 
