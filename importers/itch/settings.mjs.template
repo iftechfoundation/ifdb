@@ -1,0 +1,6 @@
+export const username = 'ifdbadmin@ifdb.org';
+export const password = 'secret';
+// the compStartDate will be the "first published on" date for IFDB listings
+export const compStartDate = '2022-10-01';
+export const url = 'https://ifdb.org';
+// export const url = 'http://localhost:8080';
