@@ -1318,6 +1318,11 @@ table.grid tr td {
     padding-right: 1em;
 }
 
+h3.result {
+    margin: 0;
+    display: inline;
+}
+
 /*
 Doublespaced lists - this shows extra vertical spacing between each
 element of the list.

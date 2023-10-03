@@ -1495,8 +1495,8 @@ else if ($term || $browse)
                         . "<a href=\"viewgame?id=$id\">"
                         . coverArtThumbnail($id, 80)
                         . "</a></td><td>"
-                        . "<a href=\"viewgame?id=$id\">"
-                        . "<b>$title</b></a>$xlink<br>"
+                        . "<h3 class=result><a href=\"viewgame?id=$id\">"
+                        . "<b>$title</b></a></h3>$xlink<br>"
                         . "by $author<br>";
 
                     if ($year)
@@ -1514,8 +1514,8 @@ else if ($term || $browse)
 
                 } else {
                     // display with no art
-                    echo "<a href=\"viewgame?id=$id\">"
-                        . "<b>$title</b></a>"
+                    echo "<h3 class=result><a href=\"viewgame?id=$id\">"
+                        . "<b>$title</b></a></h3>"
                         . ", by $author";
 
                     if ($year)
@@ -1536,8 +1536,8 @@ else if ($term || $browse)
                 $items = $row['itemcount'];
 
                 // show the listing
-                echo "<p><a href=\"viewlist?id=$id\">"
-                    . "<b>$title</b></a><br>"
+                echo "<p><h3 class=result><a href=\"viewlist?id=$id\">"
+                    . "<b>$title</b></a></h3><br>"
                     . "<span class=details>"
                     . "by <a href=\"showuser?id=$userid\">$username</a>"
                     . " - $items game"
@@ -1559,7 +1559,7 @@ else if ($term || $browse)
                 $created = $row['createdfmt'];
                 $votedate = $row['votedatefmt'];
 
-                echo "<p><a href=\"poll?id=$id\"><b>$title</b></a><br>"
+                echo "<p><h3 class=result><a href=\"poll?id=$id\"><b>$title</b></a></h3><br>"
                     . "<span class=details>"
                     . "by <a href=\"showuser?id=$userid\">$username</a>"
                     . " - "
@@ -1584,7 +1584,7 @@ else if ($term || $browse)
                 $gamecnt = $row['gamecnt'];
                 $divcnt = $row['divcnt'];
 
-                echo "<p><a href=\"viewcomp?id=$id\"><b>$title</b></a><br>"
+                echo "<p><h3 class=result><a href=\"viewcomp?id=$id\"><b>$title</b></a></h3><br>"
                     . "<span class=details>$gamecnt game"
                     . ($gamecnt == 1 ? "" : "s")
                     . ($divcnt > 1 ? " in $divcnt divisions" : "")
@@ -1606,7 +1606,7 @@ else if ($term || $browse)
                     || isset($specialsUsed['contacts:']))
                     $contacts = $row['contacts'];
 
-                echo "<p><a href=\"club?id=$id\"><b>$name</b></a><br>"
+                echo "<p><h3 class=result><a href=\"club?id=$id\"><b>$name</b></a></h3><br>"
                     . "<span class=details>Listed on IFDB $created"
                     . ($membercnt ? "; $membercnt member"
                        . ($membercnt == 1 ? "" : "s") : "")
@@ -1651,16 +1651,16 @@ else if ($term || $browse)
                         . "<a href=\"showuser?id=$id\">"
                         . "<img src=\"showuser?id=$id&pic&thumbnail=80x80\" "
                         . "border=0></td><td>"
-                        . "<a href=\"showuser?id=$id\">"
-                        . "<b>$name</b></a>$badge<br>"
+                        . "<h3 class=result><a href=\"showuser?id=$id\">"
+                        . "<b>$name</b></a></h3>$badge<br>"
                         . "<span class=details>"
                         . ($loc ? "$loc<br>" : "")
                         . "Member since $created<br><br>"
                         . ($profile ? "<i>\"$profile\"</i>" : "")
                         . "</span></td></tr></table>";
                 } else {
-                    echo "<a href=\"showuser?id=$id\">"
-                        . "<b>$name</b></a>$badge<br>"
+                    echo "<h3 class=result><a href=\"showuser?id=$id\">"
+                        . "<b>$name</b></a></h3>$badge<br>"
                         . "<span class=details>"
                         . ($loc ? "$loc<br>" : "")
                         . "Member since $created<br><br>"
@@ -1674,8 +1674,8 @@ else if ($term || $browse)
                 $id = $row['tag'];
 
                 // show the listing
-                echo "<p><a href=\"search?searchfor=tag:$id\">"
-                    . "<b>$id</b></a><br>";
+                echo "<p><h3 class=result><a href=\"search?searchfor=tag:$id\">"
+                    . "<b>$id</b></a></h3><br>";
 
                 break;
             }
