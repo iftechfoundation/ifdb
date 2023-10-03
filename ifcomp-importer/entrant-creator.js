@@ -6,6 +6,7 @@ const url = '/search?' + new URLSearchParams({
     searchbar: 'tag:' + tag,
     xml: 1,
     pg: 'all',
+    sortby: 'ttl',
 }).toString();
 
 const xml = await fetch(url).then(r => r.text());
