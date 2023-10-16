@@ -497,7 +497,7 @@ function countComments($db, $srcCode, $qSrcID)
 {
     // set up the owner join if the owner information is provided
     checkPersistentLogin();
-    $curuser = $_SESSION['logged_in_as'];
+    $curuser = $_SESSION['logged_in_as'] ?? null;
     $orOwner = ($curuser ? "or '$curuser' in (c.userid, c.private)" : "");
 
     // Include only reviews from our sandbox or sandbox 0 (all users)
