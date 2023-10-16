@@ -145,6 +145,7 @@ function getGameInfo($db, $id, $curuser, $requestVersion, &$errMsg, &$errCode)
     $rec["xrefs"] = $xrefs;
 
     // if we want to go back in time, apply the history
+    $historyView = false;
     if ($requestVersion && (int)$requestVersion != $rec['pagevsn']) {
 
         // query up the version history, in order from newest to oldest
@@ -400,17 +401,26 @@ function getGameInfo($db, $id, $curuser, $requestVersion, &$errMsg, &$errCode)
     list($ratingAvgCnt, $ratingTotCnt, $ratingAvg, $memberReviewCnt) =
         mysql_fetch_row($result);
 
+    // check if the user is sandboxed
+    $sandbox = 0;
+    if ($curuser) {
+        $result = mysqli_execute_query($db, "select sandbox from users where id=?", [$curuser]);
+        list($sandbox) = mysql_fetch_row($result);
+    }
+
     // get the rating histogram
     $result = mysqli_execute_query($db,
         "select
            rating,
            count(if(RFlags & " . RFLAG_OMIT_AVG . ", null, rating))
          from
-           reviews
+           reviews as r
+           join users as u on u.id = r.userid
          where
            gameid = ?
            and ifnull(now() >= embargodate, 1)
-         group by rating", [$id]);
+           and if(? = 1, true, u.sandbox = 0)
+         group by rating", [$id, $sandbox]);
     $ratingHisto = array(0, 0, 0, 0, 0, 0);
     for ($i = 0 ; $i < mysql_num_rows($result) ; $i++) {
         list($rating, $count) = mysql_fetch_row($result);
