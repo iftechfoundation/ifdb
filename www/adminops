@@ -933,7 +933,6 @@ else if (isset($_REQUEST['users'])) {
     $statMap = array("A" => "Active", "D" => "Pending Activation",
                      "B" => "Banned", "X" => "Closed",
                      "R" => "Pending Review");
-    $statName = $statMap[$stat];
 
     $proStatMap = array("T" => "Trusted", "R" => "Pending Review",
                         "" => "Normal");

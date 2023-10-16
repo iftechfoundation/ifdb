@@ -361,7 +361,7 @@ function init()
 init();
 
 // load the game information
-$reqVersion = $_REQUEST['version'];
+$reqVersion = $_REQUEST['version'] ?? null;
 if (!$errMsg) {
     list($ifids, $title, $author, $authorExt,
          $pubYear, $pubFull, $license,
@@ -847,7 +847,7 @@ echo helpWinLink("help-ifid", "IFID");
 // Check to see if the game is available for download in any form.
 // PC == "parchment capable" - a format that we can play with Parchment.
 // HEX = Hugo file playable online with textadventures.online/play/?story=XXX
-for ($foundGame = $foundHtml = $foundPC = $foundHex = $htmlUrl = $pcUrl = $adriftUrl = $hexUrl = false, $i = 0 ;
+for ($foundGame = $foundHtml = $foundPC = $foundHex = $htmlUrl = $pcUrl = $foundAdrift = $adriftUrl = $hexUrl = false, $i = 0 ;
      $i < count($links) ; $i++)
 {
     // get this link
@@ -2029,8 +2029,6 @@ if (count($inrefs) != 0 && !$historyView) {
                 $xsrc = htmlspecialcharx($srev['sourcename']);
                 $xsrcurl = $srev['sourceurl'];
                 $xurl = $srev['url'];
-                $suid = $srev['userid'];
-                $suname = htmlspecialcharx($srev['username']);
 
                 $stars = showStars($rating);
 
@@ -2968,7 +2966,7 @@ dispTags();
                 }
 
                 echo "<p><span class=details>";
-                if (count($ecrosscnt) > 3) {
+                if ($ecrosscnt > 3) {
                     echo "<a href=\"crossrec?game=$id\">"
                         . "See more suggestions</a> - ";
                 }
