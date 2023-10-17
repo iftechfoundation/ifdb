@@ -10,7 +10,7 @@ The IFDB web app is a LAMP app (Linux, Apache, MySQL, PHP). The development envi
 
 2. Run `./prepare_dev_environment.sh` in this directory. That will download the current latest IFDB database backup from IFArchive, and put it in a place where Docker will expect to find it.
 
-3. Run `docker compose up`. That will launch a MySQL Docker container and an Apache container with PHP, available on port 8080.
+3. Run `docker compose up --build`. That will launch a MySQL Docker container and an Apache container with PHP, available on port 8080.
 
 4. Go to `http://localhost:8080` on your machine. You should see IFDB running. You can login as `ifdbadmin` at `ifdb.org` with the password `secret` to sign in as an administrator. The administrator has access to the "system maintenance panel" at `http://localhost:8080/adminops`.
 
@@ -27,7 +27,7 @@ Make all database schema and content changes in `./sql/patch-schema.sql`. After 
 ```
 docker compose down
 ./prepare_dev_environment.sh
-docker compose up
+docker compose up --build
 ```
 
 All of your database changes should now be available.
@@ -39,7 +39,7 @@ All of your database changes should now be available.
 
 ## Troubleshooting
 
-To reset the Docker environment, stop `docker compose` with Ctrl-C, then run `docker compose down` to delete the images. If you're modifying the `Dockerfile`, you might also need to `docker rmi ifdb_web` to clean out state.
+To reset the Docker environment, stop `docker compose` with Ctrl-C, then run `docker compose down` to delete the images. If you're modifying the `Dockerfile`, don't forget to run `docker compose up --build`. The `--build` is what incorporates changes to the `Dockerfile`.
 
 If you see a 500 error loading `http://localhost:8080`, check the Docker logs. If you see one of these errors, then something went wrong during the `./prepare_dev_environment.sh` step.
 
@@ -47,4 +47,4 @@ If you see a 500 error loading `http://localhost:8080`, check the Docker logs. I
 * `PHP Warning:  include_once(): Failed opening 'local-credentials.php' for inclusion`
 * `PHP Fatal error:  Uncaught Error: Call to undefined function localCredentials()`
 
-If you see this, reset the Docker environment (see above), then run `./prepare_dev_environment.sh` and `docker compose up` again.
+If you see this, run `docker compose down`, then run `./prepare_dev_environment.sh` and `docker compose up --build` again.
