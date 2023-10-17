@@ -1,4 +1,4 @@
-FROM php:7-apache
+FROM php:8-apache
 
 RUN docker-php-ext-install mysqli
 RUN apt-get update -y && apt-get install -y zlib1g-dev libpng-dev libjpeg-dev
