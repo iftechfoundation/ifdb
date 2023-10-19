@@ -191,13 +191,14 @@ $hrefTerm = ($term ? $term : $tTerm);
 $hrefTerm = urlencode($hrefTerm);
 
 // get the search type
-$searchType = (isset($_REQUEST['list']) ? "list" :
-               isset($_REQUEST['poll']) ? "poll" :
-               isset($_REQUEST['member']) ? "member" :
-               isset($_REQUEST['comp']) ? "comp" :
-               isset($_REQUEST['club']) ? "club" :
-               isset($_REQUEST['tag']) ? "tag" :
-               "game");
+const SEARCH_TYPES = ['list', 'poll', 'member', 'comp', 'club', 'tag'];
+$searchType = 'game';
+foreach (SEARCH_TYPES as $st) {
+    if (isset($_REQUEST[$st])) {
+        $searchType = $st;
+        break;
+    }
+}
 
 $browseTabs = array(
     "game"    => "Games",
