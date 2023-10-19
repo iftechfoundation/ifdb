@@ -52,54 +52,6 @@ function mysql_result($result, $row, $field = 0) {
 }
 function mysql_insert_id($linkid) { return mysqli_insert_id($linkid); }
 
-/**  
- * Polyfill for mysqli_execute_query, available in PHP 8.2
- * Copied from https://php.watch/versions/8.2/mysqli_execute_query
- *
- * Prepares an SQL statement, binds parameters, executes, and returns the result.
- * @param mysqli $mysql A mysqli object returned by mysqli_connect() or mysqli_init()
- * @param mysqli $mysql A mysqli object returned by mysqli_connect() or mysqli_init()
- * @param string $query The query, as a string. It must consist of a single SQL statement.  The SQL statement may contain zero or more parameter markers represented by question mark (?) characters at the appropriate positions.  
- * @param ?array $params An optional list array with as many elements as there are bound parameters in the SQL statement being executed. Each value is treated as a string.  
- * @return mysqli_result|bool Results as a mysqli_result object, or false if the operation failed.  
- */
-if (!function_exists('mysqli_execute_query')) {
-function mysqli_execute_query(mysqli $mysqli, string $sql, array $params = null) {  
-  $driver = new mysqli_driver();  
-
-  $stmt = $mysqli->prepare($sql);  
-  if (!($driver->report_mode & MYSQLI_REPORT_STRICT) && $mysqli->error) {  
-    return false;  
-  }  
-
-  if (!empty($params)) {  
-    mysqli_stmt_bind_param($stmt, str_repeat('s', count($params)), ...$params);  
-    if (!($driver->report_mode & MYSQLI_REPORT_STRICT) && $stmt->error) {  
-      return false;  
-    }  
-  }  
-
-  $stmt->execute();  
-  if (!($driver->report_mode & MYSQLI_REPORT_STRICT) && $stmt->error) {  
-    return false;  
-  }
-
-  $result = $stmt->get_result();
-  // $stmt->get_result() returns false on successful INSERT/UPDATE statements
-  // https://www.php.net/manual/en/mysqli-stmt.get-result.php#refsect1-mysqli-stmt.get-result-returnvalues
-  if ($result === false && !$stmt->errno) {
-    return true;
-  } else {
-    return $result;
-  }
-}
-}
-
-// https://cheatsheetseries.owasp.org/cheatsheets/Authentication_Cheat_Sheet.html#implement-proper-password-strength-controls
-// "It is important to set a maximum password length to prevent long password Denial of Service attacks."
-// https://www.acunetix.com/vulnerabilities/web/long-password-denial-of-service/
-define("MAX_PASSWORD_LENGTH", 1024);
-
 // --------------------------------------------------------------------------
 //
 // Terms of Service version number
@@ -335,17 +287,13 @@ function is_ie()
 }
 
 // --------------------------------------------------------------------------
-// get request data, stripping "magic quotes" as needed
+// get request data
 //
 function get_req_data($id)
 {
     // get the raw value from the posted data
     $val = (isset($_POST[$id]) && $_POST[$id]) ? $_POST[$id] :
            (isset($_REQUEST[$id]) ? $_REQUEST[$id] : "");
-
-    // if magic quotes are on, strip slashes
-    if (get_magic_quotes_gpc())
-        $val = stripslashes($val);
 
     // Opera has a bug (at least, it looks like a bug to me) that we need
     // to work around here.  If the form data contain certain extended
