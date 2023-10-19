@@ -124,15 +124,15 @@ function pageHeader($title, $focusCtl = false, $extraOnLoad = false,
                     <li class="<?= ($pagescript === 'editprofile') ? 'page-active':''; ?>"><a id="topbar-edit" href="/editprofile">Settings</a></li>
                     <li class="<?= ($pagescript === 'personal') ? 'page-active':''; ?>"><a id="topbar-personal" href="/personal">My Activity</a></li>
                     <li class="<?= ($pagescript === 'commentlog') ? 'page-active':''; ?>"><a id="topbar-inbox" href="/commentlog?mode=inbox">Inbox</a></li>
-                    <a id="topbar-logout" class="login-link" href="/logout">Log Out</a>
+                    <li><a id="topbar-logout" class="login-link" href="/logout">Log Out</a></li>
                 <?php else : ?>
-                    <a id="topbar-login" class="login-link" href="/login?dest=home">Log In</a>
+                    <li><a id="topbar-login" class="login-link" href="/login?dest=home">Log In</a></li>
                 <?php endif ?>
                 </ul>
             </div>
         </nav>
     <?php if ($isLoggedIn) : ?>
-        <button type="button" id="mobile-menu-toggle-button" class="menu-toggle-button" aria-label="Menu" class="hidden">
+        <button type="button" id="mobile-menu-toggle-button" class="menu-toggle-button hidden" aria-label="Menu">
             <img src="/img/menu.svg" alt="" class="mobile-hidden">
             <img src="/img/close.svg" alt="">
             <span>Menu</span>
