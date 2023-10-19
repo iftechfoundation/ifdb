@@ -509,7 +509,7 @@ if (!$foundAuthorCredits) {
 
 // ------------------------------------------------------------------------
 // finish the main table
-echo "</td></tr></table>";
+echo "</td></tr></table></div>";
 
 pageFooter();
 
