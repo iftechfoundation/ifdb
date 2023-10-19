@@ -72,6 +72,9 @@ function imageDbConnect($dbnum)
 
 function storageDbConnect()
 {
+    // Turn off exceptions in case we're in a development environemnt
+    mysqli_report(MYSQLI_REPORT_ERROR);
+
     // connect to the appropriate server, depending on whether we're running
     // on the real system or on our local test bed
     $sdbinfo = localStorageCredentials();
@@ -80,6 +83,7 @@ function storageDbConnect()
     $sdb = mysql_connect($sdbinfo[0], $sdbinfo[1], $sdbinfo[2]);
     if ($sdb != false)
         $result = mysql_select_db("storage", $sdb);
+    mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
 
     // return the connection
     return $sdb;
