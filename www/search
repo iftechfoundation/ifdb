@@ -1074,7 +1074,7 @@ if ($xml) {
             $flags = $row['flags'];
             $shouldHide = $flags & FLAG_SHOULD_HIDE;
             if (!$showFlagged && $shouldHide) {
-                continue;
+                break;
             }
             $title = htmlspecialcharx($row['title']);
             $author = htmlspecialcharx($row['author']);
@@ -1446,7 +1446,7 @@ else if ($term || $browse)
                 $flags = $row['flags'];
                 $shouldHide = $flags & FLAG_SHOULD_HIDE;
                 if (!$showFlagged && $shouldHide) {
-                    continue;
+                    break;
                 }
                 $title = output_encode(htmlspecialcharx($row['title']));
                 $author = output_encode(htmlspecialcharx($row['author']));
