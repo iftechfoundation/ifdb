@@ -1800,7 +1800,7 @@ img.poll-list-icon {
     vertical-align: middle;
 }
 img.game-list-icon {
-    background: url("/games.gif") no-repeat center center;
+    background: url("/img/browsegames.gif") no-repeat center center;
     width: 24px;
     height: 24px;
     border: none;
