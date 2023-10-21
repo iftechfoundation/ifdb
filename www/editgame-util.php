@@ -21,14 +21,14 @@ function init_link_formats($db)
         from filetypes
         order by fmtname", $db);
     $rows = mysql_num_rows($result);
-    $linkfmts = array();
+    $linkfmts = [];
     for ($i = 0 ; $i < $rows ; $i++)
         $linkfmts[] = mysql_fetch_array($result, MYSQL_ASSOC);
 
     // build a map for the formats keyed by format ID
-    $fmtmap = array();
+    $fmtmap = [];
     foreach ($linkfmts as $lf)
-        $fmtmap[$lf['id']] = array($lf['fmtname'], $lf['fmtclass']);
+        $fmtmap[$lf['id']] = [$lf['fmtname'], $lf['fmtclass']];
 }
 
 
@@ -50,9 +50,9 @@ define("TypeDateOrYear", 5);
 // field descriptors
 global $fields;
 global $nonce;
-$fields = array(
-    array("Title", "title", 60, "Required", null, TypeString),
-    array("Author(s)", "eAuthor", 60,
+$fields = [
+    ["Title", "title", 60, "Required", null, TypeString],
+    ["Author(s)", "eAuthor", 60,
           "Required; enter Anonymous if the work is unattributed.
            - <a href=\"needjs\">
             <script type='text/javascript' nonce='$nonce'>
@@ -63,25 +63,25 @@ $fields = array(
             </script>
             Link to author's profile</a> - "
           . helpWinLink("help-author", "Tips"),
-          null, TypeString),
-    array("IFID(s)", "ifids", 60,
+          null, TypeString],
+    ["IFID(s)", "ifids", 60,
           "To enter multiple IFIDs, use commas to separate them - "
           . helpWinLink("help-ifid", "What's an IFID?"),
-          null, TypeString),
-    array("Cover Art", "coverart", 0, null, null, TypeImage),
-    array("First&nbsp;Publication&nbsp;Date", "published", 15,
+          null, TypeString],
+    ["Cover Art", "coverart", 0, null, null, TypeImage],
+    ["First&nbsp;Publication&nbsp;Date", "published", 15,
           "Format as dd-Mon-yyyy (example: 12-Jul-2005), or
           just enter the year if you don't know the exact date",
-          null, TypeDateOrYear),
-    array("Current Version", "version", 10, null, null, TypeString),
-    array("License Type", "license", 30,
+          null, TypeDateOrYear],
+    ["Current Version", "version", 10, null, null, TypeString],
+    ["License Type", "license", 30,
           "Free, Shareware, Public Domain, Commercial ... "
           . helpWinLink("help-license-type", "Help with License Types"),
-          array("Freeware", "Shareware", "Public Domain",
+          ["Freeware", "Shareware", "Public Domain",
                 "Commercial", "Commercial (Out of Print)",
-                "GPL", "Apache", "BSD", "Creative Commons"), TypeString),
-    array("Development System", "system", 30, null,
-          array("None", "Custom",
+                "GPL", "Apache", "BSD", "Creative Commons"], TypeString],
+    ["Development System", "system", 30, null,
+          ["None", "Custom",
                 "ADRIFT",
                 "Adventuron",
                 "ChoiceScript",
@@ -95,60 +95,60 @@ $fields = array(
                 "Texture",
                 "Twine",
                 "Unity",
-                "ZIL"),
-          TypeString),
-    array("Language", "language", 20,
+                "ZIL"],
+          TypeString],
+    ["Language", "language", 20,
           "The spoken language of the story's text.  Use an <a
            target=\"_blank\" href=\"http://en.wikipedia.org/wiki/List_of_ISO_639-1_codes\">
            ISO-639</a> code (2 or 3 letters: en for English, fr for French,
            de for German, etc); <i>optionally</i>, add a hyphen and <a
            target=\"_blank\" href=\"http://en.wikipedia.org/wiki/ISO_3166\">
            ISO-3166</a> country code (example: en-US).",
-          array("en", "es", "it", "fr", "de", "nl", "ru", "sv"),
-          TypeString),
-    array("Description", "desc", 60,
+          ["en", "es", "it", "fr", "de", "nl", "ru", "sv"],
+          TypeString],
+    ["Description", "desc", 60,
           "An overview of the game, like the blurb on the back of a book: "
           . "plot summary, writing style, technical "
           . "aspects, awards, etc. - "
           . helpWinLink("help-formatting", "Formatting Hints") . " - "
           . helpWinLink("gamelink", "Add a game link"),
-          null, TypeString),
-    array("Series Name", "seriesname", 50,
+          null, TypeString],
+    ["Series Name", "seriesname", 50,
           "If this game is part of a series, enter the series name; e.g.,
            \"the Last Days on Mars Trilogy,\" \"the Enthraller series\"",
-          null, TypeString),
-    array("Episode Number", "seriesnumber", 10,
+          null, TypeString],
+    ["Episode Number", "seriesnumber", 10,
           "If this game is part of a series, the episode number of this
-          game within the series", null, TypeString),
-    array("Genre", "genre", 50,
+          game within the series", null, TypeString],
+    ["Genre", "genre", 50,
           "We recommend the <a target=\"_blank\"
             href=\"https://web.archive.org/web/20110514231056/https://www.wurb.com/if/genre\">Baf's
             Guide</a> list, but feel free to combine genres or
             go off-list as needed",
-          array("Abuses", "Adaptation", "Children's",
+          ["Abuses", "Adaptation", "Children's",
                 "Collegiate", "Educational", "Espionage",
                 "Fantasy", "Historical", "Horror", "Humor",
                 "Mystery", "Pornographic", "RPG", "Religious",
                 "Romance", "Science Fiction", "Seasonal",
                 "Slice of life", "Superhero", "Surreal",
-                "Travel", "Western"), TypeString),
-    array("Forgiveness Rating", "forgiveness", 30,
+                "Travel", "Western"], TypeString],
+    ["Forgiveness Rating", "forgiveness", 30,
           "On the Zarfian forgiveness scale - "
           . helpWinLink("help-forgiveness", "Details"),
-          array("Merciful", "Polite", "Tough", "Nasty", "Cruel"), TypeString),
-    array("<i>Baf's Guide</i> ID", "bafsid", 10,
+          ["Merciful", "Polite", "Tough", "Nasty", "Cruel"], TypeString],
+    ["<i>Baf's Guide</i> ID", "bafsid", 10,
           "Integer identifier assigned by Baf's Guide - "
           . helpWinLink("help-bafs", "How do I find this?"),
-          null, TypeInt),
-    array("Web site", "website", 60,
+          null, TypeInt],
+    ["Web site", "website", 60,
           "Full URL to the author's web site for the game
-          (http://mygame.com/...)", null, TypeString),
-    array("Download Notes", "downloadnotes", 80,
+          (http://mygame.com/...)", null, TypeString],
+    ["Download Notes", "downloadnotes", 80,
           "Brief notes on downloads; if the game isn't available,
            explain why (commercial status, etc.) - "
           . helpWinLink("help-formatting", "Formatting"),
-          null, TypeString)
-);
+          null, TypeString]
+];
 
 
 // --------------------------------------------------------------------------
@@ -173,12 +173,12 @@ function loadGameRecord($db, $qid)
          from games
          where id = '$qid'", $db);
     if (mysql_num_rows($result) == 0)
-        return array(
+        return [
             false,
             "This game was not found in the database. If you reached
              this page through a link, you might want to notify the
              maintainer of the referencing site of the broken link.",
-            "the specified game was not found in the database");
+            "the specified game was not found in the database"];
 
     // retrieve the result
     $rec = mysql_fetch_array($result, MYSQL_ASSOC);
@@ -197,7 +197,7 @@ function loadGameRecord($db, $qid)
         where gameid = '$qid'
         order by displayorder", $db);
     $rows = mysql_num_rows($result);
-    $links = array();
+    $links = [];
     for ($i = 0 ; $i < $rows ; $i++)
         $links[$i] = mysql_fetch_array($result, MYSQL_ASSOC);
 
@@ -208,7 +208,7 @@ function loadGameRecord($db, $qid)
     $result = mysql_query("select ifid from ifids
         where gameid = '$qid'", $db);
     $rows = mysql_num_rows($result);
-    for ($i = 0, $ifids = array() ; $i < $rows ; $i++)
+    for ($i = 0, $ifids = [] ; $i < $rows ; $i++)
         $ifids[] = mysql_result($result, $i, "ifid");
 
     // put the ifids in the main record - under the 'ifids' key, store
@@ -230,7 +230,7 @@ function loadGameRecord($db, $qid)
            left outer join reviews on extreviews.reviewid = reviews.id
          where extreviews.gameid = '$qid'
          order by extreviews.displayorder", $db);
-    for ($extrev = array(), $i = 0 ; $i < mysql_num_rows($result) ; $i++)
+    for ($extrev = [], $i = 0 ; $i < mysql_num_rows($result) ; $i++)
         $extrev[] = mysql_fetch_array($result, MYSQL_ASSOC);
 
     // put the reviews in the main record under the 'reviews' key
@@ -251,7 +251,7 @@ function loadGameRecord($db, $qid)
            gamexrefs.displayorder", $db);
 
     // fetch them
-    for ($xrefs = array(), $i = 0 ; $i < mysql_num_rows($result) ; $i++)
+    for ($xrefs = [], $i = 0 ; $i < mysql_num_rows($result) ; $i++)
         $xrefs[] = mysql_fetch_array($result, MYSQL_ASSOC);
 
     // put the list in the main record under the 'xrefs' key
@@ -266,7 +266,7 @@ function loadGameRecord($db, $qid)
     $rec['coverart'] = (is_null($art) || strlen($art) == 0 ? "none" : "old");
 
     // return the result
-    return array($rec, false);
+    return [$rec, false];
 }
 
 
@@ -299,7 +299,7 @@ function saveUpdates($db, $adminPriv, $apiMode,
     global $fields, $fmtmap;
 
     // no errors yet
-    $errDetail = array();
+    $errDetail = [];
 
     // initialize the link format map, if we haven't already done so
     init_link_formats($db);
@@ -331,7 +331,7 @@ function saveUpdates($db, $adminPriv, $apiMode,
 
     // strip whitespace from the IFID field, and uppercase it
     $req['ifids'] = strtoupper(str_replace(
-        array(" ", "\t"), array("", ""), $req['ifids']));
+        [" ", "\t"], ["", ""], $req['ifids']));
 
     // If there are any profile links in the author name, we actually have
     // an EXTENDED author value.  In this case, set the extended author to
@@ -356,7 +356,7 @@ function saveUpdates($db, $adminPriv, $apiMode,
 
     // get the database column definitions
     $result = mysql_query("describe games", $db);
-    for ($i = 0, $dbcols = array() ; $i < mysql_num_rows($result) ; $i++) {
+    for ($i = 0, $dbcols = [] ; $i < mysql_num_rows($result) ; $i++) {
         $colrow = mysql_fetch_array($result, MYSQL_ASSOC);
         $dbcols[$colrow['Field']] = $colrow;
     }
@@ -393,7 +393,7 @@ function saveUpdates($db, $adminPriv, $apiMode,
     }
 
     // get the maximum data length for each CHAR or VARCHAR column
-    $dbLens = array();
+    $dbLens = [];
     foreach ($dbcols as $col => $attrs) {
         // if the type column is of the form "CHAR(len)" or "VARCHAR(len),
         // pick out the length
@@ -619,7 +619,7 @@ function saveUpdates($db, $adminPriv, $apiMode,
     if (isset($changesNew['authorExt'])) {
         // pull out each profile link
         $au = $changesNew['authorExt'];
-        for ($ofs = 0, $proList = array() ;
+        for ($ofs = 0, $proList = [] ;
              preg_match("/\{([a-z0-9]+)\}/i", $au, $match,
                         PREG_OFFSET_CAPTURE, $ofs) ; $ofs = $match[0][1]+1) {
             // pull out this match and add it to the list
@@ -793,12 +793,12 @@ function calcDeltas($oldRec, $newRec)
     // set up our internal list of fields - start with the display list,
     // and add our special internal fields
     $f = $fields;
-    $f[] = array("author", "author", 60, null, null, TypeString);
-    $f[] = array("authorExt", "authorExt", 60, null, null, TypeString);
+    $f[] = ["author", "author", 60, null, null, TypeString];
+    $f[] = ["authorExt", "authorExt", 60, null, null, TypeString];
 
     // generate a list of updated fields
-    $changesOld = array();
-    $changesNew = array();
+    $changesOld = [];
+    $changesNew = [];
     for ($i = 0 ; $i < count($f) ; $i++) {
 
         // get the column descriptor
@@ -901,11 +901,11 @@ function calcDeltas($oldRec, $newRec)
 
     // check for changes to the links
     $newlinks = $newRec['links'];
-    $oldlinks = (isset($oldRec['links']) ? $oldRec['links'] : array());
+    $oldlinks = (isset($oldRec['links']) ? $oldRec['links'] : []);
     if (!arrayOfArrayValsEqual(
         $newlinks, $oldlinks,
-        array('url', 'title', 'desc', 'attrs', 'fmtid', 'osid', 'osvsn',
-              'compression', 'compressedprimary'))) {
+        ['url', 'title', 'desc', 'attrs', 'fmtid', 'osid', 'osvsn',
+         'compression', 'compressedprimary'])) {
         // they don't match - add to the change lists
         $changesOld['links'] = $oldlinks;
         $changesNew['links'] = $newlinks;
@@ -913,11 +913,11 @@ function calcDeltas($oldRec, $newRec)
 
     // check for changes to the external reviews
     $newrevs = $newRec['extreviews'];
-    $oldrevs = (isset($oldRec['extreviews']) ? $oldRec['extreviews'] : array());
+    $oldrevs = (isset($oldRec['extreviews']) ? $oldRec['extreviews'] : []);
     if (!arrayOfArrayValsEqual(
         $newrevs, $oldrevs,
-        array('url', 'sourcename', 'sourceurl', 'rating',
-              'headline', 'summary'))) {
+        ['url', 'sourcename', 'sourceurl', 'rating',
+         'headline', 'summary'])) {
         // they don't match - add to the change lists
         $changesOld['extreviews'] = $oldrevs;
         $changesNew['extreviews'] = $newrevs;
@@ -925,9 +925,9 @@ function calcDeltas($oldRec, $newRec)
 
     // check for changes to the external references
     $newxrefs = $newRec['xrefs'];
-    $oldxrefs = (isset($oldRec['xrefs']) ? $oldRec['xrefs'] : array());
+    $oldxrefs = (isset($oldRec['xrefs']) ? $oldRec['xrefs'] : []);
     if (!arrayOfArrayValsEqual(
-        $newxrefs, $oldxrefs, array('reftype', 'toID'))) {
+        $newxrefs, $oldxrefs, ['reftype', 'toID'])) {
 
         // they don't match
         $changesOld['xrefs'] = $oldxrefs;
@@ -945,7 +945,7 @@ function calcDeltas($oldRec, $newRec)
     }
 
     // return the changes
-    return array($changesOld, $changesNew);
+    return [$changesOld, $changesNew];
 }
 
 // ------------------------------------------------------------------------
@@ -1067,26 +1067,26 @@ function insert_profile_link($db, $qid, $l)
 function update_profile_links($db, $qgameid, $plNew, &$progress)
 {
     // make a table keyed by new profile user ID
-    $plNewTab = array();
+    $plNewTab = [];
     foreach ($plNew as $p)
         $plNewTab[$p] = true;
 
     // query the old profile links
     $result = mysql_query("select userid from gameprofilelinks where gameid = '$qgameid'", $db);
-    for ($i = 0, $n = mysql_num_rows($result), $plOldTab = array() ; $i < $n ; $i++) {
+    for ($i = 0, $n = mysql_num_rows($result), $plOldTab = [] ; $i < $n ; $i++) {
         list($p) = mysql_fetch_row($result);
         $plOldTab[$p] = true;
     }
 
     // make a list of items appearing only in the OLD table
-    $plOldOnly = array();
+    $plOldOnly = [];
     foreach ($plOldTab as $p => $v) {
         if (!isset($plNewTab[$p]))
             $plOldOnly[] = $p;
     }
 
     // make a list of items appearing only in the NEW table
-    $plNewOnly = array();
+    $plNewOnly = [];
     foreach ($plNewTab as $p => $v) {
         if (!isset($plOldTab[$p]))
             $plNewOnly[] = $p;
@@ -1128,7 +1128,7 @@ function saveNewGame($db, $adminPriv, $apiMode,
     $userid = $_SESSION['logged_in_as'];
 
     // make sure that the required fields are present
-    foreach (array("title" => "title", "author" => "eAuthor")
+    foreach (["title" => "title", "author" => "eAuthor"]
              as $col => $errCol) {
 
         // get the new value, if present
@@ -1168,8 +1168,8 @@ function saveNewGame($db, $adminPriv, $apiMode,
         return false;
 
     // build the INSERT statement clauses
-    $collist = array();
-    $vallist = array();
+    $collist = [];
+    $vallist = [];
     foreach ($changesNew as $key => $val) {
         // skip IFIDs, links, external reviews, or anything else that's
         // represented here as an array - these are stored in separate tables
@@ -1495,7 +1495,7 @@ function saveOldGame($db, $adminPriv, $apiMode,
     if ($result) {
         // assemble the list of new values for the update -
         // these are the changed columns set to their $req values
-        $varlist = array();
+        $varlist = [];
         foreach ($changesNew as $key => $val) {
             // skip IFIDs, links, reviews, cross-references, and
             // profile links - these are stored in separate tables
