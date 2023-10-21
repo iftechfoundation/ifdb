@@ -815,6 +815,10 @@ function calcDeltas($oldRec, $newRec)
 
         // convert the types
         switch ($field[5]) {
+        case TypeString:
+            $newval = trim($newval);
+            break;
+
         case TypeInt:
             $oldval = parseIntVal($oldval);
             $newval = parseIntVal($newval);

@@ -430,6 +430,10 @@ function calcDeltas($oldRec, $newRec)
 
         // parse/convert the field values to our internal representation
         switch ($field[5]) {
+        case TypeString:
+            $newval = trim($newval);
+            break;
+
         case TypeInt:
             $oldval = parseIntVal($oldval);
             $newval = parseIntVal($newval);
