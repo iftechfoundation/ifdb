@@ -156,10 +156,10 @@ $fields = [
 // as input; returns an array of (game_record, error_message), where the
 // game record is an associative array of the values keyed by column name.
 //
-function loadGameRecord($db, $qid)
+function loadGameRecord($db, $id)
 {
     // query the main game record
-    $result = mysql_query(
+    $result = mysqli_execute_query($db,
         "select
             title, author, authorExt,
             date_format(published,
@@ -171,7 +171,7 @@ function loadGameRecord($db, $qid)
             bafsid, website, editedby, moddate, pagevsn,
             coverart, downloadnotes
          from games
-         where id = '$qid'", $db);
+         where id = ?", [$id]);
     if (mysql_num_rows($result) == 0)
         return [
             false,
@@ -189,13 +189,13 @@ function loadGameRecord($db, $qid)
     $rec['eAuthor'] = $rec[$rec['authorExt'] ? 'authorExt' : 'author'];
 
     // build the list of downloads
-    $result = mysql_query(
+    $result = mysqli_execute_query($db,
         "select
            url, title, `desc`, attrs, fmtid, osid, osvsn,
            compression, compressedprimary, displayorder
         from gamelinks
-        where gameid = '$qid'
-        order by displayorder", $db);
+        where gameid = ?
+        order by displayorder", [$id]);
     $rows = mysql_num_rows($result);
     $links = [];
     for ($i = 0 ; $i < $rows ; $i++)
@@ -205,8 +205,8 @@ function loadGameRecord($db, $qid)
     $rec['links'] = $links;
 
     // build the list of IFIDs
-    $result = mysql_query("select ifid from ifids
-        where gameid = '$qid'", $db);
+    $result = mysqli_execute_query($db, "select ifid from ifids
+        where gameid = ?", [$id]);
     $rows = mysql_num_rows($result);
     for ($i = 0, $ifids = [] ; $i < $rows ; $i++)
         $ifids[] = mysql_result($result, $i, "ifid");
@@ -218,7 +218,7 @@ function loadGameRecord($db, $qid)
     $rec['ifid array'] = $ifids;
 
     // build the list of external review links
-    $result = mysql_query(
+    $result = mysqli_execute_query($db,
         "select
            extreviews.gameid as gameid, extreviews.url as url,
            extreviews.sourcename as sourcename,
@@ -228,8 +228,8 @@ function loadGameRecord($db, $qid)
          from
            extreviews
            left outer join reviews on extreviews.reviewid = reviews.id
-         where extreviews.gameid = '$qid'
-         order by extreviews.displayorder", $db);
+         where extreviews.gameid = ?
+         order by extreviews.displayorder", [$id]);
     for ($extrev = [], $i = 0 ; $i < mysql_num_rows($result) ; $i++)
         $extrev[] = mysql_fetch_array($result, MYSQL_ASSOC);
 
@@ -237,7 +237,7 @@ function loadGameRecord($db, $qid)
     $rec['extreviews'] = $extrev;
 
     // query the list of genealogical cross-references
-    $result = mysql_query(
+    $result = mysqli_execute_query($db,
         "select
            gamexrefs.reftype as reftype,
            gamexrefs.toid as toID,
@@ -246,9 +246,9 @@ function loadGameRecord($db, $qid)
            gamexrefs
            join games on games.id = gamexrefs.toID
          where
-           gamexrefs.fromid = '$qid'
+           gamexrefs.fromid = ?
          order by
-           gamexrefs.displayorder", $db);
+           gamexrefs.displayorder", [$id]);
 
     // fetch them
     for ($xrefs = [], $i = 0 ; $i < mysql_num_rows($result) ; $i++)
@@ -304,9 +304,6 @@ function saveUpdates($db, $adminPriv, $apiMode,
     // initialize the link format map, if we haven't already done so
     init_link_formats($db);
 
-    // quote the ID
-    $qid = mysql_real_escape_string($id, $db);
-
     // start a transaction for the update
     $progress = "BTX070A";
     $result = mysql_query("set autocommit=0", $db);
@@ -327,7 +324,7 @@ function saveUpdates($db, $adminPriv, $apiMode,
     // since we started working - we have the tables locked now, so there's
     // no change of a race condition from this point forward
     if ($id != "new")
-        list($rec, $errMsg) = loadGameRecord($db, $qid);
+        list($rec, $errMsg) = loadGameRecord($db, $id);
 
     // strip whitespace from the IFID field, and uppercase it
     $req['ifids'] = strtoupper(str_replace(
@@ -455,9 +452,8 @@ function saveUpdates($db, $adminPriv, $apiMode,
                 }
 
                 // make sure this IFIDs isn't used by any other game
-                $qifid = mysql_real_escape_string(strtolower($ifid), $db);
-                $result = mysql_query("select gameid from ifids
-                    where ifid = '$qifid'", $db);
+                $result = mysqli_execute_query($db, "select gameid from ifids
+                    where ifid = ?", [strtolower($ifid)]);
                 if ($result && mysql_num_rows($result) > 0) {
                     $otherid = mysql_result($result, 0, "gameid");
                     if ($id != $otherid) {
