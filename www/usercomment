@@ -27,7 +27,7 @@ function getCommentReference($db, $srcID)
                      "The specified user isn't in the database.");
 
     $rec = mysql_fetch_row($result);
-    return array($rec, $rec[0], $rec[1]);
+    return [$rec, $rec[0], $rec[1], false, false];
 }
 
 function showCommentReference($db, $rec)
