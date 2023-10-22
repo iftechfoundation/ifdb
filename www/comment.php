@@ -604,7 +604,7 @@ echo helpWinLink("help-formatting?comment#spoilertags", "&lt;SPOILER&gt; tag")
             . "(this is required because "
             . "your user account was created recently; it's to discourage "
             . "spammers from creating new accounts just to post spam "
-            . "comments)</span><br>";
+            . "comments)</i></span><br>";
         captchaSubForm($captchaKey, $captchaErrMsg, "Verify Code");
     }
 
