@@ -15,6 +15,10 @@ $srcParamName = "list";
 
 include "comment.php";
 
+function getCommentReferencePage($listID) {
+    return "/viewlist?id=$listID";
+}
+
 function getCommentReference($db, $listID)
 {
     // query the review

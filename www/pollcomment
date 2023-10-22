@@ -14,6 +14,10 @@ $srcParamName = "poll";
 
 include "comment.php";
 
+function getCommentReferencePage($pollID) {
+    return "/poll?id=$pollID";
+}
+
 function getCommentReference($db, $pollID)
 {
     // query the review

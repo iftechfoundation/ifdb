@@ -70,8 +70,7 @@ $srcpage = get_req_data('src');
 if (!$srcpage)
     $srcpage = get_req_data('httpreferer');
 if (!$srcpage)
-    $srcpage = $_SERVER['HTTP_REFERER'];
-$srcpageParam = urlencode($srcpage);
+    $srcpage = $_SERVER['HTTP_REFERER'] ?? '';
 
 $errMsg = false;
 $captchaOK = true;
@@ -82,6 +81,10 @@ $succMsg = false;
 // query the reference record
 list($refRec, $refOwner, $refOwnerName, $errFatal, $errMsg) =
     getCommentReference($db, $srcID);
+
+if (!$srcpage)
+    $srcpage = getCommentReferencePage($srcID, $refRec);
+$srcpageParam = urlencode($srcpage);
 
 // if we're replying, fetch the parent
 $parentRow = false;

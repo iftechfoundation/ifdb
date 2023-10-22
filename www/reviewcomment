@@ -16,6 +16,11 @@ $srcParamName = "review";
 
 include "comment.php";
 
+function getCommentReferencePage($srcID, $rec) {
+    $gameID = $rec['gameid'];
+    return "/viewgame?id=$gameID&review=$srcID";
+}
+
 function getCommentReference($db, $srcID)
 {
     // query the review
