@@ -32,7 +32,7 @@ function getCommentReference($db, $srcID)
 
     // return the record
     $rec = mysql_fetch_array($result, MYSQL_ASSOC);
-    return array($rec, $rec['userid'], $rec['username']);
+    return [$rec, $rec['userid'], $rec['username'], false, false];
 }
 
 function showCommentReference($db, $rec)

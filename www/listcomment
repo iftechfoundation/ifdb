@@ -37,7 +37,7 @@ function getCommentReference($db, $listID)
 
     // return the record, and the list owner ID
     $rec = mysql_fetch_row($result);
-    return array($rec, $rec[3], $rec[4]);
+    return [$rec, $rec[3], $rec[4], false, false];
 }
 
 function showCommentReference($db, $rec)
