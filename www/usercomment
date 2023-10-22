@@ -14,6 +14,10 @@ $srcParamName = "user";
 
 include "comment.php";
 
+function getCommentReferencePage($srcID) {
+    return "/showuser?id=$srcID";
+}
+
 function getCommentReference($db, $srcID)
 {
     $quid = mysql_real_escape_string($srcID, $db);
