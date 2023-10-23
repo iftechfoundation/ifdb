@@ -458,7 +458,7 @@ function showReview($db, $gameid, $rec, $specialNames, $optionFlags = 0)
         echo "<div class=smallfoot><span class=details>
                <i>You wrote this review -
                <a href=\"review?id=$gameid&userid=$userid\">Revise it</a></i>
-               $barCommentCtls</span></div>";
+               | <a href=\"viewgame?id=$gameid&review=$reviewid\">Direct link</a> $barCommentCtls</span></div>";
 
     } else if ($specialCode == 'external') {
 

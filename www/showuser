@@ -895,7 +895,7 @@ if ($admin)
 
 
     // add the admin links
-    echo "<a href=\"{$adminUrl}\">Administer user acccount</a><br>";
+    echo "<a href=\"{$adminUrl}\">Administer user account</a><br>";
 }
 
 pageFooter();
