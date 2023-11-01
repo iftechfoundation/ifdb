@@ -1,7 +1,7 @@
 import { username, password, url, compYear } from './settings.mjs';
 import { readFile } from 'fs/promises';
 import { XMLParser } from 'fast-xml-parser';
-import { runTasks } from './run-tasks.mjs';
+import { runTasks } from 'concurrency-limit-runner';
 
 const games = JSON.parse(await readFile('microdata-downloads-tuids.json', 'utf8'));
 

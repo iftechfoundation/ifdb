@@ -1,7 +1,7 @@
 import {url} from './settings.mjs';
 import {readFile, writeFile} from 'fs/promises';
 import {XMLParser} from 'fast-xml-parser';
-import {runTasks} from './run-tasks.mjs';
+import {runTasks} from 'concurrency-limit-runner';
 
 const microdata = JSON.parse(await readFile('microdata.json', 'utf8'));
 const year = new Date().getFullYear();
