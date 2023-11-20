@@ -1470,7 +1470,8 @@ function activateListeners(divno, model)
         sortDivByPlace('divModel' + divno, window["divVals"+divno]);
     });
 
-    for (var i = 0; i < model.vals.length; i++) {
+    let vals = window[model.vals];
+    for (var i = 0; i < vals.length; i++) {
         var idx = "" + divno + "_" + i;
         (function(i){
             document.querySelectorAll('a.editLink' + idx).forEach(function(editLink) {
