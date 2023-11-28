@@ -162,11 +162,11 @@ games there, to reach players and for historical preservation.</p>
    <li>If you run into any technical problems or error messages, please be
    aware that they might be coming from ifarchive.org rather than IFDB.  If you
    can't get the upload to work via this form, you might want to try
-   uploading directly via their form at <a target="_blank" href="http://upload.ifarchive.org/cgi-bin/upload.py">http://upload.ifarchive.org/cgi-bin/upload.py</a>.
+   uploading directly via their form at <a target="_blank" href="https://upload.ifarchive.org/cgi-bin/upload.py">https://upload.ifarchive.org/cgi-bin/upload.py</a>.
 
 </ul>
 
-<form id="uploadForm" action="http://upload.ifarchive.org/cgi-bin/upload.py"
+<form id="uploadForm" action="https://upload.ifarchive.org/cgi-bin/upload.py"
       method="POST" enctype="multipart/form-data">
 
 <script type="text/javascript" nonce="<?php global $nonce; echo $nonce; ?>">
