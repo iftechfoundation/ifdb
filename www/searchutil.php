@@ -22,7 +22,7 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse)
 {
     // we need the current user for some types of queries
     checkPersistentLogin();
-    $curuser = mysql_real_escape_string($_SESSION['logged_in_as'], $db);
+    $curuser = mysql_real_escape_string($_SESSION['logged_in_as'] ?? '', $db);
 
     // set up the plonk filter
     $andNotPlonked = "";
@@ -951,9 +951,7 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse)
 
     // figure the ordering
     $orderBy = ((isset($sortList[$sortby])) ? $sortList[$sortby][0] :
-                ($defOrderBy ? $defOrderBy :
-                 ($defSortBy ? $sortList[$defSortBy][0] :
-                  "")));
+                ($defSortBy ? $sortList[$defSortBy][0] : ""));
 
     // Add the relevance to the ORDER BY.  Put exact matches to the LIKE
     // string at the top of the list; then add leading string matches;

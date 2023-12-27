@@ -1770,7 +1770,7 @@ function getGameRatingsView($db)
     $sandbox = 0;
 
     // if the user is logged in, look up their sandbox
-    $curuser = $_SESSION['logged_in_as'];
+    $curuser = $_SESSION['logged_in_as'] ?? '';
     if ($curuser) {
         $result = mysql_query("select sandbox from users where id='$curuser'", $db);
         list($sandbox) = mysql_fetch_row($result);
