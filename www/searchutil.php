@@ -989,7 +989,7 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse)
         $having = "having $having";
 
     // Build tags subselect
-    $tagsSubselect = "";
+    $tagsTable = "";
     if ($tagsToMatch) {
         // Limit number of tags to avoid abuse
         $tagsToMatch = array_slice($tagsToMatch, 0, 20);
@@ -998,16 +998,16 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse)
         $tagsWhereParts = [];
         $tagsOnParts = [];
         for ($i = 0; $i < count($tagsToMatch); $i++) {
-            $tagsTables[] = "gametags as t$i";
-            $tagsWhereParts[] = "t$i.tag = ?";
+            $t = "gametags as t$i";
             if ($i > 0) {
-                $tagsOnParts[] = "t0.gameid = t$i.gameid";
+                $t .= " on t0.gameid = t$i.gameid";
             }
+            $tagsTables[] = $t;
+            $tagsWhereParts[] = "t$i.tag = ?";
         }
         $tagsJoin = implode(' join ', $tagsTables);
         $tagsWhere = implode(' and ', $tagsWhereParts);
-        $tagsOn = $tagsOnParts ? ('on ' . implode(' and ', $tagsOnParts)) : '';
-        $tagsSubselect = "and games.id in (select t0.gameid from $tagsJoin $tagsOn where $tagsWhere)";
+        $tagsTable = "join (select distinct t0.gameid from $tagsJoin where $tagsWhere) as gt on games.id = gt.gameid";
     }
 
     // build the SELECT statement
@@ -1016,10 +1016,10 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse)
               $relevance
             from
               $tableList
+              $tagsTable
             where
               $where
               $baseWhere
-              $tagsSubselect
             $groupBy
             $having
             order by
