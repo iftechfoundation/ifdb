@@ -377,6 +377,15 @@ function jsSpecialChars($s)
 }
 
 // --------------------------------------------------------------------------
+// escape a string for javascript purposes: converts \ -> \\, " -> \",
+// newline -> \n
+//
+function removeSqlMatchChars($s)
+{
+    return preg_replace('/[+-@<>()~*"]/', "", $s);
+}
+
+// --------------------------------------------------------------------------
 // Generate a TUID (a Tads.org Unique ID: a random 16-character alphanumeric
 // key).  If $tableCol and $maxtries are defined, we'll check the given
 // "table.column" items for collisions with the number we choose, and

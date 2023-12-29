@@ -48,6 +48,8 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse)
     // assume no badge info
     $badges = false;
 
+    $whereParameters = [];
+
     // set up the parameters for the type of search we're performing
     if ($searchType == "list")
     {
@@ -649,11 +651,13 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse)
                 // look for each name in the list
                 $expr = "(";
                 $or = "";
+                $matchExpression = "";
                 foreach ($nameList as $n) {
                     // look for this exact name embedded in the author field
                     $expr .= "$or author like '%"
                              . mysql_real_escape_string(quoteSqlLike($n), $db)
                              . "%' ";
+                    $matchExpression .= '+"' . removeSqlMatchChars($n) . '"';
 
                     // get the sorting version of the name - LAST, SUFFIX,
                     // FIRST, MIDDLE, and split into an array
@@ -676,12 +680,15 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse)
                                  . mysql_real_escape_string(
                                      quoteSqlRLike($nl[0]), $db)
                                      . "[[:>:]]'";
+                        $matchExpression .= ' '. removeSqlMatchChars($nl[0]);
                     }
 
                     // join the next round with OR
                     $or = " or";
                 }
                 $expr .= ")";
+                $expr .= " and match (title, author, `desc`, tags) against (? in boolean mode)";
+                $whereParameters[] = $matchExpression;
                 break;
 
             case 'language':
@@ -1001,7 +1008,7 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse)
             $limit";
 
     // run the query
-    $result = mysql_query($sql, $db);
+    $result = mysqli_execute_query($db, $sql, $whereParameters);
     if (!$result) error_log(mysql_error($db));
 //    echo "<p>$sql<p>" . mysql_error($db) . "<p>";  // DIAGNOSTICS
 
