@@ -103,12 +103,14 @@ if ($rating == 0 && !$review) {
 if ($rating == 0 && $rid) {
     // rating to zero -> delete the review
     $result = mysql_query("delete from reviews where id='$rid'", $db);
+    if (!$result) error_log(mysql_error($db));
     $ok = "Your rating has been removed.";
 
 } else if ($rating != 0 && $rid) {
     // there's an existing review - update its rating
     $result = mysql_query(
         "update reviews set rating = '$rating' where id='$rid'", $db);
+    if (!$result) error_log(mysql_error($db));
     $ok = "Your rating has been updated.";
 
 } else if ($rating != 0) {
