@@ -2,6 +2,22 @@ USE ifdb;
 
 -- use this script for pending changes to the production DB schema
 
+alter table reviews
+    add column `embargopastdate` date DEFAULT NULL,
+    add key `embargodate` (`embargodate`),
+    add key `embargopastdate` (`embargopastdate`)
+;
+
+update reviews
+set embargopastdate = now()
+where
+    embargodate < now()
+    and (
+        embargopastdate is null
+        or embargopastdate < embargodate
+    )
+;
+
 drop table if exists gameRatingsSandbox0_mv;
 create table gameRatingsSandbox0_mv (
   `gameid` varchar(32) COLLATE latin1_german2_ci NOT NULL DEFAULT '',

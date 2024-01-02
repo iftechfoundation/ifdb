@@ -1,0 +1,48 @@
+<?php
+include_once "dbconnect.php";
+include_once "util.php";
+
+// This URL will be pinged on a regular schedule via a cron job.
+
+// This cron job is really strange.
+
+// The purpose of the cron job is to keep the `gameRatingsSandbox0_mv`
+// materialized view up to date as time passes.
+
+// The `gameRatingsSandbox0` view automatically excludes reviews with an
+// embargo date in the future; thus, the view is like a `join` of the
+// `reviews` table and the current datetime.
+
+// But the trigger that keeps `gameRatingsSandbox0_mv` updated only runs
+// when we `update` the `reviews` table. The trigger doesn't naturally
+// update the MV as time passes.
+
+// This cron job incorporates the current datetime into the materialized
+// view by translating the passage of time into `update` statements on the
+// `reviews` table.
+
+// The `reviews` table has an `embargopastdate` column, which serves no
+// real purpose other than to be a column that we can update in order to
+// activate the MV update trigger. We only read `embargopastdate` here,
+// in this query, just in order to find recently unembargoed reviews that
+// we haven't incorporated into the MV.
+
+// It's kind of like running `touch` on a file, updating its lastmodified
+// date, in order to convince `make` to do something with it. We're
+// "touching" the `embargopastdate` in order to activate the post-update
+// trigger, refreshing the MV.
+
+$db = dbConnect();
+
+$result = mysql_query(
+    "update reviews
+    set embargopastdate = now()
+    where
+        embargodate < now()
+        and (
+            embargopastdate is null
+            or embargopastdate < embargodate
+    )", $db);
+
+if (!$result) throw new Exception(mysql_error($db));
+?>
