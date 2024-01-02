@@ -1782,7 +1782,7 @@ function getGameRatingsView($db)
     default:
     case 0:
         // normal user - show only reviews and ratings from other normal users
-        return "gameRatingsSandbox0";
+        return "gameRatingsSandbox0_mv";
 
     case 1:
         // troll - show ratings from normal users plus trolls
