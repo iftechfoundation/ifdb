@@ -233,10 +233,10 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse)
     {
         // special keywords for game search:  "keyword:" => descriptor
         $specialMap = array(
-            "genre:" => array("genre", 0),
+            "genre:" => array("genre", 6),
             "published:" => array("published", 4),
             "added:" => array("created", 4),
-            "system:" => array("system", 0),
+            "system:" => array("system", 6),
             "series:" => array("seriesname", 0),
             "tag:" => array("tags", 5),
             "bafs:" => array("bafsid", 2),
@@ -558,6 +558,10 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse)
             } else {
                 $tagsToMatch[] = $txt;
             }
+            break;
+        case 6:
+            // fulltext index matches
+            $expr = "match ($col) against ('". mysql_real_escape_string(quoteSqlRLike($txt), $db) ."')";
             break;
         case 99:
             // special-case handling
