@@ -974,6 +974,16 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse)
                     . "if($likeExpr,0,1),"
                     . "relevance desc,";
 
+    // in game searches, implicitly match by TUID and IFID
+    if ($searchType == "game" && count($words) == 1 && count($extraJoins) == 0) {
+        $extraJoins['/ifid/'] = true;
+        $tableList .= " left outer join ifids "
+                            . "on games.id = ifids.gameid";
+
+        $txt = mysql_real_escape_string($words[0], $db);
+        $where = "($where) or games.id = '$txt' or lower(ifids.ifid) = lower('$txt')";
+    }
+
     // If we're selecting from the user table, and we need the
     // Frequent Fiction information, set that up.
     if ($searchType == "member" && preg_match("/^userScores\./", $orderBy)) {
@@ -1038,6 +1048,11 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse)
               $orderBy
               $baseOrderBy
             $limit";
+
+    $logging_level = 0;
+    if ($logging_level) {
+        error_log($sql);
+    }
 
     // run the query
     $result = mysqli_execute_query($db, $sql, $tagsToMatch);
