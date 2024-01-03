@@ -1,0 +1,13 @@
+<?php
+include_once "dbconnect.php";
+include_once "util.php";
+
+// a cron job will call this to refresh the userScores_mv materialized view
+
+$db = dbConnect();
+
+$result = mysql_query("lock tables userScores_mv write, userScores read", $db);
+if ($result) $result = mysql_query("truncate table userScores_mv", $db);
+if ($result) $result = mysql_query("insert into userScores_mv select *, now() from userScores", $db);
+mysql_query("unlock tables", $db);
+?>
