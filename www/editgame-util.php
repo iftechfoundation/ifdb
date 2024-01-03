@@ -453,7 +453,7 @@ function saveUpdates($db, $adminPriv, $apiMode,
 
                 // make sure this IFIDs isn't used by any other game
                 $result = mysqli_execute_query($db, "select gameid from ifids
-                    where ifid = ?", [strtolower($ifid)]);
+                    where lower_ifid = ?", [strtolower($ifid)]);
                 if ($result && mysql_num_rows($result) > 0) {
                     $otherid = mysql_result($result, 0, "gameid");
                     if ($id != $otherid) {

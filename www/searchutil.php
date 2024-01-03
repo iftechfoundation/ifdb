@@ -574,7 +574,7 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse)
                 // match to the given IFID, but ignoring case
                 $txt = mysql_real_escape_string($txt, $db);
                 if ($txt != "")
-                    $expr = "lower(ifids.ifid) = lower('$txt')";
+                    $expr = "lower_ifid = lower('$txt')";
                 else
                     $expr = "ifids.ifid is null";
                 break;

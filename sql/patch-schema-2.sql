@@ -117,3 +117,8 @@ call refresh_gameRatingsSandbox0_mv(NEW.gameid);
 CREATE TRIGGER reviews_delete
 AFTER DELETE ON reviews FOR EACH ROW
 call refresh_gameRatingsSandbox0_mv(OLD.gameid);
+
+alter table ifids
+    add column lower_ifid varchar(64) COLLATE latin1_german2_ci as (lower(ifid)) VIRTUAL,
+    add key lower_ifid (`lower_ifid`)
+;
