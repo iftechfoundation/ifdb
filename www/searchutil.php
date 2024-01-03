@@ -284,11 +284,18 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse)
                        games.sort_author as sort_author,
                        ifnull(games.published, '9999-12-31') as sort_pub,
                        games.flags";
-        $tableList = "games
-                      left join ".getGameRatingsView($db)." on games.id = gameid";
         $baseWhere = "";
-        $groupBy = "group by games.id";
-        $baseOrderBy = "sort_title";
+        $groupBy = "";
+        $baseOrderBy = "";
+        if ($browse && ($sortby == "" || $sortby == "ratu" || $sortby == "ratd" || $sortby == "rcu")) {
+            // when sorting by highest/lowest/most ratings, we can optimize by
+            // fetching the top N from the gameRatingsView
+            $tableList = "games
+                          join ".getGameRatingsView($db)." on games.id = gameid";
+        } else {
+            $tableList = "games
+                          left join ".getGameRatingsView($db)." on games.id = gameid";
+        }
         $matchCols = "games.id, title, author, `desc`, tags";
         $likeCol = "title";
         $summaryDesc = "Games";
@@ -987,6 +994,11 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse)
     // if there's a HAVING clause, plug in the HAVING phase
     if ($having != "")
         $having = "having $having";
+
+    // strip trailing comma
+    if ($baseOrderBy == "" && substr($orderBy, -1) == ",") {
+        $orderBy = substr($orderBy, 0, -1);
+    }
 
     // Build tags subselect
     $tagsTable = "";

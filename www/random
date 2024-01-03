@@ -95,7 +95,7 @@ $selectList = "games.id as id,
                stdDevRating as ratingdev,
                sort_title, sort_author";
 $tableList = "games
-              left outer join gameRatingsSandbox0 on games.id = gameid";
+              left outer join gameRatingsSandbox0_mv on games.id = gameid";
 
 // build the SELECT statement
 $sql = "select

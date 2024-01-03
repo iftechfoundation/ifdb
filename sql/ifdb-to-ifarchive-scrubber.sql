@@ -45,6 +45,12 @@ update users
 drop view gameRatingsSandbox0;
 drop view gameRatingsSandbox01;
 
+drop table gameRatingsSandbox0_mv;
+drop procedure refresh_gameRatingsSandbox0_mv;
+drop trigger reviews_insert;
+drop trigger reviews_update;
+drop trigger reviews_delete;
+
 /* delete troll users and their reviews and comments */
 delete from ucomments
   where userid in (select id from users where sandbox = 1);
