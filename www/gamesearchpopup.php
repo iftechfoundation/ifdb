@@ -197,9 +197,9 @@ function gameSearchPopupDiv()
           </div>
        </div>
        <div class="edit-popup-win">
-          <p><b>Step 1:</b> Search for a game by title, <?php
-              echo helpWinLink("help-ifid", "IFID") ?>, or <?php
-              echo helpWinLink("help-tuid", "TUID") ?>:
+          <p><b>Step 1:</b> Search for a game by title, <code>ifid:<?php
+              echo helpWinLink("help-ifid", "IFID") ?></code>, or <code>tuid:<?php
+              echo helpWinLink("help-tuid", "TUID") ?></code>:
           <br>
           <input id="gameSearchPopupSearchBox" type=text size=50>
           <input type=submit name="gameSearchPopupGoBtn"
