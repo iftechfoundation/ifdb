@@ -551,7 +551,13 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse)
             break;
         case 5:
             // tags
-            $tagsToMatch[] = $txt;
+            if ($negate) {
+                $expr = "tags rlike '[[:<:]]"
+                    . mysql_real_escape_string(quoteSqlRLike($txt), $db)
+                    . "[[:>:]]'";
+            } else {
+                $tagsToMatch[] = $txt;
+            }
             break;
         case 99:
             // special-case handling
