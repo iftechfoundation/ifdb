@@ -275,7 +275,7 @@ if ($loggedIn && !$overloaded) {
         void function() {
           var element = document.getElementById('recommendations')
           var xhr = new XMLHttpRequest();
-          xhr.open("GET", '/async-recommendations', true);
+          xhr.open("GET", '/async-recommendations<?= ($debugflag ? '?debug=yesDebug' : '')?>', true);
           xhr.onreadystatechange = function() {
             if (xhr.readyState !== 4) return;
             if (xhr.status == 200) {
