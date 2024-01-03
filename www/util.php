@@ -12,11 +12,33 @@ include_once "pagetpl.php";
 
 define("MYSQL_ASSOC", MYSQLI_ASSOC);
 define("MYSQL_BOTH",  MYSQLI_BOTH);
+
+$query_i = 0;
+
 function mysql_connect($server, $user, $password) { return mysqli_connect($server, $user, $password); }
 function mysql_set_charset($linkid, $charset) { return mysqli_set_charset($linkid, $charset); }
 function mysql_select_db($db, $linkid = NULL) { return mysqli_select_db($linkid, $db); }
 function mysql_real_escape_string($str, $db) { return mysqli_real_escape_string($db, $str); }
-function mysql_query($query, $db) { return mysqli_query($db, $query); }
+function mysql_query($query, $db) {
+    $logging_level = 0;
+    if ($logging_level == 0) {
+        return mysqli_query($db, $query);
+    } else if ($logging_level == 1) {
+        $result = mysqli_query($db, $query);
+        if (!$result) {
+            error_log($_SERVER['REQUEST_URI']. " " . $query);
+            error_log($_SERVER['REQUEST_URI']. " " . mysql_error($db));
+        }
+        return $result;
+    } else {
+        global $query_i;
+        $start = microtime(true);
+        $result = mysqli_query($db, $query);
+        $elapsed = microtime(true) - $start;
+        error_log($_SERVER['REQUEST_URI']. " " . $query_i++ . " ($elapsed): " . $query);
+        return $result;
+    }
+}
 function mysql_num_rows($result) { return $result ? mysqli_num_rows($result) : 0; }
 function mysql_fetch_array($result, $match_type = MYSQLI_BOTH) { return mysqli_fetch_array($result, $match_type); }
 function mysql_fetch_row($result) { return mysqli_fetch_row($result); }
