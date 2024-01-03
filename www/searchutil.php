@@ -574,7 +574,7 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse)
                 // match to the given IFID, but ignoring case
                 $txt = mysql_real_escape_string($txt, $db);
                 if ($txt != "")
-                    $expr = "lower(ifids.ifid) = lower('$txt')";
+                    $expr = "lower_ifid = lower('$txt')";
                 else
                     $expr = "ifids.ifid is null";
                 break;
@@ -981,7 +981,7 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse)
                             . "on games.id = ifids.gameid";
 
         $txt = mysql_real_escape_string($words[0], $db);
-        $where = "($where) or games.id = '$txt' or lower(ifids.ifid) = lower('$txt')";
+        $where = "($where) or games.id = '$txt' or lower_ifid = lower('$txt')";
     }
 
     // If we're selecting from the user table, and we need the
