@@ -119,3 +119,7 @@ call refresh_gameRatingsSandbox0_mv(NEW.gameid);
 CREATE TRIGGER reviews_delete
 AFTER DELETE ON reviews FOR EACH ROW
 call refresh_gameRatingsSandbox0_mv(OLD.gameid);
+
+alter table polls
+    add key `userid` (`userid`)
+;
