@@ -8,13 +8,15 @@ alter table reviews
     add key `embargopastdate` (`embargopastdate`)
 ;
 
-update reviews
-set embargopastdate = now()
+update reviews r1
+join reviews r2 using (id)
+set r1.embargopastdate = now(),
+    r1.moddate = r2.moddate
 where
-    embargodate < now()
+    r1.embargodate < now()
     and (
-        embargopastdate is null
-        or embargopastdate < embargodate
+        r1.embargopastdate is null
+        or r1.embargopastdate < r1.embargodate
     )
 ;
 
