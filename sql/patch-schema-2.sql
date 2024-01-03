@@ -2,6 +2,8 @@ USE ifdb;
 
 -- use this script for pending changes to the production DB schema
 
+alter table games add fulltext key `author` (`author`);
+
 alter table reviews
     add column `embargopastdate` date DEFAULT NULL,
     add key `embargodate` (`embargodate`),

@@ -662,9 +662,9 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse)
                 $or = "";
                 foreach ($nameList as $n) {
                     // look for this exact name embedded in the author field
-                    $expr .= "$or author like '%"
+                    $expr .= "$or match (author) against ('"
                              . mysql_real_escape_string(quoteSqlLike($n), $db)
-                             . "%' ";
+                             . "') ";
 
                     // get the sorting version of the name - LAST, SUFFIX,
                     // FIRST, MIDDLE, and split into an array
