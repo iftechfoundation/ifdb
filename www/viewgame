@@ -1559,64 +1559,71 @@ if (!isEmpty($genre)) {
         for ($polls = array(), $i = 0 ; $i < $pollcnt ; $i++)
             $polls[] = mysql_fetch_array($result, MYSQL_ASSOC);
 
-        // Look for other games to recommend - these are games that
-        // were given 4- or 5-star ratings by members who also gave
-        // the current game a 4- or 5-star rating, AND which games
-        // are unrated AND unplayed by the current user.
-        //
-        // If we're logged in, make sure the ratings are coming from
-        // other users (don't bother generating recommendations based
-        // on the current user's own ratings, for obvious reasons).
-        // Also exclude games that are already on the current user's
-        // play list or wish list - they obviously already know about
-        // these games, so there's no reason to recommend them.
-        if ($curuser && !$cssOverride) {
-            $joinOtherUser = "";
-            $andOtherUser = "and r1.userid != '$curuser'
-                             and r2.userid != '$curuser'
-                             and r2.gameid not in (
-                                select gameid from playedgames pg where pg.userid = '$curuser'
-                                union
-                                select gameid from wishlists wl where wl.userid = '$curuser'
-                                union
-                                select gameid from unwishlists uw where uw.userid = '$curuser'
-                            )";
-        } else {
-            $joinOtherUser = "";
-            $andOtherUser = "";
-        }
-        $result = mysql_query(
-            "select
-               games.id as id,
-               games.title as title,
-               games.author as author,
-               games.`desc` as `desc`,
-               (games.coverart is not null) as hasart
-            from
-               (games,
-               reviews as r1,
-               reviews as r2)
-               $joinOtherUser
-            where
-               r1.gameid = '$qid'
-               and r1.special is null and r2.special is null
-               and r1.rating >= 4
-               and r2.gameid != r1.gameid
-               and r2.rating >= 4
-               and r1.userid = r2.userid
-               and games.id = r2.gameid
-               and ifnull(now() >= r1.embargodate, 1)
-               and ifnull(now() >= r2.embargodate, 1)
-               and not (games.flags & " . FLAG_SHOULD_HIDE . ")
-               $andOtherUser
-            group by r2.gameid
-            order by rand()
-            limit 0, 3", $db);
 
-        // fetch the cross-recommendations
-        $crosscnt = mysql_num_rows($result);
-        for ($crossrecs = array(), $i = 0 ; $i < $crosscnt ; $i++)
-            $crossrecs[] = mysql_fetch_array($result, MYSQL_ASSOC);
+        $overloaded = 1;
+        if (!$overloaded) {
+            // Look for other games to recommend - these are games that
+            // were given 4- or 5-star ratings by members who also gave
+            // the current game a 4- or 5-star rating, AND which games
+            // are unrated AND unplayed by the current user.
+            //
+            // If we're logged in, make sure the ratings are coming from
+            // other users (don't bother generating recommendations based
+            // on the current user's own ratings, for obvious reasons).
+            // Also exclude games that are already on the current user's
+            // play list or wish list - they obviously already know about
+            // these games, so there's no reason to recommend them.
+            if ($curuser && !$cssOverride) {
+                $joinOtherUser = "";
+                $andOtherUser = "and r1.userid != '$curuser'
+                                and r2.userid != '$curuser'
+                                and r2.gameid not in (
+                                    select gameid from playedgames pg where pg.userid = '$curuser'
+                                    union
+                                    select gameid from wishlists wl where wl.userid = '$curuser'
+                                    union
+                                    select gameid from unwishlists uw where uw.userid = '$curuser'
+                                )";
+            } else {
+                $joinOtherUser = "";
+                $andOtherUser = "";
+            }
+            $result = mysql_query(
+                "select
+                games.id as id,
+                games.title as title,
+                games.author as author,
+                games.`desc` as `desc`,
+                (games.coverart is not null) as hasart
+                from
+                (games,
+                reviews as r1,
+                reviews as r2)
+                $joinOtherUser
+                where
+                r1.gameid = '$qid'
+                and r1.special is null and r2.special is null
+                and r1.rating >= 4
+                and r2.gameid != r1.gameid
+                and r2.rating >= 4
+                and r1.userid = r2.userid
+                and games.id = r2.gameid
+                and ifnull(now() >= r1.embargodate, 1)
+                and ifnull(now() >= r2.embargodate, 1)
+                and not (games.flags & " . FLAG_SHOULD_HIDE . ")
+                $andOtherUser
+                group by r2.gameid
+                order by rand()
+                limit 0, 3", $db);
+
+            // fetch the cross-recommendations
+            $crosscnt = mysql_num_rows($result);
+            for ($crossrecs = array(), $i = 0 ; $i < $crosscnt ; $i++)
+                $crossrecs[] = mysql_fetch_array($result, MYSQL_ASSOC);
+        } else {
+            $crosscnt = 0;
+            $crossrecs = [];
+        }
 
         // add current-user exclusions for explicit cross-recs, if logged in
         if ($curuser && !$cssOverride) {
