@@ -296,7 +296,7 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse)
             $tableList = "games
                           left join ".getGameRatingsView($db)." on games.id = gameid";
         }
-        $matchCols = "games.id, title, author, `desc`, tags";
+        $matchCols = "title, author, `desc`, tags";
         $likeCol = "title";
         $summaryDesc = "Games";
     }
