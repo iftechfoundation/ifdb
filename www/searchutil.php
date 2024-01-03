@@ -444,7 +444,7 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse)
         $likeExpr .= ")";
 
         // build the full expression
-        $expr = "($matchMode ($matchExpr or $likeExpr))";
+        $expr = "$matchMode $matchExpr";
 
         // add the exact matches for &#xxxx; phrases
         if ($exacts) {
