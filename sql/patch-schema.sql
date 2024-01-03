@@ -75,7 +75,9 @@ DROP TABLE IF EXISTS `logins`;
 CREATE TABLE `logins` (
   `uid` varchar(32) COLLATE latin1_german2_ci NOT NULL DEFAULT '',
   `ip` varchar(16) COLLATE latin1_german2_ci NOT NULL DEFAULT '',
-  `when` datetime NOT NULL
+  `when` datetime NOT NULL,
+  KEY `uid` (`uid`),
+  KEY `ip` (`ip`)
 ) ENGINE=MyISAM DEFAULT CHARSET=latin1 COLLATE=latin1_german2_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
