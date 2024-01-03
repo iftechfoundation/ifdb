@@ -289,7 +289,7 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse)
         $baseWhere = "";
         $groupBy = "group by games.id";
         $baseOrderBy = "sort_title";
-        $matchCols = "games.id, title, author, `desc`, tags";
+        $matchCols = "title, author, `desc`, tags";
         $likeCol = "title";
         $summaryDesc = "Games";
     }
