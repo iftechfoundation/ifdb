@@ -2,6 +2,24 @@ USE ifdb;
 
 -- use this script for pending changes to the production DB schema
 
+drop table if exists userScores_mv;
+create table userScores_mv (
+    `userid` varchar(32) COLLATE latin1_german2_ci NOT NULL DEFAULT '',
+    `score` int unsigned,
+    `rankingScore` int unsigned,
+    `reviewCount` int unsigned,
+    `updated` date,
+    PRIMARY KEY (`userid`),
+    KEY `score` (`score`),
+    KEY `rankingScore` (`rankingScore`),
+    KEY `reviewCount` (`reviewCount`)
+) ENGINE = MyISAM DEFAULT CHARSET = latin1 COLLATE = latin1_german2_ci;
+
+lock tables userScores_mv write, userScores read;
+truncate table userScores_mv;
+insert into userScores_mv select *, now() from userScores;
+unlock tables;
+
 alter table games add fulltext key `author` (`author`);
 
 alter table reviews

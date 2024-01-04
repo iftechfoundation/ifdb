@@ -912,9 +912,9 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse)
     case "member":
         $sortList = array(
             'nm' => array('name,', 'Sort by Name'),
-            'ffpts' => array('userScores.score desc,',
+            'ffpts' => array('userScores_mv.score desc,',
                              'Highest Frequent Fiction First'),
-            'ffrank' => array('userScores.rankingScore desc,',
+            'ffrank' => array('userScores_mv.rankingScore desc,',
                               'Top Reviewer Status First'),
             'loc' => array('location,', 'Sort by Location'),
             'new' => array('created desc,', 'Newest First'),
@@ -982,15 +982,15 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse)
 
     // If we're selecting from the user table, and we need the
     // Frequent Fiction information, set that up.
-    if ($searchType == "member" && preg_match("/^userScores\./", $orderBy)) {
+    if ($searchType == "member" && preg_match("/^userScores_mv\./", $orderBy)) {
 
         // we need the UserScores temporary table - go build it
         createFFTempTable($db);
 
         // add it to the select list and table list
-        $selectList .= ", userScores.score as score";
-        $tableList .= " left outer join userScores "
-                      . "on userScores.userid = u.id";
+        $selectList .= ", userScores_mv.score as score";
+        $tableList .= " left outer join userScores_mv "
+                      . "on userScores_mv.userid = u.id";
     }
 
     // if there's no WHERE clause, select anything

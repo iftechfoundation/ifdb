@@ -123,3 +123,5 @@ drop view gameRatings;
 drop view userScores;
 drop view userscoreitems;
 drop view visreviews;
+
+drop table userScores_mv;

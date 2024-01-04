@@ -1827,7 +1827,7 @@ function userScore($uid)
     // determine the requested user's score
     $result = mysql_query(
         "select score, rankingScore, reviewCount
-         from userScores
+         from userScores_mv
          where userid = '$quid'", $db);
     if (mysql_num_rows($result) == 1)
         list($score, $rscore, $reviewCount) = mysql_fetch_row($result);
@@ -1838,7 +1838,7 @@ function userScore($uid)
     // with higher ranking scores, plus 1.
     $result = mysql_query(
         "select count(userid) as rank
-         from userScores
+         from userScores_mv
          where rankingScore > $rscore", $db);
     $rank = mysql_result($result, 0, "rank") + 1;
 
@@ -1901,7 +1901,7 @@ function getTopReviewers($db, $n)
     $result = mysql_query(
         "select
            s.userid, u.name, s.score
-           from userScores as s join users as u on u.id = s.userid
+           from userScores_mv as s join users as u on u.id = s.userid
            where s.reviewCount > 0
            order by s.score desc
            limit 0, $n", $db);
