@@ -296,7 +296,7 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse)
             $tableList = "games
                           left join ".getGameRatingsView($db)." on games.id = gameid";
         }
-        $matchCols = "games.id, title, author, `desc`, tags";
+        $matchCols = "title, author, `desc`, tags";
         $likeCol = "title";
         $summaryDesc = "Games";
     }
@@ -444,7 +444,7 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse)
         $likeExpr .= ")";
 
         // build the full expression
-        $expr = "($matchMode ($matchExpr or $likeExpr))";
+        $expr = "$matchMode $matchExpr";
 
         // add the exact matches for &#xxxx; phrases
         if ($exacts) {
@@ -580,7 +580,7 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse)
                 // match to the given IFID, but ignoring case
                 $txt = mysql_real_escape_string($txt, $db);
                 if ($txt != "")
-                    $expr = "lower(ifids.ifid) = lower('$txt')";
+                    $expr = "lower_ifid = lower('$txt')";
                 else
                     $expr = "ifids.ifid is null";
                 break;
@@ -1028,6 +1028,26 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse)
         $tagsTable = "join (select distinct t0.gameid from $tagsJoin where $tagsWhere) as gt on games.id = gt.gameid";
     }
 
+    $logging_level = 0;
+
+    // in game searches, implicitly match by TUID and IFID with an early query
+    if ($searchType == "game" && count($words) == 1 && count($extraJoins) == 0) {
+        $sql = "select games.id from games join ifids on games.id = gameid where games.id = ? or lower_ifid=lower(?)";
+        if ($logging_level) {
+            error_log($sql);
+            error_log($words[0]);
+        }
+        $result = mysqli_execute_query($db, $sql, [$words[0], $words[0]]);
+        if ($result) {
+            $rows[] = mysql_fetch_array($result, MYSQL_ASSOC);
+            if (isset($rows) && isset($rows[0])) {
+                $where = "games.id = '" . $rows[0]['id'] . "'";
+            }
+        } else {
+             error_log(mysql_error($db));
+        }
+    }
+
     // build the SELECT statement
     $sql = "select sql_calc_found_rows
               $selectList
@@ -1044,6 +1064,10 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse)
               $orderBy
               $baseOrderBy
             $limit";
+
+    if ($logging_level) {
+        error_log($sql);
+    }
 
     // run the query
     $result = mysqli_execute_query($db, $sql, $tagsToMatch);
