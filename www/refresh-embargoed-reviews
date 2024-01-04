@@ -32,6 +32,19 @@ include_once "util.php";
 // "touching" the `embargopastdate` in order to activate the post-update
 // trigger, refreshing the MV.
 
+// ... but, wait, there's more. Note that this query also goes out of its
+// way to set `moddate` to itself. That's because the `reviews` table
+// defines the `moddate` column like this:
+
+// CREATE TABLE `reviews` (
+//   `moddate` timestamp NOT NULL DEFAULT current_timestamp()
+//       ON UPDATE current_timestamp(),
+
+// If we don't explicitly set `moddate` to itself, it will automatically
+// update itself to `now()`, making the review appear on the site as if
+// the user had updated it.
+// https://github.com/iftechfoundation/ifdb-suggestion-tracker/issues/428
+
 $db = dbConnect();
 
 $result = mysql_query(
