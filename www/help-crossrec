@@ -15,6 +15,31 @@ members and review sites like
 target="_blank">Baf's Guide</a>.  We're not being paid to promote one
 game over another.
 
+<?php
+$overloaded = true;
+
+if ($overloaded) {
+    ?>
+
+<p>The system picks front-page recommendations by randomly selecting
+a few games with the highest ratings, excluding games that you've
+told us you've already played.
+
+<p>We determine the games with the highest ratings using
+<a href="https://www.evanmiller.org/ranking-items-with-star-ratings.html">Evan
+Miller's formula</a>, which we call "starsort".
+
+<p>We used to sort by average rating, but this would tend to rank games
+with just one perfect 5-star rating above games with dozens of 5-star
+ratings and a few 4-star ratings. Evan Miller's formula sorts by our
+confidence in the game, by adding five "fake" ratings to the average
+(one 1-star, one 2-star, one 3-star, one 4-star, and one 5-star rating)
+and subtracting the standard deviation from the result.
+
+    <?php
+} else {
+    ?>
+
 <p>The system picks front-page recommendations by looking for other
 members with similar patterns of likes and dislikes to your own, as
 expressed in the ratings they gave to the games they reviewed.  IFDB
@@ -40,5 +65,6 @@ you, remember that IFDB still offers several ways to get
 reviews and Recommended lists.
 
 <?php
+}
 helpPageFooter();
 ?>

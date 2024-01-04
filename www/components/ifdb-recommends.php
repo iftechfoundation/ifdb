@@ -3,7 +3,7 @@
 
 $recs = array();
 $maxpicks = 12;
-$overloaded = false;
+$overloaded = true;
 if ($loggedIn && !$overloaded) {
 
     // We're logged in, so we can try to come up with some collaborative
@@ -415,7 +415,7 @@ if (count($recs) >= 2) {
 
     // explain the source
     echo "<p><span class=details><i>";
-    if ($recsrc == 'generic') {
+    if ($recsrc == 'generic' && !$overloaded) {
         echo "These are a few randomly-selected games with high
              average member ratings.  If you ";
         if (!$loggedIn)
