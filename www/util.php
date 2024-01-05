@@ -1695,7 +1695,7 @@ function initCap($str)
 function check_editing_privileges($db)
 {
     // make sure we're logged in at the session level
-    $curuser = $_SESSION['logged_in_as'];
+    $curuser = $_SESSION['logged_in_as'] ?? null;
     if (!$curuser)
     {
         redirect_to_login_page();

@@ -6,7 +6,7 @@ function getNewItems($db, $limit)
 {
     // get the logged-in user
     checkPersistentLogin();
-    $curuser = $_SESSION['logged_in_as'];
+    $curuser = $_SESSION['logged_in_as'] ?? null;
 
     // filter out plonked users, if applicable
     $andNotPlonked = "";
@@ -239,7 +239,7 @@ function queryNewNews(&$items, $db, $limit, $sourceType,
 {
     // get the logged-in user
     checkPersistentLogin();
-    $curuser = $_SESSION['logged_in_as'];
+    $curuser = $_SESSION['logged_in_as'] ?? null;
 
     // filter out plonked users, if applicable
     $andNotPlonked = "";

@@ -12,7 +12,7 @@ include_once "dbconnect.php";
 $db = dbConnect();
 
 checkPersistentLogin();
-$userid = $_SESSION['logged_in_as'];
+$userid = $_SESSION['logged_in_as'] ?? null;
 $errMsg = false;
 $pageTitle = "Competition Details";
 
