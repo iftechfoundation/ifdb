@@ -33,6 +33,7 @@ $historyView = false;
 $reviewView = false;
 $ratingsView = false;
 $oneReviewView = false;
+$myCrossRecs = 0;
 
 // note if we're on IE6
 $userAgent = $_SERVER['HTTP_USER_AGENT'];
@@ -1214,7 +1215,6 @@ function updateUnwishList(id, stat)
 
     // check to see if I've made any explicit cross-recommendations
     // of my own
-    $myCrossRecs = 0;
     if ($curuser)
     {
         $result = mysqli_execute_query($db,

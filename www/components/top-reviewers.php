@@ -11,6 +11,7 @@
 
    $topReviewersCacheFile = sys_get_temp_dir() . '/top-reviewers-cache';
    $isFresh = filemtime($topReviewersCacheFile) > time()-25*3600;
+   $rlst = null;
    if ($isFresh) {
       $input = file_get_contents($topReviewersCacheFile);
       if ($input) {
