@@ -400,6 +400,7 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse)
     $having = "";
     $relevance = "";
     $tagsToMatch = [];
+    $tagsToNegate = [];
 
     // add in the full-text part, if applicable
     if (count($words))
@@ -552,9 +553,8 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse)
         case 5:
             // tags
             if ($negate) {
-                $expr = "tags rlike '[[:<:]]"
-                    . mysql_real_escape_string(quoteSqlRLike($txt), $db)
-                    . "[[:>:]]'";
+                $tagsToNegate[] = $txt;
+                $negate = false; // Turn off negate flag as tags are handled separately
             } else {
                 $tagsToMatch[] = $txt;
             }
@@ -993,21 +993,8 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse)
                       . "on userScores_mv.userid = u.id";
     }
 
-    // if there's no WHERE clause, select anything
-    if ($where == "")
-        $where = "1";
-
-    // if there's a HAVING clause, plug in the HAVING phase
-    if ($having != "")
-        $having = "having $having";
-
-    // strip trailing comma
-    if ($baseOrderBy == "" && substr($orderBy, -1) == ",") {
-        $orderBy = substr($orderBy, 0, -1);
-    }
-
-    // Build tags subselect
-    $tagsTable = "";
+    // Build tags join
+    $tagsJoin = "";
     if ($tagsToMatch) {
         // Limit number of tags to avoid abuse
         $tagsToMatch = array_slice($tagsToMatch, 0, 20);
@@ -1023,9 +1010,15 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse)
             $tagsTables[] = $t;
             $tagsWhereParts[] = "t$i.tag = ?";
         }
-        $tagsJoin = implode(' join ', $tagsTables);
-        $tagsWhere = implode(' and ', $tagsWhereParts);
-        $tagsTable = "join (select distinct t0.gameid from $tagsJoin where $tagsWhere) as gt on games.id = gt.gameid";
+        $tagsSubJoin = implode(" join ", $tagsTables);
+        $tagsWhere = implode(" and ", $tagsWhereParts);
+        $tagsJoin = "join (select distinct t0.gameid from $tagsSubJoin where $tagsWhere) as gt on games.id = gt.gameid";
+    }
+
+    if ($tagsToNegate) {
+        $questionMarks = str_repeat("?,", count($tagsToNegate) - 1) . "?";
+        $expr = "not exists (select 1 from gametags where games.id=gameid and tag in ($questionMarks))";
+        $where .= ($where ? " and " : "") . $expr;
     }
 
     $logging_level = 0;
@@ -1048,13 +1041,26 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse)
         }
     }
 
+    // if there's no WHERE clause, select anything
+    if ($where == "")
+        $where = "1";
+
+    // if there's a HAVING clause, plug in the HAVING phase
+    if ($having != "")
+        $having = "having $having";
+
+    // strip trailing comma
+    if ($baseOrderBy == "" && substr($orderBy, -1) == ",") {
+        $orderBy = substr($orderBy, 0, -1);
+    }
+
     // build the SELECT statement
     $sql = "select sql_calc_found_rows
               $selectList
               $relevance
             from
               $tableList
-              $tagsTable
+              $tagsJoin
             where
               $where
               $baseWhere
@@ -1069,8 +1075,10 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse)
         error_log($sql);
     }
 
+    $bindParameters = array_merge($tagsToMatch, $tagsToNegate);
+
     // run the query
-    $result = mysqli_execute_query($db, $sql, $tagsToMatch);
+    $result = mysqli_execute_query($db, $sql, $bindParameters);
     if (!$result) error_log(mysql_error($db));
 //    echo "<p>$sql<p>" . mysql_error($db) . "<p>";  // DIAGNOSTICS
 
