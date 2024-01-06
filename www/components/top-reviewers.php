@@ -9,16 +9,7 @@
       . ".top-reviewers__reviewer { padding: 0 1.5ex 0 1ex; }\n"
       . "</style>\n";
 
-   $topReviewersCacheFile = sys_get_temp_dir() . '/top-reviewers-cache';
-   $isFresh = filemtime($topReviewersCacheFile) > time()-25*3600;
-   $rlst = null;
-   if ($isFresh) {
-      $input = file_get_contents($topReviewersCacheFile);
-      if ($input) {
-         $rlst = unserialize($input);
-      }
-   }
-   if (!$rlst) $rlst = getTopReviewers($db, 4);
+   $rlst = getTopReviewers($db, 4);
    $n = 1;
    foreach ($rlst as $r) {
       list($ruid, $runame, $rscore) = $r;
