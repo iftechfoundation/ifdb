@@ -1122,7 +1122,7 @@ span.headlineRss {
 }
 
 .hidden{
-    display: none !important;
+    display: none;
 }
 
 .displayNone {
