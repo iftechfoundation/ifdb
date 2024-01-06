@@ -1032,7 +1032,7 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse)
 
     // in game searches, implicitly match by TUID and IFID with an early query
     if ($searchType == "game" && count($words) == 1 && count($extraJoins) == 0) {
-        $sql = "select games.id from games join ifids on games.id = gameid where games.id = ? or lower_ifid=lower(?)";
+        $sql = "select games.id as gameid from games where games.id = ? union all select gameid from ifids where lower_ifid=lower(?)";
         if ($logging_level) {
             error_log($sql);
             error_log($words[0]);
@@ -1041,7 +1041,7 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse)
         if ($result) {
             $rows[] = mysql_fetch_array($result, MYSQL_ASSOC);
             if (isset($rows) && isset($rows[0])) {
-                $where = "games.id = '" . $rows[0]['id'] . "'";
+                $where = "games.id = '" . $rows[0]['gameid'] . "'";
             }
         } else {
              error_log(mysql_error($db));
