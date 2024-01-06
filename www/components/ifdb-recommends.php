@@ -293,6 +293,7 @@ if ($loggedIn && !$overloaded) {
 } else {
   $topGamesCacheFile = sys_get_temp_dir() . '/top-games-cache';
   $isFresh = filemtime($topGamesCacheFile) > time()-25*3600;
+  if ($debugflag) echo "fresh ($isFresh)<br>";
   if ($isFresh) {
     $input = file_get_contents($topGamesCacheFile);
     if ($input) {
