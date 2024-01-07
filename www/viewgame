@@ -3090,6 +3090,13 @@ dispTags();
             the better IFDB's suggestions will become.
 
             <?php
+        } else {
+            $divStarted = true;
+            echo "<h2>If you enjoyed <i>$title</i>...</h2>"
+                . "<div class=indented>"
+                . "<h3>Related Games</h3>"
+                . "You can recommend a game for other people who like <i>$title</i>:"
+                . "<p><a href=\"crossrec?game=$id&edit\">Suggest a game</a></p>";
         }
 
         // end the indented division if we started it
