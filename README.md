@@ -39,7 +39,15 @@ All of your database changes should now be available.
 
 ## Troubleshooting
 
-To reset the Docker environment, stop `docker compose` with Ctrl-C, then run `docker compose down` to delete the images. If you're modifying the `Dockerfile`, don't forget to run `docker compose up --build`. The `--build` is what incorporates changes to the `Dockerfile`.
+To reset the Docker environment, run this:
+
+```
+./prepare_dev_environment.sh && docker compose down && docker compose up --build
+```
+
+`./prepare_dev_environment.sh` populates the `initdb` directory, which is only run when you `docker compose up` on a container for the _first_ time.
+
+If you just `docker compose up`, it will launch the container you already built. If you `docker compose down` and `docker compose up` without `--build`, it will reuse the existing Docker image, without incorporating changes to the `Dockerfile`.
 
 If you see a 500 error loading `http://localhost:8080`, check the Docker logs. If you see one of these errors, then something went wrong during the `./prepare_dev_environment.sh` step.
 
@@ -47,4 +55,4 @@ If you see a 500 error loading `http://localhost:8080`, check the Docker logs. I
 * `PHP Warning:  include_once(): Failed opening 'local-credentials.php' for inclusion`
 * `PHP Fatal error:  Uncaught Error: Call to undefined function localCredentials()`
 
-If you see this, run `docker compose down`, then run `./prepare_dev_environment.sh` and `docker compose up --build` again.
+If you see these errors, run `./prepare_dev_environment.sh && docker compose down && docker compose up --build` again.
