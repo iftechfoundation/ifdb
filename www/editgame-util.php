@@ -1551,6 +1551,7 @@ function saveOldGame($db, $adminPriv, $apiMode,
         $ifids = $changesNew['ifids'];
         for ($i = 0 ; $i < count($ifids) ; $i++) {
             if ($result) {
+                if ($ifids[$i] == '') continue;
                 $progress = "IIF070F.$i";
                 $ifid = mysql_real_escape_string(strtoupper($ifids[$i]), $db);
                 $result = mysql_query("insert into ifids
