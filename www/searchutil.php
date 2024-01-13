@@ -1023,9 +1023,9 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse)
 
     $logging_level = 0;
 
-    // in game searches, implicitly match by TUID and IFID with an early query
+    // in game searches, implicitly match by TUID with an early query
     if ($searchType == "game" && count($words) == 1 && count($extraJoins) == 0) {
-        $sql = "select games.id as gameid from games where games.id = ? union all select gameid from ifids where lower_ifid=lower(?)";
+        $sql = "select games.id as gameid from games where games.id = ?";
         if ($logging_level) {
             error_log($sql);
             error_log($words[0]);
