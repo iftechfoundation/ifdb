@@ -3,7 +3,7 @@ version: '3'
 services:
   db:
     image: mariadb:10
-    command: mysqld --sql_mode=""
+    command: mysqld --sql_mode="" --ft_stopword_file=""
     volumes:
       - ./initdb:/docker-entrypoint-initdb.d
     environment:
