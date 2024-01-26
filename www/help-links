@@ -24,7 +24,7 @@ file, don't add it as a download link; instead, link to the author's
 site via the Web Site field on the game's main page.
 
    <li>For files stored at the IF Archive, link to the <b>main</b> IF
-Archive site (http://www.ifarchive.org/...), <b>not</b> to a mirror.
+Archive site (https://www.ifarchive.org/...), <b>not</b> to a mirror.
 IFDB will automatically substitute a mirror site based on the user's
 preferences, but it can only do this with links that start off pointing
 to the main IF Archive URL.
