@@ -17,7 +17,7 @@ $apiKey = get_req_data("key");
 $newPath = preg_replace("/^\/+/", "", $newPath);
 
 // figure the new URL based on the relative path on the Archive
-$newUrl = "http://www.ifarchive.org/$newPath";
+$newUrl = "https://www.ifarchive.org/$newPath";
 
 if ($apiKey != localIfArchiveKey())
     die("Error: invalid API key");
