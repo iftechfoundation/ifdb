@@ -12,7 +12,7 @@ serial number that's assigned to each work of Interactive Fiction.
 Each work has its own unique IFID, giving players, authors, and
 archivists a universal, unambiguous way to refer to a given game.
 It's the same idea as the ISBN system for books.  The IFID system is
-defined by the <a href="http://babel.ifarchive.org">Treaty of
+defined by the <a href="https://babel.ifarchive.org">Treaty of
 Babel</a>, which was created in 2006.
 
 <h2>How do I determine a game's IFID?</h2>
@@ -25,7 +25,7 @@ the technical details.
 
 <p>If you're not the author, there are software tools that can find
 the IFID for a given story file.  The
-<a href="http://babel.ifarchive.org">Treaty of Babel</a> site has a
+<a href="https://babel.ifarchive.org">Treaty of Babel</a> site has a
 free, portable program that does this.  Some author systems also
 include built-in IFID extraction tools (for example, in TADS Workbench
 on Windows, the <b>Tools &gt; Read IFID From...</b> command can

@@ -28,7 +28,7 @@ update the IFDB listing for the game.  This would save the user the
 trouble of re-entering the project metadata via the IFDB web form.
 
 <p>The metadata format used in the putific API is iFiction, the XML
-format defined by the <a href="http://babel.ifarchive.org/">Treaty of
+format defined by the <a href="https://babel.ifarchive.org/">Treaty of
 Babel</a> specification.  iFiction is the obvious format for our
 purposes here, since it was was specifically designed for metadata
 interchange among sites like IFDB and the IF Archive, tools such as an

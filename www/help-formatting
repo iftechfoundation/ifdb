@@ -34,7 +34,7 @@ reader clicks a button saying they want to see it.
 <p><b>&lt;P&gt;</b> - paragraph break: shows a blank line between the paragraphs.
 
 <p><b>&lt;BR/&gt;</b> - paragraph break (this is provided so that you can
-   copy text from an <a href="http://babel.ifarchive.org">iFiction</a>
+   copy text from an <a href="https://babel.ifarchive.org">iFiction</a>
    XML file - the iFiction format uses &lt;BR/&gt; for paragraph breaks)
 
 <p><b>&lt;A GAME="<i>tuid</i>"&gt; ... &lt;/A&gt;</b> - hyperlink the text

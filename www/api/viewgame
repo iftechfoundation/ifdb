@@ -8,7 +8,7 @@ apiPageHeader("viewgame");
 ?>
 
 <p>The viewgame API lets applications retrieve IFDB's listing data for
-a game in the <a href="http://babel.ifarchive.org/">Treaty of
+a game in the <a href="https://babel.ifarchive.org/">Treaty of
 Babel</a>'s iFiction XML format.
 
 <h2>Identifying a game</h2>

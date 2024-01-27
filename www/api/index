@@ -47,9 +47,9 @@ requests to throttle the rate.
 <p>If the application you have in mind doesn't need live data, note
 that full exports of the IFDB SQL database (minus users' personal
 information) are available on the
-<a href="http://www.ifarchive.org/">IF Archive</a> in the
+<a href="https://www.ifarchive.org/">IF Archive</a> in the
 <a
-href="http://ifarchive.org/indexes/if-archiveXinfoXifdb.html">info/ifdb</a>
+href="https://ifarchive.org/indexes/if-archiveXinfoXifdb.html">info/ifdb</a>
 directory.  You can use these exports to create local copies of the
 database for more computation-intensive analysis, without using any network
 bandwidth and without creating any load on the IFDB servers.  The

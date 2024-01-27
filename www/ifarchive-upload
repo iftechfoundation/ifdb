@@ -135,7 +135,7 @@ function setArchivePath(fmt, typ)
 <h1>Upload to the IF Archive</h1>
 </div>
 
-<p>This form uploads to the <a target="_blank" href="http://www.ifarchive.org/">IF
+<p>This form uploads to the <a target="_blank" href="https://www.ifarchive.org/">IF
 Archive</a> (ifarchive.org).  IFDB itself doesn't host any uploaded
 game files.  ifarchive.org is the leading repository of current and
 historical IF works, so most authors of new works like to upload their
@@ -147,7 +147,7 @@ games there, to reach players and for historical preservation.</p>
 
    <li>Be aware that your file will be uploaded the ifarchive.org, <b>not</b> IFDB.
 
-   <li>You must read and agree to the <a target="_blank" href="http://ifarchive.org/misc/license.html">IF Archive Terms of Use</a>
+   <li>You must read and agree to the <a target="_blank" href="https://ifarchive.org/misc/license.html">IF Archive Terms of Use</a>
    before uploading.
 
    <li>Your file won't be available for download until an Archive maintainer
@@ -293,7 +293,7 @@ uploadForm.addEventListener('submit', function (event) {
 
   <tr><td align=right>Agreement:</td><td>&nbsp;</td>
      <td><input type="checkbox" name="tos">I agree to the
-        <a target="_blank" href="http://www.ifarchive.org/misc/license.html">IF Archive Terms of Use</a>
+        <a target="_blank" href="https://www.ifarchive.org/misc/license.html">IF Archive Terms of Use</a>
      </td></tr>
 
  <tr><td>&nbsp;</td><td>&nbsp;</td><td>
