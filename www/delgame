@@ -82,7 +82,7 @@ if (!$adminPriv) {
             IFDB game deletion request
 
             <p>
-                Game to Delete: <a href="{$root}viewgame?id=$qid">$title</a>
+                Game to Delete: <a href="{$root}viewgame?id=$qid">$title</a> ($qid)
                 <br>Requesting User: <a href="{$root}showuser?id=$userid">$userName</a>
                 <br>Reasons:<ul>$submitted_reasons</ul>
                 Note: $notes
