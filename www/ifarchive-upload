@@ -210,6 +210,14 @@ uploadForm.addEventListener('submit', function (event) {
 </script>
 
  <input type="hidden" name="ifdbid" value="<?php echo $uploadID ?>"/>
+ <?php
+ $tuid = $_GET['tuid'] ?? null;
+ if ($tuid && $tuid != "new") {
+    ?>
+    <input type="hidden" name="tuid" value="<?= htmlspecialcharx($tuid) ?>"/>
+    <?php
+ }
+ ?>
 
 <table border="0" cellspacing="5">
   <tr><td align=right>Filename:</td><td>&nbsp;</td>

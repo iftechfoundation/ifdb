@@ -1480,17 +1480,15 @@ foreach ($linkfmts as $lf) {
 
 function uploadWindow()
 {
-    var title = document.getElementById("title").value;
-    var devsys = document.getElementById("system").value;
-    var license = document.getElementById("license").value;
-    var author = document.getElementById("eAuthor").value;
-    var version = document.getElementById("version").value;
-    window.open("ifarchive-upload?"
-                + "title=" + encodeURIComponent(title)
-                + "&system=" + encodeURIComponent(devsys)
-                + "&license=" + encodeURIComponent(license)
-                + "&author=" + encodeURIComponent(author)
-                + "&version=" + encodeURIComponent(version));
+    var tuid = new URLSearchParams(window.location.search).get('id');
+    var params = new URLSearchParams();
+    params.set("title", document.getElementById("title").value);
+    params.set("system", document.getElementById("system").value);
+    params.set("license", document.getElementById("license").value);
+    params.set("author", document.getElementById("eAuthor").value);
+    params.set("version", document.getElementById("version").value);
+    if (tuid) params.set("tuid", tuid);
+    window.open("ifarchive-upload?" + params.toString());
 }
 
 function submitUpload(id, fname, fmtid, osid, compression, pri)
