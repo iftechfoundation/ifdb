@@ -84,7 +84,14 @@ function mysqli_execute_query(mysqli $mysqli, string $sql, array $params = null)
     return false;  
   }
 
-  return $stmt->get_result();  
+  $result = $stmt->get_result();
+  // $stmt->get_result() returns false on successful INSERT/UPDATE statements
+  // https://www.php.net/manual/en/mysqli-stmt.get-result.php#refsect1-mysqli-stmt.get-result-returnvalues
+  if ($result === false && !$stmt->errno) {
+    return true;
+  } else {
+    return $result;
+  }
 }
 }
 
