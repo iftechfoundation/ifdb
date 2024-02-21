@@ -7,8 +7,8 @@ include_once "dbconnect.php";
 try {
     $db = dbConnect();
 
-    $id = mysql_real_escape_string(get_req_data("ifdbid"), $db);
-    $newPath = mysql_real_escape_string(get_req_data("path"), $db);
+    $id = get_req_data("ifdbid");
+    $newPath = get_req_data("path");
     $oldUrl = "https://ifdb.org/ifarchive-pending?ifdbid=$id";
     $apiKey = get_req_data("key");
 
@@ -21,17 +21,20 @@ try {
     if ($apiKey != localIfArchiveKey())
         throw new Exception("Error: invalid API key");
 
-    $result = mysql_query(
+    $result = mysqli_execute_query($db,
         "select gameid from gamelinks
-        where url = '$oldUrl'", $db);
+         where url = ?", [$oldUrl]);
+
+    if (!$result) throw new Exception("Error: database gamelinks url query failed: " . mysqli_error($db));
 
     if (mysql_num_rows($result) == 0)
         throw new Exception("Error: no link found to this pending URL");
 
-    $result = mysql_query(
+    $result = mysqli_execute_query($db,
         "update gamelinks
-        set attrs = attrs & ~".GAMELINK_PENDING.", url='$newUrl'
-        where url='$oldUrl'", $db);
+         set attrs = attrs & ~".GAMELINK_PENDING.", url=?
+         where url=?", [$newUrl, $oldUrl]
+    );
     
     if (!$result) throw new Exception("Error: database update failed: " . mysqli_error($db));
 
