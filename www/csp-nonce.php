@@ -34,4 +34,5 @@ header("Content-Security-Policy: "
     ."default-src 'self' ifdb.org www.google.com 'nonce-$nonce'; "
     ."script-src 'self' ifdb.org www.google.com 'nonce-$nonce'; "
     ."style-src 'self' ifdb.org 'nonce-$nonce'; "
+    ."frame-ancestors 'self'; "
 );
