@@ -30,4 +30,9 @@ global $nonce;
 $nonce = random_str(8);
 
 // default-src should be enough, but Firefox ESR 102 doesn't support `default-src nonce`, only `style-src nonce` and `script-src nonce`.
-header("Content-Security-Policy: default-src 'self' ifdb.org www.google.com 'nonce-$nonce'; script-src 'self' ifdb.org www.google.com 'nonce-$nonce'; style-src 'self' ifdb.org 'nonce-$nonce';");
+header("Content-Security-Policy: "
+    ."default-src 'self' ifdb.org www.google.com 'nonce-$nonce'; "
+    ."script-src 'self' ifdb.org www.google.com 'nonce-$nonce'; "
+    ."style-src 'self' ifdb.org 'nonce-$nonce'; "
+    ."frame-ancestors 'self'; "
+);
