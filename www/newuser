@@ -323,6 +323,13 @@ function handlePost()
         return true;
     }
 
+    $max_password_length = MAX_PASSWORD_LENGTH;
+
+    if (strlen($psw) > $max_password_length) {
+        $errFlagged = "Your password is too long - please use no more than $max_password_length characters.";
+        return true;
+    }
+
     // set up the database connection
     $db = dbConnect();
     if ($db == false)

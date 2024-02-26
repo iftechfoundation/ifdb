@@ -88,6 +88,11 @@ function mysqli_execute_query(mysqli $mysqli, string $sql, array $params = null)
 }
 }
 
+// https://cheatsheetseries.owasp.org/cheatsheets/Authentication_Cheat_Sheet.html#implement-proper-password-strength-controls
+// "It is important to set a maximum password length to prevent long password Denial of Service attacks."
+// https://www.acunetix.com/vulnerabilities/web/long-password-denial-of-service/
+define("MAX_PASSWORD_LENGTH", 1024);
+
 // --------------------------------------------------------------------------
 //
 // Terms of Service version number

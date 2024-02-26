@@ -83,6 +83,11 @@ function verify() {
                 six characters long.";
             return true;
         }
+        $max_password_length = MAX_PASSWORD_LENGTH;
+        if (strlen($psw) > $max_password_length) {
+            $errFlagged = "Your password is too long - please use no more than $max_password_length characters.";
+            return true;
+        }
         if (strcmp($psw, $psw2) != 0) {
             $errFlagged = "Password mismatch - you must enter the
                 <b>identical</b> password two times to ensure that you

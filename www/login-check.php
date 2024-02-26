@@ -96,6 +96,11 @@ function redirect_to_login_page()
 //
 function doLogin($db, $username, $password)
 {
+    if (strlen($password) > MAX_PASSWORD_LENGTH) {
+        return array(false, "incorrect username or password",
+            "The password is too long. If this is your password, please reset it by using the \"Lost Password\" page.");
+    }
+
     // set up a quoted version of the user ID
     $quid = mysql_real_escape_string($username, $db);
 
