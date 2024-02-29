@@ -1,0 +1,84 @@
+<?php
+
+include_once "util.php";
+include_once "pagetpl.php";
+include_once "dbconnect.php";
+
+$db = dbConnect();
+
+$result = mysqli_execute_query($db, "select gameid, title, url from gamelinks where url like '%ifarchive-pending%'");
+
+/*
+there since version N, still there: there's a latest links entry for pagevsn N-1 which does NOT contain the link
+there since version 1: there's not a links entry that does NOT contain the link
+    either because there are no links entries
+    or because all of the links entries have it
+*/
+
+$results = [];
+
+while ($row = mysqli_fetch_row($result)) {
+    [$gameid, $file, $url] = $row;
+    [$title] = mysqli_fetch_row(mysqli_execute_query($db,
+        "select title from games where id = ?", [$gameid]
+    ));
+    [$moddate, $pagevsn] = mysqli_fetch_row(mysqli_execute_query($db,
+        "select moddate, pagevsn from games_history
+        where id = ? and deltas like '%links%'
+        and deltas not like ?
+        order by pagevsn desc limit 1",
+        [$gameid, "%$url%"]
+    ));
+    if (!$moddate) {
+        $pagevsn = 1;
+        [$moddate] = mysqli_fetch_row(mysqli_execute_query($db,
+            "select created from games where id = ?",
+            [$gameid]
+        ));
+    }
+    $results[] = [
+        gameid => $gameid,
+        title => $title,
+        file => $file,
+        url => $url,
+        moddate => $moddate,
+        pagevsn => $pagevsn,
+    ];
+}
+
+function sortByDate($a, $b) {
+    return $b['moddate'] - $a['moddate'];
+}
+
+usort($results, "sortByDate");
+
+varPageHeader("IF Archive Pending Links", false, false);
+?>
+
+<h1>IF Archive Pending Links</h1>
+
+<table>
+    <thead>
+        <tr>
+            <th>Game</th>
+            <th>File Name</th>
+            <th>Date</th>
+            <th>Pending URL</th>
+        </tr>
+    </thead>
+    <tbody>
+<?php
+foreach ($results as $result) {
+    ?>
+        <tr>
+            <td><a href="/viewgame?id=<?=$result['gameid']?>"><?= htmlspecialcharx($result['title']) ?></a></td>
+            <td><?= htmlspecialcharx($result['file']) ?></td>
+            <td><?= $result['moddate'] ?></td>
+            <td><?= $result['url'] ?></td>
+        </tr>
+    <?php
+}
+?>
+    </tbody>
+</table>
+
