@@ -20,6 +20,8 @@ truncate table userScores_mv;
 insert into userScores_mv select *, now() from userScores;
 unlock tables;
 
+alter table games add fulltext key `author` (`author`);
+
 alter table reviews
     add column `embargopastdate` date DEFAULT NULL,
     add key `embargodate` (`embargodate`),
