@@ -142,3 +142,6 @@ alter table ifids
     add column lower_ifid varchar(64) COLLATE latin1_german2_ci as (lower(ifid)) VIRTUAL,
     add key lower_ifid (`lower_ifid`)
 ;
+
+insert into users (id, name, created)
+VALUES ('ix4vb4m6daiyrayh', 'IF Archive Team', now());
