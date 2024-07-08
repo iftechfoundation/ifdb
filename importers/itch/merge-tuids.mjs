@@ -23,7 +23,7 @@ for (const game of entries) {
             // when there's only one result, the parser inlines the array
             games = [games];
         }
-        const matches = games.filter(result => result.title === game.title);
+        const matches = games.filter(result => result?.title === game.title);
         if (!matches.length) {
             console.log(`Couldn't find ${game.title}: ${JSON.stringify(xml)}`);
         } else if (matches.length > 1) {
