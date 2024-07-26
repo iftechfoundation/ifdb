@@ -46,7 +46,6 @@ drop view gameRatingsSandbox0;
 drop view gameRatingsSandbox01;
 
 drop table gameRatingsSandbox0_mv;
-drop procedure refresh_gameRatingsSandbox0_mv;
 drop trigger reviews_insert;
 drop trigger reviews_update;
 drop trigger reviews_delete;
