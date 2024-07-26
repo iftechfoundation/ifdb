@@ -10,7 +10,7 @@ const tasks = [];
 for (const game of entries) {
     tasks.push(async () => {
         //if (game.tuid) continue;
-        const queryString = `${game.title} published:${year}`;
+        const queryString = `${game.title} added:${year}`;
         const searchUrl = `${url}/search?xml&game&searchfor=${escape(queryString)}`;
         console.log(searchUrl);
         const response = await fetch(searchUrl);
