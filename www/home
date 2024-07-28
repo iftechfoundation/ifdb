@@ -128,6 +128,10 @@ if ($debugflag) echo "debug mode enabled...<br>";
          </ul>
       </div>
 
+      <div class="aside-box">
+         <p>IFDB was originally developed by <a href="https://www.tads.org/">Mike Roberts</a>.
+      </div>
+
    </div>
 </div>
 
