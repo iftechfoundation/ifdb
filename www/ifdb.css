@@ -1066,6 +1066,35 @@ div.footer {
     font-size: 70%;
 }
 
+.iftf-donation {
+    display: flex;
+    flex-direction: row;
+    max-width: 100ch;
+}
+
+.footer .iftf-donation {
+    padding-top: 1em;
+}
+
+.iftf-donation img {
+    float: left;
+    height: 6em;
+    padding-right: 2ch;
+}
+
+.iftf-donation form {
+    padding-top: 1em;
+    margin: 0;
+}
+.iftf-donation .Donate {
+    background-color: #D16525;
+    border: 1px solid #5A0000;
+    border-radius: 6px;
+    padding: 8px 10px;
+    color: white;
+    font-weight: bold;
+}
+
 /*
 The "nav" style is used for the navigation links at the bottom
 of each page.
@@ -1173,6 +1202,10 @@ span.headlineRss {
 
     .mobile-menu ul a{
         width: 100%;
+    }
+
+    .iftf-donation {
+        display: block;
     }
 
 }
@@ -2569,5 +2602,8 @@ span.sfl-save-autodesc {
     }
     tr.evenRow {
         background: #202020;
+    }
+    img.invert {
+        filter: invert(1);
     }
 }

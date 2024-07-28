@@ -180,6 +180,20 @@ function pageFooter()
 <a class="nav" id="footer-tos" href="/tos">Terms of Service</a> |
 <a class="nav" id="footer-privacy" href="/privacy">Privacy</a> |
 <a class="nav" id="footer-copyright" href="/copyright">Copyrights &amp; Trademarks</a>
+<div class="iftf-donation">
+    <div>
+        <a href="http://iftechfoundation.org/"><img class="iftf invert" alt="Interactive Fiction technology Foundation" src="/img/iftf-logo.svg"></a>
+    </div>
+    <div>
+        IFDB is managed by the <a href="http://iftechfoundation.org/">Interactive Fiction Technology Foundation</a>.
+        It is funded by <a href="http://iftechfoundation.org/give/">the donations of IF supporters like you</a>.
+        All donations go to support the operation of this web site and IFTF's other services.
+        <form action="https://www.paypal.com/donate" method="post" target="_top">
+            <input type="hidden" name="hosted_button_id" value="2CZJEA3PXM3QS" />
+            <input class="Donate" type="submit" value="Donate with PayPal">
+        </form>
+    </div>
+</div>
 </div>
 
 </div>
