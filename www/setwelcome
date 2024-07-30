@@ -1,0 +1,24 @@
+<?php
+
+include_once "session-start.php";
+include_once "util.php";
+
+include_once "dbconnect.php";
+$db = dbConnect();
+
+if (provisionally_logged_in())
+    $usernum = $_SESSION['provisional_logged_in_as'];
+else if (logged_in())
+    $usernum = $_SESSION['logged_in_as'];
+else
+    exit();
+
+$open = $_POST['open'] === "true" ? 1 : 0;
+
+$result = mysqli_execute_query($db, "select welcomeopen from users where id = ?", [$usernum]);
+$rec = mysql_fetch_array($result, MYSQL_ASSOC);
+$old = $rec['welcomeopen'];
+
+if ($open !== $old) {
+    mysqli_execute_query($db, "update users set welcomeopen = ? where id = ?", [$open, $usernum]);
+}
