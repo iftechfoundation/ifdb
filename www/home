@@ -17,13 +17,15 @@ $loggedIn = (isset($_SESSION['logged_in']) && $_SESSION['logged_in']);
 
 $adminPriv = false;
 $caughtUpDate = false;
+$welcomeOpen = true;
 
 if ($uid) {
     $result = mysql_query(
-        "select `privileges`, caughtupdate from users where id='$quid'", $db);
+        "select `privileges`, caughtupdate, welcomeopen from users where id='$quid'", $db);
     $priv = mysql_result($result, 0, "privileges");
     $adminPriv = (strpos($priv, "A") !== false);
     $caughtUpDate = mysql_result($result, 0, "caughtupdate");
+    $welcomeOpen = mysql_result($result, 0, "welcomeopen");
 }
 
 $debugflag = get_req_data('debug') == 'yesDebug';
@@ -36,7 +38,7 @@ if ($debugflag) echo "debug mode enabled...<br>";
    <div class="column col-main">
 
       <div class="block">
-         <details id="welcome-details" open>
+         <details id="welcome-details" <?= $welcomeOpen ? "open" : ""?>>
          <summary>
             <div class="headline headline1"><span><span id="welcome-disclosure"></span> Welcome to IFDB!</span>
                <span class=headlineRss>
@@ -45,6 +47,25 @@ if ($debugflag) echo "debug mode enabled...<br>";
                </span>
             </div>
          </summary>
+         <?php
+         if ($uid) {
+            ?>
+            <script type="text/javascript" nonce="<?php global $nonce; echo $nonce; ?>">
+               let dbWelcome = <?= $welcomeOpen ? "true" : "false"?>;
+               window["welcome-details"].addEventListener("toggle", () => {
+                  const open = window["welcome-details"].open;
+                  if (open !== dbWelcome) {
+                     dbWelcome = open;
+                     fetch('/setwelcome', {
+                        method: 'post',
+                        body: new URLSearchParams({open}),
+                     });
+                  }
+               })
+            </script>
+            <?php
+         }
+         ?>
 
          <p>The Interactive Fiction Database is an IF game catalog and recommendation engine. IFDB is a Wiki-style community project: members can add new game listings, write reviews, exchange game recommendations, and more. <span class=details><a href="tips">Tips & More Info</a></span><p>
 
