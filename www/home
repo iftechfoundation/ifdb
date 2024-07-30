@@ -36,12 +36,15 @@ if ($debugflag) echo "debug mode enabled...<br>";
    <div class="column col-main">
 
       <div class="block">
-         <div class="headline headline1">Welcome to IFDB!
-            <span class=headlineRss>
-               <a href="news">Site News</a> |
-               <a href="news?rss"><img src="img/blank.gif" class="rss-icon" alt="">RSS Feed</a>
-            </span>
-         </div>
+         <details id="welcome-details" open>
+         <summary>
+            <div class="headline headline1"><span><span id="welcome-disclosure"></span> Welcome to IFDB!</span>
+               <span class=headlineRss>
+                  <a href="news">Site News</a> |
+                  <a href="news?rss"><img src="img/blank.gif" class="rss-icon" alt="">RSS Feed</a>
+               </span>
+            </div>
+         </summary>
 
          <p>The Interactive Fiction Database is an IF game catalog and recommendation engine. IFDB is a Wiki-style community project: members can add new game listings, write reviews, exchange game recommendations, and more. <span class=details><a href="tips">Tips & More Info</a></span><p>
 
