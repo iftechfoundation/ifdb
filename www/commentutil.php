@@ -155,14 +155,14 @@ function queryComments($db, $mode, $quid, $limit, $caughtUpDate, $keepPlonked)
 
         // build the item title and link, which vary by source type
         $title = "$cuname on ";
-        $ltitle = "<a href=\"showuser?id=$cuid\">$cuname</a> on ";
+        $linktitle = "<a href=\"showuser?id=$cuid\">$cuname</a> on ";
         switch ($src)
         {
         case 'R':
             // review
             $title .= "$runame's review of $rgtitle";
             $link = "viewgame?id=$rgid&review=$srcid&pgForComment=$cid";
-            $ltitle .= "<a href=\"$link\">$runame's review</a> of "
+            $linktitle .= "<a href=\"$link\">$runame's review</a> of "
                        . "<a href=\"viewgame?id=$rgid\">$rgtitle</a>";
             break;
 
@@ -170,14 +170,14 @@ function queryComments($db, $mode, $quid, $limit, $caughtUpDate, $keepPlonked)
             // user profile
             $link = "showuser?id=$srcid&comments&pgForComment=$cid";
             $title .= "$uuname's member profile";
-            $ltitle .= "<a href=\"$link\">$uuname</a>'s member profile";
+            $linktitle .= "<a href=\"$link\">$uuname</a>'s member profile";
             break;
 
         case 'L':
             // recommended list
             $link = "viewlist?id=$srcid&comments&pgForComment=$cid";
             $title .= "$ltitle (a Recommended List by $luname)";
-            $ltitle .= "<a href=\"$link\">$ltitle</a> (a Recommended List "
+            $linktitle .= "<a href=\"$link\">$ltitle</a> (a Recommended List "
                        . "by <a href=\"showuser?id=$luid\">$luname</a>)";
             break;
 
@@ -185,13 +185,13 @@ function queryComments($db, $mode, $quid, $limit, $caughtUpDate, $keepPlonked)
             // poll
             $link = "poll?id=$srcid&comments&pgForComment=$cid";
             $title .= "$ptitle (a poll by $puname)";
-            $ltitle .= "<a href=\"$link\">$ptitle</a> (a poll by "
+            $linktitle .= "<a href=\"$link\">$ptitle</a> (a poll by "
                        . "<a href=\"showuser?id=$puid\">$puname</a>)";
             break;
         }
 
         // build the return list
-        $comments[] = array($row, $link, $title, $ltitle);
+        $comments[] = array($row, $link, $title, $linktitle);
 
     }
 
