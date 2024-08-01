@@ -2810,6 +2810,23 @@ dispTags();
                <?php if (!isEmpty($forgiveness))
                    echo helpWinLink("help-forgiveness", "Forgiveness Rating")
                        . ": $forgiveness<br>" ?>
+               <?php
+                    if (count($ifids) > 0) {
+                        echo "<div id=\"ifwiki-link\" class=\"displayNone\"><a href=\"https://www.ifwiki.org/\">IF Wiki</a>: <a href=\"https://www.ifwiki.org/index.php?title=IFID:"
+                            .htmlspecialcharx($ifids[0])."\">$title</a><br></div>";
+                        $jifid = htmlspecialcharx(str_replace("\"", "&#34;", $ifids[0]));
+                        ?>
+                        <script nonce="<?php global $nonce; echo $nonce; ?>">
+                            xmlSend("ifwiki-check?ifid=<?php echo $jifid ?>", null,
+                                function(doc) {
+                                    if (xmlChildText(doc, "exists") == "yes") {
+                                        document.getElementById("ifwiki-link").style.display = "initial";
+                                    }
+                                }, null);
+                        </script>
+                        <?php
+                    }
+                ?>
                <?php if(!isEmpty($bafsid))
                    echo helpWinLink("help-bafs", "Baf's Guide ID")
                         . ":
@@ -3145,48 +3162,6 @@ if (count($inrefs) != 0 && !$historyView) {
             . "<div class=indented>$osr</div>";
 
     } // if (off-site "below" mode)
-
-
-//--------------------------- LINKS SECTION -------------------------------
-
-    if ($detailView) {
-
-        // Check to see if there are indeed any links.  If there's a Baf's
-        // ID, we have a link to Baf's Guide.  If there's an IFID, we
-        // *might* have a link to the IF Wiki, but we won't know until we
-        // send our xml request to ask.  So always start with an invisible
-        // section, and enable it in javascript as needed.
-
-        if ($website || count($ifids) > 0) {
-            echo "<div id=\"links-div\" class=\"".($website ? "" : "displayNone")."\">"
-                . "<h2>Links</h2>"
-                . "<div class=indented>";
-
-            if ($website) {
-                echo "<a href=\"".htmlspecialcharx($website)."\"><i>$title</i> Web Site</a>\n";
-            }
-
-            if (count($ifids) > 0) {
-                echo "<div id=\"ifid-link\" class=\"displayNone\"><a href=\"https://www.ifwiki.org/index.php?title=IFID:".htmlspecialcharx($ifids[0])."\">$title</a>"
-                    ." at <a href=\"https://www.ifwiki.org/index.php\">IF Wiki</a></div>";
-                $jifid = htmlspecialcharx(str_replace("\"", "&#34;", $ifids[0]));
-                ?>
-                <script nonce="<?php global $nonce; echo $nonce; ?>">
-                    xmlSend("ifwiki-check?ifid=<?php echo $jifid ?>", null,
-                        function(doc) {
-                            if (xmlChildText(doc, "exists") == "yes") {
-                                document.getElementById("ifid-link").style.display = "initial";
-                                document.getElementById("links-div").style.display = "initial";
-                            }
-                        }, null);
-                </script>
-                <?php
-            }
-        }
-
-        echo "</div>"
-            . "</div>";
-    }
 
 
 //-------------------------- RSS FEEDS ---------------------------
