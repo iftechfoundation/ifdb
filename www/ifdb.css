@@ -469,6 +469,7 @@ div.new-club {
 .restricted {
     background: #F0F0F0;
     padding: 1em;
+    max-width: 60ch;
 }
 
 /*
