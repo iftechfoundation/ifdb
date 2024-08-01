@@ -1212,7 +1212,7 @@ span.headlineRss {
 }
 
 .readMore {
-    max-height: 40vh;
+    max-height: 80vh;
     max-width: 60ch;
     overflow-y: hidden;
     transition: all 0.3s ease;

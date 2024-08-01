@@ -701,7 +701,7 @@ function checkReadMoreSections() {
         : window.innerHeight;
     document.querySelectorAll('.readMore').forEach(section => {
         const expand = section.querySelector('.expand');
-        if (!section.style.maxHeight && section.scrollHeight > windowHeight * 0.4) {
+        if (!section.style.maxHeight && section.scrollHeight > windowHeight * 0.8) {
             expand.style.display = 'block';
         } else {
             expand.style.display = '';
