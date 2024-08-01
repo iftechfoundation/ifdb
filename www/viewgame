@@ -1241,14 +1241,17 @@ if (!$should_hide) {
         "select count(userid) from playedgames where gameid='$qid'", $db);
     list($playlistCnt) = mysql_fetch_row($result);
 
+    $emdash = false;
+
     if ($playlistCnt) {
-        echo "<div class='details'><a id=playlistCount href='whoselist?game=$id&type=playlist' class='silent'>";
-        if ($playlistCnt === 1) {
+        $emdash = true;
+        echo " &mdash; <a id=playlistCount href='whoselist?game=$id&type=playlist' class='silent'>";
+        if ($playlistCnt == 1) {
             echo "1 member has";
         } else {
             echo "$playlistCnt members have";
         }
-        echo " played this game</a></div>";
+        echo " played this game.</a></div>";
     }
 
     $result = mysql_query(
@@ -1256,8 +1259,11 @@ if (!$should_hide) {
     list($wishlistCnt) = mysql_fetch_row($result);
 
     if ($wishlistCnt) {
-        echo "<div class='details'><a id=wishlistCount href='whoselist?game=$id&type=wishlist' class='silent'>It's on $wishlistCnt wishlist";
-        if ($wishlistCnt !== 1) {
+        if (!$emdash) {
+            echo " &mdash;";
+        }
+        echo " <a id=wishlistCount href='whoselist?game=$id&type=wishlist' class='silent'>It's on $wishlistCnt wishlist";
+        if ($wishlistCnt != 1) {
             echo "s";
         }
         echo "</a></div>";
