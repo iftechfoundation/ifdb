@@ -1588,7 +1588,7 @@ if (count($links) == 0 && $dlnotes == "") {
                     ($fmticon ? "fileformat?geticon=$fmtid" :
                      false));
         if ($iconsrc)
-            echo "<a href=\"$url\"><img src=\"$iconsrc\" border=0></a>";
+            echo "<a href=\"$url\"><img width=40 height=40 src=\"$iconsrc\" border=0></a>";
 
         echo "</td><td><div class='downloaditem' id='dlItem$i'>
               <a href=\"$url\"><b>$linktitle</b></a>$zipstar<br>";
