@@ -4,39 +4,95 @@ include_once "util.php";
 include_once "pagetpl.php";
 include_once "dbconnect.php";
 
-header("Content-type: text/plain");
+try {
+    $db = dbConnect();
 
-$db = dbConnect();
+    $ifdbid = get_req_data("ifdbid");
+    $newPath = get_req_data("path");
+    $apiKey = get_req_data("key");
 
-$id = mysql_real_escape_string(get_req_data("ifdbid"), $db);
-$newPath = mysql_real_escape_string(get_req_data("path"), $db);
-$oldUrl = "https://ifdb.org/ifarchive-pending?ifdbid=$id";
-$apiKey = get_req_data("key");
+    $oldUrl = "https://ifdb.org/ifarchive-pending?ifdbid=$ifdbid";
 
-// remove any leading '/' in the path
-$newPath = preg_replace("/^\/+/", "", $newPath);
+    $ifarchive_userid = "ix4vb4m6daiyrayh"; // IF Archive Team
 
-// figure the new URL based on the relative path on the Archive
-$newUrl = "https://www.ifarchive.org/$newPath";
+    // remove any leading '/' in the path
+    $newPath = preg_replace("/^\/+/", "", $newPath);
 
-if ($apiKey != localIfArchiveKey())
-    die("Error: invalid API key");
+    // figure the new URL based on the relative path on the Archive
+    $newUrl = "https://www.ifarchive.org/$newPath";
 
-$result = mysql_query(
-    "select gameid from gamelinks
-     where url = '$oldUrl'", $db);
+    if ($apiKey != localIfArchiveKey())
+        throw new Exception("Error: invalid API key");
 
-if (mysql_num_rows($result) == 0)
-    die("Error: no link found to this pending URL");
+    $result = mysqli_execute_query($db,
+        "select gameid from gamelinks
+         where url = ?", [$oldUrl]);
 
-$result = mysql_query(
-    "update gamelinks
-     set attrs = attrs & ~".GAMELINK_PENDING.", url='$newUrl'
-     where url='$oldUrl'", $db);
+    if (!$result) throw new Exception("Error: database gamelinks url query failed: " . mysqli_error($db));
 
-if ($result)
+    if (mysql_num_rows($result) == 0)
+        throw new Exception("Error: no link found to this pending URL");
+
+    $rec = mysqli_fetch_array($result, MYSQL_ASSOC);
+    $gameid = $rec['gameid'];
+
+    // gather previous data for games_history
+    $result = mysqli_execute_query($db,
+        "select pagevsn, editedby, moddate from games
+         where id = ?", [$gameid]);
+
+    if (!$result) throw new Exception("Error: database games query failed: " . mysqli_error($db));
+
+    $rec = mysqli_fetch_array($result, MYSQL_ASSOC);
+    if (!$rec) throw new Exception("Error: database games query returned no results: " . mysqli_error($db));
+    $old_pagevsn = $rec['pagevsn'];
+    $old_editedby = $rec['editedby'];
+    $old_moddate = $rec['moddate'];
+
+    // gather old links for games_history
+    $result = mysqli_execute_query($db,
+            "select
+               url, title, `desc`, attrs, fmtid, osid, osvsn,
+               compression, compressedprimary, displayorder
+            from gamelinks
+            where gameid = ?
+            order by displayorder", [$gameid]
+    );
+    if (!$result) throw new Exception("Error: database gamelinks query failed: " . mysqli_error($db));
+    $rows = mysqli_num_rows($result);
+    $links = [];
+    for ($i = 0 ; $i < $rows ; $i++)
+        $links[$i] = mysqli_fetch_array($result, MYSQL_ASSOC);
+    $deltas = ["links" => $links];
+
+    $result = mysqli_execute_query($db,
+        "update gamelinks
+         set attrs = attrs & ~".GAMELINK_PENDING.", url=?
+         where url=?", [$newUrl, $oldUrl]
+    );
+
+    if (!$result) throw new Exception("Error: database gamelinks update failed: " . mysqli_error($db));
+
+    // each history record saves the old values for the columns edited in the *following* version
+    $result = mysqli_execute_query($db,
+        "insert into games_history (id, editedby, moddate, pagevsn, deltas) values (?, ?, ?, ?, ?)",
+        [$gameid, $old_editedby, $old_moddate, $old_pagevsn, serialize($deltas)]);
+
+    if (!$result) throw new Exception("Error: database games_history insert failed: " . mysqli_error($db));
+
+    $result = mysqli_execute_query($db,
+        "update games set pagevsn = ?, editedby = ?, moddate = now() where id = ?",
+        [($old_pagevsn+1), $ifarchive_userid, $gameid]);
+
+    if (!$result) throw new Exception("Error: database games update failed: " . mysqli_error($db));
+
+    header("Content-type: text/plain");
     echo "OK";
-else
-    die("Error: database update failed: " . mysql_error($db));
+} catch (Exception $e) {
+    error_log($e);
+    http_response_code(500);
+    header("Content-type: text/plain");
+    echo $e->getMessage();
+}
 
 ?>
