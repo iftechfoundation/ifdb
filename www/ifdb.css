@@ -1092,6 +1092,10 @@ div.footer {
     cursor: pointer;
 }
 
+#welcome-details summary::-webkit-details-marker {
+    display: none;
+}
+
 #welcome-details[open] #welcome-disclosure::before {
     content: '[-]';
 }
