@@ -1135,6 +1135,11 @@ div.footer {
     padding: 8px 10px;
     color: white;
     font-weight: bold;
+    cursor: pointer;
+}
+
+.iftf-donation .Donate:hover {
+    background-color: #b45620;
 }
 
 /*
