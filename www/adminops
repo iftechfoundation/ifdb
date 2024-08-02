@@ -1069,6 +1069,8 @@ else if (isset($_REQUEST['users'])) {
         . "showuser?id=$quid</a><br>"
         . "Comment Log: <a href=\"commentlog?user=$quid\" target=\"_blank\">"
         . "commentlog?user=$quid</a><br>"
+        . "Update Log: <a href=\"allupdates?user=$quid\" target=\"_blank\">"
+        . "allupdates?user=$quid</a><br>"
         . "<span class=details>Activation URL: $acturl</span><br>"
         . "<p>Remarks: $remarks<br>"
         . "<p>" . genNewUserAdminLinks(true, $actcode, $pswsalt);
