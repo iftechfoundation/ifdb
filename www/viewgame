@@ -1307,6 +1307,16 @@ if ($embargoCnt > 0)
 
     } // if ($detailView)
 
+    // show the description, if it's present AND we're in Detail or
+    // History mode
+    if (!isEmpty($desc) && ($detailView || $historyView)) {
+?>
+         <h3>About the Story</h3>
+         <div class="readMore"><p><?php echo $desc ?></p>
+            <div class="expand"><button>Read More</button></div>
+        </div>
+<?php
+
     // ------------------------ DOWNLOADS -------------------------------
     if ($detailView || $historyView || $downloadsView) {
 
@@ -1786,14 +1796,7 @@ mouseOutRating(<?php echo $currentUserRating ?>);
 
     } // if ($detailView || $historyView)
 
-    // show the description, if it's present AND we're in Detail or
-    // History mode
-    if (!isEmpty($desc) && ($detailView || $historyView)) {
 ?>
-         <h3>About the Story</h3>
-         <div class="readMore"><p><?php echo $desc ?></p>
-            <div class="expand"><button>Read More</button></div>
-        </div>
       </td>
    </tr>
 </table>
