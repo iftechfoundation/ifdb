@@ -1,8 +1,31 @@
 <?php
 
 define("ENABLE_IMAGES", 0);
+define("NEWITEMS_SITENEWS", 0x0001);
+define("NEWITEMS_GAMES", 0x0002);
+define("NEWITEMS_LISTS", 0x0004);
+define("NEWITEMS_POLLS", 0x0008);
+define("NEWITEMS_REVIEWS", 0x0010);
+define("NEWITEMS_COMPS", 0x0020);
+define("NEWITEMS_CLUBS", 0x0040);
+define("NEWITEMS_GAMENEWS", 0x0080);
+define("NEWITEMS_COMPNEWS", 0x0100);
+define("NEWITEMS_CLUBNEWS", 0x0200);
 
-function getNewItems($db, $limit)
+define("NEWITEMS_ALLITEMS", 
+    NEWITEMS_SITENEWS
+    | NEWITEMS_GAMES
+    | NEWITEMS_LISTS
+    | NEWITEMS_POLLS
+    | NEWITEMS_REVIEWS
+    | NEWITEMS_COMPS
+    | NEWITEMS_CLUBS
+    | NEWITEMS_GAMENEWS
+    | NEWITEMS_COMPNEWS
+    | NEWITEMS_CLUBNEWS
+);
+
+function getNewItems($db, $limit, $itemTypes = NEWITEMS_ALLITEMS)
 {
     // get the logged-in user
     checkPersistentLogin();
@@ -35,181 +58,201 @@ function getNewItems($db, $limit)
     // start with an empty list
     $items = array();
 
-    // query site news
-    $result = mysql_query(
-        "select
-           itemid as sitenewsid, title, ldesc as `desc`,
-           posted as d,
-           date_format(posted, '%M %e, %Y') as fmtdate,
-           (now() < date_add(posted, interval 7 day)) as freshest
-         from
-           sitenews
-         order by
-           d desc
-         $limit", $db);
-    $sitenewscnt = mysql_num_rows($result);
-    for ($i = 0 ; $i < $sitenewscnt ; $i++) {
-        $row = mysql_fetch_array($result, MYSQL_ASSOC);
-        if ($i) $row['freshest'] = 0;
-        $items[] = array('S', $row['d'], $row);
+    if ($itemTypes & NEWITEMS_SITENEWS) {
+        // query site news
+        $result = mysql_query(
+            "select
+               itemid as sitenewsid, title, ldesc as `desc`,
+               posted as d,
+               date_format(posted, '%M %e, %Y') as fmtdate,
+               (now() < date_add(posted, interval 7 day)) as freshest
+             from
+               sitenews
+             order by
+               d desc
+             $limit", $db);
+        $sitenewscnt = mysql_num_rows($result);
+        for ($i = 0 ; $i < $sitenewscnt ; $i++) {
+            $row = mysql_fetch_array($result, MYSQL_ASSOC);
+            if ($i) $row['freshest'] = 0;
+            $items[] = array('S', $row['d'], $row);
+        }
     }
 
-    // query the recent games
-    $result = mysql_query(
-        "select id, title, author, `desc`, created as d,
-           date_format(created, '%M %e, %Y') as fmtdate,
-           (coverart is not null) as hasart
-         from games
-         order by created desc
-         $limit", $db);
-    $gamecnt = mysql_num_rows($result);
-    for ($i = 0 ; $i < $gamecnt ; $i++) {
-        $row = mysql_fetch_array($result, MYSQL_ASSOC);
-        $items[] = array('G', $row['d'], $row);
+    if ($itemTypes & NEWITEMS_GAMES) {
+        // query the recent games
+        $result = mysql_query(
+            "select id, title, author, `desc`, created as d,
+               date_format(created, '%M %e, %Y') as fmtdate,
+               (coverart is not null) as hasart
+             from games
+             order by created desc
+             $limit", $db);
+        $gamecnt = mysql_num_rows($result);
+        for ($i = 0 ; $i < $gamecnt ; $i++) {
+            $row = mysql_fetch_array($result, MYSQL_ASSOC);
+            $items[] = array('G', $row['d'], $row);
+        }
     }
 
-    // query the recent recommended lists (minus plonked users)
-    $anp = str_replace('#USERID#', 'reclists.userid', $andNotPlonked);
-    $result = mysql_query(
-        "select
-           reclists.id as id, reclists.title as title,
-           reclists.`desc` as `desc`,
-           reclists.createdate as d,
-           date_format(reclists.createdate, '%M %e, %Y') as fmtdate,
-           count(reclists.id) as itemcnt,
-           reclists.userid, users.name as `username`,
-           (users.picture is not null) as haspic
-         from reclists
-           join reclistitems on reclistitems.listid=reclists.id
-           join users on users.id = reclists.userid
-         where
-           users.sandbox in $sandbox
-           $anp
-         group by reclists.id
-         order by reclists.createdate desc
-         $limit", $db);
-    $listcnt = mysql_num_rows($result);
-    for ($i = 0 ; $i < $listcnt ; $i++) {
-        $row = mysql_fetch_array($result, MYSQL_ASSOC);
-        $items[] = array('L', $row['d'], $row);
+    if ($itemTypes & NEWITEMS_LISTS) {
+        // query the recent recommended lists (minus plonked users)
+        $anp = str_replace('#USERID#', 'reclists.userid', $andNotPlonked);
+        $result = mysql_query(
+            "select
+               reclists.id as id, reclists.title as title,
+               reclists.`desc` as `desc`,
+               reclists.createdate as d,
+               date_format(reclists.createdate, '%M %e, %Y') as fmtdate,
+               count(reclists.id) as itemcnt,
+               reclists.userid, users.name as `username`,
+               (users.picture is not null) as haspic
+             from reclists
+               join reclistitems on reclistitems.listid=reclists.id
+               join users on users.id = reclists.userid
+             where
+               users.sandbox in $sandbox
+               $anp
+             group by reclists.id
+             order by reclists.createdate desc
+             $limit", $db);
+        $listcnt = mysql_num_rows($result);
+        for ($i = 0 ; $i < $listcnt ; $i++) {
+            $row = mysql_fetch_array($result, MYSQL_ASSOC);
+            $items[] = array('L', $row['d'], $row);
+        }
     }
 
-    // query the recent polls (minus plonked users)
-    $anp = str_replace('#USERID#', 'p.userid', $andNotPlonked);
-    $result = mysql_query(
-        "select
-           p.pollid as pollid, p.title as title, p.`desc` as `desc`,
-           p.created as d,
-           date_format(p.created, '%M %e, %Y') as fmtdate,
-           count(v.gameid) as votecnt, count(distinct v.gameid) as gamecnt,
-           p.userid as userid, u.name as `username`,
-           (u.picture is not null) as haspic
-         from
-           polls as p
-           left outer join pollvotes as v on v.pollid = p.pollid
-           join users as u on u.id = p.userid
-         where
-           u.sandbox in $sandbox
-           $anp
-         group by
-           p.pollid
-         order by
-           p.created desc
-         $limit", $db);
-    $pollcnt = mysql_num_rows($result);
-    for ($i = 0 ; $i < $pollcnt ; $i++) {
-        $row = mysql_fetch_array($result, MYSQL_ASSOC);
-        $items[] = array('P', $row['d'], $row);
+    if ($itemTypes & NEWITEMS_POLLS) {
+        // query the recent polls (minus plonked users)
+        $anp = str_replace('#USERID#', 'p.userid', $andNotPlonked);
+        $result = mysql_query(
+            "select
+               p.pollid as pollid, p.title as title, p.`desc` as `desc`,
+               p.created as d,
+               date_format(p.created, '%M %e, %Y') as fmtdate,
+               count(v.gameid) as votecnt, count(distinct v.gameid) as gamecnt,
+               p.userid as userid, u.name as `username`,
+               (u.picture is not null) as haspic
+             from
+               polls as p
+               left outer join pollvotes as v on v.pollid = p.pollid
+               join users as u on u.id = p.userid
+             where
+               u.sandbox in $sandbox
+               $anp
+             group by
+               p.pollid
+             order by
+               p.created desc
+             $limit", $db);
+        $pollcnt = mysql_num_rows($result);
+        for ($i = 0 ; $i < $pollcnt ; $i++) {
+            $row = mysql_fetch_array($result, MYSQL_ASSOC);
+            $items[] = array('P', $row['d'], $row);
+        }
     }
 
-    // query the recent reviews (minus plonks)
-    $anp = str_replace('#USERID#', 'reviews.userid', $andNotPlonked);
-    $result = mysql_query(
-        "select
-           reviews.id as reviewid, gameid, summary, review, rating, special,
-           games.title as title,
-           users.id as userid, users.name as username,
-           greatest(reviews.createdate,
-                    ifnull(reviews.embargodate, '0000-00-00')) as d,
-           date_format(greatest(reviews.createdate,
-                       ifnull(reviews.embargodate, '0000-00-00')),
-                       '%M %e, %Y') as fmtdate,
-           (games.coverart is not null) as hasart,
-           (users.picture is not null) as haspic,
-           games.flags
-         from
-           reviews
-           join games
-           join users
-           left outer join specialreviewers on specialreviewers.id = special
-         where
-           games.id = reviews.gameid
-           and users.id = reviews.userid
-           and reviews.review is not null
-           and ifnull(now() >= reviews.embargodate, 1)
-           and ifnull(specialreviewers.code, '') <> 'external'
-           and users.sandbox in $sandbox
-           $anp
-         order by d desc
-         $limit", $db);
-    $revcnt = mysql_num_rows($result);
-    for ($i = 0 ; $i < $revcnt ; $i++) {
-        $row = mysql_fetch_array($result, MYSQL_ASSOC);
-        $items[] = array('R', $row['d'], $row);
+    if ($itemTypes & NEWITEMS_REVIEWS) {
+        // query the recent reviews (minus plonks)
+        $anp = str_replace('#USERID#', 'reviews.userid', $andNotPlonked);
+        $result = mysql_query(
+            "select
+               reviews.id as reviewid, gameid, summary, review, rating, special,
+               games.title as title,
+               users.id as userid, users.name as username,
+               greatest(reviews.createdate,
+                        ifnull(reviews.embargodate, '0000-00-00')) as d,
+               date_format(greatest(reviews.createdate,
+                           ifnull(reviews.embargodate, '0000-00-00')),
+                           '%M %e, %Y') as fmtdate,
+               (games.coverart is not null) as hasart,
+               (users.picture is not null) as haspic,
+               games.flags
+             from
+               reviews
+               join games
+               join users
+               left outer join specialreviewers on specialreviewers.id = special
+             where
+               games.id = reviews.gameid
+               and users.id = reviews.userid
+               and reviews.review is not null
+               and ifnull(now() >= reviews.embargodate, 1)
+               and ifnull(specialreviewers.code, '') <> 'external'
+               and users.sandbox in $sandbox
+               $anp
+             order by d desc
+             $limit", $db);
+        $revcnt = mysql_num_rows($result);
+        for ($i = 0 ; $i < $revcnt ; $i++) {
+            $row = mysql_fetch_array($result, MYSQL_ASSOC);
+            $items[] = array('R', $row['d'], $row);
+        }
     }
 
-    // query recent competition page additions
-    $result = mysql_query(
-        "select
-           c.compid as compid, c.title as title, c.`desc` as `desc`,
-           c.created as d,
-           date_format(c.created, '%M %e, %Y') as fmtdate
-         from
-           competitions as c
-         order by
-           d desc
-         $limit", $db);
-    $compcnt = mysql_num_rows($result);
-    for ($i = 0 ; $i < $compcnt ; $i++) {
-        $row = mysql_fetch_array($result, MYSQL_ASSOC);
-        $items[] = array('C', $row['d'], $row);
+    if ($itemTypes & NEWITEMS_COMPS) {
+        // query recent competition page additions
+        $result = mysql_query(
+            "select
+               c.compid as compid, c.title as title, c.`desc` as `desc`,
+               c.created as d,
+               date_format(c.created, '%M %e, %Y') as fmtdate
+             from
+               competitions as c
+             order by
+               d desc
+             $limit", $db);
+        $compcnt = mysql_num_rows($result);
+        for ($i = 0 ; $i < $compcnt ; $i++) {
+            $row = mysql_fetch_array($result, MYSQL_ASSOC);
+            $items[] = array('C', $row['d'], $row);
+        }
     }
 
-    // query recent club page additions
-    $result = mysql_query(
-        "select
-           c.clubid as clubid, c.name as name, c.`desc` as `desc`,
-           c.created as d,
-           date_format(c.created, '%M %e, %Y') as fmtdate
-         from
-           clubs as c
-         order by
-           d desc
-         $limit", $db);
-    $clubcnt = mysql_num_rows($result);
-    for ($i = 0 ; $i < $clubcnt ; $i++) {
-        $row = mysql_fetch_array($result, MYSQL_ASSOC);
-        $items[] = array('U', $row['d'], $row);
+    if ($itemTypes & NEWITEMS_CLUBS) {
+        // query recent club page additions
+        $result = mysql_query(
+            "select
+               c.clubid as clubid, c.name as name, c.`desc` as `desc`,
+               c.created as d,
+               date_format(c.created, '%M %e, %Y') as fmtdate
+             from
+               clubs as c
+             order by
+               d desc
+             $limit", $db);
+        $clubcnt = mysql_num_rows($result);
+        for ($i = 0 ; $i < $clubcnt ; $i++) {
+            $row = mysql_fetch_array($result, MYSQL_ASSOC);
+            $items[] = array('U', $row['d'], $row);
+        }
     }
 
-    // query game news updates
-    queryNewNews(
-        $items, $db, $limit, "G",
-        "join games as g on g.id = n.sourceid",
-        "g.id as sourceID, g.title as sourceTitle, "
-        . "(g.coverart is not null) as hasart");
+    if ($itemTypes & NEWITEMS_GAMENEWS) {
+        // query game news updates
+        queryNewNews(
+            $items, $db, $limit, "G",
+            "join games as g on g.id = n.sourceid",
+            "g.id as sourceID, g.title as sourceTitle, "
+            . "(g.coverart is not null) as hasart");
+    }
 
-    // add the competition news updates
-    queryNewNews(
-        $items, $db, $limit, "C",
-        "join competitions as c on c.compid = n.sourceid",
-        "c.compid as sourceID, c.title as sourceTitle");
+    if ($itemTypes & NEWITEMS_COMPNEWS) {
+        // add the competition news updates
+        queryNewNews(
+            $items, $db, $limit, "C",
+            "join competitions as c on c.compid = n.sourceid",
+            "c.compid as sourceID, c.title as sourceTitle");
+    }
 
-    // add club news updates
-    queryNewNews(
-        $items, $db, $limit, "U",
-        "join clubs as c on c.clubid = n.sourceid",
-        "c.clubid as sourceID, c.name as sourceTitle");
+    if ($itemTypes & NEWITEMS_CLUBNEWS) {
+        // add club news updates
+        queryNewNews(
+            $items, $db, $limit, "U",
+            "join clubs as c on c.clubid = n.sourceid",
+            "c.clubid as sourceID, c.name as sourceTitle");
+    }
 
     // sort by date
     usort($items, "sortNewItemsByDate");
@@ -300,11 +343,11 @@ function queryNewNews(&$items, $db, $limit, $sourceType,
     }
 }
 
-function showNewItems($db, $first, $last, $items, $showFlagged = false, $allowHiddenBanner = true)
+function showNewItems($db, $first, $last, $items, $showFlagged = false, $allowHiddenBanner = true, $itemTypes = NEWITEMS_ALLITEMS)
 {
     // if the caller didn't provide the new item lists, query them
     if (!$items)
-        $items = getNewItems($db, $last);
+        $items = getNewItems($db, $last, $itemTypes);
 
     // show them
     showNewItemList($db, $items, $first, $last, $showFlagged, $allowHiddenBanner);
