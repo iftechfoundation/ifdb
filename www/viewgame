@@ -986,7 +986,7 @@ echo helpWinLink("help-ifid", "IFID");
             }
         ?>
          <p>
-         <table cellspacing=0 cellpadding=0 border=0>
+         <table id="viewgame__header" cellspacing=0 cellpadding=0 border=0>
             <tr valign=top>
                <?php
 if ($hasart) {
@@ -1065,16 +1065,16 @@ if (!isEmpty($seriesname)) {
         . "\">$seriesname</a><br>";
 }
                      ?>
-                     <?php if (!isEmpty($pubYear)) echo "$pubYear<br>" ?>
+                     <?php if (!isEmpty($pubYear)) echo "Published: $pubYear<br>" ?>
                      <?php
 if (!isEmpty($genre)) {
     $genres = explode(",", str_replace("/", ",", $genre));
-    echo join(", ", array_map(
+    echo "Genre: " . join(", ", array_map(
         fn($genre) => "<a href=\"search?searchfor=genre:" . urlencodeFromHTML($genre) . "\">$genre</a>",
         $genres)) . "<br>";
 }
                      ?>
-                     <?php if (!isEmpty($system)) echo "<div>$system</div>" ?>
+                     <?php if (!isEmpty($system)) echo "<div>System: $system</div>" ?>
                      <?php
                         $showExternalLinksAnchor = count($links) && ($detailView || $historyView);
                         if ($foundGame)
@@ -1124,20 +1124,20 @@ if (!isEmpty($genre)) {
                         if (!isEmpty($website) || $showExternalLinksAnchor) {
                             if (!isEmpty($website) && $showExternalLinksAnchor) {
                                 if ($playOnlineButton) {
-                                    echo "<div class='viewgame__externalLinksAnchor'>$playOnlineButton<br><br></div>"
-                                        . "<div><a href=\"".htmlspecialcharx($website)."\">Web Site</a>"
+                                    echo "<div class=\"viewgame__externalLinksDiv\"><span class='viewgame__externalLinksAnchor'>$playOnlineButton | </span>"
+                                        . "<a href=\"".htmlspecialcharx($website)."\">Web Site</a>"
                                         . "<span class='viewgame__externalLinksAnchor'> | <a href='#externalLinksTable'>External Links</span></div>";
                                 } else {
-                                    echo "<div><a href=\"".htmlspecialcharx($website)."\">Web Site</a><span class='viewgame__externalLinksAnchor'> | <a href='#externalLinksTable'>External Links</span></div>";
+                                    echo "<div class=\"viewgame__externalLinksDiv\"><a href=\"".htmlspecialcharx($website)."\">Web Site</a><span class='viewgame__externalLinksAnchor'> | <a href='#externalLinksTable'>External Links</span></div>";
                                 }
                             } else if (!isEmpty($website)) {
                                 echo "<div><a href=\"".htmlspecialcharx($website)."\">Web Site</a></div>";
                             } else {
                                 if ($playOnlineButton) {
-                                    echo "<div class='viewgame__externalLinksAnchor'>$playOnlineButton<br><br>"
+                                    echo "<div class='viewgame__externalLinksAnchor viewgame__externalLinksDiv'>$playOnlineButton | "
                                         . "<a href='#externalLinksTable'>External Links</div>";
                                 } else {
-                                    echo "<a class='viewgame__externalLinksAnchor' href='#externalLinksTable'>External Links</div>";
+                                    echo "<a class='viewgame__externalLinksAnchor viewgame__externalLinksDiv' href='#externalLinksTable'>External Links</div>";
                                 }
                             }
                         }
