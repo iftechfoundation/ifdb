@@ -591,6 +591,10 @@ the page.
         color: #000080;
     }
 
+    .viewgame__externalLinksAnchor {
+        display: none;
+    }
+
     /*
     The "gamerightbar" table is the box on a game's listing page,
     underneath the Download box, where we display quick rating
