@@ -393,39 +393,22 @@ function getGameInfo($db, $id, $curuser, $requestVersion, &$errMsg, &$errCode)
     // get the rating statistics
     $result = mysqli_execute_query($db,
         "select
+           rated1, rated2, rated3, rated4, rated5,
            numRatingsInAvg, numRatingsTotal, avgRating, numMemberReviews
          from
            $gameRatingsView
          where
            gameid = ?", [$id]);
-    list($ratingAvgCnt, $ratingTotCnt, $ratingAvg, $memberReviewCnt) =
+    list($rated1, $rated2, $rated3, $rated4, $rated5,
+        $ratingAvgCnt, $ratingTotCnt, $ratingAvg, $memberReviewCnt) =
         mysql_fetch_row($result);
 
-    // check if the user is sandboxed
-    $sandbox = 0;
-    if ($curuser) {
-        $result = mysqli_execute_query($db, "select sandbox from users where id=?", [$curuser]);
-        list($sandbox) = mysql_fetch_row($result);
-    }
-
-    // get the rating histogram
-    $result = mysqli_execute_query($db,
-        "select
-           rating,
-           count(if(RFlags & " . RFLAG_OMIT_AVG . ", null, rating))
-         from
-           reviews as r
-           join users as u on u.id = r.userid
-         where
-           gameid = ?
-           and ifnull(now() >= embargodate, 1)
-           and if(? = 1, true, u.sandbox = 0)
-         group by rating", [$id, $sandbox]);
     $ratingHisto = array(0, 0, 0, 0, 0, 0);
-    for ($i = 0 ; $i < mysql_num_rows($result) ; $i++) {
-        list($rating, $count) = mysql_fetch_row($result);
-        $ratingHisto[$rating] = $count;
-    }
+    $ratingHisto[1] = $rated1;
+    $ratingHisto[2] = $rated2;
+    $ratingHisto[3] = $rated3;
+    $ratingHisto[4] = $rated4;
+    $ratingHisto[5] = $rated5;
 
     // determine if the logged-in user (if any) has reviewed it
     $currentUserRating = 0;
