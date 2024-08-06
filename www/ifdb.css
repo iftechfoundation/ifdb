@@ -332,8 +332,8 @@ div.main {
     min-width: 50%;
 }
 
-#download-advisor-aside{
-    flex-basis: 30ch;
+.col-peer {
+    min-width: 30ch;
 }
 
 /*
