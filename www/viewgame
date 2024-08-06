@@ -1990,7 +1990,7 @@ mouseOutRating(<?php echo $currentUserRating ?>);
             // show the reviews
             for ($i = 0 ; $i < mysql_num_rows($result) ; $i++)
                 showReview($db, $id, mysql_fetch_array($result, MYSQL_ASSOC),
-                           $specialNames, 0 | ($adminPriv ? SHOWREVIEW_ADMINREVIEWVOTESLINK : 0));
+                           $specialNames, SHOWREVIEW_COLLAPSELONG | ($adminPriv ? SHOWREVIEW_ADMINREVIEWVOTESLINK : 0));
         }
 
         // end the indented division if we started one
@@ -2031,7 +2031,7 @@ mouseOutRating(<?php echo $currentUserRating ?>);
                 $reviewRec = mysql_fetch_array($result, MYSQL_ASSOC);
 
                 // show it
-                showReview($db, $id, $reviewRec, $specialNames, 0 | ($adminPriv ? SHOWREVIEW_ADMINREVIEWVOTESLINK : 0));
+                showReview($db, $id, $reviewRec, $specialNames, SHOWREVIEW_COLLAPSELONG | ($adminPriv ? SHOWREVIEW_ADMINREVIEWVOTESLINK : 0));
             }
 
             // show the link to the full list of reviews, if there are more
