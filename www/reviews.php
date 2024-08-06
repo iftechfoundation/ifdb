@@ -249,6 +249,7 @@ define("SHOWREVIEW_NOVOTECTLS", 0x0001);
 define("SHOWREVIEW_NOCOMMENTCTLS", 0x0002);
 define("SHOWREVIEW_COMMENTCTLSADDONLY", 0x0004);
 define("SHOWREVIEW_ADMINREVIEWVOTESLINK", 0x0008);
+define("SHOWREVIEW_COLLAPSELONG", 0x0010);
 
 function showReview($db, $gameid, $rec, $specialNames, $optionFlags = 0)
 {
@@ -259,6 +260,7 @@ function showReview($db, $gameid, $rec, $specialNames, $optionFlags = 0)
     $showCommentCtls = !($optionFlags & SHOWREVIEW_NOCOMMENTCTLS);
     $addCommentOnly = ($optionFlags & SHOWREVIEW_COMMENTCTLSADDONLY);
     $adminReviewVotes = ($optionFlags & SHOWREVIEW_ADMINREVIEWVOTESLINK);
+    $collapseLong = ($optionFlags & SHOWREVIEW_COLLAPSELONG);
 
     // get the current user, if we're logged in
     checkPersistentLogin();
@@ -406,10 +408,14 @@ function showReview($db, $gameid, $rec, $specialNames, $optionFlags = 0)
     }
 
     // show the review body
-    global $nonce;
-    echo "<style nonce='$nonce'>.review__body { max-width: 60ch; }</style>"
-        ."<div class=\"readMore review__body\" ><p>$review</p>"
-        .'<div class="expand"><button>Read More</button></div></div>';
+    if ($collapseLong) {
+        global $nonce;
+        echo "<style nonce='$nonce'>.review__body { max-width: 60ch; }</style>"
+            ."<div class=\"readMore review__body\" ><p>$review</p>"
+            .'<div class="expand"><button>Read More</button></div></div>';
+    } else {
+        echo "<div class=\"review__body\" ><p>$review</p></div>";
+    }
 
     // set up the comment controls, if applicable
     $commentCtls = $barCommentCtl = "";
