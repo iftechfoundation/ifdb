@@ -863,6 +863,110 @@ echo helpWinLink("help-ifid", "IFID");
         $offsiteMode = 'A';
     }
 
+    if ($detailView || $historyView) {
+        // Check to see if the game is available for download in any form.
+        // PC == "parchment capable" - a format that we can play with Parchment.
+        // HEX = Hugo file playable online with textadventures.online/play/?story=XXX
+        for ($foundGame = $foundHtml = $foundPC = $foundHex = $htmlUrl = $pcUrl = $foundAdrift = $adriftUrl = $hexUrl = false, $i = 0 ;
+            $i < count($links) ; $i++)
+        {
+            // get this link
+            $link = $links[$i];
+
+            // if it's a game, note that we found a game link
+            if ($link['isgame'])
+                $foundGame = true;
+
+            $unboxUrl = false;
+            if ($link['compression'] && $link['compressedprimary']) {
+                $open = urlencode($link['compressedprimary']);
+                if (preg_match('!^https?://(www\.|mirror\.)?ifarchive\.org/!', $link['url'])) {
+                    $linkUrl = urlencode($link['url']);
+                    $unboxUrl = "https://unbox.ifarchive.org/?url=$linkUrl&open=$open";
+                } else {
+                    $springThingUrl = preg_replace('!^https?://(www\.)?springthing\.net/(\d+)/files/(.*)$!',
+                        'https://ifarchive.org/if-archive/games/springthing/$2/$3', $link['url']);
+                    if ($springThingUrl !== $link['url']) {
+                        $springThingUrl = urlencode($springThingUrl);
+                        $unboxUrl = "https://unbox.ifarchive.org/?url=$springThingUrl&open=$open";
+                    } else {
+                        $springThingUrl = preg_replace('!^https?://(www\.)?springthing\.net/(\d+)/stories/[^/]+/(.*)$!',
+                            'https://ifarchive.org/if-archive/games/springthing/$2/$3', $link['url']);
+                        if ($springThingUrl !== $link['url']) {
+                            $springThingUrl = urlencode($springThingUrl);
+                            $unboxUrl = "https://unbox.ifarchive.org/?url=$springThingUrl&open=$open";
+                        }
+                    }
+                }
+            }
+
+            if ($link['fmtexternid'] == 'hypertextgame')
+            {
+                if (!$link['compression']) {
+                    $foundHtml = true;
+                    $htmlUrl = $link['url'];
+                    break;
+                } else if ($unboxUrl) {
+                    $foundHtml = true;
+                    $htmlUrl = $unboxUrl;
+                    break;
+                }
+            }
+
+            if (stripos($link['title'], "Play Online") !== false)
+            {
+                $foundGame = $foundHtml = true;
+                $htmlUrl = $link['url'];
+                break;
+            }
+
+            // if this is the first Parchment-capable link, and it's not compressed,
+            // note it so that we can set up a Parchment play link to it
+            if ($link['fmtexternid'] == 'zcode'
+                    || $link['fmtexternid'] == 'blorb/zcode'
+                    || $link['fmtexternid'] == 'glulx'
+                    || $link['fmtexternid'] == 'blorb/glulx'
+                    || $link['fmtexternid'] == 'tads2'
+                    || $link['fmtexternid'] == 'tads3'
+                    || $link['fmtexternid'] == 'hugo'
+                )
+            {
+                if (!$link['compression']) {
+                    $foundPC = true;
+                    $pcUrl = urlencode(urlToMirror($link['url']));
+                    break;
+                } else if ($unboxUrl) {
+                    $foundPC = true;
+                    $pcUrl = urlencode($unboxUrl);
+                    break;
+                }
+            }
+
+            if ($link['fmtexternid'] == 'adrift'
+                    || $link['fmtexternid'] == 'adrift38'
+                    || $link['fmtexternid'] == 'adrift39'
+                    || $link['fmtexternid'] == 'adrift5'
+                    || $link['fmtexternid'] == 'adrift5/blorb'
+                )
+            {
+                if (!$link['compression']) {
+                    $foundAdrift = true;
+                    if (preg_match('!^https?://www.adrift.co/cgi/download.cgi\?(\d+)!', $link['url'], $matches)) {
+                        // download.cgi does a 302 redirect to the real download URL, which play.adrift.co can't cope with
+                        // luckily, play.cgi does a 302 redirect to play.adrift.co with the canonical game URL
+                        $adriftUrl = "https://www.adrift.co/cgi/play.cgi?" . $matches[1];
+                    } else {
+                        $adriftUrl = "http://play.adrift.co/?game=" . urlencode($link['url']);
+                    }
+                    break;
+                } else if ($unboxUrl) {
+                    $foundAdrift = true;
+                    $adriftUrl = "http://play.adrift.co/?game=" . urlencode($unboxUrl);
+                    break;
+                }
+            }
+        }
+    }
 
 //------------------------- MAIN SUMMARY -------------------------
 
@@ -882,7 +986,7 @@ echo helpWinLink("help-ifid", "IFID");
             }
         ?>
          <p>
-         <table cellspacing=0 cellpadding=0 border=0>
+         <table id="viewgame__header" cellspacing=0 cellpadding=0 border=0>
             <tr valign=top>
                <?php
 if ($hasart) {
@@ -961,18 +1065,83 @@ if (!isEmpty($seriesname)) {
         . "\">$seriesname</a><br>";
 }
                      ?>
-                     <?php if (!isEmpty($pubYear)) echo "$pubYear<br>" ?>
+                     <?php if (!isEmpty($pubYear)) echo "Published: $pubYear<br>" ?>
                      <?php
 if (!isEmpty($genre)) {
     $genres = explode(",", str_replace("/", ",", $genre));
-    echo join(", ", array_map(
+    echo "Genre: " . join(", ", array_map(
         fn($genre) => "<a href=\"search?searchfor=genre:" . urlencodeFromHTML($genre) . "\">$genre</a>",
         $genres)) . "<br>";
 }
                      ?>
-                     <?php if (!isEmpty($system)) echo "$system<br>" ?>
-                     <?php if (!isEmpty($website))
-                         echo "<br><a href=\"".htmlspecialcharx($website)."\">Web Site</a><br>" ?>
+                     <?php if (!isEmpty($system)) echo "<div>System: $system</div>" ?>
+                     <?php
+                        $showExternalLinksAnchor = count($links) && ($detailView || $historyView);
+                        if ($foundGame)
+                        {
+                            global $nonce;
+                            echo "<style nonce='$nonce'>\n"
+                                . ".viewgame__foundGame { position: relative; }\n"
+                                . ".viewgame__playOnline { margin:0px 0px 0.3em 0px;cursor:pointer; }\n"
+                                . "</style>\n";
+
+
+                            $playOnlineButton = "";
+                            // if we have an HTML playable game, set up a play online link
+                            if ($foundHtml && $htmlUrl) {
+                                $ptarget = (is_kindle() ? "" : "target=\"_blank\"");
+                                $playOnlineButton = "<a href=\"$htmlUrl\" $ptarget "
+                                    . "title=\"Play this game right now in your browser. No "
+                                    . "installation is required.\">"
+                                    . "<img src=\"/img/blank.gif\" class=\"play-online-button viewgame__playOnline\" "
+                                    . ">"
+                                    . "</a>";
+                            }
+
+                            // if we have a Parchment-capable game, set up a play-with-Parchment link
+                            if ($foundPC && $pcUrl) {
+                                $parchment = "https://iplayif.com/?story=";
+                                $ptarget = (is_kindle() ? "" : "target=\"_blank\"");
+                                $playOnlineButton = "<a href=\"$parchment$pcUrl\" $ptarget "
+                                    . "title=\"Play this game right now in your browser, using "
+                                    . "the Parchment interpreter. No installation is required.\">"
+                                    . "<img src=\"/img/blank.gif\" class=\"play-online-button viewgame__playOnline\" "
+                                    . ">"
+                                    . "</a>";
+                            }
+
+                            // if we have an ADRIFT game, set up a play-online link
+                            if ($foundAdrift && $adriftUrl) {
+                                $atarget = (is_kindle() ? "" : "target=\"_blank\"");
+                                $playOnlineButton = "<a href=\"{$adriftUrl}\" $atarget "
+                                    . "title=\"Play this game right now in your browser. No "
+                                    . "installation is required.\">"
+                                    . "<img src=\"/img/blank.gif\" class=\"play-online-button viewgame__playOnline\" "
+                                    . ">"
+                                    . "</a>";
+                            };
+                        }
+                        if (!isEmpty($website) || $showExternalLinksAnchor) {
+                            if (!isEmpty($website) && $showExternalLinksAnchor) {
+                                if ($playOnlineButton) {
+                                    echo "<div class=\"viewgame__externalLinksDiv\"><span class='viewgame__externalLinksAnchor'>$playOnlineButton | </span>"
+                                        . "<a href=\"".htmlspecialcharx($website)."\">Web Site</a>"
+                                        . "<span class='viewgame__externalLinksAnchor'> | <a href='#externalLinksTable'>External Links</span></div>";
+                                } else {
+                                    echo "<div class=\"viewgame__externalLinksDiv\"><a href=\"".htmlspecialcharx($website)."\">Web Site</a><span class='viewgame__externalLinksAnchor'> | <a href='#externalLinksTable'>External Links</span></div>";
+                                }
+                            } else if (!isEmpty($website)) {
+                                echo "<div><a href=\"".htmlspecialcharx($website)."\">Web Site</a></div>";
+                            } else {
+                                if ($playOnlineButton) {
+                                    echo "<div class='viewgame__externalLinksAnchor viewgame__externalLinksDiv'>$playOnlineButton | "
+                                        . "<a href='#externalLinksTable'>External Links</div>";
+                                } else {
+                                    echo "<a class='viewgame__externalLinksAnchor viewgame__externalLinksDiv' href='#externalLinksTable'>External Links</div>";
+                                }
+                            }
+                        }
+                    ?>
                   </span>
                </td>
             </tr>
@@ -1307,6 +1476,16 @@ if ($embargoCnt > 0)
 
     } // if ($detailView)
 
+    // show the description, if it's present AND we're in Detail or
+    // History mode
+    if (!isEmpty($desc) && ($detailView || $historyView)) {
+?>
+         <h3>About the Story</h3>
+         <div class="readMore"><p><?php echo $desc ?></p>
+            <div class="expand"><button>Read More</button></div>
+        </div>
+<?php
+
     // ------------------------ DOWNLOADS -------------------------------
     if ($detailView || $historyView || $downloadsView) {
 
@@ -1319,7 +1498,7 @@ if ($embargoCnt > 0)
     }
 ?>
     <div class="readMore">
-    <table class="<?php if (!$downloadsView) echo "downloads"?>" id="downloadsTable">
+    <table class="<?php if (!$downloadsView) echo "downloads"?>" id="externalLinksTable">
        <tr>
            <td>
               <table width="100%" border=0 cellpadding=0 cellspacing=0>
@@ -1334,153 +1513,9 @@ if ($embargoCnt > 0)
                     </td>
                     <?php
 
-// Check to see if the game is available for download in any form.
-// PC == "parchment capable" - a format that we can play with Parchment.
-// HEX = Hugo file playable online with textadventures.online/play/?story=XXX
-for ($foundGame = $foundHtml = $foundPC = $foundHex = $htmlUrl = $pcUrl = $foundAdrift = $adriftUrl = $hexUrl = false, $i = 0 ;
-     $i < count($links) ; $i++)
-{
-    // get this link
-    $link = $links[$i];
-
-    // if it's a game, note that we found a game link
-    if ($link['isgame'])
-        $foundGame = true;
-
-    $unboxUrl = false;
-    if ($link['compression'] && $link['compressedprimary']) {
-        $open = urlencode($link['compressedprimary']);
-        if (preg_match('!^https?://(www\.|mirror\.)?ifarchive\.org/!', $link['url'])) {
-            $linkUrl = urlencode($link['url']);
-            $unboxUrl = "https://unbox.ifarchive.org/?url=$linkUrl&open=$open";
-        } else {
-            $springThingUrl = preg_replace('!^https?://(www\.)?springthing\.net/(\d+)/files/(.*)$!',
-                'https://ifarchive.org/if-archive/games/springthing/$2/$3', $link['url']);
-            if ($springThingUrl !== $link['url']) {
-                $springThingUrl = urlencode($springThingUrl);
-                $unboxUrl = "https://unbox.ifarchive.org/?url=$springThingUrl&open=$open";
-            } else {
-                $springThingUrl = preg_replace('!^https?://(www\.)?springthing\.net/(\d+)/stories/[^/]+/(.*)$!',
-                    'https://ifarchive.org/if-archive/games/springthing/$2/$3', $link['url']);
-                if ($springThingUrl !== $link['url']) {
-                    $springThingUrl = urlencode($springThingUrl);
-                    $unboxUrl = "https://unbox.ifarchive.org/?url=$springThingUrl&open=$open";
-                }
-            }
-        }
-    }
-
-    if ($link['fmtexternid'] == 'hypertextgame')
-    {
-        if (!$link['compression']) {
-            $foundHtml = true;
-            $htmlUrl = $link['url'];
-            break;
-        } else if ($unboxUrl) {
-            $foundHtml = true;
-            $htmlUrl = $unboxUrl;
-            break;
-        }
-    }
-
-    if (stripos($link['title'], "Play Online") !== false)
-    {
-        $foundGame = $foundHtml = true;
-        $htmlUrl = $link['url'];
-        break;
-    }
-
-    // if this is the first Parchment-capable link, and it's not compressed,
-    // note it so that we can set up a Parchment play link to it
-    if ($link['fmtexternid'] == 'zcode'
-            || $link['fmtexternid'] == 'blorb/zcode'
-            || $link['fmtexternid'] == 'glulx'
-            || $link['fmtexternid'] == 'blorb/glulx'
-            || $link['fmtexternid'] == 'tads2'
-            || $link['fmtexternid'] == 'tads3'
-            || $link['fmtexternid'] == 'hugo'
-        )
-    {
-        if (!$link['compression']) {
-            $foundPC = true;
-            $pcUrl = urlencode(urlToMirror($link['url']));
-            break;
-        } else if ($unboxUrl) {
-            $foundPC = true;
-            $pcUrl = urlencode($unboxUrl);
-            break;
-        }
-    }
-
-    if ($link['fmtexternid'] == 'adrift'
-            || $link['fmtexternid'] == 'adrift38'
-            || $link['fmtexternid'] == 'adrift39'
-            || $link['fmtexternid'] == 'adrift5'
-            || $link['fmtexternid'] == 'adrift5/blorb'
-        )
-    {
-        if (!$link['compression']) {
-            $foundAdrift = true;
-            if (preg_match('!^https?://www.adrift.co/cgi/download.cgi\?(\d+)!', $link['url'], $matches)) {
-                // download.cgi does a 302 redirect to the real download URL, which play.adrift.co can't cope with
-                // luckily, play.cgi does a 302 redirect to play.adrift.co with the canonical game URL
-                $adriftUrl = "https://www.adrift.co/cgi/play.cgi?" . $matches[1];
-            } else {
-                $adriftUrl = "http://play.adrift.co/?game=" . urlencode($link['url']);
-            }
-            break;
-        } else if ($unboxUrl) {
-            $foundAdrift = true;
-            $adriftUrl = "http://play.adrift.co/?game=" . urlencode($unboxUrl);
-            break;
-        }
-    }
-}
 if ($foundGame)
 {
-    echo "<td align=right valign=middle class='viewgame__foundGame'>\r\n";
-    global $nonce;
-    echo "<style nonce='$nonce'>\n"
-        . ".viewgame__foundGame { position: relative; }\n"
-        . ".viewgame__playOnline { margin:0px 0px 0.3em 0px;cursor:pointer; }\n"
-        . "</style>\n";
-
-
-    // if we have an HTML playable game, set up a play online link
-    if ($foundHtml && $htmlUrl) {
-        $ptarget = (is_kindle() ? "" : "target=\"_blank\"");
-        echo "<a href=\"$htmlUrl\" $ptarget "
-            . "title=\"Play this game right now in your browser. No "
-            . "installation is required.\">"
-            . "<img src=\"/img/blank.gif\" class=\"play-online-button viewgame__playOnline\" "
-            . ">"
-            . "</a><br>";
-    }
-
-    // if we have a Parchment-capable game, set up a play-with-Parchment link
-    if ($foundPC && $pcUrl) {
-        $parchment = "https://iplayif.com/?story=";
-        $ptarget = (is_kindle() ? "" : "target=\"_blank\"");
-        echo "<a href=\"$parchment$pcUrl\" $ptarget "
-            . "title=\"Play this game right now in your browser, using "
-            . "the Parchment interpreter. No installation is required.\">"
-            . "<img src=\"/img/blank.gif\" class=\"play-online-button viewgame__playOnline\" "
-            . ">"
-            . "</a><br>";
-    }
-
-    // if we have an ADRIFT game, set up a play-online link
-    if ($foundAdrift && $adriftUrl) {
-        $atarget = (is_kindle() ? "" : "target=\"_blank\"");
-        echo "<a href=\"{$adriftUrl}\" $atarget "
-            . "title=\"Play this game right now in your browser. No "
-            . "installation is required.\">"
-            . "<img src=\"/img/blank.gif\" class=\"play-online-button viewgame__playOnline\" "
-            . ">"
-            . "</a><br>";
-    }
-
-    echo "</td>";
+    echo "<td align=right valign=middle class='viewgame__foundGame'>\r\n$playOnlineButton<br></td>";
 }
                     ?>
                  </tr>
@@ -1786,14 +1821,7 @@ mouseOutRating(<?php echo $currentUserRating ?>);
 
     } // if ($detailView || $historyView)
 
-    // show the description, if it's present AND we're in Detail or
-    // History mode
-    if (!isEmpty($desc) && ($detailView || $historyView)) {
 ?>
-         <h3>About the Story</h3>
-         <div class="readMore"><p><?php echo $desc ?></p>
-            <div class="expand"><button>Read More</button></div>
-        </div>
       </td>
    </tr>
 </table>
