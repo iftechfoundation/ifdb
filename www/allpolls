@@ -47,7 +47,7 @@ if ($gameid) {
 
     // search the database for polls that include this game
     $extraCols = ", sum(v.gameid = '$qgameid') as gameVoteCount";
-    $whereList = "1";
+    $whereList = "not uv.sandbox";
     $having = "having gameVoteCount > 0";
 
 } else {
@@ -117,6 +117,7 @@ if ($errMsg) {
             polls as p
             left outer join pollvotes as v on v.pollid = p.pollid
             join users as u on u.id = p.userid
+            join users as uv on uv.id = v.userid
         where $whereList
         group by p.pollid
         $having

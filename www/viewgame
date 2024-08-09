@@ -1042,8 +1042,10 @@ if (!isEmpty($genre)) {
                polls as p
                join pollvotes as v on v.pollid = p.pollid
                join users as u on u.id = p.userid
+               join users as uv on uv.id = v.userid
              where
                v.gameid = ?
+               and not uv.sandbox
              group by
                p.pollid
              order by
