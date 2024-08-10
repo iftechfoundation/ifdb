@@ -338,7 +338,7 @@ overridden with the <b>requireIFID</b> parameter, though, as described
 above.)  All other items are optional.
 
 
-<h2>External links</h2>
+<h2><a name="links">External links</a></h2>
 
 <p>The request can optionally provide a list of external links (including downloadable files) to
 add to the game listing.  You will usually want to include at least a
