@@ -1211,7 +1211,7 @@ if ($curuser) {
         list($embargoID, $embargoDate) = mysql_fetch_row($result);
 }
 
-if ($ratingCntTot == 0) {
+if ($ratingCntTot == 0 && $memberReviewCnt == 0) {
     echo "<img src=\"/img/blank.gif\" class=\"star0\" title=\"No Ratings\">
        No reviews yet";
     if ($embargoCnt == 0)
