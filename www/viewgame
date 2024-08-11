@@ -217,7 +217,7 @@ function sendCoverArt()
 // --------------------------------------------------------------------------
 // display the Member Review section header
 //
-function showMemberReviewsHeader($rowcnt, $ratingsView, $showHisto)
+function showMemberReviewsHeader($showHisto)
 {
     global $memberReviewCnt, $ratingAvg, $ratingCntAvg, $ratingHisto, $id, $currentUserReview, $curuser;
 
@@ -2011,7 +2011,7 @@ mouseOutRating(<?php echo $currentUserRating ?>);
 
             // show the Member Reviews section header
             $showHisto = !$should_hide;
-            showMemberReviewsHeader($rowcnt, false, $showHisto);
+            showMemberReviewsHeader($showHisto);
 
             // if we have too many for this front page, limit it
             if ($rowcnt > $reviewsOnHomePage) {
@@ -3231,7 +3231,7 @@ if (count($inrefs) != 0 && !$historyView) {
         } else {
 
             // start the section
-            showMemberReviewsHeader($memberReviewCnt, false, false);
+            showMemberReviewsHeader(false);
 
             // Show our single review.  Only show the "Add Comment"
             // button for the comment controls, since we're going to
@@ -3331,7 +3331,7 @@ if (count($inrefs) != 0 && !$historyView) {
         $showHisto = !$should_hide;
 
         // start the section
-        showMemberReviewsHeader($realtotcnt, $ratingsView, $showHisto);
+        showMemberReviewsHeader($showHisto);
 
         // show the reviews/ratings only if we have any
         if ($totcnt != 0) {
