@@ -2234,10 +2234,10 @@ mouseOutRating(<?php echo $currentUserRating ?>);
                 } else {
                     // this is for immediate display
                     if (!$divStarted) {
-                        if (count($extReviews) === 1)
+                        if (count($srevs) === 1)
                             echo "<h2>1 Off-Site Review</h2>";
                         else
-                            echo "<h2>".count($extReviews)." Off-Site Reviews</h2>";
+                            echo "<h2>".count($srevs)." Off-Site Reviews</h2>";
 
                         echo "<div class='indented readMore'>";
                         $divStarted = true;
