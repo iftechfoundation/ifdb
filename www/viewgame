@@ -219,11 +219,20 @@ function sendCoverArt()
 //
 function showMemberReviewsHeader($showHisto)
 {
-    global $memberReviewCnt, $oneReviewView, $ratingAvg, $ratingCntAvg, $ratingHisto, $id, $currentUserReview, $curuser;
+    global $memberReviewCnt, $ratingsView, $reviewView, $oneReviewView, $ratingAvg, $ratingCntAvg, $ratingHisto, $id, $currentUserReview, $curuser;
+
+    $heading = "Ratings and Reviews";
+    if ($ratingsView) {
+        $heading = "All Member Ratings";
+    } else if ($reviewView) {
+        $heading = "All Written Member Reviews";
+    } else if ($oneReviewView) {
+        $heading = "Review";
+    }
 
     // start the section
     echo "<a name='memberReviews'></a>"
-        . "<h2>Ratings and Reviews</h2><div class=indented>";
+        . "<h2>$heading</h2><div class=indented>";
 
     // count the ratings in the histogram, and get the maximum
     for ($cnt = $max = 0, $i = 1 ; $i <= 5 ; $i++) {
