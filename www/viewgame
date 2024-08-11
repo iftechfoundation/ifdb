@@ -1013,39 +1013,42 @@ if ($foundGame)
         . ".viewgame__playOnline { margin:0px 0px 0.3em 0px;cursor:pointer; }\n"
         . "</style>\n";
 
-
+    $playOnlineButton = "";
     // if we have an HTML playable game, set up a play online link
     if ($foundHtml && $htmlUrl) {
         $ptarget = (is_kindle() ? "" : "target=\"_blank\"");
-        echo "<a href=\"$htmlUrl\" $ptarget "
+        $playOnlineButton = "<a href=\"$htmlUrl\" $ptarget "
             . "title=\"Play this game right now in your browser. No "
             . "installation is required.\">"
             . "<img src=\"/img/blank.gif\" class=\"play-online-button viewgame__playOnline\" "
             . ">"
-            . "</a><br>";
+            . "</a>";
+        echo "$playOnlineButton<br>";
     }
 
     // if we have a Parchment-capable game, set up a play-with-Parchment link
     if ($foundPC && $pcUrl) {
         $parchment = "https://iplayif.com/?story=";
         $ptarget = (is_kindle() ? "" : "target=\"_blank\"");
-        echo "<a href=\"$parchment$pcUrl\" $ptarget "
+        $playOnlineButton = "<a href=\"$parchment$pcUrl\" $ptarget "
             . "title=\"Play this game right now in your browser, using "
             . "the Parchment interpreter. No installation is required.\">"
             . "<img src=\"/img/blank.gif\" class=\"play-online-button viewgame__playOnline\" "
             . ">"
-            . "</a><br>";
+            . "</a>";
+        echo "$playOnlineButton<br>";
     }
 
     // if we have an ADRIFT game, set up a play-online link
     if ($foundAdrift && $adriftUrl) {
         $atarget = (is_kindle() ? "" : "target=\"_blank\"");
-        echo "<a href=\"{$adriftUrl}\" $atarget "
+        $playOnlineButton = "<a href=\"{$adriftUrl}\" $atarget "
             . "title=\"Play this game right now in your browser. No "
             . "installation is required.\">"
             . "<img src=\"/img/blank.gif\" class=\"play-online-button viewgame__playOnline\" "
             . ">"
-            . "</a><br>";
+            . "</a>";
+        echo "$playOnlineButton<br>";
     }
 
     echo "</td>";
@@ -1461,13 +1464,23 @@ if (!isEmpty($genre)) {
                         $showExternalLinksAnchor = count($links) && ($detailView || $historyView);
                         if (!isEmpty($website) || $showExternalLinksAnchor) {
                             if (!isEmpty($website) && $showExternalLinksAnchor) {
-                                echo "<div><a href=\"".htmlspecialcharx($website)."\">Web Site</a><span class='viewgame__externalLinksAnchor'> | <a href='#externalLinksTable'>External Links</span></div>";
+                                if ($playOnlineButton) {
+                                    echo "<div class=\"viewgame__externalLinksDiv\"><span class='viewgame__externalLinksAnchor'>$playOnlineButton | </span>"
+                                        . "<a href=\"".htmlspecialcharx($website)."\">Web Site</a>"
+                                        . "<span class='viewgame__externalLinksAnchor'> | <a href='#externalLinksTable'>External Links</span></div>";
+                                } else {
+                                    echo "<div class=\"viewgame__externalLinksDiv\"><a href=\"".htmlspecialcharx($website)."\">Web Site</a><span class='viewgame__externalLinksAnchor'> | <a href='#externalLinksTable'>External Links</span></div>";
+                                }
                             } else if (!isEmpty($website)) {
                                 echo "<div><a href=\"".htmlspecialcharx($website)."\">Web Site</a></div>";
                             } else {
-                                echo "<a class='viewgame__externalLinksAnchor' href='#externalLinksTable'>External Links</div>";
-                            }
-                        }
+                                if ($playOnlineButton) {
+                                    echo "<div class='viewgame__externalLinksAnchor viewgame__externalLinksDiv'>$playOnlineButton | "
+                                        . "<a href='#externalLinksTable'>External Links</div>";
+                                } else {
+                                    echo "<a class='viewgame__externalLinksAnchor viewgame__externalLinksDiv' href='#externalLinksTable'>External Links</div>";
+                                }
+                            }                        }
                      ?>
                   </span>
                </td>
