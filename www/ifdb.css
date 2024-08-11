@@ -528,7 +528,21 @@ The "coverart" table is used on a game's main listing page to display
 the game's cover art image.
 */
 td.coverart {
-    padding-right: 1em;
+    padding-left: 1em;
+}
+
+#viewgame__header, #viewgame__header tbody,
+#viewgame__header tr, #viewgame__header td {
+    display:block;
+}
+
+#viewgame__header td.coverart {
+    float: right;
+}
+
+.viewgame__externalLinksDiv {
+    clear: both;
+    white-space: nowrap;
 }
 
 /*

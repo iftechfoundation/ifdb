@@ -1371,7 +1371,7 @@ mouseOutRating(<?php echo $currentUserRating ?>);
             }
         ?>
          <p>
-         <table cellspacing=0 cellpadding=0 border=0>
+         <table id="viewgame__header" cellspacing=0 cellpadding=0 border=0>
             <tr valign=top>
                <?php
 if ($hasart) {
