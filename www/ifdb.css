@@ -59,6 +59,7 @@ from the image file, so you just have to hard-code the actual pixel size.
 
 html {
     box-sizing: border-box;
+    scroll-behavior: smooth;
 }
 
 *, *:before, *:after {
@@ -587,6 +588,10 @@ the page.
 
     table.downloads h3 {
         color: #000080;
+    }
+
+    .viewgame__externalLinksAnchor {
+        display: none;
     }
 
     /*

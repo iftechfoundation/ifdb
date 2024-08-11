@@ -887,7 +887,7 @@ echo helpWinLink("help-ifid", "IFID");
     }
 ?>
     <div class="readMore">
-    <table class="<?php if (!$downloadsView) echo "downloads"?>" id="downloadsTable">
+    <table class="<?php if (!$downloadsView) echo "downloads"?>" id="externalLinksTable">
        <tr>
            <td>
               <table width="100%" border=0 cellpadding=0 cellspacing=0>
@@ -1456,9 +1456,19 @@ if (!isEmpty($genre)) {
         $genres)) . "<br>";
 }
                      ?>
-                     <?php if (!isEmpty($system)) echo "$system<br>" ?>
-                     <?php if (!isEmpty($website))
-                         echo "<br><a href=\"".htmlspecialcharx($website)."\">Web Site</a><br>" ?>
+                     <?php if (!isEmpty($system)) echo "<div>$system</div>" ?>
+                     <?php
+                        $showExternalLinksAnchor = count($links) && ($detailView || $historyView);
+                        if (!isEmpty($website) || $showExternalLinksAnchor) {
+                            if (!isEmpty($website) && $showExternalLinksAnchor) {
+                                echo "<div><a href=\"".htmlspecialcharx($website)."\">Web Site</a><span class='viewgame__externalLinksAnchor'> | <a href='#externalLinksTable'>External Links</span></div>";
+                            } else if (!isEmpty($website)) {
+                                echo "<div><a href=\"".htmlspecialcharx($website)."\">Web Site</a></div>";
+                            } else {
+                                echo "<a class='viewgame__externalLinksAnchor' href='#externalLinksTable'>External Links</div>";
+                            }
+                        }
+                     ?>
                   </span>
                </td>
             </tr>
