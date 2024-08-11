@@ -219,7 +219,7 @@ function sendCoverArt()
 //
 function showMemberReviewsHeader($rowcnt, $ratingsView, $showHisto)
 {
-    global $ratingAvg, $ratingCntAvg, $ratingHisto, $id, $currentUserReview, $curuser;
+    global $memberReviewCnt, $ratingAvg, $ratingCntAvg, $ratingHisto, $id, $currentUserReview, $curuser;
 
     // start the section
     echo "<a name='memberReviews'></a>"
@@ -258,19 +258,13 @@ function showMemberReviewsHeader($rowcnt, $ratingsView, $showHisto)
         }
 
         echo "</table></td><td class=\"viewgame__histogramEnd\" valign=top>";
-
-    }
-
-    // show the statistics
-    if ($showHisto && $ratingCntAvg > 0) {
         echo "<span class=details>Average Rating: "
             . showStars($ratingAvg)
-            . "</span><br>";
+            . " based on $ratingCntAvg ratings<br>"
+            . "Number of Reviews Written by IFDB Members: $memberReviewCnt<br></span>";
     }
-    echo "<span class=details>Number of "
-        . ($ratingsView ? "Ratings" : "Reviews")
-        . ": $rowcnt<br>"
-        . "<a href=\"review?id=$id&userid=$curuser\">"
+
+    echo "<a href=\"review?id=$id&userid=$curuser\">"
         . ($currentUserReview ? "Revise your review" : "Write a review")
         . "</a>"
         . "</span>";
