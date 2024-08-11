@@ -863,450 +863,18 @@ echo helpWinLink("help-ifid", "IFID");
         $offsiteMode = 'A';
     }
 
-
-//------------------------- MAIN SUMMARY -------------------------
-
 ?>
-
 <style nonce="<?php global $nonce; echo $nonce; ?>">
-    .viewgame__mainSummary { margin: 0; padding: 0; }
+    .viewgame__mainSummary { margin: 0; padding: 0; order: -1; }
+    @media (max-width: 60rem) {
+        #viewgame-body {
+            display: flex;
+            flex-direction: column;
+        }
+    }
 </style>
-
-<div class='viewgame__mainSummary'>
-<table cellspacing=0 cellpadding=0 border=0>
-   <tr valign=top>
-      <td>
-        <?php
-            if ($should_hide) {
-                ?><div class=restricted>Links to this page and its ratings have been restricted, due to violations of our <a href="/code-of-conduct">Code of Conduct</a>.</div><?php
-            }
-        ?>
-         <p>
-         <table cellspacing=0 cellpadding=0 border=0>
-            <tr valign=top>
-               <?php
-if ($hasart) {
-    $arthref = "{$_SERVER['PHP_SELF']}?coverart&id=$id";
-    if (isset($_REQUEST['version']))
-        $arthref .= "&version=" . $_REQUEST['version'];
-               ?>
-               <td class=coverart>
-
-                  <a href="<?php echo $arthref ?>&ldesc">
-                     <?php echo coverArtThumbnail($id, 175, isset($_REQUEST['version']) ? "&version=".$_REQUEST['version'] : ""); ?>
-                  </a>
-               </td>
-               <?php
-} // if ($hasart)
-               ?>
-
-               <td>
-                  <h1><?php echo $title ?></h1>
-
-                  <b>by <?php
-
-// build the list of authors - hyperlink each one in the list to a
-// search for that author's name (using the "author:" search modifier)
-$authorList = splitPersonalNameList($authorExt != "" ? $authorExt : $author);
-$conj = "";
-for ($i = 0, $acnt = count($authorList) ; $i < $acnt ; $i++) {
-    // get this author
-    $au = $authorList[$i];
-
-    // check for a profile link
-    $proLink = "";
-    while ($authorExt != ""
-           && preg_match("/\s*\{([a-z0-9]+)\}/i", $au,
-                         $match, PREG_OFFSET_CAPTURE, 0)) {
-
-        // pull out this author profile TUID
-        $pro = $match[1][0];
-
-        // remove the matched text
-        $au = substr_replace($au, "", $match[0][1], strlen($match[0][0]));
-
-        // make sure the profile exists
-        $qpro = mysql_real_escape_string($pro, $db);
-        $result = mysql_query(
-            "select id, name from users where id='$qpro'", $db);
-        if (mysql_num_rows($result) != 0) {
-            // build this profile link
-            $hpro = urlencode($pro);
-            $proName = htmlspecialcharx(mysql_result($result, 0, "name"));
-            $proLink .= " </b><a class=authorProfileLink "
-                        . "href=\"showuser?id=$hpro\" "
-                        . "title=\"View $proName's profile\">profile</a><b>";
-        }
-    }
-
-    // quote the author's name for display and use in the search HREF
-    $uau = urlencode($au);
-    $dau = output_encode(htmlspecialcharx($au));
-
-    // show the link
-    echo "$conj<a href=\"search?searchfor=author%3A$uau\">$dau</a>$proLink";
-
-    // figure the conjunction for the next in the list
-    $conj = ($i + 2 == $acnt ? ($i == 0 ? " and " : ", and ") : ", ");
-}
-                  ?></b><br><br>
-                  <span class=details>
-                     <?php
-if (!isEmpty($seriesname)) {
-    if (isEmpty($seriesnum))
-        echo "Part of ";
-    else
-        echo "Episode $seriesnum of ";
-    echo "<a href=\"search?searchfor=series:" . urlencodeFromHTML($seriesname)
-        . "\">$seriesname</a><br>";
-}
-                     ?>
-                     <?php if (!isEmpty($pubYear)) echo "$pubYear<br>" ?>
-                     <?php
-if (!isEmpty($genre)) {
-    $genres = explode(",", str_replace("/", ",", $genre));
-    echo join(", ", array_map(
-        fn($genre) => "<a href=\"search?searchfor=genre:" . urlencodeFromHTML($genre) . "\">$genre</a>",
-        $genres)) . "<br>";
-}
-                     ?>
-                     <?php if (!isEmpty($system)) echo "$system<br>" ?>
-                     <?php if (!isEmpty($website))
-                         echo "<br><a href=\"".htmlspecialcharx($website)."\">Web Site</a><br>" ?>
-                  </span>
-               </td>
-            </tr>
-         </table>
-
-         <?php
-
-
-// ------------------- Query the reviews and recommendations ---------------
-// We need to query these items for the Detail and Recommendation views.
-//
-
-    if ($detailView || $recView) {
-
-        // Check for cross-recommendations.  There are two forms
-        // of recommendation we generate: Recommend Lists that mention
-        // this game, and other games that were highly rated by people
-        // who rated this game highly.
-
-        // look for lists containing this game
-        $params = [$id];
-        $sortMeLast = "";
-        if ($curuser) {
-            $sortMeLast = "if(reclists.userid = ?, 2, 1),";
-            $params[] = $curuser;
-        }
-        $result = mysqli_execute_query($db,
-            "select
-                reclists.id as listid,
-                reclists.title as title,
-                reclists.`desc` as `desc`,
-                users.id as userid,
-                users.name as username
-             from
-                reclists
-                join reclistitems
-                join users
-             where
-                reclistitems.gameid = ?
-                and reclists.id = reclistitems.listid
-                and users.id = reclists.userid
-             group by reclistitems.listid
-             order by $sortMeLast rand()
-             limit 0, 4", $params);
-
-        // fetch the recommendation lists to show
-        $listcnt = mysql_num_rows($result);
-        for ($lists = array(), $i = 0 ; $i < $listcnt ; $i++)
-            $lists[] = mysql_fetch_array($result, MYSQL_ASSOC);
-
-        // look for polls with votes for this game
-        $params = [$id];
-        $sortMeLast = "";
-        if ($curuser) {
-            $sortMeLast = "if(v.userid = ? or p.userid = ?, 2, 1),";
-            $params[] = $curuser;
-            $params[] = $curuser;
-        }
-        $result = mysqli_execute_query($db,
-            "select
-               p.pollid as pollid,
-               p.title as title,
-               p.`desc` as `desc`,
-               u.id as userid,
-               u.name as username
-             from
-               polls as p
-               join pollvotes as v on v.pollid = p.pollid
-               join users as u on u.id = p.userid
-             where
-               v.gameid = ?
-             group by
-               p.pollid
-             order by
-               $sortMeLast rand()
-             limit
-               0, 4", $params);
-
-        // fetch the polls
-        $pollcnt = mysql_num_rows($result);
-        for ($polls = array(), $i = 0 ; $i < $pollcnt ; $i++)
-            $polls[] = mysql_fetch_array($result, MYSQL_ASSOC);
-
-        $overloaded = 1;
-        if (!$overloaded) {
-            // Look for other games to recommend - these are games that
-            // were given 4- or 5-star ratings by members who also gave
-            // the current game a 4- or 5-star rating, AND which games
-            // are unrated AND unplayed by the current user.
-            //
-            // If we're logged in, make sure the ratings are coming from
-            // other users (don't bother generating recommendations based
-            // on the current user's own ratings, for obvious reasons).
-            // Also exclude games that are already on the current user's
-            // play list or wish list - they obviously already know about
-            // these games, so there's no reason to recommend them.
-            if ($curuser && !$cssOverride) {
-                $joinOtherUser = "";
-                $andOtherUser = "and r1.userid != '$curuser'
-                                and r2.userid != '$curuser'
-                                and r2.gameid not in (
-                                    select gameid from playedgames pg where pg.userid = '$curuser'
-                                    union
-                                    select gameid from wishlists wl where wl.userid = '$curuser'
-                                    union
-                                    select gameid from unwishlists uw where uw.userid = '$curuser'
-                                )";
-            } else {
-                $joinOtherUser = "";
-                $andOtherUser = "";
-            }
-            $result = mysql_query(
-                "select
-                games.id as id,
-                games.title as title,
-                games.author as author,
-                games.`desc` as `desc`,
-                (games.coverart is not null) as hasart
-                from
-                (games,
-                reviews as r1,
-                reviews as r2)
-                $joinOtherUser
-                where
-                r1.gameid = '$qid'
-                and r1.special is null and r2.special is null
-                and r1.rating >= 4
-                and r2.gameid != r1.gameid
-                and r2.rating >= 4
-                and r1.userid = r2.userid
-                and games.id = r2.gameid
-                and ifnull(now() >= r1.embargodate, 1)
-                and ifnull(now() >= r2.embargodate, 1)
-                and not (games.flags & " . FLAG_SHOULD_HIDE . ")
-                $andOtherUser
-                group by r2.gameid
-                order by rand()
-                limit 0, 3", $db);
-
-            // fetch the cross-recommendations
-            $crosscnt = mysql_num_rows($result);
-            for ($crossrecs = array(), $i = 0 ; $i < $crosscnt ; $i++)
-                $crossrecs[] = mysql_fetch_array($result, MYSQL_ASSOC);
-        } else {
-            $crosscnt = 0;
-            $crossrecs = [];
-        } 
-
-        // add current-user exclusions for explicit cross-recs, if logged in
-        if ($curuser && !$cssOverride) {
-            $joinOtherUser = "left outer join playedgames as pg"
-                             . "  on pg.userid = '$curuser'"
-                             . "  and pg.gameid = c.togame"
-                             . " left outer join wishlists as wl"
-                             . "  on wl.userid = '$curuser'"
-                             . "  and wl.gameid = c.togame"
-                             . " left outer join unwishlists as uw"
-                             . "  on uw.userid = '$curuser'"
-                             . "  and uw.gameid = c.togame"
-                             . " left outer join crossrecs as cmine "
-                             . "  on cmine.fromgame = c.fromgame"
-                             . "  and cmine.togame = c.togame"
-                             . "  and cmine.userid = '$curuser'";
-            $andOtherUser = "and cmine.togame is null"
-                            . " and pg.userid is null"
-                            . " and wl.userid is null"
-                            . " and uw.userid is null";
-        } else {
-            $joinOtherUser = "";
-            $andOtherUser = "";
-        }
-
-        // check for explicit cross-recommendations
-        $result = mysql_query(
-            "select
-               c.togame as id,
-               g.title as title,
-               g.author as author,
-               g.`desc` as `desc`,
-               (g.coverart is not null) as hasart,
-               c.notes as notes,
-               (select count(*) from crossrecs as c2
-                where c2.fromgame = '$qid' and c2.togame = c.togame)
-                as votecount
-             from
-               crossrecs as c
-               join games as g on g.id = c.togame
-               join crossrecs as c2 on c2.togame = c.togame
-               $joinOtherUser
-             where
-               c.fromgame = '$qid'
-               and not (g.flags & " . FLAG_SHOULD_HIDE . ")
-               $andOtherUser
-             group by
-               c.fromgame, c.togame
-             order by
-               rand()
-             limit
-               0, 3", $db);
-
-        $ecrosscnt = mysql_num_rows($result);
-        for ($ecrossrecs = array(), $i = 0 ; $i < $ecrosscnt ; $i++)
-            $ecrossrecs[] = mysql_fetch_array($result, MYSQL_ASSOC);
-
-        // if we have any cross-recommendations, limit the member
-        // reviews to the top 3; otherwise, show up to 5 reviews
-        $reviewsOnHomePage =
-            (($listcnt || $pollcnt || $crosscnt || $ecrosscnt) ? 3 : 5);
-    }
-
-// --------------------- GAME DETAILS -------------------------------
-
-    // show the review summary if we're in Detail View mode
-    if ($detailView) {
-?>
-         <p>
-         <span class=details>
-            <?php
-
-$embargoCnt = 0;
-if ($curuser) {
-    $result = mysql_query(
-        "select id, date_format(embargodate, '%M %e, %Y') from reviews
-         where userid = '$curuser' and gameid = '$qid'
-           and embargodate > now()", $db);
-    $embargoCnt = mysql_num_rows($result);
-    if ($embargoCnt > 0)
-        list($embargoID, $embargoDate) = mysql_fetch_row($result);
-}
-
-if ($ratingCntTot == 0) {
-    echo "<img src=\"/img/blank.gif\" class=\"star0\" title=\"No Ratings\">
-       No reviews yet";
-    if ($embargoCnt == 0)
-        echo " - <a href=\"review?id=$id&userid=$curuser\">be the first</a>";
-} else if ($ratingAvg == 0 && $memberReviewCnt == 0) {
-    echo "<a href=\"viewgame?id=$id&ratings\" "
-        . "title=\"View all ratings and reviews for this game\">"
-        . "$ratingCntTot rating" . ($ratingCntTot != 1 ? "s" : "")
-        . "</a><br>";
-} else {
-    if (!$should_hide && $ratingAvg != 0) {
-        echo showStars($ratingAvg)
-            . " (based on <a href=\"viewgame?id=$id&ratings\" "
-            . "title=\"View all ratings and reviews for this game\">"
-            . "$ratingCntAvg rating" . ($ratingCntAvg != 1 ? "s" : "")
-            . "</a>)<br>";
-    }
-
-    if ($memberReviewCnt != 0) {
-        $href = ($memberReviewCnt > $reviewsOnHomePage)
-                ? "viewgame?id=$id&reviews" : "#memberReviews";
-        echo "<a href=\"$href\">$memberReviewCnt review"
-            . ($memberReviewCnt != 1 ? "s" : "")
-            . "</a>";
-    }
-    else {
-        echo "No reviews yet";
-        if ($embargoCnt == 0)
-            echo " - <a href=\"review?id=$id&userid=$curuser\">be the first</a>";
-    }
-}
-
-if (!$should_hide) {
-    $result = mysql_query(
-        "select count(userid) from playedgames where gameid='$qid'", $db);
-    list($playlistCnt) = mysql_fetch_row($result);
-
-    $emdash = false;
-
-    if ($playlistCnt) {
-        $emdash = true;
-        echo " &mdash; <a id=playlistCount href='whoselist?game=$id&type=playlist' class='silent'>";
-        if ($playlistCnt == 1) {
-            echo "1 member has";
-        } else {
-            echo "$playlistCnt members have";
-        }
-        echo " played this game.</a></div>";
-    }
-
-    $result = mysql_query(
-        "select count(userid) from wishlists where gameid='$qid'", $db);
-    list($wishlistCnt) = mysql_fetch_row($result);
-
-    if ($wishlistCnt) {
-        if (!$emdash) {
-            echo " &mdash;";
-        }
-        echo " <a id=wishlistCount href='whoselist?game=$id&type=wishlist' class='silent'>It's on $wishlistCnt wishlist";
-        if ($wishlistCnt != 1) {
-            echo "s";
-        }
-        echo "</a></div>";
-    }
-}
-
-?>
-<script type="text/javascript" nonce="<?php global $nonce; echo $nonce; ?>">
-<!--
-function updatePlaylistCount(n)
-{
-    document.getElementById("playlistCount").innerHTML =
-        "" + (n == 0 ? "No" : n) + " member" + (n == 1 ? " has" : "s have")
-        + " played this game";
-}
-function updateWishlistCount(n)
-{
-    document.getElementById("wishlistCount").innerHTML =
-        (n == 0 ? "It's not on any wish lists yet" :
-         "It's on " + n + " wish list" + (n == 1 ? "" : "s"));
-}
-function updateUnwishlistCount(n)
-{
+<div id='viewgame-body'>
 <?php
-//    document.getElementById("unwishlistCount").innerHTML =
-//        (n == 0 ? "It's not on any no-interest lists" :
-//         "It's on " + n + " no-interest list" + (n == 1 ? "" : "s"));
-?>
-}
-</script>
-<?php
-
-if ($embargoCnt > 0)
-    echo "<br><i>Your review of this game is hidden until $embargoDate - "
-        . "<a href=\"review?id=$id&userid=$curuser\">Revise it</a></i>";
-
-            ?>
-         </span>
-
-<?php
-
-    } // if ($detailView)
-
     // ------------------------ DOWNLOADS -------------------------------
     if ($detailView || $historyView || $downloadsView) {
 
@@ -1785,6 +1353,445 @@ mouseOutRating(<?php echo $currentUserRating ?>);
     } // if (!$downloadsView)
 
     } // if ($detailView || $historyView)
+
+//------------------------- MAIN SUMMARY -------------------------
+
+?>
+
+<div class='viewgame__mainSummary'>
+<table cellspacing=0 cellpadding=0 border=0>
+   <tr valign=top>
+      <td>
+        <?php
+            if ($should_hide) {
+                ?><div class=restricted>Links to this page and its ratings have been restricted, due to violations of our <a href="/code-of-conduct">Code of Conduct</a>.</div><?php
+            }
+        ?>
+         <p>
+         <table cellspacing=0 cellpadding=0 border=0>
+            <tr valign=top>
+               <?php
+if ($hasart) {
+    $arthref = "{$_SERVER['PHP_SELF']}?coverart&id=$id";
+    if (isset($_REQUEST['version']))
+        $arthref .= "&version=" . $_REQUEST['version'];
+               ?>
+               <td class=coverart>
+
+                  <a href="<?php echo $arthref ?>&ldesc">
+                     <?php echo coverArtThumbnail($id, 175, isset($_REQUEST['version']) ? "&version=".$_REQUEST['version'] : ""); ?>
+                  </a>
+               </td>
+               <?php
+} // if ($hasart)
+               ?>
+
+               <td>
+                  <h1><?php echo $title ?></h1>
+
+                  <b>by <?php
+
+// build the list of authors - hyperlink each one in the list to a
+// search for that author's name (using the "author:" search modifier)
+$authorList = splitPersonalNameList($authorExt != "" ? $authorExt : $author);
+$conj = "";
+for ($i = 0, $acnt = count($authorList) ; $i < $acnt ; $i++) {
+    // get this author
+    $au = $authorList[$i];
+
+    // check for a profile link
+    $proLink = "";
+    while ($authorExt != ""
+           && preg_match("/\s*\{([a-z0-9]+)\}/i", $au,
+                         $match, PREG_OFFSET_CAPTURE, 0)) {
+
+        // pull out this author profile TUID
+        $pro = $match[1][0];
+
+        // remove the matched text
+        $au = substr_replace($au, "", $match[0][1], strlen($match[0][0]));
+
+        // make sure the profile exists
+        $qpro = mysql_real_escape_string($pro, $db);
+        $result = mysql_query(
+            "select id, name from users where id='$qpro'", $db);
+        if (mysql_num_rows($result) != 0) {
+            // build this profile link
+            $hpro = urlencode($pro);
+            $proName = htmlspecialcharx(mysql_result($result, 0, "name"));
+            $proLink .= " </b><a class=authorProfileLink "
+                        . "href=\"showuser?id=$hpro\" "
+                        . "title=\"View $proName's profile\">profile</a><b>";
+        }
+    }
+
+    // quote the author's name for display and use in the search HREF
+    $uau = urlencode($au);
+    $dau = output_encode(htmlspecialcharx($au));
+
+    // show the link
+    echo "$conj<a href=\"search?searchfor=author%3A$uau\">$dau</a>$proLink";
+
+    // figure the conjunction for the next in the list
+    $conj = ($i + 2 == $acnt ? ($i == 0 ? " and " : ", and ") : ", ");
+}
+                  ?></b><br><br>
+                  <span class=details>
+                     <?php
+if (!isEmpty($seriesname)) {
+    if (isEmpty($seriesnum))
+        echo "Part of ";
+    else
+        echo "Episode $seriesnum of ";
+    echo "<a href=\"search?searchfor=series:" . urlencodeFromHTML($seriesname)
+        . "\">$seriesname</a><br>";
+}
+                     ?>
+                     <?php if (!isEmpty($pubYear)) echo "$pubYear<br>" ?>
+                     <?php
+if (!isEmpty($genre)) {
+    $genres = explode(",", str_replace("/", ",", $genre));
+    echo join(", ", array_map(
+        fn($genre) => "<a href=\"search?searchfor=genre:" . urlencodeFromHTML($genre) . "\">$genre</a>",
+        $genres)) . "<br>";
+}
+                     ?>
+                     <?php if (!isEmpty($system)) echo "$system<br>" ?>
+                     <?php if (!isEmpty($website))
+                         echo "<br><a href=\"".htmlspecialcharx($website)."\">Web Site</a><br>" ?>
+                  </span>
+               </td>
+            </tr>
+         </table>
+
+         <?php
+
+
+// ------------------- Query the reviews and recommendations ---------------
+// We need to query these items for the Detail and Recommendation views.
+//
+
+    if ($detailView || $recView) {
+
+        // Check for cross-recommendations.  There are two forms
+        // of recommendation we generate: Recommend Lists that mention
+        // this game, and other games that were highly rated by people
+        // who rated this game highly.
+
+        // look for lists containing this game
+        $params = [$id];
+        $sortMeLast = "";
+        if ($curuser) {
+            $sortMeLast = "if(reclists.userid = ?, 2, 1),";
+            $params[] = $curuser;
+        }
+        $result = mysqli_execute_query($db,
+            "select
+                reclists.id as listid,
+                reclists.title as title,
+                reclists.`desc` as `desc`,
+                users.id as userid,
+                users.name as username
+             from
+                reclists
+                join reclistitems
+                join users
+             where
+                reclistitems.gameid = ?
+                and reclists.id = reclistitems.listid
+                and users.id = reclists.userid
+             group by reclistitems.listid
+             order by $sortMeLast rand()
+             limit 0, 4", $params);
+
+        // fetch the recommendation lists to show
+        $listcnt = mysql_num_rows($result);
+        for ($lists = array(), $i = 0 ; $i < $listcnt ; $i++)
+            $lists[] = mysql_fetch_array($result, MYSQL_ASSOC);
+
+        // look for polls with votes for this game
+        $params = [$id];
+        $sortMeLast = "";
+        if ($curuser) {
+            $sortMeLast = "if(v.userid = ? or p.userid = ?, 2, 1),";
+            $params[] = $curuser;
+            $params[] = $curuser;
+        }
+        $result = mysqli_execute_query($db,
+            "select
+               p.pollid as pollid,
+               p.title as title,
+               p.`desc` as `desc`,
+               u.id as userid,
+               u.name as username
+             from
+               polls as p
+               join pollvotes as v on v.pollid = p.pollid
+               join users as u on u.id = p.userid
+             where
+               v.gameid = ?
+             group by
+               p.pollid
+             order by
+               $sortMeLast rand()
+             limit
+               0, 4", $params);
+
+        // fetch the polls
+        $pollcnt = mysql_num_rows($result);
+        for ($polls = array(), $i = 0 ; $i < $pollcnt ; $i++)
+            $polls[] = mysql_fetch_array($result, MYSQL_ASSOC);
+
+        $overloaded = 1;
+        if (!$overloaded) {
+            // Look for other games to recommend - these are games that
+            // were given 4- or 5-star ratings by members who also gave
+            // the current game a 4- or 5-star rating, AND which games
+            // are unrated AND unplayed by the current user.
+            //
+            // If we're logged in, make sure the ratings are coming from
+            // other users (don't bother generating recommendations based
+            // on the current user's own ratings, for obvious reasons).
+            // Also exclude games that are already on the current user's
+            // play list or wish list - they obviously already know about
+            // these games, so there's no reason to recommend them.
+            if ($curuser && !$cssOverride) {
+                $joinOtherUser = "";
+                $andOtherUser = "and r1.userid != '$curuser'
+                                and r2.userid != '$curuser'
+                                and r2.gameid not in (
+                                    select gameid from playedgames pg where pg.userid = '$curuser'
+                                    union
+                                    select gameid from wishlists wl where wl.userid = '$curuser'
+                                    union
+                                    select gameid from unwishlists uw where uw.userid = '$curuser'
+                                )";
+            } else {
+                $joinOtherUser = "";
+                $andOtherUser = "";
+            }
+            $result = mysql_query(
+                "select
+                games.id as id,
+                games.title as title,
+                games.author as author,
+                games.`desc` as `desc`,
+                (games.coverart is not null) as hasart
+                from
+                (games,
+                reviews as r1,
+                reviews as r2)
+                $joinOtherUser
+                where
+                r1.gameid = '$qid'
+                and r1.special is null and r2.special is null
+                and r1.rating >= 4
+                and r2.gameid != r1.gameid
+                and r2.rating >= 4
+                and r1.userid = r2.userid
+                and games.id = r2.gameid
+                and ifnull(now() >= r1.embargodate, 1)
+                and ifnull(now() >= r2.embargodate, 1)
+                and not (games.flags & " . FLAG_SHOULD_HIDE . ")
+                $andOtherUser
+                group by r2.gameid
+                order by rand()
+                limit 0, 3", $db);
+
+            // fetch the cross-recommendations
+            $crosscnt = mysql_num_rows($result);
+            for ($crossrecs = array(), $i = 0 ; $i < $crosscnt ; $i++)
+                $crossrecs[] = mysql_fetch_array($result, MYSQL_ASSOC);
+        } else {
+            $crosscnt = 0;
+            $crossrecs = [];
+        } 
+
+        // add current-user exclusions for explicit cross-recs, if logged in
+        if ($curuser && !$cssOverride) {
+            $joinOtherUser = "left outer join playedgames as pg"
+                             . "  on pg.userid = '$curuser'"
+                             . "  and pg.gameid = c.togame"
+                             . " left outer join wishlists as wl"
+                             . "  on wl.userid = '$curuser'"
+                             . "  and wl.gameid = c.togame"
+                             . " left outer join unwishlists as uw"
+                             . "  on uw.userid = '$curuser'"
+                             . "  and uw.gameid = c.togame"
+                             . " left outer join crossrecs as cmine "
+                             . "  on cmine.fromgame = c.fromgame"
+                             . "  and cmine.togame = c.togame"
+                             . "  and cmine.userid = '$curuser'";
+            $andOtherUser = "and cmine.togame is null"
+                            . " and pg.userid is null"
+                            . " and wl.userid is null"
+                            . " and uw.userid is null";
+        } else {
+            $joinOtherUser = "";
+            $andOtherUser = "";
+        }
+
+        // check for explicit cross-recommendations
+        $result = mysql_query(
+            "select
+               c.togame as id,
+               g.title as title,
+               g.author as author,
+               g.`desc` as `desc`,
+               (g.coverart is not null) as hasart,
+               c.notes as notes,
+               (select count(*) from crossrecs as c2
+                where c2.fromgame = '$qid' and c2.togame = c.togame)
+                as votecount
+             from
+               crossrecs as c
+               join games as g on g.id = c.togame
+               join crossrecs as c2 on c2.togame = c.togame
+               $joinOtherUser
+             where
+               c.fromgame = '$qid'
+               and not (g.flags & " . FLAG_SHOULD_HIDE . ")
+               $andOtherUser
+             group by
+               c.fromgame, c.togame
+             order by
+               rand()
+             limit
+               0, 3", $db);
+
+        $ecrosscnt = mysql_num_rows($result);
+        for ($ecrossrecs = array(), $i = 0 ; $i < $ecrosscnt ; $i++)
+            $ecrossrecs[] = mysql_fetch_array($result, MYSQL_ASSOC);
+
+        // if we have any cross-recommendations, limit the member
+        // reviews to the top 3; otherwise, show up to 5 reviews
+        $reviewsOnHomePage =
+            (($listcnt || $pollcnt || $crosscnt || $ecrosscnt) ? 3 : 5);
+    }
+
+// --------------------- GAME DETAILS -------------------------------
+
+    // show the review summary if we're in Detail View mode
+    if ($detailView) {
+?>
+         <p>
+         <span class=details>
+            <?php
+
+$embargoCnt = 0;
+if ($curuser) {
+    $result = mysql_query(
+        "select id, date_format(embargodate, '%M %e, %Y') from reviews
+         where userid = '$curuser' and gameid = '$qid'
+           and embargodate > now()", $db);
+    $embargoCnt = mysql_num_rows($result);
+    if ($embargoCnt > 0)
+        list($embargoID, $embargoDate) = mysql_fetch_row($result);
+}
+
+if ($ratingCntTot == 0) {
+    echo "<img src=\"/img/blank.gif\" class=\"star0\" title=\"No Ratings\">
+       No reviews yet";
+    if ($embargoCnt == 0)
+        echo " - <a href=\"review?id=$id&userid=$curuser\">be the first</a>";
+} else if ($ratingAvg == 0 && $memberReviewCnt == 0) {
+    echo "<a href=\"viewgame?id=$id&ratings\" "
+        . "title=\"View all ratings and reviews for this game\">"
+        . "$ratingCntTot rating" . ($ratingCntTot != 1 ? "s" : "")
+        . "</a><br>";
+} else {
+    if (!$should_hide && $ratingAvg != 0) {
+        echo showStars($ratingAvg)
+            . " (based on <a href=\"viewgame?id=$id&ratings\" "
+            . "title=\"View all ratings and reviews for this game\">"
+            . "$ratingCntAvg rating" . ($ratingCntAvg != 1 ? "s" : "")
+            . "</a>)<br>";
+    }
+
+    if ($memberReviewCnt != 0) {
+        $href = ($memberReviewCnt > $reviewsOnHomePage)
+                ? "viewgame?id=$id&reviews" : "#memberReviews";
+        echo "<a href=\"$href\">$memberReviewCnt review"
+            . ($memberReviewCnt != 1 ? "s" : "")
+            . "</a>";
+    }
+    else {
+        echo "No reviews yet";
+        if ($embargoCnt == 0)
+            echo " - <a href=\"review?id=$id&userid=$curuser\">be the first</a>";
+    }
+}
+
+if (!$should_hide) {
+    $result = mysql_query(
+        "select count(userid) from playedgames where gameid='$qid'", $db);
+    list($playlistCnt) = mysql_fetch_row($result);
+
+    $emdash = false;
+
+    if ($playlistCnt) {
+        $emdash = true;
+        echo " &mdash; <a id=playlistCount href='whoselist?game=$id&type=playlist' class='silent'>";
+        if ($playlistCnt == 1) {
+            echo "1 member has";
+        } else {
+            echo "$playlistCnt members have";
+        }
+        echo " played this game.</a></div>";
+    }
+
+    $result = mysql_query(
+        "select count(userid) from wishlists where gameid='$qid'", $db);
+    list($wishlistCnt) = mysql_fetch_row($result);
+
+    if ($wishlistCnt) {
+        if (!$emdash) {
+            echo " &mdash;";
+        }
+        echo " <a id=wishlistCount href='whoselist?game=$id&type=wishlist' class='silent'>It's on $wishlistCnt wishlist";
+        if ($wishlistCnt != 1) {
+            echo "s";
+        }
+        echo "</a></div>";
+    }
+}
+
+?>
+<script type="text/javascript" nonce="<?php global $nonce; echo $nonce; ?>">
+<!--
+function updatePlaylistCount(n)
+{
+    document.getElementById("playlistCount").innerHTML =
+        "" + (n == 0 ? "No" : n) + " member" + (n == 1 ? " has" : "s have")
+        + " played this game";
+}
+function updateWishlistCount(n)
+{
+    document.getElementById("wishlistCount").innerHTML =
+        (n == 0 ? "It's not on any wish lists yet" :
+         "It's on " + n + " wish list" + (n == 1 ? "" : "s"));
+}
+function updateUnwishlistCount(n)
+{
+<?php
+//    document.getElementById("unwishlistCount").innerHTML =
+//        (n == 0 ? "It's not on any no-interest lists" :
+//         "It's on " + n + " no-interest list" + (n == 1 ? "" : "s"));
+?>
+}
+</script>
+<?php
+
+if ($embargoCnt > 0)
+    echo "<br><i>Your review of this game is hidden until $embargoDate - "
+        . "<a href=\"review?id=$id&userid=$curuser\">Revise it</a></i>";
+
+            ?>
+         </span>
+
+<?php
+
+    } // if ($detailView)
 
     // show the description, if it's present AND we're in Detail or
     // History mode

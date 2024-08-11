@@ -570,10 +570,8 @@ the page.
 */
 @media (min-width: 60rem) {
     div.downloadfloat {
-        position: absolute;
-        top: 0;
-        right: 0;
-        margin: 0 0 2em 1em;
+        float: right;
+        margin: 0 -1em 2em 1em;
         width: 20rem;
     }
 
