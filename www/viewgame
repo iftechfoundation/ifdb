@@ -438,11 +438,16 @@ $selectMemberReviews = getReviewQueryByGame(
     $db, $id, "reviews.review is not null and reviews.special is null");
 
 // Rating query - this selects RATINGS (so the 'rating' field must
-// not be null).  We'll also include reviews in this list, so it's
+// not be null), BY MEMBERS (i.e., not special
+// reviews, so 'special' must be null), excluding "omitted" reviews
+// ("omit this review from the average", rflags 2)
+// We'll also include reviews in this list, so it's
 // okay for the review field to be non-null.  If we wanted ONLY
 // ratings and not any reviews, we'd also require 'review is null'.
 $selectMemberRatings = getReviewQueryByGame(
-    $db, $id, "reviews.rating is not null");
+    $db, $id, "reviews.rating is not null and reviews.special is null " .
+        "and not(ifnull(`ifdb`.`reviews`.`RFlags`, 0) & 2)"
+);
 
 // User filter ordering - if we're logged in, sort by any user filter
 // (promotions and demotions) in effect.
