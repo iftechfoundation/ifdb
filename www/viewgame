@@ -217,13 +217,22 @@ function sendCoverArt()
 // --------------------------------------------------------------------------
 // display the Member Review section header
 //
-function showMemberReviewsHeader($rowcnt, $ratingsView, $showHisto)
+function showMemberReviewsHeader($showHisto)
 {
-    global $ratingAvg, $ratingCntAvg, $ratingHisto, $id, $currentUserReview, $curuser;
+    global $memberReviewCnt, $ratingsView, $reviewView, $oneReviewView, $ratingAvg, $ratingCntAvg, $ratingHisto, $id, $currentUserReview, $curuser;
+
+    $heading = "Ratings and Reviews";
+    if ($ratingsView) {
+        $heading = "All Member Ratings";
+    } else if ($reviewView) {
+        $heading = "All Written Member Reviews";
+    } else if ($oneReviewView) {
+        $heading = "Review";
+    }
 
     // start the section
     echo "<a name='memberReviews'></a>"
-        . "<h2>Ratings and Reviews</h2><div class=indented>";
+        . "<h2>$heading</h2><div class=indented>";
 
     // count the ratings in the histogram, and get the maximum
     for ($cnt = $max = 0, $i = 1 ; $i <= 5 ; $i++) {
@@ -258,20 +267,14 @@ function showMemberReviewsHeader($rowcnt, $ratingsView, $showHisto)
         }
 
         echo "</table></td><td class=\"viewgame__histogramEnd\" valign=top>";
-
-    }
-
-    // show the statistics
-    if ($showHisto && $ratingCntAvg > 0) {
         echo "<span class=details>Average Rating: "
             . showStars($ratingAvg)
-            . "</span><br>";
+            . " based on $ratingCntAvg ratings<br>"
+            . "Number of Reviews Written by IFDB Members: $memberReviewCnt<br></span>";
     }
-    echo "<span class=details>Number of "
-        . ($ratingsView ? "Ratings" : "Reviews")
-        . ": $rowcnt<br>"
-        . "<a href=\"review?id=$id&userid=$curuser\">"
-        . ($currentUserReview ? "Revise your review" : "Write a review")
+
+    echo "<a href=\"review?id=$id&userid=$curuser\">"
+        . ($currentUserReview ? "Revise your review" : ($oneReviewView ? "" : "Write a review"))
         . "</a>"
         . "</span>";
 
@@ -435,11 +438,16 @@ $selectMemberReviews = getReviewQueryByGame(
     $db, $id, "reviews.review is not null and reviews.special is null");
 
 // Rating query - this selects RATINGS (so the 'rating' field must
-// not be null).  We'll also include reviews in this list, so it's
+// not be null), BY MEMBERS (i.e., not special
+// reviews, so 'special' must be null), excluding "omitted" reviews
+// ("omit this review from the average", rflags 2)
+// We'll also include reviews in this list, so it's
 // okay for the review field to be non-null.  If we wanted ONLY
 // ratings and not any reviews, we'd also require 'review is null'.
 $selectMemberRatings = getReviewQueryByGame(
-    $db, $id, "reviews.rating is not null");
+    $db, $id, "reviews.rating is not null and reviews.special is null " .
+        "and not(ifnull(`ifdb`.`reviews`.`RFlags`, 0) & 2)"
+);
 
 // User filter ordering - if we're logged in, sort by any user filter
 // (promotions and demotions) in effect.
@@ -1712,7 +1720,7 @@ if ($curuser) {
         list($embargoID, $embargoDate) = mysql_fetch_row($result);
 }
 
-if ($ratingCntTot == 0) {
+if ($ratingCntTot == 0 && $memberReviewCnt == 0) {
     echo "<img src=\"/img/blank.gif\" class=\"star0\" title=\"No Ratings\">
        No reviews yet";
     if ($embargoCnt == 0)
@@ -2047,7 +2055,7 @@ if ($embargoCnt > 0)
 
             // show the Member Reviews section header
             $showHisto = !$should_hide;
-            showMemberReviewsHeader($rowcnt, false, $showHisto);
+            showMemberReviewsHeader($showHisto);
 
             // if we have too many for this front page, limit it
             if ($rowcnt > $reviewsOnHomePage) {
@@ -2256,10 +2264,10 @@ if ($embargoCnt > 0)
                 } else {
                     // this is for immediate display
                     if (!$divStarted) {
-                        if (count($extReviews) === 1)
+                        if (count($srevs) === 1)
                             echo "<h2>1 Off-Site Review</h2>";
                         else
-                            echo "<h2>".count($extReviews)." Off-Site Reviews</h2>";
+                            echo "<h2>".count($srevs)." Off-Site Reviews</h2>";
 
                         echo "<div class='indented readMore'>";
                         $divStarted = true;
@@ -3267,7 +3275,7 @@ if (count($inrefs) != 0 && !$historyView) {
         } else {
 
             // start the section
-            showMemberReviewsHeader($memberReviewCnt, false, false);
+            showMemberReviewsHeader(false);
 
             // Show our single review.  Only show the "Add Comment"
             // button for the comment controls, since we're going to
@@ -3367,7 +3375,7 @@ if (count($inrefs) != 0 && !$historyView) {
         $showHisto = !$should_hide;
 
         // start the section
-        showMemberReviewsHeader($realtotcnt, $ratingsView, $showHisto);
+        showMemberReviewsHeader($showHisto);
 
         // show the reviews/ratings only if we have any
         if ($totcnt != 0) {
