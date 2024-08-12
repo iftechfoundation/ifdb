@@ -863,14 +863,503 @@ echo helpWinLink("help-ifid", "IFID");
         $offsiteMode = 'A';
     }
 
+?>
+<style nonce="<?php global $nonce; echo $nonce; ?>">
+    .viewgame__mainSummary { margin: 0; padding: 0; order: -1; }
+    @media (max-width: 60rem) {
+        #viewgame-body {
+            display: flex;
+            flex-direction: column;
+        }
+    }
+</style>
+<div id='viewgame-body'>
+<?php
+    // ------------------------ DOWNLOADS -------------------------------
+    if ($detailView || $historyView || $downloadsView) {
+
+    if ($downloadsView) {
+        echo "<p><a href=\"viewgame?id=$id\">Go to the "
+            . "main page for this game</a>";
+        echo "<div>";
+    } else {
+        echo '<div class="downloadfloat">';
+    }
+?>
+    <div class="readMore">
+    <table class="<?php if (!$downloadsView) echo "downloads"?>" id="externalLinksTable">
+       <tr>
+           <td>
+              <table width="100%" border=0 cellpadding=0 cellspacing=0>
+                 <tr>
+                    <td valign=top>
+                       <h3>External Links</h3>
+                       <?php
+//                           if ($version != "")
+//                               echo "<span class=notes>Version
+//                                     $version</span><br>";
+                       ?>
+                    </td>
+                    <?php
+
+// Check to see if the game is available for download in any form.
+// PC == "parchment capable" - a format that we can play with Parchment.
+// HEX = Hugo file playable online with textadventures.online/play/?story=XXX
+for ($foundGame = $foundHtml = $foundPC = $foundHex = $htmlUrl = $pcUrl = $foundAdrift = $adriftUrl = $hexUrl = false, $i = 0 ;
+     $i < count($links) ; $i++)
+{
+    // get this link
+    $link = $links[$i];
+
+    // if it's a game, note that we found a game link
+    if ($link['isgame'])
+        $foundGame = true;
+
+    $unboxUrl = false;
+    if ($link['compression'] && $link['compressedprimary']) {
+        $open = urlencode($link['compressedprimary']);
+        if (preg_match('!^https?://(www\.|mirror\.)?ifarchive\.org/!', $link['url'])) {
+            $linkUrl = urlencode($link['url']);
+            $unboxUrl = "https://unbox.ifarchive.org/?url=$linkUrl&open=$open";
+        } else {
+            $springThingUrl = preg_replace('!^https?://(www\.)?springthing\.net/(\d+)/files/(.*)$!',
+                'https://ifarchive.org/if-archive/games/springthing/$2/$3', $link['url']);
+            if ($springThingUrl !== $link['url']) {
+                $springThingUrl = urlencode($springThingUrl);
+                $unboxUrl = "https://unbox.ifarchive.org/?url=$springThingUrl&open=$open";
+            } else {
+                $springThingUrl = preg_replace('!^https?://(www\.)?springthing\.net/(\d+)/stories/[^/]+/(.*)$!',
+                    'https://ifarchive.org/if-archive/games/springthing/$2/$3', $link['url']);
+                if ($springThingUrl !== $link['url']) {
+                    $springThingUrl = urlencode($springThingUrl);
+                    $unboxUrl = "https://unbox.ifarchive.org/?url=$springThingUrl&open=$open";
+                }
+            }
+        }
+    }
+
+    if ($link['fmtexternid'] == 'hypertextgame')
+    {
+        if (!$link['compression']) {
+            $foundHtml = true;
+            $htmlUrl = $link['url'];
+            break;
+        } else if ($unboxUrl) {
+            $foundHtml = true;
+            $htmlUrl = $unboxUrl;
+            break;
+        }
+    }
+
+    if (stripos($link['title'], "Play Online") !== false)
+    {
+        $foundGame = $foundHtml = true;
+        $htmlUrl = $link['url'];
+        break;
+    }
+
+    // if this is the first Parchment-capable link, and it's not compressed,
+    // note it so that we can set up a Parchment play link to it
+    if ($link['fmtexternid'] == 'zcode'
+            || $link['fmtexternid'] == 'blorb/zcode'
+            || $link['fmtexternid'] == 'glulx'
+            || $link['fmtexternid'] == 'blorb/glulx'
+            || $link['fmtexternid'] == 'tads2'
+            || $link['fmtexternid'] == 'tads3'
+            || $link['fmtexternid'] == 'hugo'
+        )
+    {
+        if (!$link['compression']) {
+            $foundPC = true;
+            $pcUrl = urlencode(urlToMirror($link['url']));
+            break;
+        } else if ($unboxUrl) {
+            $foundPC = true;
+            $pcUrl = urlencode($unboxUrl);
+            break;
+        }
+    }
+
+    if ($link['fmtexternid'] == 'adrift'
+            || $link['fmtexternid'] == 'adrift38'
+            || $link['fmtexternid'] == 'adrift39'
+            || $link['fmtexternid'] == 'adrift5'
+            || $link['fmtexternid'] == 'adrift5/blorb'
+        )
+    {
+        if (!$link['compression']) {
+            $foundAdrift = true;
+            if (preg_match('!^https?://www.adrift.co/cgi/download.cgi\?(\d+)!', $link['url'], $matches)) {
+                // download.cgi does a 302 redirect to the real download URL, which play.adrift.co can't cope with
+                // luckily, play.cgi does a 302 redirect to play.adrift.co with the canonical game URL
+                $adriftUrl = "https://www.adrift.co/cgi/play.cgi?" . $matches[1];
+            } else {
+                $adriftUrl = "http://play.adrift.co/?game=" . urlencode($link['url']);
+            }
+            break;
+        } else if ($unboxUrl) {
+            $foundAdrift = true;
+            $adriftUrl = "http://play.adrift.co/?game=" . urlencode($unboxUrl);
+            break;
+        }
+    }
+}
+if ($foundGame)
+{
+    echo "<td align=right valign=middle class='viewgame__foundGame'>\r\n";
+    global $nonce;
+    echo "<style nonce='$nonce'>\n"
+        . ".viewgame__foundGame { position: relative; }\n"
+        . ".viewgame__playOnline { margin:0px 0px 0.3em 0px;cursor:pointer; }\n"
+        . "</style>\n";
+
+    $playOnlineButton = "";
+    // if we have an HTML playable game, set up a play online link
+    if ($foundHtml && $htmlUrl) {
+        $ptarget = (is_kindle() ? "" : "target=\"_blank\"");
+        $playOnlineButton = "<a href=\"$htmlUrl\" $ptarget "
+            . "title=\"Play this game right now in your browser. No "
+            . "installation is required.\">"
+            . "<img src=\"/img/blank.gif\" class=\"play-online-button viewgame__playOnline\" "
+            . ">"
+            . "</a>";
+        echo "$playOnlineButton<br>";
+    }
+
+    // if we have a Parchment-capable game, set up a play-with-Parchment link
+    if ($foundPC && $pcUrl) {
+        $parchment = "https://iplayif.com/?story=";
+        $ptarget = (is_kindle() ? "" : "target=\"_blank\"");
+        $playOnlineButton = "<a href=\"$parchment$pcUrl\" $ptarget "
+            . "title=\"Play this game right now in your browser, using "
+            . "the Parchment interpreter. No installation is required.\">"
+            . "<img src=\"/img/blank.gif\" class=\"play-online-button viewgame__playOnline\" "
+            . ">"
+            . "</a>";
+        echo "$playOnlineButton<br>";
+    }
+
+    // if we have an ADRIFT game, set up a play-online link
+    if ($foundAdrift && $adriftUrl) {
+        $atarget = (is_kindle() ? "" : "target=\"_blank\"");
+        $playOnlineButton = "<a href=\"{$adriftUrl}\" $atarget "
+            . "title=\"Play this game right now in your browser. No "
+            . "installation is required.\">"
+            . "<img src=\"/img/blank.gif\" class=\"play-online-button viewgame__playOnline\" "
+            . ">"
+            . "</a>";
+        echo "$playOnlineButton<br>";
+    }
+
+    echo "</td>";
+}
+                    ?>
+                 </tr>
+              </table>
+
+                   <?php
+if (count($links) == 0 && $dlnotes == "") {
+    echo "<i>There are no known download links for this game.</i>";
+} else {
+    // put the download notes at the top
+    if ($dlnotes != "") {
+        $dlnotes = preg_replace(
+            "/([a-z0-9][\/.])([a-z0-9])/i", "$1$zwsp$2", $dlnotes);
+        echo "<i>$dlnotes</i>";
+    }
+
+    // count compressed files
+    $zips = array();
+    $zipnotes = array();
+    for ($i = 0 ; $i < count($links) ; $i++) {
+        $c = $links[$i]['compression'];
+        if ($c) {
+            if (isset($zips[$c]) && $zips[$c]) {
+                $zips[$c][0] += 1;
+            }
+            else {
+                $result = mysqli_execute_query($db, "select `desc` from filetypes
+                    where id = ?", [$c]);
+                $zips[$c] = array(1, "", mysql_result($result, 0, "desc"));
+                $zipnotes[] = $c;
+            }
+        }
+    }
+
+    // use footnotes for any compression formats appearing more than once
+    $footnoteid = 1;
+    for ($i = 0 ; $i < count($zipnotes) ; $i++) {
+        $c = $zipnotes[$i];
+        if ($zips[$c][0] > 1) {
+            $zips[$c][1] = getFootnoteStar($footnoteid++);
+        }
+    }
+
+    // display the link table
+    echo "<table class=\"downloadlist\">";
+    for ($i = 0 ; $i < count($links) ; $i++) {
+        // get this link's information
+        $link = $links[$i];
+        $url = $link['url'];
+        $zipped = (strcasecmp(substr($url, -4), ".zip") == 0);
+        $fmtisgame = $link['isgame'];
+        $linktitle = zeroWidthSpaceUnderscores(
+            output_encode(htmlspecialcharx($link['title'])
+        ));
+        $linkdesc = output_encode(htmlspecialcharx($link['desc']));
+        $fmtid = $link['fmtid'];
+        $fmtexternid = $link['fmtexternid'];
+        $fmtos = $link['osid'];
+        $fmtosvsn = $link['osvsn'];
+        $fmtname = $link['fmtname'];
+        $fmtdesc = $link['fmtdesc'];
+        $fmticon = $link['fmticon'];
+        $fmtclass = $link['fmtclass'];
+        $fmtcomp = $link['compression'];
+        $compPri = zeroWidthSpaceUnderscores(
+            htmlspecialcharx($link['compressedprimary'])
+        );
+        $osname = isset($link['osname']) ? $link['osname'] : "";
+        $osvsnname = isset($link['osvsnname']) ? $link['osvsnname'] : "";
+        $osicon = isset($link['osicon']) ? $link['osicon'] : "";
+
+        // if it's an executable format, qualify the format name with
+        // the OS name, since an executable is native to a particular OS
+        $typename = ($fmtclass == 'X' ? "$osname $fmtname" : "");
+
+        // if the OS version name is distinct from the OS name, mention
+        // the minimum version in the desription
+        if ($fmtos != $fmtosvsn && $fmtosvsn != "")
+            $typename .= " ($osvsnname and later)";
+
+        // build the full type description
+        $typedesc = (($fmtdesc && $typename) ? "$typename: $fmtdesc" :
+                     ($fmtdesc ? $fmtdesc : $typename));
+
+        // if there's no title, use the base name from the URL as the title
+        if ($linktitle == "") {
+            $prsurl = parse_url($url);
+            $linktitle = htmlspecialcharx(basename($prsurl['path']));
+        }
+
+        // map the URL to the user's selected IF Archive mirror, if
+        // applicable, and fix it up for HTML display
+        $url = fixUrl(urlToMirror($url));
+
+        // add a note about zip format if applicable
+        $zipnote = "";
+        $zipstar = "";
+        if ($fmtcomp) {
+            $z = $zips[$fmtcomp];
+            if ($z[0] == 1) {
+                $zipnote = " <i>({$z[2]})</i>";
+            }
+            else
+                $zipstar = " <span class=zipstar>{$z[1]}</span>";
+        }
+
+        // generate the information
+        echo "<tr valign=top><td id='dlIcon$i'>";
+
+        $iconsrc = ($osicon ? "opsys?geticon=$fmtos" :
+                    ($fmticon ? "fileformat?geticon=$fmtid" :
+                     false));
+        if ($iconsrc)
+            echo "<a href=\"$url\"><img width=40 height=40 src=\"$iconsrc\" border=0></a>";
+
+        echo "</td><td><div class='downloaditem' id='dlItem$i'>
+              <a href=\"$url\"><b>$linktitle</b></a>$zipstar<br>";
+
+        if ($compPri)
+            echo "<span class=dlzipmain><img src=\"/img/blank.gif\" "
+                . "class=\"zip-contents-arrow\">Contains "
+                . "<b>$compPri</b></span><br>";
+
+        if ($linkdesc) {
+            $linkdesc = preg_replace(
+                "/([a-z0-9][\/.])([a-z0-9])/i", "$1$zwsp$2", $linkdesc);
+            echo "<span class=dlnotes>$linkdesc<br></span>";
+        }
+
+        echo "<span class=fmtnotes>$typedesc$zipnote</span></div></td></tr>";
+    }
+    echo "</table>";
+
+    // add a footnote on each compressed format that appeared more than once
+    for ($i = 0 ; $i < count($zipnotes) ; $i++) {
+        $z = $zips[$zipnotes[$i]];
+        if ($z[0] > 1)
+            echo "<div class=zipnote><span class=zipstar>{$z[1]}</span> "
+                . "<span class=zipnote>{$z[2]}</span></div>";
+    }
+}
+         ?>
+           </td>
+       </tr>
+    </table>
+    <div class="expand"><button>Read More</button></div>
+    </div>
+
+   <?php
+   // ------------ end of the download table -----------------
+   if (!$downloadsView) {
+   ?>
+
+   <p>
+   <table class=gamerightbar>
+      <tr>
+         <td>
+            <h3>Have you played this game?</h3>
+            <?php
+if ($curuser) {
+    $result = mysqli_execute_query($db, "select userid from playedgames
+        where userid=? and gameid=?", [$curuser, $id]);
+    $played = mysql_num_rows($result) > 0;
+
+    $result = mysqli_execute_query($db, "select userid from wishlists
+        where userid=? and gameid=?", [$curuser, $id]);
+    $wishlist = mysql_num_rows($result) > 0;
+
+    $result = mysqli_execute_query($db, "select userid from unwishlists
+        where userid=? and gameid=?", [$curuser, $id]);
+    $unwishlist = mysql_num_rows($result) > 0;
+            ?>
+            <script type="text/javascript" nonce="<?php global $nonce; echo $nonce; ?>">
+            <!--
+function updateRating(rating)
+{
+    xmlSend("setrating?game=<?php echo $id?>&rating=" + rating,
+            "ratingSaveMsg", null, null);
+}
+function clearRating()
+{
+    updateRating(0);
+    setStarCtlValue("ratingStars", 0);
+    mouseOutRating(0);
+}
+function mouseOutRating(rating)
+{
+    document.getElementById("ratingCaption").innerHTML =
+        (rating != 0 ? "<b>My rating:</b>" : "<b>Rate it:</b>");
+    var s = document.getElementById("clearRatingSpan");
+    if (s)
+        s.style.display = (rating ? "" : "none");
+}
+function updatePlayed(id, stat)
+{
+    var func = function(d)
+    {
+        updatePlaylistCount(Number(xmlChildText(d, "newCount")));
+    };
+    xmlSend("setplayed?game=<?php echo $id?>&played="
+            + (ckboxIsChecked("ckPlayed") ? "1" : "0"),
+            "ckPlaySaveMsg", func, null);
+}
+function updateWishList(id, stat)
+{
+    var func = function(d)
+    {
+        updateWishlistCount(Number(xmlChildText(d, "newCount")));
+    };
+    xmlSend("setwishlist?game=<?php echo $id?>&add="
+            + (ckboxIsChecked("ckWishList") ? "1" : "0"),
+            "ckWishlistSaveMsg", func, null);
+}
+function updateUnwishList(id, stat)
+{
+    var func = function(d)
+    {
+        updateUnwishlistCount(Number(xmlChildText(d, "newCount")));
+    };
+    xmlSend("setunwishlist?game=<?php echo $id?>&add="
+            + (ckboxIsChecked("ckUnwishList") ? "1" : "0"),
+            "ckUnwishlistSaveMsg", func, null);
+}
+//-->
+</script>
+    <?php
+
+
+    // check to see if I've made any explicit cross-recommendations
+    // of my own
+    if ($curuser)
+    {
+        $result = mysqli_execute_query($db,
+            "select count(*) from crossrecs
+             where userid = ? and fromgame = ?", [$curuser, $id]);
+        list($myCrossRecs) = mysql_fetch_row($result);
+    }
+
+    initStarControls();
+    global $nonce;
+    echo "<style nonce='$nonce'>\n"
+        . ".viewgame__playedSection { margin: 1.25ex 0 0.75ex 0; }\n"
+        . "</style>\n";
+
+    echo "<div class=indented>"
+
+        . "<div class='viewgame__playedSection'>"
+        . "<span id=\"ratingCaption\"><b>Rate it:</b></span> "
+        . showStarCtl("ratingStars", $currentUserRating,
+                      "updateRating", "mouseOutRating")
+        . " <span id=\"ratingSaveMsg\" class=xmlstatmsg></span><br>"
+        . ($currentUserReview != "" ? "" :
+           "<span id=\"clearRatingSpan\"><a href=\"needjs\">"
+           . addEventListener("click", "clearRating();return false")
+           . "Remove rating</a><br></span>")
+        . "<a href=\"review?id=$id&userid=$curuser\">"
+        . ($currentUserReview != "" ? "Revise my review" : "Review it")
+        . "</a><br>"
+        . "<a href=\"crossrec?game=$id&edit\">"
+        . ($myCrossRecs ? "Edit my suggestions ($myCrossRecs)"
+                        : "Suggest similar games")
+        . "</a>"
+        . "</div>"
+
+        . "<div class='viewgame__playedSection'>";
+    checkboxWrite("ckPlayed", "I've played it", $played, "updatePlayed");
+    echo " (<a href=\"playlist?type=played\">view</a>)"
+        . " &nbsp; <span id=\"ckPlaySaveMsg\" class=\"xmlstatmsg\">"
+        . "</span><br>";
+    checkboxWrite("ckWishList", "It's on my wish list", $wishlist,
+                  "updateWishList");
+    echo " (<a href=\"playlist?type=wishlist\">view</a>) "
+        . " &nbsp; <span id=\"ckWishlistSaveMsg\" class=\"xmlstatmsg\">"
+        . "</span><br>";
+    checkboxWrite("ckUnwishList", "I'm not interested", $unwishlist,
+                  "updateUnwishList");
+    echo " (<a href=\"playlist?type=unwishlist\">view</a>) "
+        . " &nbsp; <span id=\"ckUnwishlistSaveMsg\" class=\"xmlstatmsg\">"
+        . "</span><br></div></div>";
+
+    ?>
+<script type="text/javascript" nonce="<?php global $nonce; echo $nonce; ?>">
+<!--
+mouseOutRating(<?php echo $currentUserRating ?>);
+//-->
+</script>
+            <?php
+
+} else {
+    echo "You can rate this game, record that you've played it, "
+        . "or put it on your wish list after you "
+        . "<a href=\"login?dest=viewgame?id=$id\">log in</a>.";
+}
+
+            ?>
+         </td>
+      </tr>
+   </table>
+
+</div>
+<?php
+    } // if (!$downloadsView)
+
+    } // if ($detailView || $historyView)
 
 //------------------------- MAIN SUMMARY -------------------------
 
 ?>
-
-<style nonce="<?php global $nonce; echo $nonce; ?>">
-    .viewgame__mainSummary { margin: 0; padding: 0; }
-</style>
 
 <div class='viewgame__mainSummary'>
 <table cellspacing=0 cellpadding=0 border=0>
@@ -882,7 +1371,7 @@ echo helpWinLink("help-ifid", "IFID");
             }
         ?>
          <p>
-         <table cellspacing=0 cellpadding=0 border=0>
+         <table id="viewgame__header" cellspacing=0 cellpadding=0 border=0>
             <tr valign=top>
                <?php
 if ($hasart) {
@@ -970,9 +1459,29 @@ if (!isEmpty($genre)) {
         $genres)) . "<br>";
 }
                      ?>
-                     <?php if (!isEmpty($system)) echo "$system<br>" ?>
-                     <?php if (!isEmpty($website))
-                         echo "<br><a href=\"".htmlspecialcharx($website)."\">Web Site</a><br>" ?>
+                     <?php if (!isEmpty($system)) echo "<div>$system</div>" ?>
+                     <?php
+                        $showExternalLinksAnchor = count($links) && ($detailView || $historyView);
+                        if (!isEmpty($website) || $showExternalLinksAnchor) {
+                            if (!isEmpty($website) && $showExternalLinksAnchor) {
+                                if ($playOnlineButton) {
+                                    echo "<div class=\"viewgame__externalLinksDiv\"><span class='viewgame__externalLinksAnchor'>$playOnlineButton | </span>"
+                                        . "<a href=\"".htmlspecialcharx($website)."\">Web Site</a>"
+                                        . "<span class='viewgame__externalLinksAnchor'> | <a href='#externalLinksTable'>External Links</span></div>";
+                                } else {
+                                    echo "<div class=\"viewgame__externalLinksDiv\"><a href=\"".htmlspecialcharx($website)."\">Web Site</a><span class='viewgame__externalLinksAnchor'> | <a href='#externalLinksTable'>External Links</span></div>";
+                                }
+                            } else if (!isEmpty($website)) {
+                                echo "<div><a href=\"".htmlspecialcharx($website)."\">Web Site</a></div>";
+                            } else {
+                                if ($playOnlineButton) {
+                                    echo "<div class='viewgame__externalLinksAnchor viewgame__externalLinksDiv'>$playOnlineButton | "
+                                        . "<a href='#externalLinksTable'>External Links</div>";
+                                } else {
+                                    echo "<a class='viewgame__externalLinksAnchor viewgame__externalLinksDiv' href='#externalLinksTable'>External Links</div>";
+                                }
+                            }                        }
+                     ?>
                   </span>
                </td>
             </tr>
@@ -1306,485 +1815,6 @@ if ($embargoCnt > 0)
 <?php
 
     } // if ($detailView)
-
-    // ------------------------ DOWNLOADS -------------------------------
-    if ($detailView || $historyView || $downloadsView) {
-
-    if ($downloadsView) {
-        echo "<p><a href=\"viewgame?id=$id\">Go to the "
-            . "main page for this game</a>";
-        echo "<div>";
-    } else {
-        echo '<div class="downloadfloat">';
-    }
-?>
-    <div class="readMore">
-    <table class="<?php if (!$downloadsView) echo "downloads"?>" id="downloadsTable">
-       <tr>
-           <td>
-              <table width="100%" border=0 cellpadding=0 cellspacing=0>
-                 <tr>
-                    <td valign=top>
-                       <h3>External Links</h3>
-                       <?php
-//                           if ($version != "")
-//                               echo "<span class=notes>Version
-//                                     $version</span><br>";
-                       ?>
-                    </td>
-                    <?php
-
-// Check to see if the game is available for download in any form.
-// PC == "parchment capable" - a format that we can play with Parchment.
-// HEX = Hugo file playable online with textadventures.online/play/?story=XXX
-for ($foundGame = $foundHtml = $foundPC = $foundHex = $htmlUrl = $pcUrl = $foundAdrift = $adriftUrl = $hexUrl = false, $i = 0 ;
-     $i < count($links) ; $i++)
-{
-    // get this link
-    $link = $links[$i];
-
-    // if it's a game, note that we found a game link
-    if ($link['isgame'])
-        $foundGame = true;
-
-    $unboxUrl = false;
-    if ($link['compression'] && $link['compressedprimary']) {
-        $open = urlencode($link['compressedprimary']);
-        if (preg_match('!^https?://(www\.|mirror\.)?ifarchive\.org/!', $link['url'])) {
-            $linkUrl = urlencode($link['url']);
-            $unboxUrl = "https://unbox.ifarchive.org/?url=$linkUrl&open=$open";
-        } else {
-            $springThingUrl = preg_replace('!^https?://(www\.)?springthing\.net/(\d+)/files/(.*)$!',
-                'https://ifarchive.org/if-archive/games/springthing/$2/$3', $link['url']);
-            if ($springThingUrl !== $link['url']) {
-                $springThingUrl = urlencode($springThingUrl);
-                $unboxUrl = "https://unbox.ifarchive.org/?url=$springThingUrl&open=$open";
-            } else {
-                $springThingUrl = preg_replace('!^https?://(www\.)?springthing\.net/(\d+)/stories/[^/]+/(.*)$!',
-                    'https://ifarchive.org/if-archive/games/springthing/$2/$3', $link['url']);
-                if ($springThingUrl !== $link['url']) {
-                    $springThingUrl = urlencode($springThingUrl);
-                    $unboxUrl = "https://unbox.ifarchive.org/?url=$springThingUrl&open=$open";
-                }
-            }
-        }
-    }
-
-    if ($link['fmtexternid'] == 'hypertextgame')
-    {
-        if (!$link['compression']) {
-            $foundHtml = true;
-            $htmlUrl = $link['url'];
-            break;
-        } else if ($unboxUrl) {
-            $foundHtml = true;
-            $htmlUrl = $unboxUrl;
-            break;
-        }
-    }
-
-    if (stripos($link['title'], "Play Online") !== false)
-    {
-        $foundGame = $foundHtml = true;
-        $htmlUrl = $link['url'];
-        break;
-    }
-
-    // if this is the first Parchment-capable link, and it's not compressed,
-    // note it so that we can set up a Parchment play link to it
-    if ($link['fmtexternid'] == 'zcode'
-            || $link['fmtexternid'] == 'blorb/zcode'
-            || $link['fmtexternid'] == 'glulx'
-            || $link['fmtexternid'] == 'blorb/glulx'
-            || $link['fmtexternid'] == 'tads2'
-            || $link['fmtexternid'] == 'tads3'
-            || $link['fmtexternid'] == 'hugo'
-        )
-    {
-        if (!$link['compression']) {
-            $foundPC = true;
-            $pcUrl = urlencode(urlToMirror($link['url']));
-            break;
-        } else if ($unboxUrl) {
-            $foundPC = true;
-            $pcUrl = urlencode($unboxUrl);
-            break;
-        }
-    }
-
-    if ($link['fmtexternid'] == 'adrift'
-            || $link['fmtexternid'] == 'adrift38'
-            || $link['fmtexternid'] == 'adrift39'
-            || $link['fmtexternid'] == 'adrift5'
-            || $link['fmtexternid'] == 'adrift5/blorb'
-        )
-    {
-        if (!$link['compression']) {
-            $foundAdrift = true;
-            if (preg_match('!^https?://www.adrift.co/cgi/download.cgi\?(\d+)!', $link['url'], $matches)) {
-                // download.cgi does a 302 redirect to the real download URL, which play.adrift.co can't cope with
-                // luckily, play.cgi does a 302 redirect to play.adrift.co with the canonical game URL
-                $adriftUrl = "https://www.adrift.co/cgi/play.cgi?" . $matches[1];
-            } else {
-                $adriftUrl = "http://play.adrift.co/?game=" . urlencode($link['url']);
-            }
-            break;
-        } else if ($unboxUrl) {
-            $foundAdrift = true;
-            $adriftUrl = "http://play.adrift.co/?game=" . urlencode($unboxUrl);
-            break;
-        }
-    }
-}
-if ($foundGame)
-{
-    echo "<td align=right valign=middle class='viewgame__foundGame'>\r\n";
-    global $nonce;
-    echo "<style nonce='$nonce'>\n"
-        . ".viewgame__foundGame { position: relative; }\n"
-        . ".viewgame__playOnline { margin:0px 0px 0.3em 0px;cursor:pointer; }\n"
-        . "</style>\n";
-
-
-    // if we have an HTML playable game, set up a play online link
-    if ($foundHtml && $htmlUrl) {
-        $ptarget = (is_kindle() ? "" : "target=\"_blank\"");
-        echo "<a href=\"$htmlUrl\" $ptarget "
-            . "title=\"Play this game right now in your browser. No "
-            . "installation is required.\">"
-            . "<img src=\"/img/blank.gif\" class=\"play-online-button viewgame__playOnline\" "
-            . ">"
-            . "</a><br>";
-    }
-
-    // if we have a Parchment-capable game, set up a play-with-Parchment link
-    if ($foundPC && $pcUrl) {
-        $parchment = "https://iplayif.com/?story=";
-        $ptarget = (is_kindle() ? "" : "target=\"_blank\"");
-        echo "<a href=\"$parchment$pcUrl\" $ptarget "
-            . "title=\"Play this game right now in your browser, using "
-            . "the Parchment interpreter. No installation is required.\">"
-            . "<img src=\"/img/blank.gif\" class=\"play-online-button viewgame__playOnline\" "
-            . ">"
-            . "</a><br>";
-    }
-
-    // if we have an ADRIFT game, set up a play-online link
-    if ($foundAdrift && $adriftUrl) {
-        $atarget = (is_kindle() ? "" : "target=\"_blank\"");
-        echo "<a href=\"{$adriftUrl}\" $atarget "
-            . "title=\"Play this game right now in your browser. No "
-            . "installation is required.\">"
-            . "<img src=\"/img/blank.gif\" class=\"play-online-button viewgame__playOnline\" "
-            . ">"
-            . "</a><br>";
-    }
-
-    echo "</td>";
-}
-                    ?>
-                 </tr>
-              </table>
-
-                   <?php
-if (count($links) == 0 && $dlnotes == "") {
-    echo "<i>There are no known download links for this game.</i>";
-} else {
-    // put the download notes at the top
-    if ($dlnotes != "") {
-        $dlnotes = preg_replace(
-            "/([a-z0-9][\/.])([a-z0-9])/i", "$1$zwsp$2", $dlnotes);
-        echo "<i>$dlnotes</i>";
-    }
-
-    // count compressed files
-    $zips = array();
-    $zipnotes = array();
-    for ($i = 0 ; $i < count($links) ; $i++) {
-        $c = $links[$i]['compression'];
-        if ($c) {
-            if (isset($zips[$c]) && $zips[$c]) {
-                $zips[$c][0] += 1;
-            }
-            else {
-                $result = mysqli_execute_query($db, "select `desc` from filetypes
-                    where id = ?", [$c]);
-                $zips[$c] = array(1, "", mysql_result($result, 0, "desc"));
-                $zipnotes[] = $c;
-            }
-        }
-    }
-
-    // use footnotes for any compression formats appearing more than once
-    $footnoteid = 1;
-    for ($i = 0 ; $i < count($zipnotes) ; $i++) {
-        $c = $zipnotes[$i];
-        if ($zips[$c][0] > 1) {
-            $zips[$c][1] = getFootnoteStar($footnoteid++);
-        }
-    }
-
-    // display the link table
-    echo "<table class=\"downloadlist\">";
-    for ($i = 0 ; $i < count($links) ; $i++) {
-        // get this link's information
-        $link = $links[$i];
-        $url = $link['url'];
-        $zipped = (strcasecmp(substr($url, -4), ".zip") == 0);
-        $fmtisgame = $link['isgame'];
-        $linktitle = zeroWidthSpaceUnderscores(
-            output_encode(htmlspecialcharx($link['title'])
-        ));
-        $linkdesc = output_encode(htmlspecialcharx($link['desc']));
-        $fmtid = $link['fmtid'];
-        $fmtexternid = $link['fmtexternid'];
-        $fmtos = $link['osid'];
-        $fmtosvsn = $link['osvsn'];
-        $fmtname = $link['fmtname'];
-        $fmtdesc = $link['fmtdesc'];
-        $fmticon = $link['fmticon'];
-        $fmtclass = $link['fmtclass'];
-        $fmtcomp = $link['compression'];
-        $compPri = zeroWidthSpaceUnderscores(
-            htmlspecialcharx($link['compressedprimary'])
-        );
-        $osname = isset($link['osname']) ? $link['osname'] : "";
-        $osvsnname = isset($link['osvsnname']) ? $link['osvsnname'] : "";
-        $osicon = isset($link['osicon']) ? $link['osicon'] : "";
-
-        // if it's an executable format, qualify the format name with
-        // the OS name, since an executable is native to a particular OS
-        $typename = ($fmtclass == 'X' ? "$osname $fmtname" : "");
-
-        // if the OS version name is distinct from the OS name, mention
-        // the minimum version in the desription
-        if ($fmtos != $fmtosvsn && $fmtosvsn != "")
-            $typename .= " ($osvsnname and later)";
-
-        // build the full type description
-        $typedesc = (($fmtdesc && $typename) ? "$typename: $fmtdesc" :
-                     ($fmtdesc ? $fmtdesc : $typename));
-
-        // if there's no title, use the base name from the URL as the title
-        if ($linktitle == "") {
-            $prsurl = parse_url($url);
-            $linktitle = htmlspecialcharx(basename($prsurl['path']));
-        }
-
-        // map the URL to the user's selected IF Archive mirror, if
-        // applicable, and fix it up for HTML display
-        $url = fixUrl(urlToMirror($url));
-
-        // add a note about zip format if applicable
-        $zipnote = "";
-        $zipstar = "";
-        if ($fmtcomp) {
-            $z = $zips[$fmtcomp];
-            if ($z[0] == 1) {
-                $zipnote = " <i>({$z[2]})</i>";
-            }
-            else
-                $zipstar = " <span class=zipstar>{$z[1]}</span>";
-        }
-
-        // generate the information
-        echo "<tr valign=top><td id='dlIcon$i'>";
-
-        $iconsrc = ($osicon ? "opsys?geticon=$fmtos" :
-                    ($fmticon ? "fileformat?geticon=$fmtid" :
-                     false));
-        if ($iconsrc)
-            echo "<a href=\"$url\"><img width=40 height=40 src=\"$iconsrc\" border=0></a>";
-
-        echo "</td><td><div class='downloaditem' id='dlItem$i'>
-              <a href=\"$url\"><b>$linktitle</b></a>$zipstar<br>";
-
-        if ($compPri)
-            echo "<span class=dlzipmain><img src=\"/img/blank.gif\" "
-                . "class=\"zip-contents-arrow\">Contains "
-                . "<b>$compPri</b></span><br>";
-
-        if ($linkdesc) {
-            $linkdesc = preg_replace(
-                "/([a-z0-9][\/.])([a-z0-9])/i", "$1$zwsp$2", $linkdesc);
-            echo "<span class=dlnotes>$linkdesc<br></span>";
-        }
-
-        echo "<span class=fmtnotes>$typedesc$zipnote</span></div></td></tr>";
-    }
-    echo "</table>";
-
-    // add a footnote on each compressed format that appeared more than once
-    for ($i = 0 ; $i < count($zipnotes) ; $i++) {
-        $z = $zips[$zipnotes[$i]];
-        if ($z[0] > 1)
-            echo "<div class=zipnote><span class=zipstar>{$z[1]}</span> "
-                . "<span class=zipnote>{$z[2]}</span></div>";
-    }
-}
-         ?>
-           </td>
-       </tr>
-    </table>
-    <div class="expand"><button>Read More</button></div>
-    </div>
-
-   <?php
-   // ------------ end of the download table -----------------
-   if (!$downloadsView) {
-   ?>
-
-   <p>
-   <table class=gamerightbar>
-      <tr>
-         <td>
-            <h3>Have you played this game?</h3>
-            <?php
-if ($curuser) {
-    $result = mysqli_execute_query($db, "select userid from playedgames
-        where userid=? and gameid=?", [$curuser, $id]);
-    $played = mysql_num_rows($result) > 0;
-
-    $result = mysqli_execute_query($db, "select userid from wishlists
-        where userid=? and gameid=?", [$curuser, $id]);
-    $wishlist = mysql_num_rows($result) > 0;
-
-    $result = mysqli_execute_query($db, "select userid from unwishlists
-        where userid=? and gameid=?", [$curuser, $id]);
-    $unwishlist = mysql_num_rows($result) > 0;
-            ?>
-            <script type="text/javascript" nonce="<?php global $nonce; echo $nonce; ?>">
-            <!--
-function updateRating(rating)
-{
-    xmlSend("setrating?game=<?php echo $id?>&rating=" + rating,
-            "ratingSaveMsg", null, null);
-}
-function clearRating()
-{
-    updateRating(0);
-    setStarCtlValue("ratingStars", 0);
-    mouseOutRating(0);
-}
-function mouseOutRating(rating)
-{
-    document.getElementById("ratingCaption").innerHTML =
-        (rating != 0 ? "<b>My rating:</b>" : "<b>Rate it:</b>");
-    var s = document.getElementById("clearRatingSpan");
-    if (s)
-        s.style.display = (rating ? "" : "none");
-}
-function updatePlayed(id, stat)
-{
-    var func = function(d)
-    {
-        updatePlaylistCount(Number(xmlChildText(d, "newCount")));
-    };
-    xmlSend("setplayed?game=<?php echo $id?>&played="
-            + (ckboxIsChecked("ckPlayed") ? "1" : "0"),
-            "ckPlaySaveMsg", func, null);
-}
-function updateWishList(id, stat)
-{
-    var func = function(d)
-    {
-        updateWishlistCount(Number(xmlChildText(d, "newCount")));
-    };
-    xmlSend("setwishlist?game=<?php echo $id?>&add="
-            + (ckboxIsChecked("ckWishList") ? "1" : "0"),
-            "ckWishlistSaveMsg", func, null);
-}
-function updateUnwishList(id, stat)
-{
-    var func = function(d)
-    {
-        updateUnwishlistCount(Number(xmlChildText(d, "newCount")));
-    };
-    xmlSend("setunwishlist?game=<?php echo $id?>&add="
-            + (ckboxIsChecked("ckUnwishList") ? "1" : "0"),
-            "ckUnwishlistSaveMsg", func, null);
-}
-//-->
-</script>
-    <?php
-
-
-    // check to see if I've made any explicit cross-recommendations
-    // of my own
-    if ($curuser)
-    {
-        $result = mysqli_execute_query($db,
-            "select count(*) from crossrecs
-             where userid = ? and fromgame = ?", [$curuser, $id]);
-        list($myCrossRecs) = mysql_fetch_row($result);
-    }
-
-    initStarControls();
-    global $nonce;
-    echo "<style nonce='$nonce'>\n"
-        . ".viewgame__playedSection { margin: 1.25ex 0 0.75ex 0; }\n"
-        . "</style>\n";
-
-    echo "<div class=indented>"
-
-        . "<div class='viewgame__playedSection'>"
-        . "<span id=\"ratingCaption\"><b>Rate it:</b></span> "
-        . showStarCtl("ratingStars", $currentUserRating,
-                      "updateRating", "mouseOutRating")
-        . " <span id=\"ratingSaveMsg\" class=xmlstatmsg></span><br>"
-        . ($currentUserReview != "" ? "" :
-           "<span id=\"clearRatingSpan\"><a href=\"needjs\">"
-           . addEventListener("click", "clearRating();return false")
-           . "Remove rating</a><br></span>")
-        . "<a href=\"review?id=$id&userid=$curuser\">"
-        . ($currentUserReview != "" ? "Revise my review" : "Review it")
-        . "</a><br>"
-        . "<a href=\"crossrec?game=$id&edit\">"
-        . ($myCrossRecs ? "Edit my suggestions ($myCrossRecs)"
-                        : "Suggest similar games")
-        . "</a>"
-        . "</div>"
-
-        . "<div class='viewgame__playedSection'>";
-    checkboxWrite("ckPlayed", "I've played it", $played, "updatePlayed");
-    echo " (<a href=\"playlist?type=played\">view</a>)"
-        . " &nbsp; <span id=\"ckPlaySaveMsg\" class=\"xmlstatmsg\">"
-        . "</span><br>";
-    checkboxWrite("ckWishList", "It's on my wish list", $wishlist,
-                  "updateWishList");
-    echo " (<a href=\"playlist?type=wishlist\">view</a>) "
-        . " &nbsp; <span id=\"ckWishlistSaveMsg\" class=\"xmlstatmsg\">"
-        . "</span><br>";
-    checkboxWrite("ckUnwishList", "I'm not interested", $unwishlist,
-                  "updateUnwishList");
-    echo " (<a href=\"playlist?type=unwishlist\">view</a>) "
-        . " &nbsp; <span id=\"ckUnwishlistSaveMsg\" class=\"xmlstatmsg\">"
-        . "</span><br></div></div>";
-
-    ?>
-<script type="text/javascript" nonce="<?php global $nonce; echo $nonce; ?>">
-<!--
-mouseOutRating(<?php echo $currentUserRating ?>);
-//-->
-</script>
-            <?php
-
-} else {
-    echo "You can rate this game, record that you've played it, "
-        . "or put it on your wish list after you "
-        . "<a href=\"login?dest=viewgame?id=$id\">log in</a>.";
-}
-
-            ?>
-         </td>
-      </tr>
-   </table>
-
-</div>
-<?php
-    } // if (!$downloadsView)
-
-    } // if ($detailView || $historyView)
 
     // show the description, if it's present AND we're in Detail or
     // History mode
