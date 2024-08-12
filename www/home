@@ -160,53 +160,29 @@ if ($debugflag) echo "debug mode enabled...<br>";
       <div class="block">
          <?php include "components/ifdb-recommends.php"?>
       </div>
-   </div>
 
-   <div class="column col-sidebar">
+      <div class="block flexer">
+         <div class="column col-peer">
+            <div class=headline>Top Reviewers</div>
+            <?php include "components/top-reviewers.php"?>
+         </div>
 
-      <div class="block">
-         <div class="aside-box cpanel" id="HomeControlPanel">
-            <?php include "components/control-panel.php"?>
+         <div class="column col-peer">
+            <div class=headline>In the Database</div>
+            <?php include "components/database-stats.php"?>
          </div>
       </div>
+   </div>
 
-      <?php include "components/top-reviewers.php"?>
-
-      <?php if (!$loggedIn) : ?>
-      <div class="block aside-box">
-         <h3>Join IFDB!</h3>
-         <p>IFDB isn't just for reading about IF - you can also share your opinions about your favorite games. Members can write reviews, create Recommended Lists, add and edit game listings, and more. Membership is free and only takes a few moments to set up.</p>
-         <a href="newuser">Sign up now!</a>
-      </div>
-      <?php endif ?>
-
-      <div class="block">
-         <?php include "components/database-stats.php"?>
-      </div>
-
-      <div class="aside-box">
-         <h3>IF Links</h3>
-         <ul>
-            <li><a href="https://intfiction.org"><b>IF Community Forum</b></a>: Discuss playing IF, creating IF, and competitions.</li>
-            <li><a href="https://planet-if.com"><b>Planet IF</b></a>: Read the latest posts from IF-related blogs.</li>
-            <li><a href="https://www.ifwiki.org"><b>IFWiki</b></a>: Explore IF history, theory, and other community knowledge.</li>
-            <li><a href="https://narrascope.org"><b>NarraScope</b></a>: Attend a narrative games conference.</li>
-         </ul>
-      </div>
-
-      <div class="aside-box">
-         <h3>Competition Links</h3>
-         <ul>
-            <li><a href="https://ifcomp.org"><b>IFComp</b></a></li>
-            <li><a href="https://www.springthing.net"><b>Spring Thing</b></a></li>
-            <li><a href="https://xyzzyawards.org"><b>XYZZY Awards</b></a></li>
-         </ul>
-      </div>
-
-      <div class="aside-box">
-         <p>IFDB was originally developed by <a href="https://www.tads.org/">Mike Roberts</a>.
-      </div>
-
+   <div class="block">
+      <h3>IF Links</h3>
+      <ul>
+         <li><a href="https://intfiction.org"><b>IF Community Forum</b></a>: Discuss playing IF, creating IF, and competitions.</li>
+         <li><a href="https://planet-if.com"><b>Planet IF</b></a>: Read the latest posts from IF-related blogs.</li>
+         <li><a href="https://www.ifwiki.org"><b>IFWiki</b></a>: Explore IF history, theory, and other community knowledge.</li>
+         <li><a href="https://narrascope.org"><b>NarraScope</b></a>: Attend a narrative games conference.</li>
+      </ul>
+      <p>IFDB was originally developed by <a href="https://www.tads.org/">Mike Roberts</a>.
    </div>
 </div>
 

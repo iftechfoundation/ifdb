@@ -1,5 +1,4 @@
-<div id="top-reviewers-widget" class="aside-box">
-   <h3>Reviewer Trophy Room</h3>
+<div id="top-reviewers-widget">
    <span class=details><i>IFDB's top reviewers, as determined by <?php echo helpWinLink("help-ff", "Frequent Fiction")?> scores:</i></span><p>
 
    <ol>
