@@ -109,7 +109,7 @@ function getNewItems($db, $limit)
            left outer join pollvotes as v on v.pollid = p.pollid
            join users as u on u.id = p.userid
          where
-           users.sandbox in $sandbox
+           u.sandbox in $sandbox
            $anp
          group by
            p.pollid
