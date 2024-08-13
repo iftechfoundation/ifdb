@@ -1832,6 +1832,9 @@ if ($embargoCnt > 0)
          <div class="readMore"><p><?php echo $desc ?></p>
             <div class="expand"><button>Read More</button></div>
         </div>
+<?php
+    }
+?>
       </td>
    </tr>
 </table>
@@ -1907,7 +1910,6 @@ if ($embargoCnt > 0)
 ?>
 
          <?php
-    } // if ($detailView || $historyView)
 
     // if we're in History mode, show the page history
     if ($historyView) {
