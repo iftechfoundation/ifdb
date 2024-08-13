@@ -650,6 +650,7 @@ table.downloads h3 {
 
 table.downloads td div.downloaditem {
     overflow: hidden;
+    overflow-wrap: anywhere;
 }
 
 /*
