@@ -1543,7 +1543,12 @@ if (!isEmpty($genre)) {
         // look for polls with votes for this game
         $params = [$id];
         $sortMeLast = "";
+        $sandbox = "not uv.sandbox";
         if ($curuser) {
+            $mysandbox = 0;
+            $result = mysql_query("select sandbox from users where id='$curuser'", $db);
+            list($mysandbox) = mysql_fetch_row($result);
+            if ($mysandbox != 0) $sandbox = "1";
             $sortMeLast = "if(v.userid = ? or p.userid = ?, 2, 1),";
             $params[] = $curuser;
             $params[] = $curuser;
@@ -1559,8 +1564,10 @@ if (!isEmpty($genre)) {
                polls as p
                join pollvotes as v on v.pollid = p.pollid
                join users as u on u.id = p.userid
+			   join users as uv on uv.id = v.userid
              where
                v.gameid = ?
+			   and $sandbox
              group by
                p.pollid
              order by
