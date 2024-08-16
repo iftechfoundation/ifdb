@@ -1783,6 +1783,7 @@ if (!$should_hide) {
         if ($wishlistCnt != 1) {
             echo "s";
         }
+		echo ".";
         echo "</a></div>";
     }
 }
