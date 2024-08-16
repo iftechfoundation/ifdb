@@ -47,7 +47,16 @@ if ($gameid) {
 
     // search the database for polls that include this game
     $extraCols = ", sum(v.gameid = '$qgameid') as gameVoteCount";
+    // Exclude poll votes from the sandbox
     $whereList = "not uv.sandbox";
+    if ($curuser)
+    {
+        // get my sandbox
+        $mysandbox = 0;
+        $result = mysql_query("select sandbox from users where id='$curuser'", $db);
+        list($mysandbox) = mysql_fetch_row($result);
+        if ($mysandbox != 0) $whereList = "1";
+    }
     $having = "having gameVoteCount > 0";
 
 } else {
