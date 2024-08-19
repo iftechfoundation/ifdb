@@ -31,6 +31,16 @@ $sortList = array(
     'nm' => array('l.title', 'By List Name'));
 
 // look up the game or user record
+// Exclude lists from the sandbox
+$sandbox = "not u.sandbox";
+if ($curuser)
+{
+    // get my sandbox
+    $mysandbox = 0;
+    $result = mysql_query("select sandbox from users where id='$curuser'", $db);
+    list($mysandbox) = mysql_fetch_row($result);
+    if ($mysandbox != 0) $sandbox = "1";
+}
 if ($gameid) {
     $result = mysql_query(
         "select title from games where id='$qgameid'", $db);
@@ -86,8 +96,11 @@ if ($errMsg) {
     // count up how many lists we have total
     $result = mysql_query(
         "select count(*) as c
-         from reclists as l $joinList
-         where $whereList", $db);
+         from reclists as l, users as u $joinList
+         where
+            u.id = l.userid
+            and $whereList
+            and $sandbox", $db);
     $lstcnt = mysql_result($result, 0, "c");
 
     if ($pg == 'all') {
@@ -124,6 +137,7 @@ if ($errMsg) {
             reclistitems.listid = l.id
             and u.id = l.userid
             and $whereList
+            and $sandbox
         group by reclistitems.listid
         order by {$ord[0]}
         limit $firstOnPage," . $perPage, $db);

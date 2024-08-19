@@ -1512,7 +1512,12 @@ if (!isEmpty($genre)) {
         // look for lists containing this game
         $params = [$id];
         $sortMeLast = "";
+        $sandbox = "not users.sandbox";
         if ($curuser) {
+			$mysandbox = 0;
+            $result = mysql_query("select sandbox from users where id='$curuser'", $db);
+            list($mysandbox) = mysql_fetch_row($result);
+            if ($mysandbox != 0) $sandbox = "1";
             $sortMeLast = "if(reclists.userid = ?, 2, 1),";
             $params[] = $curuser;
         }
@@ -1531,6 +1536,7 @@ if (!isEmpty($genre)) {
                 reclistitems.gameid = ?
                 and reclists.id = reclistitems.listid
                 and users.id = reclists.userid
+				and $sandbox
              group by reclistitems.listid
              order by $sortMeLast rand()
              limit 0, 4", $params);
