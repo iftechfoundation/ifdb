@@ -50,13 +50,46 @@ drop trigger reviews_insert;
 drop trigger reviews_update;
 drop trigger reviews_delete;
 
-/* delete troll users and their reviews and comments */
+/* delete troll reviews and comments */
 delete from ucomments
-  where userid in (select id from users where sandbox = 1);
-delete from reviews
-  where userid in (select id from users where sandbox = 1);
-delete from users
-  where sandbox = 1;
+  where userid in (select id from users where sandbox = 1)
+  or source = 'U' and sourceid in (select id from users where sandbox = 1)
+  or source = 'R' and sourceid in (select id from reviews where userid in (select id from users where sandbox = 1))
+  or source = 'L' and sourceid in (select id from reclists where userid in (select id from users where sandbox = 1))
+  or source = 'P' and sourceid in (select pollid from polls where userid in (select id from users where sandbox = 1))
+;
+delete from reviews, reviewtags, reviewvotes
+  using reviews
+    left outer join reviewtags
+      on reviewtags.reviewid = reviews.id
+    left outer join reviewvotes
+      on reviewvotes.reviewid = reviews.id
+  where reviews.userid in (select id from users where sandbox = 1);
+
+delete from reviewvotes where userid in (select id from users where sandbox = 1);
+delete from crossrecs where userid in (select id from users where sandbox = 1);
+delete from wishlists where userid in (select id from users where sandbox = 1);
+delete from playedgames where userid in (select id from users where sandbox = 1);
+delete from unwishlists where userid in (select id from users where sandbox = 1);
+delete from news where userid in (select id from users where sandbox = 1);
+delete from stylesheets where userid in (select id from users where sandbox = 1);
+delete from clubmembers where userid in (select id from users where sandbox = 1);
+
+delete from reclists, reclistitems
+  using reclists
+    left outer join reclistitems
+      on reclistitems.listid = reclists.id
+  where reclists.userid in (select id from users where sandbox = 1);
+
+delete from polls, pollvotes, pollcomments
+  using polls
+    left outer join pollvotes
+      on pollvotes.pollid = polls.pollid
+    left outer join pollcomments
+      on pollcomments.pollid = polls.pollid
+  where polls.userid in (select id from users where sandbox = 1);
+
+delete from pollvotes where userid in (select id from users where sandbox = 1);
 
 alter table users
   drop column email,
