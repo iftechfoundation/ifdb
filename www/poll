@@ -1156,6 +1156,9 @@ function expandVote(id)
         }
 
         // query the votes
+        // we're using a tricky self-join from pollvotes v to pollvotes v2 to compute `votecount`
+        // for more detail, see https://github.com/iftechfoundation/ifdb-suggestion-tracker/issues/474#issuecomment-2298046695
+        // Note that we won't use `votecount` for each row, but only on the first vote for each new game
         $result = mysql_query(
             "select
                v.userid, u.name, $curUserVoteExpr,
@@ -1175,9 +1178,11 @@ function expandVote(id)
                join games as g on g.id = v.gameid
                join pollvotes as v2
                  on v2.pollid = v.pollid and v2.gameid = v.gameid
+               join users as u2 on u2.id = v2.userid
              where
                v.pollid = '$id'
                and u.Sandbox in (0, $sandbox)
+               and u2.Sandbox in (0, $sandbox)
              group by
                v.gameid, v.userid
              order by
