@@ -66,6 +66,15 @@ for ($i = 0, $tags = array() ; ; $i++) {
 
 // make sure we process any persistent login state
 $userid = checkPersistentLogin();
+if ($userid) {
+    $result = mysqli_execute_query($db, "select acctstatus, profilestatus, sandbox from users where id=?", [$userid]);
+    if (!$result || mysql_num_rows($result) == 0) {
+        $userid = null;
+    } else {
+        list($acctstatus, $profilestatus, $sandbox) = mysql_fetch_row($result);
+    }
+}
+
 if (!$userid) {
     if ($xml) {
         $username = get_req_data("username");
@@ -77,6 +86,26 @@ if (!$userid) {
     } else {
         sendResponse("401 Unauthorized", "Not Saved", "To tag a game, please log in.", false, false);
     }
+}
+
+if ($sandbox == 1) {
+    // troll sandbox
+    sendResponse("500 Internal Server Error", "Not Saved", "This service is currently unavailable. We apologize for the inconvenience. (Diagnostic information: code TCE0916)", false, false);
+}
+
+if ($profilestatus == 'R') {
+    sendResponse("401 Unauthorized", "Not Saved", "Your new user account is still pending review. "
+            . "Editing is not available until the account has "
+            . "been approved.", false, false);
+}
+
+if ($acctstatus == 'A') {
+    // active, allowed
+} else if ($acctstatus == 'D') {
+    sendResponse("401 Unauthorized", "Not Saved", "Your user account has not yet been activated. "
+        . "You must complete the activation process before you can use this account for editing.", false, false);
+} else {
+    sendResponse("401 Unauthorized", "Not Saved", "Editing is not available with this account.", false, false);
 }
 
 if (isEmpty($id))
