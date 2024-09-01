@@ -3,7 +3,7 @@ import { readFile } from 'fs/promises';
 import { XMLParser } from 'fast-xml-parser';
 import { runTasks } from 'concurrency-limit-runner';
 
-const games = JSON.parse(await readFile('microdata-downloads-tuids.json', 'utf8'));
+const games = JSON.parse(await readFile('microdata-links-tuids.json', 'utf8'));
 
 const fileTypes = {
     "html": "hypertextgame",

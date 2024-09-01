@@ -15,7 +15,7 @@ This importer is designed to grab the game list from https://ifcomp.org/ballot a
 7. Run `node tag-games.mjs` to tag each game with the "IFComp YYYY" tag.
 8. In the web UI, create a new competition, open the JS console, and copy and paste the contents of `entrant-creator.js`. It will prompt you for a tag name, and populate the main division with the list of games.
 
-## Phase 2: Add IF Archive download links for each game on the ballot.
+## Phase 2: Add IF Archive external links for each game on the ballot.
 
 This can only happen once the "big zip file" is available, and all links are visible on IF Archive. As a result, these scripts are designed to be able to be run separately, possibly by an entirely different person from the one who created the game listings.
 
@@ -26,8 +26,8 @@ This can only happen once the "big zip file" is available, and all links are vis
 3. Run `node extract-microdata.mjs` to record the ballot data in `microdata.json`.
 4. Download the "big zip file" from the "download a .zip archive" link from https://ifcomp.org/ballot and save it in this directory as `IFCompYYYY.zip` (matching the `compStartDate` year).
 6. Run `node merge-tuids.mjs` to record the IFDB TUIDs in `microdata-tuids.json`.
-5. Run `node compute-download-links.mjs` to record the download file names in `microdata-downloads-tuids.json`.
-7. Run `node submit-download-links.mjs` to edit each IFDB listing, adding the links we computed.
+5. Run `node compute-external-links.mjs` to record the file names in `microdata-links-tuids.json`.
+7. Run `node submit-external-links.mjs` to edit each IFDB listing, adding the links we computed.
 
 # List of the scripts
 
@@ -36,10 +36,10 @@ This can only happen once the "big zip file" is available, and all links are vis
 1. `process-cover-art.mjs`: This script reads `microdata.json` and downloads the cover art for all games. Some games have art too large for IFDB's 256KiB limit, so we convert PNGs to JPG, and try lowering the quality bit by bit until the image is small enough to submit. We deposit the art in the `cover-art` directory, and store a record of our results in `cover-art.json`.
 1. `submit-games.mjs`: This script reads `microdata.json` and `cover-art.json`, and uses the IFDB [putific API](https://ifdb.org/api/putific) to create results for all games.
 
-    Initially, we'll create the IFDB entries based on the ballot alone; it will take a few days for IF Archive to accept and process the "big zip" of all competition entries. Once that ZIP is available on ifarchive.org, we can compute and set download links.
+    Initially, we'll create the IFDB entries based on the ballot alone; it will take a few days for IF Archive to accept and process the "big zip" of all competition entries. Once that ZIP is available on ifarchive.org, we can compute and set external links.
 1. `merge-tuids.mjs`: Rather than assuming that `submit-games.mjs` was run, we search IFDB for games published in the current year that match the title of the given IFComp game; this gives us the IFDB "TUID" ID of each game in IFComp. This generates `microdata-tuids.json` from `microdata.json`.
-1. `compute-download-links.mjs`: Computes the correct download link (including the game file in the download ZIP) using the big zip as input. This generates `microdata-downloads-tuids.json` from `microdata-tuids.json`.
-1. `submit-download-links.mjs`: Automatically submits IF Archive download links for all IFComp games, based on `microdata-downloads-tuids.json`.
+1. `compute-external-links.mjs`: Computes the correct external link (including the game file in the download ZIP) using the big zip as input. This generates `microdata-links-tuids.json` from `microdata-tuids.json`.
+1. `submit-external-links.mjs`: Automatically submits IF Archive download links for all IFComp games, based on `microdata-links-tuids.json`.
 
 
 TODO

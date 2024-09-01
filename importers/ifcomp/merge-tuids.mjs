@@ -10,7 +10,7 @@ const tasks = [];
 for (const game of microdata) {
     tasks.push(async () => {
         //if (game.tuid) continue;
-        const queryString = `${game.name} published:${year}`;
+        const queryString = `${game.name} added:1d-`;
         const searchUrl = `${url}/search?xml&game&searchfor=${escape(queryString)}`;
         console.log(searchUrl);
         let response;

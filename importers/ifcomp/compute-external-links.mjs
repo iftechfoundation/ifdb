@@ -100,4 +100,4 @@ for (const game of microdata) {
     }
 }
 
-await writeFile('microdata-downloads-tuids.json', JSON.stringify(microdata, null, 2), 'utf8');
+await writeFile('microdata-links-tuids.json', JSON.stringify(microdata, null, 2), 'utf8');
