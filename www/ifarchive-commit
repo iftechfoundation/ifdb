@@ -10,6 +10,7 @@ try {
     $ifdbid = get_req_data("ifdbid");
     $newPath = get_req_data("path");
     $apiKey = get_req_data("key");
+    $tuid = get_req_data("tuid");
 
     $oldUrl = "https://ifdb.org/ifarchive-pending?ifdbid=$ifdbid";
 
@@ -30,8 +31,17 @@ try {
 
     if (!$result) throw new Exception("Error: database gamelinks url query failed: " . mysqli_error($db));
 
-    if (mysql_num_rows($result) == 0)
-        throw new Exception("Error: no link found to this pending URL");
+    if (mysql_num_rows($result) == 0) {
+        error_log("ifarchive-commit: No link found, TUID '$tuid' IFDB temp ID $ifdbid");
+        http_response_code(409);
+        header("Content-type: text/plain");
+        if ($tuid) {
+            echo "No link found to this pending URL. You might need to update this game by hand: https://ifdb.org/viewgame?id=$tuid";
+        } else {
+            echo "No link found to this pending URL, and no IFDB TUID was provided. Please search for this game on IFDB and update its links.";
+        }
+        exit();
+    }
 
     $rec = mysqli_fetch_array($result, MYSQL_ASSOC);
     $gameid = $rec['gameid'];
