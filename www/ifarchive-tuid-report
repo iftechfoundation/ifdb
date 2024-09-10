@@ -1,0 +1,124 @@
+<?php
+
+include_once "util.php";
+include_once "pagetpl.php";
+include_once "dbconnect.php";
+
+$json = $_GET['json'] ?? false;
+$refresh = $_GET['refresh'] ?? false;
+$show_old = $_GET['show_old'] ?? false;
+
+$index_url = "https://ifarchive.org/indexes/Master-Index.xml";
+
+$path = "/tmp/Master-Index.xml";
+$lastmod_path = "/tmp/Master-Index-lastmod.txt";
+
+$ch = curl_init($index_url);
+curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+
+if (file_exists($path) && file_exists($lastmod_path) && !$refresh) {
+    $lastmod = file_get_contents($lastmod_path);
+    error_log("ifarchive-tuid-report conditional GET with If-Modified-Since: '$lastmod'");
+    curl_setopt($ch, CURLOPT_HTTPHEADER, [
+        "if-modified-since: $lastmod",
+    ]);
+}
+
+$headers = [];
+curl_setopt($ch, CURLOPT_HEADERFUNCTION, function($curl, $header) use (&$headers) {
+    $len = strlen($header);
+    $header = explode(':', $header, 2);
+    if (count($header) < 2) // ignore invalid headers
+    return $len;
+
+    $headers[strtolower(trim($header[0]))][] = trim($header[1]);
+    
+    return $len;
+});
+
+//curl_setopt($ch, CURLOPT_VERBOSE, 1);
+
+$body = curl_exec($ch);
+$httpcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+$error = curl_error($ch);
+curl_close($ch);
+
+if ($error) {
+    throw new Exception("Couldn't fetch Master-Index.xml: $error");
+}
+
+error_log("ifarchive-tuid-report fetched Master-Index with status code $httpcode");
+
+if ($httpcode === 200) {
+    file_put_contents($path, $body);
+    file_put_contents($lastmod_path, $headers['last-modified']);
+} else if ($httpcode === 304) {
+    $body = file_get_contents($path);
+} else {
+    throw new Exception("Fetching $index_url failed with status code $httpcode: $body");
+}
+
+// fetch complete
+$master_index = simplexml_load_string($body);
+$tuids = [];
+$file_descriptions = [];
+foreach ($master_index->file as $file) {
+    if ($file->metadata) {
+        foreach ($file->metadata->item as $item) {
+            if ((string)$item->key === "tuid") {
+                $tuid = (string)$item->value;
+                $path = (string)$file->path;
+                if (!$show_old && strpos($path, "/old/") !== false) {
+                    continue;
+                }
+                $tuids[$tuid] = $path;
+                $file_descriptions[$path] = trim((string)$file->description);
+            }
+        }
+    }
+}
+
+$db = dbConnect();
+
+if ($json) {
+    $output = [];
+    foreach($tuids as $tuid => $path) {
+        $result = mysqli_execute_query($db, "select url from gamelinks where gameid = ? and url like ?", [$tuid, "%$path"]);
+        $row = mysqli_fetch_row($result);
+        if (!$row) {
+            [$title] = mysqli_fetch_row(mysqli_execute_query($db, "select title from games where id = ?", [$tuid]));
+            $output[]= [
+                "tuid" => $tuid,
+                "title" => $title,
+                "path" => $path,
+                "description" => $file_descriptions[$path],
+            ];
+        }
+    }
+    header("Content-Type: application/json");
+    echo json_encode($output, JSON_PRETTY_PRINT | JSON_INVALID_UTF8_IGNORE);
+    exit();
+}
+
+varPageHeader("IF Archive TUID Report", false, false);
+
+echo "<p>" . count($tuids) . " files on IF Archive have TUIDs without a matching External Link on IFDB.</p>";
+
+echo "<table border=1><tr><th>TUID</th><th>Game Title</th><th>IF Archive Path</th><th>Description</th></tr>\n";
+
+foreach($tuids as $tuid => $path) {
+    $result = mysqli_execute_query($db, "select url from gamelinks where gameid = ? and url like ?", [$tuid, "%$path"]);
+    $row = mysqli_fetch_row($result);
+    if (!$row) {
+        [$title] = mysqli_fetch_row(mysqli_execute_query($db, "select title from games where id = ?", [$tuid]));
+        $xtuid = htmlspecialcharx($tuid);
+        echo "<tr>";
+        echo "<td><a href='/viewgame?id=$xtuid'>$xtuid</a></td>";
+        echo "<td>" . htmlspecialcharx($title) . "</td>";
+        echo "<td>" . htmlspecialcharx($path) . "</td>";
+        echo "<td>" . htmlspecialcharx($file_descriptions[$path]) . "</td>";
+        echo "</tr>\n";
+    }
+}
+
+echo "</table>\n";
