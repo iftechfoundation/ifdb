@@ -80,21 +80,22 @@ foreach ($master_index->file as $file) {
 
 $db = dbConnect();
 
-if ($json) {
-    $output = [];
-    foreach($tuids as $tuid => $path) {
-        $result = mysqli_execute_query($db, "select url from gamelinks where gameid = ? and url like ?", [$tuid, "%$path"]);
-        $row = mysqli_fetch_row($result);
-        if (!$row) {
-            [$title] = mysqli_fetch_row(mysqli_execute_query($db, "select title from games where id = ?", [$tuid]));
-            $output[]= [
-                "tuid" => $tuid,
-                "title" => $title,
-                "path" => $path,
-                "description" => $file_descriptions[$path],
-            ];
-        }
+$output = [];
+foreach($tuids as $tuid => $path) {
+    $result = mysqli_execute_query($db, "select url from gamelinks where gameid = ? and url like ?", [$tuid, "%$path"]);
+    $row = mysqli_fetch_row($result);
+    if (!$row) {
+        [$title] = mysqli_fetch_row(mysqli_execute_query($db, "select title from games where id = ?", [$tuid]));
+        $output[]= [
+            "tuid" => $tuid,
+            "title" => $title,
+            "path" => $path,
+            "description" => $file_descriptions[$path],
+        ];
     }
+}
+
+if ($json) {
     header("Content-Type: application/json");
     echo json_encode($output, JSON_PRETTY_PRINT | JSON_INVALID_UTF8_IGNORE);
     exit();
@@ -102,23 +103,18 @@ if ($json) {
 
 varPageHeader("IF Archive TUID Report", false, false);
 
-echo "<p>" . count($tuids) . " files on IF Archive have TUIDs without a matching External Link on IFDB.</p>";
+echo "<p>" . count($output) . " files on IF Archive have TUIDs without a matching External Link on IFDB.</p>";
 
 echo "<table border=1><tr><th>TUID</th><th>Game Title</th><th>IF Archive Path</th><th>Description</th></tr>\n";
 
-foreach($tuids as $tuid => $path) {
-    $result = mysqli_execute_query($db, "select url from gamelinks where gameid = ? and url like ?", [$tuid, "%$path"]);
-    $row = mysqli_fetch_row($result);
-    if (!$row) {
-        [$title] = mysqli_fetch_row(mysqli_execute_query($db, "select title from games where id = ?", [$tuid]));
-        $xtuid = htmlspecialcharx($tuid);
-        echo "<tr>";
-        echo "<td><a href='/viewgame?id=$xtuid'>$xtuid</a></td>";
-        echo "<td>" . htmlspecialcharx($title) . "</td>";
-        echo "<td>" . htmlspecialcharx($path) . "</td>";
-        echo "<td>" . htmlspecialcharx($file_descriptions[$path]) . "</td>";
-        echo "</tr>\n";
-    }
+foreach($output as $row) {
+    $xtuid = htmlspecialcharx($row['tuid']);
+    echo "<tr>";
+    echo "<td><a href='/viewgame?id=$xtuid'>$xtuid</a></td>";
+    echo "<td>" . htmlspecialcharx($row['title']) . "</td>";
+    echo "<td>" . htmlspecialcharx($row['path']) . "</td>";
+    echo "<td>" . htmlspecialcharx($row['description']) . "</td>";
+    echo "</tr>\n";
 }
 
 echo "</table>\n";
