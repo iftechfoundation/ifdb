@@ -64,6 +64,7 @@ $tuids = [];
 $file_descriptions = [];
 foreach ($master_index->file as $file) {
     if ($file->metadata) {
+        if ($file->symlink) continue;
         foreach ($file->metadata->item as $item) {
             if ((string)$item->key === "tuid") {
                 $tuid = (string)$item->value;
