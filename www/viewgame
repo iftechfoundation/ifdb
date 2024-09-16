@@ -1370,9 +1370,6 @@ mouseOutRating(<?php echo $currentUserRating ?>);
 ?>
 
 <div class='viewgame__mainSummary'>
-<table cellspacing=0 cellpadding=0 border=0>
-   <tr valign=top>
-      <td>
         <?php
             if ($should_hide) {
                 ?><div class=restricted>Links to this page and its ratings have been restricted, due to violations of our <a href="/code-of-conduct">Code of Conduct</a>.</div><?php
@@ -1781,7 +1778,7 @@ if (!$should_hide) {
         } else {
             echo "$playlistCnt members have";
         }
-        echo " played this game.</a></div>";
+        echo " played this game.</a>";
     }
 
     $result = mysql_query(
@@ -1797,7 +1794,7 @@ if (!$should_hide) {
             echo "s";
         }
 		echo ".";
-        echo "</a></div>";
+        echo "</a>";
     }
 }
 
@@ -1849,9 +1846,6 @@ if ($embargoCnt > 0)
 <?php
     }
 ?>
-      </td>
-   </tr>
-</table>
 <?php
 // ------------ end of the main page layout table -----------------
 ?>
