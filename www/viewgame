@@ -873,7 +873,7 @@ echo helpWinLink("help-ifid", "IFID");
 
 ?>
 <style nonce="<?php global $nonce; echo $nonce; ?>">
-    .viewgame__mainSummary { margin: 0; padding: 0; order: -1; }
+    .viewgame__mainSummary { margin: 0; padding: 0; order: -1; display: flow-root; }
     @media (max-width: 60rem) {
         #viewgame-body {
             display: flex;
