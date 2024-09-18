@@ -873,7 +873,7 @@ echo helpWinLink("help-ifid", "IFID");
 
 ?>
 <style nonce="<?php global $nonce; echo $nonce; ?>">
-    .viewgame__mainSummary { margin: 0; padding: 0; order: -1; }
+    .viewgame__mainSummary { margin: 0; padding: 0; order: -1; display: flow-root; }
     @media (max-width: 60rem) {
         #viewgame-body {
             display: flex;
@@ -1472,18 +1472,18 @@ if (!isEmpty($genre)) {
                                 if ($playOnlineButton) {
                                     echo "<div class=\"viewgame__externalLinksDiv\"><span class='viewgame__externalLinksAnchor'>$playOnlineButton | </span>"
                                         . "<a href=\"".htmlspecialcharx($website)."\">Web Site</a>"
-                                        . "<span class='viewgame__externalLinksAnchor'> | <a href='#externalLinksTable'>External Links</span></div>";
+                                        . "<span class='viewgame__externalLinksAnchor'> | <a href='#externalLinksTable'>External Links</a></span></div>";
                                 } else {
-                                    echo "<div class=\"viewgame__externalLinksDiv\"><a href=\"".htmlspecialcharx($website)."\">Web Site</a><span class='viewgame__externalLinksAnchor'> | <a href='#externalLinksTable'>External Links</span></div>";
+                                    echo "<div class=\"viewgame__externalLinksDiv\"><a href=\"".htmlspecialcharx($website)."\">Web Site</a><span class='viewgame__externalLinksAnchor'> | <a href='#externalLinksTable'>External Links</a></span></div>";
                                 }
                             } else if (!isEmpty($website)) {
                                 echo "<div><a href=\"".htmlspecialcharx($website)."\">Web Site</a></div>";
                             } else {
                                 if ($playOnlineButton) {
                                     echo "<div class='viewgame__externalLinksAnchor viewgame__externalLinksDiv'>$playOnlineButton | "
-                                        . "<a href='#externalLinksTable'>External Links</div>";
+                                        . "<a href='#externalLinksTable'>External Links</a></div>";
                                 } else {
-                                    echo "<a class='viewgame__externalLinksAnchor viewgame__externalLinksDiv' href='#externalLinksTable'>External Links</div>";
+                                    echo "<a class='viewgame__externalLinksAnchor viewgame__externalLinksDiv' href='#externalLinksTable'>External Links</a></div>";
                                 }
                             }                        }
                      ?>
