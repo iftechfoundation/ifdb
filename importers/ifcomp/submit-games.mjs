@@ -1,4 +1,4 @@
-import { username, password, url, compStartDate } from './settings.mjs';
+import { username, password, url, compStartDate, compYear } from './settings.mjs';
 import { readFile } from 'fs/promises';
 
 if ((Date.now() - new Date(compStartDate).getTime()) > 24 * 365 * 60 * 60 * 1000) {
@@ -74,7 +74,7 @@ for (const game of games) {
         <link>
         <url>${ballotLink}</url>
         <title>${playOnline ? "Play online and vote" : "Download and vote"}</title>
-        <desc>During the 2024 IF Competition.</desc>
+        <desc>During the ${compYear} IF Competition</desc>
         <format>html</format>
         </link>
         </links></downloads>
