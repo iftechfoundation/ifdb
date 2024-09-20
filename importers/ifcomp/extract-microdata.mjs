@@ -8,7 +8,7 @@ const {items} = microdata.toJson(text);
 const games = items.map(item => {
     const {properties} = item;
     const output = {};
-    const simpleFields = ['name', 'alternateName', 'description', 'gamePlatform', 'genre', 'size', 'interactivityType', 'downloadUrl'];
+    const simpleFields = ['name', 'alternateName', 'description', 'gamePlatform', 'genre', 'size', 'interactivityType', 'downloadUrl', 'url'];
     for (const simpleField of simpleFields) {
         output[simpleField] = properties[simpleField]?.[0];
     }

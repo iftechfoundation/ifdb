@@ -65,7 +65,21 @@ for (const game of games) {
 </story>
 </ifindex>
 `;
+    const [,ifcompEntryId] = /https:\/\/ifcomp.org\/play\/(\d+)\/download/.exec(game.downloadUrl);
+    const ballotLink = `https://ifcomp.org/ballot/#entry-${ifcompEntryId}`;
+    const playOnline = !!game.url;
     body.append('ifiction', new Blob([xml], { type: 'text/xml' }));
+    const links = `<?xml version="1.0" encoding="UTF-8"?>
+        <downloads xmlns="http://ifdb.org/api/xmlns"><links>
+        <link>
+        <url>${ballotLink}</url>
+        <title>${playOnline ? "Play online and vote" : "Download and vote"}</title>
+        <desc>During the 2024 IF Competition.</desc>
+        <format>html</format>
+        </link>
+        </links></downloads>
+        `;
+    body.append('links', new Blob([links], { type: 'text/xml' }));
     body.append('requireIFID', 'force');
     if (game.thumbnailArtUrl) {
         const [, entryId] = /\/([^\/]+?)\/cover$/.exec(game.thumbnailArtUrl);
