@@ -1018,7 +1018,7 @@ if ($foundGame)
     global $nonce;
     echo "<style nonce='$nonce'>\n"
         . ".viewgame__foundGame { position: relative; }\n"
-        . ".viewgame__playOnline { margin:0px 0px 0.3em 0px;cursor:pointer; }\n"
+        . ".viewgame__playOnline { display: inline-block; margin:0px 0px 0.3em 0px;cursor:pointer; }\n"
         . "</style>\n";
 
     $playOnlineButton = "";
@@ -1027,9 +1027,7 @@ if ($foundGame)
         $ptarget = (is_kindle() ? "" : "target=\"_blank\"");
         $playOnlineButton = "<a href=\"$htmlUrl\" $ptarget "
             . "title=\"Play this game right now in your browser. No "
-            . "installation is required.\">"
-            . "<img src=\"/img/blank.gif\" class=\"play-online-button viewgame__playOnline\" "
-            . ">"
+            . "installation is required.\" class=\"fancy-button viewgame__playOnline\">Play Online"
             . "</a>";
         echo "$playOnlineButton<br>";
     }
@@ -1040,9 +1038,8 @@ if ($foundGame)
         $ptarget = (is_kindle() ? "" : "target=\"_blank\"");
         $playOnlineButton = "<a href=\"$parchment$pcUrl\" $ptarget "
             . "title=\"Play this game right now in your browser, using "
-            . "the Parchment interpreter. No installation is required.\">"
-            . "<img src=\"/img/blank.gif\" class=\"play-online-button viewgame__playOnline\" "
-            . ">"
+            . "the Parchment interpreter. No installation is required.\""
+            . "class=\"fancy-button viewgame__playOnline\">Play Online"
             . "</a>";
         echo "$playOnlineButton<br>";
     }
@@ -1052,9 +1049,8 @@ if ($foundGame)
         $atarget = (is_kindle() ? "" : "target=\"_blank\"");
         $playOnlineButton = "<a href=\"{$adriftUrl}\" $atarget "
             . "title=\"Play this game right now in your browser. No "
-            . "installation is required.\">"
-            . "<img src=\"/img/blank.gif\" class=\"play-online-button viewgame__playOnline\" "
-            . ">"
+            . "installation is required.\""
+            . "class=\"fancy-button viewgame__playOnline\">Play Online"
             . "</a>";
         echo "$playOnlineButton<br>";
     }

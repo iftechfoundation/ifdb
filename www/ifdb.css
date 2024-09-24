@@ -2086,17 +2086,6 @@ img.form-error-icon {
 }
 
 /*
-"Play Online" button
-*/
-img.play-online-button {
-    background: url("/img/playonlinebtn.gif") no-repeat center center;
-    width: 100px;
-    height: 23px;
-    vertical-align: middle;
-    border: none;
-}
-
-/*
 The various images for checkbox and radio button states.  Note that
 these are for our custom controls that we build out of HTML DOM and
 Javascript - these aren't for actual system controls, so we can
