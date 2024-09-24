@@ -1555,7 +1555,7 @@ var linkModel = {
     "name": "linkGridDiv",
     "vals": "linkVals",
 
-    "addbutton": "add-link-button",
+    "addbutton": "Add a Link",
 
     "fields": ["linkdisp", "linkurl", "linktitle", "linkdesc", "linkattrs",
                "linkfmt", "linkos", "linkosvsn",
@@ -1820,7 +1820,7 @@ function reviewEditBtnKey(event, id)
 var reviewModel = {
     "name": "reviewGridDiv",
     "vals": "reviewVals",
-    "addbutton": "add-link-button",
+    "addbutton": "Add a Link",
 
     "fields": ["extrevDisp", "extrevUrl", "extrevSource", "extrevSourceUrl",
                 "extrevRating", "extrevHeadline", "extrevSummary"],
@@ -1946,7 +1946,7 @@ function editXRef(rownum)
 var xrefModel = {
     name: "xrefGridDiv",
     vals: "xrefVals",
-    addbutton: "add-link-button",
+    addbutton: "Add a Link",
     fields: ["xrefReftype", "xrefID", "xrefTitle"],
     popups: ["xrefReftype"],
     rowtpl: function(rownum)

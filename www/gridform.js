@@ -120,9 +120,8 @@ function gfGenForm(modelVar, newRowIdx)
     }
 
     s += "<tr><td></td><td>"
-         + "<a href=\"#\" class='"+modelVar+"Add' title=\"Add a new item\">"
-         + "<img src=\"/img/blank.gif\" class=\""
-         + model.addbutton + "\"></a>"
+         + "<button type='button' class='"+modelVar+"Add fancy-button'>"
+         + model.addbutton + "</button>"
          + (model.addExtra ? model.addExtra : "")
          + "</td></tr></table>";
 

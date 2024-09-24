@@ -612,7 +612,7 @@ if ($osid == "new" || $osid != 0) {
 <!--
 var vsnGridModel = {
    "emptylabel": "<i>No versions are defined for this OS.</i>",
-   "addbutton": "add-version-button",
+   "addbutton": "Add Version",
 
    "rowhead": "Version Name</th><th>External ID</th>",
 
