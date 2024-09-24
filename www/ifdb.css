@@ -1654,13 +1654,6 @@ image file, unfortunately.
     margin-right: 1em;
     padding: 0;
 }
-input.save-button {
-    background: url("/img/savechanges.gif");
-    width: 97px;
-    height: 23px;
-    border: none;
-    vertical-align: middle;
-}
 
 img.add-link-button {
     background: url("/img/addlinkbtn.gif");

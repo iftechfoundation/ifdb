@@ -1699,9 +1699,8 @@ function activateListeners(divno, model)
     // finish the form
     echo "<p><hr class=dots></div><tr><td></td><td><br><br>"
 
-        . "<input type=image alt='Save Changes' "
-        . "src='img/blank.gif' class='save-button' "
-        . "name='save' value='Save Changes' id='edit-save-button'>"
+        . "<button class='fancy-button' "
+        . "name='save' value='Save Changes' id='edit-save-button'>Save Changes</button>"
 
         . " &nbsp; "
 

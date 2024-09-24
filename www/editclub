@@ -478,9 +478,8 @@ formCol("membersPublic", $membersPublic, "Membership",
         . "to everyone. If not, it will be visible only to club members.");
 
 
-echo "<tr><td></td><td><p><input type=image alt='Save Changes' "
-   . "value='Save Changes' name='save' "
-   . "src='img/blank.gif' class='save-button'> &nbsp; "
+echo "<tr><td></td><td><p><button value='Save Changes' name='save' "
+   . "class='fancy-button'>Save Changes</button> &nbsp; "
 
    . "<button class='fancy-button' "
    . "value='Reset Form (Discard Changes)' name='discard' "

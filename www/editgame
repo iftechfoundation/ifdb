@@ -2042,10 +2042,10 @@ for ($i = 0 ; $i < count($reftypes) ; ++$i) {
          </td>
          <td>
             <br><br>
-            <input type=image alt="Save Changes"
+            <button 
                    value="Save Changes" name="save"
-                   src="img/blank.gif" class="save-button"
-                   id="editgame-save-button">
+                   class="fancy-button"
+                   id="editgame-save-button">Save Changes</button>
             &nbsp;
             <button 
                    value="Reset Form (Discard Changes)"

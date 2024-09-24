@@ -2438,9 +2438,9 @@ if ($embargoCnt > 0)
                         })
                     </script>
                 <br>
-                 <input type=image src="img/blank.gif" class="save-button"
+                 <button src="img/blank.gif" class="fancy-button"
                     id="viewgame-save-tags-button"
-                    name="saveTags">
+                    name="saveTags">Save Changes</button>
                     <script type="text/javascript" nonce="<?php global $nonce; echo $nonce; ?>">
                         document.getElementById('viewgame-save-tags-button').addEventListener('click', function (event) {
                             event.preventDefault();
@@ -2477,9 +2477,9 @@ if ($embargoCnt > 0)
            <span class=details></span>
            <table id="deleteTagTable" border=0 class=tags>
            </table>
-           <input type=image src="img/blank.gif" class="save-button"
+           <button class="fancy-button"
               id="viewgame-save-tags-button-delete"
-              name="saveTags">
+              name="saveTags">Save Changes</button>
               <script type="text/javascript" nonce="<?php global $nonce; echo $nonce; ?>">
                 document.getElementById('viewgame-save-tags-button-delete').addEventListener('click', function (event) {
                     event.preventDefault();
