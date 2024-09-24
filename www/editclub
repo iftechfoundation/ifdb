@@ -25,12 +25,6 @@ $pagetitle = "Edit Game Details";
 include_once "dbconnect.php";
 $db = dbConnect();
 
-// translate image button request parameters to the normal SUBMIT button style
-foreach (array("save", "discard") as $b) {
-    if (isset($_REQUEST[$b . "_x"]) && !isset($_REQUEST[$b]))
-        $_REQUEST[$b] = true;
-}
-
 // get the club ID
 $qid = mysql_real_escape_string(get_req_data("id"), $db);
 if (!$qid) {
@@ -478,16 +472,15 @@ formCol("membersPublic", $membersPublic, "Membership",
         . "to everyone. If not, it will be visible only to club members.");
 
 
-echo "<tr><td></td><td><p><input type=image alt='Save Changes' "
-   . "value='Save Changes' name='save' "
-   . "src='img/blank.gif' class='save-button'> &nbsp; "
+echo "<tr><td></td><td><p><button value='Save Changes' name='save' "
+   . "class='fancy-button'>Save Changes</button> &nbsp; "
 
-   . "<input type=image alt='Reset Form (Discard Changes) "
+   . "<button class='fancy-button' "
    . "value='Reset Form (Discard Changes)' name='discard' "
-   . "src='img/blank.gif' class='reset-form-button'> &nbsp; "
+   . ">Reset</button> &nbsp; "
 
    . "<a href='" . ($qid == "new" ? "home" : "club?id=$qid")
-   . "'><img alt='Cancel' src='img/blank.gif' class='cancel-button'></a>"
+   . "' class='fancy-button'>Cancel</a>"
 
    . "</td></tr></table></form>";
 

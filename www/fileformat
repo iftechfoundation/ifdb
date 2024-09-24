@@ -14,12 +14,6 @@ $db = dbConnect();
 // if there's an image upload, process that
 include "imageuploadhandler.php";
 
-// translate image button request parameters to the normal SUBMIT button style
-foreach (array("save") as $b) {
-    if (isset($_REQUEST[$b . "_x"]) && !isset($_REQUEST[$b]))
-        $_REQUEST[$b] = true;
-}
-
 $errMsg = false;
 $errDetail = array();
 $saveErrMsg = false;
@@ -430,9 +424,9 @@ if ($geticon) {
         showDlaFields(FGRP_AUTOINSTALL);
 
 
-        echo "<p><input type=image name=save value=\"Save Changes\" "
-            . "src=\"/img/blank.gif\" class=\"save-button\" "
-            . "id=\"fileformat-save-dla-button\">"
+        echo "<p><button name=save value=\"Save Changes\" "
+            . "class=\"fancy-button\" "
+            . "id=\"fileformat-save-dla-button\">Save Changes</button>"
             . "</form>";
 
     } else if ($olddla) {
@@ -719,9 +713,9 @@ if ($geticon) {
                  <td>
                  </td>
                  <td>
-                    <input type=image name=save value="Save Changes"
-                     src="img/blank.gif" class="save-button"
-                     id="fileformat-save-format-button">
+                    <button name=save value="Save Changes"
+                     class="fancy-button"
+                     id="fileformat-save-format-button">Save Changes</button>
                  </td>
               </tr>
 

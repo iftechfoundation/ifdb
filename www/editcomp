@@ -12,11 +12,6 @@ include_once "login-check.php";
 if (!logged_in())
     exit();
 
-// translate image button request parameters to the normal SUBMIT button style
-foreach (array("save", "discard", "divedit", "divedit-done") as $b) {
-    if (isset($_REQUEST[$b . "_x"]) && !isset($_REQUEST[$b]))
-        $_REQUEST[$b] = true;
-}
 $userid = $_SESSION['logged_in_as'];
 
 // connect to the database
@@ -1222,7 +1217,7 @@ if ($show == "divform") {
 <!--
 var divModel = {
     rowhead: "Division Name</th><th>Description",
-    addbutton: "add-div-button",
+    addbutton: "Add a Division",
     name: "divGridDiv",
     vals: "divVals",
     fields: ["divid", "divname", "divdesc", "divNumGames"],
@@ -1277,9 +1272,8 @@ var divVals = [
 
 <?php
 
-    echo "<input type=image alt='Return to the main form' "
-        . "src='img/blank.gif' class='done-button' "
-        . "name='divedit-done' value='Done' id='divedit-done-button'>"
+    echo "<button class='fancy-button' "
+        . "name='divedit-done' value='Done' id='divedit-done-button'>Done</button>"
         . "</form>";
 
 } else if ($show == "form") {
@@ -1334,11 +1328,9 @@ function nthOrd(n)
 
         $divid = $divs[$i]["divid"];
         echo "var divModel$i = { "
-            . "addbutton: 'add-game-button', "
+            . "addbutton: 'Add a Game', "
 
-            . "addExtra: \" <a href='#' id='sortDivByPlaceButton$i' title='Sort by Place'>"
-            . "<img src='img/blank.gif' "
-            . "class='sortByPlaceButton'></a>\", "
+            . "addExtra: \" <a href='#' id='sortDivByPlaceButton$i' class='fancy-button'>Sort by Place</a>\", "
 
             . "name: 'divDiv$i', "
             . "fields: ['gameid{$i}_', 'gameplace{$i}_', "
@@ -1440,9 +1432,8 @@ function divRowTpl(i, n, row)
            : ("<a href='needjs' class='editLink"+i+"_"+n+"'>"
               + "<i>Not set - click to select a game</i></a>"))
            + "</span><span class='editcomp__editPadding'></span></td><td>"
-           + "<a href='needjs' class='editLink"+i+"_"+n+"'>"
-           + "<img src='img/blank.gif' "
-           + "class='grid-edit-button'></a>";
+           + "<a href='needjs' class='fancy-button editLink"+i+"_"+n+"'>"
+           + "Edit</a>";
 }
 
 function editGame(divno, rownum)
@@ -1657,9 +1648,8 @@ function activateListeners(divno, model)
 
     showFieldErrorDetail("divisions");
 
-    echo "<p><input type=image alt='Edit Divisions' "
-        . "src='img/blank.gif' class='edit-div-button' "
-        . "name='divedit' value='Edit Divisions' id='edit-div-button'>"
+    echo "<p><button class='fancy-button' "
+        . "name='divedit' value='Edit Divisions' id='edit-div-button'>Edit Divisions</button>"
         . "<div class=indented>";
 
     $divs = $dispRec["divisions"];
@@ -1702,29 +1692,26 @@ function activateListeners(divno, model)
     // finish the form
     echo "<p><hr class=dots></div><tr><td></td><td><br><br>"
 
-        . "<input type=image alt='Save Changes' "
-        . "src='img/blank.gif' class='save-button' "
-        . "name='save' value='Save Changes' id='edit-save-button'>"
+        . "<button class='fancy-button' "
+        . "name='save' value='Save Changes' id='edit-save-button'>Save Changes</button>"
 
         . " &nbsp; "
 
-        . "<input type=image alt='Reset Form (Discard Changes)' "
-        . "src='img/blank.gif' class='reset-form-button' "
-        . "name='discard' value='Reset Form (Discard Changes)' id='edit-reset'>"
-        . addSiblingEventListeners([["click", "return confirm('"
+        . "<button class='fancy-button' "
+        . "name='discard' value='Reset Form (Discard Changes)' id='edit-reset'>Reset</button>"
+        . addSiblingEventListeners([["click", "var result = confirm('"
             . ($compID == "new"
                 ? "This will discard all of the data you\\'ve entered and reset "
                 . "to a blank form."
                 : "This will discard all of the changes you\\'ve made and "
                 . "reset to the last saved data from the database.")
-            . " Do you wish to proceed?');"
+            . " Do you wish to proceed?'); if (result === false) event.preventDefault();"
         ]])
 
         . " &nbsp; "
 
         . "<a href='" . ($compID == "new" ? "home" : "viewcomp?id=$compID")
-        . "'><img alt='Cancel' src='img/blank.gif' class='cancel-button' "
-        . "id='edit-cancel-button'></a>"
+        . "' class='fancy-button' id='edit-cancel-button'>Cancel</a>"
 
         . "<br><br><span class=details>"
         . "<i>Your changes will be attributed to you as $displayName. "

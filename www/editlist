@@ -849,7 +849,7 @@ if ($listid != 'new')
 var listModel = {
     "emptylabel": "<i>This list doesn't have any entries yet.</i>",
     "controlVertAlign": "top",
-    "addbutton": "add-game-button",
+    "addbutton": "Add a Game",
     "name": "listGridDiv",
     "vals": "listVals",
     "fields": ["title", "hasart", "errmsg", "tuid",

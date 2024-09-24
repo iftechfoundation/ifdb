@@ -1018,7 +1018,7 @@ if ($foundGame)
     global $nonce;
     echo "<style nonce='$nonce'>\n"
         . ".viewgame__foundGame { position: relative; }\n"
-        . ".viewgame__playOnline { margin:0px 0px 0.3em 0px;cursor:pointer; }\n"
+        . ".viewgame__playOnline { display: inline-block; margin:0px 0px 0.3em 0px;cursor:pointer; }\n"
         . "</style>\n";
 
     $playOnlineButton = "";
@@ -1027,9 +1027,7 @@ if ($foundGame)
         $ptarget = (is_kindle() ? "" : "target=\"_blank\"");
         $playOnlineButton = "<a href=\"$htmlUrl\" $ptarget "
             . "title=\"Play this game right now in your browser. No "
-            . "installation is required.\">"
-            . "<img src=\"/img/blank.gif\" class=\"play-online-button viewgame__playOnline\" "
-            . ">"
+            . "installation is required.\" class=\"fancy-button viewgame__playOnline\">Play Online"
             . "</a>";
         echo "$playOnlineButton<br>";
     }
@@ -1040,9 +1038,8 @@ if ($foundGame)
         $ptarget = (is_kindle() ? "" : "target=\"_blank\"");
         $playOnlineButton = "<a href=\"$parchment$pcUrl\" $ptarget "
             . "title=\"Play this game right now in your browser, using "
-            . "the Parchment interpreter. No installation is required.\">"
-            . "<img src=\"/img/blank.gif\" class=\"play-online-button viewgame__playOnline\" "
-            . ">"
+            . "the Parchment interpreter. No installation is required.\""
+            . "class=\"fancy-button viewgame__playOnline\">Play Online"
             . "</a>";
         echo "$playOnlineButton<br>";
     }
@@ -1052,9 +1049,8 @@ if ($foundGame)
         $atarget = (is_kindle() ? "" : "target=\"_blank\"");
         $playOnlineButton = "<a href=\"{$adriftUrl}\" $atarget "
             . "title=\"Play this game right now in your browser. No "
-            . "installation is required.\">"
-            . "<img src=\"/img/blank.gif\" class=\"play-online-button viewgame__playOnline\" "
-            . ">"
+            . "installation is required.\""
+            . "class=\"fancy-button viewgame__playOnline\">Play Online"
             . "</a>";
         echo "$playOnlineButton<br>";
     }
@@ -2430,9 +2426,9 @@ if ($embargoCnt > 0)
                  Enter new tags here (use commas to separate tags):<br>
                  </span>
                  <input type=text size=50 id="myTagFld">
-                 <input type=image src="img/blank.gif" class="add-button"
+                 <button class="fancy-button"
                     id="viewgame-add-tags-button"
-                    name="addTags">
+                    name="addTags">Add</button>
                     <script type="text/javascript" nonce="<?php global $nonce; echo $nonce; ?>">
                         document.getElementById('viewgame-add-tags-button').addEventListener('click', function (event) {
                             event.preventDefault();
@@ -2440,9 +2436,9 @@ if ($embargoCnt > 0)
                         })
                     </script>
                 <br>
-                 <input type=image src="img/blank.gif" class="save-button"
+                 <button src="img/blank.gif" class="fancy-button"
                     id="viewgame-save-tags-button"
-                    name="saveTags">
+                    name="saveTags">Save Changes</button>
                     <script type="text/javascript" nonce="<?php global $nonce; echo $nonce; ?>">
                         document.getElementById('viewgame-save-tags-button').addEventListener('click', function (event) {
                             event.preventDefault();
@@ -2479,9 +2475,9 @@ if ($embargoCnt > 0)
            <span class=details></span>
            <table id="deleteTagTable" border=0 class=tags>
            </table>
-           <input type=image src="img/blank.gif" class="save-button"
+           <button class="fancy-button"
               id="viewgame-save-tags-button-delete"
-              name="saveTags">
+              name="saveTags">Save Changes</button>
               <script type="text/javascript" nonce="<?php global $nonce; echo $nonce; ?>">
                 document.getElementById('viewgame-save-tags-button-delete').addEventListener('click', function (event) {
                     event.preventDefault();

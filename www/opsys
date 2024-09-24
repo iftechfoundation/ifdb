@@ -16,12 +16,6 @@ $db = dbConnect();
 // if there's an image upload, process that
 include "imageuploadhandler.php";
 
-// translate image button request parameters to the normal SUBMIT button style
-foreach (array("saveos", "savevsn") as $b) {
-    if (isset($_REQUEST[$b . "_x"]) && !isset($_REQUEST[$b]))
-        $_REQUEST[$b] = true;
-}
-
 $errMsg = false;
 $errDetail = array();
 $saveErrMsg = false;
@@ -484,9 +478,9 @@ if ($geticon) {
                }
            ?>
 
-            <p><input type=image name="savevsn" value="Save Changes"
-                src="img/blank.gif" class="save-button"
-                id="opsys-save-version-button">
+            <p><button name="savevsn" value="Save Changes"
+                class="fancy-button"
+                id="opsys-save-version-button">Save Changes</button>
         </form>
         <?php
     }
@@ -612,7 +606,7 @@ if ($osid == "new" || $osid != 0) {
 <!--
 var vsnGridModel = {
    "emptylabel": "<i>No versions are defined for this OS.</i>",
-   "addbutton": "add-version-button",
+   "addbutton": "Add Version",
 
    "rowhead": "Version Name</th><th>External ID</th>",
 
@@ -664,9 +658,9 @@ var vsnVals = [
                  <td>
                  </td>
                  <td>
-                    <input type=image name="saveos" value="Save Changes"
-                     src="img/blank.gif" class="save-button"
-                     id="opsys-save-os-button">
+                    <button name="saveos" value="Save Changes"
+                     class="fancy-button"
+                     id="opsys-save-os-button">Save Changes</button>
                  </td>
               </tr>
 

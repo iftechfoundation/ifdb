@@ -163,12 +163,6 @@ $adminPriv =
     $result
     && strpos(mysql_result($result, 0, "privileges"), "A") !== false;
 
-// translate image button request parameters to the normal SUBMIT button style
-foreach (array("save", "discard") as $b) {
-    if (isset($_REQUEST[$b . "_x"]) && !isset($_REQUEST[$b]))
-        $_REQUEST[$b] = true;
-}
-
 // if there's an image upload, process that
 include "imageuploadhandler.php";
 
@@ -1555,17 +1549,14 @@ var linkModel = {
     "name": "linkGridDiv",
     "vals": "linkVals",
 
-    "addbutton": "add-link-button",
+    "addbutton": "Add a Link",
 
     "fields": ["linkdisp", "linkurl", "linktitle", "linkdesc", "linkattrs",
                "linkfmt", "linkos", "linkosvsn",
                "linkcomp", "linkcomppri"],
 
     "rowtpl": "<nobr><input type=\"text\" readonly #1 size=100>"
-        + " <a href=\"needjs\" id=\"linkEditBtn##\">"
-        + "<img alt=\"Edit this link\" "
-        + "border=0 src=\"/img/blank.gif\" class=\"grid-edit-button\" "
-        + "></a>"
+        + " <a href=\"needjs\" id=\"linkEditBtn##\" class=\"fancy-button\">Edit</a>"
         + "<input type=hidden #2>"
         + "<input type=hidden #3>"
         + "<input type=hidden #4>"
@@ -1820,16 +1811,13 @@ function reviewEditBtnKey(event, id)
 var reviewModel = {
     "name": "reviewGridDiv",
     "vals": "reviewVals",
-    "addbutton": "add-link-button",
+    "addbutton": "Add a Link",
 
     "fields": ["extrevDisp", "extrevUrl", "extrevSource", "extrevSourceUrl",
                 "extrevRating", "extrevHeadline", "extrevSummary"],
 
     "rowtpl": "<nobr><input type=text readonly #1 size=100>"
-        + " <a href=\"needjs\" id=\"reviewEditBtn##\">"
-        + "<img alt=\"Edit this review\" "
-        + "border=0 src=\"/img/blank.gif\" class=\"grid-edit-button\" "
-        + "></a>"
+        + " <a href=\"needjs\" id=\"reviewEditBtn##\" class=\"fancy-button\">Edit</a>"
         + "<input type=hidden #2>"
         + "<input type=hidden #3>"
         + "<input type=hidden #4>"
@@ -1946,7 +1934,7 @@ function editXRef(rownum)
 var xrefModel = {
     name: "xrefGridDiv",
     vals: "xrefVals",
-    addbutton: "add-link-button",
+    addbutton: "Add a Link",
     fields: ["xrefReftype", "xrefID", "xrefTitle"],
     popups: ["xrefReftype"],
     rowtpl: function(rownum)
@@ -1978,9 +1966,7 @@ for ($i = 0 ; $i < count($reftypes) ; ++$i) {
           : "<a href=\"viewgame?id=$2\" class=\"silent\" target=\"_blank\">"
           + "<i>$3</i></a>")
        + "</td><td>"
-       + "<a href=\"#\" id=\"xrefEditBtn##\"><img alt=\"Edit this reference\" "
-       + "border=0 src=\"/img/blank.gif\" class=\"grid-edit-button\" "
-       + "></a></nobr>";
+       + "<a href=\"#\" id=\"xrefEditBtn##\" class=\"fancy-button\">Edit</a></nobr>";
     },
     onAddRow: function(rownum) {
         editXRef(rownum);
@@ -2050,16 +2036,16 @@ for ($i = 0 ; $i < count($reftypes) ; ++$i) {
          </td>
          <td>
             <br><br>
-            <input type=image alt="Save Changes"
+            <button 
                    value="Save Changes" name="save"
-                   src="img/blank.gif" class="save-button"
-                   id="editgame-save-button">
+                   class="fancy-button"
+                   id="editgame-save-button">Save Changes</button>
             &nbsp;
-            <input type=image alt="Reset Form (Discard Changes)"
+            <button 
                    value="Reset Form (Discard Changes)"
                    name="discard"
-                   src="img/blank.gif" class="reset-form-button"
-                   id="editgame-reset-button">
+                   class="fancy-button"
+                   id="editgame-reset-button">Reset</button>
                    <script type="text/javascript" nonce="<?php global $nonce; echo $nonce; ?>">
                        window['editgame-reset-button'].addEventListener('click', function (event) {
                           var result = confirmReset();
@@ -2069,8 +2055,7 @@ for ($i = 0 ; $i < count($reftypes) ; ++$i) {
             &nbsp;
             <a href="<?php
                 echo ($id == "new" ? "home" : "viewgame?id=$id");
-                ?>"><img alt="Cancel" src="img/blank.gif" class="cancel-button"
-                     id="editgame-cancel-button"></a>
+                ?>" id="editgame-cancel-button" class="fancy-button">Cancel</a>
 
             <br><br><span class=details>
                <i>Your changes will be attributed to you as

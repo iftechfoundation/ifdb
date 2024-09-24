@@ -1616,6 +1616,25 @@ div.captchaFormDiv form {
     padding: 0;
 }
 
+.fancy-button {
+    background: linear-gradient(to bottom, #ffffff, #7db6bd);
+    border-top: 2px solid #7db6bd;
+    border-right: 2px solid #5b5b5b;
+    border-bottom: 2px solid #5b5b5b;
+    border-left: 2px solid #4c9894;
+    border-radius: 5px;
+    font-family: Helvetica, Arial, sans-serif;
+    font-size: 14px;
+    text-decoration: none;
+    padding: 1px 6px;
+    font-weight: bold;
+    color: blue;
+    text-align: center;
+    cursor: pointer;
+    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.3);
+    white-space: nowrap;
+}
+
 /*
 Button images.  These are identified in the HTML by a CLASS and an ID.
 For ease of upward compatibility, we address them here by CLASS; but a
@@ -1635,97 +1654,6 @@ image file, unfortunately.
     vertical-align: middle;
     margin-right: 1em;
     padding: 0;
-}
-input.save-button {
-    background: url("/img/savechanges.gif");
-    width: 97px;
-    height: 23px;
-    border: none;
-    vertical-align: middle;
-}
-input.reset-form-button {
-    background: url("/img/resetform.gif");
-    width: 46px;
-    height: 23px;
-    border: none;
-    vertical-align: middle;
-}
-img.cancel-button {
-    background: url("/img/cancel.gif");
-    width: 54px;
-    height: 23px;
-    border: none;
-    vertical-align: middle;
-}
-input.add-button {
-    background: url("/img/addbtn.gif");
-    width: 45px;
-    height: 23px;
-    border: none;
-    vertical-align: middle;
-}
-img.add-link-button {
-    background: url("/img/addlinkbtn.gif");
-    width: 78px;
-    height: 23px;
-    border: none;
-    vertical-align: middle;
-}
-img.add-div-button {
-    background: url("/img/adddivbtn.gif");
-    width: 111px;
-    height: 23px;
-    border: none;
-    vertical-align: middle;
-}
-img.add-game-button {
-    background: url("/img/addgamebtn.gif");
-    width: 85px;
-    height: 23px;
-    border: none;
-    vertical-align: middle;
-}
-img.sortByPlaceButton {
-    background: url("/img/sortByPlaceBtn.gif");
-    width: 107px;
-    height: 23px;
-    border: none;
-    vertical-align: middle;
-}
-img.add-version-button {
-    background: url("/img/addvsnbtn.gif");
-    width: 86px;
-    height: 23px;
-    border: none;
-    vertical-align: middle;
-}
-input.upload-image-button {
-    background: url("/img/uplimagebtn.gif");
-    width: 135px;
-    height: 23px;
-    border: none;
-    vertical-align: middle;
-}
-img.upload-image-button {
-    background: url("/img/uplimagebtn.gif");
-    width: 135px;
-    height: 23px;
-    border: none;
-    vertical-align: middle;
-}
-input.edit-div-button {
-    background: url("/img/editdivbtn.gif");
-    width: 107px;
-    height: 23px;
-    border: none;
-    vertical-align: middle;
-}
-input.done-button {
-    background: url("/img/donebtn.gif");
-    width: 52px;
-    height: 23px;
-    border: none;
-    vertical-align: middle;
 }
 
 /*
@@ -1754,20 +1682,6 @@ img.grid-move-down {
 img.grid-move-blank {
     width: 27px;
     height: 21px;
-    border: none;
-    vertical-align: middle;
-}
-img.grid-remove-button {
-    background: url("/img/removebtn.gif");
-    width: 67px;
-    height: 23px;
-    border: none;
-    vertical-align: middle;
-}
-img.grid-edit-button {
-    background: url("/img/editbtn.gif");
-    width: 47px;
-    height: 23px;
     border: none;
     vertical-align: middle;
 }
@@ -2099,28 +2013,6 @@ img.form-error-icon {
     height: 16px;
     border: none;
     vertical-align: middle;
-}
-
-/*
-Auto-install button graphic ("Play It Now")
-*/
-img.auto-install-button {
-    background: url("/img/autoins.gif") no-repeat center center;
-    width: 100px;
-    height: 23px;
-    vertical-align: middle;
-    border: none;
-}
-
-/*
-"Play Online" button
-*/
-img.play-online-button {
-    background: url("/img/playonlinebtn.gif") no-repeat center center;
-    width: 100px;
-    height: 23px;
-    vertical-align: middle;
-    border: none;
 }
 
 /*
