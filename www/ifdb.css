@@ -1718,13 +1718,6 @@ img.upload-image-button {
     border: none;
     vertical-align: middle;
 }
-input.edit-div-button {
-    background: url("/img/editdivbtn.gif");
-    width: 107px;
-    height: 23px;
-    border: none;
-    vertical-align: middle;
-}
 
 /*
 Buttons for the "grid" forms - these are the subforms that show

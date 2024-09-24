@@ -1656,9 +1656,8 @@ function activateListeners(divno, model)
 
     showFieldErrorDetail("divisions");
 
-    echo "<p><input type=image alt='Edit Divisions' "
-        . "src='img/blank.gif' class='edit-div-button' "
-        . "name='divedit' value='Edit Divisions' id='edit-div-button'>"
+    echo "<p><button class='fancy-button' "
+        . "name='divedit' value='Edit Divisions' id='edit-div-button'>Edit Divisions</button>"
         . "<div class=indented>";
 
     $divs = $dispRec["divisions"];
