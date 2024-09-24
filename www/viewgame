@@ -19,8 +19,8 @@ include_once "news.php";
 $userprivs = $adminPriv = false;
 if ($curuser) {
     $result = mysqli_execute_query($db,
-        "select `privileges` from users where id=?", [$curuser]);
-    $userprivs = mysql_result($result, 0, "privileges");
+        "select `privileges`, `sandbox` from users where id=?", [$curuser]);
+    list($userprivs, $mysandbox) = mysql_fetch_row($result);
     $adminPriv = (strpos($userprivs, "A") !== false);
 }
 
@@ -1511,9 +1511,6 @@ if (!isEmpty($genre)) {
         $sortMeLast = "";
         $sandbox = "not users.sandbox";
         if ($curuser) {
-			$mysandbox = 0;
-            $result = mysql_query("select sandbox from users where id='$curuser'", $db);
-            list($mysandbox) = mysql_fetch_row($result);
             if ($mysandbox != 0) $sandbox = "1";
             $sortMeLast = "if(reclists.userid = ?, 2, 1),";
             $params[] = $curuser;
@@ -1548,9 +1545,6 @@ if (!isEmpty($genre)) {
         $sortMeLast = "";
         $sandbox = "not uv.sandbox";
         if ($curuser) {
-            $mysandbox = 0;
-            $result = mysql_query("select sandbox from users where id='$curuser'", $db);
-            list($mysandbox) = mysql_fetch_row($result);
             if ($mysandbox != 0) $sandbox = "1";
             $sortMeLast = "if(v.userid = ? or p.userid = ?, 2, 1),";
             $params[] = $curuser;
@@ -1673,6 +1667,7 @@ if (!isEmpty($genre)) {
         }
 
         // check for explicit cross-recommendations
+        $sandbox = $mysandbox ? "1" : "not(u.sandbox) and not (u2.sandbox)";
         $result = mysql_query(
             "select
                c.togame as id,
@@ -1688,10 +1683,13 @@ if (!isEmpty($genre)) {
                crossrecs as c
                join games as g on g.id = c.togame
                join crossrecs as c2 on c2.togame = c.togame
+               join users as u on c.userid = u.id
+               join users as u2 on c2.userid = u2.id
                $joinOtherUser
              where
                c.fromgame = '$qid'
                and not (g.flags & " . FLAG_SHOULD_HIDE . ")
+               and $sandbox
                $andOtherUser
              group by
                c.fromgame, c.togame
