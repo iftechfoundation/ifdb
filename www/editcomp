@@ -1335,9 +1335,7 @@ function nthOrd(n)
         echo "var divModel$i = { "
             . "addbutton: 'Add a Game', "
 
-            . "addExtra: \" <a href='#' id='sortDivByPlaceButton$i' title='Sort by Place'>"
-            . "<img src='img/blank.gif' "
-            . "class='sortByPlaceButton'></a>\", "
+            . "addExtra: \" <a href='#' id='sortDivByPlaceButton$i' class='fancy-button'>Sort by Place</a>\", "
 
             . "name: 'divDiv$i', "
             . "fields: ['gameid{$i}_', 'gameplace{$i}_', "

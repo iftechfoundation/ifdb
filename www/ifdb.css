@@ -1632,6 +1632,7 @@ div.captchaFormDiv form {
     text-align: center;
     cursor: pointer;
     box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.3);
+    white-space: nowrap;
 }
 
 /*
@@ -1655,48 +1656,7 @@ image file, unfortunately.
     padding: 0;
 }
 
-img.add-link-button {
-    background: url("/img/addlinkbtn.gif");
-    width: 78px;
-    height: 23px;
-    border: none;
-    vertical-align: middle;
-}
-img.add-div-button {
-    background: url("/img/adddivbtn.gif");
-    width: 111px;
-    height: 23px;
-    border: none;
-    vertical-align: middle;
-}
-img.add-game-button {
-    background: url("/img/addgamebtn.gif");
-    width: 85px;
-    height: 23px;
-    border: none;
-    vertical-align: middle;
-}
-img.sortByPlaceButton {
-    background: url("/img/sortByPlaceBtn.gif");
-    width: 107px;
-    height: 23px;
-    border: none;
-    vertical-align: middle;
-}
-img.add-version-button {
-    background: url("/img/addvsnbtn.gif");
-    width: 86px;
-    height: 23px;
-    border: none;
-    vertical-align: middle;
-}
-input.upload-image-button {
-    background: url("/img/uplimagebtn.gif");
-    width: 135px;
-    height: 23px;
-    border: none;
-    vertical-align: middle;
-}
+
 img.upload-image-button {
     background: url("/img/uplimagebtn.gif");
     width: 135px;
