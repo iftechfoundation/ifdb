@@ -1748,13 +1748,6 @@ img.grid-move-blank {
     border: none;
     vertical-align: middle;
 }
-img.grid-remove-button {
-    background: url("/img/removebtn.gif");
-    width: 67px;
-    height: 23px;
-    border: none;
-    vertical-align: middle;
-}
 
 /*
 Combo Box drop arrow

@@ -113,8 +113,7 @@ function gfGenForm(modelVar, newRowIdx)
         s += "</nobr></td><td>" + txt + "</td><td valign=\"" + ctlvalign + "\">";
 
         if (model.allowRemove == null || model.allowRemove(i))
-            s += "<a href=\"needjs\" class='"+modelVar+"Remove' x-i='"+i+"' title=\"Remove\">"
-                 + "<img src=\"/img/blank.gif\" class=\"grid-remove-button\"></a> ";
+            s += "<a href=\"needjs\" class='"+modelVar+"Remove fancy-button' x-i='"+i+"'>Remove</a> ";
 
         s += "</td></tr>";
     }
