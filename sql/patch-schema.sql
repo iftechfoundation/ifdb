@@ -429,12 +429,13 @@ from (
         from (
             select count(`ifdb`.`reviews`.`id`) AS `count`,
               `ifdb`.`reviews`.`rating` AS `rating`,
-              `ifdb`.`reviews`.`gameid` AS `gameid`,
+              `ifdb`.`games`.`id` AS `gameid`,
               ifnull(`ifdb`.`reviews`.`RFlags`, 0) & 2 AS `omitted`,
               `ifdb`.`reviews`.`review` is not null AS `hasReview`
             from (
-                `ifdb`.`reviews`
-                left join `ifdb`.`users` on(`ifdb`.`reviews`.`userid` = `ifdb`.`users`.`id`)
+                `ifdb`.`games`
+                left outer join `ifdb`.`reviews` on (`ifdb`.`games`.`id` = `ifdb`.`reviews`.`gameid`)
+                left outer join `ifdb`.`users` on(`ifdb`.`reviews`.`userid` = `ifdb`.`users`.`id`)
               )
             where ifnull(`ifdb`.`users`.`Sandbox`, 0) = 0
               and ifnull(
@@ -443,7 +444,7 @@ from (
               )
               and `ifdb`.`reviews`.`special` is null
             group by `ifdb`.`reviews`.`rating`,
-              `ifdb`.`reviews`.`gameid`,
+              `ifdb`.`games`.`id`,
               ifnull(`ifdb`.`reviews`.`RFlags`, 0) & 2,
               ifnull(
                 `ifdb`.`reviews`.`special`,
@@ -595,12 +596,13 @@ from (
         from (
             select count(`ifdb`.`reviews`.`id`) AS `count`,
               `ifdb`.`reviews`.`rating` AS `rating`,
-              `ifdb`.`reviews`.`gameid` AS `gameid`,
+              `ifdb`.`games`.`id` AS `gameid`,
               ifnull(`ifdb`.`reviews`.`RFlags`, 0) & 2 AS `omitted`,
               `ifdb`.`reviews`.`review` is not null AS `hasReview`
             from (
-                `ifdb`.`reviews`
-                left join `ifdb`.`users` on(`ifdb`.`reviews`.`userid` = `ifdb`.`users`.`id`)
+                `ifdb`.`games`
+                left outer join `ifdb`.`reviews` on (`ifdb`.`games`.`id` = `ifdb`.`reviews`.`gameid`)
+                left outer join `ifdb`.`users` on(`ifdb`.`reviews`.`userid` = `ifdb`.`users`.`id`)
               )
             where ifnull(`ifdb`.`users`.`Sandbox`, 0) in (0, 1)
               and ifnull(
@@ -609,7 +611,7 @@ from (
               )
               and `ifdb`.`reviews`.`special` is null
             group by `ifdb`.`reviews`.`rating`,
-              `ifdb`.`reviews`.`gameid`,
+              `ifdb`.`games`.`id`,
               ifnull(`ifdb`.`reviews`.`RFlags`, 0) & 2,
               ifnull(
                 `ifdb`.`reviews`.`special`,
