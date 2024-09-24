@@ -2110,17 +2110,6 @@ img.form-error-icon {
 }
 
 /*
-Auto-install button graphic ("Play It Now")
-*/
-img.auto-install-button {
-    background: url("/img/autoins.gif") no-repeat center center;
-    width: 100px;
-    height: 23px;
-    vertical-align: middle;
-    border: none;
-}
-
-/*
 "Play Online" button
 */
 img.play-online-button {
