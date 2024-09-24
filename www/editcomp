@@ -1723,8 +1723,7 @@ function activateListeners(divno, model)
         . " &nbsp; "
 
         . "<a href='" . ($compID == "new" ? "home" : "viewcomp?id=$compID")
-        . "'><img alt='Cancel' src='img/blank.gif' class='cancel-button' "
-        . "id='edit-cancel-button'></a>"
+        . "' class='fancy-button' id='edit-cancel-button'>Cancel</a>"
 
         . "<br><br><span class=details>"
         . "<i>Your changes will be attributed to you as $displayName. "

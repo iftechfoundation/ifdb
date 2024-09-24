@@ -2069,8 +2069,7 @@ for ($i = 0 ; $i < count($reftypes) ; ++$i) {
             &nbsp;
             <a href="<?php
                 echo ($id == "new" ? "home" : "viewgame?id=$id");
-                ?>"><img alt="Cancel" src="img/blank.gif" class="cancel-button"
-                     id="editgame-cancel-button"></a>
+                ?>" id="editgame-cancel-button" class="fancy-button">Cancel</a>
 
             <br><br><span class=details>
                <i>Your changes will be attributed to you as

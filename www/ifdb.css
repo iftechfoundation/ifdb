@@ -1623,6 +1623,10 @@ div.captchaFormDiv form {
     border-bottom: 2px solid #5b5b5b;
     border-left: 2px solid #4c9894;
     border-radius: 5px;
+    font-family: Helvetica, Arial, sans-serif;
+    font-size: 14px;
+    text-decoration: none;
+    padding: 1px 6px;
     font-weight: bold;
     color: blue;
     text-align: center;
@@ -1660,13 +1664,6 @@ input.save-button {
 input.reset-form-button {
     background: url("/img/resetform.gif");
     width: 46px;
-    height: 23px;
-    border: none;
-    vertical-align: middle;
-}
-img.cancel-button {
-    background: url("/img/cancel.gif");
-    width: 54px;
     height: 23px;
     border: none;
     vertical-align: middle;
