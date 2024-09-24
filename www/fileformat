@@ -14,12 +14,6 @@ $db = dbConnect();
 // if there's an image upload, process that
 include "imageuploadhandler.php";
 
-// translate image button request parameters to the normal SUBMIT button style
-foreach (array("save") as $b) {
-    if (isset($_REQUEST[$b . "_x"]) && !isset($_REQUEST[$b]))
-        $_REQUEST[$b] = true;
-}
-
 $errMsg = false;
 $errDetail = array();
 $saveErrMsg = false;

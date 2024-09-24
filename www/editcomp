@@ -12,11 +12,6 @@ include_once "login-check.php";
 if (!logged_in())
     exit();
 
-// translate image button request parameters to the normal SUBMIT button style
-foreach (array("save", "discard", "divedit", "divedit-done") as $b) {
-    if (isset($_REQUEST[$b . "_x"]) && !isset($_REQUEST[$b]))
-        $_REQUEST[$b] = true;
-}
 $userid = $_SESSION['logged_in_as'];
 
 // connect to the database

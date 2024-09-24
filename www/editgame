@@ -163,12 +163,6 @@ $adminPriv =
     $result
     && strpos(mysql_result($result, 0, "privileges"), "A") !== false;
 
-// translate image button request parameters to the normal SUBMIT button style
-foreach (array("save", "discard") as $b) {
-    if (isset($_REQUEST[$b . "_x"]) && !isset($_REQUEST[$b]))
-        $_REQUEST[$b] = true;
-}
-
 // if there's an image upload, process that
 include "imageuploadhandler.php";
 

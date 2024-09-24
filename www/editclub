@@ -25,12 +25,6 @@ $pagetitle = "Edit Game Details";
 include_once "dbconnect.php";
 $db = dbConnect();
 
-// translate image button request parameters to the normal SUBMIT button style
-foreach (array("save", "discard") as $b) {
-    if (isset($_REQUEST[$b . "_x"]) && !isset($_REQUEST[$b]))
-        $_REQUEST[$b] = true;
-}
-
 // get the club ID
 $qid = mysql_real_escape_string(get_req_data("id"), $db);
 if (!$qid) {
