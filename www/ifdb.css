@@ -1725,13 +1725,6 @@ input.edit-div-button {
     border: none;
     vertical-align: middle;
 }
-input.done-button {
-    background: url("/img/donebtn.gif");
-    width: 52px;
-    height: 23px;
-    border: none;
-    vertical-align: middle;
-}
 
 /*
 Buttons for the "grid" forms - these are the subforms that show

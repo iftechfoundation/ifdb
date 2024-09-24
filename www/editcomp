@@ -1277,9 +1277,8 @@ var divVals = [
 
 <?php
 
-    echo "<input type=image alt='Return to the main form' "
-        . "src='img/blank.gif' class='done-button' "
-        . "name='divedit-done' value='Done' id='divedit-done-button'>"
+    echo "<button class='fancy-button' "
+        . "name='divedit-done' value='Done' id='divedit-done-button'>Done</button>"
         . "</form>";
 
 } else if ($show == "form") {
