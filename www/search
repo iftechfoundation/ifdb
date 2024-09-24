@@ -972,7 +972,8 @@ else {  // ...default is searching games
             the given id.
 
        <p><b>played:<i>yes</i>|<i>no</i></b> lists games that
-            you have/haven't put on your played list (i.e. "I've played it").
+            you have/haven't put on your played list (i.e. "I've played it")
+            and have/haven't reviewed or rated.
             Only works if you are logged in with a user account.
 
        <p><b>willplay:<i>yes</i>|<i>no</i></b> lists games that

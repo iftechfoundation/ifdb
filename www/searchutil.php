@@ -616,12 +616,19 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse)
                         $extraJoins[$col] = true;
                         $tableList .= " left join playedgames as pg "
                                       . "on games.id = pg.gameid "
-                                      . "and pg.userid = '$curuser'";
+                                      . "and pg.userid = '$curuser' "
+                                      . "left join reviews as reviewed "
+                                      . "on games.id = reviewed.gameid "
+                                      . "and reviewed.userid = '$curuser' "
+                                    ;
                     }
 
                     // we need yes=not-null/no=null game ids
-                    $op = (preg_match("/^y.*/i", $txt) ? "is not" : "is");
-                    $expr = "pg.gameid $op null";
+                    if (preg_match("/^y.*/i", $txt)) {
+                        $expr = "pg.gameid is not null or reviewed.gameid is not null";
+                    } else {
+                        $expr = "pg.gameid is null and reviewed.gameid is null";
+                    }
                 }
                 break;
 
