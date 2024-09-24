@@ -1439,9 +1439,8 @@ function divRowTpl(i, n, row)
            : ("<a href='needjs' class='editLink"+i+"_"+n+"'>"
               + "<i>Not set - click to select a game</i></a>"))
            + "</span><span class='editcomp__editPadding'></span></td><td>"
-           + "<a href='needjs' class='editLink"+i+"_"+n+"'>"
-           + "<img src='img/blank.gif' "
-           + "class='grid-edit-button'></a>";
+           + "<a href='needjs' class='fancy-button editLink"+i+"_"+n+"'>"
+           + "Edit</a>";
 }
 
 function editGame(divno, rownum)

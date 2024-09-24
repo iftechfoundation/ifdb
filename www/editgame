@@ -1562,10 +1562,7 @@ var linkModel = {
                "linkcomp", "linkcomppri"],
 
     "rowtpl": "<nobr><input type=\"text\" readonly #1 size=100>"
-        + " <a href=\"needjs\" id=\"linkEditBtn##\">"
-        + "<img alt=\"Edit this link\" "
-        + "border=0 src=\"/img/blank.gif\" class=\"grid-edit-button\" "
-        + "></a>"
+        + " <a href=\"needjs\" id=\"linkEditBtn##\" class=\"fancy-button\">Edit</a>"
         + "<input type=hidden #2>"
         + "<input type=hidden #3>"
         + "<input type=hidden #4>"
@@ -1826,10 +1823,7 @@ var reviewModel = {
                 "extrevRating", "extrevHeadline", "extrevSummary"],
 
     "rowtpl": "<nobr><input type=text readonly #1 size=100>"
-        + " <a href=\"needjs\" id=\"reviewEditBtn##\">"
-        + "<img alt=\"Edit this review\" "
-        + "border=0 src=\"/img/blank.gif\" class=\"grid-edit-button\" "
-        + "></a>"
+        + " <a href=\"needjs\" id=\"reviewEditBtn##\" class=\"fancy-button\">Edit</a>"
         + "<input type=hidden #2>"
         + "<input type=hidden #3>"
         + "<input type=hidden #4>"
@@ -1978,9 +1972,7 @@ for ($i = 0 ; $i < count($reftypes) ; ++$i) {
           : "<a href=\"viewgame?id=$2\" class=\"silent\" target=\"_blank\">"
           + "<i>$3</i></a>")
        + "</td><td>"
-       + "<a href=\"#\" id=\"xrefEditBtn##\"><img alt=\"Edit this reference\" "
-       + "border=0 src=\"/img/blank.gif\" class=\"grid-edit-button\" "
-       + "></a></nobr>";
+       + "<a href=\"#\" id=\"xrefEditBtn##\" class=\"fancy-button\">Edit</a></nobr>";
     },
     onAddRow: function(rownum) {
         editXRef(rownum);

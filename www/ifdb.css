@@ -1755,13 +1755,6 @@ img.grid-remove-button {
     border: none;
     vertical-align: middle;
 }
-img.grid-edit-button {
-    background: url("/img/editbtn.gif");
-    width: 47px;
-    height: 23px;
-    border: none;
-    vertical-align: middle;
-}
 
 /*
 Combo Box drop arrow
