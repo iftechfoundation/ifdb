@@ -2432,9 +2432,9 @@ if ($embargoCnt > 0)
                  Enter new tags here (use commas to separate tags):<br>
                  </span>
                  <input type=text size=50 id="myTagFld">
-                 <input type=image src="img/blank.gif" class="add-button"
+                 <button class="fancy-button"
                     id="viewgame-add-tags-button"
-                    name="addTags">
+                    name="addTags">Add</button>
                     <script type="text/javascript" nonce="<?php global $nonce; echo $nonce; ?>">
                         document.getElementById('viewgame-add-tags-button').addEventListener('click', function (event) {
                             event.preventDefault();

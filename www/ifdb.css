@@ -1616,6 +1616,20 @@ div.captchaFormDiv form {
     padding: 0;
 }
 
+.fancy-button {
+    background: linear-gradient(to bottom, #ffffff, #7db6bd);
+    border-top: 2px solid #7db6bd;
+    border-right: 2px solid #5b5b5b;
+    border-bottom: 2px solid #5b5b5b;
+    border-left: 2px solid #4c9894;
+    border-radius: 5px;
+    font-weight: bold;
+    color: blue;
+    text-align: center;
+    cursor: pointer;
+    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.3);
+}
+
 /*
 Button images.  These are identified in the HTML by a CLASS and an ID.
 For ease of upward compatibility, we address them here by CLASS; but a
@@ -1657,13 +1671,7 @@ img.cancel-button {
     border: none;
     vertical-align: middle;
 }
-input.add-button {
-    background: url("/img/addbtn.gif");
-    width: 45px;
-    height: 23px;
-    border: none;
-    vertical-align: middle;
-}
+
 img.add-link-button {
     background: url("/img/addlinkbtn.gif");
     width: 78px;
