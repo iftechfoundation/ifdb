@@ -482,9 +482,9 @@ echo "<tr><td></td><td><p><input type=image alt='Save Changes' "
    . "value='Save Changes' name='save' "
    . "src='img/blank.gif' class='save-button'> &nbsp; "
 
-   . "<input type=image alt='Reset Form (Discard Changes) "
+   . "<button class='fancy-button' "
    . "value='Reset Form (Discard Changes)' name='discard' "
-   . "src='img/blank.gif' class='reset-form-button'> &nbsp; "
+   . ">Reset</button> &nbsp; "
 
    . "<a href='" . ($qid == "new" ? "home" : "club?id=$qid")
    . "' class='fancy-button'>Cancel</a>"

@@ -1705,16 +1705,15 @@ function activateListeners(divno, model)
 
         . " &nbsp; "
 
-        . "<input type=image alt='Reset Form (Discard Changes)' "
-        . "src='img/blank.gif' class='reset-form-button' "
-        . "name='discard' value='Reset Form (Discard Changes)' id='edit-reset'>"
-        . addSiblingEventListeners([["click", "return confirm('"
+        . "<button class='fancy-button' "
+        . "name='discard' value='Reset Form (Discard Changes)' id='edit-reset'>Reset</button>"
+        . addSiblingEventListeners([["click", "var result = confirm('"
             . ($compID == "new"
                 ? "This will discard all of the data you\\'ve entered and reset "
                 . "to a blank form."
                 : "This will discard all of the changes you\\'ve made and "
                 . "reset to the last saved data from the database.")
-            . " Do you wish to proceed?');"
+            . " Do you wish to proceed?'); if (result === false) event.preventDefault();"
         ]])
 
         . " &nbsp; "

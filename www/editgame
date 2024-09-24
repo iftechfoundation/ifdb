@@ -2047,11 +2047,11 @@ for ($i = 0 ; $i < count($reftypes) ; ++$i) {
                    src="img/blank.gif" class="save-button"
                    id="editgame-save-button">
             &nbsp;
-            <input type=image alt="Reset Form (Discard Changes)"
+            <button 
                    value="Reset Form (Discard Changes)"
                    name="discard"
-                   src="img/blank.gif" class="reset-form-button"
-                   id="editgame-reset-button">
+                   class="fancy-button"
+                   id="editgame-reset-button">Reset</button>
                    <script type="text/javascript" nonce="<?php global $nonce; echo $nonce; ?>">
                        window['editgame-reset-button'].addEventListener('click', function (event) {
                           var result = confirmReset();

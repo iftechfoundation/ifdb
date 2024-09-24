@@ -1661,13 +1661,6 @@ input.save-button {
     border: none;
     vertical-align: middle;
 }
-input.reset-form-button {
-    background: url("/img/resetform.gif");
-    width: 46px;
-    height: 23px;
-    border: none;
-    vertical-align: middle;
-}
 
 img.add-link-button {
     background: url("/img/addlinkbtn.gif");
