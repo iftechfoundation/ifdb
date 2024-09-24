@@ -228,12 +228,12 @@ function imageUploadRadio($originalUrl, $noneLabel, $radioname, $curval,
     // add the upload button
     echo "</tr><tr><td>&nbsp;<br></td></tr><tr valign=middle>"
         . "<td colspan='$tableCols'>"
-        . "<a href=\"#\" id=\"$ubtn\">"
+        . "<a href=\"#\" id=\"$ubtn\" class='fancy-button'>Upload a New Image"
         . addEventListener('click', "imageUploadSelect('$ubtn','$ufr');"
         .      "return false;")
         . addEventListener('focus', "imageUploadFocus('$ubtn',true);")
         . addEventListener('blur', "imageUploadFocus('$ubtn',false);")
-        . "<img src=\"/img/blank.gif\" class=\"upload-image-button\"></a>"
+        . "</a>"
         . "<iframe name=\"$ufr\" id=\"$ufr\" src=\"imageUpload?btn=$ubtn"
         .     "&fr=$ufr&thumbSize=$thumbSiz&radio=$radioname&tab=$utab"
         .     "&col0=$col0\" "

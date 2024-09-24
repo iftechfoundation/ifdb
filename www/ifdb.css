@@ -1656,15 +1656,6 @@ image file, unfortunately.
     padding: 0;
 }
 
-
-img.upload-image-button {
-    background: url("/img/uplimagebtn.gif");
-    width: 135px;
-    height: 23px;
-    border: none;
-    vertical-align: middle;
-}
-
 /*
 Buttons for the "grid" forms - these are the subforms that show
 multi-row data, such as the list of download links on the Edit Game
