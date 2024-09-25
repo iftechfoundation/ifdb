@@ -73,7 +73,11 @@ foreach ($master_index->file as $file) {
                     continue;
                 }
                 $tuids[$tuid] = $path;
-                $file_descriptions[$path] = trim((string)$file->description);
+                $file_description = trim((string)$file->description);
+                if (!$file_description) {
+                    $file_description = trim((string)$file->parentdesc);
+                }
+                $file_descriptions[$path] = $file_description;
             }
         }
     }
