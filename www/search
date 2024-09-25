@@ -983,6 +983,14 @@ else {  // ...default is searching games
             you have/haven't put on your "won't play" list (i.e. "I'm not interested").
             Only works if you are logged in with a user account.
 
+        <p><b>reviewed:<i>yes</i>|<i>no</i></b> lists games that
+            you have/haven't reviewed (with a written review).
+            Only works if you are logged in with a user account.
+
+       <p><b>rated:<i>yes</i>|<i>no</i></b> lists games that
+            you have/haven't rated (with a star rating).
+            Only works if you are logged in with a user account.
+
        </div>
 
        <?php echo $commonPostInstructions ?>
