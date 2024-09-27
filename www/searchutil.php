@@ -604,6 +604,7 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse)
                 // need to join the gameprofilelinks table to do this query
                 if (!isset($extraJoins[$col])) {
                     $extraJoins[$col] = true;
+                    $txt = mysql_real_escape_string($txt, $db);
                     $tableList .= " inner join gameprofilelinks as gpl "
                                   . "on gpl.gameid = games.id "
                                   . "and gpl.userid = '$txt'";
