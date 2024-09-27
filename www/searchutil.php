@@ -489,7 +489,7 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse)
             $txt = mysql_real_escape_string(quoteSqlRLike($txt), $db);
             $txt = str_replace(" ", " +", $txt);
             if ($txt != "")
-                $expr = "$col RLIKE '$txt'";
+                $expr = "ifnull($col, '') RLIKE '$txt'";
             else
                 $expr = "($col = '' or $col is null)";
             break;
