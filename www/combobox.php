@@ -23,7 +23,7 @@
 function makeComboBox($name, $textlen, $curval, $vals, $onSet = "null")
 {
     // write the input field
-    $txt = "<input type=\"text\" name=\"$name\" id=\"$name\" "
+    $txt = "<span class='nobr'><input type=\"text\" name=\"$name\" id=\"$name\" "
            . "size=$textlen value=\"" . htmlspecialcharx($curval)
            . "\">"
            . addSiblingEventListeners([
@@ -62,7 +62,7 @@ function makeComboBox($name, $textlen, $curval, $vals, $onSet = "null")
     }
 
     // end the list and the enclosing division
-    $txt .= "</select></div>";
+    $txt .= "</select></div></span>";
 
     // return the text
     return $txt;

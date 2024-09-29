@@ -96,7 +96,7 @@ function gfGenForm(modelVar, newRowIdx)
             }
         }
 
-        s += "<tr><td valign=\"" + ctlvalign + "\"><nobr>";
+        s += "<tr><td valign=\"" + ctlvalign + "\"><span class='nobr'>";
 
         if (i > 0)
             s += "<a href=\"needjs\" class='"+modelVar+"MoveUp' x-i='"+i+"' title=\"Move up\">"
@@ -110,7 +110,7 @@ function gfGenForm(modelVar, newRowIdx)
         else
             s += "<img src=\"/img/blank.gif\" class=\"grid-move-blank\"> ";
 
-        s += "</nobr></td><td>" + txt + "</td><td valign=\"" + ctlvalign + "\">";
+        s += "</span></td><td>" + txt + "</td><td valign=\"" + ctlvalign + "\">";
 
         if (model.allowRemove == null || model.allowRemove(i))
             s += "<a href=\"needjs\" class='"+modelVar+"Remove fancy-button' x-i='"+i+"'>Remove</a> ";
@@ -119,10 +119,10 @@ function gfGenForm(modelVar, newRowIdx)
     }
 
     s += "<tr><td></td><td>"
-         + "<button type='button' class='"+modelVar+"Add fancy-button'>"
+         + "<span class='nobr'><button type='button' class='"+modelVar+"Add fancy-button'>"
          + model.addbutton + "</button>"
          + (model.addExtra ? model.addExtra : "")
-         + "</td></tr></table>";
+         + "</span></td></tr></table>";
 
     d.innerHTML = s;
 

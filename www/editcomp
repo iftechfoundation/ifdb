@@ -1414,7 +1414,7 @@ function divRowTpl(i, n, row)
         // they appear in the generated combo box string.
         echo jsSpecialChars(makeComboBox("gameplace#I#", 25, "#V#", $vals));
 
-     ?> &nbsp; ".replace(/#[IV]#/g, function(str) {
+     ?>".replace(/#[IV]#/g, function(str) {
          if (str == "#I#") return "" + i + "_" + n;
          if (str == "#V#") return jsQuote(row[1]);
          return "";
