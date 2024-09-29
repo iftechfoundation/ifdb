@@ -17,7 +17,7 @@ This importer is designed to grab the game list from https://ifcomp.org/ballot a
 
 ## Phase 2: Add IF Archive external links for each game on the ballot.
 
-This can only happen once the "big zip file" is available, and all links are visible on IF Archive. As a result, these scripts are designed to be able to be run separately, possibly by an entirely different person from the one who created the game listings.
+This can only happen once all links are visible on IF Archive and each of them has TUID metadata. As a result, these scripts are designed to be able to be run separately, possibly by an entirely different person from the one who created the game listings.
 
 (It's not uncommon for someone to swoop in and manually create all the game listings as soon as the comp starts; that's fine. This script can cope with that.)
 
@@ -26,7 +26,7 @@ This can only happen once the "big zip file" is available, and all links are vis
 3. Run `node extract-microdata.mjs` to record the ballot data in `microdata.json`.
 4. Download the "big zip file" from the "download a .zip archive" link from https://ifcomp.org/ballot and save it in this directory as `IFCompYYYY.zip` (matching the `compStartDate` year).
 6. Run `node merge-tuids.mjs` to record the IFDB TUIDs in `microdata-tuids.json`.
-5. Run `node compute-external-links.mjs` to record the file names in `microdata-links-tuids.json`.
+5. Run `node compute-ifarchive-links.mjs` to record the file names in `external-links.json`.
 7. Run `node submit-external-links.mjs` to edit each IFDB listing, adding the links we computed.
 
 # List of the scripts
@@ -38,10 +38,13 @@ This can only happen once the "big zip file" is available, and all links are vis
 
     Initially, we'll create the IFDB entries based on the ballot alone; it will take a few days for IF Archive to accept and process the "big zip" of all competition entries. Once that ZIP is available on ifarchive.org, we can compute and set external links.
 1. `merge-tuids.mjs`: Rather than assuming that `submit-games.mjs` was run, we search IFDB for games published in the current year that match the title of the given IFComp game; this gives us the IFDB "TUID" ID of each game in IFComp. This generates `microdata-tuids.json` from `microdata.json`.
-1. `compute-external-links.mjs`: Computes the correct external link (including the game file in the download ZIP) using the big zip as input. This generates `microdata-links-tuids.json` from `microdata-tuids.json`.
-1. `submit-external-links.mjs`: Automatically submits IF Archive download links for all IFComp games, based on `microdata-links-tuids.json`.
+1. `tag-games.mjs`: Tag all games in `microdata-tuids.json` with the "IFComp YYYY" tag.
+1. `compute-ifarchive-links.mjs`: Computes the correct external link (including the game file in the download ZIP) based on IF Archive's `Master-Index.xml` file. This generates `external-links.json`.
+1. `submit-external-links.mjs`: Automatically submits IF Archive download links for all IFComp games, based on `external-links.json`.
 
 
 TODO
 
+* Duplicate detector
+* Bulk delete stale ballot links
 * Allow bulk-adding games to competitions https://github.com/iftechfoundation/ifdb-suggestion-tracker/issues/367

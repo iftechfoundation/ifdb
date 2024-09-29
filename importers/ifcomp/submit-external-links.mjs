@@ -3,18 +3,7 @@ import { readFile } from 'fs/promises';
 import { XMLParser } from 'fast-xml-parser';
 import { runTasks } from 'concurrency-limit-runner';
 
-const games = JSON.parse(await readFile('microdata-links-tuids.json', 'utf8'));
-
-const fileTypes = {
-    "html": "hypertextgame",
-    "gblorb": "blorb/glulx",
-    "t3": "tads3",
-    "z5": "zcode",
-    "z8": "zcode",
-    "zblorb": "blorb/zcode",
-    "ulx": "glulx",
-    "exe": "executable"
-}
+const games = JSON.parse(await readFile('external-links.json', 'utf8'));
 
 function escapeXml(unsafe) {
     return unsafe.replace(/[<>&'"]/g, function (c) {
@@ -28,29 +17,11 @@ function escapeXml(unsafe) {
     });
 }
 
-// verify that all zips are present
-let tasks = games.map(game => async () => {
-    if (!game.zipFileName) return;
-    const url = `https://ifarchive.org/if-archive/games/competition${compYear}/${game.zipFileName}`;
-    console.log(url);
-    const response = await fetch(url, { method: 'head' });
-    if (!response.ok) {
-        throw new Error(`failed fetching ${game.title} ${url}: ${response.status} ${response.statusText} ${await response.text()}`)
-    }
-})
-
-for await (const result of runTasks(10, tasks.values())) { }
-
-tasks = [];
+const tasks = [];
 
 for (const game of games) {
     tasks.push(async () => {
-        const { name, tuid, zipFileName, zipMainFile } = game;
-        if (!zipFileName) {
-            console.log(name, `${url}/viewgame?id=${tuid}`, "SKIPPED");
-            return;
-        }
-
+        const { name: downloadTitle, tuid, url: downloadLink, format, zipMainFile } = game;
         const viewgameUrl = `${url}/viewgame?id=${tuid}&ifiction`;
         let response;
         try {
@@ -61,16 +32,6 @@ for (const game of games) {
         }
         const xml = new XMLParser().parse(await response.text());
 
-        const downloadLink = `https://ifarchive.org/if-archive/games/competition${compYear}/${escape(zipFileName)}`;
-        const downloadTitle = zipFileName.replace(/^Games\//, "");
-        let fileType = "";
-        if (zipMainFile) {
-            const extension = zipMainFile.split(".").pop();
-            fileType = fileTypes[extension];
-            if (!fileType) throw new Error("missing fileType for extension: " + extension);
-        } else {
-            fileType = "storyfile"
-        }
         const body = new FormData();
         body.append('username', username);
         body.append('password', password);
@@ -89,10 +50,12 @@ for (const game of games) {
         <url>${downloadLink}</url>
         <title>${downloadTitle}</title>
         <isGame/>
-        <format>${fileType}</format>
-        ${fileType === 'executable' ? `<os>Windows.</os>`: ''}
-        <compression>zip</compression>
-        ${zipMainFile ? `<compressedPrimary>${zipMainFile}</compressedPrimary>`: ''}
+        <format>${format}</format>
+        ${format === 'executable' ? `<os>Windows.</os>`: ''}
+        ${zipMainFile ? `
+            <compression>zip</compression>
+            <compressedPrimary>${zipMainFile}</compressedPrimary>
+        `: ''}
         </link>
         </links></downloads>
         `;
@@ -106,7 +69,7 @@ for (const game of games) {
         if (!ok) {
             throw new Error(`Failed ${status} ${statusText} adding download link for ${name}: ${text}`);
         }
-        console.log(name, `${url}/viewgame?id=${tuid}`, "OK");
+        console.log(downloadTitle, `${url}/viewgame?id=${tuid}`, "OK");
     })
 }
 

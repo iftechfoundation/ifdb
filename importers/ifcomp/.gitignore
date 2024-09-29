@@ -3,5 +3,6 @@ cover-art
 cover-art.json
 microdata.json
 microdata-*.json
+external-links.json
 *.zip
 settings.mjs
