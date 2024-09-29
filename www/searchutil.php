@@ -257,6 +257,7 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse)
             "reviewed:" => array("reviewed", 99),
             "rated:" => array("rated", 99),
             "license:" => array("license", 0),
+            "competitionid:" => array("competitionid", 99),
             "format:" => array("/gameformat/", 99));
 
 
@@ -604,9 +605,21 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse)
                 // need to join the gameprofilelinks table to do this query
                 if (!isset($extraJoins[$col])) {
                     $extraJoins[$col] = true;
+                    $txt = mysql_real_escape_string($txt, $db);
                     $tableList .= " inner join gameprofilelinks as gpl "
                                   . "on gpl.gameid = games.id "
                                   . "and gpl.userid = '$txt'";
+                }
+                break;
+            
+            case 'competitionid':
+                // need to join the compgames table to do this query
+                if (!isset($extraJoins[$col])) {
+                    $extraJoins[$col] = true;
+                    $txt = mysql_real_escape_string($txt, $db);
+                    $tableList .= " inner join compgames "
+                                  . "on compgames.gameid = games.id "
+                                  . "and compgames.compid = '$txt'";
                 }
                 break;
 
