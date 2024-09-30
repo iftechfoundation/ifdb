@@ -407,7 +407,8 @@ newsSummary($db, "C", $compID, 3,
             "</div>");
 
 // show the games, by division
-echo "<h2>Games and Awards</h2><div class=indented>";
+echo "<style nonce='$nonce'>.compgames { display: inline-block; } </style><h2 class=compgames>Games and Awards</h2>
+    <span class='details'><a href='/search?searchbar=competitionid:$compID'>Search for games</a></span> <div class=indented>";
 
 $divs = $rec["divisions"];
 $games = $rec["games"];
