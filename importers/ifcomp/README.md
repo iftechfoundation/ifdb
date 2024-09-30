@@ -28,6 +28,14 @@ This can only happen once all links are visible on IF Archive and each of them h
 5. Run `node compute-ifarchive-links.mjs` to record the file names in `external-links.json`.
 7. Run `node submit-external-links.mjs` to edit each IFDB listing, adding the links we computed.
 
+## Phase 3: Remove ballot links
+
+The ballot links stop working after the competition ends.
+
+1. Run `npm install` to install dependencies.
+2. Copy `settings.mjs.template` to `settings.mjs`, putting in your username, password, and the compStartDate. (If you want to test the scripts against a local IFDB dev environment, also change the url to `http://localhost:8080`.)
+3. Run `node remove-ballot-links.mjs` to remove all of the ballot links. The IF Archive links will be the only remaining "Play Online" options for IFComp games.
+
 # List of the scripts
 
 1. `settings.mjs`: All of the other scripts depend on this script. Copy `settings.mjs.template` to `settings.mjs`, putting in your username, password, and the compStartDate. (If you want to test the scripts against a local IFDB dev environment, also change the url to `http://localhost:8080`.)
@@ -40,10 +48,9 @@ This can only happen once all links are visible on IF Archive and each of them h
 1. `tag-games.mjs`: Tag all games in `microdata-tuids.json` with the "IFComp YYYY" tag.
 1. `compute-ifarchive-links.mjs`: Computes the correct external link (including the game file in the download ZIP) based on IF Archive's `Master-Index.xml` file. This generates `external-links.json`.
 1. `submit-external-links.mjs`: Automatically submits IF Archive download links for all IFComp games, based on `external-links.json`.
-
+1. `remove-ballot-links.mjs`: Removes `https://ifcomp.org/ballot` links from this year's competition entries. (The ballot links stop working after the competition ends.)
 
 TODO
 
 * Duplicate detector
-* Bulk delete stale ballot links
 * Allow bulk-adding games to competitions https://github.com/iftechfoundation/ifdb-suggestion-tracker/issues/367
