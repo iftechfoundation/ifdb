@@ -733,6 +733,10 @@ div.details {
     font-size: 85%;
 }
 
+span.nobr {
+    white-space: nowrap;
+}
+
 /*
 We use the "notes" span and division styles in various places to display
 help notes or additional details about an item.
@@ -1695,6 +1699,7 @@ img.combobox-arrow {
     height: 18px;
     border: none;
     vertical-align: middle;
+    margin-right: 1ch;
 }
 
 /*
