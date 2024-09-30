@@ -578,8 +578,18 @@ if ($linkFile)
     // get the original links from the existing record, if any
     $recLinks = (isset($rec["links"]) ? $rec["links"] : array());
 
+    $replaceLinks = get_req_data("replaceLinks") === "yes";
+    if ($replaceLinks) {
+        $reqLinks = [];
+    } else {
+        $reqLinks = $recLinks;
+        $existingUrls = [];
+        for ($i = 0; $i < count($recLinks); $i++) {
+            $existingUrls[strtolower($recLinks[$i]['url'])] = $i;
+        }
+    }
+
     // process the XML entries into link entries in the database format
-    $reqLinks = $recLinks;
     foreach ($xml->links->link as $l)
     {
         // get the items requiring mapping
@@ -603,31 +613,26 @@ if ($linkFile)
             "compression" => (isset($fmtMap[$cmp]) ? $fmtMap[$cmp] : false),
             "compressedprimary" => xcvt($l->compressedPrimary));
 
-        // Look for an existing link with the same URL.  If there's an
-        // existing link, we'll update it.  Otherwise we'll add this one
-        // as a new link.
-        for ($i = 0, $found = false ; $i < count($recLinks) ; $i++)
-        {
-            $recl = $recLinks[$i];
-            if (strcasecmp($recl["url"], $url) == 0)
-            {
+        $i = null;
+        if (!$replaceLinks) {
+            // Look for an existing link with the same URL.  If there's an
+            // existing link, we'll update it.  Otherwise we'll add this one
+            // as a new link.
+            $i = $existingUrls[strtolower($url)];
+            if ($i !== null) {
                 // If the new record has a pending flag, and the old one
                 // doesn't, clear the pending flag in the new record.  This
                 // must be a new upload of an existing file, in which case
                 // the existing link will presumably continue to work until
                 // the new upload replaces it.  So there's no need for a
                 // pending marker in this case.
-                if (!($recl["attrs"] & GAMELINK_PENDING))
+                if (!($recLinks[$i]["attrs"] & GAMELINK_PENDING))
                     $link["attrs"] &= ~GAMELINK_PENDING;
-
-                // stop looking - replace this record
-                $found = true;
-                break;
             }
         }
 
         // replace the record if we found one, otherwise add a new one
-        if ($found) {
+        if ($i !== null) {
             $link["displayorder"] = $i;
             $reqLinks[$i] = $link;
         } else {
