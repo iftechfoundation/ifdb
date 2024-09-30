@@ -66,26 +66,26 @@ for ($i = 0, $tags = array() ; ; $i++) {
 
 // make sure we process any persistent login state
 $userid = checkPersistentLogin();
-if ($userid) {
-    $result = mysqli_execute_query($db, "select acctstatus, profilestatus, sandbox from users where id=?", [$userid]);
-    if (!$result || mysql_num_rows($result) == 0) {
-        $userid = null;
-    } else {
-        list($acctstatus, $profilestatus, $sandbox) = mysql_fetch_row($result);
-    }
+if (!$userid && $xml) {
+    $username = get_req_data("username");
+    $password = get_req_data("password");
+    [$userid, $errCode, $errMsg] = doLogin($db, $username, $password);
 }
 
 if (!$userid) {
     if ($xml) {
-        $username = get_req_data("username");
-        $password = get_req_data("password");
-
-        list($userid, $errCode, $errMsg) = doLogin($db, $username, $password);
-        if (!$userid)
         sendResponse("401 Unauthorized", "Not Saved", "Please specify a valid username and password to login.", false, false);
     } else {
         sendResponse("401 Unauthorized", "Not Saved", "To tag a game, please log in.", false, false);
     }
+}
+
+$result = mysqli_execute_query($db, "select acctstatus, profilestatus, sandbox from users where id=?", [$userid]);
+if (!$result || mysql_num_rows($result) == 0) {
+    // you're logged in, but there's no users row?!?
+    sendResponse("500 Internal Server Error", "Not Saved", "This service is currently unavailable. We apologize for the inconvenience. (Diagnostic information: code APS0930)", false, false);
+} else {
+    [$acctstatus, $profilestatus, $sandbox] = mysql_fetch_row($result);
 }
 
 if ($sandbox == 1) {
@@ -176,7 +176,7 @@ if ($result && $tagList) {
 
     for ($i = 0, $tagInfo, $cnt = mysql_num_rows($result) ;
          $i < $cnt ; $i++) {
-        list($tag, $tagCnt, $gameCnt) = mysql_fetch_row($result);
+        [$tag, $tagCnt, $gameCnt] = mysql_fetch_row($result);
         $tagInfo .= "<tag><name>" . htmlspecialcharx($tag) . "</name>"
                     . "<tagcnt>$tagCnt</tagcnt>"
                     . "<gamecnt>$gameCnt</gamecnt>"
