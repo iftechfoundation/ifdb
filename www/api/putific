@@ -190,6 +190,14 @@ attachment, like the iFiction file.  Use content-type text/xml.  The
 file name and suffix are ignored; this is always treated as an
 XML file.  File upload parameter; optional.
 
+<p><b>replaceLinks</b>: This parameter can be supplied with the value
+"yes" to replace all of the game listing's external links with the
+links provided in the "links" external links list. Without this setting,
+external links specified through the API are purely additive.
+When the API is used to update an existing listing, the external links
+in the request are merged with the external links from the existing
+record.
+
 <p><b>coverart</b>: the Cover Art image for the game listing.  If
 present, this must be a valid JPEG, PNG, or GIF file.  There's an
 upper limit on the file size, which is currently 256K bytes; uploading
@@ -562,7 +570,7 @@ existing listing.  The restriction is simply that all IFIDs in the
 iFiction record that already exist on IFDB must all point to the same
 listing.
 
-<p>The external links specified through the API are purely additive.
+<p>By default, the external links specified through the API are purely additive.
 When the API is used to update an existing listing, the external links
 in the request are merged with the external links from the existing
 record.  The merging is by URL:
@@ -597,7 +605,7 @@ existing link to the old game in the interim, so that users viewing
 the page will find something to download, even if it's not necessarily
 fully up to date yet.
 
-<p>The reason that the external links are additive is that the links
+<p>The reason that the external links are additive by default is that the links
 presented through the request API are presumably the files published
 directly by the author of the game, but existing links might refer to
 other "unofficial" files created by third parties, such as hints or
@@ -608,6 +616,9 @@ in the request.  In the simplest case, when the request doesn't
 include any external links, this means that we make no changes
 at all to the existing links.
 
+<p>To delete an external link, set the "replaceLinks" parameter to
+"yes," and then submit all of the game's existing links except those
+you want to delete.
 
 <h2>Reply format</h2>
 
