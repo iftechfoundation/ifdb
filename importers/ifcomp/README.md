@@ -24,7 +24,6 @@ This can only happen once all links are visible on IF Archive and each of them h
 1. Run `npm install` to install dependencies.
 2. Copy `settings.mjs.template` to `settings.mjs`, putting in your username, password, and the compStartDate. (If you want to test the scripts against a local IFDB dev environment, also change the url to `http://localhost:8080`.)
 3. Run `node extract-microdata.mjs` to record the ballot data in `microdata.json`.
-4. Download the "big zip file" from the "download a .zip archive" link from https://ifcomp.org/ballot and save it in this directory as `IFCompYYYY.zip` (matching the `compStartDate` year).
 6. Run `node merge-tuids.mjs` to record the IFDB TUIDs in `microdata-tuids.json`.
 5. Run `node compute-ifarchive-links.mjs` to record the file names in `external-links.json`.
 7. Run `node submit-external-links.mjs` to edit each IFDB listing, adding the links we computed.
