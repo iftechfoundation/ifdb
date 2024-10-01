@@ -1330,7 +1330,8 @@ function nthOrd(n)
         echo "var divModel$i = { "
             . "addbutton: 'Add a Game', "
 
-            . "addExtra: \" <a href='#' id='sortDivByPlaceButton$i' class='fancy-button'>Sort by Place</a>\", "
+            . "addExtra: \" <a href='#' id='sortDivByPlaceButton$i' class='fancy-button'>Sort by Place</a> "
+            .   "<button id='addByTag$i' type=button class='fancy-button'>Add Games by Tag</button>\", "
 
             . "name: 'divDiv$i', "
             . "fields: ['gameid{$i}_', 'gameplace{$i}_', "
@@ -1459,6 +1460,50 @@ function activateListeners(divno, model)
     document.querySelector('#sortDivByPlaceButton' + divno).addEventListener('click', function(event) {
         event.preventDefault();
         sortDivByPlace('divModel' + divno, window["divVals"+divno]);
+    });
+
+    document.querySelector('#addByTag' + divno).addEventListener('click', async function(event) {
+        const tag = prompt("Tag name?");
+
+        const dialog = document.createElement("dialog");
+        dialog.innerText = "Loading";
+        document.body.append(dialog);
+        dialog.showModal();
+
+        const url = '/search?' + new URLSearchParams({
+            searchbar: 'tag:' + tag,
+            xml: 1,
+            pg: 'all',
+            sortby: 'ttl',
+        }).toString();
+
+        try {
+            const response = await fetch(url);
+            if (!response.ok) {
+                throw new Error("Failed loading results");
+            }
+            const xml = await response.text();
+
+            const results = [...new DOMParser().parseFromString(xml, "application/xml").querySelectorAll('game')].map(game => ({
+                id: game.querySelector('tuid').textContent,
+                title: game.querySelector('title').textContent,
+                author: game.querySelector('author').textContent,
+            }))
+
+            if (!results.length) {
+                throw new Error("No results");
+            }
+
+            for (const { id, title, author } of results) {
+                const i = window[divModel0.vals].length;
+                gfInsRow('divModel0', i);
+                document.getElementById('gameplace0_' + i).value = "Entrant";
+                gameSearchPopupSetID(id, title, author);
+            }
+        } catch (e) {
+            alert("Error: " + e.message);
+        }
+        dialog.close();
     });
 
     let vals = window[model.vals];

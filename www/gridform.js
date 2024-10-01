@@ -118,7 +118,7 @@ function gfGenForm(modelVar, newRowIdx)
         s += "</td></tr>";
     }
 
-    s += "<tr><td></td><td>"
+    s += "<tr><td></td><td "+ (model.addExtra ? "colspan=2" : "")+">"
          + "<span class='nobr'><button type='button' class='"+modelVar+"Add fancy-button'>"
          + model.addbutton + "</button>"
          + (model.addExtra ? model.addExtra : "")
