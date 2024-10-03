@@ -133,6 +133,7 @@ if (count($tags) == 0) {
         
     // show the tags
     echo "<table>";
+    $totalcolumns = 3;
     $nextcolumn = 1;
     foreach ($tags as $t) {
         $freq = $t['freq'];
@@ -142,18 +143,18 @@ if (count($tags) == 0) {
         $tu = urlencode($tag);
         $siz = calcDistBin($freq, $freqBins);
         $color = calcDistBin($age, $ageBins);
-        $tagcolumn = $nextcolumn++;
-        if ($nextcolumn == 4) {
+        $currentcolumn = $nextcolumn++;
+        if ($nextcolumn > $totalcolumns) {
             $nextcolumn = 1;
         }
-        if ($tagcolumn == 1) {
+        if ($currentcolumn == 1) {
             echo "<tr>";
         }
         echo "<td>"
             . "<a class=silent href=\"search?searchfor=tag:$tu\">"
             . "<font size=2>"
             . "$td ($freq)</font></a></td>";
-        if ($tagcolumn == 3) {
+        if ($currentcolumn == $totalcolumns) {
                 echo "</tr>";
             }
     }
