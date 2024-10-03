@@ -128,7 +128,7 @@ if (count($tags) == 0) {
         . ".showtags__tag { margin: 0 1em 0 1em; white-space: nowrap; }\n"
         . "</style>\n";
 
-        
+    
     // show the tags
     echo "<table>";
     $totalcolumns = 3;
@@ -151,13 +151,13 @@ if (count($tags) == 0) {
         echo "<td>"
             . "<a href=\"search?searchfor=tag:$tu\">"
             . "<font size=2>"
-            . "$td</a> ($freq)</font></a></td>";
+            . "$td</a> ($freq)</font></td>";
         if ($currentcolumn == $totalcolumns) {
-                echo "</tr>";
-            }
+            echo "</tr>";
+        }
     }
-}
 echo "</table>";
+}
 echo "</center></div><p>"
    . "Show <a href=\"showtags?limit=20\">the top 20</a> / "
    . "<a href=\"showtags?limit=50\">the top 50</a> / "
