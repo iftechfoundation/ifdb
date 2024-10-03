@@ -119,10 +119,8 @@ if (count($tags) == 0) {
     usort($tags, "sortByTagName");
 
     echo "<h1>$title</h1>"
-        . "<p>Here are $limitName associated with games in IFDB. "
-        . "Tags that are used more frequently are shown in larger type, and "
-        . "newer tags are in darker colors. "
-        . "Click on a tag to list games associated with the tag."
+        . "<p>Here are of all the tags on IFDB, along with numbers showing how many games have each tag. "
+        . "Click a tag to list the games associated with the tag."
         . "<p><div class=indented><center>";
 
     global $nonce;
@@ -151,9 +149,9 @@ if (count($tags) == 0) {
             echo "<tr>";
         }
         echo "<td>"
-            . "<a class=silent href=\"search?searchfor=tag:$tu\">"
+            . "<a href=\"search?searchfor=tag:$tu\">"
             . "<font size=2>"
-            . "$td ($freq)</font></a></td>";
+            . "$td</a> ($freq)</font></a></td>";
         if ($currentcolumn == $totalcolumns) {
                 echo "</tr>";
             }
