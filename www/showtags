@@ -119,8 +119,8 @@ if (count($tags) == 0) {
     usort($tags, "sortByTagName");
 
     echo "<h1>$title</h1>"
-        . "<p>Here are of all the tags on IFDB, along with numbers showing how many games have each tag. "
-        . "Click a tag to list the games associated with the tag."
+        . "<p>Here are all of the tags on IFDB, along with numbers showing how many games have each tag. "
+        . "Click on a tag to list the games associated with the tag."
         . "<p><div class=indented><center>";
 
     global $nonce;
