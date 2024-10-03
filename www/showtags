@@ -130,8 +130,10 @@ if (count($tags) == 0) {
         . ".showtags__tag { margin: 0 1em 0 1em; white-space: nowrap; }\n"
         . "</style>\n";
 
-
+        
     // show the tags
+    echo "<table>";
+    $nextcolumn = 1;
     foreach ($tags as $t) {
         $freq = $t['freq'];
         $tag = $t['tag'];
@@ -140,21 +142,28 @@ if (count($tags) == 0) {
         $tu = urlencode($tag);
         $siz = calcDistBin($freq, $freqBins);
         $color = calcDistBin($age, $ageBins);
-
-        echo "<span class='showtags__tag'>"
+        $tagcolumn = $nextcolumn++;
+        if ($nextcolumn == 4) {
+            $nextcolumn = 1;
+        }
+        if ($tagcolumn == 1) {
+            echo "<tr>";
+        }
+        echo "<td>"
             . "<a class=silent href=\"search?searchfor=tag:$tu\">"
-            . "<font size=$siz><span class=\"tagAge$color\">"
-            . "$td</span></font></a></span> ";
+            . "<font size=2>"
+            . "$td ($freq)</font></a></td>";
+        if ($tagcolumn == 3) {
+                echo "</tr>";
+            }
     }
-
 }
-
+echo "</table>";
 echo "</center></div><p>"
    . "Show <a href=\"showtags?limit=20\">the top 20</a> / "
    . "<a href=\"showtags?limit=50\">the top 50</a> / "
    . "<a href=\"showtags?limit=100\">the top 100</a> / "
    . "<a href=\"showtags\">all</a> game tags.<br>";
-
 
 pageFooter();
 ?>
