@@ -51,6 +51,7 @@ function setStarCtlValue(id, val)
         // with automatic mouse rollover highlighting.
 
         ?>
+<span style="position:absolute;width:1px;left:-10000px;">To rate games using a keyboard, please visit the settings page and turn on the "Use Accessible Controls" setting.</span>
 <script type="text/javascript" nonce="<?php global $nonce; echo $nonce; ?>">
 <!--
 var starRatings = {};
