@@ -1038,7 +1038,7 @@ if ($foundGame)
         $ptarget = (is_kindle() ? "" : "target=\"_blank\"");
         $playOnlineButton = "<a href=\"$parchment$pcUrl\" $ptarget "
             . "title=\"Play this game right now in your browser, using "
-            . "the Parchment interpreter. No installation is required.\""
+            . "the Parchment interpreter. No installation is required.\" "
             . "class=\"fancy-button viewgame__playOnline\">Play Online"
             . "</a>";
         echo "$playOnlineButton<br>";
