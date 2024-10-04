@@ -174,12 +174,12 @@ if (count($tags) == 0) {
 
         global $nonce;
         echo "<style nonce='$nonce'>\n"
-            . ".showtags__tag { margin: 0 1em 0 1em; white-space: nowrap; }\n"
+            . ".showtags__tags { display: grid; grid-template-columns: repeat(auto-fill, 20ch); }\n"
             . "</style>\n";
 
         
         // show the tags
-        echo "<table>";
+        echo "<div class='showtags__tags'>";
         $totalcolumns = 3;
         $nextcolumn = 1;
         foreach ($tags as $t) {
@@ -188,22 +188,12 @@ if (count($tags) == 0) {
             $age = $t['age'];
             $td = htmlspecialcharx($tag);
             $tu = urlencode($tag);
-            $currentcolumn = $nextcolumn++;
-            if ($nextcolumn > $totalcolumns) {
-                $nextcolumn = 1;
-            }
-            if ($currentcolumn == 1) {
-                echo "<tr>";
-            }
-            echo "<td>"
+            echo "<div>"
                 . "<a href=\"search?searchfor=tag:$tu\">"
                 . "<font size=2>"
-                . "$td</a> ($freq)</font></td>";
-            if ($currentcolumn == $totalcolumns) {
-                echo "</tr>";
-            }
+                . "$td</a> ($freq)</font></div>";
         }
-        echo "</table>";
+        echo "</div>";
     }
 
 }
