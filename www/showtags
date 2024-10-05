@@ -33,7 +33,7 @@ $result = mysql_query(
        (unix_timestamp(now()) - unix_timestamp(max(moddate))) as age
      from gametags
      group by tag
-     order by freq desc
+     order by freq desc, tag
      $limitClause", $db);
 for ($i = 0, $tags = array(), $cnt = mysql_num_rows($result) ;
      $i < $cnt ; $i++) {
@@ -100,61 +100,101 @@ if (count($tags) == 0) {
     echo "<i>There are currently no tags in the database</i>";
 } else {
 
-    $i = $cnt - 1;
-    $bins = array((int)($i * 0.02),  // bottom 2% in bin 1
-                  (int)($i * 0.07),  // next 5% in bin 2
-                  (int)($i * 0.22),  // next 15% in bin 3
-                  (int)($i * 0.78),  // middle 56% in bin 4
-                  (int)($i * 0.93),  // next 15% in bin 5
-                  (int)($i * 0.98),  // next 5% in bin 6
-                  $i);               // top 2% in bin 7
+    $cloud = get_req_data("cloud");
 
-    // calculate the normal distribution bins for the frequencies
-    $freqBins = buildBins("sortByTagFreq", "mapFreqBin");
+    if ($cloud) {
+        $i = $cnt - 1;
+        $bins = [(int)($i * 0.02),     // bottom 2% in bin 1
+                    (int)($i * 0.07),  // next 5% in bin 2
+                    (int)($i * 0.22),  // next 15% in bin 3
+                    (int)($i * 0.78),  // middle 56% in bin 4
+                    (int)($i * 0.93),  // next 15% in bin 5
+                    (int)($i * 0.98),  // next 5% in bin 6
+                    $i];               // top 2% in bin 7
 
-    // calculate the distribution bins for the ages
-    $ageBins = buildBins("sortByTagAge", "mapAgeBin");
+        // calculate the normal distribution bins for the frequencies
+        $freqBins = buildBins("sortByTagFreq", "mapFreqBin");
 
-    // re-sort by tag name for display order
-    usort($tags, "sortByTagName");
+        // calculate the distribution bins for the ages
+        $ageBins = buildBins("sortByTagAge", "mapAgeBin");
+        
+        // re-sort by tag name for display order
+        usort($tags, "sortByTagName");
 
-    echo "<h1>$title</h1>"
-        . "<p>Here are $limitName associated with games in IFDB. "
-        . "Tags that are used more frequently are shown in larger type, and "
-        . "newer tags are in darker colors. "
-        . "Click on a tag to list games associated with the tag."
-        . "<p><div class=indented><center>";
+        echo "<h1>$title</h1>"
+            . "<p>Here are $limitName associated with games in IFDB. "
+            . "Tags that are used more frequently are shown in larger type, and "
+            . "newer tags are in darker colors. "
+            . "Click on a tag to list games associated with the tag.";
+        
+        echo "<p>"
+           . "Show <a href=\"showtags?cloud=1&limit=20\">the top 20</a> / "
+           . "<a href=\"showtags?cloud=1&limit=50\">the top 50</a> / "
+           . "<a href=\"showtags?cloud=1&limit=100\">the top 100</a> / "
+           . "<a href=\"showtags?cloud=1\">all</a> game tags.<br>"
+           . "<a href=\"showtags\">Show tags in a table</a>.";
 
-    global $nonce;
-    echo "<style nonce='$nonce'>\n"
-        . ".showtags__tag { margin: 0 1em 0 1em; white-space: nowrap; }\n"
-        . "</style>\n";
+        echo "<p><div class=indented><center>";
+    
+        global $nonce;
+        echo "<style nonce='$nonce'>\n"
+            . ".showtags__tag { margin: 0 1em 0 1em; white-space: nowrap; }\n"
+            . "</style>\n";
+    
+        
+        
+        // show the tags
+        foreach ($tags as $t) {
+            $freq = $t['freq'];
+            $tag = $t['tag'];
+            $age = $t['age'];
+            $td = htmlspecialcharx($tag);
+            $tu = urlencode($tag);
+            $siz = calcDistBin($freq, $freqBins);
+            $color = calcDistBin($age, $ageBins);
+    
+            echo "<span class='showtags__tag'>"
+                . "<a class=silent href=\"search?searchfor=tag:$tu\">"
+                . "<font size=$siz><span class=\"tagAge$color\">"
+                . "$td</span></font></a></span> ";
+        }
+    
+        echo "</center></div>";
+    } else {
+        echo "<h1>$title</h1>"
+        . "<p>Here are $limitName on IFDB, along with numbers showing how many games have each tag. "
+        . "Click on a tag to list the games associated with the tag.";
 
+        echo "<p>"
+           . "Show <a href=\"showtags?limit=20\">the top 20</a> / "
+           . "<a href=\"showtags?limit=50\">the top 50</a> / "
+           . "<a href=\"showtags?limit=100\">the top 100</a> / "
+           . "<a href=\"showtags\">all</a> game tags.<br>"
+           . "<a href=\"showtags?cloud=1\">Show tags in a cloud</a>.<p>";
 
-    // show the tags
-    foreach ($tags as $t) {
-        $freq = $t['freq'];
-        $tag = $t['tag'];
-        $age = $t['age'];
-        $td = htmlspecialcharx($tag);
-        $tu = urlencode($tag);
-        $siz = calcDistBin($freq, $freqBins);
-        $color = calcDistBin($age, $ageBins);
+        global $nonce;
+        echo "<style nonce='$nonce'>\n"
+            . ".showtags__tags { display: grid; grid-template-columns: repeat(auto-fill, 20ch); }\n"
+            . "</style>\n";
 
-        echo "<span class='showtags__tag'>"
-            . "<a class=silent href=\"search?searchfor=tag:$tu\">"
-            . "<font size=$siz><span class=\"tagAge$color\">"
-            . "$td</span></font></a></span> ";
+        
+        // show the tags
+        echo "<div class='showtags__tags'>";
+        foreach ($tags as $t) {
+            $freq = $t['freq'];
+            $tag = $t['tag'];
+            $age = $t['age'];
+            $td = htmlspecialcharx($tag);
+            $tu = urlencode($tag);
+            echo "<div>"
+                . "<a href=\"search?searchfor=tag:$tu\">"
+                . "<font size=2>"
+                . "$td</a> ($freq)</font></div>";
+        }
+        echo "</div>";
     }
 
 }
-
-echo "</center></div><p>"
-   . "Show <a href=\"showtags?limit=20\">the top 20</a> / "
-   . "<a href=\"showtags?limit=50\">the top 50</a> / "
-   . "<a href=\"showtags?limit=100\">the top 100</a> / "
-   . "<a href=\"showtags\">all</a> game tags.<br>";
-
 
 pageFooter();
 ?>

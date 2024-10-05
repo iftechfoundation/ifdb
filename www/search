@@ -856,7 +856,7 @@ else {  // ...default is searching games
        <p><b>tag:<i>tag name</i></b> searches for games containing
           the given tag text. (<?php
              echo helpWinLink("help-tags", "What's a tag?"); ?>)
-             <?php helpExtLink("Go to the IFDB tag cloud", "showtags"); ?>
+             <?php helpExtLink("Go to the IFDB tag list", "showtags"); ?>
 
        <p><b>series:<i>name</i></b> lists only games with the given
           series name.
