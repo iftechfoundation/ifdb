@@ -104,13 +104,13 @@ if (count($tags) == 0) {
 
     if ($cloud) {
         $i = $cnt - 1;
-        $bins = array((int)($i * 0.02),  // bottom 2% in bin 1
+        $bins = [(int)($i * 0.02),     // bottom 2% in bin 1
                     (int)($i * 0.07),  // next 5% in bin 2
                     (int)($i * 0.22),  // next 15% in bin 3
                     (int)($i * 0.78),  // middle 56% in bin 4
                     (int)($i * 0.93),  // next 15% in bin 5
                     (int)($i * 0.98),  // next 5% in bin 6
-                    $i);               // top 2% in bin 7
+                    $i];               // top 2% in bin 7
 
         // calculate the normal distribution bins for the frequencies
         $freqBins = buildBins("sortByTagFreq", "mapFreqBin");
@@ -132,7 +132,7 @@ if (count($tags) == 0) {
            . "<a href=\"showtags?cloud=1&limit=50\">the top 50</a> / "
            . "<a href=\"showtags?cloud=1&limit=100\">the top 100</a> / "
            . "<a href=\"showtags?cloud=1\">all</a> game tags.<br>"
-           . "<a href=\"showtags\">Show tags in a table</a>";
+           . "<a href=\"showtags\">Show tags in a table</a>.";
 
         echo "<p><div class=indented><center>";
     
@@ -170,7 +170,7 @@ if (count($tags) == 0) {
            . "<a href=\"showtags?limit=50\">the top 50</a> / "
            . "<a href=\"showtags?limit=100\">the top 100</a> / "
            . "<a href=\"showtags\">all</a> game tags.<br>"
-           . "<a href=\"showtags?cloud=1\">Show tags in a cloud</a><p>";
+           . "<a href=\"showtags?cloud=1\">Show tags in a cloud</a>.<p>";
 
         global $nonce;
         echo "<style nonce='$nonce'>\n"
@@ -180,8 +180,6 @@ if (count($tags) == 0) {
         
         // show the tags
         echo "<div class='showtags__tags'>";
-        $totalcolumns = 3;
-        $nextcolumn = 1;
         foreach ($tags as $t) {
             $freq = $t['freq'];
             $tag = $t['tag'];
