@@ -784,8 +784,20 @@ function showStars($num)
     list($roundedNum, $starimg, $startxt) = roundStars($num);
 
     // return the image string
-    return "<img src=\"/img/blank.gif\" border=0 "
-        . "class=\"star{$starimg}\" title=\"$startxt\">";
+    $result = "<span role='img' aria-label='$startxt out of 5'>";
+    for ($i = 1; $i <= $roundedNum; $i++) {
+        $result .= "<img height=13 src='/img/star-checked.svg'>";
+    }
+    if (floor($roundedNum) != $roundedNum) {
+        $result .= "<img height=13 src='/img/star-half-checked.svg'>";
+        $i++;
+    }
+    for (; $i <=5; $i++) {
+        $result .= "<img height=13 src='/img/star-unchecked.svg'>";
+    }
+
+    $result .= "</span>";
+    return $result;
 }
 
 function roundStars($num)
