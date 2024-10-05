@@ -1086,7 +1086,7 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse)
             error_log($sql);
             error_log($words[0]);
         }
-        $result = mysqli_execute_query($db, $sql, [$words[0], $words[0]]);
+        $result = mysqli_execute_query($db, $sql, [$words[0]]);
         if ($result) {
             $rows[] = mysql_fetch_array($result, MYSQL_ASSOC);
             if (isset($rows) && isset($rows[0])) {
