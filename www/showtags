@@ -33,7 +33,7 @@ $result = mysql_query(
        (unix_timestamp(now()) - unix_timestamp(max(moddate))) as age
      from gametags
      group by tag
-     order by freq desc
+     order by freq desc, tag
      $limitClause", $db);
 for ($i = 0, $tags = array(), $cnt = mysql_num_rows($result) ;
      $i < $cnt ; $i++) {
