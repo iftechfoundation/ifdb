@@ -6,149 +6,47 @@ include_once "login-persist.php";
 
 $db = dbConnect();
 $curuser = checkPersistentLogin();
-global $accessibility;
-$accessibility = false;
-
-if ($curuser) {
-    $result = mysql_query(
-        "select accessibility from users where id='$curuser'", $db);
-    list($accessibility) = mysql_fetch_row($result);
-}
 
 function initStarControls()
 {
-    global $accessibility;
-
-    if ($accessibility) {
-        // Accessible version - use a drop list for the rating selector.
-
-        ?>
-
-<script type="text/javascript" nonce="<?php global $nonce; echo $nonce; ?>">
-<!--
-function mouseClickStarCtl(id, e, clickFunc)
-{
-    var stars = document.getElementById(id).value;
-    clickFunc(stars);
-}
-function mouseOutStarCtl(id, e, cbFunc)
-{
-    var stars = document.getElementById(id).value;
-    if (cbFunc != null)
-        cbFunc(stars);
-}
-function setStarCtlValue(id, val)
-{
-    document.getElementById(id).value = val;
-}
-//-->
-</script>
-
-        <?php
-
-    } else {
-        // Standard version - use the animated javascript star control,
-        // with automatic mouse rollover highlighting.
-
-        ?>
-<script type="text/javascript" nonce="<?php global $nonce; echo $nonce; ?>">
-<!--
-var starRatings = {};
-function starsFromMouse(id, e)
-{
-    var x;
-    if (e.pageX)
-        x = e.pageX;
-    else if (e.clientX)
-        x = e.clientX
-            + (document.documentElement.scrollLeft
-               ? document.documentElement.scrollLeft
-               : document.body.scrollLeft);
-    var sEle = document.getElementById(id);
-    for (var ele = sEle ; ele != document.body ;
-         x -= ele.offsetLeft, ele = ele.offsetParent) ;
-
-    var stars = Math.round(x/(sEle.offsetWidth/5) + 0.5);
-    return (stars < 1 ? 1 : stars > 5 ? 5 : stars);
-}
-function mouseOverStarCtl(id, e)
-{
-    var stars = starsFromMouse(id, e);
-    showStarCtlValue(id, stars);
-}
-function mouseClickStarCtl(id, e, clickFunc)
-{
-    var stars = starRatings[id] = starsFromMouse(id, e);
-    showStarCtlValue(id, stars);
-    clickFunc(starRatings[id]);
-}
-function mouseOutStarCtl(id, e, cbFunc)
-{
-   var stars = starRatings[id];
-   showStarCtlValue(id, stars);
-   if (cbFunc != null)
-       cbFunc(stars);
-}
-function setStarCtlValue(id, val)
-{
-    starRatings[id] = val;
-    showStarCtlValue(id, val);
-}
-function showStarCtlValue(id, val)
-{
-    document.getElementById(id).className = "star" + val;
-}
-//-->
-</script>
-        <?php
-    }
+    // Standard version - use the animated javascript star control,
+    // with automatic mouse rollover highlighting.
+    ?>
+    <script type="text/javascript" nonce="<?php global $nonce; echo $nonce; ?>">
+        function setStarCtlValue(id, value) {
+            if (value) {
+                document.getElementById(`${id}__rating${value}`).checked = true;
+            } else {
+                var checked = [...document.querySelectorAll(`#${id} input[type=radio]`)].filter(i => i.checked)[0];
+                if (checked) checked.checked = false;
+            }
+        }
+    </script>
+    <?php
 }
 
-function showStarCtl($id, $init, $clickFunc, $leaveFunc)
+function showStarCtl($id, $init, $clickFunc)
 {
-    global $accessibility;
-
+    
     if (!$init)
         $init = 0;
 
-    if ($accessibility) {
-        // accessible version - use a simple drop list
-
-        $str = "<select id=\"$id\">"
-               . addEventListener('change', "mouseClickStarCtl('$id', event, $clickFunc);")
-               . addEventListener('blur', "mouseOutStarCtl('$id', event, $leaveFunc);")
-               ;
-        $disps = array("Not Rated", "1 Star", "2 Stars", "3 Stars",
-                       "4 Stars", "5 Stars");
-        for ($i = 0 ; $i <= 5 ; $i++) {
-            $str .= "<option value=\"$i\"";
-            if ($i == $init)
-                $str .= " selected";
-            $str .= ">{$disps[$i]}</option>";
+    $str = "<fieldset id='$id' class='star-rating'><div>\n";
+    
+    for ($i = 1; $i <= 5; $i++) {
+        $checked = "";
+        if ($i == $init) {
+            $checked = "checked";
         }
-        $str .= "</select>";
-
-    } else {
-        // standard version - use the star images
-        global $nonce;
-        $str = "<script type=\"text/javascript\" nonce=\"$nonce\">\r\n"
-               . "<!--\r\n"
-               . "starRatings['$id'] = $init;\r\n"
-               . "//-->\r\n"
-               . "</script>\r\n"
-               . "<style nonce='$nonce'>\n"
-               . "#$id { vertical-align:middle;cursor:pointer; display: inline; }\n"
-               . "</style>\n";
-
-        $str .= "<img id=\"{$id}\" "
-                . "src=\"img/blank.gif\" class=\"star$init\">"
-                . addSiblingEventListeners([
-                    ['mouseover', "mouseOverStarCtl('$id', event);"],
-                    ['mousemove', "mouseOverStarCtl('$id', event);"],
-                    ['mouseout', "mouseOutStarCtl('$id', event, $leaveFunc);"],
-                    ['click', "mouseClickStarCtl('$id', event, $clickFunc);"],
-                ]);
+        $str .= "<input type='radio' name='rating' value='$i' id='{$id}__rating$i' $checked>"
+            . "<label for='{$id}__rating$i'><span>$i</span></label>";
     }
+
+    $str .= addEventListener("change", "$clickFunc(event.target.value)");
+
+    $str .= "</div></fieldset>";
+
+    
 
     return $str;
 }

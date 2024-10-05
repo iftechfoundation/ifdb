@@ -1710,6 +1710,92 @@ Combo Box hidden list
     position: absolute;
 }
 
+:root {
+    --star-rating-size: 1rem;
+    --unchecked-image: url("/img/star-unchecked.svg");
+    --checked-image: url("/img/star-checked.svg");
+    --hovered-image: url("/img/star-hovered.svg");
+}
+
+.star-rating {
+    display: inline-block;
+    border: 0;
+    width: min-content;
+    vertical-align: middle;
+}
+
+.star-rating>div {
+    position: relative;
+    height: var(--star-rating-size);
+    width: calc(var(--star-rating-size) * 5);
+    background-image: var(--unchecked-image);
+    background-size: var(--star-rating-size) var(--star-rating-size);
+}
+
+.star-rating label {
+    position: absolute;
+    height: 100%;
+    background-size: var(--star-rating-size) var(--star-rating-size);
+}
+
+.star-rating label:nth-of-type(1) {
+    z-index: 10;
+    width: calc(100% / 5 * 1);
+}
+
+.star-rating label:nth-of-type(2) {
+    z-index: 9;
+    width: calc(100% / 5 * 2);
+}
+
+.star-rating label:nth-of-type(3) {
+    z-index: 8;
+    width: calc(100% / 5 * 3);
+}
+
+.star-rating label:nth-of-type(4) {
+    z-index: 7;
+    width: calc(100% / 5 * 4);
+}
+
+.star-rating label:nth-of-type(5) {
+    z-index: 6;
+    width: calc(100% / 5 * 5);
+}
+
+.star-rating input:checked+label,
+.star-rating input:focus+label {
+    background-image: var(--checked-image);
+}
+
+.star-rating input:checked+label:hover,
+.star-rating label:hover {
+    background-image: var(--hovered-image);
+}
+
+.star-rating>div:focus-within {
+    outline: 0.25rem solid lightblue;
+}
+
+.star-rating input,
+.star-rating label>span {
+    border: 0;
+    padding: 0;
+    margin: 0;
+    position: absolute !important;
+    height: 1px;
+    width: 1px;
+    overflow: hidden;
+    clip: rect(1px 1px 1px 1px);
+    /* IE6, IE7 - a 0 height clip, off to the bottom right of the visible 1px box */
+    clip: rect(1px, 1px, 1px, 1px);
+    /*maybe deprecated but we need to support legacy browsers */
+    clip-path: inset(50%);
+    /*modern browsers, clip-path works inwards from each corner*/
+    white-space: nowrap;
+    /* added line to stop words getting smushed together (as they go onto seperate lines and some screen readers do not understand line feeds as a space */
+}
+
 /*
 Close button for pop-up subforms
 */
