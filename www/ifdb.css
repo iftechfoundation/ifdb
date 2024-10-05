@@ -1715,7 +1715,7 @@ Combo Box hidden list
 }
 
 :root {
-    --star-rating-size: 1rem;
+    --star-rating-size: 35px;
     --unchecked-image: url("/img/star-unchecked.svg");
     --checked-image: url("/img/star-checked.svg");
     --hovered-image: url("/img/star-hovered.svg");
