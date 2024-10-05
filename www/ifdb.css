@@ -2348,6 +2348,9 @@ span.sfl-save-autodesc {
 }
 
 @media (prefers-color-scheme: dark) {
+    :root {
+        --unchecked-image: url("/img/dark-images/star-unchecked.svg");
+    }
     body {
         background: #000000;
         color: #ffffff;
