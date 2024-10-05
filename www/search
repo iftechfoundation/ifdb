@@ -1458,11 +1458,16 @@ else if ($term || $browse)
                     $tagsMatched = array();
                     foreach ($specials as $s) {
                         if ($s[0][0] == "tags") {
+                            $result = mysqli_execute_query($db, 'select totag from tagsynonyms where fromtag = ?', [$s[1]]);
+                            $synonyms = array_merge(...mysqli_fetch_all($result, MYSQLI_NUM));
+                            $matchables = array_merge([$s[1]], $synonyms);
                             foreach ($tags as $t) {
-                                if (strpos(strtolower($t),
-                                           strtolower($s[1])) !== false) {
-                                    $tagsMatched[$t] = true;
-                                    break;
+                                foreach ($matchables as $m) {
+                                    if (strpos(strtolower($t),
+                                               strtolower($m)) !== false) {
+                                        $tagsMatched[$t] = true;
+                                        break;
+                                    }
                                 }
                             }
                         }

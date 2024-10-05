@@ -1051,6 +1051,7 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse)
 
     // Build tags join
     $tagsJoin = "";
+    $bindParameters = [];
     if ($tagsToMatch) {
         // Limit number of tags to avoid abuse
         $tagsToMatch = array_slice($tagsToMatch, 0, 20);
@@ -1064,7 +1065,9 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse)
                 $t .= " on t0.gameid = t$i.gameid";
             }
             $tagsTables[] = $t;
-            $tagsWhereParts[] = "t$i.tag = ?";
+            $tagsWhereParts[] = "t$i.tag in (select ? union select totag from tagsynonyms where fromtag = ?)";
+            $bindParameters[]= $tagsToMatch[$i];
+            $bindParameters[]= $tagsToMatch[$i];
         }
         $tagsSubJoin = implode(" join ", $tagsTables);
         $tagsWhere = implode(" and ", $tagsWhereParts);
@@ -1127,11 +1130,13 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse)
               $baseOrderBy
             $limit";
 
+    $bindParameters = array_merge($bindParameters, $tagsToNegate);
+
     if ($logging_level) {
         error_log($sql);
+        error_log(json_encode($bindParameters));
     }
 
-    $bindParameters = array_merge($tagsToMatch, $tagsToNegate);
 
     // run the query
     $result = mysqli_execute_query($db, $sql, $bindParameters);
