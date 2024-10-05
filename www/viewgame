@@ -2349,7 +2349,7 @@ if ($embargoCnt > 0)
 
         <p><span id="tagPre" class=details></span>
         <span class='details viewgame__commonTags'>
-           - <a href="showtags?limit=50">View the most common tags</a>
+           - <a href="/showtags?cloud=1&limit=100">View the most common tags</a>
            (<?php echo helpWinLink("help-tags", "What's a tag?")
            ?>)
         </span></p>
@@ -2415,6 +2415,10 @@ if ($embargoCnt > 0)
                     addTags();
                   })
                 </script>
+                <span class=details>
+                 <a href="/search?tag" target="_blank">Search all tags on IFDB</a> | <a href="/showtags" target="_blank">View all tags on IFDB</a>
+                </span>
+                <br><br>
                  <span class=details>Tags you added are shown below with
                     checkmarks.  To remove one of your tags, simply
                     un-check it.
