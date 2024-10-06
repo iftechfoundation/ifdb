@@ -161,16 +161,37 @@ if (count($tags) == 0) {
     
         echo "</center></div>";
     } else {
-        echo "<h1>$title</h1>"
-        . "<p>Here are $limitName on IFDB, along with numbers showing how many games have each tag. "
-        . "Click on a tag to list the games associated with the tag.";
+        // we're listing the tags in a table, so check to see if they should be listed alphabetically
+        $sortbyname = get_req_data("sortbyname");
+        if ($sortbyname) {
+            // we're listing tags in alphabetical order, so re-sort tags by name
+            usort($tags, "sortByTagName");
 
-        echo "<p>"
-           . "Show <a href=\"showtags?limit=20\">the top 20</a> / "
-           . "<a href=\"showtags?limit=50\">the top 50</a> / "
-           . "<a href=\"showtags?limit=100\">the top 100</a> / "
-           . "<a href=\"showtags\">all</a> game tags.<br>"
-           . "<a href=\"showtags?cloud=1\">Show tags in a cloud</a>.<p>";
+            echo "<h1>$title</h1>"
+            . "<p>Here are $limitName on IFDB, listed in alphabetical order, along with numbers showing how many games have each tag. "
+            . "Click on a tag to list the games associated with the tag.";
+
+            echo "<p>"
+//           . "Show <a href=\"showtags?sortbyname=1&limit=20\">the top 20</a> / "
+//           . "<a href=\"showtags?sortbyname=1&limit=50\">the top 50</a> / "
+//           . "<a href=\"showtags?sortbyname=1&limit=100\">the top 100</a> / "
+//           . "<a href=\"showtags?sortbyname=1\">all</a> game tags.<br>"
+            . "<a href=\"showtags\">List tags in order of frequency</a>.<br>"
+            . "<a href=\"showtags?cloud=1\">Show tags in a cloud</a>.<p>";
+        } else {
+            // we're listing tags in order of frequency, so we don't need to re-sort them
+            echo "<h1>$title</h1>"
+            . "<p>Here are $limitName on IFDB, listed in order of frequency, along with numbers showing how many games have each tag. "
+            . "Click on a tag to list the games associated with the tag.";
+
+            echo "<p>"
+//            . "Show <a href=\"showtags?limit=20\">the top 20</a> / "
+//            . "<a href=\"showtags?limit=50\">the top 50</a> / "
+//            . "<a href=\"showtags?limit=100\">the top 100</a> / "
+//            . "<a href=\"showtags\">all</a> game tags.<br>"
+            . "<a href=\"showtags?sortbyname=1\">List tags in alphabetical order</a>.<br>"
+            . "<a href=\"showtags?cloud=1\">Show tags in a cloud</a>.<p>";
+        }
 
         global $nonce;
         echo "<style nonce='$nonce'>\n"
