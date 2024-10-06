@@ -172,10 +172,6 @@ if (count($tags) == 0) {
             . "Click on a tag to list the games associated with the tag.";
 
             echo "<p>"
-//           . "Show <a href=\"showtags?sortbyname=1&limit=20\">the top 20</a> / "
-//           . "<a href=\"showtags?sortbyname=1&limit=50\">the top 50</a> / "
-//           . "<a href=\"showtags?sortbyname=1&limit=100\">the top 100</a> / "
-//           . "<a href=\"showtags?sortbyname=1\">all</a> game tags.<br>"
             . "<a href=\"showtags\">List tags in order of frequency</a>.<br>"
             . "<a href=\"showtags?cloud=1\">Show tags in a cloud</a>.<p>";
         } else {
@@ -185,10 +181,6 @@ if (count($tags) == 0) {
             . "Click on a tag to list the games associated with the tag.";
 
             echo "<p>"
-//            . "Show <a href=\"showtags?limit=20\">the top 20</a> / "
-//            . "<a href=\"showtags?limit=50\">the top 50</a> / "
-//            . "<a href=\"showtags?limit=100\">the top 100</a> / "
-//            . "<a href=\"showtags\">all</a> game tags.<br>"
             . "<a href=\"showtags?sortbyname=1\">List tags in alphabetical order</a>.<br>"
             . "<a href=\"showtags?cloud=1\">Show tags in a cloud</a>.<p>";
         }
