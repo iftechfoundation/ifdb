@@ -2408,7 +2408,7 @@ if ($embargoCnt > 0)
                           class="popup-close-button"></a>
                  </div>
               </div>
-              <form name="tagForm">
+              <form name="tagForm" class="edittagsform">
                  <script type="text/javascript" nonce="<?php global $nonce; echo $nonce; ?>">
                   document.currentScript.parentElement.addEventListener('submit', function (event) {
                     event.preventDefault();
