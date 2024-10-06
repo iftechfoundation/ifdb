@@ -1370,6 +1370,14 @@ else if ($term || $browse)
                 . "</div>";
         }
 
+        // if this is a tag search, show the list tip box
+        if ($searchType == "tag") {
+            echo "<div class=tipbox>"
+                . "<h1>View all the game tags</h1>"
+                . "You can <a href=\"showtags\">see all the tags in a table</a> or in a <a href=\"showtags?cloud=1\">tag cloud</a>."
+                . "</div>";
+        }
+
         // show the sorting controls
         $hids = array("searchfor" => $term);
         if ($browse)
