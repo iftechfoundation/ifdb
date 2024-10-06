@@ -1620,6 +1620,10 @@ div.captchaFormDiv form {
     padding: 0;
 }
 
+a.fancy-button:visited:not([href=needjs]) {
+    color: blue;
+}
+
 .fancy-button {
     background: linear-gradient(to bottom, #ffffff, #7db6bd);
     border-top: 2px solid #7db6bd;
@@ -2378,7 +2382,7 @@ span.sfl-save-autodesc {
     a.silent {
         color: #ffffff;
     }
-    a:visited {
+    a:visited:not([href=needjs]) {
         color: #ff90ff;
     }
     a:hover {
