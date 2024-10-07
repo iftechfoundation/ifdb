@@ -24,8 +24,6 @@ else {
     $title = "Top $limit Tags";
 }
 
-pageHeader($title);
-
 // get the top (most frequently used) $limit tags
 $result = mysql_query(
     "select
@@ -99,10 +97,24 @@ function calcDistBin($val, $bins)
 if (count($tags) == 0) {
     echo "<i>There are currently no tags in the database</i>";
 } else {
+    $datalist = get_req_data("datalist");
 
     $cloud = get_req_data("cloud");
 
-    if ($cloud) {
+    if ($datalist) {
+        header('Content-Type: text/xml');
+        header('Cache-Control: public, max-age=3600');
+        echo "<datalist id=\"tags-list\">\n";
+        foreach ($tags as $t) {
+            $freq = $t['freq'];
+            if ($freq < 10) continue;
+            $tag = $t['tag'];
+            echo "  <option value=\"".htmlspecialcharx($tag) . "\"></option>\n";
+        }
+        echo "</datalist>\n";
+        exit();
+    } else if ($cloud) {
+        pageHeader($title);
         $i = $cnt - 1;
         $bins = [(int)($i * 0.02),     // bottom 2% in bin 1
                     (int)($i * 0.07),  // next 5% in bin 2
@@ -161,6 +173,7 @@ if (count($tags) == 0) {
     
         echo "</center></div>";
     } else {
+        pageHeader($title);
         // we're listing the tags in a table, so check to see if they should be listed alphabetically
         $sortbyname = get_req_data("sortbyname");
         if ($sortbyname) {
