@@ -75,6 +75,65 @@ if (isset($_REQUEST['adminemail'])) {
     exit();
 }
 
+if (isset($_REQUEST['bulkaddtag'])) {
+    $tag = $_POST['tag'] ?? null;
+    $tag2 = $_POST['tag2'] ?? null;
+    $confirm = $_POST['confirm'] ?? null;
+    pageHeader("Bulk add tag");
+    if (!$tag || !$tag2) {
+        ?>
+        <h1>Bulk add tag</h1>
+        <p><form method=post>Add this tag: <input type=hidden name=bulkaddtag value=''><input name=tag2 required>
+        <br>to all games that have this tag: <input name=tag required>
+        <button>Search</button></form></p>
+        <?php
+    } else if (!$confirm) {
+        $result = mysqli_execute_query($db, 'SELECT distinct(id), title from games
+            join gametags g1 on games.id=g1.gameid
+            left outer join gametags g2 on games.id=g2.gameid and g2.tag = ?
+            where g1.tag = ? and g2.tag is null order by title', [$tag2, $tag]);
+        $rows = mysqli_fetch_all($result, MYSQLI_NUM);
+        if (!count($rows)) {
+            echo "<h1>Bulk add tag: ". htmlspecialcharx($tag)."</h1>\n"
+                ."<p><span class=errmsg>There are no games with the tag \"".htmlspecialcharx($tag)."\" that don't have the tag \"".htmlspecialcharx($tag2)."\".</span></p>"
+                ."<p><a href='/adminops?bulkaddtag'>Add another</p>";
+            pageFooter();
+            exit();
+        }
+        echo "<h1>Bulk add tag: ". htmlspecialcharx($tag2)."</h1>\n"
+            ."<p>You're about to add the tag \"".htmlspecialcharx($tag2)."\" to ". count($rows) . " game(s) with the tag \"".htmlspecialcharx($tag)."\" that don't already have the tag \"".htmlspecialcharx($tag2)."\":</p>";
+        global $nonce;
+        echo "<style nonce='$nonce'>#games { display: grid; grid-template-columns: repeat(auto-fill, 20ch);</style><div id=games>\n";
+        foreach ($rows as [$tuid, $title]) {
+            echo "<div><a href='/viewgame?id=$tuid'>".htmlspecialcharx($title)."</a></div>\n";
+        }
+        ?>
+        </div>
+        <p><form method=post>
+            <input type=hidden name=bulkaddtag value=''>
+            <input type=hidden name=tag value='<?= htmlspecialcharx($tag); ?>'>
+            <input type=hidden name=tag2 value='<?= htmlspecialcharx($tag2); ?>'>
+            <input type=hidden name=confirm value=1>
+            <button>Confirm Add Tag "<?= htmlspecialcharx($tag2); ?>"</button></form></p>
+        <?php
+    } else {
+        $result = mysqli_execute_query($db, 'SELECT distinct(id) from games
+            join gametags g1 on games.id=g1.gameid
+            left outer join gametags g2 on games.id=g2.gameid and g2.tag = ?
+            where g1.tag = ? and g2.tag is null', [$tag2, $tag]);
+        $tuids = array_merge(...mysqli_fetch_all($result, MYSQLI_NUM));
+        foreach ($tuids as $tuid) {
+            mysqli_execute_query($db, "INSERT into gametags (gameid, userid, tag, moddate) values (?, ?, ?, now())", [$tuid, $userid, $tag2]);
+        }
+        echo "<h1>Bulk added tag: ". htmlspecialcharx($tag2)."</h1>\n"
+            ."<p> Added '". htmlspecialcharx($tag2) . "' to ".count($tuids)." game(s).</p>"
+            ."<p><a href='/adminops?bulkaddtag'>Add another</p>"
+            ."<p><a href='/adminops'>Return to the System Maintenance Panel</a></p>";
+    }
+    pageFooter();
+    exit();
+}
+
 if (isset($_REQUEST['bulkdeletetag'])) {
     $tag = $_POST['tag'] ?? null;
     $confirm = $_POST['confirm'] ?? null;
@@ -2542,6 +2601,7 @@ function cleanutf8($str)
 <a href="adminops?finduser">User search</a><br>
 <a href="adminops?adminemail">Send admin email</a><br>
 <a href="adminops?burygame">Bury game</a><br>
+<a href="adminops?bulkaddtag">Bulk add tags</a><br>
 <a href="adminops?bulkdeletetag">Bulk delete tags</a><br>
 <a href="adminops?userSelfComments">User self-comments</a><br>
 <a href="adminops?reaper=30">Persistent session reaper</a><br>
