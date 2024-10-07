@@ -2702,8 +2702,10 @@ function editTags()
     document.getElementById("tagEditor").style.display = "initial";
     dispEditTags();
     document.getElementById("myTagFld").focus();
-    fetch('/showtags?datalist=1').then(r=>r.ok ? r.text() : null).then(text => {
-        if (!text) return;
+    fetch('/showtags?datalist=1').then(r=>r.ok ? r.arrayBuffer() : null).then(buffer => {
+        if (!buffer) return;
+        const decoder = new TextDecoder('iso-8859-1');
+        const text = decoder.decode(buffer);
         const datalist = document.createElement('datalist');
         document.body.appendChild(datalist);
         datalist.outerHTML = text;
