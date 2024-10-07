@@ -2739,7 +2739,7 @@ function saveTags()
     }
     dispTags();
     closeTags("tagEditor");
-    xmlSend("taggame", "tagStatusSpan", cbSaveTags, c);
+    xmlSend("taggame", "tagStatusSpan", cbSaveTags, c, true);
 }
 
 function saveTagsDelete()
@@ -2764,12 +2764,20 @@ function saveTagsDelete()
 
     dispTags();
     closeTags("tagDeletor");
-    xmlSend("taggamedelete", "tagStatusSpan", cbSaveTags, c);
+    xmlSend("taggamedelete", "tagStatusSpan", cbSaveTags, c, true);
 }
 
 
 function cbSaveTags(resp)
 {
+    if (!resp) {
+        alert("There was an error saving tags.");
+        return;
+    }
+    if (resp.querySelector("error")) {
+        alert(resp.querySelector("error").firstChild.data);
+        return;
+    }
     var tags = resp.getElementsByTagName("tag");
     for (var i = 0 ; i < tags.length ; ++i)
     {

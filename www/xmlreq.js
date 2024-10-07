@@ -48,7 +48,7 @@ function xmlReqEvent(tracker)
         var msgspan = (tracker.statusSpanID
                        ? document.getElementById(tracker.statusSpanID)
                        : null);
-        var resp = req.responseXML.documentElement;
+        var resp = req.responseXML?.documentElement;
         if (req.status == 200 && resp != null)
         {
             if (msgspan)
@@ -72,7 +72,7 @@ function xmlReqEvent(tracker)
                        + "Please try again later.");
         }
         if (tracker.cbFunc)
-            tracker.cbFunc(req.responseXML.documentElement);
+            tracker.cbFunc(resp);
     }
 }
 
