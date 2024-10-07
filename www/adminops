@@ -75,6 +75,57 @@ if (isset($_REQUEST['adminemail'])) {
     exit();
 }
 
+if (isset($_REQUEST['bulkdeletetag'])) {
+    $tag = $_POST['tag'] ?? null;
+    $confirm = $_POST['confirm'] ?? null;
+    pageHeader("Bulk delete tag");
+    if (!$tag) {
+        ?>
+        <h1>Bulk delete tag</h1>
+        <p><form method=post>Delete Tag: <input type=hidden name=bulkdeletetag value=''><input name=tag><button>Search</button></form></p>
+        <?php
+    } else if (!$confirm) {
+        $result = mysqli_execute_query($db, 'select distinct(id), title from games join gametags on games.id=gameid where tag = ? order by title', [$tag]);
+        $rows = mysqli_fetch_all($result, MYSQLI_NUM);
+        if (!count($rows)) {
+            echo "<h1>Bulk delete tag: ". htmlspecialcharx($tag)."</h1>\n"
+                ."<p><span class=errmsg>There are no games with the tag \"".htmlspecialcharx($tag)."\".</span>"
+                ."<p><form method=post>Delete Tag: <input type=hidden name=bulkdeletetag value=''><input name=tag><button>Search</button></form></p>";
+            pageFooter();
+            exit();
+        }
+        echo "<h1>Bulk delete tag: ". htmlspecialcharx($tag)."</h1>\n"
+            ."<p>" . count($rows) . " game(s):</p>";
+        global $nonce;
+        echo "<style nonce='$nonce'>#games { display: grid; grid-template-columns: repeat(auto-fill, 20ch);</style><div id=games>\n";
+        foreach ($rows as [$tuid, $title]) {
+            echo "<div><a href='/viewgame?id=$tuid'>".htmlspecialcharx($title)."</a></div>\n";
+        }
+        ?>
+        </div>
+        <p><form method=post>
+            <input type=hidden name=bulkdeletetag value=''>
+            <input type=hidden name=tag value='<?= htmlspecialcharx($tag); ?>'>
+            <input type=hidden name=confirm value=1>
+            <button>Confirm Delete</button></form></p>
+        <?php
+    } else {
+        $result = mysqli_query($db, "delete from gametags where tag = '" . mysqli_real_escape_string($db, $tag). "'");
+        if ($result) {
+            $count = mysqli_affected_rows($db);
+            echo "<h1>Bulk delete tag: ". htmlspecialcharx($tag)."</h1>\n"
+                ."<p> Deleted '". htmlspecialcharx($tag) . "' from $count game(s).</p>"
+                ."<p><form method=post>Delete Tag: <input type=hidden name=bulkdeletetag value=''><input name=tag><button>Search</button></form></p>"
+                ."<p><a href='/adminops'>Return to the System Maintenance Panel</a></p>";
+        } else {
+            error_log("error deleting tag '$tag': " . mysqli_error($db));
+            echo "<span class=errmsg>There was an error deleting the tag.</span>";
+        }
+    }
+    pageFooter();
+    exit();
+}
+
 if (isset($_REQUEST['burygame'])) {
     $tuid = isset($_REQUEST['id']) ? htmlspecialcharx($_REQUEST['id']) : false;
     if ($tuid === false) {
@@ -2491,6 +2542,7 @@ function cleanutf8($str)
 <a href="adminops?finduser">User search</a><br>
 <a href="adminops?adminemail">Send admin email</a><br>
 <a href="adminops?burygame">Bury game</a><br>
+<a href="adminops?bulkdeletetag">Bulk delete tags</a><br>
 <a href="adminops?userSelfComments">User self-comments</a><br>
 <a href="adminops?reaper=30">Persistent session reaper</a><br>
 <a href="adminops?fixsortkeys">
