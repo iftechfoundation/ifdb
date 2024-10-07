@@ -200,8 +200,8 @@ if (count($tags) == 0) {
             $td = htmlspecialcharx($tag);
             $tu = urlencode($tag);
             echo "<div>"
-                . "<a href=\"search?searchfor=tag:$tu\">"
                 . "<font size=2>"
+                . "<a href=\"search?searchfor=tag:$tu\">"
                 . "$td</a> ($freq)</font></div>";
         }
         echo "</div>";
