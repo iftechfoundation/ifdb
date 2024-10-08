@@ -51,6 +51,7 @@ function setStarCtlValue(id, val)
         // with automatic mouse rollover highlighting.
 
         ?>
+<span class=fmtnotes>To turn on accessible controls for star ratings, please visit the <a href="/editprofile">settings page</a>.</span><br>
 <script type="text/javascript" nonce="<?php global $nonce; echo $nonce; ?>">
 <!--
 var starRatings = {};
