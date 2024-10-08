@@ -120,6 +120,16 @@ if (mysql_num_rows($result) == 0)
                  "This tag request refers to a non-existent game.",
                  false, false);
 
+foreach ($tags as $t) {
+    $result = mysqli_execute_query($db, "select preferredtag from blockedtagsynonyms where blockedtag=?", [$t]);
+    if (mysql_num_rows($result)) {
+        [$preferred_tag] = mysqli_fetch_array($result, MYSQLI_NUM);
+        sendResponse("400 Bad Request", "Not Saved",
+            "To help keep IFDB's tags tidy, please use the existing tag \"$preferred_tag\" instead of \"$t\".", false, false);
+    }
+}
+
+
 // delete any old tags set by this user
 mysql_query(
     "delete from gametags where userid = '$userid' and gameid='$qid'", $db);

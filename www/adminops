@@ -185,6 +185,67 @@ if (isset($_REQUEST['bulkdeletetag'])) {
     exit();
 }
 
+if (isset($_REQUEST['blocktag'])) {
+    $tag = $_POST['blockedtag'] ?? null;
+    $preferredtag = $_POST['preferredtag'] ?? null;
+    $deleteblock = $_POST['deleteblock'] ?? null;
+    pageHeader("Block tag");
+    if ($deleteblock) {
+        $result = mysqli_execute_query($db, 'delete from blockedtagsynonyms where blockedtag = ?', [$tag]);
+        if ($result) {
+            echo "<h1>Unblock tag: ". htmlspecialcharx($tag)."</h1>\n"
+                ."<p>Unblocked '". htmlspecialcharx($tag) . "'.</p>"
+                ."<p><a href='/adminops?blocktag'>Block/unblock another tag</a></p>"
+                ."<p><a href='/adminops'>Return to the System Maintenance Panel</a></p>";
+        } else {
+            error_log("error unblocking tag '$tag': " . mysqli_error($db));
+            echo "<span class=errmsg>There was an error unblocking the tag.</span>";
+        }
+    } else if (!$tag || !$preferredtag) {
+            $result = mysqli_query($db, 'select blockedtag, preferredtag from blockedtagsynonyms order by blockedtag');
+            $rows = mysqli_fetch_all($result, MYSQLI_NUM);
+        ?>
+        <h1>Block tag</h1>
+        <p><form method=post>Block tag: <input type=hidden name=blocktag value=''><input name=blockedtag required>
+        <p>Preferred Tag: <input name=preferredtag required>
+        <button>Block tag</button></form></p>
+        
+        <table border=1>
+            <tr><th>Blocked Tag</th><th>Preferred Tag</th><th>Unblock?</th></tr>
+            <?php
+            foreach ($rows as [$blockedtag, $preferredtag]) {
+                echo "<tr><td>".htmlspecialcharx($blockedtag)."</td><td>".htmlspecialcharx($preferredtag)."</td><td>"
+                    . "<form method=post><input type=hidden name=deleteblock value=1>"
+                    . "<input type=hidden name=blockedtag value='".htmlspecialcharx($blockedtag)."'><button>Unblock</button></form></td></tr>\n";
+            }
+            ?>
+        </table>
+        <?php
+    } else {
+        $result = mysqli_execute_query($db, 'select distinct(id), title from games join gametags on games.id=gameid where tag = ? order by title', [$tag]);
+        $rows = mysqli_fetch_all($result, MYSQLI_NUM);
+        if (count($rows)) {
+            echo "<h1>Block tag: ". htmlspecialcharx($tag)."</h1>\n"
+                ."<p><span class=errmsg>There are ".count($rows)." games with the tag \"".htmlspecialcharx($tag)."\". <a href='/adminops?bulkdeletetag'>Delete the existing tag</a> before banning it.</span>"
+                ."<p><a href='/adminops?blocktag'>Cancel</a></p>";
+            pageFooter();
+            exit();
+        }
+        $result = mysqli_execute_query($db, "insert into blockedtagsynonyms (blockedtag, preferredtag) values (?, ?)", [$tag, $preferredtag]);
+        if ($result) {
+            echo "<h1>Block tag: ". htmlspecialcharx($tag)."</h1>\n"
+                ."<p>Blocked '". htmlspecialcharx($tag) . "'.</p>"
+                ."<p><a href='/adminops?blocktag'>Block another tag</a></p>"
+                ."<p><a href='/adminops'>Return to the System Maintenance Panel</a></p>";
+        } else {
+            error_log("error blocking tag '$tag': " . mysqli_error($db));
+            echo "<span class=errmsg>There was an error blocking the tag.</span>";
+        }
+    }
+    pageFooter();
+    exit();
+}
+
 if (isset($_REQUEST['burygame'])) {
     $tuid = isset($_REQUEST['id']) ? htmlspecialcharx($_REQUEST['id']) : false;
     if ($tuid === false) {
@@ -2603,6 +2664,7 @@ function cleanutf8($str)
 <a href="adminops?burygame">Bury game</a><br>
 <a href="adminops?bulkaddtag">Bulk add tags</a><br>
 <a href="adminops?bulkdeletetag">Bulk delete tags</a><br>
+<a href="adminops?blocktag">Block tag</a><br>
 <a href="adminops?userSelfComments">User self-comments</a><br>
 <a href="adminops?reaper=30">Persistent session reaper</a><br>
 <a href="adminops?fixsortkeys">
