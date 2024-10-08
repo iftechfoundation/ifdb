@@ -1620,6 +1620,10 @@ div.captchaFormDiv form {
     padding: 0;
 }
 
+a.fancy-button:visited:not([href=needjs]) {
+    color: blue;
+}
+
 .fancy-button {
     background: linear-gradient(to bottom, #ffffff, #7db6bd);
     border-top: 2px solid #7db6bd;
@@ -2260,6 +2264,22 @@ span.sfl-save-autodesc {
     font-style: italic;
     padding-left: 1em;
 }
+#tagEditor,
+#tagDeletor {
+    position: absolute;
+    z-index: 10000;
+    top: -5em;
+    left: 0px;
+    display: none;
+    background: #ffffff;
+    border: 3px solid #b0d8ff;
+    padding: 0;
+}
+
+#tagEditor .viewgame__header, #tagDeletor .viewgame__header {
+    background: #b0d8e8;
+}
+
 @media (prefers-color-scheme: dark) {
     body {
         background: #000000;
@@ -2378,7 +2398,7 @@ span.sfl-save-autodesc {
     a.silent {
         color: #ffffff;
     }
-    a:visited {
+    a:visited:not([href=needjs]) {
         color: #ff90ff;
     }
     a:hover {
@@ -2428,6 +2448,9 @@ span.sfl-save-autodesc {
         background: #7098a8;
         color: #000040;
     }
+    div.edit-popup-title a {
+        color: #0000c0;
+    }
     div.edit-popup-win {
         border: 3px solid #7098a8;
     }
@@ -2464,6 +2487,30 @@ span.sfl-save-autodesc {
     }
     span.activeBrowseTab {
         background: #444476;
+    }
+    .viewgame__header {
+        background: #7098a8;
+        color: #000040;
+    }
+
+    .viewgame__header a {
+        color: #0000c0;
+    }
+
+    #tagEditor,
+    #tagDeletor {
+        background: #000;
+        color: #fff;
+        border-color: #7098a8;
+    }
+
+    #tagEditor .viewgame__header,
+    #tagDeletor .viewgame__header {
+        background: #7098a8;
+    }
+
+    #tagDeletor span.cklabel {
+        color: #9090ff;
     }
     input.go-button {
         background: url("/dark-images/go-button-midnight.gif") no-repeat center center;

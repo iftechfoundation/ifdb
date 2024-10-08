@@ -2309,20 +2309,9 @@ if ($embargoCnt > 0)
             #myTagList { margin-right: 1ex; }
             #tagStatusSpan { margin-left: 1ex; }
             .viewgame__tagEditorContainer { position:relative;height:0px; }
-            #tagEditor, #tagDeletor {
-                position:absolute;
-                z-index:10000;
-                top:-5em;
-                left:0px;
-                display:none;
-                background:#ffffff;
-                border:3px solid #b0d8ff;
-                padding:0;
-            }
             .viewgame__header {
                 position:relative;
                 padding:2px;
-                background:#b0d8e8;
                 font-size:80%;
                 text-align:center;
             }
