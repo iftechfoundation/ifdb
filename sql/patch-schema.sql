@@ -34,7 +34,7 @@ ALTER TABLE `users`
     ADD COLUMN `password` varchar(40) CHARACTER SET latin1 COLLATE latin1_bin NOT NULL DEFAULT '',
     ADD COLUMN `pswsalt` varchar(32) COLLATE latin1_german2_ci NOT NULL DEFAULT '',
     ADD COLUMN `activationcode` varchar(40) COLLATE latin1_german2_ci DEFAULT NULL,
-    ADD COLUMN `acctstatus` char(1) COLLATE latin1_german2_ci NOT NULL DEFAULT '0',
+    ADD COLUMN `acctstatus` char(1) COLLATE latin1_german2_ci NOT NULL DEFAULT 'A',
     ADD COLUMN `lastlogin` datetime DEFAULT NULL,
     ADD COLUMN `privileges` varchar(32) COLLATE latin1_german2_ci NOT NULL DEFAULT '''''',
     ADD COLUMN `defaultos` int(11) unsigned DEFAULT NULL,
