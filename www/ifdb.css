@@ -2444,6 +2444,11 @@ span.sfl-save-autodesc {
         background: #404040;
         color: #ffffff;
     }
+/* This background color appears in a frame around the text in the Edit Link popup. This foreground color is used for the main text in the Edit Review Link popup.*/
+    div.edit-popup-frame {
+        background: #000000;
+        color: #ffffff;
+    }
     div.edit-popup-title {
         background: #7098a8;
         color: #000040;
