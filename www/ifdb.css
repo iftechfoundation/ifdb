@@ -2301,8 +2301,8 @@ span.sfl-save-autodesc {
     .menu-toggle-button {
         filter: invert(1);
     }
-    .searchbar-wrapper {
-        border: 2px solid black;
+    .searchbar-wrapper { 
+        border: 1px solid #696991;
     }
     #topbar-search-go-button {
         filter: invert(1);
@@ -2433,7 +2433,7 @@ span.sfl-save-autodesc {
     input, select{
         background-color: #000000;
         color: #FFFFFF;
-        border: 1px solid #323245;
+        border: 1px solid #696991;
     }
     div.tipbox {
         background: #101030;
