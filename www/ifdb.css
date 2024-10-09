@@ -2302,7 +2302,7 @@ span.sfl-save-autodesc {
         filter: invert(1);
     }
     .searchbar-wrapper { 
-        border: 1px solid #696991;
+        border: 1.5px solid #696991;
     }
     #topbar-search-go-button {
         filter: invert(1);
@@ -2433,7 +2433,7 @@ span.sfl-save-autodesc {
     input, select{
         background-color: #000000;
         color: #FFFFFF;
-        border: 1px solid #696991;
+        border: 1.5px solid #696991;
     }
     div.tipbox {
         background: #101030;
@@ -2442,6 +2442,11 @@ span.sfl-save-autodesc {
     }
     div.inlinetip {
         background: #404040;
+        color: #ffffff;
+    }
+/* This background color appears in a frame around the text in the Edit Link popup. This foreground color is used for the main text in the Edit Review Link popup.*/
+    div.edit-popup-frame {
+        background: #000000;
         color: #ffffff;
     }
     div.edit-popup-title {
@@ -2454,13 +2459,15 @@ span.sfl-save-autodesc {
     div.edit-popup-win {
         border: 3px solid #7098a8;
     }
+/* This background color is used behind the text in the Edit Link popup. This foreground color is used for the main text in the popup, including the headings on the left side. */
     div.edit-popup-win table tr td {
-        background: #ffffff;
-        color: #000000;
+        background: #000000;
+        color: #ffffff;
     }
+/* This foreground color is used for the secondary text in the Edit Link popup and the Edit Review Link popup.*/    
     div.edit-popup-win span.details {
         font-size: 100%;
-        color: #505050;
+        color: #c0c0c0;
     }
     div.popupMenu {
         border: 1px solid #A0A0A0;
