@@ -2454,9 +2454,10 @@ span.sfl-save-autodesc {
     div.edit-popup-win {
         border: 3px solid #7098a8;
     }
+    /* This background color is used behind the text in the Edit Link popup. This foreground color is used for the main text in the popup, including the headings on the left side. */
     div.edit-popup-win table tr td {
-        background: #ffffff;
-        color: #000000;
+        background: #000000;
+        color: #ffffff;
     }
     div.edit-popup-win span.details {
         font-size: 100%;
