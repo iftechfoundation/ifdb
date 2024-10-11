@@ -755,22 +755,25 @@ if (isset($missingFields['rating']))
 
    <b>1. Rate this game on a scale of 1 to 5 stars (5 is best):</b>
    <?php
-        initStarControls();
-        echo showStarCtl("ratingStars", $rating, "setRating", "null");
+        echo showStarCtl("ratingStars");
    ?>
-   <span class=details>(<a id="removeRating" href="needjs">Remove rating</a>)</span>
-<script type="text/javascript" nonce="<?php global $nonce; echo $nonce; ?>">
-document.getElementById('removeRating').addEventListener('click', function (event) {
-    event.preventDefault();
-    setRating(0);
-})
-function setRating(rating)
-{
-    document.getElementById("rating").value = rating;
-    setStarCtlValue("ratingStars", rating);
-}
-</script>
+   <span id="removeRatingSpan" class=details>(<a id="removeRating" href="needjs">Remove rating</a>)</span>
    <input type=hidden name="rating" id="rating" value="<?php echo $rating ?>">
+   <script type="text/javascript" nonce="<?php global $nonce; echo $nonce; ?>">
+       document.getElementById('removeRating').addEventListener('click', function (event) {
+           event.preventDefault();
+           setRating(0);
+       })
+       function setRating(rating)
+       {
+           document.getElementById("rating").value = rating;
+           setStarCtlValue("ratingStars", rating);
+           document.getElementById("removeRatingSpan").style.display = (rating ? "" : "none");
+       }
+       let initialRating = "<?php echo $rating ?>";
+       initStarCtl("ratingStars", setRating);
+       setRating("ratingStars", initialRating);
+   </script>
 
    <br><span class=notes>You don't have to rate the game to
       write a review. If you don't enter a rating, your review

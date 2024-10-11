@@ -6,6 +6,10 @@ include_once "session-start.php";
 include_once "login-persist.php";
 $curuser = checkPersistentLogin();
 
+// connect to the database
+include_once "dbconnect.php";
+$db = dbConnect();
+
 include_once "pagetpl.php";
 include_once "util.php";
 include "starctl.php";
@@ -50,10 +54,6 @@ $zwsp = ($ie6 ? "&shy;" : "&#8203;");
 
 if (isset($_REQUEST['cssOverride']))
     $cssOverride = get_req_data('cssOverride');
-
-// connect to the database
-include_once "dbconnect.php";
-$db = dbConnect();
 
 // retrieve the special reviewer names
 include_once "reviews.php";
@@ -1234,8 +1234,9 @@ function updateRating(rating)
 {
     xmlSend("setrating?game=<?php echo $id?>&rating=" + rating,
             "ratingSaveMsg", null, null);
+    document.getElementById("removeRatingSpan").style.display = (rating ? "" : "none");
 }
-function clearRating()
+function removeRating()
 {
     updateRating(0);
     setStarCtlValue("ratingStars", 0);
@@ -1245,9 +1246,6 @@ function mouseOutRating(rating)
 {
     document.getElementById("ratingCaption").innerHTML =
         (rating != 0 ? "<b>My rating:</b>" : "<b>Rate it:</b>");
-    var s = document.getElementById("clearRatingSpan");
-    if (s)
-        s.style.display = (rating ? "" : "none");
 }
 function updatePlayed(id, stat)
 {
@@ -1294,7 +1292,6 @@ function updateUnwishList(id, stat)
         list($myCrossRecs) = mysql_fetch_row($result);
     }
 
-    initStarControls();
     global $nonce;
     echo "<style nonce='$nonce'>\n"
         . ".viewgame__playedSection { margin: 1.25ex 0 0.75ex 0; }\n"
@@ -1304,12 +1301,11 @@ function updateUnwishList(id, stat)
 
         . "<div class='viewgame__playedSection'>"
         . "<span id=\"ratingCaption\"><b>Rate it:</b></span> "
-        . showStarCtl("ratingStars", $currentUserRating,
-                      "updateRating", "mouseOutRating")
+        . showStarCtl("ratingStars")
         . " <span id=\"ratingSaveMsg\" class=xmlstatmsg></span><br>"
         . ($currentUserReview != "" ? "" :
-           "<span id=\"clearRatingSpan\"><a href=\"needjs\">"
-           . addEventListener("click", "clearRating();return false")
+           "<span id=\"removeRatingSpan\"><a href=\"needjs\">"
+           . addEventListener("click", "removeRating();return false")
            . "Remove rating</a><br></span>")
         . "<a href=\"review?id=$id&userid=$curuser\">"
         . ($currentUserReview != "" ? "Revise my review" : "Review it")
@@ -1338,9 +1334,10 @@ function updateUnwishList(id, stat)
 
     ?>
 <script type="text/javascript" nonce="<?php global $nonce; echo $nonce; ?>">
-<!--
-mouseOutRating(<?php echo $currentUserRating ?>);
-//-->
+let initialRating = <?php echo $currentUserRating ?>;
+initStarCtl("ratingStars", updateRating, mouseOutRating);
+setStarCtlValue("ratingStars", initialRating);
+mouseOutRating(initialRating);
 </script>
             <?php
 
