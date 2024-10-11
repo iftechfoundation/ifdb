@@ -1526,7 +1526,7 @@ if (!isEmpty($genre)) {
                 reclistitems.gameid = ?
                 and reclists.id = reclistitems.listid
                 and users.id = reclists.userid
-				and $sandbox
+                and $sandbox
              group by reclistitems.listid
              order by $sortMeLast rand()
              limit 0, 4", $params);
@@ -1557,10 +1557,10 @@ if (!isEmpty($genre)) {
                polls as p
                join pollvotes as v on v.pollid = p.pollid
                join users as u on u.id = p.userid
-			   join users as uv on uv.id = v.userid
+               join users as uv on uv.id = v.userid
              where
                v.gameid = ?
-			   and $sandbox
+               and $sandbox
              group by
                p.pollid
              order by
@@ -1787,7 +1787,7 @@ if (!$should_hide) {
         if ($wishlistCnt != 1) {
             echo "s";
         }
-		echo ".";
+        echo ".";
         echo "</a>";
     }
 }
