@@ -1748,7 +1748,7 @@ function onComboSelectReviewSite(val)
                   <input type=hidden name=extrevRating id=extrevRating value=0>
                   <span class=details>If the site uses a different rating
                      system, pick the closest equivalent star rating (e.g.,
-                     on a 1-10 scale, 1-2 is 1 star, 3-4 is 2 stars, etc).
+                     on a 1&ndash;10 scale, 1&ndash;2 is 1 star, 3&ndash;4 is 2 stars, etc).
                      Leave blank if the site doesn't assign ratings.</span>
                   <br><br>
 
