@@ -520,7 +520,6 @@ if ($errMsg) {
                    . scriptSrc('/xmlreq.js'),
                    false);
 
-        initStarControls();
         imageUploadScripts();
 ?>
 
@@ -1039,6 +1038,7 @@ function saveReviewPopup()
 function setExtRevRating(rating)
 {
     document.getElementById("extrevRating").value = rating;
+    document.getElementById("removeRating").style.display = (rating ? "" : "none");
 }
 
 // -->
@@ -1736,15 +1736,17 @@ function onComboSelectReviewSite(val)
                   <input id="extrevSourceUrl" type=text size=80><br><br>
 
                   <b>Rating:</b> <?php
-                      echo showStarCtl("extrevStarCtl", 0,
-                                       "setExtRevRating", "null");
-                  ?> <a href="needjs"><script type="text/javascript" nonce="<?php global $nonce; echo $nonce; ?>">
-                        document.currentScript.parentElement.addEventListener('click', function(event) {
+                      echo showStarCtl("extrevStarCtl");
+                  ?>
+                    <a id="removeRating" href="needjs">Remove rating</a><br>
+                    <script type="text/javascript" nonce="<?php global $nonce; echo $nonce; ?>">
+                        initStarCtl("extrevStarCtl", setExtRevRating);
+                        document.getElementById("removeRating").addEventListener('click', function(event) {
                             event.preventDefault();
                             setExtRevRating(0);
-                            setStarCtlValue('extrevStarCtl',0);
+                            setStarCtlValue("extrevStarCtl", 0);
                         })
-                    </script>Remove rating</a><br>
+                    </script>
                   <input type=hidden name=extrevRating id=extrevRating value=0>
                   <span class=details>If the site uses a different rating
                      system, pick the closest equivalent star rating (e.g.,
