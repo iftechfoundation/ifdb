@@ -208,7 +208,6 @@ if (count($tags) == 0) {
         foreach ($tags as $t) {
             $freq = $t['freq'];
             $tag = $t['tag'];
-            $age = $t['age'];
             $td = htmlspecialcharx($tag);
             $tu = urlencode($tag);
             echo "<div>"
