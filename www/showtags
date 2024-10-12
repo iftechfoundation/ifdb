@@ -28,7 +28,7 @@ else {
 // get the top (most frequently used) $limit tags
 $result = mysqli_execute_query($db,
     "select
-       tag, count(tag) as freq,
+       tag, count(distinct gameid) as freq,
        (unix_timestamp(now()) - unix_timestamp(max(moddate))) as age
      from gametags
      group by tag
