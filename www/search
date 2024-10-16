@@ -1079,6 +1079,7 @@ if ($xml) {
             $rating = $row['avgrating'];
             list($stars) = roundStars($rating);
             $ratingCnt = $row['ratingcnt'];
+            $starsort = $row['starsort'];
             $art = ($row['hasart'] ? "yes" : "no");
             $link = htmlspecialcharx(get_root_url() . "viewgame?id=$id");
 
@@ -1100,6 +1101,7 @@ if ($xml) {
                         "<averageRating>$rating</averageRating>"
                     .   "<numRatings>$ratingCnt</numRatings>"
                     .   "<starRating>$stars</starRating>"
+                    .   "<starSort>$starsort</starSort>"
                 ))
                 .   "<hasCoverArt>$art</hasCoverArt>"
                 .   "<devsys>$devsys</devsys>"
