@@ -283,6 +283,7 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse)
                        stdDevRating as ratingdev,
                        numRatingsTotal,
                        numMemberReviews,
+                       starsort,
                        games.sort_title as sort_title,
                        games.sort_author as sort_author,
                        ifnull(games.published, '9999-12-31') as sort_pub,

@@ -185,6 +185,7 @@ single unique identifier per game.)
     &lt;averageRating&gt;<i>Raw "star" rating average</i>&lt;/averageRating&gt;
     &lt;numRatings&gt;<i>Number of ratings in the average</i>&lt;/numRatings&gt;
     &lt;starRating&gt;<i>Rounded "star" rating average</i>&lt;/starRating&gt;
+    &lt;starSort&gt;<i>Star rating for sorting; see below</i>&lt;/starRating&gt;
     &lt;hasCoverArt&gt;<i>Cover art exists: yes or no</i>&lt;/hasCoverArt&gt;
     &lt;devsys&gt;<i>Name of development system</i>&lt;/devsys&gt;
     &lt;published&gt;
@@ -201,6 +202,15 @@ value (e.g., "3.3333").  The "rounded" average is the average value
 rounded to the nearest half-star (e.g., "3.5").  IFDB itself generally
 displays the rounded value, since it uses a graphical image with
 half-star resolution.
+
+<p>We determine the games with the highest ratings using
+<a href="https://www.evanmiller.org/ranking-items-with-star-ratings.html">Evan
+Miller's formula</a>, which we call "starSort." We used to sort by average
+rating, but this would tend to rank games with just one perfect 5-star rating
+above games with dozens of 5-star ratings and a few 4-star ratings.
+Evan Miller's formula sorts by our confidence in the game, by adding five
+"fake" ratings to the average (one 1-star, one 2-star, one 3-star, one 4-star,
+and one 5-star rating) and subtracting the standard deviation from the result.
 
 <p>The hasCoverArt value is simply "yes" or "no", indicating whether
 or not the game has cover art.  If this is "yes", the coverArtLink
