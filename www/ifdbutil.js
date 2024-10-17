@@ -204,3 +204,39 @@ function replaceSelRange(ele, txt, selectNewText)
                       end: r.start + txt.length });
     }
 }
+
+function initStarCtl(containerId, clickFunc, leaveFunc) {
+    const container = document.getElementById(containerId);
+    if (leaveFunc) {
+        container.addEventListener('mouseleave', () => {
+            leaveFunc(parseInt(container.querySelector('button[data-selected="1"]').dataset.value));
+        });
+    }
+    container.querySelectorAll('button').forEach((elem) => {
+        if (elem.dataset.value == '0')
+            return;
+        elem.addEventListener('click', (event) => {
+            event.preventDefault();
+            clickFunc(event.currentTarget.dataset.value);
+            setStarCtlValue(containerId, elem.dataset.value);
+            if (event.detail === 0) {
+                // On keyboard press, simulate a mouseleave to change label in viewgame
+                leaveFunc(elem.dataset.value);
+            }
+        });
+    });
+}
+
+function setStarCtlValue(containerId, rating) {
+    const container = document.getElementById(containerId);
+    const prevSelection = container.querySelector(`button[data-selected="1"]`);
+    if (prevSelection) {
+        delete prevSelection.dataset.selected;
+    }
+    container.querySelector(`button[data-value="${rating}"]`).dataset.selected = '1';
+    if (rating) {
+        container.ariaLabel = `Your rating is ${rating} out of 5`;
+    } else {
+        container.ariaLabel = 'You did not rate this game';
+    }
+}
