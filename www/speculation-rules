@@ -1,0 +1,16 @@
+<?php
+header("Content-Type: application/speculationrules+json");
+header("Cache-Control: private, no-cache");
+?>
+{
+    "prerender": [
+        {
+            "where": { "selector_matches": ".eager" },
+            "eagerness": "eager"
+        },
+        {
+            "where": { "selector_matches": ".prerender-moderate a" },
+            "eagerness": "moderate"
+        }
+    ]
+}

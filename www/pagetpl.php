@@ -4,6 +4,8 @@ include_once "csp-nonce.php";
 include_once "util.php";
 include_once "login-persist.php";
 
+header("Speculation-Rules: \"/speculation-rules\"");
+
 function srcCacheBust($filename)
 {
     $mtime = filemtime($_SERVER['DOCUMENT_ROOT'] . $filename);
