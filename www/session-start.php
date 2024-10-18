@@ -21,6 +21,11 @@ session_set_cookie_params([
     'samesite' => 'Lax'
 ]);
 
+// session_start automatically sets a cache-control header by default; disable that
+session_cache_limiter('');
+
+header('Cache-Control: private, no-cache');
+
 @session_start();
 
 ?>
