@@ -287,6 +287,7 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse)
                        games.sort_title as sort_title,
                        games.sort_author as sort_author,
                        ifnull(games.published, '9999-12-31') as sort_pub,
+                       games.pagevsn,
                        games.flags";
         $baseWhere = "";
         $groupBy = "";
