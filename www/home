@@ -86,8 +86,22 @@ if ($debugflag) echo "debug mode enabled...<br>";
       </div>
 
       <?php include "components/check-inbox.php"?>
+<script nonce="<?= $nonce ?>" type='speculationrules'>
+{
+    "prerender": [
+        {
+            "where": { "selector_matches": ".eager" },
+            "eagerness": "eager"
+        },
+        {
+            "where": { "selector_matches": "#home__new a" },
+            "eagerness": "moderate"
+        }
+    ]
+}
+</script>
 
-      <div class="block">
+      <div id="home__new" class="block">
          <div class=headline>New on IFDB
             <span class=headlineRss>
                <a href="allnew-rss"><img src="img/blank.gif" class="rss-icon" alt="">RSS Feed</a>

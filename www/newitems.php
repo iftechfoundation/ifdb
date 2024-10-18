@@ -425,7 +425,7 @@ function showNewItemList($db, $items, $first, $last, $showFlagged, $allowHiddenB
                     echo "<i>\"$summary\"</i>";
 
                 if ($trunc)
-                    echo " - <a href=\"viewgame?id={$r['gameid']}"
+                    echo " - <a class=eager href=\"viewgame?id={$r['gameid']}"
                         . "&review={$r['reviewid']}\">See full review</a>";
 
                 echo "</span></div>";
@@ -500,7 +500,7 @@ function showNewItemList($db, $items, $first, $last, $showFlagged, $allowHiddenB
             // summarize this game
             echo "<div class=\"new-game\">"
                 . "A new listing for "
-                . "<a href=\"viewgame?id={$g['id']}\"><b><i>"
+                . "<a class=eager href=\"viewgame?id={$g['id']}\"><b><i>"
                 . output_encode(htmlspecialcharx($g['title']))
                 . "</i></b></a>, by "
                 . output_encode(htmlspecialcharx($g['author']))
@@ -553,7 +553,7 @@ function showNewItemList($db, $items, $first, $last, $showFlagged, $allowHiddenB
             echo "<div class=\"new-poll\">"
                 . "A new poll by <a href=\"showuser?id=$uid\">"
                 . "$uname</a>, "
-                . "<a href=\"poll?id=$pid\"><b>$title</b></a> "
+                . "<a class=eager href=\"poll?id=$pid\"><b>$title</b></a> "
                 . "<span class=notes><i>created $fmtdate</i></span>"
                 . "<br><div class=indented>"
                 . "<span class=details>$cntdesc</span><br>"
