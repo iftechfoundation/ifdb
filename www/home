@@ -34,7 +34,7 @@ if ($debugflag) echo "debug mode enabled...<br>";
 
 <?php pageHeader("The Interactive Fiction Database - IF and Text Adventures")?>
 
-<div class="flexer">
+<div class="flexer prerender-moderate">
    <div class="column col-main">
 
       <div class="block">
