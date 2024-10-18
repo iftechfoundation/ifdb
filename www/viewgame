@@ -153,6 +153,10 @@ function sendCoverArt()
     // retrieve the image
     list($imgname, $title, $pagevsn) = mysql_fetch_row($result);
 
+    if (isset($_REQUEST['version'])) {
+        header("Cache-Control: public, max-age=31536000, immutable");
+    }
+
     // get the target version from the request
     $targVsn = (isset($_REQUEST['version'])
                 && (int)$pagevsn != (int)($_REQUEST['version']))
@@ -1383,7 +1387,7 @@ if ($hasart) {
                <td class=coverart>
 
                   <a href="<?php echo $arthref ?>&ldesc">
-                     <?php echo coverArtThumbnail($id, 175, isset($_REQUEST['version']) ? "&version=".$_REQUEST['version'] : ""); ?>
+                     <?php echo coverArtThumbnail($id, 175, isset($_REQUEST['version']) ? "&version=".$_REQUEST['version'] : "&version=$pagevsn"); ?>
                   </a>
                </td>
                <?php
