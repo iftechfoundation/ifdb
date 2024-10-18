@@ -1428,6 +1428,24 @@ else if ($term || $browse)
             }
         }
 
+?>
+<script nonce="<?= $nonce ?>" type='speculationrules'>
+{
+    "prerender": [
+        {
+            "where": { "selector_matches": ".eager" },
+            "eagerness": "eager"
+        },
+        {
+            "where": { "selector_matches": "#search__results a" },
+            "eagerness": "moderate"
+        }
+    ]
+}
+</script>
+<?php
+
+        echo "<div id=search__results>";
         for ($i = 0 ; $i < count($rows) ; $i++) {
             // retrieve the row
             $row = $rows[$i];
@@ -1508,13 +1526,15 @@ else if ($term || $browse)
                         $ratingExtra = "<span class=details> ($ratingExtra)</span>";
                 }
 
+                $eagerness = ($i < 5) ? "eager" : "";
+
                 // show the item
                 echo "<p>";
                 if ($art) {
                     // display with art
                     echo "<table class=grid border=0 cellspacing=0 cellpadding=0>"
                         . "<tr><td>"
-                        . "<a href=\"viewgame?id=$id\">"
+                        . "<a class='$eagerness' href=\"viewgame?id=$id\">"
                         . coverArtThumbnail($id, 80, "&version=$pagevsn")
                         . "</a></td><td>"
                         . "<h3 class=result><a href=\"viewgame?id=$id\">"
@@ -1536,7 +1556,7 @@ else if ($term || $browse)
 
                 } else {
                     // display with no art
-                    echo "<h3 class=result><a href=\"viewgame?id=$id\">"
+                    echo "<h3 class=result><a class='$eagerness' href=\"viewgame?id=$id\">"
                         . "<b>$title</b></a></h3>"
                         . ", by $author";
 
@@ -1558,7 +1578,7 @@ else if ($term || $browse)
                 $items = $row['itemcount'];
 
                 // show the listing
-                echo "<p><h3 class=result><a href=\"viewlist?id=$id\">"
+                echo "<p><h3 class=result><a class='$eagerness' href=\"viewlist?id=$id\">"
                     . "<b>$title</b></a></h3><br>"
                     . "<span class=details>"
                     . "by <a href=\"showuser?id=$userid\">$username</a>"
@@ -1581,7 +1601,7 @@ else if ($term || $browse)
                 $created = $row['createdfmt'];
                 $votedate = $row['votedatefmt'];
 
-                echo "<p><h3 class=result><a href=\"poll?id=$id\"><b>$title</b></a></h3><br>"
+                echo "<p><h3 class=result><a class='$eagerness' href=\"poll?id=$id\"><b>$title</b></a></h3><br>"
                     . "<span class=details>"
                     . "by <a href=\"showuser?id=$userid\">$username</a>"
                     . " - "
@@ -1606,7 +1626,7 @@ else if ($term || $browse)
                 $gamecnt = $row['gamecnt'];
                 $divcnt = $row['divcnt'];
 
-                echo "<p><h3 class=result><a href=\"viewcomp?id=$id\"><b>$title</b></a></h3><br>"
+                echo "<p><h3 class=result><a class='$eagerness' href=\"viewcomp?id=$id\"><b>$title</b></a></h3><br>"
                     . "<span class=details>$gamecnt game"
                     . ($gamecnt == 1 ? "" : "s")
                     . ($divcnt > 1 ? " in $divcnt divisions" : "")
@@ -1628,7 +1648,7 @@ else if ($term || $browse)
                     || isset($specialsUsed['contacts:']))
                     $contacts = $row['contacts'];
 
-                echo "<p><h3 class=result><a href=\"club?id=$id\"><b>$name</b></a></h3><br>"
+                echo "<p><h3 class=result><a class='$eagerness' href=\"club?id=$id\"><b>$name</b></a></h3><br>"
                     . "<span class=details>Listed on IFDB $created"
                     . ($membercnt ? "; $membercnt member"
                        . ($membercnt == 1 ? "" : "s") : "")
@@ -1670,7 +1690,7 @@ else if ($term || $browse)
                 if ($pic) {
                     echo "<table class=grid border=0 cellspacing=0 cellpadding=0>"
                         . "<tr><td>"
-                        . "<a href=\"showuser?id=$id\">"
+                        . "<a class='$eagerness' href=\"showuser?id=$id\">"
                         . "<img src=\"showuser?id=$id&pic&thumbnail=80x80\" "
                         . "border=0></td><td>"
                         . "<h3 class=result><a href=\"showuser?id=$id\">"
@@ -1696,12 +1716,13 @@ else if ($term || $browse)
                 $id = $row['tag'];
 
                 // show the listing
-                echo "<p><h3 class=result><a href=\"search?searchfor=tag:$id\">"
+                echo "<p><h3 class=result><a class='$eagerness' href=\"search?searchfor=tag:$id\">"
                     . "<b>$id</b></a></h3><br>";
 
                 break;
             }
         }
+        echo "</div>"; // search__results
 
         // add the page controls again at the bottom, if applicable
         if ($pg != 1 || $rowcnt > $perPage)
