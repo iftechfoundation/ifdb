@@ -9,7 +9,7 @@ header("Cache-Control: private, no-cache");
             "eagerness": "eager"
         },
         {
-            "where": { "selector_matches": ".prerender-moderate a" },
+            "where": { "selector_matches": ".prerender-moderate a:not(.no-prerender)" },
             "eagerness": "moderate"
         }
     ]

@@ -107,7 +107,7 @@ function pageHeader($title, $focusCtl = false, $extraOnLoad = false,
     <a href="/" aria-label="Home">
         <div class="topbar"></div>
     </a>
-    <div id="main-nav-wrapper">
+    <div id="main-nav-wrapper" class="prerender-moderate">
         <nav id="main-nav" class="main-nav">
             <div class="nav-left">
                 <a id="topbar-home" href="/">Home</a>
@@ -126,7 +126,7 @@ function pageHeader($title, $focusCtl = false, $extraOnLoad = false,
                     <li class="<?= ($pagescript === 'editprofile') ? 'page-active':''; ?>"><a id="topbar-edit" href="/editprofile">Settings</a></li>
                     <li class="<?= ($pagescript === 'personal') ? 'page-active':''; ?>"><a id="topbar-personal" href="/personal">My Activity</a></li>
                     <li class="<?= ($pagescript === 'commentlog') ? 'page-active':''; ?>"><a id="topbar-inbox" href="/commentlog?mode=inbox">Inbox</a></li>
-                    <li><a id="topbar-logout" class="login-link" href="/logout">Log Out</a></li>
+                    <li><a id="topbar-logout" class="login-link no-prerender" href="/logout">Log Out</a></li>
                 <?php else : ?>
                     <li><a id="topbar-login" class="login-link" href="/login?dest=home">Log In</a></li>
                 <?php endif ?>
@@ -175,7 +175,7 @@ function pageFooter()
 {
 ?>
 
-<div class="footer">
+<div class="footer prerender-moderate">
 <a class="nav" id="footer-home" href="/">IFDB Home</a> |
 <a class="nav" id="footer-contact" href="/contact">Contact Us</a> |
 <a class="nav" id="footer-coc" href="/code-of-conduct">Code of Conduct</a> |
