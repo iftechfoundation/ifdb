@@ -34,7 +34,7 @@ $pageCtl = "<span class=details>"
 
 // start the page
 pageHeader("New on IFDB");
-echo "<h1>New on IFDB</h1>";
+echo "<h1>New on IFDB</h1>\n<div class='prerender-moderate'>\n";
 
 // show the page controls
 echo "$pageCtl<p><hr class=dots><p>";
@@ -43,7 +43,8 @@ echo "$pageCtl<p><hr class=dots><p>";
 showNewItems($db, $firstOnPage, $lastOnPage, $items, $showFlagged);
 
 // show the page controls again at the bottom
-echo "<p><hr class=dots><p>$pageCtl<br>";
+echo "<p><hr class=dots><p>$pageCtl<br>\n";
+echo "</div>"; // prerender-moderate
 
 // end the page
 pageFooter();
