@@ -1773,8 +1773,13 @@ Combo Box hidden list
 }
 
 .star-rating input:checked+label:hover,
+.star-rating input:checked+label:has(~ label:hover),
 .star-rating label:hover {
     background-image: var(--hovered-image);
+}
+
+.star-rating label:hover ~ input:checked+label{
+    background-image: var(--unchecked-image);
 }
 
 .star-rating>div:focus-within {
