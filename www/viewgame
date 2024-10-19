@@ -1236,6 +1236,7 @@ if ($curuser) {
             <!--
 function updateRating(rating)
 {
+    if (submitRating.style.display === 'block') return;
     xmlSend("setrating?game=<?php echo $id?>&rating=" + rating,
             "ratingSaveMsg", null, null);
 }
@@ -1288,6 +1289,7 @@ function updateUnwishList(id, stat)
     global $nonce;
     echo "<style nonce='$nonce'>\n"
         . ".viewgame__playedSection { margin: 1.25ex 0 0.75ex 0; }\n"
+        . "#submitRating { display: none; }\n"
         . "</style>\n";
 
     echo "<div class=indented>"
@@ -1296,6 +1298,14 @@ function updateUnwishList(id, stat)
         . "<span id=\"ratingCaption\"><b>Rate it:</b></span> "
         . showStarCtl("ratingStars", $currentUserRating,
                       "updateRating", "mouseOutRating")
+        . "<button id='submitRating' class='fancy-button'>Submit Rating</button>"
+        . "<script nonce='$nonce'>\n"
+        . "ratingStars.addEventListener('keydown', () => submitRating.style.display = 'block');\n"
+        . "submitRating.addEventListener('click', () => {\n"
+        . "submitRating.style.display = 'none';\n"
+        . "updateRating(ratingStars.querySelector('input:checked').value);\n"
+        . "});\n"
+        . "</script>"
         . " <span id=\"ratingSaveMsg\" class=xmlstatmsg></span><br>"
         . "<a href=\"review?id=$id&userid=$curuser\">"
         . ($currentUserReview != "" ? "Revise my review" : "Review it")
