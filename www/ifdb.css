@@ -1782,7 +1782,7 @@ Combo Box hidden list
     background-image: var(--unchecked-image);
 }
 
-.star-rating>div:focus-within {
+.star-rating>div:has(:focus-visible) {
     outline: 0.25rem solid lightblue;
 }
 
