@@ -1239,20 +1239,6 @@ function updateRating(rating)
     xmlSend("setrating?game=<?php echo $id?>&rating=" + rating,
             "ratingSaveMsg", null, null);
 }
-function clearRating()
-{
-    updateRating(0);
-    setStarCtlValue("ratingStars", 0);
-    mouseOutRating(0);
-}
-function mouseOutRating(rating)
-{
-    document.getElementById("ratingCaption").innerHTML =
-        (rating != 0 ? "<b>My rating:</b>" : "<b>Rate it:</b>");
-    var s = document.getElementById("clearRatingSpan");
-    if (s)
-        s.style.display = (rating ? "" : "none");
-}
 function updatePlayed(id, stat)
 {
     var func = function(d)
@@ -1311,10 +1297,6 @@ function updateUnwishList(id, stat)
         . showStarCtl("ratingStars", $currentUserRating,
                       "updateRating", "mouseOutRating")
         . " <span id=\"ratingSaveMsg\" class=xmlstatmsg></span><br>"
-        . ($currentUserReview != "" ? "" :
-           "<span id=\"clearRatingSpan\"><a href=\"needjs\">"
-           . addEventListener("click", "clearRating();return false")
-           . "Remove rating</a><br></span>")
         . "<a href=\"review?id=$id&userid=$curuser\">"
         . ($currentUserReview != "" ? "Revise my review" : "Review it")
         . "</a><br>"
@@ -1341,11 +1323,6 @@ function updateUnwishList(id, stat)
         . "</span><br></div></div>";
 
     ?>
-<script type="text/javascript" nonce="<?php global $nonce; echo $nonce; ?>">
-<!--
-mouseOutRating(<?php echo $currentUserRating ?>);
-//-->
-</script>
             <?php
 
 } else {

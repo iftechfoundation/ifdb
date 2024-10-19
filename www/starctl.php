@@ -44,7 +44,9 @@ function showStarCtl($id, $init, $clickFunc)
 
     $str .= addEventListener("change", "$clickFunc(event.target.value)");
 
-    $str .= "</div></fieldset>";
+    $str .= "</div></fieldset><button class='fancy-button remove-rating' type=button>Remove Rating"
+        . addEventListener("click", "setStarCtlValue('$id', 0); $clickFunc(0);")
+        ."</button>";
 
     
 

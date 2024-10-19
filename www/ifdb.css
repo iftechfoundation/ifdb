@@ -1786,6 +1786,14 @@ Combo Box hidden list
     outline: 0.25rem solid lightblue;
 }
 
+.star-rating + button.remove-rating {
+    display: none;
+}
+
+.star-rating:has(input:checked) + button.remove-rating {
+    display: revert;
+}
+
 .star-rating input,
 .star-rating label>span {
     border: 0;
