@@ -784,8 +784,23 @@ function showStars($num)
     list($roundedNum, $starimg, $startxt) = roundStars($num);
 
     // return the image string
-    return "<img src=\"/img/blank.gif\" border=0 "
-        . "class=\"star{$starimg}\" title=\"$startxt\">";
+    $result = "<span role='img' aria-label='$startxt out of 5'>";
+    for ($i = 1; $i <= $roundedNum; $i++) {
+        $result .= "<img height=13 src='/img/star-checked.svg'>";
+    }
+    // adding unused class='star-half-checked' and 'star-unchecked' so users can override them in IFDB custom stylesheets
+    if (floor($roundedNum) != $roundedNum) {
+        $result .= "<picture><source srcset='/img/dark-images/star-half-checked.svg' media='(prefers-color-scheme: dark)'>"
+            ."<img height=13 class='star-half-checked' src='/img/star-half-checked.svg'></picture>";
+        $i++;
+    }
+    for (; $i <=5; $i++) {
+        $result .= "<picture><source srcset='/img/dark-images/star-unchecked.svg' media='(prefers-color-scheme: dark)'>"
+            ."<img height=13 class='star-unchecked' src='/img/star-unchecked.svg'></picture>";
+    }
+
+    $result .= "</span>";
+    return $result;
 }
 
 function roundStars($num)

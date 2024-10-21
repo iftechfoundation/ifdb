@@ -1738,13 +1738,7 @@ function onComboSelectReviewSite(val)
                   <b>Rating:</b> <?php
                       echo showStarCtl("extrevStarCtl", 0,
                                        "setExtRevRating", "null");
-                  ?> <a href="needjs"><script type="text/javascript" nonce="<?php global $nonce; echo $nonce; ?>">
-                        document.currentScript.parentElement.addEventListener('click', function(event) {
-                            event.preventDefault();
-                            setExtRevRating(0);
-                            setStarCtlValue('extrevStarCtl',0);
-                        })
-                    </script>Remove rating</a><br>
+                  ?> <br>
                   <input type=hidden name=extrevRating id=extrevRating value=0>
                   <span class=details>If the site uses a different rating
                      system, pick the closest equivalent star rating (e.g.,
