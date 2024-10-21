@@ -39,7 +39,9 @@ function showStarCtl($id, $init, $clickFunc)
             $checked = "checked";
         }
         $str .= "<input type='radio' name='rating' value='$i' id='{$id}__rating$i' $checked>"
-            . "<label for='{$id}__rating$i'><span>$i</span></label>";
+            . "<label for='{$id}__rating$i'><span>"
+            . ($i === 1 ? "1 star": "$i stars")
+            ."</span></label>";
     }
 
     $str .= addEventListener("change", "$clickFunc(event.target.value)");
