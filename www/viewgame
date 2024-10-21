@@ -1300,7 +1300,10 @@ function updateUnwishList(id, stat)
                       "updateRating", "mouseOutRating")
         . "<button id='submitRating' class='fancy-button'>Submit Rating</button>"
         . "<script nonce='$nonce'>\n"
-        . "ratingStars.addEventListener('keydown', () => submitRating.style.display = 'block');\n"
+        . "let arrowKeys = new Set(['ArrowRight', 'ArrowLeft', 'ArrowUp', 'ArrowDown']);"
+        . "ratingStars.addEventListener('keydown', e => {\n"
+        . "  if (arrowKeys.has(e.key)) submitRating.style.display = 'block'\n"
+        . "});\n"
         . "submitRating.addEventListener('click', () => {\n"
         . "submitRating.style.display = 'none';\n"
         . "updateRating(ratingStars.querySelector('input:checked').value);\n"
