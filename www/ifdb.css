@@ -1778,6 +1778,12 @@ Combo Box hidden list
     background-image: var(--hovered-image);
 }
 
+.star-rating input:checked+label:active,
+.star-rating input:checked+label:has(~ label:active),
+.star-rating label:active {
+    filter: brightness(80%);
+}
+
 .star-rating label:hover ~ input:checked+label{
     background-image: var(--unchecked-image);
 }
