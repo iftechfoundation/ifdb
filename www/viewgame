@@ -1306,7 +1306,7 @@ function updateUnwishList(id, stat)
         . "updateRating(ratingStars.querySelector('input:checked').value);\n"
         . "});\n"
         . "</script>"
-        . " <span id=\"ratingSaveMsg\" class=xmlstatmsg></span><br>"
+        . " <span id=\"ratingSaveMsg\" class=xmlstatmsg aria-live='polite'></span><br>"
         . "<a href=\"review?id=$id&userid=$curuser\">"
         . ($currentUserReview != "" ? "Revise my review" : "Review it")
         . "</a><br>"
