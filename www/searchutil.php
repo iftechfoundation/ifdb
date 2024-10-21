@@ -262,7 +262,7 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse)
 
 
         // SELECT parameters for game queries
-        $selectList = "games.id as id,
+        $selectList = "distinct games.id as id,
                        games.title as title,
                        games.author as author,
                        games.tags as tags,
