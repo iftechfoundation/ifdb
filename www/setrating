@@ -81,32 +81,22 @@ if ($result && mysql_num_rows($result)) {
     $review = false;
 }
 
-// make sure the rating is valid
-// a rating of zero deletes the rating, as long as there's no review
-if ($rating == 0 && !$review) {
-    // there's no review, so this is fine
-} else if ($rating == 0) {
-    // we have a review, so we can't clear it
-    sendResponse("Not Saved", "You've written a review for this game. "
-                 . "To remove the rating, you must delete the review."
-                 . " (review text = \"$review\")",
-                 false);
-} else if ($rating < 1 || $rating > 5) {
+if ($rating < 0 || $rating > 5) {
     sendResponse("Not Saved", "The rating specified is not valid.", false);
 }
 
 // set the rating:
 //
-// - if there's an existing review and the rating is zero, delete it
-// - if there's an existing review and the rating is non-zero, update it
+// - if there's an existing review row with no written review, and the new rating is zero, delete it
+// - if there's an existing review, update it
 // - if there's no existing review, insert it
-if ($rating == 0 && $rid) {
+if ($rating == 0 && $rid && !$review) {
     // rating to zero -> delete the review
     $result = mysql_query("delete from reviews where id='$rid'", $db);
     if (!$result) error_log(mysql_error($db));
     $ok = "Your rating has been removed.";
 
-} else if ($rating != 0 && $rid) {
+} else if ($rid) {
     // there's an existing review - update its rating
     $result = mysql_query(
         "update reviews set rating = '$rating' where id='$rid'", $db);
@@ -120,8 +110,8 @@ if ($rating == 0 && $rid) {
          values ('$userid', '$qgame', now(), '$rating')", $db);
     $ok = "Your rating has been set.";
 } else {
-    $result = false;
-    $ok = false;
+    $result = true;
+    $ok = true;
 }
 
 // release the table lock
