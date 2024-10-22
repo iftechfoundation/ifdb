@@ -882,6 +882,9 @@ captchaSupportScripts($captchaKey);
       </td>
    </tr>
 
+   <?php
+   if (0) { // hiding accessibility section for now; it does nothing
+   ?>
    <tr><td>&nbsp;</td></tr>
    <tr valign=top>
       <td align=right>
@@ -900,6 +903,9 @@ captchaSupportScripts($captchaKey);
          </span>
       </td>
    </tr>
+   <?php
+   }
+   ?>
 
 </table>
 </div>
