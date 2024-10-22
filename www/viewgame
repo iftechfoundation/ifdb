@@ -1236,22 +1236,13 @@ if ($curuser) {
             <!--
 function updateRating(rating)
 {
+    if (rating) {
+        if (submitRating.style.display === 'block') return;
+    } else {
+        submitRating.style.display = 'none';
+    }
     xmlSend("setrating?game=<?php echo $id?>&rating=" + rating,
             "ratingSaveMsg", null, null);
-}
-function clearRating()
-{
-    updateRating(0);
-    setStarCtlValue("ratingStars", 0);
-    mouseOutRating(0);
-}
-function mouseOutRating(rating)
-{
-    document.getElementById("ratingCaption").innerHTML =
-        (rating != 0 ? "<b>My rating:</b>" : "<b>Rate it:</b>");
-    var s = document.getElementById("clearRatingSpan");
-    if (s)
-        s.style.display = (rating ? "" : "none");
 }
 function updatePlayed(id, stat)
 {
@@ -1302,6 +1293,7 @@ function updateUnwishList(id, stat)
     global $nonce;
     echo "<style nonce='$nonce'>\n"
         . ".viewgame__playedSection { margin: 1.25ex 0 0.75ex 0; }\n"
+        . "#submitRating { display: none; }\n"
         . "</style>\n";
 
     echo "<div class=indented>"
@@ -1310,11 +1302,18 @@ function updateUnwishList(id, stat)
         . "<span id=\"ratingCaption\"><b>Rate it:</b></span> "
         . showStarCtl("ratingStars", $currentUserRating,
                       "updateRating", "mouseOutRating")
-        . " <span id=\"ratingSaveMsg\" class=xmlstatmsg></span><br>"
-        . ($currentUserReview != "" ? "" :
-           "<span id=\"clearRatingSpan\"><a href=\"needjs\">"
-           . addEventListener("click", "clearRating();return false")
-           . "Remove rating</a><br></span>")
+        . "<button id='submitRating' class='fancy-button'>Submit Rating</button>"
+        . "<script nonce='$nonce'>\n"
+        . "let arrowKeys = new Set(['ArrowRight', 'ArrowLeft', 'ArrowUp', 'ArrowDown']);"
+        . "ratingStars.addEventListener('keydown', e => {\n"
+        . "  if (arrowKeys.has(e.key)) submitRating.style.display = 'block'\n"
+        . "});\n"
+        . "submitRating.addEventListener('click', () => {\n"
+        . "submitRating.style.display = 'none';\n"
+        . "updateRating(ratingStars.querySelector('input:checked').value);\n"
+        . "});\n"
+        . "</script>"
+        . " <span id=\"ratingSaveMsg\" class=xmlstatmsg aria-live='polite'></span><br>"
         . "<a href=\"review?id=$id&userid=$curuser\">"
         . ($currentUserReview != "" ? "Revise my review" : "Review it")
         . "</a><br>"
@@ -1341,11 +1340,6 @@ function updateUnwishList(id, stat)
         . "</span><br></div></div>";
 
     ?>
-<script type="text/javascript" nonce="<?php global $nonce; echo $nonce; ?>">
-<!--
-mouseOutRating(<?php echo $currentUserRating ?>);
-//-->
-</script>
             <?php
 
 } else {

@@ -758,12 +758,7 @@ if (isset($missingFields['rating']))
         initStarControls();
         echo showStarCtl("ratingStars", $rating, "setRating", "null");
    ?>
-   <span class=details>(<a id="removeRating" href="needjs">Remove rating</a>)</span>
 <script type="text/javascript" nonce="<?php global $nonce; echo $nonce; ?>">
-document.getElementById('removeRating').addEventListener('click', function (event) {
-    event.preventDefault();
-    setRating(0);
-})
 function setRating(rating)
 {
     document.getElementById("rating").value = rating;

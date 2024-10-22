@@ -1714,6 +1714,111 @@ Combo Box hidden list
     position: absolute;
 }
 
+:root {
+    --star-rating-size: 35px;
+    --unchecked-image: url("/img/star-unchecked.svg");
+    --checked-image: url("/img/star-checked.svg");
+    --hovered-image: url("/img/star-hovered.svg");
+}
+
+.star-rating {
+    display: inline-block;
+    border: 0;
+    width: min-content;
+    vertical-align: middle;
+}
+
+.star-rating>div {
+    position: relative;
+    height: var(--star-rating-size);
+    width: calc(var(--star-rating-size) * 5);
+    background-image: var(--unchecked-image);
+    background-size: var(--star-rating-size) var(--star-rating-size);
+}
+
+.star-rating label {
+    position: absolute;
+    height: 100%;
+    background-size: var(--star-rating-size) var(--star-rating-size);
+}
+
+.star-rating label:nth-of-type(1) {
+    z-index: 10;
+    width: calc(100% / 5 * 1);
+}
+
+.star-rating label:nth-of-type(2) {
+    z-index: 9;
+    width: calc(100% / 5 * 2);
+}
+
+.star-rating label:nth-of-type(3) {
+    z-index: 8;
+    width: calc(100% / 5 * 3);
+}
+
+.star-rating label:nth-of-type(4) {
+    z-index: 7;
+    width: calc(100% / 5 * 4);
+}
+
+.star-rating label:nth-of-type(5) {
+    z-index: 6;
+    width: calc(100% / 5 * 5);
+}
+
+.star-rating input:checked+label,
+.star-rating input:focus+label {
+    background-image: var(--checked-image);
+}
+
+.star-rating input:checked+label:hover,
+.star-rating input:checked+label:has(~ label:hover),
+.star-rating label:hover {
+    background-image: var(--hovered-image);
+}
+
+.star-rating input:checked+label:active,
+.star-rating input:checked+label:has(~ label:active),
+.star-rating label:active {
+    filter: brightness(80%);
+}
+
+.star-rating label:hover ~ input:checked+label{
+    background-image: var(--unchecked-image);
+}
+
+.star-rating>div:has(:focus-visible) {
+    outline: 0.25rem solid lightblue;
+}
+
+.star-rating + button.remove-rating {
+    display: none;
+}
+
+.star-rating:has(input:checked) + button.remove-rating {
+    display: revert;
+}
+
+.star-rating input,
+.star-rating label>span {
+    border: 0;
+    padding: 0;
+    margin: 0;
+    position: absolute !important;
+    height: 1px;
+    width: 1px;
+    overflow: hidden;
+    clip: rect(1px 1px 1px 1px);
+    /* IE6, IE7 - a 0 height clip, off to the bottom right of the visible 1px box */
+    clip: rect(1px, 1px, 1px, 1px);
+    /*maybe deprecated but we need to support legacy browsers */
+    clip-path: inset(50%);
+    /*modern browsers, clip-path works inwards from each corner*/
+    white-space: nowrap;
+    /* added line to stop words getting smushed together (as they go onto seperate lines and some screen readers do not understand line feeds as a space */
+}
+
 /*
 Close button for pop-up subforms
 */
@@ -2073,80 +2178,6 @@ img.radio-checked {
     border: none;
 }
 
-
-/*
-The various star images.  The number after "star" gives the number of
-stars to show; an "h" suffix means that it's the number plus a half
-star - e.g., star3h is 3-1/2 stars.  All of the various star graphics
-should be the same width and height.
-*/
-img.star0 {
-    background: url('/img/star0.gif') no-repeat center center;
-    vertical-align: middle;
-    width: 56px;
-    height: 13px;
-}
-img.star0h {
-    background: url('/img/star0h.gif') no-repeat center center;
-    vertical-align: middle;
-    width: 56px;
-    height: 13px;
-}
-img.star1 {
-    background: url('/img/star1.gif') no-repeat center center;
-    vertical-align: middle;
-    width: 56px;
-    height: 13px;
-}
-img.star1h {
-    background: url('/img/star1h.gif') no-repeat center center;
-    vertical-align: middle;
-    width: 56px;
-    height: 13px;
-}
-img.star2 {
-    background: url('/img/star2.gif') no-repeat center center;
-    vertical-align: middle;
-    width: 56px;
-    height: 13px;
-}
-img.star2h {
-    background: url('/img/star2h.gif') no-repeat center center;
-    vertical-align: middle;
-    width: 56px;
-    height: 13px;
-}
-img.star3 {
-    background: url('/img/star3.gif') no-repeat center center;
-    vertical-align: middle;
-    width: 56px;
-    height: 13px;
-}
-img.star3h {
-    background: url('/img/star3h.gif') no-repeat center center;
-    vertical-align: middle;
-    width: 56px;
-    height: 13px;
-}
-img.star4 {
-    background: url('/img/star4.gif') no-repeat center center;
-    vertical-align: middle;
-    width: 56px;
-    height: 13px;
-}
-img.star4h {
-    background: url('/img/star4h.gif') no-repeat center center;
-    vertical-align: middle;
-    width: 56px;
-    height: 13px;
-}
-img.star5 {
-    background: url('/img/star5.gif') no-repeat center center;
-    vertical-align: middle;
-    width: 56px;
-    height: 13px;
-}
-
 img.newcomment {
     background: url('/img/newcomment.png') no-repeat center center;
     vertical-align: middle;
@@ -2281,6 +2312,9 @@ span.sfl-save-autodesc {
 }
 
 @media (prefers-color-scheme: dark) {
+    :root {
+        --unchecked-image: url("/img/dark-images/star-unchecked.svg");
+    }
     body {
         background: #000000;
         color: #ffffff;
