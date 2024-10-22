@@ -679,14 +679,8 @@ up your existing review for further editing.
     }
 }
 
-// check for accessible controls
-$result = mysql_query(
-    "select accessibility from users where id='$userid'", $db);
-list($accessibility) = mysql_fetch_row($result);
-$firstCtl = ($accessibility ? "ratingStars" : "summary");
-
 // show the page header
-pageHeader("Write a Review", "review.$firstCtl");
+pageHeader("Write a Review", "review.summary");
 ?>
 
 <div class=title><?php echo $title ?></div>
