@@ -1236,7 +1236,11 @@ if ($curuser) {
             <!--
 function updateRating(rating)
 {
-    if (submitRating.style.display === 'block') return;
+    if (rating) {
+        if (submitRating.style.display === 'block') return;
+    } else {
+        submitRating.style.display = 'none';
+    }
     xmlSend("setrating?game=<?php echo $id?>&rating=" + rating,
             "ratingSaveMsg", null, null);
 }
