@@ -1,0 +1,5 @@
+{
+    "require": {
+        "glenscott/url-normalizer": "^1.4"
+    }
+}
