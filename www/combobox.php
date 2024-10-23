@@ -32,7 +32,7 @@ function makeComboBox($name, $textlen, $curval, $vals, $onSet = "null")
            ]);
 
     // add the drop arrow
-    $txt .= "<a href=\"needjs\" x-name=\"$name\">"
+    $txt .= "<a href=\"needjs\" data-name=\"$name\">"
            . addEventListener("keypress", "return comboArrowKey(event,'$name',true,'${name}CBSel');")
            . addEventListener("keydown", "return comboArrowKey(event,'$name',true,'${name}CBSel');")
            . "<img alt=\"Open List\" border=0 "
