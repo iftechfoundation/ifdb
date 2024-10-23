@@ -234,7 +234,7 @@ function htmlspecialcharx($str)
 // but we want those strings to wrap properly, so we insert
 // zero-width space characters
 function zeroWidthSpaceUnderscores($str) {
-    return str_replace('/', '&#8203/', str_replace('_', '&#8203_', $str));
+    return str_replace('/', '&#8203;/', str_replace('_', '&#8203;_', $str));
 }
 
 // extended URL encoding, with UTF8 conversion
