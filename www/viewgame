@@ -262,7 +262,7 @@ function showMemberReviewsHeader($showHisto)
             $pct = (int)($num*100 / $max);
             echo "<tr><td>$i&nbsp;star:</td>"
                 . "<td><div class=ratingHistoBox>"
-                . "<div class='ratingHistoBar ratingHistoBar$i'\">"
+                . "<div class='ratingHistoBar ratingHistoBar$i'>"
                 . "<style nonce='$nonce'>\n"
                 . ".ratingHistoBar$i { width: $pct%; }\n"
                 . "</style>\n"
