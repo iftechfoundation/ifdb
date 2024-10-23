@@ -3419,7 +3419,7 @@ if (count($inrefs) != 0 && !$historyView) {
             // show the page controls again at the bottom of the review list
             echo "<br>$pageCtl<span class=details> | "
                 . "<a href=\"viewgame?id=$id\">Return to game's main page"
-                . "</a><br><br>";
+                . "</a></span><br><br>";
         }
 
         // end the indented division started in the review header
