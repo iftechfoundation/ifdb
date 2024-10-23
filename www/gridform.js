@@ -68,9 +68,9 @@ function gfGenForm(modelVar, newRowIdx)
                     else if (txt.charAt(j+1) == '#')
                         substParam(function(n) { return "" + i; });
                     else if (txt.charAt(j+1) == 'R')
-                        substParam(function(n) { return "" + (i+1) });
+                        substParam(function(n) { return "" + (i+1); });
                     else if (txt.charAt(j+1) == 'N')
-                        substParam(function(n) { return "" + vals.length });
+                        substParam(function(n) { return "" + vals.length; });
                     break;
 
                 case '$':
@@ -102,7 +102,7 @@ function gfGenForm(modelVar, newRowIdx)
             s += "<a href=\"needjs\" class='"+modelVar+"MoveUp' x-i='"+i+"' title=\"Move up\">"
                  + "<img src=\"/img/blank.gif\" class=\"grid-move-up\"></a> ";
         else
-            s += "<img src=\"/img/blank.gif\" class=\"grid-move-blank\"> "
+            s += "<img src=\"/img/blank.gif\" class=\"grid-move-blank\"> ";
 
         if (i + 1 < vals.length)
             s += "<a href=\"needjs\" class='"+modelVar+"MoveDown' x-i='"+i+"' title=\"Move down\">"
@@ -130,28 +130,28 @@ function gfGenForm(modelVar, newRowIdx)
         link.addEventListener('click', function (event) {
             event.preventDefault();
             gfMoveRow(modelVar, Number(link.getAttribute("x-i")), -1);
-        })
+        });
     });
 
     d.querySelectorAll("." + modelVar + "MoveDown").forEach(function (link) {
         link.addEventListener('click', function (event) {
             event.preventDefault();
             gfMoveRow(modelVar, Number(link.getAttribute("x-i")), 1);
-        })
+        });
     });
 
     d.querySelectorAll("." + modelVar + "Remove").forEach(function (link) {
         link.addEventListener('click', function (event) {
             event.preventDefault();
             gfDelRow(modelVar, Number(link.getAttribute("x-i")));
-        })
+        });
     });
 
     d.querySelectorAll("." + modelVar + "Add").forEach(function (link) {
         link.addEventListener('click', function (event) {
             event.preventDefault();
             gfInsRow(modelVar, i);
-        })
+        });
     });
 
     if (model.activateListeners) model.activateListeners();
