@@ -1530,20 +1530,20 @@ function activateListeners(divno, model)
                 if (result === false) event.preventDefault();
             });
         });
-        document.querySelectorAll('a[x-name=gameplace'+idx+']').forEach(function(comboArrow) {
+        document.querySelectorAll('a[data-name=gameplace'+idx+']').forEach(function(comboArrow) {
             console.log({comboArrow});
             comboArrow.addEventListener('click', function (event) {
                 event.preventDefault();
-                var name = comboArrow.getAttribute("x-name");
+                var name = comboArrow.dataset.name;
                 postShowComboMenu(name,true,name+'CBSel');
             })
             comboArrow.addEventListener('keydown', function(event) {
-                var name = comboArrow.getAttribute("x-name");
+                var name = comboArrow.dataset.name;
                 var result = comboArrowKey(event,name,name + 'CBSel','D');
                 if (result === false) event.preventDefault();
             });
             comboArrow.addEventListener('keydown', function(event) {
-                var name = comboArrow.getAttribute("x-name");
+                var name = comboArrow.dataset.name;
                 var result = comboArrowKey(event,name,name + 'CBSel','D');
                 if (result === false) event.preventDefault();
             });

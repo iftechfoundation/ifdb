@@ -99,13 +99,13 @@ function gfGenForm(modelVar, newRowIdx)
         s += "<tr><td valign=\"" + ctlvalign + "\"><span class='nobr'>";
 
         if (i > 0)
-            s += "<a href=\"needjs\" class='"+modelVar+"MoveUp' x-i='"+i+"' title=\"Move up\">"
+            s += "<a href=\"needjs\" class='"+modelVar+"MoveUp' data-i='"+i+"' title=\"Move up\">"
                  + "<img src=\"/img/blank.gif\" class=\"grid-move-up\"></a> ";
         else
             s += "<img src=\"/img/blank.gif\" class=\"grid-move-blank\"> ";
 
         if (i + 1 < vals.length)
-            s += "<a href=\"needjs\" class='"+modelVar+"MoveDown' x-i='"+i+"' title=\"Move down\">"
+            s += "<a href=\"needjs\" class='"+modelVar+"MoveDown' data-i='"+i+"' title=\"Move down\">"
                  + "<img src=\"/img/blank.gif\" class=\"grid-move-down\"></a> ";
         else
             s += "<img src=\"/img/blank.gif\" class=\"grid-move-blank\"> ";
@@ -113,7 +113,7 @@ function gfGenForm(modelVar, newRowIdx)
         s += "</span></td><td>" + txt + "</td><td valign=\"" + ctlvalign + "\">";
 
         if (model.allowRemove == null || model.allowRemove(i))
-            s += "<a href=\"needjs\" class='"+modelVar+"Remove fancy-button' x-i='"+i+"'>Remove</a> ";
+            s += "<a href=\"needjs\" class='"+modelVar+"Remove fancy-button' data-i='"+i+"'>Remove</a> ";
 
         s += "</td></tr>";
     }
@@ -129,21 +129,21 @@ function gfGenForm(modelVar, newRowIdx)
     d.querySelectorAll("." + modelVar + "MoveUp").forEach(function (link) {
         link.addEventListener('click', function (event) {
             event.preventDefault();
-            gfMoveRow(modelVar, Number(link.getAttribute("x-i")), -1);
+            gfMoveRow(modelVar, Number(link.dataset.i), -1);
         });
     });
 
     d.querySelectorAll("." + modelVar + "MoveDown").forEach(function (link) {
         link.addEventListener('click', function (event) {
             event.preventDefault();
-            gfMoveRow(modelVar, Number(link.getAttribute("x-i")), 1);
+            gfMoveRow(modelVar, Number(link.dataset.i), 1);
         });
     });
 
     d.querySelectorAll("." + modelVar + "Remove").forEach(function (link) {
         link.addEventListener('click', function (event) {
             event.preventDefault();
-            gfDelRow(modelVar, Number(link.getAttribute("x-i")));
+            gfDelRow(modelVar, Number(link.dataset.i));
         });
     });
 

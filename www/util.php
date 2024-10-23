@@ -1004,7 +1004,7 @@ function spoilerWarningOpen($label = "Spoiler - click to show")
     // set up the text
     $ret = "<span class=\"spoilerButton\" "
            . "id=\"a_spoiler$spoilerNum\">("
-           . "<a href=\"#\" x-num='$spoilerNum'>$label</a>)</span>"
+           . "<a href=\"#\" data-num='$spoilerNum'>$label</a>)</span>"
            . "<span class=\"hiddenSpoiler\" "
            . "id=\"s_spoiler$spoilerNum\">";
 
@@ -1039,7 +1039,7 @@ function spoilerWarningScript()
     $result .= "document.currentScript.parentElement.querySelectorAll('.spoilerButton a').forEach(function (link) {\n"
             . "  link.addEventListener('click', function (event) {\n"
             . "    event.preventDefault();\n"
-            . "    showSpoiler(event.target.getAttribute('x-num'));\n"
+            . "    showSpoiler(event.target.dataset.num);\n"
             . "  });"
             . "});"
             . "//-->\n"

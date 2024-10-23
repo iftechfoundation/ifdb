@@ -211,7 +211,7 @@ function aplSearchDone(d)
         {
             var nm = lst[i].getElementsByTagName('name')[0].firstChild.data;
             var id = lst[i].getElementsByTagName('tuid')[0].firstChild.data;
-            s += "<a href=\"needjs\" x-id='"+id+"'>"
+            s += "<a href=\"needjs\" data-id='"+id+"'>"
                  + encodeHTML(nm) + "</a>"
                  + " - <a href=\"showuser?id=" + id + "\" target=\"_blank\">"
                  + "view profile</a><br>";
@@ -219,10 +219,10 @@ function aplSearchDone(d)
         if (s == "")
             s = "<b><i>(No member profiles found.)</i></b>";
         document.getElementById("aplSearchResults").innerHTML = s;
-        document.getElementById("aplSearchResults").querySelectorAll('a[x-id]').forEach(function (link) {
+        document.getElementById("aplSearchResults").querySelectorAll('a[data-id]').forEach(function (link) {
             link.addEventListener('click', function (event) {
                 event.preventDefault();
-                aplInsertID(event.target.getAttribute('x-id'));
+                aplInsertID(event.target.dataset.id);
             })
         })
         document.getElementById("aplStep2").style.display = "initial";
