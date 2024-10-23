@@ -780,8 +780,8 @@ if ($geticon) {
                 echo "<a href=\"$href\">"
                     . htmlspecialcharx(
                         $osvsn == "" ? $osname :
-                        $osvsn == "*" ? "$osname (All Versions)" :
-                        $osvsn)
+                        ($osvsn == "*" ? "$osname (All Versions)" :
+                        $osvsn))
                     . "</a>";
 
                 if ($editFmtPriv || $editDlaPriv)
