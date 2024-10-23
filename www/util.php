@@ -1002,7 +1002,7 @@ function spoilerWarningOpen($label = "Spoiler - click to show")
     static $spoilerNum = 0;
 
     // set up the text
-    $ret = "<span class=\"spoilerButton\""
+    $ret = "<span class=\"spoilerButton\" "
            . "id=\"a_spoiler$spoilerNum\">("
            . "<a href=\"#\" x-num='$spoilerNum'>$label</a>)</span>"
            . "<span class=\"hiddenSpoiler\" "
