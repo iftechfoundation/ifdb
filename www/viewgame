@@ -277,7 +277,7 @@ function showMemberReviewsHeader($showHisto)
             . "Number of Reviews Written by IFDB Members: $memberReviewCnt<br></span>";
     }
 
-    echo "<a href=\"review?id=$id&userid=$curuser\">"
+    echo "<span class=details><a href=\"review?id=$id&userid=$curuser\">"
         . ($currentUserReview ? "Revise your review" : ($oneReviewView ? "" : "Write a review"))
         . "</a>"
         . "</span>";
