@@ -3427,6 +3427,7 @@ if (count($inrefs) != 0 && !$historyView) {
 
     } // if ($reviewView)
 
+    echo "</div>"; // viewgame-body
 } // if $(errMsg)
 
 pageFooter();
