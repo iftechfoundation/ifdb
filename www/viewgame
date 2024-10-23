@@ -2416,7 +2416,7 @@ if ($embargoCnt > 0)
                  <span class=details>
                  Enter new tags here (use commas to separate tags):<br>
                  </span>
-                 <input type=text size=50 id="myTagFld" list="tags-list">
+                 <input type=text size=50 id="myTagFld">
                  <button class="fancy-button"
                     id="viewgame-add-tags-button"
                     name="addTags">Add</button>
@@ -2688,7 +2688,8 @@ function editTags()
 
     document.getElementById("tagEditor").style.display = "initial";
     dispEditTags();
-    document.getElementById("myTagFld").focus();
+    const tagInputElem = document.getElementById('myTagFld');
+    tagInputElem.focus();
     fetch('/showtags?datalist=1').then(r=>r.ok ? r.arrayBuffer() : null).then(buffer => {
         if (!buffer) return;
         const decoder = new TextDecoder('iso-8859-1');
@@ -2696,6 +2697,7 @@ function editTags()
         const datalist = document.createElement('datalist');
         document.body.appendChild(datalist);
         datalist.outerHTML = text;
+        tagInputElem.setAttribute('list', 'tags-list');
     })
 }
 
