@@ -20,8 +20,8 @@ $caughtUpDate = false;
 $welcomeOpen = true;
 
 if ($uid) {
-    $result = mysql_query(
-        "select `privileges`, caughtupdate, welcomeopen from users where id='$quid'", $db);
+    $result = mysqli_execute_query($db,
+        "select `privileges`, caughtupdate, welcomeopen from users where id=?", [$uid]);
     $priv = mysql_result($result, 0, "privileges");
     $adminPriv = (strpos($priv, "A") !== false);
     $caughtUpDate = mysql_result($result, 0, "caughtupdate");

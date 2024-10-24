@@ -6,7 +6,7 @@ $sandbox = 0;
 // if the user is logged in, look up their sandbox
 $curuser = $_SESSION['logged_in_as'] ?? null;
 if ($curuser) {
-    $result = mysql_query("select sandbox from users where id='$curuser'", $db);
+    $result = mysqli_execute_query($db, "select sandbox from users where id=?", [$curuser]);
     list($sandbox) = mysql_fetch_row($result);
 }
 
@@ -22,7 +22,7 @@ $baseQuery = "select
                 left outer join pollvotes as v on v.pollid = p.pollid
                 join users as u on u.id = p.userid
               where
-                sandbox in (0, $sandbox)
+                sandbox in (0, ?)
               group by
                 p.pollid";
 $limit = "limit 0, 5";
@@ -32,20 +32,20 @@ $rows2 = array();
 $rows3 = array();
 
 // query the most recently created polls
-$result = mysql_query(
-    "$baseQuery order by p.created desc $limit", $db);
+$result = mysqli_execute_query($db,
+    "$baseQuery order by p.created desc $limit", [$sandbox]);
 for ($i = 0, $cnt = mysql_num_rows($result) ; $i < $cnt ; $i++)
     $rows1[] = mysql_fetch_row($result);
 
 // add the most recently active polls (i.e., latest vote)
-$result = mysql_query(
-    "$baseQuery order by lastvotedate desc $limit", $db);
+$result = mysqli_execute_query($db,
+    "$baseQuery order by lastvotedate desc $limit", [$sandbox]);
 for ($i = 0, $cnt = mysql_num_rows($result) ; $i < $cnt ; $i++)
     $rows2[] = mysql_fetch_row($result);
 
 // add the most popular polls (most votes)
-$result = mysql_query(
-    "$baseQuery order by votecnt desc, gamecnt desc $limit", $db);
+$result = mysqli_execute_query($db,
+    "$baseQuery order by votecnt desc, gamecnt desc $limit", [$sandbox]);
 for ($i = 0, $cnt = mysql_num_rows($result) ; $i < $cnt ; $i++)
     $rows3[] = mysql_fetch_row($result);
 
