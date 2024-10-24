@@ -200,7 +200,7 @@ function doLogin($db, $username, $password)
     shoot_recommendation_cache();
 
     // success
-    return array($usernum);
+    return [$usernum, null, null];
 }
 
 // ------------------------------------------------------------------------
