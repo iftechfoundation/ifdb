@@ -7,7 +7,7 @@ $sandbox = 0;
 $curuser = $_SESSION['logged_in_as'] ?? null;
 if ($curuser) {
     $result = mysqli_execute_query($db, "select sandbox from users where id=?", [$curuser]);
-    list($sandbox) = mysql_fetch_row($result);
+    [$sandbox] = mysql_fetch_row($result);
 }
 
 // set up the base query for polls
@@ -27,65 +27,58 @@ $baseQuery = "select
                 p.pollid";
 $limit = "limit 0, 5";
 
-$rows1 = array();
-$rows2 = array();
-$rows3 = array();
+$rows1 = [];
+$rows2 = [];
+$rows3 = [];
 
 // query the most recently created polls
 $result = mysqli_execute_query($db,
     "$baseQuery order by p.created desc $limit", [$sandbox]);
-for ($i = 0, $cnt = mysql_num_rows($result) ; $i < $cnt ; $i++)
-    $rows1[] = mysql_fetch_row($result);
+while ($row = mysql_fetch_row($result))
+    $rows1[] = $row;
 
 // add the most recently active polls (i.e., latest vote)
 $result = mysqli_execute_query($db,
     "$baseQuery order by lastvotedate desc $limit", [$sandbox]);
-for ($i = 0, $cnt = mysql_num_rows($result) ; $i < $cnt ; $i++)
-    $rows2[] = mysql_fetch_row($result);
+while ($row = mysql_fetch_row($result))
+    $rows2[] = $row;
 
 // add the most popular polls (most votes)
 $result = mysqli_execute_query($db,
     "$baseQuery order by votecnt desc, gamecnt desc $limit", [$sandbox]);
-for ($i = 0, $cnt = mysql_num_rows($result) ; $i < $cnt ; $i++)
-    $rows3[] = mysql_fetch_row($result);
+while ($row = mysql_fetch_row($result))
+    $rows3[] = $row;
 
-// pick the top 2 of each, skipping duplicates
-function addPollRows(&$dst, $src, $allRows)
+function addPollRows(&$dst, &$src, $allRows, $amount)
 {
-    // add the next element of src not in dst
-    addUniquePollRow($dst, $src);
+    foreach (range(1, $amount) as $i) {
+        // add the next element of src not in dst
+        if (addUniquePollRow($dst, $src))
+            continue;
 
-    // if that failed, fall back to the master list
-    addUniquePollRow($dst, $allRows);
-}
-function addUniquePollRow(&$dst, $src)
-{
-    // search for an element of src not in dst
-    for ($i = 0 ; $i < count($src) ; $i++) {
-        $srcEle = $src[$i];
-        $srcID = $srcEle[0];
-        for ($found = false, $j = 0 ; $j < count($dst) ; $j++) {
-            $dstEle = $dst[$j];
-            $dstID = $dstEle[0];
-            if ($dstID == $srcID) {
-                $found = true;
-                break;
-            }
-        }
-        if (!$found) {
-            $dst[] = $srcEle;
-            return;
-        }
+        // if that failed, fall back to the master list
+        addUniquePollRow($dst, $allRows);
     }
 }
+function addUniquePollRow(&$dst, &$src)
+{
+    // search for an element of src not in dst
+    foreach ($src as $i => $srcEle) {
+        // Remove items as they are scanned
+        unset($src[$i]);
+
+        if (!isset($dst[$srcEle[0]])) {
+            $dst[$srcEle[0]] = $srcEle;
+            return true;
+        }
+    }
+    return false;
+}
 $allRows = array_merge($rows1, $rows2, $rows3);
-$rows = array();
-addPollRows($rows, $rows1, $allRows);
-addPollRows($rows, $rows1, $allRows);
-addPollRows($rows, $rows2, $allRows);
-addPollRows($rows, $rows2, $allRows);
-addPollRows($rows, $rows3, $allRows);
-$pollRows = $rows;
+$rows = [];
+addPollRows($rows, $rows1, $allRows, 4);
+addPollRows($rows, $rows2, $allRows, 4);
+addPollRows($rows, $rows3, $allRows, 2);
 // -------------------------- done with poll query --------------------------
 
 //
@@ -94,7 +87,7 @@ $pollRows = $rows;
 $colcnt = 0;
 
 // count polls
-if (count($pollRows) > 0)
+if (count($rows) > 0)
     $colcnt++;
 
 // count the "new to IF?" box
@@ -107,7 +100,6 @@ $colClass = "firstcol";
 //
 // if we found any polls, show the poll box
 //
-$rows = $pollRows;
 if (count($rows) > 0) {
     echo "<div class=\"block\"><div class=\"headline\">Vote!</div>"
         . "<p>Help other IFDB members find the games they're looking for "
@@ -120,11 +112,10 @@ if (count($rows) > 0) {
         . "</style>\n";
 
 
-    for ($i = 0 ; $i < count($rows) ; $i++) {
+    foreach ($rows as $row) {
         // retrieve the values
-        list($pollID, $pollTitle, $pollDesc, $pollDate, $pollUserID,
-             $pollVotes, $pollGames, $pollLastVoteDate, $pollUserName) =
-                 $rows[$i];
+        [$pollID, $pollTitle, $pollDesc, $pollDate, $pollUserID,
+         $pollVotes, $pollGames, $pollLastVoteDate, $pollUserName] = $row;
 
         // format for HTML
         $pollTitle = htmlspecialcharx($pollTitle);
