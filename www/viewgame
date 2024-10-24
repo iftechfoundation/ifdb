@@ -1178,10 +1178,17 @@ if (count($links) == 0 && $dlnotes == "") {
         echo "</td><td><div class='downloaditem' id='dlItem$i'>
               <a href=\"$url\"><b>$linktitle</b></a>$zipstar<br>";
 
-        if ($compPri)
+        $unbox_supported = [17, 22, 23, 41];
+
+        if (in_array($fmtcomp, $unbox_supported) && (strpos($url, 'https://ifarchive.org') === 0)) {
+            echo "<div class='details'><a href='https://unbox.ifarchive.org/?url=" . urlencode($url) . "'>View Contents</a></div>";
+        }
+        
+        if ($compPri) {
             echo "<span class=dlzipmain><img src=\"/img/blank.gif\" "
                 . "class=\"zip-contents-arrow\">Contains "
                 . "<b>$compPri</b></span><br>";
+        }
 
         if ($linkdesc) {
             $linkdesc = preg_replace(
