@@ -1436,6 +1436,8 @@ else if ($term || $browse)
             // retrieve the row
             $row = $rows[$i];
 
+            $eagerness = ($i < 5) ? "eager" : "";
+
             // generate the appropriate display
             switch ($searchType) {
 
@@ -1511,8 +1513,6 @@ else if ($term || $browse)
                     if ($ratingExtra != "")
                         $ratingExtra = "<span class=details> ($ratingExtra)</span>";
                 }
-
-                $eagerness = ($i < 5) ? "eager" : "";
 
                 // show the item
                 echo "<p>";
