@@ -191,13 +191,14 @@ $hrefTerm = ($term ? $term : $tTerm);
 $hrefTerm = urlencode($hrefTerm);
 
 // get the search type
-$searchType = (isset($_REQUEST['list']) ? "list" :
-               isset($_REQUEST['poll']) ? "poll" :
-               isset($_REQUEST['member']) ? "member" :
-               isset($_REQUEST['comp']) ? "comp" :
-               isset($_REQUEST['club']) ? "club" :
-               isset($_REQUEST['tag']) ? "tag" :
-               "game");
+const SEARCH_TYPES = ['list', 'poll', 'member', 'comp', 'club', 'tag'];
+$searchType = 'game';
+foreach (SEARCH_TYPES as $st) {
+    if (isset($_REQUEST[$st])) {
+        $searchType = $st;
+        break;
+    }
+}
 
 $browseTabs = array(
     "game"    => "Games",
@@ -1073,7 +1074,7 @@ if ($xml) {
             $flags = $row['flags'];
             $shouldHide = $flags & FLAG_SHOULD_HIDE;
             if (!$showFlagged && $shouldHide) {
-                continue;
+                break;
             }
             $title = htmlspecialcharx($row['title']);
             $author = htmlspecialcharx($row['author']);
@@ -1447,7 +1448,7 @@ else if ($term || $browse)
                 $flags = $row['flags'];
                 $shouldHide = $flags & FLAG_SHOULD_HIDE;
                 if (!$showFlagged && $shouldHide) {
-                    continue;
+                    break;
                 }
                 $title = output_encode(htmlspecialcharx($row['title']));
                 $author = output_encode(htmlspecialcharx($row['author']));
