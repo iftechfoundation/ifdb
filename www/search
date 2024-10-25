@@ -248,7 +248,7 @@ else {
 
 $pg = isset($_REQUEST['pg']) ? $_REQUEST['pg'] : "";
 $pgAll = false;
-$perPage = 20;
+$perPage = 100;
 $showAllMaxRows = 500;
 $sortby = isset($_REQUEST['sortby']) ? $_REQUEST['sortby'] : "";
 
