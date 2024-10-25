@@ -1450,6 +1450,8 @@ function expandVote(id)
                 . "<i>You created this poll on $created</i> - "
                 . "<a href=\"poll?id=$id&editPoll\">Modify</a> | "
                 . "<a href=\"poll?id=$id&delPoll\">Delete</a></p>";
+        } else {
+            echo "<p><hr class=dots></p><p><i>Poll created on $created</i></p>";
         }
     }
 
