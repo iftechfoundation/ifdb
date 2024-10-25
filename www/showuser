@@ -8,7 +8,6 @@ include_once "commentutil.php";
 include_once "captcha.php";
 
 $db = dbConnect();
-$sdb = storageDbConnect();
 
 // get the user ID from the request
 $uid = isset($_REQUEST['id']) ? $_REQUEST['id'] : null;
