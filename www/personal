@@ -9,7 +9,6 @@ include_once "dbconnect.php";
 include_once "util.php";
 include_once "pagetpl.php";
 include_once "commentutil.php";
-include_once "storage-util.php";
 
 $db = dbConnect();
 

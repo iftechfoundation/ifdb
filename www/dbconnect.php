@@ -15,10 +15,6 @@ include_once "local-credentials.php";
         return localCredentials();
     }
 
-    function localStorageCredentials() {
-        return localCredentials();
-    }
-
     function localRecaptchaKeys() {
         return array(
             "public" => "public-key",
@@ -68,21 +64,6 @@ function imageDbConnect($dbnum)
 
     // return the connection
     return $db;
-}
-
-function storageDbConnect()
-{
-    // connect to the appropriate server, depending on whether we're running
-    // on the real system or on our local test bed
-    $sdbinfo = localStorageCredentials();
-
-    // connect and select the correct database
-    $sdb = mysql_connect($sdbinfo[0], $sdbinfo[1], $sdbinfo[2]);
-    if ($sdb != false)
-        $result = mysql_select_db("storage", $sdb);
-
-    // return the connection
-    return $sdb;
 }
 
 ?>
