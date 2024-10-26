@@ -174,9 +174,7 @@ function sendCoverArt()
         // scan for a version that overrides the current definition
         $rows = mysql_num_rows($result);
         $foundvsn = false;
-        for ($i = 0 ; $i < $rows ; $i++) {
-            // get this row
-            $rec = mysql_fetch_array($result, MYSQL_ASSOC);
+        while ($rec = mysql_fetch_array($result, MYSQL_ASSOC)) {
 
             // deserialize the deltas
             $deltas = unserialize($rec['deltas']);
@@ -297,10 +295,9 @@ function showMemberReviewsHeader($showHisto)
 function awardList($awards)
 {
     // check for a "main" division
-    $names = array();
-    for ($i = 0 ; $i < count($awards) ; $i++)
+    $names = [];
+    foreach ($awards as $a)
     {
-        $a = $awards[$i];
         if ($a[1] == "Main")
         {
             // if this is the only item, leave out the division name
@@ -637,8 +634,8 @@ if (isset($_REQUEST['ifiction']))
         // load the translation table for the file formats
         $result = mysqli_execute_query($db,
             "select id, externid from filetypes");
-        for ($i = 0, $fmtMap = array() ; $i < mysql_num_rows($result) ; $i++) {
-            list($id, $ext) = mysql_fetch_row($result);
+        $fmtMap = [];
+        while ([$id, $ext] = mysql_fetch_row($result)) {
             $fmtMap[$id] = $ext;
         }
         echo "<downloads><links>";
@@ -750,7 +747,6 @@ if (is_null(getID()) && get_req_data('ifid') != "") {
     // check for a title in the request; if it's there, try searching for
     // matches based on the title
     $title = get_req_data('title');
-    $titleSearch = array();
     if ($title != "") {
         $qtitle = mysql_real_escape_string($title, $db);
         $result = mysql_query(
@@ -763,8 +759,7 @@ if (is_null(getID()) && get_req_data('ifid') != "") {
                 if (title like '$qtitle', 0, 1),
                 match (title) against ('$qtitle' in boolean mode) desc
              limit 0, 3", $db);
-        for ($i = 0 ; $i < mysql_num_rows($result) ; $i++)
-            $titleSearch[] = mysql_fetch_array($result, MYSQL_ASSOC);
+        $titleSearch = mysqli_fetch_all($result, MYSQL_ASSOC);
     }
 
     ?>
@@ -917,12 +912,9 @@ echo helpWinLink("help-ifid", "IFID");
 // Check to see if the game is available for download in any form.
 // PC == "parchment capable" - a format that we can play with Parchment.
 // HEX = Hugo file playable online with textadventures.online/play/?story=XXX
-for ($foundGame = $foundHtml = $foundPC = $foundHex = $htmlUrl = $pcUrl = $foundAdrift = $adriftUrl = $hexUrl = false, $i = 0 ;
-     $i < count($links) ; $i++)
+$foundGame = $foundHtml = $foundPC = $foundHex = $htmlUrl = $pcUrl = $foundAdrift = $adriftUrl = $hexUrl = false;
+foreach ($links as $link)
 {
-    // get this link
-    $link = $links[$i];
-
     // if it's a game, note that we found a game link
     if ($link['isgame'])
         $foundGame = true;
@@ -1077,27 +1069,27 @@ if (count($links) == 0 && $dlnotes == "") {
     }
 
     // count compressed files
-    $zips = array();
-    $zipnotes = array();
-    for ($i = 0 ; $i < count($links) ; $i++) {
-        $c = $links[$i]['compression'];
-        if ($c) {
-            if (isset($zips[$c]) && $zips[$c]) {
-                $zips[$c][0] += 1;
-            }
-            else {
-                $result = mysqli_execute_query($db, "select `desc` from filetypes
-                    where id = ?", [$c]);
-                $zips[$c] = array(1, "", mysql_result($result, 0, "desc"));
-                $zipnotes[] = $c;
-            }
+    $zips = [];
+    $zipnotes = [];
+    foreach ($links as $link) {
+        $c = $link['compression'];
+        if (!$c) {
+            continue;
+        }
+        if (isset($zips[$c]) && $zips[$c]) {
+            $zips[$c][0] += 1;
+        }
+        else {
+            $result = mysqli_execute_query($db, "select `desc` from filetypes
+                where id = ?", [$c]);
+            $zips[$c] = [1, "", mysql_result($result, 0, "desc")];
+            $zipnotes[] = $c;
         }
     }
 
     // use footnotes for any compression formats appearing more than once
     $footnoteid = 1;
-    for ($i = 0 ; $i < count($zipnotes) ; $i++) {
-        $c = $zipnotes[$i];
+    foreach ($zipnotes as $c) {
         if ($zips[$c][0] > 1) {
             $zips[$c][1] = getFootnoteStar($footnoteid++);
         }
@@ -1105,9 +1097,7 @@ if (count($links) == 0 && $dlnotes == "") {
 
     // display the link table
     echo "<table class=\"downloadlist\">";
-    for ($i = 0 ; $i < count($links) ; $i++) {
-        // get this link's information
-        $link = $links[$i];
+    foreach ($links as $i => $link) {
         $url = $link['url'];
         $zipped = (strcasecmp(substr($url, -4), ".zip") == 0);
         $fmtisgame = $link['isgame'];
@@ -1201,8 +1191,8 @@ if (count($links) == 0 && $dlnotes == "") {
     echo "</table>";
 
     // add a footnote on each compressed format that appeared more than once
-    for ($i = 0 ; $i < count($zipnotes) ; $i++) {
-        $z = $zips[$zipnotes[$i]];
+    foreach ($zipnotes as $zipnote) {
+        $z = $zips[$zipnote];
         if ($z[0] > 1)
             echo "<div class=zipnote><span class=zipstar>{$z[1]}</span> "
                 . "<span class=zipnote>{$z[2]}</span></div>";
@@ -1404,7 +1394,7 @@ if ($hasart) {
 // search for that author's name (using the "author:" search modifier)
 $authorList = splitPersonalNameList($authorExt != "" ? $authorExt : $author);
 $conj = "";
-for ($i = 0, $acnt = count($authorList) ; $i < $acnt ; $i++) {
+foreach ($authorList as $i => $au) {
     // get this author
     $au = $authorList[$i];
 
@@ -1442,7 +1432,7 @@ for ($i = 0, $acnt = count($authorList) ; $i < $acnt ; $i++) {
     echo "$conj<a href=\"search?searchfor=author%3A$uau\">$dau</a>$proLink";
 
     // figure the conjunction for the next in the list
-    $conj = ($i + 2 == $acnt ? ($i == 0 ? " and " : ", and ") : ", ");
+    $conj = ($i + 2 == count($authorList) ? ($i == 0 ? " and " : ", and ") : ", ");
 }
                   ?></b><br><br>
                   <span class=details>
@@ -1537,9 +1527,7 @@ if (!isEmpty($genre)) {
              limit 0, 4", $params);
 
         // fetch the recommendation lists to show
-        $listcnt = mysql_num_rows($result);
-        for ($lists = array(), $i = 0 ; $i < $listcnt ; $i++)
-            $lists[] = mysql_fetch_array($result, MYSQL_ASSOC);
+        $lists = mysqli_fetch_all($result, MYSQL_ASSOC);
 
         // look for polls with votes for this game
         $params = [$id];
@@ -1574,9 +1562,7 @@ if (!isEmpty($genre)) {
                0, 4", $params);
 
         // fetch the polls
-        $pollcnt = mysql_num_rows($result);
-        for ($polls = array(), $i = 0 ; $i < $pollcnt ; $i++)
-            $polls[] = mysql_fetch_array($result, MYSQL_ASSOC);
+        $polls = mysqli_fetch_all($result, MYSQL_ASSOC);
 
         $overloaded = 1;
         if (!$overloaded) {
@@ -1635,11 +1621,8 @@ if (!isEmpty($genre)) {
                 limit 0, 3", $db);
 
             // fetch the cross-recommendations
-            $crosscnt = mysql_num_rows($result);
-            for ($crossrecs = array(), $i = 0 ; $i < $crosscnt ; $i++)
-                $crossrecs[] = mysql_fetch_array($result, MYSQL_ASSOC);
+            $crossrecs = mysqli_fetch_all($result, MYSQL_ASSOC);
         } else {
-            $crosscnt = 0;
             $crossrecs = [];
         } 
 
@@ -1699,14 +1682,12 @@ if (!isEmpty($genre)) {
              limit
                0, 3", $db);
 
-        $ecrosscnt = mysql_num_rows($result);
-        for ($ecrossrecs = array(), $i = 0 ; $i < $ecrosscnt ; $i++)
-            $ecrossrecs[] = mysql_fetch_array($result, MYSQL_ASSOC);
+        $ecrossrecs = mysqli_fetch_all($result, MYSQL_ASSOC);
 
         // if we have any cross-recommendations, limit the member
         // reviews to the top 3; otherwise, show up to 5 reviews
         $reviewsOnHomePage =
-            (($listcnt || $pollcnt || $crosscnt || $ecrosscnt) ? 3 : 5);
+            (($lists || $polls || $crossrecs || $ecrossrecs) ? 3 : 5);
     }
 
 // --------------------- GAME DETAILS -------------------------------
@@ -1878,12 +1859,10 @@ if ($embargoCnt > 0)
 
             // display the award rows
             $lastComp = false;
-            $awards = array();
-            for ($i = 0 ; $i < mysql_num_rows($result) ; $i++)
+            $awards = [];
+            while ([$compID, $compTitle, $compDivName, $compPlace] =
+                    mysql_fetch_row($result))
             {
-                // fetch and decode this row
-                list($compID, $compTitle, $compDivName, $compPlace)
-                    = mysql_fetch_row($result);
                 $compTitle = htmlspecialcharx($compTitle);
                 $compDivName = htmlspecialcharx($compDivName);
                 $compPlace = htmlspecialcharx($compPlace);
@@ -1900,11 +1879,11 @@ if ($embargoCnt > 0)
 
                     // start the new one
                     $lastComp = $comp;
-                    $awards = array();
+                    $awards = [];
                 }
 
                 // add this award to the list
-                $awards[] = array($compPlace, $compDivName);
+                $awards[] = [$compPlace, $compDivName];
             }
 
             // flush the last award
@@ -1956,11 +1935,8 @@ if ($embargoCnt > 0)
             where games_history.id = '$qid'
             order by pagevsn desc", $db);
     $rowcnt = mysql_num_rows($result);
-    for ($i = 0 ; $i < $rowcnt ; $i++) {
-        // retrieve the row
-        list ($ivsn, $ieditor, $ieditorname, $idate, $deltas) =
-            mysql_fetch_row($result);
-
+    while ([$ivsn, $ieditor, $ieditorname, $idate, $deltas] =
+            mysql_fetch_row($result)) {
         // make the user name safe for display
         $ieditorname = htmlspecialcharx($ieditorname);
 
@@ -2035,8 +2011,8 @@ if ($embargoCnt > 0)
             }
 
             // show the reviews
-            for ($i = 0 ; $i < mysql_num_rows($result) ; $i++)
-                showReview($db, $id, mysql_fetch_array($result, MYSQL_ASSOC),
+            while ($row = mysql_fetch_array($result, MYSQL_ASSOC))
+                showReview($db, $id, $row,
                            $specialNames, SHOWREVIEW_COLLAPSELONG | ($adminPriv ? SHOWREVIEW_ADMINREVIEWVOTESLINK : 0));
         }
 
@@ -2073,7 +2049,7 @@ if ($embargoCnt > 0)
             }
 
             // show the top reviews
-            for ($i = 0 ; $i < $showcnt ; $i++) {
+            foreach (range(1, $showcnt) as $i) {
                 // fetch the review
                 $reviewRec = mysql_fetch_array($result, MYSQL_ASSOC);
 
@@ -2137,8 +2113,7 @@ if ($embargoCnt > 0)
                    sr.displayrank", [$id]);
 
             // collect the reviews
-            for ($i = 0 ; $i < mysql_num_rows($result) ; $i++)
-                $srevs[] = mysql_fetch_array($result, MYSQL_ASSOC);
+            $srevs = mysqli_fetch_all($result, MYSQL_ASSOC);
         }
 
         // merge the external reviews
@@ -2155,9 +2130,8 @@ if ($embargoCnt > 0)
 
         // see what we have
         if (count($srevs) != 0) {
-            for ($i = 0 ; $i < count($srevs) ; $i++) {
+            foreach ($srevs as $srev) {
                 // get this row
-                $srev = $srevs[$i];
                 $rating = $srev['rating'];
                 $headline = htmlspecialcharx($srev['headline']);
                 $review = $srev['summary'];
@@ -2926,8 +2900,7 @@ else {
 // show the outbound references, if any
 if (count($xrefs) != 0) {
     echo "<br>";
-    for ($i = 0 ; $i < count($xrefs) ; $i++) {
-        $x = $xrefs[$i];
+    foreach ($xrefs as $x) {
         $x['author'] = collapsedAuthors($x['author']);
         $fn = $x['fromname'];
         $fn = str_replace(array("<language>", "<system>"),
@@ -2996,33 +2969,33 @@ if (count($inrefs) != 0 && !$historyView) {
         // the latter case, since the user asked for recommendations,
         // show the header even if we don't have anything to list
         $divStarted = false;
-        if ($crosscnt == 0 && $ecrosscnt == 0
-            && !$recView && ($listcnt || $pollcnt)) {
+        if (!$crossrecs && !$ecrossrecs
+            && !$recView && ($lists || $polls)) {
             $divStarted = true;
             echo "<h2><i>$title</i> on IFDB</h2>"
                 . "<div class=indented>";
         }
-        else if ($listcnt || $pollcnt || $crosscnt || $ecrosscnt || $recView) {
+        else if ($lists || $polls || $crossrecs || $ecrossrecs || $recView) {
             $divStarted = true;
             echo "<h2>If you enjoyed <i>$title</i>...</h2>"
                 . "<div class=indented>";
         }
 
         // if we have recommendations, show them
-        if ($listcnt || $pollcnt || $crosscnt || $ecrosscnt) {
+        if ($lists || $polls || $crossrecs || $ecrossrecs) {
 
             // display the cross-recommendations for games
-            if ($crosscnt || $ecrosscnt) {
+            if ($crossrecs || $ecrossrecs) {
                 echo "<h3>Related Games</h3>";
 
-                $these = ($ecrosscnt + $crosscnt == 1
+                $these = (count($ecrossrecs) + count($crossrecs) == 1
                           ? "this game" : "these games");
 
-                if ($ecrosscnt && $crosscnt && $ecrosscnt < 3) {
+                if ($ecrossrecs && $crossrecs && count($ecrossrecs) < 3) {
                     echo "Other members recommend $these for "
                         . "people who like <i>$title</i>, or gave both "
                         . "high ratings:";
-                } else if ($ecrosscnt) {
+                } else if ($ecrossrecs) {
                     echo "Other members recommend $these for "
                         . "people who like <i>$title</i>:";
                 } else {
@@ -3084,7 +3057,7 @@ if (count($inrefs) != 0 && !$historyView) {
                 }
 
                 echo "<p><span class=details>";
-                if ($ecrosscnt > 3) {
+                if (count($ecrossrecs) > 3) {
                     echo "<a href=\"crossrec?game=$id\">"
                         . "See more suggestions</a> - ";
                 }
@@ -3098,7 +3071,7 @@ if (count($inrefs) != 0 && !$historyView) {
             }
 
             // display the lists
-            if ($listcnt) {
+            if ($lists) {
                 echo "<h3>Recommended Lists</h3>"
                     . "<i>$title</i> appears in the "
                     . "following Recommended Lists:"
@@ -3131,7 +3104,7 @@ if (count($inrefs) != 0 && !$historyView) {
             }
 
             // display the polls
-            if ($pollcnt) {
+            if ($polls) {
                 echo "<h3>Polls</h3>"
                     . "The following polls include votes for <i>$title</i>:"
                     . "<div class=indented>";

@@ -115,10 +115,9 @@ function initSpecialNames($db)
     $result = mysql_query("select id, name, code from specialreviewers", $db);
 
     // load the array
-    $specialNames = array();
-    $specialCodes = array();
-    for ($i = 0 ; $i < mysql_num_rows($result) ; $i++) {
-        list($id, $name, $code) = mysql_fetch_row($result);
+    $specialNames = [];
+    $specialCodes = [];
+    while ([$id, $name, $code] = mysql_fetch_row($result)) {
         $specialNames[$id] = $name;
         $specialCodes[$id] = $code;
     }
@@ -574,13 +573,12 @@ function showReview($db, $gameid, $rec, $specialNames, $optionFlags = 0)
 // Get the tags associated with a review, as an array.
 function queryReviewTags($db, $reviewID)
 {
-    $tags = array();
-    $qid = mysql_real_escape_string($reviewID, $db);
-    $result = mysql_query(
-        "select tag from reviewtags where reviewid='$qid'", $db);
-    if (($cnt = mysql_num_rows($result)) > 0) {
-        for ($i = 0 ; $i < $cnt ; $i++) {
-            $tags[] = mysql_result($result, $i, "tag");
+    $tags = [];
+    $result = mysqli_execute_query($db,
+        "select tag from reviewtags where reviewid=?", [$reviewID]);
+    if (mysql_num_rows($result) > 0) {
+        while ([$tag] = mysql_fetch_row($result)) {
+            $tags[] = $tag;
         }
     }
     return $tags;
