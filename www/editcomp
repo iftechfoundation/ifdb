@@ -1511,7 +1511,6 @@ function activateListeners(divno, model)
         var idx = "" + divno + "_" + i;
         (function(i){
             document.querySelectorAll('a.editLink' + idx).forEach(function(editLink) {
-                console.log({editLink});
                 editLink.addEventListener('click', function(event) {
                     event.preventDefault();
                     editGame(divno, i);
@@ -1520,7 +1519,6 @@ function activateListeners(divno, model)
         })(i);
 
         document.querySelectorAll('#gameplace'+idx).forEach(function(comboField) {
-            console.log({comboField});
             comboField.addEventListener('keydown', function(event) {
                 var result = comboFieldKey(event,comboField.name,comboField.name + 'CBSel','D');
                 if (result === false) event.preventDefault();
@@ -1531,7 +1529,6 @@ function activateListeners(divno, model)
             });
         });
         document.querySelectorAll('a[data-name=gameplace'+idx+']').forEach(function(comboArrow) {
-            console.log({comboArrow});
             comboArrow.addEventListener('click', function (event) {
                 event.preventDefault();
                 var name = comboArrow.dataset.name;
@@ -1550,7 +1547,6 @@ function activateListeners(divno, model)
         });
 
         document.querySelectorAll('#gameplace'+idx+"CBDiv").forEach(function(comboList) {
-            console.log({comboList});
             comboList.addEventListener('mouseover', function () {
                 overComboMenu = true;
             });
@@ -1560,7 +1556,6 @@ function activateListeners(divno, model)
         });
 
         document.querySelectorAll('#gameplace'+idx+"CBSel").forEach(function(comboSelect) {
-            console.log({comboSelect});
             var name = comboSelect.id.substring(0, comboSelect.id.length - 5);
             comboSelect.addEventListener('click', function (event) {
                 setComboText(name,event.target.value,null);
