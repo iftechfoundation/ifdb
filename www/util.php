@@ -90,6 +90,48 @@ function rss_encode($str)
 
 // ------------------------------------------------------------------------
 //
+// XML serialization of arrays. Assumes UTF-8 data.
+//
+function serialize_xml($array) {
+    $parts = [];
+
+    foreach ($array as $key => $value) {
+        if (is_int($key)) {
+            $parts[] = serialize_xml($value);
+            continue;
+        }
+
+        $attrs_str = '';
+        if ($attrs = $value['_attrs'] ?? null) {
+            $attrs_parts = [];
+            foreach ($attrs as $akey => $avalue) {
+                $avalue = htmlspecialcharx($avalue);
+                $attrs_parts[] = " ${akey}=\"${avalue}\"";
+            }
+            $attrs_str = implode('', $attrs_parts);
+
+            $value = $value['_contents'];
+        }
+
+        $parts[] = "<$key$attrs_str>";
+        if (is_array($value)) {
+            $parts[] = serialize_xml($value);
+        } else {
+            if (is_string($value)) {
+                $value = htmlspecialcharx($value);
+            } else if (is_bool($value)) {
+                $value = $value ? 'yes' : 'no';
+            }
+            $parts[] = $value;
+        }
+        $parts[] = "</$key>";
+    }
+
+    return implode('', $parts);
+}
+
+// ------------------------------------------------------------------------
+//
 // Determine if the string is UTF-8 encoded.
 //
 function is_utf8($str)

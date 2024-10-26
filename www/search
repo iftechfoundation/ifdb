@@ -14,7 +14,12 @@ include_once "dbconnect.php";
 $db = dbConnect();
 
 // check for API requests
-$xml = isset($_REQUEST['xml']);
+$api_mode = null;
+foreach (['xml', 'json'] as $api_param) {
+    if (isset($_REQUEST[$api_param])) {
+        $api_mode = $api_param;
+    }
+}
 
 // get the request parameters
 $term = get_req_data('searchfor');
@@ -26,14 +31,14 @@ if ($term == "" && $bTerm != "")
 
 // check for special API requests
 $enum = get_req_data("enum");
-if ($xml && $enum)
+if ($api_mode && $enum)
 {
     // assume no error
     $errmsg = false;
     $itemType = false;
 
     // queries for the various types
-    $queries = array(
+    $queries = [
         "genre" => "select distinct genre from games",
         "forgiveness" => "select distinct forgiveness from games",
         "language" => "select distinct language from games",
@@ -44,7 +49,8 @@ if ($xml && $enum)
                   .   "join filetypes as f on f.id = gl.fmtid "
                   .   "left outer join operatingsystems as os "
                   .       "on os.id = gl.osid "
-                  . "where f.fmtclass in ('X', 'G')");
+                  . "where f.fmtclass in ('X', 'G')"
+    ];
 
     // get the query
     if (isset($queries[$enum]))
@@ -279,7 +285,7 @@ if ($term || $browse) {
     }
 
     // if there's exactly one row, jump directly to the result page
-    if ($rowcnt == 1 && !$browse && !$xml) {
+    if ($rowcnt == 1 && !$browse && !$api_mode) {
         $redir = false;
         switch ($searchType) {
         case "game":
@@ -323,7 +329,7 @@ if ($term || $browse) {
 //   Start the page, if we're showing a UI (i.e., HTML mode, not XML mode)
 //
 
-if (!$xml) {
+if (!$api_mode) {
 
     // start the page
     $searchTypeName = ($searchType == "list" ? "Recommended Lists" :
@@ -381,11 +387,11 @@ function helpExtLink($title, $url)
         . "</div>";
 }
 
-if (!$xml) {
+if (!$api_mode) {
     echo "<div class='prerender-moderate'>\n";
 }
 
-if (!$browse && !$xml) {
+if (!$browse && !$api_mode) {
     $otherTabs = "<div class=\"browseLabel\">Searching</div>"
                  . "<div class=\"browseBar\">"
                  . "<div class=\"browseTabs\">";
@@ -457,7 +463,7 @@ function populateHelpList(id, div, tableWid, params, xml)
     <?php
 }
 
-if ($xml) {
+if ($api_mode) {
 
     // no UI in XML mode - this is an API request
 
@@ -889,7 +895,7 @@ else {  // ...default is searching games
 
         <p><b>authorid:<i>id</i></b> lists games by the author with
             the given id.
-       
+
         <p><b>competitionid:<i>id</i></b> lists games in a competition with
             the given id.
 
@@ -944,195 +950,196 @@ else {  // ...default is searching games
 //   If we had a search term, show the results
 //
 
-if ($xml) {
+if ($api_mode) {
 
-    // start the XML reply
-    header("Content-type: text/xml");
+    // start the API reply
+    if ($api_mode == 'json') {
+        header("Content-type: application/json");
+    } else if ($api_mode == 'xml') {
+        header("Content-type: text/xml");
+    }
     header("Expires: Mon, 26 Jul 1997 05:00:00 GMT");
     header("Cache-Control: no-store, no-cache, must-revalidate");
 
-    echo "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
-        . "<searchReply xmlns=\"http://ifdb.org/api/xmlns\">";
+    if ($api_mode == 'xml') {
+        echo "<?xml version=\"1.0\" encoding=\"UTF-8\"?>";
+    }
 
     // check for errors
     if ($errMsg)
     {
-        echo "<error>"
-            . rss_encode(htmlspecialcharx($errMsg))
-            . "</error>"
-            . "</searchReply>";
+        $error_answer = [
+            'error'=> $errMsg,
+        ];
+
+        if ($api_mode == 'json') {
+            echo json_encode($error_answer);
+        } else if ($api_mode == 'xml') {
+            echo serialize_xml(['searchReply' => $error_answer]);
+        }
         exit();
     }
 
+    if ($api_mode == 'xml') {
+        echo "<searchReply xmlns=\"http://ifdb.org/api/xmlns\">";
+    }
+
     // we have a valid reply - start it
-    $grouptags = array(
+    $grouptags = [
         "game" => "games",
         "list" => "lists",
         "poll" => "polls",
         "comp" => "competitions",
         "member" => "members"
-    );
+    ];
+    $group_item_names = [
+        'comp' => 'competition',
+    ];
+
     $grouptag = $grouptags[$searchType];
-    echo "<$grouptag>";
+    $groupItemName = $group_item_names[$searchType] ?? $searchType;
+
+    if ($api_mode == 'json') {
+        echo "{\n    \"$grouptag\": [\n";
+    } else if ($api_mode == 'xml') {
+        echo "<$grouptag>";
+    }
 
     $showFlagged = isset($_GET['showFlagged']) && $_GET['showFlagged'];
     // send the results
-    for ($i = 0 ; $i < count($rows) ; $i++)
+    foreach ($rows as $i => $row)
     {
-        $row = $rows[$i];
+        // Convert database row from latin1 to UTF-8
+        array_walk($row, function(&$value, $key) {
+            if (is_string($value)) {
+                $value = rss_encode($value);
+                $value = html_entity_decode($value);
+            }
+        });
+
         switch($searchType)
         {
         case "game":
             $id = $row['id'];
-            $flags = $row['flags'];
-            $shouldHide = $flags & FLAG_SHOULD_HIDE;
+            $shouldHide = $row['flags'] & FLAG_SHOULD_HIDE;
             if (!$showFlagged && $shouldHide) {
                 break;
             }
-            $title = htmlspecialcharx($row['title']);
-            $author = htmlspecialcharx($row['author']);
-            $published = $row['published'];
-            $pubfmt = $row['pubfmt'];
-            $devsys = $row['devsys'];
-            $rating = $row['avgrating'];
-            list($stars) = roundStars($rating);
-            $ratingCnt = $row['ratingcnt'];
-            $starsort = $row['starsort'];
-            $art = ($row['hasart'] ? "yes" : "no");
-            $link = htmlspecialcharx(get_root_url() . "viewgame?id=$id");
 
-            $coverArtLink = "";
-            if ($art == "yes") {
-                $coverArtLink =
-                    "<coverArtLink>"
-                    . htmlspecialcharx(get_root_url() . "coverart?id=$id&version={$row['pagevsn']}")
-                    . "</coverArtLink>";
+            $item = [
+                'tuid' => $id,
+                'title' => $row['title'],
+                'link' => get_root_url() . "viewgame?id=$id",
+                'author' => $row['author'],
+                'hasCoverArt' => boolval($row['hasart']),
+                'devsys' => $row['devsys'],
+                'published' => [
+                    'machine' => $row['published'],
+                    'printable' => $row['pubfmt'],
+                ]
+            ];
+            if (!$shouldHide) {
+                $rating = $row['avgrating'];
+                $item['averageRating'] = $rating;
+                $item['numRatings'] = $row['ratingcnt'];
+                [$item['starRating']] = roundStars($rating);
+                $item['starSort'] = $row['starsort'];
+            }
+            if ($row['hasart']) {
+                $item['coverArtLink'] =
+                    get_root_url() . "coverart?id=$id&version={$row['pagevsn']}";
             }
 
-            echo rss_encode(
-                "<game>"
-                .   "<tuid>$id</tuid>"
-                .   "<title>$title</title>"
-                .   "<link>$link</link>"
-                .   "<author>$author</author>"
-                .   ($shouldHide ? "" : (
-                        "<averageRating>$rating</averageRating>"
-                    .   "<numRatings>$ratingCnt</numRatings>"
-                    .   "<starRating>$stars</starRating>"
-                    .   "<starSort>$starsort</starSort>"
-                ))
-                .   "<hasCoverArt>$art</hasCoverArt>"
-                .   "<devsys>$devsys</devsys>"
-                .   "<published>"
-                .     "<machine>$published</machine>"
-                .     "<printable>$pubfmt</printable>"
-                .   "</published>"
-                .   $coverArtLink
-                . "</game>");
             break;
 
         case "list":
             $id = $row['id'];
-            $title = htmlspecialcharx($row['title']);
-            $desc = htmlspecialcharx(fixDesc($row['desc']));
-            $userid = $row['userid'];
-            $username = htmlspecialcharx($row['username']);
-            $items = $row['itemcount'];
-            $link = htmlspecialcharx(get_root_url() . "viewlist?id=$id");
 
-            echo rss_encode(
-                "<list>"
-                .  "<tuid>$id</tuid>"
-                .  "<title>$title</title>"
-                .   "<link>$link</link>"
-                .  "<desc>$desc</desc>"
-                .  "<creatorID>$userid</creatorID>"
-                .  "<creatorName>$username</creatorName>"
-                .  "<numItems>$items</numItems>"
-                . "</list>");
+            $item = [
+                'tuid' => $id,
+                'title' => $row['title'],
+                'link' => get_root_url() . "viewlist?id=$id",
+                'desc' => fixDesc($row['desc']),
+                'creatorID' => $row['userid'],
+                'creatorName' => $row['username'],
+                'numItems' => $row['itemcount'],
+            ];
             break;
 
         case "poll":
             $id = $row['id'];
-            $title = htmlspecialcharx($row['title']);
-            $desc = fixDesc($row['desc']);
-            $userid = $row['userid'];
-            $username = htmlspecialcharx($row['username']);
-            $votecnt = $row['votecnt'];
-            $gamecnt = $row['gamecnt'];
-            $link = htmlspecialcharx(get_root_url() . "poll?id=$id");
 
-            echo rss_encode(
-                "<poll>"
-                .  "<tuid>$id</tuid>"
-                .  "<title>$title</title>"
-                .   "<link>$link</link>"
-                .  "<desc>$desc</desc>"
-                .  "<creatorID>$userid</creatorID>"
-                .  "<creatorName>$username</creatorName>"
-                .  "<numVotes>$votecnt</numVotes>"
-                .  "<numGames>$gamecnt</numGames>"
-                . "</poll>");
+            $item = [
+                'tuid' => $id,
+                'title' => $row['title'],
+                'link' => get_root_url() . "poll?id=$id",
+                'desc' => fixDesc($row['desc']),
+                'creatorID' => $row['userid'],
+                'creatorName' => $row['username'],
+                'numVotes' => $row['votecnt'],
+                'numGames' => $row['gamecnt'],
+            ];
             break;
 
         case "comp":
             $id = $row['compid'];
-            $title = htmlspecialcharx($row['title']);
-            $desc = fixDesc($row['desc']);
-            $gamecnt = $row['gamecnt'];
-            $divcnt = $row['divcnt'];
-            $link = htmlspecialcharx(get_root_url() . "viewcomp?id=$id");
 
-            echo rss_encode(
-                "<competition>"
-                .  "<tuid>$id</tuid>"
-                .  "<title>$title</title>"
-                .   "<link>$link</link>"
-                .  "<desc>$desc</desc>"
-                .  "<numGames>$gamecnt</numGames>"
-                .  "<numDivisions>$divcnt</numDivisions>"
-                . "</competition>");
+            $item = [
+                'tuid' => $id,
+                'title' => $row['title'],
+                'link' => get_root_url() . "viewcomp?id=$id",
+                'desc' => fixDesc($row['desc']),
+                'numGames' => $row['gamecnt'],
+                'numDivisions' => $row['divcnt'],
+            ];
             break;
 
         case "member":
             $id = $row['id'];
-            $name = htmlspecialcharx($row['name']);
-            $loc = htmlspecialcharx($row['location']);
-            $pic = ($row['haspic'] ? "yes" : "no");
             $badgeInfo = $badges ? ($badges[$id] ?? false) : false;
-            $badge = ($badgeInfo ? $badgeInfo[1] : false);
-            $link = htmlspecialcharx(get_root_url() . "showuser?id=$id");
 
-            $picLink = "";
-            if ($pic == "yes") {
-                $picLink =
-                    "<pictureLink>"
-                    . htmlspecialcharx(get_root_url() . "showuser?id=$id&pic")
-                    . "</pictureLink>";
+            $item = [
+                'tuid' => $id,
+                'name' => $row['name'],
+                'link' => get_root_url() . "showuser?id=$id",
+                'location' => $row['location'],
+                'hasPicture' => boolval($row['haspic']),
+                'badge' => ($badgeInfo ? $badgeInfo[1] : ''),
+            ];
+
+            if ($row['haspic']) {
+                $item['pictureLink'] = get_root_url() . "showuser?id=$id&pic";
             }
 
-            echo rss_encode(
-                "<member>"
-                .  "<tuid>$id</tuid>"
-                .  "<name>$name</name>"
-                .   "<link>$link</link>"
-                .  "<location>$loc</location>"
-                .  "<hasPicture>$pic</hasPicture>"
-                .  $picLink
-                .  "<badge>$badge</badge>"
-                . "</member>");
             break;
 
         case "tag":
             $id = $row['tag'];
             $link = htmlspecialcharx(get_root_url() . "search?searchfor=tag:$id");
             break;
+
+        default:
+            $item = [];
+        }
+
+        if ($api_mode == 'json') {
+            echo "        ";
+            echo json_encode($item);
+            if ($i != count($rows) - 1) {
+                echo ",\n";
+            }
+        } else if ($api_mode == 'xml') {
+            echo serialize_xml([$groupItemName => $item]);
         }
     }
 
-    // end the XML reply
-    echo "</$grouptag>"
-        . "</searchReply>";
+    // end the reply
+    if ($api_mode == 'json') {
+        echo "\n    ]\n}";
+    } else if ($api_mode == 'xml') {
+        echo "</$grouptag></searchReply>";
+    }
+
     exit();
 }
 else if ($term || $browse)
@@ -1598,7 +1605,7 @@ else if ($term || $browse)
 
 }
 
-if (!$xml) {
+if (!$api_mode) {
 ?>
 </div>
 <script type="text/javascript" nonce="<?php global $nonce; echo $nonce; ?>">
