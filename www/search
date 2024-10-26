@@ -1203,7 +1203,7 @@ if ($xml) {
             $name = htmlspecialcharx($row['name']);
             $loc = htmlspecialcharx($row['location']);
             $pic = ($row['haspic'] ? "yes" : "no");
-            $badgeInfo = $badges ? $badges[$id] : false;
+            $badgeInfo = $badges ? ($badges[$id] ?? false) : false;
             $badge = ($badgeInfo ? $badgeInfo[1] : false);
             $link = htmlspecialcharx(get_root_url() . "showuser?id=$id");
 
@@ -1655,7 +1655,7 @@ else if ($term || $browse)
                 $created = $row['createdfmt'];
                 $pic = $row['haspic'];
                 $score = isset($row['score']) ? $row['score'] : 0;
-                $badgeInfo = $badges ? $badges[$id] : false;
+                $badgeInfo = $badges ? ($badges[$id] ?? false) : false;
                 $badge = false;
                 if ($badgeInfo) {
                     $badge[] = "<b>{$badgeInfo[1]}</b>";
