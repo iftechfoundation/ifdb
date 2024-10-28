@@ -62,11 +62,11 @@ function openGameSearchPopup(ele, doneFunc, defaultTitle, openerBtn)
     fld.focus();
     fld.value = defaultTitle;
 }
-function gameSearchPopupKey(event)
+async function gameSearchPopupKey(event)
 {
     var ch = (window.event || event.keyCode ? event.keyCode : event.which);
     if (ch == 13 || ch == 10) {
-        gameSearchPopupGo();
+        await gameSearchPopupGo();
         return false;
     }
     if (ch == 27) {
@@ -81,7 +81,7 @@ function gameSearchPopupClose()
     if (gameSearchPopupOpener)
         setTimeout(function() { gameSearchPopupOpener.focus(); }, 1);
 }
-function gameSearchPopupGo()
+async function gameSearchPopupGo()
 {
     document.getElementById("gameSearchPopupStep2").style.display = "none";
     var txt = document.getElementById("gameSearchPopupSearchBox").value;
@@ -89,51 +89,53 @@ function gameSearchPopupGo()
     if (txt.replace(/ /g, "") == "")
         return;
 
-    xmlSend("search?xml&searchfor=" + encodeURI8859(txt),
-            null, gameSearchPopupDone, null);
-}
-function gameSearchPopupDone(d)
-{
-    if (d)
-    {
-        var lst = d.getElementsByTagName('game');
-        var s = "";
-        for (var i = 0 ; i < lst.length ; i++)
-        {
-            var id = lst[i].getElementsByTagName('tuid')[0].firstChild.data;
-            var title = lst[i].getElementsByTagName('title')[0].firstChild.data;
-            var author = lst[i].getElementsByTagName('author')[0].firstChild.data;
+    const url = '/search?' + new URLSearchParams({
+        searchfor: txt,
+        json: 1,
+    }).toString();
 
-            s += "<a href=\"needjs\" id='gameSearchPopupLink"+i+"'><i>"
-                 + encodeHTML(title) + "</i></a>"
-                 + ", by " + encodeHTML(author)
-                 + " - <a href=\"viewgame?id=" + id + "\" target=\"_blank\">"
-                 + "view game</a><br>";
+    try {
+        const response = await fetch(url);
+        if (!response.ok) {
+            throw new Error("Failed loading results");
         }
-        if (s == "")
-            s = "<b><i>(No matching games found.)</i></b>";
-
-        document.getElementById("gameSearchPopupResults").innerHTML = s;
-        for (var i = 0; i < lst.length; i++) {
-            (function(i) {
-                window['gameSearchPopupLink'+i].addEventListener('click', function(event) {
-                    event.preventDefault();
-                    var id = lst[i].getElementsByTagName('tuid')[0].firstChild.data;
-                    var title = lst[i].getElementsByTagName('title')[0].firstChild.data;
-                    var author = lst[i].getElementsByTagName('author')[0].firstChild.data;
-                    gameSearchPopupSetID(id, title, author);
-                })
-            })(i);
-        }
-        document.getElementById("gameSearchPopupStep2").style.display = "block";
-        setTimeout(function() {
-            var ele = document.getElementById("gameSearchPopupDiv");
-            var rc = getObjectRect(ele);
-            var docrc = getObjectRect(document);
-            if (rc.y + rc.height > docrc.height)
-                moveObject(ele, null, docrc.height - rc.height);
-        }, 10);
+        const json = await response.json();
+        await gameSearchPopupDone(json);
+    } catch (e) {
+        alert("Error: " + e.message);
     }
+}
+async function gameSearchPopupDone(d)
+{
+    if (!d)
+        return;
+    const lst = d.games;
+    let s = "";
+    for (const [i, item] of lst.entries()) {
+        s += "<a href=\"needjs\" id='gameSearchPopupLink"+i+"'><i>"
+             + encodeHTML(item.title) + "</i></a>"
+             + ", by " + encodeHTML(item.author)
+             + " - <a href=\"viewgame?id=" + item.tuid + "\" target=\"_blank\">"
+             + "view game</a><br>";
+    }
+    if (s == "")
+        s = "<b><i>(No matching games found.)</i></b>";
+
+    document.getElementById("gameSearchPopupResults").innerHTML = s;
+    for (const [i, item] of lst.entries()) {
+        document.getElementById('gameSearchPopupLink'+i).addEventListener('click', function(event) {
+            event.preventDefault();
+            gameSearchPopupSetID(item.tuid, item.title, item.author);
+        })
+    }
+    document.getElementById("gameSearchPopupStep2").style.display = "block";
+
+    await new Promise(resolve => setTimeout(resolve, 10));
+    const ele = document.getElementById("gameSearchPopupDiv");
+    const rc = getObjectRect(ele);
+    const docrc = getObjectRect(document);
+    if (rc.y + rc.height > docrc.height)
+        moveObject(ele, null, docrc.height - rc.height);
 }
 function gameSearchPopupSetID(id, title, author)
 {
@@ -204,17 +206,17 @@ function gameSearchPopupDiv()
           <input type=submit name="gameSearchPopupGoBtn"
               id="gameSearchPopupGoBtn" value="Search">
           <script type="text/javascript" nonce="<?php global $nonce; echo $nonce; ?>">
-            gameSearchPopupSearchBox.addEventListener('keypress', function (event) {
-                var result = gameSearchPopupKey(event);
+            gameSearchPopupSearchBox.addEventListener('keypress', async function (event) {
+                var result = await gameSearchPopupKey(event);
                 if (result === false) event.preventDefault();
             });
-            gameSearchPopupSearchBox.addEventListener('keydown', function (event) {
-                var result = gameSearchPopupKey(event);
+            gameSearchPopupSearchBox.addEventListener('keydown', async function (event) {
+                var result = await gameSearchPopupKey(event);
                 if (result === false) event.preventDefault();
             });
-            gameSearchPopupGoBtn.addEventListener('click', function (event) {
+            gameSearchPopupGoBtn.addEventListener('click', async function (event) {
                 event.preventDefault();
-                gameSearchPopupGo();
+                await gameSearchPopupGo();
             });
           </script>
           <div id="gameSearchPopupStep2" class="displayNone">

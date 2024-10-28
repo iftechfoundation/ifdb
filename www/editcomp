@@ -1472,7 +1472,7 @@ function activateListeners(divno, model)
 
         const url = '/search?' + new URLSearchParams({
             searchbar: 'tag:' + tag,
-            xml: 1,
+            json: 1,
             pg: 'all',
             sortby: 'ttl',
         }).toString();
@@ -1482,23 +1482,19 @@ function activateListeners(divno, model)
             if (!response.ok) {
                 throw new Error("Failed loading results");
             }
-            const xml = await response.text();
+            const json = await response.json();
 
-            const results = [...new DOMParser().parseFromString(xml, "application/xml").querySelectorAll('game')].map(game => ({
-                id: game.querySelector('tuid').textContent,
-                title: game.querySelector('title').textContent,
-                author: game.querySelector('author').textContent,
-            }))
+            const results = json.games;
 
             if (!results.length) {
                 throw new Error("No results");
             }
 
-            for (const { id, title, author } of results) {
+            for (const { tuid, title, author } of results) {
                 const i = window[divModel0.vals].length;
                 gfInsRow('divModel0', i);
                 document.getElementById('gameplace0_' + i).value = "Entrant";
-                gameSearchPopupSetID(id, title, author);
+                gameSearchPopupSetID(tuid, title, author);
             }
         } catch (e) {
             alert("Error: " + e.message);
