@@ -1,12 +1,5 @@
 <?php
 
-include_once "session-start.php";
-include_once "dbconnect.php";
-include_once "login-persist.php";
-
-$db = dbConnect();
-$curuser = checkPersistentLogin();
-
 function initStarControls()
 {
     // Standard version - use the animated javascript star control,
