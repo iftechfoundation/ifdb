@@ -1096,7 +1096,7 @@ for ($i = 0 ; $i < count($fields) ; $i++) {
         imageUploadRadio(
             ((is_null($art) || strlen($art) == 0)
              ? false
-             : "viewgame?id=$id&coverart&thumbnail=90x90&version=$pagevsn"),
+             : "coverart?id=$id&thumbnail=90x90&version=$pagevsn"),
             "This game has no cover art",
             "coverart", $curval, 90);
 

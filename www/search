@@ -1092,7 +1092,7 @@ if ($xml) {
             if ($art == "yes") {
                 $coverArtLink =
                     "<coverArtLink>"
-                    . htmlspecialcharx(get_root_url() . "viewgame?id=$id&coverart")
+                    . htmlspecialcharx(get_root_url() . "coverart?id=$id&version={$row['pagevsn']}")
                     . "</coverArtLink>";
             }
 

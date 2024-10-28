@@ -6,94 +6,7 @@ include_once "images.php";
 include_once "login-check.php";
 include_once "login-persist.php";
 include_once "pagetpl.php";
-
-// --------------------------------------------------------------------------
-// mysqli replacements (for compatibility across php versions)
-
-define("MYSQL_ASSOC", MYSQLI_ASSOC);
-define("MYSQL_BOTH",  MYSQLI_BOTH);
-
-$query_i = 0;
-
-function mysql_connect($server, $user, $password) { return mysqli_connect($server, $user, $password); }
-function mysql_set_charset($linkid, $charset) { return mysqli_set_charset($linkid, $charset); }
-function mysql_select_db($db, $linkid = NULL) { return mysqli_select_db($linkid, $db); }
-function mysql_real_escape_string($str, $db) { return mysqli_real_escape_string($db, $str); }
-function mysql_query($query, $db) {
-    $logging_level = 0;
-    if ($logging_level == 0) {
-        return mysqli_query($db, $query);
-    } else if ($logging_level == 1) {
-        $result = mysqli_query($db, $query);
-        if (!$result) {
-            error_log($_SERVER['REQUEST_URI']. " " . $query);
-            error_log($_SERVER['REQUEST_URI']. " " . mysql_error($db));
-        }
-        return $result;
-    } else {
-        global $query_i;
-        $start = microtime(true);
-        $result = mysqli_query($db, $query);
-        $elapsed = microtime(true) - $start;
-        error_log($_SERVER['REQUEST_URI']. " " . $query_i++ . " ($elapsed): " . $query);
-        return $result;
-    }
-}
-function mysql_num_rows($result) { return $result ? mysqli_num_rows($result) : 0; }
-function mysql_fetch_array($result, $match_type = MYSQLI_BOTH) { return mysqli_fetch_array($result, $match_type); }
-function mysql_fetch_row($result) { return mysqli_fetch_row($result); }
-function mysql_close($db) { return mysqli_close($db); }
-function mysql_error($db) { return mysqli_error($db); }
-function mysql_errno($db) { return mysqli_errno($db); }
-function mysql_result($result, $row, $field = 0) {
-    mysqli_data_seek($result, $row);
-    $row = mysqli_fetch_assoc($result);
-    return $row[$field];
-}
-function mysql_insert_id($linkid) { return mysqli_insert_id($linkid); }
-
-/**  
- * Polyfill for mysqli_execute_query, available in PHP 8.2
- * Copied from https://php.watch/versions/8.2/mysqli_execute_query
- *
- * Prepares an SQL statement, binds parameters, executes, and returns the result.
- * @param mysqli $mysql A mysqli object returned by mysqli_connect() or mysqli_init()
- * @param mysqli $mysql A mysqli object returned by mysqli_connect() or mysqli_init()
- * @param string $query The query, as a string. It must consist of a single SQL statement.  The SQL statement may contain zero or more parameter markers represented by question mark (?) characters at the appropriate positions.  
- * @param ?array $params An optional list array with as many elements as there are bound parameters in the SQL statement being executed. Each value is treated as a string.  
- * @return mysqli_result|bool Results as a mysqli_result object, or false if the operation failed.  
- */
-if (!function_exists('mysqli_execute_query')) {
-function mysqli_execute_query(mysqli $mysqli, string $sql, array $params = null) {  
-  $driver = new mysqli_driver();  
-
-  $stmt = $mysqli->prepare($sql);  
-  if (!($driver->report_mode & MYSQLI_REPORT_STRICT) && $mysqli->error) {  
-    return false;  
-  }  
-
-  if (!empty($params)) {  
-    mysqli_stmt_bind_param($stmt, str_repeat('s', count($params)), ...$params);  
-    if (!($driver->report_mode & MYSQLI_REPORT_STRICT) && $stmt->error) {  
-      return false;  
-    }  
-  }  
-
-  $stmt->execute();  
-  if (!($driver->report_mode & MYSQLI_REPORT_STRICT) && $stmt->error) {  
-    return false;  
-  }
-
-  $result = $stmt->get_result();
-  // $stmt->get_result() returns false on successful INSERT/UPDATE statements
-  // https://www.php.net/manual/en/mysqli-stmt.get-result.php#refsect1-mysqli-stmt.get-result-returnvalues
-  if ($result === false && !$stmt->errno) {
-    return true;
-  } else {
-    return $result;
-  }
-}
-}
+include_once "image-util.php";
 
 // https://cheatsheetseries.owasp.org/cheatsheets/Authentication_Cheat_Sheet.html#implement-proper-password-strength-controls
 // "It is important to set a maximum password length to prevent long password Denial of Service attacks."
@@ -607,168 +520,6 @@ function sendImageLdesc($title, $imageID)
 </html>
 <?php
     exit();
-}
-
-// --------------------------------------------------------------------------
-// send an image, possibly with a thumbnail setting
-//
-define("SIF_RAW", 0x0001);
-function sendImage($imgData, $imgFmt, $thumbnail, $flags = 0)
-{
-    // make sure there's an image
-    if (is_null($imgData))
-        exit("No image is available");
-
-    // Get the MIME type, assuming for now that it's an image.  For image
-    // types, the MIME type is simply "image/X", where X is our format code
-    $mimeType = "image/$imgFmt";
-
-    // if it's a font, check for image renderings
-    if ($imgFmt == "ttf") {
-        // It's a font.  If they want a thumbnail, just send the TTF icon.
-        // Otherwise, if they want it as an image (not as the raw file),
-        // render a sample page for the font.  If they want it raw, just
-        // send the raw data.
-
-        if (!is_null($thumbnail)) {
-            // they want a thumbanil - simply send the TTF icon
-            $imgData = file_get_contents("ttf_icon.gif");
-            $thumbnail = null;
-            $imgFmt = "gif";
-            $mimeType = "image/gif";
-        } else if (($flags & SIF_RAW) != 0) {
-            // they want the raw font data - simply send the data,
-            // with the TTF MIME type
-            $mimeType = "application/x-font-ttf";
-        } else {
-            // They want an image rendering of the data.  Prepare a
-            // sample character set page based on the font.
-
-            // create a temporary file from the font
-            $tmpfile = tempnam("/tmp", "ttf");
-            $fp = fopen($tmpfile, "wb");
-            fwrite($fp, $imgData);
-            fclose($fp);
-
-            // set up an image for the sample
-            $wid = 500;
-            $ht = 200;
-            $im = imagecreatetruecolor($wid, $ht);
-
-            // set up some colors
-            $white = imagecolorallocate($im, 255, 255, 255);
-            $black = imagecolorallocate($im, 0, 0, 0, 0);
-
-            // render the sample page
-            imagefilledrectangle($im, 0, 0, $wid, $ht, $white);
-            imagettftext($im, 12, 0, 0, 17, $black, $tmpfile,
-                         ttf_family_name($imgData));
-            imageline($im, 0, 25, $wid, 25, $black);
-            imagettftext($im, 20, 0, 0, 50, $black, $tmpfile,
-                         "abcdefghijklmnopqrstuvwxyz\n"
-                         . "ABCDEFGHIJKLMNOPQRSTUVWXYZ\n"
-                         . "1234567890.:,;(:*!?'\")\n");
-
-            // send the constructed image as a jpeg, and we're done
-            imagejpeg($im);
-            return;
-        }
-    }
-
-    // if they only want the thumbnail, resize it
-    if (!is_null($thumbnail)) {
-        // get the thumbnail sizes
-        list ($sx, $sy) = explode("x", $thumbnail);
-
-        // get the image data
-        $source = imagecreatefromstring($imgData);
-        $ix = imagesx($source);
-        $iy = imagesy($source);
-
-        // only generate a thumbnail if it's SMALLER than the actual size
-        if ($sx < $ix || $sy < $iy) {
-            // apply the default and maximum settings
-            if ($sx <= 0 || $sy <= 0)
-                list($sx, $sy) = array(175, 175);
-            else if ($sx > 250 || $sy > 250)
-                list($sx, $sy) = array(250, 250);
-
-            // Figure the scaled size, maintaining the aspect ratio.
-            // First try scaling so that the width just fits the bounding
-            // width.  If that makes the height too tall, rescale so that
-            // the height fits the bounding height.
-            $cx = $cy = 0;
-            if ($iy != 0) {
-                $cx = $sx;
-                $cy = $iy * $sx / $ix;
-            }
-            if ($cy > $sy && $ix != 0) {
-                $cy = $sy;
-                $cx = $ix * $sy / $iy;
-            }
-
-            // generate the thumbnail image
-            $thumb = newTransparentImage($sx, $sy);
-            imagecopyresampled(
-                $thumb,
-                $source,
-                ($sx - $cx) / 2,
-                ($sy - $cy) / 2,
-                0,
-                0,
-                $cx,
-                $cy,
-                $ix,
-                $iy
-            );
-
-            // send it in the original format, or jpeg if unrecognized
-            if ($imgFmt == "gif") {
-                header("Content-type: image/gif");
-                imagegif($thumb);
-            } else if ($imgFmt == "png") {
-                header("Content-type: image/png");
-                imagepng($thumb, null, 0);
-            } else {
-                header("Content-type: image/jpeg");
-                imagejpeg($thumb);
-            }
-
-            // we've finished sending the image
-            return;
-        }
-    }
-
-    // send the image exactly as it's stored
-    header("Content-length: " . strlen($imgData));
-    header("Content-type: $mimeType");
-    echo $imgData;
-}
-
-// ------------------------------------------------------------------------
-//
-// Create a transparent image resource of the given size
-//
-function newTransparentImage($x, $y)
-{
-    // create a true-color image of the given size
-    $r = imagecreatetruecolor($x, $y);
-    imagesavealpha($r, true);;
-
-    // we want to set the transparency in the new image, not combine it
-    imagealphablending($r, false);
-
-    // allocate a transparent pixel color
-    $transparent = imagecolorallocatealpha($r, 0, 0, 0, 127);
-
-    // fill the whole image with the transparent color
-    imagefilledrectangle($r, 0, 0, $x+1, $y+1, $transparent);
-
-    // turn alpha blending back on
-    imagealphablending($r, true);
-
-    // return the new image
-    return $r;
 }
 
 // --------------------------------------------------------------------------
@@ -2275,33 +2026,6 @@ function tentative_image_shutdown()
 }
 
 // --------------------------------------------------------------------------
-// Fetch an image, given the ID.  Returns an array (image binary data,
-// image format name).
-//
-function fetch_image($imageID, $getPic)
-{
-    // parse the image ID:  <dbnum>:<image key>
-    list ($dbnum, $key) = explode(":", $imageID);
-
-    // connect to the database encoded in the ID
-    $db = imageDbConnect((int)$dbnum);
-    if (!$db)
-        return false;
-
-    // set up to get or skip the image data stream
-    $imgcol = ($getPic ? "img" : "null");
-
-    // fetch the image at the given key
-    $key = mysql_real_escape_string($key, $db);
-    $result = mysql_query(
-        "select $imgcol, format, copystat, copyright, userid
-         from images where id='$key'", $db);
-
-    // if we got a result, return it
-    return mysql_fetch_row($result);
-}
-
-// --------------------------------------------------------------------------
 // update an image's copyright status
 function update_image_copyright($id, $userid, $date,
                                 $copyStat, $copyMsg, &$errMsg)
@@ -3229,13 +2953,13 @@ function check_admin_privileges($db, $userid) {
 }
 
 function coverArtThumbnail($id, $size, $params = "") {
-    $thumbnail = "/viewgame?id=$id&coverart&thumbnail=";
+    $thumbnail = "/coverart?id=$id&thumbnail=";
     $x15 = round($size * 3 / 2);
     $x2 = $size * 2;
     $x3 = $size * 3;
     global $nonce;
     return "<style nonce='$nonce'>.coverart__img { max-width: 35vw; height: auto; }</style>"
-        ."<img class='coverart__img' srcset=\"$thumbnail{$size}x$size$params, $thumbnail{$x15}x$x15$params 1.5x, $thumbnail{$x2}x$x2$params 2x, $thumbnail{$x3}x$x3$params 3x\" src=\"/viewgame?id=$id&coverart&thumbnail={$size}x$size\" height=$size width=$size border=0 alt=\"\">";
+        ."<img class='coverart__img' srcset=\"$thumbnail{$size}x$size$params, $thumbnail{$x15}x$x15$params 1.5x, $thumbnail{$x2}x$x2$params 2x, $thumbnail{$x3}x$x3$params 3x\" src=\"$thumbnail{$size}x$size$params\" height=$size width=$size border=0 alt=\"\">";
 }
 
 // ----------------------------------------------------------------------------

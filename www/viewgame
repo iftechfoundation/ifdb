@@ -633,7 +633,7 @@ if (isset($_REQUEST['ifiction']))
     xmlField("link", get_root_url() . "viewgame?id=$id");
     if ($hasart) {
         echo "<coverart>";
-        xmlField("url", get_root_url() . "viewgame?id=$id&coverart");
+        xmlField("url", get_root_url() . "coverart?id=$id&version=$pagevsn");
         echo "</coverart>";
     }
     if ($links) {
@@ -700,7 +700,7 @@ if (!$errCode) {
     }
     if ($hasart) {
         $extraHead .= "<meta property=\"og:image\" content=\"";
-        $extraHead .= get_root_url() . "viewgame?coverart&amp;id=$id\"/>";
+        $extraHead .= get_root_url() . "coverart?id=$id&amp;version=$pagevsn\"/>";
     }
 
     $extraHead .= "<link rel=\"canonical\" href=\"";

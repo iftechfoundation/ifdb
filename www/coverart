@@ -1,0 +1,122 @@
+<?php
+
+include_once "image-util.php";
+
+function getID() {
+    global $db, $errMsg, $errCode;
+
+    $id = false;
+    if (isset($_REQUEST['ifid'])) {
+        // We have an IFID - look up our corresponding internal ID.  Note
+        // that letters in IFIDs are always upper-case; we store them in
+        // the database this way, so capitalize the request string before
+        // looking it up.
+        $qifid = strtoupper($_REQUEST['ifid']);
+        $result = mysqli_execute_query($db, "select gameid from ifids
+            where ifid = ?", [$qifid]);
+
+        // make sure we found a match
+        if (mysql_num_rows($result) == 0) {
+            $errMsg = "No game was found matching the requested IFID.";
+            $errCode = "notFound";
+            return null;
+        }
+
+        // get the ID from the record
+        $id = mysql_result($result, 0, "gameid");
+    } else if (isset($_REQUEST['id'])) {
+        // there's no IFID, so use the internal ID number
+        $id = $_REQUEST['id'];
+    }
+
+    // return the ID we found
+    return $id;
+}
+
+if (localImageCredentials() === null) {
+    header("HTTP/1.1 302 Found");
+    header("Location: https://" . PRODUCTION_SERVER_NAME . $_SERVER['REQUEST_URI']);
+    exit();
+}
+
+$db = dbConnect();
+
+// get the ID
+$id = getID();
+if (is_null($id))
+    exit($errMsg);
+
+// look up the game
+$result = mysqli_execute_query($db,
+    "select coverart, title, pagevsn from games where id = ?", [$id]);
+if (mysql_num_rows($result) == 0) {
+    checkRedirect($id);
+    exit("No game record found for ID");
+}
+
+// retrieve the image
+list($imgname, $title, $pagevsn) = mysql_fetch_row($result);
+
+if (isset($_REQUEST['version'])) {
+    header("Cache-Control: public, max-age=31536000, immutable");
+}
+
+// get the target version from the request
+$targVsn = (isset($_REQUEST['version'])
+            && (int)$pagevsn != (int)($_REQUEST['version']))
+           ? (int)($_REQUEST['version']) : false;
+
+// if we're retrieving an old version, go back and find it
+if ($targVsn) {
+    // query up the old versions from newest to oldest
+    $result = mysqli_execute_query($db,
+        "select pagevsn, deltas
+        from games_history
+        where id = ?
+        order by pagevsn desc", [$id]);
+
+    // scan for a version that overrides the current definition
+    $rows = mysql_num_rows($result);
+    $foundvsn = false;
+    for ($i = 0 ; $i < $rows ; $i++) {
+        // get this row
+        $rec = mysql_fetch_array($result, MYSQL_ASSOC);
+
+        // deserialize the deltas
+        $deltas = unserialize($rec['deltas']);
+
+        // if this entry defines artwork, use the override
+        if (isset($deltas['coverart']))
+            $imgname = $deltas['coverart'];
+
+        if (isset($deltas['title']))
+            $title = $deltas['title'];
+
+        // stop if this is the version we're looking for
+        if ((int)$rec['pagevsn'] == $targVsn)
+        {
+            $foundvsn = true;
+            break;
+        }
+    }
+
+    // if we didn't find the requested version, give up
+    if (!$foundvsn)
+        exit("The requested version of the art image wasn't found");
+}
+
+// generate the ldesc page if applicable
+if (isset($_REQUEST['ldesc']))
+    sendImageLdesc("Cover Art for $title"
+                   . ($targVsn ? " (version $targVsn)" : ""),
+                   $imgname);
+
+// retrieve the image data
+list($imgdata, $fmt) = fetch_image($imgname, true);
+
+// get the thumbnail setting
+$thumbnail = (isset($_REQUEST['thumbnail'])
+              ? $_REQUEST['thumbnail'] : null);
+
+// send it
+sendImage($imgdata, $fmt, $thumbnail);

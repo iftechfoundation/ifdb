@@ -118,7 +118,7 @@ delete from reviews
   where now() < embargodate;
 
 update games
-  set coverart = concat('https://ifdb.org/viewgame?coverart&id=', id)
+  set coverart = concat('https://ifdb.org/coverart&id=', id)
   where coverart is not null;
 
 delete from playedgames
