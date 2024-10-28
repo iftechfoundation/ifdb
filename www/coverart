@@ -50,8 +50,25 @@ if (is_null($id))
 $result = mysqli_execute_query($db,
     "select coverart, title, pagevsn from games where id = ?", [$id]);
 if (mysql_num_rows($result) == 0) {
-    checkRedirect($id);
-    exit("No game record found for ID");
+    $result = mysqli_execute_query($db,
+        "select fwdgameid from gamefwds where gameid = ?", [$id]);
+    if (mysql_num_rows($result) > 0)
+    {
+        [$toID] = mysql_fetch_row($result);
+        $redir = "/coverart?id=$toID";
+        foreach ($_GET as $key => $val) {
+            if (strcasecmp($key, "id") != 0) {
+                $val = urlencode($_GET[$key]);
+                $redir .= "&$key" . ($val ? "=$val" : "");
+            }
+        }
+
+        header("HTTP/1.1 301 Moved Permanently");
+        header("Location: $redir");
+    } else {
+        header("HTTP/1.1 404 Not Found");
+        exit("No game record found for ID");
+    }
 }
 
 // retrieve the image
