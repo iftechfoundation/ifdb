@@ -2402,7 +2402,7 @@ if ($embargoCnt > 0)
                  <span class=details>
                  Enter new tags here (use commas to separate tags):<br>
                  </span>
-                 <input type=text size=50 id="myTagFld" list="tags-list">
+                 <input type=text size=50 id="myTagFld">
                  <button class="fancy-button"
                     id="viewgame-add-tags-button"
                     name="addTags">Add</button>
@@ -2533,10 +2533,10 @@ function dispTagTable(tableID, lst, editor, deleteTags)
 
 
             if (!deleteTags) {
-                s = "<span class=\"cklabel\" x-ck='"+i+"'>"
+                s = "<span class=\"cklabel\" data-ck='"+i+"'>"
                     + "<img align=absmiddle border=0 id=\"ckImg"+ck+"\"> "
             } else {
-               s = "<span class=\"cklabel\" x-ck='"+i+"'>"
+               s = "<span class=\"cklabel\" data-ck='"+i+"'>"
                     + "<input type=image align=absmiddle border=0 id=\"ckImg"+ck+"\""
                     + "src='img/delrow.gif' >";
 
@@ -2572,7 +2572,7 @@ function dispTagTable(tableID, lst, editor, deleteTags)
         }
         cell.innerHTML = s;
         cell.querySelectorAll('.cklabel').forEach(function (cklabel) {
-            var ck = "tagCk" + cklabel.getAttribute('x-ck');
+            var ck = "tagCk" + cklabel.dataset.ck;
             cklabel.addEventListener('mouseover', function (event) {
                 ckboxOver(ck, false);
             });
@@ -2582,7 +2582,7 @@ function dispTagTable(tableID, lst, editor, deleteTags)
             cklabel.addEventListener('click', function (event) {
                 event.preventDefault();
                 if (deleteTags) {
-                    var tag = lst[cklabel.getAttribute('x-ck')].tag;
+                    var tag = lst[cklabel.dataset.ck].tag;
                     deleteTag(tag);
                 } else {
                     ckboxClick(ck, false, doTagCkBox);
@@ -2674,7 +2674,8 @@ function editTags()
 
     document.getElementById("tagEditor").style.display = "initial";
     dispEditTags();
-    document.getElementById("myTagFld").focus();
+    const tagInputElem = document.getElementById('myTagFld');
+    tagInputElem.focus();
     fetch('/showtags?datalist=1').then(r=>r.ok ? r.arrayBuffer() : null).then(buffer => {
         if (!buffer) return;
         const decoder = new TextDecoder('iso-8859-1');
@@ -2682,6 +2683,7 @@ function editTags()
         const datalist = document.createElement('datalist');
         document.body.appendChild(datalist);
         datalist.outerHTML = text;
+        tagInputElem.setAttribute('list', 'tags-list');
     })
 }
 
