@@ -382,6 +382,7 @@ if ($errMsg) {
            date_format(games.published, '%Y') as year,
            games.`desc` as `desc`,
            (coverart is not null) as hasart,
+           games.pagevsn,
            grv.avgRating as rating,
            grv.numRatingsInAvg as ratingCnt,
            flags
@@ -407,6 +408,7 @@ if ($errMsg) {
             $author = htmlspecialcharx($rec['author']);
             $author = collapsedAuthors($author);
             $art = $rec['hasart'];
+            $pagevsn = $rec['pagevsn'];
             $descInfo = summarizeHtml($rec['desc'], 200);
             $desc = fixDesc($descInfo[0]);
             $shouldHide = $rec['flags'] & FLAG_SHOULD_HIDE;
@@ -428,7 +430,7 @@ if ($errMsg) {
                 echo "<table class=grid border=0 cellspacing=0 cellpadding=0>"
                     . "<tr><td>"
                     . "<a href=\"viewgame?id=$gid\">"
-                    . coverArtThumbnail($gid, 80)
+                    . coverArtThumbnail($gid, 80, $pagevsn)
                     . "</a></td><td>"
                     . "<a href=\"viewgame?id=$gid\"><b>$title</b></a>, "
                     . "by $author"

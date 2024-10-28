@@ -40,7 +40,7 @@ if (mysql_num_rows($result) == 0) {
     $result = mysql_query(
         "select gameid as tuid, title, author,
              date_format(published, '%Y') as pubyear,
-             (coverart is not null) as hasart,
+             (coverart is not null) as hasart, pagevsn,
              comments, displayorder, flags
          from
              reclistitems, games

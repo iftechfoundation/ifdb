@@ -325,6 +325,7 @@ if (count($recs) == 0) {
            games.author as author,
            games.`desc` as `desc`,
            (games.coverart is not null) as hasart,
+           games.pagevsn,
            starsort
          from
            games
@@ -384,6 +385,7 @@ if (count($recs) >= 2) {
         $author = htmlspecialcharx($r['author']);
         $author = collapsedAuthors($author);
         $hasart = $r['hasart'];
+        $pagevsn = $r['pagevsn'];
         list($summary, $len, $trunc) = summarizeHtml($r['desc'], 140);
         $summary = fixDesc($summary);
 
@@ -393,7 +395,7 @@ if (count($recs) >= 2) {
             echo "<table border=0 cellspacing=0 cellpadding=0>"
                 . "<tr valign=top><td>"
                 . "<a href=\"viewgame?id=$gameid\" class=\"ifdb-recommends__artLink\" aria-label=\"$title\">"
-                . coverArtThumbnail($gameid, 70)
+                . coverArtThumbnail($gameid, 70, $pagevsn)
                 . "</a></td><td>";
 
         echo "<a href=\"viewgame?id=$gameid\"><i><b>$title</b></i></a>, "

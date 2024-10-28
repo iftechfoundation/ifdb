@@ -90,6 +90,7 @@ $selectList = "games.id as id,
                date_format(published, '%Y') as pubyear,
                published,
                (coverart is not null) as hasart,
+               pagevsn,
                avgRating as avgrating,
                numRatingsInAvg as ratingcnt,
                stdDevRating as ratingdev,
@@ -176,6 +177,7 @@ if ($rowcnt == 0) {
         $stars = showStars($row['avgrating']);
         $year = output_encode(htmlspecialcharx($row['pubyear']));
         $art = $row['hasart'];
+        $pagevsn = $row['pagevsn'];
         $dev = $row['ratingdev'];
 
         // show the item
@@ -185,7 +187,7 @@ if ($rowcnt == 0) {
             echo "<table class=grid border=0 cellspacing=0 cellpadding=0>"
                 . "<tr><td>"
                 . "<a href=\"viewgame?id=$id\">"
-                . coverArtThumbnail($id, 80)
+                . coverArtThumbnail($id, 80, $pagevsn)
                 . "</a></td><td>"
                 . "<a href=\"viewgame?id=$id\">"
                 . "<b>$title</b></a><br>"

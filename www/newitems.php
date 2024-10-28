@@ -377,7 +377,7 @@ function showNewItemList($db, $items, $first, $last, $showFlagged, $allowHiddenB
                         . "&thumbnail=50x50\"></a>";
                 } else if ($r["hasart"]) {
                     echo "<a href=\"viewgame?id={$r['gameid']}\">"
-                        . coverArtThumbnail($r['gameid'], 50)
+                        . coverArtThumbnail($r['gameid'], 50, null)
                         . "</a>";
                 } else {
                     echo "<a href=\"viewgame?id={$r['gameid']}"
@@ -488,7 +488,7 @@ function showNewItemList($db, $items, $first, $last, $showFlagged, $allowHiddenB
             if (ENABLE_IMAGES) {
                 if ($g["hasart"]) {
                     echo "<a href=\"viewgame?id={$g['id']}\">"
-                        . coverArtThumbnail($g['id'], 50)
+                        . coverArtThumbnail($g['id'], 50, null)
                         . "</a>";
                 } else {
                     echo "<a href=\"viewgame?id={$g['id']}\">"
@@ -607,7 +607,7 @@ function showNewItemList($db, $items, $first, $last, $showFlagged, $allowHiddenB
                         . "&thumbnail=50x50\"></a>";
                 } else if ($n["hasart"]) {
                     echo "<a href=\"viewgame?id={$n['gameid']}\">"
-                        . coverArtThumbnail($gid, 50)
+                        . coverArtThumbnail($gid, 50, null)
                         . "</a>";
                 } else {
                     echo "<a href=\"newslog?newsid=$nid\">"

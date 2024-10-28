@@ -2952,11 +2952,14 @@ function check_admin_privileges($db, $userid) {
 
 }
 
-function coverArtThumbnail($id, $size, $params = "") {
+function coverArtThumbnail($id, $size, $version, $params = "") {
     $thumbnail = "/coverart?id=$id&thumbnail=";
     $x15 = round($size * 3 / 2);
     $x2 = $size * 2;
     $x3 = $size * 3;
+    if ($version) {
+        $params .= "&version=$version";
+    }
     global $nonce;
     return "<style nonce='$nonce'>.coverart__img { max-width: 35vw; height: auto; }</style>"
         ."<img class='coverart__img' srcset=\"$thumbnail{$size}x$size$params, $thumbnail{$x15}x$x15$params 1.5x, $thumbnail{$x2}x$x2$params 2x, $thumbnail{$x3}x$x3$params 3x\" src=\"$thumbnail{$size}x$size$params\" height=$size width=$size border=0 alt=\"\">";

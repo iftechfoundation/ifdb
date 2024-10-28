@@ -149,6 +149,7 @@ if ($errMsg) {
            games.author as author,
            games.`desc` as `desc`,
            (games.coverart is not null) as hasart,
+           games.pagevsn as pagevsn,
            avg(r3.rating) as rating,
            count(r3.rating) as numratings,
            games.sort_title as sort_title,
@@ -231,13 +232,14 @@ if ($errMsg) {
             $urating = $rec['urating'];
             $numratings = $rec['numratings'];
             $hasart = $rec['hasart'];
+            $pagevsn = $rec['pagevsn'];
             $onPlayList = ($listtype == "reviewideas" && $rec['onPlayList']);
 
             if ($hasart)
                 echo "<p><table border=0 cellspacing=0 cellpadding=0>"
                     . "<tr valign=top><td class='playlist__artCell'>"
                     . "<a href=\"viewgame?id=$gameid\">"
-                    . coverArtThumbnail($gameid, 100)
+                    . coverArtThumbnail($gameid, 100, $pagevsn)
                     . "</a></td>"
                     . "<td>";
 
