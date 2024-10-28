@@ -15,6 +15,9 @@ include_once "gameinfo.php";
 include_once "commentutil.php";
 include_once "news.php";
 
+$db = dbConnect();
+$curuser = checkPersistentLogin();
+
 // check the user for ADMIN privileges
 $userprivs = $adminPriv = false;
 if ($curuser) {
