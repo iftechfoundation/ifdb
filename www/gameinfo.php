@@ -55,15 +55,13 @@ function getGameInfo($db, $id, $curuser, $requestVersion, &$errMsg, &$errCode)
           gamelinks
         where
           gameid = ?", [$id]);
-    $rows = mysql_num_rows($result);
-    for ($i = 0, $links = array() ; $i < $rows ; $i++)
-        $links[$i] = mysql_fetch_array($result, MYSQL_ASSOC);
+    $links = mysqli_fetch_all($result, MYSQL_ASSOC);
 
     // build the list of IFIDS
     $result = mysqli_execute_query($db, "select ifid from ifids where gameid = ?", [$id]);
-    $rows = mysql_num_rows($result);
-    for ($i = 0, $ifids = array() ; $i < $rows ; $i++)
-        $ifids[] = mysql_result($result, $i, "ifid");
+    $ifids = [];
+    while ([$ifid] = mysql_fetch_row($result))
+        $ifids[] = $ifid;
 
     // get the display rank of the external reviews
     $result = mysqli_execute_query($db,
@@ -86,9 +84,7 @@ function getGameInfo($db, $id, $curuser, $requestVersion, &$errMsg, &$errCode)
            and ifnull(now() >= r.embargodate, 1)
          order by
            x.displayorder", [$id]);
-    $rows = mysql_num_rows($result);
-    for ($i = 0, $extrevs = array() ; $i < $rows ; $i++)
-        $extrevs[] = mysql_fetch_array($result, MYSQL_ASSOC);
+    $extrevs = mysqli_fetch_all($result, MYSQL_ASSOC);
 
     // fetch the OUTGOING cross-references; arrange in display order
     $result = mysqli_execute_query($db,
@@ -97,9 +93,7 @@ function getGameInfo($db, $id, $curuser, $requestVersion, &$errMsg, &$errCode)
          where fromid = ?
          order by displayorder", [$id]);
 
-    $rows = mysql_num_rows($result);
-    for ($i = 0, $xrefs = array() ; $i < $rows ; $i++)
-        $xrefs[] = mysql_fetch_array($result, MYSQL_ASSOC);
+    $xrefs = mysqli_fetch_all($result, MYSQL_ASSOC);
 
     // Fetch the INCOMING cross-references.  Since these can come from
     // multiple sources each with their own different display ordering,
@@ -130,9 +124,7 @@ function getGameInfo($db, $id, $curuser, $requestVersion, &$errMsg, &$errCode)
            x.reftype, g.title, g.author", [$id]);
     echo mysql_error($db);
 
-    $rows = mysql_num_rows($result);
-    for ($i = 0, $inrefs = array() ; $i < $rows ; $i++)
-        $inrefs[] = mysql_fetch_array($result, MYSQL_ASSOC);
+    $inrefs = mysqli_fetch_all($result, MYSQL_ASSOC);
 
     // Add the downloads, external reviews, IFIDs, and outbound cross-
     // references to the current record under construction as arrays,
@@ -164,11 +156,7 @@ function getGameInfo($db, $id, $curuser, $requestVersion, &$errMsg, &$errCode)
 
         // now run through the list until we find the requested version,
         // applying each item's reverse deltas in order
-        $rowcnt = mysql_num_rows($result);
-        for ($i = 0 ; $i < $rowcnt ; $i++) {
-            // fetch this row
-            $vrec = mysql_fetch_array($result, MYSQL_ASSOC);
-
+        while ($vrec = mysql_fetch_array($result, MYSQL_ASSOC)) {
             // update the main record with the version's timestamp
             $rec["moddate"] = $vrec["moddate"];
             $rec["moddate2"] = $vrec["moddate2"];
@@ -244,24 +232,16 @@ function getGameInfo($db, $id, $curuser, $requestVersion, &$errMsg, &$errCode)
     }
 
     // delete links that are marked "pending"
-    for ($origLinks = $links, $links = array(), $i = 0 ;
-         $i < count($origLinks) ; $i++)
-    {
-        // get this link
-        $link = $origLinks[$i];
-
-        // keep it as long as it's not marked "pending"
-        if (!($link['attrs'] & GAMELINK_PENDING))
-            $links[] = $link;
-    }
+    $links = array_filter($links, function($link) {
+        return !($link['attrs'] & GAMELINK_PENDING);
+    });
 
     // Get the format and OS descriptions for the link formats.  Note that
     // we didn't just fetch these with a SQL join in the first place
     // because we might have needed to apply history deltas, and the history
     // rows don't have the ancillary data for the join.  So we have to wait
     // until we have the final rows, *then* go and manually do the join.
-    for ($i = 0 ; $i < count($links) ; $i++) {
-        $link = $links[$i];
+    foreach ($links as &$link) {
         $fmtid = $link['fmtid'];
         $fmtos = $link['osid'];
         $fmtosvsn = $link['osvsn'];
@@ -315,9 +295,6 @@ function getGameInfo($db, $id, $curuser, $requestVersion, &$errMsg, &$errCode)
 
         // pull out the 'is a game file' flag from the attributes
         $link['isgame'] = $link['attrs'] & GAMELINK_IS_GAME;
-
-        // put back the updated row
-        $links[$i] = $link;
     }
 
     // sort the links by display order
@@ -328,7 +305,7 @@ function getGameInfo($db, $id, $curuser, $requestVersion, &$errMsg, &$errCode)
     // front because of versioning - old versions won't have this
     // extra data stashed, so for uniformity we simply reconstruct
     // it now for all versions.
-    for ($i = 0 ; $i < count($xrefs) ; $i++) {
+    foreach ($xrefs as &$xref) {
 
         // look up the game and reference type
         $result = mysqli_execute_query($db,
@@ -340,11 +317,11 @@ function getGameInfo($db, $id, $curuser, $requestVersion, &$errMsg, &$errCode)
                join gamexreftypes as t
              where
                g.id = ?
-               and t.reftype = ?", [$xrefs[$i]['toID'], $xrefs[$i]['reftype']]);
+               and t.reftype = ?", [$xref['toID'], $xref['reftype']]);
 
-        list($xrefs[$i]['toTitle'],
-             $xrefs[$i]['author'],
-             $xrefs[$i]['fromname'])
+        [$xref['toTitle'],
+         $xref['author'],
+         $xref['fromname']]
             = mysql_fetch_row($result);
     }
 
@@ -355,10 +332,10 @@ function getGameInfo($db, $id, $curuser, $requestVersion, &$errMsg, &$errCode)
         // Look up the language name(s).  There might be more than one -
         // this can be a comma-separated list.
         $langarr = explode(",", $language);
-        for ($i = 0, $langnames = array() ; $i < count($langarr) ; $i++)
+        $langnames = [];
+        foreach ($langarr as $curlang)
         {
-            // pull out this item
-            $curlang = trim($langarr[$i]);
+            $curlang = trim($curlang);
             if ($curlang)
             {
                 // look up the language as an ISO-639 code - just look up the part up
