@@ -18,8 +18,9 @@ include_once "news.php";
 $db = dbConnect();
 $curuser = checkPersistentLogin();
 
-// check the user for ADMIN privileges
+// check the user for ADMIN privileges and sandbox setting
 $userprivs = $adminPriv = false;
+$mysandbox = 0;
 if ($curuser) {
     $result = mysqli_execute_query($db,
         "select `privileges`, `sandbox` from users where id=?", [$curuser]);
