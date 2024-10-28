@@ -34,7 +34,6 @@ $enum = get_req_data("enum");
 if ($api_mode && $enum)
 {
     // assume no error
-    $errmsg = false;
     $itemType = false;
 
     // queries for the various types
@@ -52,18 +51,26 @@ if ($api_mode && $enum)
                   . "where f.fmtclass in ('X', 'G')"
     ];
 
+    $responseObj = [];
+
     // get the query
-    if (isset($queries[$enum]))
+    $enum_query = $queries[$enum] ?? null;
+    if (!$enum_query)
+    {
+        $responseObj['enumError'] = 'Invalid enumeration type';
+    }
+    else
     {
         // query the data set
-        $result = mysql_query($queries[$enum], $db);
+        $result = mysqli_execute_query($db, $enum_query);
 
         // fetch the rows
-        for ($i = 0, $cnt = mysql_num_rows($result), $items = array() ;
-             $i < $cnt ; ++$i)
+        $items = [];
+        while ([$g] = mysql_fetch_row($result))
         {
-            // fetch this row
-            list($g) = mysql_fetch_row($result);
+            // Convert database row from latin1 to UTF-8
+            $g = rss_encode($g);
+            $g = html_entity_decode($g);
 
             // apply any special per-row handling
             switch ($enum)
@@ -103,22 +110,22 @@ if ($api_mode && $enum)
                 if (preg_match("/^([a-z0-9]+)-/i", $l, $m))
                     $l = $m[1];
 
-                // lower-case it and quote it
-                $l = mysql_real_escape_string(strtolower($l), $db);
+                // lower-case it
+                $l = strtolower($l);
 
                 // figure the search column
                 $col = (strlen($l) == 2 ? "id2" : "id3");
 
                 // look up this language
-                $result = mysql_query(
+                $result = mysqli_execute_query($db,
                     "select group_concat(distinct name separator '/') "
                     . "from iso639x "
-                    . "where $col = '$l' "
-                    . "group by $col", $db);
+                    . "where $col = ? "
+                    . "group by $col", [$l]);
 
                 if (mysql_num_rows($result) > 0)
                 {
-                    list($langName) = mysql_fetch_row($result);
+                    [$langName] = mysql_fetch_row($result);
                     $items[$i] = "$langName ($lorig)";
                 }
             }
@@ -146,29 +153,19 @@ if ($api_mode && $enum)
             if ($g && ($dst == 0 || strcasecmp($g, $items[$dst-1]) != 0))
                 $items[$dst++] = $g;
         }
-    }
-    else
-    {
-        $errmsg = "<enumError>Invalid enumeration type</enumError>";
+        $items = array_slice($items , 0, $dst);
     }
 
     // send the results
-    ini_set("default_charset", "ISO-8859-1");
-    header("Content-type: text/xml");
+    ini_set("default_charset", "utf-8");
+    header("Content-type: application/json");
     header("Expires: Mon, 26 Jul 1997 05:00:00 GMT");
     header("Cache-Control: no-store, no-cache, must-revalidate");
 
-    echo "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
-        . "<searchEnum xmlns=\"http://ifdb.org/api/xmlns\">"
-        . rss_encode($errmsg)
-        . "<itemType>$enum</itemType>"
-        . "<items>";
+    if ($items)
+        $responseObj['items'] = $items;
 
-    for ($i = 0 ; $i < $dst ; $i++)
-        echo "<item>" . rss_encode(htmlspecialcharx($items[$i])) . "</item>";
-
-    echo "</items>"
-        . "</searchEnum>";
+    echo json_encode($responseObj);
 
     // done
     exit();
@@ -415,31 +412,34 @@ if (!$browse && !$api_mode) {
     ?>
 <script type="text/javascript" nonce="<?php global $nonce; echo $nonce; ?>">
 
-function openHelpList(id, tableWid, params)
+async function openHelpList(id, tableWid, params)
 {
     var divId = "helpList." + id;
     var div = document.getElementById(divId);
-    xmlSend("search?enum=" + id, divId,
-            function(xml) {
-                populateHelpList(id, div, tableWid, params, xml);
-            }, null);
     div.innerHTML = "(Retrieving list...)";
+    const response = await fetch("search?json&enum=" + id);
+    if (!response.ok) {
+        div.innerHTML = "Failed loading list";
+        return;
+    }
+    const json = await response.json();
+    populateHelpList(id, div, tableWid, params, json);
 }
 
-function populateHelpList(id, div, tableWid, params, xml)
+function populateHelpList(id, div, tableWid, params, json)
 {
-    var err = xmlChildText(xml, "enumError");
+    const err = json.enumError;
     if (err)
     {
         div.innerHTML = err;
         return;
     }
 
-    var items = xml.getElementsByTagName("item");
+    const items = json.items;
     var s = [];
-    for (var i = 0 ; i < items.length ; ++i)
+    for (const [i, item] of items.entries())
     {
-        var txt = items[i].firstChild.data;
+        const txt = item;
         var hrefParam = txt;
 
         var match;
