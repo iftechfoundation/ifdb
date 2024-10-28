@@ -450,7 +450,7 @@ if ($editMode) {
     // query the recommendations
     $result = mysql_query(
         "select
-           c.togame, g.title as title, g.author, g.`desc`, g.coverart,
+           c.togame, g.title as title, g.author, g.`desc`, g.coverart, g.pagevsn,
            r.avgRating as rating,
            c.userid, u.name,
            c.notes, date_format(c.created, '%M %e, %Y'),
@@ -550,7 +550,7 @@ if ($editMode) {
     for ($i = $firstOnPage ; $i <= $lastOnPage ; $i++) {
         // unpack the game record
         $rec = $recs[$i];
-        list($toID, $toTitle, $toAuthor, $toDesc, $toArt, $toRating) = $rec;
+        list($toID, $toTitle, $toAuthor, $toDesc, $toArt, $toVersion, $toRating) = $rec;
 
         $toTitle = htmlspecialcharx($toTitle);
         $toAuthor = htmlspecialcharx($toAuthor);
@@ -563,7 +563,7 @@ if ($editMode) {
         if ($toArt) {
             echo "<td class='crossrec__artCell'>"
                 . "<a href=\"viewgame?id=$toID\">"
-                . coverArtThumbnail($toID, 80)
+                . coverArtThumbnail($toID, 80, $toVersion)
                 . "(toArt=$toArt)</a></td>";
         } else {
             echo "<td class='crossrec__emptyCell'></td>";

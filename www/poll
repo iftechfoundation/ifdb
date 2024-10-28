@@ -1163,7 +1163,7 @@ function expandVote(id)
             "select
                v.userid, u.name, $curUserVoteExpr,
                v.gameid, g.title, g.author, count(v2.gameid) as votecount,
-               g.coverart,
+               g.coverart, g.pagevsn,
                v.quickquote, v.notes,
                date_format(v.votedate, '%M %e, %Y'),
                c.comments,
@@ -1207,7 +1207,7 @@ function expandVote(id)
             "select
                null, null, 0,
                c.gameid, g.title, g.author, 0,
-               null,
+               null, null,
                null, null,
                '',
                c.comments,
@@ -1235,7 +1235,7 @@ function expandVote(id)
                 // fetch the next row
                 list($voteUserID, $voteUserName, $curUserVote,
                      $gameID, $gameTitle, $gameAuthor, $voteCount,
-                     $coverArt,
+                     $coverArt, $pagevsn,
                      $quickQuote, $notes,
                      $voteDateFmt,
                      $comments,
@@ -1354,7 +1354,7 @@ function expandVote(id)
                 if ($coverArt) {
                     echo "<td class='poll__artCell'>"
                         . "<a href=\"viewgame?id=$gameID\">"
-                        . coverArtThumbnail($gameID, 80)
+                        . coverArtThumbnail($gameID, 80, $pagevsn)
                         . "</a></td>";
                 } else {
                     echo "<td width='1px'></td>";

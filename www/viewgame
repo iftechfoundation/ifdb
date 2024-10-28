@@ -1391,7 +1391,7 @@ if ($hasart) {
                <td class=coverart>
 
                   <a href="<?php echo $arthref ?>&ldesc">
-                     <?php echo coverArtThumbnail($id, 175, isset($_REQUEST['version']) ? "&version=".$_REQUEST['version'] : "&version=$pagevsn"); ?>
+                     <?php echo coverArtThumbnail($id, 175, isset($_REQUEST['version']) ? $_REQUEST['version'] : $pagevsn); ?>
                   </a>
                </td>
                <?php
@@ -1679,6 +1679,7 @@ if (!isEmpty($genre)) {
                g.author as author,
                g.`desc` as `desc`,
                (g.coverart is not null) as hasart,
+               g.pagevsn,
                c.notes as notes,
                (select count(*) from crossrecs as c2
                 where c2.fromgame = '$qid' and c2.togame = c.togame)
@@ -3051,6 +3052,7 @@ if (count($inrefs) != 0 && !$historyView) {
                     $crdescInfo = summarizeHtml($c['desc'], 240);
                     $crdesc = fixDesc($crdescInfo[0]);
                     $crart = $c['hasart'];
+                    $crversion = $c['pagevsn'];
 
                     $gameRatingsView = getGameRatingsView($db);
                     $result = mysql_query(
@@ -3068,7 +3070,7 @@ if (count($inrefs) != 0 && !$historyView) {
                         echo "<table class=grid cellspacing=0 cellpadding=0 "
                             . "border=0><tr><td>"
                             . "<a href=\"viewgame?id=$crid\">"
-                            . coverArtThumbnail($crid, 80)
+                            . coverArtThumbnail($crid, 80, $crversion)
                             . "</a></td><td>";
 
                     echo "<a href=\"viewgame?id=$crid\"><b>$crtitle</b></a>"
