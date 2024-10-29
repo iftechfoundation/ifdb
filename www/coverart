@@ -35,7 +35,7 @@ function getID() {
 
 if (localImageCredentials() === null) {
     header("HTTP/1.1 302 Found");
-    header("Location: https://" . PRODUCTION_SERVER_NAME . $_SERVER['REQUEST_URI']);
+    header("Location: https://ifdb.org" . $_SERVER['REQUEST_URI']);
     exit();
 }
 
