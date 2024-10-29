@@ -30,7 +30,6 @@ if ($setID) {
     if ($userid) {
 
         if ($setID == 'default') {
-            $setVal = null;
             $newDesc = "the IFDB default";
         } else {
             // make sure the style sheet actually exists
@@ -82,15 +81,18 @@ if ($setID) {
     $reqTitle = false;
     $reqDesc = false;
     $reqContents = false;
+    $reqDark = false;
     if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $reqTitle = get_req_data('title');
         $reqDesc = get_req_data('desc');
         $reqContents = get_req_data('contents');
+        $reqDark = get_req_data('dark');
     }
 
     $dbTitle = false;
     $dbDesc = false;
     $dbContents = false;
+    $dbDark = false;
     if ($editID == 'new') {
         // creating a new one - no need to check for an existing copy
         $authorID = $userid;
@@ -100,7 +102,7 @@ if ($setID) {
         $result = mysqli_execute_query($db,
             "select
                s.stylesheetid, s.userid, count(u.id),
-               s.title, s.`desc`, s.contents
+               s.title, s.`desc`, s.contents, s.dark
              from stylesheets as s
                left join users as u
                  on u.stylesheetid = s.stylesheetid and u.id != ?
@@ -110,7 +112,7 @@ if ($setID) {
         $authorID = false;
         if (mysql_num_rows($result) > 0)
             [$ssid, $authorID, $userCnt,
-                 $dbTitle, $dbDesc, $dbContents] = mysql_fetch_row($result);
+                 $dbTitle, $dbDesc, $dbContents, $dbDark] = mysql_fetch_row($result);
     }
 
     if (!$userid) {
@@ -132,6 +134,7 @@ if ($setID) {
         $formTitle = $reqTitle;
         $formDesc = $reqDesc;
         $formContents = $reqContents;
+        $formDark = $reqDark;
 
         // note if it's a Save operation of some kind
         $isSave = isset($_REQUEST['saveStyle'])
@@ -178,8 +181,8 @@ if ($setID) {
                         $progress = "SIN003";
                         $result = mysqli_execute_query($db,
                             "insert into stylesheets
-                             (title, userid, `desc`, contents, created)
-                             values (?, ?, ?, ?, now())", [$formTitle, $userid, $formDesc, $formContents]);
+                             (title, userid, `desc`, contents, dark, created)
+                             values (?, ?, ?, ?, now())", [$formTitle, $userid, $formDesc, $formContents, $formDark]);
 
                         // if we succeeded, note the new ID
                         if ($result)
@@ -194,8 +197,8 @@ if ($setID) {
                         "update stylesheets
                          set
                            title = ?, `desc` = ?,
-                           contents = ?
-                         where stylesheetid = ?", [$formTitle, $formDesc, $formContents, $editID]);
+                           contents = ?, dark = ?
+                         where stylesheetid = ?", [$formTitle, $formDesc, $formContents, $formDark, $editID]);
                 }
             }
 
@@ -224,6 +227,7 @@ if ($setID) {
         $formTitle = $dbTitle;
         $formDesc = $dbDesc;
         $formContents = $dbContents;
+        $formDark = $dbDark;
     }
 
     // quote all of the form values
@@ -266,7 +270,7 @@ if ($setID) {
             echo "<b><span class=warning>Please be aware that $userCnt "
                 . "other $usersWord $usersAre currently using this style "
                 . "sheet. Any changes you make will affect everyone "
-                . "using the style sheet.</span>";
+                . "using the style sheet.</span></b>";
         }
 
         echo "<form name=\"editstyle\" method=\"post\" "
@@ -279,9 +283,19 @@ if ($setID) {
             . "<p><b>2. Enter a brief description:</b><br>"
             . "<textarea name=desc id=desc rows=3 cols=60>$formDesc"
             .    "</textarea>"
-            . "<p>"
+            . "</p>"
 
-            . "<b>3. Enter the CSS for the style sheet:</b><br>"
+            . "<p><b>3. Force dark mode:</b> "
+            . "<select name='dark'>"
+            . "<option value='0' " . ($formDark == 0 ? "selected" : "") . ">Don't Force</option>"
+            . "<option value='1' " . ($formDark == 1 ? "selected" : "") . ">Force Dark</option>"
+            . "<option value='2' " . ($formDark == 2 ? "selected" : "") . ">Force Light</option>"
+            . "</select>"
+            . "<br><span class='details'>"
+            . "When dark mode is forced, all of the <code>(prefers-color-scheme: dark)</code> rules will be enabled, "
+            . "even if the user's browser hasn't picked a color preference.</p>"
+
+            . "<p><b>4. Enter the CSS for the style sheet:</b><br>"
 
             . "<div class=tipbox>"
             . helpWinLink("help-css", "Click here")

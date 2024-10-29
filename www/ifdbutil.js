@@ -204,3 +204,28 @@ function replaceSelRange(ele, txt, selectNewText)
                       end: r.start + txt.length });
     }
 }
+
+// if the user has opted into a dark-mode stylesheet, activate all of the dark mode rules
+function forceDarkMode(force) {
+    if (!force) return;
+    var dark = force === 1;
+    function parseSheet(sheet) {
+        for (var i = sheet.cssRules.length - 1; i >=0 ; i--) {
+            var rule = sheet.cssRules[i];
+            if (rule.type === CSSRule.IMPORT_RULE) {
+                parseSheet(rule.styleSheet);
+                continue;
+            }
+            if (rule.media?.mediaText?.includes("prefers-color-scheme: dark")) {
+                if (dark) {
+                    rule.media.appendMedium("(prefers-color-scheme: light)");
+                } else {
+                    sheet.deleteRule(i);
+                }
+            }
+        }
+    }
+    for (const sheet of document.styleSheets) {
+        parseSheet(sheet);
+    }
+}
