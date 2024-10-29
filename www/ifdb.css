@@ -2553,6 +2553,11 @@ span.sfl-save-autodesc {
     #tagDeletor span.cklabel {
         color: #9090ff;
     }
+
+    .restricted {
+        background: #444;
+    }
+
     input.go-button {
         background: url("/dark-images/go-button-midnight.gif") no-repeat center center;
     }
