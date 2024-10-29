@@ -690,7 +690,7 @@ function saveUpdates($db, $adminPriv, $apiMode,
             commit_image($changesNew['coverart']);
 
         // check for spam links in the description
-        if ($changesNew['desc'])
+        if ($changesNew['desc'] ?? null)
             send_admin_email_if_links($changesNew['desc'], "Game description", "viewgame?id=$newid");
 
         // check the operating mode
