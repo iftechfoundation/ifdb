@@ -136,7 +136,7 @@ function approx_utf8($str)
 function htmlspecialcharx($str)
 {
     // first do the ampersands
-    $str = preg_replace("/&(?!#[0-9]{1,5};)/", "&amp;", $str);
+    $str = preg_replace("/&(?!#[0-9]{1,7};)/", "&amp;", $str);
 
     // now do the rest of the characters and return the result
     return str_replace(
@@ -1166,7 +1166,7 @@ function fixDesc($desc, $specials = 0)
                 $ofs += 4;
             } else if (strncasecmp($desc, "quot;", 5) == 0) {
                 $ofs += 5;
-            } else if (preg_match("/^#[0-9]{1,6};/", $therest, $matches)) {
+            } else if (preg_match("/^#[0-9]{1,7};/", $therest, $matches)) {
                 $ofs += strlen($matches[0]);
             } else if (preg_match("/^#[xX][0-9A-Fa-f]{1,6};/", $therest, $matches)) {
                 $ofs += strlen($matches[0]);
@@ -1393,7 +1393,7 @@ function summarizeHtml($str, $maxlen)
                     || strncasecmp($entTxt, "gt;", 3) == 0
                     || strncasecmp($entTxt, "amp;", 4) == 0
                     || strncasecmp($entTxt, "quot;", 5) == 0
-                    || preg_match("/^#[0-9]{1,5};/", $entTxt)) {
+                    || preg_match("/^#[0-9]{1,7};/", $entTxt)) {
 
                     // it's an entity markup, not an ordinary character
                     $inEnt = true;
