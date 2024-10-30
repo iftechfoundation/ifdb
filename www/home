@@ -87,6 +87,18 @@ if ($debugflag) echo "debug mode enabled...<br>";
 
       <?php include "components/check-inbox.php"?>
 
+      <ul class='horizontal'>
+         <li><a href="#games">Games</a></li>
+         <li><a href="#reviews">Reviews</a></li>
+         <li><a href="#polls">Polls</a></li>
+         <li><a href="#competitions">Competitions</a></li>
+         <li><a href="#lists">Lists</a></li>
+         <li><a href="#new-to-if">New to IF?</a></li>
+         <li><a href="#ifdb-recommends">IFDB Recommends...</a></li>
+         <li><a href="#top-reviewers">Top Reviewers</a></li>
+         <li><a href="#stats">In the Database</a></li>
+      </ul>
+
       <div class="block flexer">
          <div class="column col-peer">
             <div class=headline>New on IFDB
@@ -116,7 +128,7 @@ if ($debugflag) echo "debug mode enabled...<br>";
 
       <div class="block flexer">
          <div class="column col-peer">
-            <div class=headline>Games</div>
+            <div class=headline id='games'>Games</div>
 
             <p><a href="/search?browse&sortby=lnew">New</a> | <a href="/search?browse">Top</a> | <a href="/search?searchbar=added%3A60d-">Hot</a> | <a href="/random">Random</a></p>
             <p><span class=details><a href="/editgame?id=new">Add a game listing</a></span></p>
@@ -130,7 +142,7 @@ if ($debugflag) echo "debug mode enabled...<br>";
             ?>
          </div>
          <div class="column col-peer">
-            <div class=headline>Reviews</div>
+            <div class=headline id='reviews'>Reviews</div>
             <?php
 
             // get the latest reviews
@@ -147,7 +159,7 @@ if ($debugflag) echo "debug mode enabled...<br>";
             <?php include "components/poll-sampler.php"?>
          </div>
          <div class="column col-peer">
-            <div class=headline>Competitions</div>
+            <div class=headline id='competitions'>Competitions</div>
 
             <p><a href="https://ifcomp.org/">IF Comp</a> | <a href="https://www.springthing.net/">Spring Thing</a> | <a href="https://xyzzyawards.org/">XYZZY Awards</a></p>
 
@@ -166,7 +178,7 @@ if ($debugflag) echo "debug mode enabled...<br>";
 
       <div class="block flexer">
          <div class="column col-peer">
-            <div class=headline>Lists</div>
+            <div class=headline id='lists'>Lists</div>
 
             <p><span class=details><a href="/editlist?id=new">Create a recommended list</a></span></p>
             <?php
@@ -179,7 +191,7 @@ if ($debugflag) echo "debug mode enabled...<br>";
             ?>
          </div>
          <div class="column col-peer">
-            <div class="headline">New to IF?</div>
+            <div class="headline" id='new-to-if'>New to IF?</div>
             <p>IFDB can help get you up and running with the games you find on IFDB. Just click the <button type="button" class="fancy-button">Play Online</button> button in any game's External Links box to play the game right in your browser.</p>
          </div>
       </div>
@@ -190,12 +202,12 @@ if ($debugflag) echo "debug mode enabled...<br>";
 
       <div class="block flexer">
          <div class="column col-peer">
-            <div class=headline>Top Reviewers</div>
+            <div class=headline id='top-reviewers'>Top Reviewers</div>
             <?php include "components/top-reviewers.php"?>
          </div>
 
          <div class="column col-peer">
-            <div class=headline>In the Database</div>
+            <div class=headline id='stats'>In the Database</div>
             <?php include "components/database-stats.php"?>
          </div>
       </div>

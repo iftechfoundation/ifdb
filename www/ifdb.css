@@ -1456,6 +1456,16 @@ ul.doublespace li {
     margin-bottom: 1em;
 }
 
+ul.horizontal {
+    padding: 0;
+    max-width: revert;
+}
+
+ul.horizontal > li {
+    display: inline-block;
+    margin-right: 0.5em;
+}
+
 /*
 News items
 */

@@ -41,7 +41,7 @@ $recently_voted = array_slice(array_filter($recently_voted, function($row) use (
     return !isset($recently_created_ids[$row[0]]);
 }), 0, 5);
 
-echo "<div class=\"block\"><div class=\"headline\">Vote!</div>"
+echo "<div class=\"block\"><div class=\"headline\" id=\"polls\">Polls</div>"
     . "<p>Help other IFDB members find the games they're looking for "
     . "by voting in their polls.  Here are a few recent ones:</p>";
 
