@@ -354,13 +354,13 @@ function showNewItems($db, $first, $last, $items, $showFlagged = false, $allowHi
         $items = getNewItems($db, $last, $itemTypes);
 
     // show them
-    showNewItemList($db, $items, $first, $last, $showFlagged, $allowHiddenBanner);
+    showNewItemList($db, $items, $first, $last, $showFlagged, $allowHiddenBanner, $itemTypes);
 
     // indicate whether there's more to come
     return count($items) > $last;
 }
 
-function showNewItemList($db, $items, $first, $last, $showFlagged, $allowHiddenBanner)
+function showNewItemList($db, $items, $first, $last, $showFlagged, $allowHiddenBanner, $itemTypes)
 {
     // show the items
     $totcnt = count($items);
@@ -386,6 +386,8 @@ function showNewItemList($db, $items, $first, $last, $showFlagged, $allowHiddenB
         echo "<p><div class=restricted>Some results were hidden. "
             . "<a href=\"$showAllLink\">See all results</a></div></p>";
     }
+
+    $eager = ($itemTypes === NEWITEMS_ALLITEMS ? "class='eager'" : "");
 
     for ($idx = $first ; $idx <= $last && $idx < $totcnt ; $idx++)
     {
@@ -472,7 +474,7 @@ function showNewItemList($db, $items, $first, $last, $showFlagged, $allowHiddenB
                     echo "<i>\"$summary\"</i>";
 
                 if ($trunc)
-                    echo " - <a class=eager href=\"viewgame?id={$r['gameid']}"
+                    echo " - <a $eager href=\"viewgame?id={$r['gameid']}"
                         . "&review={$r['id']}\">See full review</a>";
 
                 echo "</span></div>";
@@ -547,7 +549,7 @@ function showNewItemList($db, $items, $first, $last, $showFlagged, $allowHiddenB
             // summarize this game
             echo "<div class=\"new-game\">"
                 . "A new listing for "
-                . "<a class=eager href=\"viewgame?id={$g['id']}\"><b><i>"
+                . "<a $eager href=\"viewgame?id={$g['id']}\"><b><i>"
                 . output_encode(htmlspecialcharx($g['title']))
                 . "</i></b></a>, by "
                 . output_encode(htmlspecialcharx($g['author']))
@@ -600,7 +602,7 @@ function showNewItemList($db, $items, $first, $last, $showFlagged, $allowHiddenB
             echo "<div class=\"new-poll\">"
                 . "A new poll by <a href=\"showuser?id=$uid\">"
                 . "$uname</a>, "
-                . "<a class=eager href=\"poll?id=$pid\"><b>$title</b></a> "
+                . "<a $eager href=\"poll?id=$pid\"><b>$title</b></a> "
                 . "<span class=notes><i>created $fmtdate</i></span>"
                 . "<br><div class=indented>"
                 . "<span class=details>$cntdesc</span><br>"
