@@ -256,10 +256,6 @@ function get_req_data($id)
     $val = (isset($_POST[$id]) && $_POST[$id]) ? $_POST[$id] :
            (isset($_REQUEST[$id]) ? $_REQUEST[$id] : "");
 
-    // if magic quotes are on, strip slashes
-    if (get_magic_quotes_gpc())
-        $val = stripslashes($val);
-
     // Opera has a bug (at least, it looks like a bug to me) that we need
     // to work around here.  If the form data contain certain extended
     // characters, Opera will encode them as &#dddd; entities.  This is
