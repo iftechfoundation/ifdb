@@ -158,7 +158,7 @@ function getNewItems($db, $limit, $itemTypes = NEWITEMS_ALLITEMS)
         $anp = str_replace('#USERID#', 'reviews.userid', $andNotPlonked);
         $result = mysql_query(
             "select
-               reviews.id as reviewid, gameid, summary, review, rating, special,
+               reviews.id as id, gameid, summary, review, rating, special,
                games.title as title,
                users.id as userid, users.name as username,
                greatest(reviews.createdate,
@@ -182,7 +182,7 @@ function getNewItems($db, $limit, $itemTypes = NEWITEMS_ALLITEMS)
                and ifnull(specialreviewers.code, '') <> 'external'
                and users.sandbox in $sandbox
                $anp
-             order by d desc
+             order by d desc, id desc
              $limit", $db);
         $revcnt = mysql_num_rows($result);
         for ($i = 0 ; $i < $revcnt ; $i++) {
@@ -274,7 +274,11 @@ function sortNewItemsByDate($a, $b)
     // in the mysql raw date format, which collates like an ascii string,
     // so we can compare with strcmp.  Reverse the sense of the test so
     // that we sort newest first.
-    return strcmp($b[1], $a[1]);
+    if ($a[1] == $b[1]) {
+        return $b[2]['id'] - $a[2]['id'];
+    } else {
+        return strcmp($b[1], $a[1]);
+    }
 }
 
 function queryNewNews(&$items, $db, $limit, $sourceType,
@@ -469,7 +473,7 @@ function showNewItemList($db, $items, $first, $last, $showFlagged, $allowHiddenB
 
                 if ($trunc)
                     echo " - <a class=eager href=\"viewgame?id={$r['gameid']}"
-                        . "&review={$r['reviewid']}\">See full review</a>";
+                        . "&review={$r['id']}\">See full review</a>";
 
                 echo "</span></div>";
             }
