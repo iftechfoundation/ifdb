@@ -139,7 +139,14 @@ if ($debugflag) echo "debug mode enabled...<br>";
          <div class="column col-peer">
             <div class=headline id='games'><h1 class='unset'>Games</h1></div>
 
-            <p><a href="/search?browse&sortby=lnew">New</a> | <a href="/search?browse">Top</a> | <a href="/search?searchbar=added%3A60d-">Hot</a> | <a href="/random">Random</a> | <a href="/search">Search</a></p>
+            <ul class='horizontal'>
+               <li><a href="/search?browse&sortby=lnew">New</a><li>
+               <li><a href="/search?browse">Top</a></li>
+               <li><a href="/search?searchbar=added%3A60d-">Hot</a></li>
+               <li><a href="/random">Random</a></li>
+               <li><a href="/search">Search</a></li>
+               <li><a href="/search?sortby=lnew&searchfor=%23reviews%3A0+wontplay%3Ano">Unreviewed</a></li>
+            </ul>
             <p><span class=details><a href="/editgame?id=new">Add a game listing</a></span></p>
             <?php
 
