@@ -146,7 +146,7 @@ if ($debugflag) echo "debug mode enabled...<br>";
             <?php
 
             // get the latest reviews
-            if (showNewItems($db, 0, 5, false, false, false, NEWITEMS_REVIEWS))
+            if (showNewItems($db, 0, 9, false, false, false, NEWITEMS_REVIEWS))
                echo "<p><span class=details><a href=\"allnew\">"
                      . "See the full list...</a></span></p>";
 

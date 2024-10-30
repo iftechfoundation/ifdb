@@ -376,7 +376,7 @@ if (count($recs) >= 2) {
 
 
     // show the first three entries
-    for ($i = 0 ; $i < count($recs) && $i < 3 ; $i++) {
+    for ($i = 0 ; $i < count($recs) && $i < 5 ; $i++) {
 
         // get the fields from the game record
         $r = $recs[$i];
