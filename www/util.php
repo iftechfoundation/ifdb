@@ -1595,9 +1595,6 @@ function userScore($uid)
     $db = dbConnect();
     $quid = mysql_real_escape_string($uid, $db);
 
-    // start by setting up the temporary tables for the user scores
-    createFFTempTable($db);
-
     // determine the requested user's score
     $result = mysql_query(
         "select score, rankingScore, reviewCount
@@ -1667,9 +1664,6 @@ function getUserScores($db, $n)
 //
 function getTopReviewers($db, $n)
 {
-    // start by setting up the temporary tables for the user scores
-    createFFTempTable($db);
-
     // Get the top N, sorted in descending rank order.  Only count
     // people who have actually written reviews.
     $result = mysql_query(
@@ -1687,101 +1681,6 @@ function getTopReviewers($db, $n)
 
     // return the user list
     return $arr;
-}
-
-//
-// Set up temporary tables for calculating Frequent Fiction scores.
-// This sets up the temp table UserScores (userid, score), giving each
-// user's current FF score.  This can be used to get an individual user's
-// score or to generate a list of the top N users.
-//
-function createFFTempTable($db)
-{
-    // $$$ obsolete - we have views for these now
-
-//    static $ffCreated = 0;
-//
-//    // only do this once per http transaction
-//    if ($ffCreated++)
-//        return;
-//
-//    // Set up a helper table with the various score components.
-//    // Some of the components are non-trivial to calculate, so we
-//    // pre-calculate them here to make it easy to add everything up
-//    // per user.
-//    mysql_query(
-//        "create temporary table userScoreItems as "
-//
-//        // +100 points per review
-//        //   +5 for each Helpful vote (max +100) on the review
-//        //   -5 for each Unhelpful vote (min -100) on the review
-//        . "select
-//           reviews.userid as userid,
-//           max(if(review is null, 10, 100))
-//             + 5*(greatest(
-//                  -100,
-//                  least(
-//                   100,
-//                   ifnull(sum(reviewvotes.vote = 'Y'), 0)
-//                   - ifnull(sum(reviewvotes.vote = 'N'), 0)))) as score,
-//           max(if(review is null, 0, 1)) as isReview,
-//           concat('review ', reviews.id) as scoreType
-//        from
-//           reviews
-//           left outer join reviewvotes
-//              on reviewvotes.reviewid = reviews.id
-//           left outer join specialreviewers
-//              on special = specialreviewers.id
-//        where
-//           (special is null or not editorial)
-//           and ifnull(now() >= reviews.embargodate, 1)
-//        group by
-//           reviews.id "
-//
-//        // +1 point for each helpful/unhelpful vote we've cast
-//        . "union all
-//        select
-//           userid,
-//           count(vote) as score,
-//           0 as isReview,
-//           concat('vote ', reviewid) as scoreType
-//        from
-//           reviewvotes
-//        group by
-//           userid "
-//
-//        // +25 points per recommended list we've written with at least 5 items
-//        . "union all
-//        select
-//           l.userid,
-//           if (count(i.gameid) >= 5, 25, 0) as score,
-//           0 as isReview,
-//           concat('list ', l.id) as scoreType
-//        from
-//           reclists as l
-//           left outer join reclistitems as i
-//             on i.listid = l.id
-//        group by
-//           l.userid", $db);
-//
-//    // Create the temp table with each user's score.  This is simply
-//    // a summation by user of the score components in the preliminary
-//    // table we created above.
-//    //
-//    // The "ranking score" is the score, or zero for a user who hasn't
-//    // written any reviews.  At least one review is required to be
-//    // ranked as a Top N reviewer.
-//    mysql_query(
-//        "create temporary table userScores as
-//         select
-//             userid,
-//             sum(score) as score,
-//             max(isReview)*sum(score) as rankingScore,
-//             sum(isReview) as reviewCount
-//         from
-//             userScoreItems
-//         group by
-//             userid", $db);
 }
 
 // --------------------------------------------------------------------------

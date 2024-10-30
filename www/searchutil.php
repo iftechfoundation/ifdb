@@ -1042,9 +1042,6 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse)
     // Frequent Fiction information, set that up.
     if ($searchType == "member" && preg_match("/^userScores_mv\./", $orderBy)) {
 
-        // we need the UserScores temporary table - go build it
-        createFFTempTable($db);
-
         // add it to the select list and table list
         $selectList .= ", userScores_mv.score as score";
         $tableList .= " left outer join userScores_mv "
