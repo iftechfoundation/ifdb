@@ -32,8 +32,14 @@ $recently_created = mysqli_fetch_all($result);
 
 // add the most recently active polls (i.e., latest vote)
 $result = mysqli_execute_query($db,
-    "$baseQuery order by max(v.votedate) desc limit 0, 5", [$sandbox]);
+    "$baseQuery order by max(v.votedate) desc limit 0, 10", [$sandbox]);
 $recently_voted = mysqli_fetch_all($result);
+
+// don't show recently created polls in the "recently voted" section
+$recently_created_ids = array_fill_keys(array_map(function($row) { return $row[0]; }, $recently_created), 1);
+$recently_voted = array_slice(array_filter($recently_voted, function($row) use ($recently_created_ids) {
+    return !isset($recently_created_ids[$row[0]]);
+}), 0, 5);
 
 echo "<div class=\"block\"><div class=\"headline\">Vote!</div>"
     . "<p>Help other IFDB members find the games they're looking for "
