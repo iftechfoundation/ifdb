@@ -193,6 +193,7 @@ $hrefTerm = urlencode($hrefTerm);
 // get the search type
 const SEARCH_TYPES = ['list', 'poll', 'member', 'comp', 'club', 'tag'];
 $searchType = 'game';
+$searchButton = "Search Games";
 foreach (SEARCH_TYPES as $st) {
     if (isset($_REQUEST[$st])) {
         $searchType = $st;
