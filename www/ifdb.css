@@ -1108,6 +1108,10 @@ div.footer {
     font-size: 70%;
 }
 
+h1.unset {
+    all: unset;
+}
+
 #welcome-details summary {
     list-style: none;
     cursor: pointer;

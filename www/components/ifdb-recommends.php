@@ -366,7 +366,7 @@ if (count($recs) >= 2) {
     $_SESSION['ifdb_recommendations_source'] = $recsrc;
 
     // start the section
-    echo "<div class='headline' id='ifdb-recommends'>IFDB Recommends..."
+    echo "<div class='headline' id='ifdb-recommends'><h1 class='unset'>IFDB Recommends...</h1>"
       .($overloaded ? "<span class='headlineRss'><a href='/search?searchbar=played%3Ano+willplay%3Ano+wontplay%3Ano+reviewed%3Ano+rated%3Ano'>More like this</a></span>" : "")
       ."</div><div>";
     global $nonce;

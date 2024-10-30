@@ -40,7 +40,7 @@ if ($debugflag) echo "debug mode enabled...<br>";
       <div class="block">
          <details id="welcome-details" <?= $welcomeOpen ? "open" : ""?>>
          <summary>
-            <div class="headline headline1"><span><span id="welcome-disclosure"></span> Welcome to IFDB!</span>
+            <div class="headline headline1"><span><span id="welcome-disclosure"></span> <h1 class='unset'>Welcome to IFDB!</h1></a></span>
                <span class=headlineRss>
                   <a href="news">Site News</a> |
                   <a href="news?rss"><img src="img/blank.gif" class="rss-icon" alt="">RSS Feed</a>
@@ -101,7 +101,7 @@ if ($debugflag) echo "debug mode enabled...<br>";
 
       <div class="block flexer">
          <div class="column col-peer">
-            <div class=headline>New on IFDB
+            <div class=headline><h1 class='unset'>New on IFDB</h1>
                <span class=headlineRss>
                   <a href="allnew-rss"><img src="img/blank.gif" class="rss-icon" alt="">RSS Feed</a>
                </span>
@@ -128,7 +128,7 @@ if ($debugflag) echo "debug mode enabled...<br>";
 
       <div class="block flexer">
          <div class="column col-peer">
-            <div class=headline id='games'>Games</div>
+            <div class=headline id='games'><h1 class='unset'>Games</h1></div>
 
             <p><a href="/search?browse&sortby=lnew">New</a> | <a href="/search?browse">Top</a> | <a href="/search?searchbar=added%3A60d-">Hot</a> | <a href="/random">Random</a></p>
             <p><span class=details><a href="/editgame?id=new">Add a game listing</a></span></p>
@@ -142,7 +142,7 @@ if ($debugflag) echo "debug mode enabled...<br>";
             ?>
          </div>
          <div class="column col-peer">
-            <div class=headline id='reviews'>Reviews</div>
+            <div class=headline id='reviews'><h1 class='unset'>Reviews</h1></div>
             <?php
 
             // get the latest reviews
@@ -159,7 +159,7 @@ if ($debugflag) echo "debug mode enabled...<br>";
             <?php include "components/poll-sampler.php"?>
          </div>
          <div class="column col-peer">
-            <div class=headline id='competitions'>Competitions</div>
+            <div class=headline id='competitions'><h1 class='unset'>Competitions</h1></div>
 
             <p><a href="https://ifcomp.org/">IF Comp</a> | <a href="https://www.springthing.net/">Spring Thing</a> | <a href="https://xyzzyawards.org/">XYZZY Awards</a></p>
 
@@ -178,7 +178,7 @@ if ($debugflag) echo "debug mode enabled...<br>";
 
       <div class="block flexer">
          <div class="column col-peer">
-            <div class=headline id='lists'>Lists</div>
+            <div class=headline id='lists'><h1 class='unset'>Lists</h1></div>
 
             <p><span class=details><a href="/editlist?id=new">Create a recommended list</a></span></p>
             <?php
@@ -197,22 +197,22 @@ if ($debugflag) echo "debug mode enabled...<br>";
 
       <div class="block flexer">
          <div class="column col-peer">
-            <div class=headline id='top-reviewers'>Top Reviewers</div>
+            <div class=headline id='top-reviewers'><h1 class='unset'>Top Reviewers</h1></div>
             <?php include "components/top-reviewers.php"?>
          </div>
          <div class="column col-peer">
-            <div class="headline" id='new-to-if'>New to IF?</div>
+            <div class="headline" id='new-to-if'><h1 class='unset'>New to IF?</h1></div>
             <p>IFDB can help get you up and running with the games you find on IFDB. Just click the <button type="button" class="fancy-button">Play Online</button> button in any game's External Links box to play the game right in your browser.</p>
          </div>
       </div>
 
       <div class="block flexer">
          <div class="column col-peer">
-            <div class=headline id='stats'>In the Database</div>
+            <div class=headline id='stats'><h1 class='unset'>In the Database</h1></div>
             <?php include "components/database-stats.php"?>
          </div>
          <div class="column col-peer">
-            <div class=headline id='links'>IF Links</div>
+            <div class=headline id='links'><h1 class='unset'>IF Links</h1></div>
             <ul>
                <li><a href="https://intfiction.org"><b>IF Community Forum</b></a>: Discuss playing IF, creating IF, and competitions.</li>
                <li><a href="https://planet-if.com"><b>Planet IF</b></a>: Read the latest posts from IF-related blogs.</li>
