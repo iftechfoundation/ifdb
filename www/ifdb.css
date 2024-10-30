@@ -430,40 +430,40 @@ distinct classes so that custom style sheets can show each type
 in its own style.
 */
 div.new-review {
-    margin-top: 1.25em;
     margin-bottom: 1.25em;
+    break-inside: avoid-column;
 }
 div.new-list {
-    margin-top: 1.25em;
     margin-bottom: 1.25em;
+    break-inside: avoid-column;
 }
 div.new-game {
-    margin-top: 1.25em;
     margin-bottom: 1.25em;
+    break-inside: avoid-column;
 }
 div.new-poll {
-    margin-top: 1.25em;
     margin-bottom: 1.25em;
+    break-inside: avoid-column;
 }
 div.new-game-news {
-    margin-top: 1.25em;
     margin-bottom: 1.25em;
+    break-inside: avoid-column;
 }
 div.new-comp-news {
-    margin-top: 1.25em;
     margin-bottom: 1.25em;
+    break-inside: avoid-column;
 }
 div.new-competition {
-    margin-top: 1.25em;
     margin-bottom: 1.25em;
+    break-inside: avoid-column;
 }
 div.new-club-news {
-    margin-top: 1.25em;
     margin-bottom: 1.25em;
+    break-inside: avoid-column;
 }
 div.new-club {
-    margin-top: 1.25em;
     margin-bottom: 1.25em;
+    break-inside: avoid-column;
 }
 
 .restricted {

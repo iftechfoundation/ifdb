@@ -89,10 +89,37 @@ if ($debugflag) echo "debug mode enabled...<br>";
 
       <div class="block flexer">
          <div class="column col-peer">
+            <div class=headline>New on IFDB
+               <span class=headlineRss>
+                  <a href="allnew-rss"><img src="img/blank.gif" class="rss-icon" alt="">RSS Feed</a>
+               </span>
+            </div>
+
+            <style nonce="<?php global $nonce; echo $nonce; ?>">
+               #home__allnew {
+                  @media (min-width: 80ch) {
+                     columns: 2;
+                  }
+               }
+            </style>
+            <div id='home__allnew'>
+            <?php
+
+            // get the latest games, reviews, and lists, and show a mix
+            showNewItems($db, 0, 7, false, false, false, NEWITEMS_ALLITEMS);
+            ?>
+            </div>
+            <div><span class=details><a href='allnew'>See the full list...</a></span></div>
+            </div>
+         </div>
+      </div>
+
+      <div class="block flexer">
+         <div class="column col-peer">
             <div class=headline>Games</div>
 
             <p><a href="/search?browse&sortby=lnew">New</a> | <a href="/search?browse">Top</a> | <a href="/search?searchbar=added%3A60d-">Hot</a> | <a href="/random">Random</a></p>
-            <span class=details><a href="/editgame?id=new">Add a game listing</a></span>
+            <p><span class=details><a href="/editgame?id=new">Add a game listing</a></span></p>
             <?php
 
             // get the latest games and game news
