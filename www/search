@@ -200,51 +200,27 @@ foreach (SEARCH_TYPES as $st) {
     }
 }
 
-$browseTabs = array(
+$browseTabs = [
     "game"    => "Games",
     "list"    => "Lists",
     "poll"    => "Polls",
     "comp"    => "Competitions",
     "club"    => "Clubs",
     "member"  => "Members",
-    "tag"     => "Tags");
+    "tag"     => "Tags",
+];
 
-if (isset($_REQUEST['list'])) {
-    $searchType = "list";
-    $searchButton = "Search Lists";
-    $hiddenTypeField = "<input type=\"hidden\" name=\"list\" value=\"1\">";
+foreach ($browseTabs as $browseParam => $browseName) {
+    if (!isset($_REQUEST[$browseParam]))
+        continue;
+    $searchType = $browseParam;
+    $searchButton = "Search $browseName";
+    if ($browseParam == 'game')
+        $hiddenTypeField = "";
+    else
+        $hiddenTypeField = "<input type=\"hidden\" name=\"$browseParam\" value=\"1\">";
+    break;
 }
-else if (isset($_REQUEST['poll'])) {
-    $searchType = "poll";
-    $searchButton = "Search Polls";
-    $hiddenTypeField = "<input type=\"hidden\" name=\"poll\" value=\"1\">";
-}
-else if (isset($_REQUEST['member'])) {
-    $searchType = "member";
-    $searchButton = "Search Members";
-    $hiddenTypeField = "<input type=\"hidden\" name=\"member\" value=\"1\">";
-}
-else if (isset($_REQUEST['comp'])) {
-    $searchType = "comp";
-    $searchButton = "Search Competitions";
-    $hiddenTypeField = "<input type=\"hidden\" name=\"comp\" value=\"1\">";
-}
-else if (isset($_REQUEST['club'])) {
-    $searchType = "club";
-    $searchButton = "Search Clubs";
-    $hiddenTypeField = "<input type=\"hidden\" name=\"club\" value=\"1\">";
-}
-else if (isset($_REQUEST['tag'])) {
-    $searchType = "tag";
-    $searchButton = "Search Tags";
-    $hiddenTypeField = "<input type=\"hidden\" name=\"tag\" value=\"1\">";
-}
-else {
-    $searchType = "game";
-    $searchButton = "Search Games";
-    $hiddenTypeField = "";
-}
-
 
 $pg = isset($_REQUEST['pg']) ? $_REQUEST['pg'] : "";
 $pgAll = false;
