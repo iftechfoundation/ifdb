@@ -12,11 +12,7 @@ if ($curuser) {
 
 // set up the base query for polls
 $baseQuery = "select
-                p.pollid, p.title, p.`desc`, p.created, p.userid,
-                count(v.gameid) as votecnt,
-                count(distinct v.gameid) as gamecnt,
-                max(v.votedate) as lastvotedate,
-                u.name
+                p.pollid, p.title, p.userid, u.name
               from
                 polls as p
                 left outer join pollvotes as v on v.pollid = p.pollid
@@ -25,115 +21,57 @@ $baseQuery = "select
                 sandbox in (0, ?)
               group by
                 p.pollid";
-$limit = "limit 0, 5";
 
-$rows1 = [];
-$rows2 = [];
-$rows3 = [];
+$recently_created = [];
+$recently_voted = [];
 
 // query the most recently created polls
 $result = mysqli_execute_query($db,
-    "$baseQuery order by p.created desc $limit", [$sandbox]);
-while ($row = mysql_fetch_row($result))
-    $rows1[] = $row;
+    "$baseQuery order by p.created desc limit 0, 5", [$sandbox]);
+$recently_created = mysqli_fetch_all($result);
 
 // add the most recently active polls (i.e., latest vote)
 $result = mysqli_execute_query($db,
-    "$baseQuery order by lastvotedate desc $limit", [$sandbox]);
-while ($row = mysql_fetch_row($result))
-    $rows2[] = $row;
+    "$baseQuery order by max(v.votedate) desc limit 0, 5", [$sandbox]);
+$recently_voted = mysqli_fetch_all($result);
 
-// add the most popular polls (most votes)
-$result = mysqli_execute_query($db,
-    "$baseQuery order by votecnt desc, gamecnt desc $limit", [$sandbox]);
-while ($row = mysql_fetch_row($result))
-    $rows3[] = $row;
+echo "<div class=\"block\"><div class=\"headline\">Vote!</div>"
+    . "<p>Help other IFDB members find the games they're looking for "
+    . "by voting in their polls.  Here are a few recent ones:</p>";
 
-function addPollRows(&$dst, &$src, $allRows, $amount)
-{
-    foreach (range(1, $amount) as $i) {
-        // add the next element of src not in dst
-        if (addUniquePollRow($dst, $src))
-            continue;
+global $nonce;
+echo "<style nonce='$nonce'>\n"
+    . ".poll-sampler__create { margin-top: 1ex; }\n"
+    . "</style>\n";
 
-        // if that failed, fall back to the master list
-        addUniquePollRow($dst, $allRows);
-    }
+function displayPoll($row) {
+    [$pollID, $pollTitle, $pollUserID, $pollUserName] = $row;
+
+    // format for HTML
+    $pollTitle = htmlspecialcharx($pollTitle);
+    $pollUserName = htmlspecialcharx($pollUserName);
+
+    // display it
+    echo "<li>"
+        . "<a href=\"poll?id=$pollID\"><b>$pollTitle</b></a>, "
+        . "by <a href=\"showuser?id=$pollUserID\">$pollUserName</a>"
+        . "</li>\n";
 }
-function addUniquePollRow(&$dst, &$src)
-{
-    // search for an element of src not in dst
-    foreach ($src as $i => $srcEle) {
-        // Remove items as they are scanned
-        unset($src[$i]);
 
-        if (!isset($dst[$srcEle[0]])) {
-            $dst[$srcEle[0]] = $srcEle;
-            return true;
-        }
-    }
-    return false;
+echo "<div>New Polls: <span class='details'><a href='/search?browse&poll'>See More</a></span><ul>\n";
+foreach ($recently_created as $row) {
+    displayPoll($row);
 }
-$allRows = array_merge($rows1, $rows2, $rows3);
-$rows = [];
-addPollRows($rows, $rows1, $allRows, 4);
-addPollRows($rows, $rows2, $allRows, 4);
-addPollRows($rows, $rows3, $allRows, 2);
-// -------------------------- done with poll query --------------------------
-
-//
-//  Figure which columns we're showing in the extra stuff table
-//
-$colcnt = 0;
-
-// count polls
-if (count($rows) > 0)
-    $colcnt++;
-
-// count the "new to IF?" box
-$colcnt++;
-
-// figure the split
-$colWidth = floor(100/$colcnt) . "%";
-$colClass = "firstcol";
-
-//
-// if we found any polls, show the poll box
-//
-if (count($rows) > 0) {
-    echo "<div class=\"block\"><div class=\"headline\">Vote!</div>"
-        . "<p>Help other IFDB members find the games they're looking for "
-        . "by voting in their polls.  Here are a few recent ones:</p>";
-    
-    global $nonce;
-    echo "<style nonce='$nonce'>\n"
-        . ".poll-sampler__poll { margin-left: 1em; text-indent: -1em; }\n"
-        . ".poll-sampler__create { margin-top: 1ex; }\n"
-        . "</style>\n";
-
-
-    foreach ($rows as $row) {
-        // retrieve the values
-        [$pollID, $pollTitle, $pollDesc, $pollDate, $pollUserID,
-         $pollVotes, $pollGames, $pollLastVoteDate, $pollUserName] = $row;
-
-        // format for HTML
-        $pollTitle = htmlspecialcharx($pollTitle);
-        $pollUserName = htmlspecialcharx($pollUserName);
-
-        // display it
-        echo "<div class='poll-sampler__poll'>"
-            . "<a href=\"poll?id=$pollID\"><b>$pollTitle</b></a>, "
-            . "by <a href=\"showuser?id=$pollUserID\">$pollUserName</a>"
-            . "</div>";
-    }
-
-    echo "<div class=\"details poll-sampler__create\">"
-        . "<a href=\"search?browse&poll&sortby=new\">Browse all polls</a> | "
-        . "<a href=\"poll?id=new\">Create a poll</a> | "
-        . helpWinLink("help-polls", "What are polls?")
-        . "</div></td></tr></table></div>";
+echo "</ul></div><div>Polls with Recent Votes: <span class='details'><a href='/search?browse&poll&sortby=newvote'>See More</a></span><ul>\n";
+foreach ($recently_voted as $row) {
+    displayPoll($row);
 }
+
+echo "</ul></div>\n<div class=\"details poll-sampler__create\">"
+    . "<a href=\"search?browse&poll&sortby=votes\">Browse all polls</a> | "
+    . "<a href=\"poll?id=new\">Create a poll</a> | "
+    . helpWinLink("help-polls", "What are polls?")
+    . "</div></td></tr></table></div>";
 
 //  ------------------------ end poll sampler box ---------------------------
 ?>
