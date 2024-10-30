@@ -36,12 +36,16 @@ if ($debugflag) echo "debug mode enabled...<br>";
 
 <div class="flexer prerender-moderate">
    <div class="column col-main">
-
       <div class="block">
          <details id="welcome-details" <?= $welcomeOpen ? "open" : ""?>>
          <summary>
             <div class="headline headline1"><span><span id="welcome-disclosure"></span> <h1 class='unset'>Welcome to IFDB!</h1></a></span>
                <span class=headlineRss>
+                  <?php
+                  if ($adminPriv) {
+                     echo "<a href='/adminops'>Admin</a> | ";
+                  }
+                  ?>
                   <a href="news">Site News</a> |
                   <a href="news?rss"><img src="img/blank.gif" class="rss-icon" alt="">RSS Feed</a>
                </span>
