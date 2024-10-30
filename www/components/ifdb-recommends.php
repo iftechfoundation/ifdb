@@ -332,8 +332,7 @@ if (count($recs) == 0) {
            join $gameRatingsView on games.id = gameid
            $exclJoin
          where
-           starsort >= 4
-           and not (games.flags & " . FLAG_SHOULD_HIDE . ")
+           not (games.flags & " . FLAG_SHOULD_HIDE . ")
            $exclWhere
          order by
            starsort desc
