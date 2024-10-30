@@ -75,6 +75,7 @@ foreach ($recently_voted as $row) {
 
 echo "</ul></div>\n<div class=\"details poll-sampler__create\">"
     . "<a href=\"search?browse&poll&sortby=votes\">Browse all polls</a> | "
+    . "<a href=\"search?poll\">Search for polls</a> | "
     . "<a href=\"poll?id=new\">Create a poll</a> | "
     . helpWinLink("help-polls", "What are polls?")
     . "</div></td></tr></table></div>";

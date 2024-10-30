@@ -172,7 +172,7 @@ if ($debugflag) echo "debug mode enabled...<br>";
             // get the latest competitions and competition news
             if (showNewItems($db, 0, 2, false, false, false, NEWITEMS_COMPS | NEWITEMS_COMPNEWS))
                echo "<p><span class=details><a href=\"/search?browse&comp\">"
-                     . "See the full list...</a></span></p>";
+                     . "Browse competitions</a> | <a href=\"/search?comp\">Search competitions</a></span></p>";
 
             ?>
 
@@ -184,13 +184,14 @@ if ($debugflag) echo "debug mode enabled...<br>";
          <div class="column col-peer">
             <div class=headline id='lists'><h1 class='unset'>Lists</h1></div>
 
-            <p><span class=details><a href="/editlist?id=new">Create a recommended list</a></span></p>
+            <p><span class=details></span></p>
             <?php
 
             // get the latest lists
             if (showNewItems($db, 0, 2, false, false, false, NEWITEMS_LISTS))
                echo "<p><span class=details><a href=\"/search?browse&list\">"
-                     . "See the full list...</a></span></p>";
+                     . "Browse lists</a> | <a href=\"/editlist?id=new\">Create a recommended list</a>"
+                     . " | <a href=\"/search?list\">Search lists</a></span></p>";
 
             ?>
          </div>
