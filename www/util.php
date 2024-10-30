@@ -2905,4 +2905,38 @@ function collapsedAuthors($authors) {
     return $str;
 }
 
+// ----------------------------------------------------------------------------
+//
+// Sends a JSON response, used by the API
+//
+
+function send_json_response($data) {
+    header("Content-Type: application/json");
+    header("Expires: Mon, 26 Jul 1997 05:00:00 GMT");
+    header("Cache-Control: no-store, no-cache, must-revalidate");
+
+    echo json_encode($data);
+}
+
+// ----------------------------------------------------------------------------
+//
+// Sends a response to small update operations made by users
+//
+
+function send_action_response($label, $error = null, $extra = null) {
+    $arr = [];
+    if ($label)
+        $arr['label'] = $label;
+    if ($error)
+        $arr['error'] = $error;
+    if ($extra) {
+        foreach ($extra as $k => $v) {
+            $arr[$k] = $v;
+        }
+    }
+
+    send_json_response($arr);
+    exit();
+}
+
 ?>

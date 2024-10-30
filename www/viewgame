@@ -1785,6 +1785,8 @@ if (!$should_hide) {
 <!--
 function updatePlaylistCount(n)
 {
+    if (n === null || n === undefined)
+        return;
     document.getElementById("playlistCount").innerHTML =
         "" + (n == 0 ? "No" : n) + " member" + (n == 1 ? " has" : "s have")
         + " played this game.";
