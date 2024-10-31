@@ -481,28 +481,13 @@ function showNewItemList($db, $items, $first, $last, $showFlagged, $allowHiddenB
             } else {
                 echo ": \""
                     . output_encode(htmlspecialcharx($r['summary']))
-                    . "\" <span class=notes><i>{$r['fmtdate']}</i></span>";
+                    . "\" ";
             }
 
-            $stars = showStars($r['rating']);
-            list($summary, $len, $trunc) = summarizeHtml($r['review'], 140);
-            $summary = fixDesc($summary);
-            if ($len != 0 || $stars != "")
-            {
-                echo "<br><div class=indented><span class=details>";
+            echo showStars($r['rating']);
 
-                if ($stars != "")
-                    echo "$stars ";
-
-                if ($len != 0)
-                    echo "<i>\"$summary\"</i>";
-
-                if ($trunc)
-                    echo " - <a $eager href=\"viewgame?id={$r['gameid']}"
-                        . "&review={$r['id']}\">See full review</a>";
-
-                echo "</span></div>";
-            }
+            echo " - <a $eager href=\"viewgame?id={$r['gameid']}"
+                . "&review={$r['id']}\">See full review</a>";
 
             echo "</div>";
             if (ENABLE_IMAGES)
@@ -524,8 +509,6 @@ function showNewItemList($db, $items, $first, $last, $showFlagged, $allowHiddenB
             $itemS = $itemcnt == 1 ? "" : "s";
             $title = output_encode(htmlspecialcharx($l['title']));
             $username = output_encode(htmlspecialcharx($l['username']));
-            list($desc, $len, $trunc) = summarizeHtml($l['desc'], 210);
-            $desc = fixDesc($desc);
 
             // show the image: user image if available, otherwise the
             // generic list icon
@@ -549,7 +532,7 @@ function showNewItemList($db, $items, $first, $last, $showFlagged, $allowHiddenB
                 . "<span class=notes><i>{$l['fmtdate']}</i></span><br>"
                 . "<div class=indented>"
                 . "<span class=details>$itemcnt item$itemS</span><br>"
-                . "<span class=details><i>$desc</i></span></div></div>";
+                . "</div></div>";
         }
         else if ($pick == 'G')
         {
@@ -572,19 +555,12 @@ function showNewItemList($db, $items, $first, $last, $showFlagged, $allowHiddenB
 
             // summarize this game
             echo "<div class=\"new-game\">"
-                . "A new listing for "
                 . "<a $eager href=\"viewgame?id={$g['id']}\"><b><i>"
                 . output_encode(htmlspecialcharx($g['title']))
                 . "</i></b></a>, by "
-                . output_encode(htmlspecialcharx($g['author']))
-                . " <span class=notes><i>{$g['fmtdate']}</i></span>";
+                . output_encode(htmlspecialcharx($g['author']));
 
-            list($summary, $len, $trunc) = summarizeHtml($g['desc'], 210);
-            $summary = fixDesc($summary);
-            if ($len != 0)
-                echo "<br><div class=indented><span class=details><i>"
-                    . $summary
-                    . "</i></span></div>";
+            if ($g['system']) echo " <div class=details>{$g['system']}</div>";
 
             echo "</div>";
         }
@@ -650,8 +626,6 @@ function showNewItemList($db, $items, $first, $last, $showFlagged, $allowHiddenB
             $nuidOrig = $n['origUserID'];
             $nunameOrig = htmlspecialcharx($n['origUserName']);
             $nhead = htmlspecialcharx($n['headline']);
-            list($nbody, $len, $trunc) = summarizeHtml($n['body'], 210);
-            $nbody = fixDesc($nbody);
 
             switch ($n['sourceType'])
             {
@@ -693,10 +667,9 @@ function showNewItemList($db, $items, $first, $last, $showFlagged, $allowHiddenB
             echo "<div class=\"$divclass\">"
                 . "News on <a href=\"$href\">$gtitle</a>: "
                 . "<b>$nhead</b> "
-                . "<span class=notes><i>$ncre</i></span><br>"
-                . "<div class=indented><span class=details>$nbody - "
+                . " <span class=details>"
                 . "<a href=\"newslog?newsid=$nid\">Details</a>"
-                . "</span></div>"
+                . "</span>"
                 . "</div>";
         }
         else if ($pick == 'C')
@@ -707,8 +680,6 @@ function showNewItemList($db, $items, $first, $last, $showFlagged, $allowHiddenB
             // pull out the competition item
             $cid = $c["compid"];
             $ctitle = htmlspecialcharx($c["title"]);
-            list($cdesc, $len, $trunc) = summarizeHtml($c["desc"], 210);
-            $cdesc = fixDesc($cdesc);
             $cdate = $c["fmtdate"];
 
             // show the generic competition icon
@@ -723,8 +694,6 @@ function showNewItemList($db, $items, $first, $last, $showFlagged, $allowHiddenB
             echo "<div class=\"new-competition\">"
                 . "A new competition page: <a href=\"viewcomp?id=$cid\">"
                 . "$ctitle</a> <span class=notes><i>created $cdate</i></span>"
-                . "<br><div class=indented>"
-                . "<span class=details><i>$cdesc</i></span>"
                 . "</div>"
                 . "</div>";
         }
