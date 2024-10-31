@@ -137,7 +137,7 @@ if ($debugflag) echo "debug mode enabled...<br>";
 
       <div class="block flexer">
          <div class="column col-peer">
-            <div class=headline id='games'><h1 class='unset'>Games</h1>
+            <div class=headline id='games'><h1 class='unset'>More Games</h1>
             <span class=headlineRss>
                <a href="/editgame?id=new">Add a game listing</a>
             </span>
@@ -164,7 +164,7 @@ if ($debugflag) echo "debug mode enabled...<br>";
             <p><span class='details'><a href='search?browse&sortby=lnew'>See the full list...</a></span></p>
          </div>
          <div class="column col-peer">
-            <div class=headline id='reviews'><h1 class='unset'>Reviews</h1></div>
+            <div class=headline id='reviews'><h1 class='unset'>More Reviews</h1></div>
             <?php
 
             // get the latest reviews
