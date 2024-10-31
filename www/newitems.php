@@ -411,7 +411,7 @@ function showNewItemList($db, $items, $first, $last, $showFlagged, $allowHiddenB
             . "<a href=\"$showAllLink\">See all results</a></div></p>";
     }
 
-    $eager = ($itemTypes === NEWITEMS_ALLITEMS ? "class='eager'" : "");
+    $eager = "class='eager'";
 
     for ($idx = $first ; $idx <= $last && $idx < $totcnt ; $idx++)
     {

@@ -145,7 +145,7 @@ if ($debugflag) echo "debug mode enabled...<br>";
 
             // get the latest games and game news
             $game_items = getNewItems($db, 7, NEWITEMS_GAMES | NEWITEMS_GAMENEWS);
-            showNewItems($db, 0, 7, $game_items, false, false, NEWITEMS_GAMES | NEWITEMS_GAMENEWS);
+            showNewItems($db, 0, 4, $game_items, false, false, NEWITEMS_GAMES | NEWITEMS_GAMENEWS);
             ?>
             <p><span class='details'><a href='search?browse&sortby=lnew'>See the full list...</a></span></p>
          </div>
@@ -155,7 +155,7 @@ if ($debugflag) echo "debug mode enabled...<br>";
 
             // get the latest reviews
             $review_items = getNewItems($db, 7, NEWITEMS_REVIEWS);
-            showNewItems($db, 0, 7, $review_items, false, false, NEWITEMS_REVIEWS);
+            showNewItems($db, 0, 4, $review_items, false, false, NEWITEMS_REVIEWS);
 
             ?>
             <p><span class='details'><a href='allnew?reviews'>See the full list...</a></span></p>
