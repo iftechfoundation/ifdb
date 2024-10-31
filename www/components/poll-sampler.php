@@ -59,22 +59,22 @@ function displayPoll($row) {
     $pollUserName = htmlspecialcharx($pollUserName);
 
     // display it
-    echo "<li>"
+    echo "<div>"
         . "<a href=\"poll?id=$pollID\"><b>$pollTitle</b></a>, "
         . "by <a href=\"showuser?id=$pollUserID\">$pollUserName</a>"
-        . "</li>\n";
+        . "</div>\n";
 }
 
-echo "<div>New Polls: <span class='details'><a href='/search?browse&poll'>See More</a></span><ul>\n";
+echo "<div>New Polls: <span class='details'><a href='/search?browse&poll'>See More</a></span><p>\n";
 foreach ($recently_created as $row) {
     displayPoll($row);
 }
-echo "</ul></div><div>Polls with Recent Votes: <span class='details'><a href='/search?browse&poll&sortby=newvote'>See More</a></span><ul>\n";
+echo "</p></div><div>Polls with Recent Votes: <span class='details'><a href='/search?browse&poll&sortby=newvote'>See More</a></span><p>\n";
 foreach ($recently_voted as $row) {
     displayPoll($row);
 }
 
-echo "</ul></div>\n<div class=\"details poll-sampler__create\">"
+echo "</p></div>\n<div class=\"details poll-sampler__create\">"
     . "<a href=\"search?browse&poll&sortby=votes\">Browse all polls</a> | "
     . "<a href=\"search?poll\">Search for polls</a> | "
     . helpWinLink("help-polls", "What are polls?")
