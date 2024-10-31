@@ -4,7 +4,7 @@
     <?php
     $result = mysql_query("select count(*) as c from games", $db);
     $cnt = mysql_result($result, 0, "c");
-    echo "<li><a class=silent href=\"search?browse\">$cnt Game Listings</a></li>";
+    echo "<li><a href=\"search?browse\">$cnt Game Listings</a></li>";
 
     $result = mysql_query(
         "select count(*) as c from reviews
@@ -13,7 +13,7 @@
         and ifnull(now() >= embargodate, 1)", $db);
     $cnt = mysql_result($result, 0, "c");
     if ($cnt)
-        echo "<li>$cnt Member Reviews</li>";
+        echo "<li><a href='/allnew?reviews'>$cnt Member Reviews</a></li>";
 
     $result = mysql_query(
         "select count(*) as c from reviews
@@ -31,25 +31,25 @@
         where acctstatus = 'A' and ifnull(profilestatus, ' ') != 'R' ", $db);
     $cnt = mysql_result($result, 0, "c");
     if ($cnt)
-        echo "<li><a class=silent href=\"search?browse&member&sortby=new\">"
+        echo "<li><a href=\"search?browse&member\">"
             . "$cnt Registered Members</a></li>";
 
     $result = mysql_query("select count(*) as c from reclists", $db);
     $cnt = mysql_result($result, 0, "c");
     if ($cnt)
-        echo "<li><a class=silent href=\"search?browse&list&sortby=new\">"
+        echo "<li><a href=\"search?browse&list\">"
             . "$cnt Recommended Lists</a></li>";
 
     $result = mysql_query("select count(*) as c from polls", $db);
     $cnt = mysql_result($result, 0, "c");
     if ($cnt)
-        echo "<li><a class=silent href=\"search?browse&poll&sortby=new\">"
+        echo "<li><a href=\"search?browse&poll\">"
             . "$cnt Polls</a></li>";
 
     $result = mysql_query("select count(*) as c from competitions", $db);
     $cnt = mysql_result($result, 0, "c");
     if ($cnt)
-        echo "<li><a class=silent href=\"search?browse&comp\">"
+        echo "<li><a href=\"search?browse&comp\">"
             . "$cnt Competition Listings</a></li>";
     ?>
     </ul>
