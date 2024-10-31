@@ -90,7 +90,7 @@ function getNewItems($db, $limit, $itemTypes = NEWITEMS_ALLITEMS, $days = null)
         $result = mysql_query(
             "select id, title, author, `desc`, created as d,
                date_format(created, '%M %e, %Y') as fmtdate,
-               system,
+               system, pagevsn,
                (coverart is not null) as hasart
              from games
              where $dayWhere
@@ -180,6 +180,7 @@ function getNewItems($db, $limit, $itemTypes = NEWITEMS_ALLITEMS, $days = null)
                            ifnull(reviews.embargodate, '0000-00-00')),
                            '%M %e, %Y') as fmtdate,
                (games.coverart is not null) as hasart,
+               games.pagevsn,
                (users.picture is not null) as haspic,
                games.flags
              from
@@ -253,7 +254,7 @@ function getNewItems($db, $limit, $itemTypes = NEWITEMS_ALLITEMS, $days = null)
             $items, $db, $limit, "G",
             "join games as g on g.id = n.sourceid",
             "g.id as sourceID, g.title as sourceTitle, "
-            . "(g.coverart is not null) as hasart", $days);
+            . "(g.coverart is not null) as hasart, g.pagevsn", $days);
     }
 
     if ($itemTypes & NEWITEMS_COMPNEWS) {
@@ -449,7 +450,7 @@ function showNewItemList($db, $items, $first, $last, $showFlagged, $allowHiddenB
                         . "&thumbnail=50x50\"></a>";
                 } else if ($r["hasart"]) {
                     echo "<a href=\"viewgame?id={$r['gameid']}\">"
-                        . coverArtThumbnail($r['gameid'], 50, null)
+                        . coverArtThumbnail($r['gameid'], 50, $r['pagevsn'])
                         . "</a>";
                 } else {
                     // echo "<a href=\"viewgame?id={$r['gameid']}"
@@ -560,7 +561,7 @@ function showNewItemList($db, $items, $first, $last, $showFlagged, $allowHiddenB
             if (ENABLE_IMAGES) {
                 if ($g["hasart"]) {
                     echo "<a href=\"viewgame?id={$g['id']}\">"
-                        . coverArtThumbnail($g['id'], 50, null)
+                        . coverArtThumbnail($g['id'], 50, $g['pagevsn'])
                         . "</a>";
                 } else {
                     // echo "<a href=\"viewgame?id={$g['id']}\">"
@@ -679,7 +680,7 @@ function showNewItemList($db, $items, $first, $last, $showFlagged, $allowHiddenB
                         . "&thumbnail=50x50\"></a>";
                 } else if ($n["hasart"]) {
                     echo "<a href=\"viewgame?id={$n['gameid']}\">"
-                        . coverArtThumbnail($gid, 50, null)
+                        . coverArtThumbnail($gid, 50, $n['pagevsn'])
                         . "</a>";
                 } else {
                     // echo "<a href=\"newslog?newsid=$nid\">"
