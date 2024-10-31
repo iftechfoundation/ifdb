@@ -100,7 +100,7 @@ if ($debugflag) echo "debug mode enabled...<br>";
          <li><a href="#ifdb-recommends">IFDB Recommends...</a></li>
          <li><a href="#top-reviewers">Top Reviewers</a></li>
          <li><a href="#new-to-if">New to IF?</a></li>
-         <li><a href="#stats">In the Database</a></li>
+         <li><a href="#stats">Database Stats</a></li>
       </ul>
 
       <div class="block flexer">
@@ -243,7 +243,7 @@ if ($debugflag) echo "debug mode enabled...<br>";
 
       <div class="block flexer">
          <div class="column col-peer">
-            <div class=headline id='stats'><h1 class='unset'>In the Database</h1></div>
+            <div class=headline id='stats'><h1 class='unset'>Database Stats</h1></div>
             <?php include "components/database-stats.php"?>
          </div>
          <div class="column col-peer">
