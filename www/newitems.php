@@ -446,7 +446,7 @@ function showNewItemList($db, $items, $first, $last, $showFlagged, $allowHiddenB
             if (ENABLE_IMAGES) {
                 if ($r["haspic"]) {
                     echo "<a href=\"showuser?id={$r['userid']}\">"
-                        . "<img border=0 src=\"showuser?id={$r['userid']}&pic"
+                        . "<img border=0 width=50 height=50 src=\"showuser?id={$r['userid']}&pic"
                         . "&thumbnail=50x50\"></a>";
                 } else if ($r["hasart"]) {
                     echo "<a href=\"viewgame?id={$r['gameid']}\">"
@@ -515,7 +515,7 @@ function showNewItemList($db, $items, $first, $last, $showFlagged, $allowHiddenB
             if (ENABLE_IMAGES) {
                 if ($l["haspic"]) {
                     echo "<a href=\"showuser?id={$l['userid']}\">"
-                        . "<img border=0 src=\"showuser?id={$l['userid']}&pic"
+                        . "<img border=0 width=50 height=50 src=\"showuser?id={$l['userid']}&pic"
                         . "&thumbnail=50x50\"></a>";
                 } else {
                     // echo "<a href=\"viewlist?id={$l['id']}\">"
@@ -589,7 +589,7 @@ function showNewItemList($db, $items, $first, $last, $showFlagged, $allowHiddenB
             if (ENABLE_IMAGES) {
                 if ($p["haspic"]) {
                     echo "<a href=\"showuser?id={$p['userid']}\">"
-                        . "<img border=0 src=\"showuser?id={$p['userid']}&pic"
+                        . "<img border=0 width=50 height=50 src=\"showuser?id={$p['userid']}&pic"
                         . "&thumbnail=50x50\"></a>";
                 } else {
                     // echo "<a href=\"viewpoll?id={$p['pollid']}\">"
@@ -650,7 +650,7 @@ function showNewItemList($db, $items, $first, $last, $showFlagged, $allowHiddenB
             if (ENABLE_IMAGES) {
                 if (isset($n["haspic"]) && $n["haspic"]) {
                     echo "<a href=\"showuser?id={$n['userID']}\">"
-                        . "<img border=0 src=\"showuser?id={$n['userID']}&pic"
+                        . "<img border=0 width=50 height=50 src=\"showuser?id={$n['userID']}&pic"
                         . "&thumbnail=50x50\"></a>";
                 } else if ($n["hasart"]) {
                     echo "<a href=\"viewgame?id={$n['gameid']}\">"
