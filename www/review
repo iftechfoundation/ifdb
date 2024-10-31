@@ -750,16 +750,8 @@ if (isset($missingFields['rating']))
    <b>1. Rate this game on a scale of 1 to 5 stars (5 is best):</b>
    <?php
         initStarControls();
-        echo showStarCtl("ratingStars", $rating, "setRating", "null");
+        echo showStarCtl("ratingStars", $rating, "");
    ?>
-<script type="text/javascript" nonce="<?php global $nonce; echo $nonce; ?>">
-function setRating(rating)
-{
-    document.getElementById("rating").value = rating;
-    setStarCtlValue("ratingStars", rating);
-}
-</script>
-   <input type=hidden name="rating" id="rating" value="<?php echo $rating ?>">
 
    <br><span class=notes>You don't have to rate the game to
       write a review. If you don't enter a rating, your review
