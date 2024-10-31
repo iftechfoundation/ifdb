@@ -138,8 +138,8 @@ if ($debugflag) echo "debug mode enabled...<br>";
                <li><a href="/search?browse">Top</a></li>
                <li><a href="/search?searchbar=added%3A60d-">Hot</a></li>
                <li><a href="/random">Random</a></li>
-               <li><a href="/search">Search</a></li>
                <li><a href="/search?sortby=lnew&searchfor=%23reviews%3A0+wontplay%3Ano">Unreviewed</a></li>
+               <li><a href="/search">Advanced Search</a></li>
             </ul>
             <?php
 
