@@ -95,8 +95,8 @@ if ($debugflag) echo "debug mode enabled...<br>";
       <ul class='horizontal'>
          <li><a href="#games">Games</a></li>
          <li><a href="#reviews">Reviews</a></li>
-         <li><a href="#polls">Polls</a></li>
          <li><a href="#competitions">Competitions</a></li>
+         <li><a href="#polls">Polls</a></li>
          <li><a href="#lists">Lists</a></li>
          <li><a href="#ifdb-recommends">IFDB Recommends...</a></li>
          <li><a href="#top-reviewers">Top Reviewers</a></li>
@@ -164,9 +164,6 @@ if ($debugflag) echo "debug mode enabled...<br>";
 
       <div class="block flexer">
          <div class="column col-peer">
-            <?php include "components/poll-sampler.php"?>
-         </div>
-         <div class="column col-peer">
             <div class=headline id='competitions'><h1 class='unset'>Competitions</h1>
                <span class=headlineRss>
                   <a href="/editcomp?id=new">Add a competition listing</a>
@@ -185,6 +182,9 @@ if ($debugflag) echo "debug mode enabled...<br>";
                <a href="/search?browse&comp">Browse competitions</a> |
                <a href="/search?comp">Search competitions</a>
             </span></p>
+         </div>
+         <div class="column col-peer">
+            <?php include "components/poll-sampler.php"?>
          </div>
       </div>
 
