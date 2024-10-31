@@ -1,6 +1,6 @@
 <?php
 
-define("ENABLE_IMAGES", 0);
+define("ENABLE_IMAGES", 1);
 define("NEWITEMS_SITENEWS", 0x0001);
 define("NEWITEMS_GAMES", 0x0002);
 define("NEWITEMS_LISTS", 0x0004);
@@ -452,9 +452,9 @@ function showNewItemList($db, $items, $first, $last, $showFlagged, $allowHiddenB
                         . coverArtThumbnail($r['gameid'], 50, null)
                         . "</a>";
                 } else {
-                    echo "<a href=\"viewgame?id={$r['gameid']}"
-                        . "&review={$r['reviewid']}\">"
-                        . "<img border=0 src=\"review50.gif\"></a>";
+                    // echo "<a href=\"viewgame?id={$r['gameid']}"
+                    //     . "&review={$r['reviewid']}\">"
+                    //     . "<img border=0 src=\"review50.gif\"></a>";
                 }
                 echo "</td><td>";
             }
@@ -534,8 +534,8 @@ function showNewItemList($db, $items, $first, $last, $showFlagged, $allowHiddenB
                         . "<img border=0 src=\"showuser?id={$l['userid']}&pic"
                         . "&thumbnail=50x50\"></a>";
                 } else {
-                    echo "<a href=\"viewlist?id={$l['id']}\">"
-                        . "<img border=0 src=\"reclist50.gif\"></a>";
+                    // echo "<a href=\"viewlist?id={$l['id']}\">"
+                    //     . "<img border=0 src=\"reclist50.gif\"></a>";
                 }
                 echo "</td><td>";
             }
@@ -563,8 +563,8 @@ function showNewItemList($db, $items, $first, $last, $showFlagged, $allowHiddenB
                         . coverArtThumbnail($g['id'], 50, null)
                         . "</a>";
                 } else {
-                    echo "<a href=\"viewgame?id={$g['id']}\">"
-                        . "<img border=0 src=\"game50.gif\"></a>";
+                    // echo "<a href=\"viewgame?id={$g['id']}\">"
+                    //     . "<img border=0 src=\"game50.gif\"></a>";
                 }
                 echo "</td><td>";
             }
@@ -615,8 +615,8 @@ function showNewItemList($db, $items, $first, $last, $showFlagged, $allowHiddenB
                         . "<img border=0 src=\"showuser?id={$p['userid']}&pic"
                         . "&thumbnail=50x50\"></a>";
                 } else {
-                    echo "<a href=\"viewpoll?id={$p['pollid']}\">"
-                        . "<img border=0 src=\"poll50.gif\"></a>";
+                    // echo "<a href=\"viewpoll?id={$p['pollid']}\">"
+                    //     . "<img border=0 src=\"poll50.gif\"></a>";
                 }
                 echo "</td><td>";
             }
@@ -682,8 +682,8 @@ function showNewItemList($db, $items, $first, $last, $showFlagged, $allowHiddenB
                         . coverArtThumbnail($gid, 50, null)
                         . "</a>";
                 } else {
-                    echo "<a href=\"newslog?newsid=$nid\">"
-                        . "<img border=0 src=\"news50.gif\"></a>";
+                    // echo "<a href=\"newslog?newsid=$nid\">"
+                    //     . "<img border=0 src=\"news50.gif\"></a>";
                 }
                 echo "</td><td>";
             }
@@ -712,9 +712,9 @@ function showNewItemList($db, $items, $first, $last, $showFlagged, $allowHiddenB
 
             // show the generic competition icon
             if (ENABLE_IMAGES) {
-                echo "<a href=\"viewcomp?id=$cid\">"
-                    . "<img border=0 src=\"competition50.gif\">"
-                    . "</a>";
+                // echo "<a href=\"viewcomp?id=$cid\">"
+                //     . "<img border=0 src=\"competition50.gif\">"
+                //     . "</a>";
                 echo "</td><td>";
             }
 
@@ -741,9 +741,9 @@ function showNewItemList($db, $items, $first, $last, $showFlagged, $allowHiddenB
 
             // show the generic club icon
             if (ENABLE_IMAGES) {
-                echo "<a href=\"viewcomp?id=$cid\">"
-                    . "<img border=0 src=\"club50.gif\">"
-                    . "</a>";
+                // echo "<a href=\"viewcomp?id=$cid\">"
+                //     . "<img border=0 src=\"club50.gif\">"
+                //     . "</a>";
                 echo "</td><td>";
             }
 
