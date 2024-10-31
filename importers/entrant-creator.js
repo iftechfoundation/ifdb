@@ -1,9 +1,9 @@
 // run this in JS Console when creating the competition
 
-const tag = prompt("Tag name?");
+const tag = prompt("Search?");
 
 const url = '/search?' + new URLSearchParams({
-    searchbar: 'tag:' + tag,
+    searchbar: tag,
     xml: 1,
     pg: 'all',
     sortby: 'ttl',
@@ -17,9 +17,12 @@ const results = [...new DOMParser().parseFromString(xml, "application/xml").quer
     author: game.querySelector('author').textContent,
 }))
 
+const divId = prompt("Div ID?");
+
+
 for (const { id, title, author } of results) {
-    const i = window[divModel0.vals].length;
-    gfInsRow('divModel0', i);
-    document.getElementById('gameplace0_' + i).value = "Entrant";
+    const i = window[window[`divModel${divId}`].vals].length;
+    gfInsRow(`divModel${divId}`, i);
+    document.getElementById(`gameplace${divId}_${i}`).value = "Entrant";
     gameSearchPopupSetID(id, title, author);
 }
