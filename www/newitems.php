@@ -411,12 +411,13 @@ function showNewItemList($db, $items, $first, $last, $showFlagged, $allowHiddenB
             . "<a href=\"$showAllLink\">See all results</a></div></p>";
     }
 
-    $eager = "class='eager'";
 
     for ($idx = $first ; $idx <= $last && $idx < $totcnt ; $idx++)
     {
         // get this item
         list($pick, $rawDate, $row) = $items[$idx];
+
+        $eager = ($idx < 4 ? "class='eager'" : "");
 
         if (!$showFlagged && $pick == 'R' && ($row['flags'] & FLAG_SHOULD_HIDE)) {
             continue;
