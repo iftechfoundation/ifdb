@@ -15,7 +15,7 @@ const {jam_games} = await fetch(entries_url).then(r => r.json());
 
 console.log(JSON.stringify(jam_games, null, 2));
 
-const results = jam_games.map(({ game: { id, title, url, short_text, cover, user: { name: author }, platforms = [], url: rate } }) => (
+const results = jam_games.map(({ game: { id, title, url, short_text, cover, user: { name: author }, platforms = [], }, url: rate }) => (
     { title, url, short_text, author, cover, id, play_online: platforms.includes('web'), rate }
 ));
 
