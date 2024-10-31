@@ -46,8 +46,9 @@ if ($debugflag) echo "debug mode enabled...<br>";
                      echo "<a href='/adminops'>Admin</a> | ";
                   }
                   ?>
+                  <a href="allnew">All Updates</a> |
                   <a href="news">Site News</a> |
-                  <a href="news?rss"><img src="img/blank.gif" class="rss-icon" alt="">RSS Feed</a>
+                  <a href="allnew-rss"><img src="img/blank.gif" class="rss-icon" alt="">RSS Feed</a>
                </span>
             </div>
          </summary>
@@ -103,41 +104,30 @@ if ($debugflag) echo "debug mode enabled...<br>";
          <li><a href="#stats">Database Stats</a></li>
       </ul>
 
+      <?php
+      // get the latest site news, polls, competitions, and lists, and show a mix
+      $days = 3;
+      $items = getNewItems($db, 8, NEWITEMS_SITENEWS | NEWITEMS_LISTS | NEWITEMS_POLLS | NEWITEMS_COMPS | NEWITEMS_COMPNEWS, $days);
+      if ($items) {
+         ?>
       <div class="block flexer">
          <div class="column col-peer">
-            <div class=headline><h1 class='unset'>New on IFDB</h1>
-               <span class=headlineRss>
-                  <a href="allnew-rss"><img src="img/blank.gif" class="rss-icon" alt="">RSS Feed</a>
-               </span>
-            </div>
-
-            <style nonce="<?php global $nonce; echo $nonce; ?>">
-               #home__allnew {
-                  @media (min-width: 80ch) {
-                     columns: 2;
-                  }
-               }
-            </style>
-            <div id='home__allnew'>
+            <div class=headline><h1 class='unset'>New on IFDB</h1></div>
+            <div>
             <?php
-
-            function itemKey($i) {
-               return $i[0] . ":" . $i[2][array_key_first($i[2])];
-            }
-            // get the latest games, reviews, and lists, and show a mix
-            $items = array_slice(getNewItems($db, 8, NEWITEMS_ALLITEMS), 0, 8);
-            $already_shown = array_fill_keys(array_map("itemKey", $items), 1);
-            showNewItems($db, 0, 8, $items, false, false, NEWITEMS_ALLITEMS);
+            showNewItems($db, 0, 8, $items, false, false, NEWITEMS_SITENEWS | NEWITEMS_LISTS | NEWITEMS_POLLS | NEWITEMS_COMPS | NEWITEMS_COMPNEWS, $days);
             ?>
             </div>
-            <div><span class=details><a href='allnew'>See the full list...</a></span></div>
             </div>
          </div>
       </div>
+      <?php
+      }
+      ?>
 
       <div class="block flexer">
          <div class="column col-peer">
-            <div class=headline id='games'><h1 class='unset'>More Games</h1>
+            <div class=headline id='games'><h1 class='unset'>Games</h1>
             <span class=headlineRss>
                <a href="/editgame?id=new">Add a game listing</a>
             </span>
@@ -154,25 +144,17 @@ if ($debugflag) echo "debug mode enabled...<br>";
             <?php
 
             // get the latest games and game news
-            $game_items = getNewItems($db, 15, NEWITEMS_GAMES | NEWITEMS_GAMENEWS);
-            $game_items = array_slice(array_filter($game_items, function($i) {
-               global $already_shown;
-               return !($already_shown[itemKey($i)] ?? false);
-            }), 0, 7);
+            $game_items = getNewItems($db, 7, NEWITEMS_GAMES | NEWITEMS_GAMENEWS);
             showNewItems($db, 0, 7, $game_items, false, false, NEWITEMS_GAMES | NEWITEMS_GAMENEWS);
             ?>
             <p><span class='details'><a href='search?browse&sortby=lnew'>See the full list...</a></span></p>
          </div>
          <div class="column col-peer">
-            <div class=headline id='reviews'><h1 class='unset'>More Reviews</h1></div>
+            <div class=headline id='reviews'><h1 class='unset'>Reviews</h1></div>
             <?php
 
             // get the latest reviews
-            $review_items = getNewItems($db, 17, NEWITEMS_REVIEWS);
-            $review_items = array_slice(array_filter($review_items, function($i) {
-               global $already_shown;
-               return !($already_shown[itemKey($i)] ?? false);
-            }), 0, 9);
+            $review_items = getNewItems($db, 9, NEWITEMS_REVIEWS);
             showNewItems($db, 0, 9, $review_items, false, false, NEWITEMS_REVIEWS);
 
             ?>

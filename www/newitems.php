@@ -25,7 +25,7 @@ define("NEWITEMS_ALLITEMS",
     | NEWITEMS_CLUBNEWS
 );
 
-function getNewItems($db, $limit, $itemTypes = NEWITEMS_ALLITEMS)
+function getNewItems($db, $limit, $itemTypes = NEWITEMS_ALLITEMS, $days = null)
 {
     // get the logged-in user
     checkPersistentLogin();
@@ -58,7 +58,11 @@ function getNewItems($db, $limit, $itemTypes = NEWITEMS_ALLITEMS)
     // start with an empty list
     $items = array();
 
+    $dayWhere = 1;
+    if ($days) $dayWhere = "d > date_sub(now(), interval $days day)";
+
     if ($itemTypes & NEWITEMS_SITENEWS) {
+        if ($days) $dayWhere = "posted > date_sub(now(), interval $days day)";
         // query site news
         $result = mysql_query(
             "select
@@ -68,6 +72,7 @@ function getNewItems($db, $limit, $itemTypes = NEWITEMS_ALLITEMS)
                (now() < date_add(posted, interval 7 day)) as freshest
              from
                sitenews
+             where $dayWhere
              order by
                d desc
              $limit", $db);
@@ -80,12 +85,15 @@ function getNewItems($db, $limit, $itemTypes = NEWITEMS_ALLITEMS)
     }
 
     if ($itemTypes & NEWITEMS_GAMES) {
+        if ($days) $dayWhere = "created > date_sub(now(), interval $days day)";
         // query the recent games
         $result = mysql_query(
             "select id, title, author, `desc`, created as d,
                date_format(created, '%M %e, %Y') as fmtdate,
+               system,
                (coverart is not null) as hasart
              from games
+             where $dayWhere
              order by created desc
              $limit", $db);
         $gamecnt = mysql_num_rows($result);
@@ -96,6 +104,7 @@ function getNewItems($db, $limit, $itemTypes = NEWITEMS_ALLITEMS)
     }
 
     if ($itemTypes & NEWITEMS_LISTS) {
+        if ($days) $dayWhere = "reclists.createdate > date_sub(now(), interval $days day)";
         // query the recent recommended lists (minus plonked users)
         $anp = str_replace('#USERID#', 'reclists.userid', $andNotPlonked);
         $result = mysql_query(
@@ -112,6 +121,7 @@ function getNewItems($db, $limit, $itemTypes = NEWITEMS_ALLITEMS)
                join users on users.id = reclists.userid
              where
                users.sandbox in $sandbox
+               and $dayWhere
                $anp
              group by reclists.id
              order by reclists.createdate desc
@@ -124,6 +134,7 @@ function getNewItems($db, $limit, $itemTypes = NEWITEMS_ALLITEMS)
     }
 
     if ($itemTypes & NEWITEMS_POLLS) {
+        if ($days) $dayWhere = "p.created > date_sub(now(), interval $days day)";
         // query the recent polls (minus plonked users)
         $anp = str_replace('#USERID#', 'p.userid', $andNotPlonked);
         $result = mysql_query(
@@ -140,6 +151,7 @@ function getNewItems($db, $limit, $itemTypes = NEWITEMS_ALLITEMS)
                join users as u on u.id = p.userid
              where
                u.sandbox in $sandbox
+               and $dayWhere
                $anp
              group by
                p.pollid
@@ -154,6 +166,7 @@ function getNewItems($db, $limit, $itemTypes = NEWITEMS_ALLITEMS)
     }
 
     if ($itemTypes & NEWITEMS_REVIEWS) {
+        if ($days) $dayWhere = "greatest(reviews.createdate, ifnull(reviews.embargodate, '0000-00-00')) > date_sub(now(), interval $days day)";
         // query the recent reviews (minus plonks)
         $anp = str_replace('#USERID#', 'reviews.userid', $andNotPlonked);
         $result = mysql_query(
@@ -181,6 +194,7 @@ function getNewItems($db, $limit, $itemTypes = NEWITEMS_ALLITEMS)
                and ifnull(now() >= reviews.embargodate, 1)
                and ifnull(specialreviewers.code, '') <> 'external'
                and users.sandbox in $sandbox
+               and $dayWhere
                $anp
              order by d desc, id desc
              $limit", $db);
@@ -192,6 +206,7 @@ function getNewItems($db, $limit, $itemTypes = NEWITEMS_ALLITEMS)
     }
 
     if ($itemTypes & NEWITEMS_COMPS) {
+        if ($days) $dayWhere = "c.created > date_sub(now(), interval $days day)";
         // query recent competition page additions
         $result = mysql_query(
             "select
@@ -200,6 +215,7 @@ function getNewItems($db, $limit, $itemTypes = NEWITEMS_ALLITEMS)
                date_format(c.created, '%M %e, %Y') as fmtdate
              from
                competitions as c
+             where $dayWhere
              order by
                d desc
              $limit", $db);
@@ -211,6 +227,7 @@ function getNewItems($db, $limit, $itemTypes = NEWITEMS_ALLITEMS)
     }
 
     if ($itemTypes & NEWITEMS_CLUBS) {
+        if ($days) $dayWhere = "c.created > date_sub(now(), interval $days day)";
         // query recent club page additions
         $result = mysql_query(
             "select
@@ -219,6 +236,7 @@ function getNewItems($db, $limit, $itemTypes = NEWITEMS_ALLITEMS)
                date_format(c.created, '%M %e, %Y') as fmtdate
              from
                clubs as c
+             where $dayWhere
              order by
                d desc
              $limit", $db);
@@ -235,7 +253,7 @@ function getNewItems($db, $limit, $itemTypes = NEWITEMS_ALLITEMS)
             $items, $db, $limit, "G",
             "join games as g on g.id = n.sourceid",
             "g.id as sourceID, g.title as sourceTitle, "
-            . "(g.coverart is not null) as hasart");
+            . "(g.coverart is not null) as hasart", $days);
     }
 
     if ($itemTypes & NEWITEMS_COMPNEWS) {
@@ -243,7 +261,7 @@ function getNewItems($db, $limit, $itemTypes = NEWITEMS_ALLITEMS)
         queryNewNews(
             $items, $db, $limit, "C",
             "join competitions as c on c.compid = n.sourceid",
-            "c.compid as sourceID, c.title as sourceTitle");
+            "c.compid as sourceID, c.title as sourceTitle", $days);
     }
 
     if ($itemTypes & NEWITEMS_CLUBNEWS) {
@@ -251,7 +269,7 @@ function getNewItems($db, $limit, $itemTypes = NEWITEMS_ALLITEMS)
         queryNewNews(
             $items, $db, $limit, "U",
             "join clubs as c on c.clubid = n.sourceid",
-            "c.clubid as sourceID, c.name as sourceTitle");
+            "c.clubid as sourceID, c.name as sourceTitle", $days);
     }
 
     // sort by date
@@ -282,7 +300,7 @@ function sortNewItemsByDate($a, $b)
 }
 
 function queryNewNews(&$items, $db, $limit, $sourceType,
-                      $sourceJoin, $sourceCols)
+                      $sourceJoin, $sourceCols, $days = null)
 {
     // get the logged-in user
     checkPersistentLogin();
@@ -297,6 +315,10 @@ function queryNewNews(&$items, $db, $limit, $sourceType,
                          . "and filtertype = 'K') = 0";
     }
 
+    $dayWhere = 1;
+    if ($days) {
+        $dayWhere = "n.created > date_sub(now(), interval $days day)";
+    }
     // Include only reviews from our sandbox or sandbox 0 (all users)
     $sandbox = "(0)";
     if ($curuser)
@@ -334,6 +356,7 @@ function queryNewNews(&$items, $db, $limit, $sourceType,
            and n.status = 'A'
            and nsuper.newsid is null
            and uorig.sandbox in $sandbox
+           and $dayWhere
            $andNotPlonked
          order by
            n.created desc
@@ -347,11 +370,11 @@ function queryNewNews(&$items, $db, $limit, $sourceType,
     }
 }
 
-function showNewItems($db, $first, $last, $items, $showFlagged = false, $allowHiddenBanner = true, $itemTypes = NEWITEMS_ALLITEMS)
+function showNewItems($db, $first, $last, $items, $showFlagged = false, $allowHiddenBanner = true, $itemTypes = NEWITEMS_ALLITEMS, $days = null)
 {
     // if the caller didn't provide the new item lists, query them
     if (!$items)
-        $items = getNewItems($db, $last, $itemTypes);
+        $items = getNewItems($db, $last, $itemTypes, $days);
 
     // show them
     showNewItemList($db, $items, $first, $last, $showFlagged, $allowHiddenBanner, $itemTypes);
