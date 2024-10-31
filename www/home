@@ -137,7 +137,11 @@ if ($debugflag) echo "debug mode enabled...<br>";
 
       <div class="block flexer">
          <div class="column col-peer">
-            <div class=headline id='games'><h1 class='unset'>Games</h1></div>
+            <div class=headline id='games'><h1 class='unset'>Games</h1>
+            <span class=headlineRss>
+               <a href="/editgame?id=new">Add a game listing</a>
+            </span>
+         </div>
 
             <ul class='horizontal'>
                <li><a href="/search?browse&sortby=lnew">New</a><li>
@@ -147,7 +151,6 @@ if ($debugflag) echo "debug mode enabled...<br>";
                <li><a href="/search">Search</a></li>
                <li><a href="/search?sortby=lnew&searchfor=%23reviews%3A0+wontplay%3Ano">Unreviewed</a></li>
             </ul>
-            <p><span class=details><a href="/editgame?id=new">Add a game listing</a></span></p>
             <?php
 
             // get the latest games and game news
@@ -182,37 +185,45 @@ if ($debugflag) echo "debug mode enabled...<br>";
             <?php include "components/poll-sampler.php"?>
          </div>
          <div class="column col-peer">
-            <div class=headline id='competitions'><h1 class='unset'>Competitions</h1></div>
+            <div class=headline id='competitions'><h1 class='unset'>Competitions</h1>
+               <span class=headlineRss>
+                  <a href="/editcomp?id=new">Add a competition listing</a>
+               </span>
+            </div>
 
             <p><a href="https://ifcomp.org/">IF Comp</a> | <a href="https://www.springthing.net/">Spring Thing</a> | <a href="https://xyzzyawards.org/">XYZZY Awards</a></p>
 
             <?php
 
             // get the latest competitions and competition news
-            if (showNewItems($db, 0, 2, false, false, false, NEWITEMS_COMPS | NEWITEMS_COMPNEWS))
-               echo "<p><span class=details><a href=\"/search?browse&comp\">"
-                     . "Browse competitions</a> | <a href=\"/search?comp\">Search competitions</a></span></p>";
+            showNewItems($db, 0, 2, false, false, false, NEWITEMS_COMPS | NEWITEMS_COMPNEWS);
 
             ?>
-
-            <span class=details><a href="/editgame?id=new">Add a competition listing</a></span>
+            <p><span class=details>
+               <a href="/search?browse&comp">Browse competitions</a> |
+               <a href="/search?comp">Search competitions</a>
+            </span></p>
          </div>
       </div>
 
       <div class="block flexer">
          <div class="column col-peer">
-            <div class=headline id='lists'><h1 class='unset'>Lists</h1></div>
+            <div class=headline id='lists'><h1 class='unset'>Lists</h1>
+               <span class=headlineRss>
+                  <a href="/editlist?id=new">Create a recommended list</a>
+               </span>
+            </div>
 
             <p><span class=details></span></p>
             <?php
 
             // get the latest lists
-            if (showNewItems($db, 0, 2, false, false, false, NEWITEMS_LISTS))
-               echo "<p><span class=details><a href=\"/search?browse&list\">"
-                     . "Browse lists</a> | <a href=\"/editlist?id=new\">Create a recommended list</a>"
-                     . " | <a href=\"/search?list\">Search lists</a></span></p>";
-
+            showNewItems($db, 0, 2, false, false, false, NEWITEMS_LISTS);
             ?>
+            <p><span class=details>
+               <a href="/search?browse&list">Browse lists</a> |
+               <a href="/search?list">Search lists</a>
+            </span></p>
          </div>
          <div class="column col-peer">
             <?php include "components/ifdb-recommends.php"?>

@@ -41,7 +41,8 @@ $recently_voted = array_slice(array_filter($recently_voted, function($row) use (
     return !isset($recently_created_ids[$row[0]]);
 }), 0, 5);
 
-echo "<div class=\"block\"><div class=\"headline\" id=\"polls\"><h1 class='unset'>Polls</h1></div>"
+echo "<div class=\"block\"><div class=\"headline\" id=\"polls\"><h1 class='unset'>Polls</h1>"
+    . "<span class=headlineRss><a href=\"/poll?id=new\">Create a poll</a></span></div>"
     . "<p>Help other IFDB members find the games they're looking for "
     . "by voting in their polls.  Here are a few recent ones:</p>";
 
@@ -76,7 +77,6 @@ foreach ($recently_voted as $row) {
 echo "</ul></div>\n<div class=\"details poll-sampler__create\">"
     . "<a href=\"search?browse&poll&sortby=votes\">Browse all polls</a> | "
     . "<a href=\"search?poll\">Search for polls</a> | "
-    . "<a href=\"poll?id=new\">Create a poll</a> | "
     . helpWinLink("help-polls", "What are polls?")
     . "</div></td></tr></table></div>";
 
