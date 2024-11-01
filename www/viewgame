@@ -1254,13 +1254,9 @@ function updatePlayed(id, stat)
 }
 function updateWishList(id, stat)
 {
-    var func = function(d)
-    {
-        updateWishlistCount(Number(xmlChildText(d, "newCount")));
-    };
-    xmlSend("setwishlist?game=<?php echo $id?>&add="
-            + (ckboxIsChecked("ckWishList") ? "1" : "0"),
-            "ckWishlistSaveMsg", func, null);
+    jsonSend("setwishlist?game=<?php echo $id?>&add="
+             + (ckboxIsChecked("ckWishList") ? "1" : "0"),
+             "ckWishlistSaveMsg", (d) => {updateWishlistCount(d.newCount)});
 }
 function updateUnwishList(id, stat)
 {
@@ -1789,6 +1785,8 @@ function updatePlaylistCount(n)
 }
 function updateWishlistCount(n)
 {
+    if (n === null || n === undefined)
+        return;
     document.getElementById("wishlistCount").innerHTML =
         (n == 0 ? "It's not on any wish lists yet" :
          "It's on " + n + " wishlist" + (n == 1 ? "." : "s."));
