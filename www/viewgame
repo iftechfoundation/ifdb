@@ -1243,8 +1243,8 @@ function updateRating(rating)
     } else {
         submitRating.style.display = 'none';
     }
-    xmlSend("setrating?game=<?php echo $id?>&rating=" + rating,
-            "ratingSaveMsg", null, null);
+    jsonSend("setrating?game=<?php echo $id?>&rating=" + rating,
+             "ratingSaveMsg");
 }
 function updatePlayed(id, stat)
 {
