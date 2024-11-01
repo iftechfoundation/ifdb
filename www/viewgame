@@ -1267,13 +1267,9 @@ function updateWishList(id, stat)
 }
 function updateUnwishList(id, stat)
 {
-    var func = function(d)
-    {
-        updateUnwishlistCount(Number(xmlChildText(d, "newCount")));
-    };
     xmlSend("setunwishlist?game=<?php echo $id?>&add="
             + (ckboxIsChecked("ckUnwishList") ? "1" : "0"),
-            "ckUnwishlistSaveMsg", func, null);
+            "ckUnwishlistSaveMsg", null, null);
 }
 //-->
 </script>
@@ -1797,14 +1793,6 @@ function updateWishlistCount(n)
     document.getElementById("wishlistCount").innerHTML =
         (n == 0 ? "It's not on any wish lists yet" :
          "It's on " + n + " wishlist" + (n == 1 ? "." : "s."));
-}
-function updateUnwishlistCount(n)
-{
-<?php
-//    document.getElementById("unwishlistCount").innerHTML =
-//        (n == 0 ? "It's not on any no-interest lists" :
-//         "It's on " + n + " no-interest list" + (n == 1 ? "" : "s"));
-?>
 }
 </script>
 <?php
