@@ -83,15 +83,8 @@ if ($cnt == 0 && $add) {
 }
 
 if ($result) {
-
-    // get the new count to send with the reply
-    $result = mysql_query(
-        "select count(userid) from unwishlists
-         where gameid='$qgameid'", $db);
-    list($newCnt) = mysql_fetch_row($result);
-
     // send the success reply
-    sendResponse("Saved", false, "Your change has been recorded.", $newCnt);
+    sendResponse("Saved", false, "Your change has been recorded.");
 }
 else
     sendResponse("Not Saved", "An error occurred updating the database "
