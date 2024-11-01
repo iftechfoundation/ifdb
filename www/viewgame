@@ -1790,13 +1790,13 @@ function updatePlaylistCount(n)
 {
     document.getElementById("playlistCount").innerHTML =
         "" + (n == 0 ? "No" : n) + " member" + (n == 1 ? " has" : "s have")
-        + " played this game";
+        + " played this game.";
 }
 function updateWishlistCount(n)
 {
     document.getElementById("wishlistCount").innerHTML =
         (n == 0 ? "It's not on any wish lists yet" :
-         "It's on " + n + " wish list" + (n == 1 ? "" : "s"));
+         "It's on " + n + " wishlist" + (n == 1 ? "." : "s."));
 }
 function updateUnwishlistCount(n)
 {
