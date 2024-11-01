@@ -4,9 +4,6 @@
 //
 // include_once "pagetpl.php";
 //
-// put the following extra text in the <HEAD> section:
-//    scriptSrc('/xmlreq.js')
-//
 // call initReviewVote() somewhere in the <BODY> section, to insert the
 // javascript code for review voting
 //
@@ -138,8 +135,8 @@ function initReviewVote()
 function sendReviewVote(reviewID, vote)
 {
     displayReviewVote(reviewID, vote);
-    xmlSend("reviewvote?id=" + reviewID + "&vote=" + vote,
-            "voteMsg_" + reviewID, null, null);
+    jsonSend("reviewvote?id=" + reviewID + "&vote=" + vote,
+             "voteMsg_" + reviewID);
 }
 function displayReviewVote(reviewID, vote)
 {
