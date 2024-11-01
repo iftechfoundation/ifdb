@@ -1248,13 +1248,9 @@ function updateRating(rating)
 }
 function updatePlayed(id, stat)
 {
-    var func = function(d)
-    {
-        updatePlaylistCount(Number(xmlChildText(d, "newCount")));
-    };
-    xmlSend("setplayed?game=<?php echo $id?>&played="
-            + (ckboxIsChecked("ckPlayed") ? "1" : "0"),
-            "ckPlaySaveMsg", func, null);
+    jsonSend("setplayed?game=<?php echo $id?>&played="
+             + (ckboxIsChecked("ckPlayed") ? "1" : "0"),
+             "ckPlaySaveMsg", (d) => {updatePlaylistCount(d.newCount);});
 }
 function updateWishList(id, stat)
 {
