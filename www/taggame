@@ -58,31 +58,63 @@ if ($db == false)
                  . "Please try again later.");
 
 // get the request parameters
-$id = get_req_data('id');
 $xml = isset($_REQUEST['xml']);
-for ($i = 0, $tags = array() ; ; $i++) {
-    if (!isset($_REQUEST["t$i"]))
-        break;
+if (!$xml) {
+    if ($_SERVER['REQUEST_METHOD'] != 'POST') {
+        http_response_code(405);
+        echo "405 Method Not Allowed";
+        exit();
+    }
 
-    // get this tag
-    $tag = get_req_data("t$i");
+    $input_json = json_decode(file_get_contents('php://input'), true);
+    if (is_null($input_json)) {
+        http_response_code(400);
+        echo "400 Bad Request";
+        exit();
+    }
+    $id = $input_json['id'] ?? null;
+    $tags = [];
+    foreach(($input_json['tags'] ?? []) as $tag) {
+        // convert smart apostrophes, quotes, etc. to ASCII
+        $tag = approx_utf8($tag);
 
-    // convert smart apostrophes, quotes, etc. to ASCII
-    $tag = approx_utf8($tag);
+        $tag = trim($tag);
 
-    // trim it
-    $tag = trim($tag);
+        if (strlen($tag))
+            $tags[] = $tag;
+    }
+} else {
+    $id = get_req_data('id');
 
-    // if it's not an empty string, add it to the list
-    if (strlen($tag))
-        $tags[] = $tag;
+    for ($i = 0, $tags = array() ; ; $i++) {
+        if (!isset($_REQUEST["t$i"]))
+            break;
+
+        // get this tag
+        $tag = get_req_data("t$i");
+
+        // convert smart apostrophes, quotes, etc. to ASCII
+        $tag = approx_utf8($tag);
+
+        // trim it
+        $tag = trim($tag);
+
+        // if it's not an empty string, add it to the list
+        if (strlen($tag))
+            $tags[] = $tag;
+    }
 }
 
 // make sure we process any persistent login state
 $userid = checkPersistentLogin();
 if (!$userid) {
-    $username = get_req_data("username");
-    $password = get_req_data("password");
+    if (!$xml) {
+        $username = $input_json['username'] ?? null;
+        $password = $input_json['password'] ?? null;
+    } else {
+        $username = get_req_data("username");
+        $password = get_req_data("password");
+    }
     [$userid, $errCode, $errMsg] = doLogin($db, $username, $password);
 }
 
