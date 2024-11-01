@@ -380,6 +380,7 @@ if (!$errMsg) {
          $ratingCntAvg, $ratingCntTot, $ratingAvg, $memberReviewCnt,
          $currentUserRating, $currentUserReview,
          $editedbyid, $editedbyname, $moddate, $moddate2, $pagevsn,
+         $moddatelatest,
          $historyView,
          $dlnotes, $extReviews, $extRevDisplayRank,
          $ratingHisto, $xrefs, $inrefs, $flags) =
@@ -1920,7 +1921,7 @@ if ($embargoCnt > 0)
 
     echo "</td><td>
             <a href=\"viewgame?history&version=$pagevsn&id=$id\">
-            v.$pagevsn: $moddate2</a> -
+            v.$pagevsn: $moddatelatest</a> -
             <a href=\"showuser?id=$editedbyid\">$editedbyname</a>
             (Current Version)
             - <a href=\"editgame?id=$id\">Edit Page</a>";
