@@ -2606,13 +2606,6 @@ function dispDeleteTags()
 
 function deleteTag(tag)
 {
-//    alert (tag);
-
-    var c = "id=<?php echo $id ?>";
-    c += "&t=" + encodeURI8859(tag);
-
-    //xmlSend("taggamedelete", "tagStatusSpan", cbSaveTags, c);
-
     for (var j = 0 ; j < memTagList.length ; j++)
     {
         if (memTagList[j].tag == tag)
@@ -2673,44 +2666,35 @@ function saveTags()
 {
     addTags();
     dbTagList = [];
-    var c = "id=<?php echo $id ?>";
-    var i, j, k;
-    for (i = j = k = 0 ; i < memTagList.length ; i++)
+    const tags = [];
+    for (const t of memTagList)
     {
-        var t = memTagList[i];
         if (t.tagcnt != 0)
-            dbTagList[j++] = t;
+            dbTagList.push(t);
         if (t.isMine)
-            c += "&t" + (k++) + "=" + encodeURI8859(t.tag);
+            tags.push(t.tag);
     }
     dispTags();
     closeTags("tagEditor");
-    xmlSend("taggame", "tagStatusSpan", cbSaveTags, c, true);
+    jsonSend("taggame", "tagStatusSpan", cbSaveTags,
+        {"id": "<?php echo $id ?>", "tags": tags}, true);
 }
 
 function saveTagsDelete()
 {
-//    dbTagList = [];
-    var c = "id=<?php echo $id ?>";
-    var i, j, k;
-    for (i  = k = 0 ; i < dbTagList.length ; i++)
-    {
-       var t = dbTagList[i];
-       var found = false;
-
-       for (j = 0; j < memTagList.length ; j++)
-       {
-          if (memTagList[j].tag == t.tag) found = true;
-       }
-
-       if (!found) c += "&t" + (k++) + "=" + encodeURI8859(t.tag);
+    const tags = [];
+    for (const t of dbTagList) {
+        if (memTagList.find((m) => m.tag == t.tag) === undefined) {
+            tags.push(t.tag);
+        }
     }
 
     dbTagList = memTagList;
 
     dispTags();
     closeTags("tagDeletor");
-    xmlSend("taggamedelete", "tagStatusSpan", cbSaveTags, c, true);
+    jsonSend("taggamedelete", "tagStatusSpan", cbSaveTags,
+        {"id": "<?php echo $id ?>", "tags": tags}, true);
 }
 
 
@@ -2720,26 +2704,19 @@ function cbSaveTags(resp)
         alert("There was an error saving tags.");
         return;
     }
-    if (resp.querySelector("error")) {
-        alert(resp.querySelector("error").firstChild.data);
+    if (resp.error) {
+        alert(resp.error);
         return;
     }
-    var tags = resp.getElementsByTagName("tag");
-    for (var i = 0 ; i < tags.length ; ++i)
+    for (const tag of resp.tags)
     {
-        var tag = tags[i];
-        var name = tag.getElementsByTagName("name")[0].firstChild.data;
-        var gamecnt = tag.getElementsByTagName("gamecnt")[0].firstChild.data;
-        var tagcnt = tag.getElementsByTagName("tagcnt")[0].firstChild.data;
-        name = name.toLowerCase();
-
-        for (var j = 0 ; j < memTagList.length ; j++)
+        for (const memTag of memTagList)
         {
-            if (memTagList[j].tag.toLowerCase() == name)
+            if (memTag.tag.toLowerCase() == tag.name.toLowerCase())
             {
-                memTagList[j].gamecnt = parseInt(gamecnt);
-                memTagList[j].tagcnt = parseInt(tagcnt);
-                memTagList[j].isNew = false;
+                memTag.gamecnt = tag.gamecnt;
+                memTag.tagcnt = tag.tagcnt;
+                memTag.isNew = false;
                 break;
             }
         }
