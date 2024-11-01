@@ -1260,9 +1260,9 @@ function updateWishList(id, stat)
 }
 function updateUnwishList(id, stat)
 {
-    xmlSend("setunwishlist?game=<?php echo $id?>&add="
-            + (ckboxIsChecked("ckUnwishList") ? "1" : "0"),
-            "ckUnwishlistSaveMsg", null, null);
+    jsonSend("setunwishlist?game=<?php echo $id?>&add="
+             + (ckboxIsChecked("ckUnwishList") ? "1" : "0"),
+             "ckUnwishlistSaveMsg");
 }
 //-->
 </script>
