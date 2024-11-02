@@ -137,6 +137,7 @@ if ($setID) {
         $formDesc = $reqDesc;
         $formContents = $reqContents;
         $formDark = $reqDark;
+        $formSuccMsg = false;
 
         // note if it's a Save operation of some kind
         $isSave = isset($_REQUEST['saveStyle'])
@@ -184,7 +185,7 @@ if ($setID) {
                         $result = mysqli_execute_query($db,
                             "insert into stylesheets
                              (title, userid, `desc`, contents, dark, created)
-                             values (?, ?, ?, ?, now())", [$formTitle, $userid, $formDesc, $formContents, $formDark]);
+                             values (?, ?, ?, ?, ?, now())", [$formTitle, $userid, $formDesc, $formContents, $formDark]);
 
                         // if we succeeded, note the new ID
                         if ($result)
