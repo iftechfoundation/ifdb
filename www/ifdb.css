@@ -457,14 +457,6 @@ div.new-competition {
     margin-bottom: 1.25em;
     break-inside: avoid-column;
 }
-div.new-club-news {
-    margin-bottom: 1.25em;
-    break-inside: avoid-column;
-}
-div.new-club {
-    margin-bottom: 1.25em;
-    break-inside: avoid-column;
-}
 div.site-news {
     margin-bottom: 1.25em;
     break-inside: avoid-column;
@@ -1897,27 +1889,6 @@ img.competition-search-icon {
 }
 img.browse-competitions-icon {
     background: url("/img/browsecompetitions.gif") no-repeat center center;
-    width: 24px;
-    height: 24px;
-    border: none;
-    vertical-align: middle;
-}
-img.club-search-icon {
-    background: url("/img/findclub.gif") no-repeat center center;
-    width: 24px;
-    height: 24px;
-    border: none;
-    vertical-align: middle;
-}
-img.browse-clubs-icon {
-    background: url("/img/browseclubs.gif") no-repeat center center;
-    width: 24px;
-    height: 24px;
-    border: none;
-    vertical-align: middle;
-}
-img.create-club-icon {
-    background: url("/img/newclub.gif") no-repeat center center;
     width: 24px;
     height: 24px;
     border: none;

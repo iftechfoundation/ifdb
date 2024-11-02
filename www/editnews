@@ -185,56 +185,6 @@ if ($sourceType == 'G') {
                   . "is no longer in the database.";
     }
 
-} else if ($sourceType == 'U') {
-
-    // club source
-    $hrefCancel = "club?id=$sourceID";
-
-    // look up the club
-    $result = mysql_query(
-        "select name from clubs where clubid = '$sourceID'", $db);
-
-    if (mysql_num_rows($result) > 0)
-    {
-        // build the source item reference
-        list($ctitle) = mysql_fetch_row($result);
-        $ctitle = htmlspecialcharx($ctitle);
-
-        $sourceInfo = ($newsID ? "This news item is" :
-                       "You're adding a new item")
-                      . " for the club "
-                       . "<a href=\"$hrefCancel\"><b>$ctitle</b></a>.";
-
-        if (!$newsID)
-            $sourceInfo .= "Use news to report events of interest "
-                           . "to the club membership. If you're not "
-                           . "a club administrator, we recommend that "
-                           . "you verify the information with club "
-                           . "officials before posting.";
-
-        if (!$delete) {
-            $sourceInfo .=
-                "<h2>Guidelines</h2>"
-                . "<ul class=doublespace>"
-                . "<li>The item should relate <b>directly</b> to this club"
-                . "<li>It should be <b>news</b>, such as an announcement "
-                . "of a club event";
-
-            if ($newsID)
-                $sourceInfo .= "<li><b>Edit</b> an old item <b>only</b> "
-                               . "to make corrections or add details. "
-                               . "Report a new development by posting a new "
-                               . "item instead.";
-
-            $sourceInfo .= "</ul>";
-        }
-    }
-    else
-    {
-        $errMsg = "The club you're attempting to edit is no longer "
-                  . "in the database.";
-    }
-
 } else {
 
     // missing or unknown source

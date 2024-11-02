@@ -161,41 +161,6 @@ if ($sourceType == "G") {
                   . "no longer in the database.";
     }
 
-} else if ($sourceType == "U") {
-
-    // club source
-    $hrefReturn = "club?id=$sourceID";
-    $sourceTypeName = "club";
-
-    $result = mysql_query(
-        "select name from clubs where clubid = '$sourceID'", $db);
-
-    if (mysql_num_rows($result) > 0) {
-
-        // build the source item reference
-        list($ctitle) = mysql_fetch_row($result);
-        $ctitle = htmlspecialcharx($ctitle);
-
-        $cinfo = "<a href=\"club?id=$sourceID\">$ctitle<a>";
-
-        if ($histp) {
-            $sourceInfo .= " ($cinfo)";
-        } else if ($newsID) {
-            $pageTitle = "$ctitle - News";
-        } else {
-            $pageTitle = "$ctitle - News";
-            $sourceInfo .= "News items are shown chronologically, from "
-                           . "newest to oldest.";
-        }
-
-        $returnLink = "<a href=\"club?id=$sourceID\">Go to "
-                      . "the club's main page</a>";
-
-    } else {
-        $errMsg = "The club you're attempting to update is "
-                  . "no longer in the database.";
-    }
-
 } else {
     $pageTitle = "News";
     $errMsg = "The page parameters are incorrect. The link "

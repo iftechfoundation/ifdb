@@ -8,7 +8,6 @@ include_once "util.php";
 //
 //    G  - game
 //    C  - competition
-//    U  - club
 //
 
 
