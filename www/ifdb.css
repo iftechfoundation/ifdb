@@ -1477,27 +1477,21 @@ ul.horizontal > li {
 /*
 News items
 */
-div.newsItemHeadline {
+.newsItemHeadline {
     font-weight: bold;
 }
-div.newsItemDateline {
+.newsItemDateline {
     font-size: 85%;
     margin: .25ex 0 .75ex 0;
 }
-div.newsItemHeadline a {
-    text-decoration: none;
-}
-div.newsItemHeadline a:hover {
-    text-decoration: underline;
-}
-div.newsItemBody {
+.newsItemBody {
     margin: 0 0 1em 0;
 }
-div.newsItemFooter {
+.newsItemFooter {
     font-size: 85%;
     margin: 1ex 0 1em 0;
 }
-span.newsItemDate {
+.newsItemDate {
     padding-left: 2em;
     font-weight: normal;
     font-style: italic;
