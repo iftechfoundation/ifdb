@@ -559,7 +559,7 @@ function showStars($num)
     for (; $i <=5; $i++) {
         if ($ssdarkforce === STYLESHEET_DARKFORCE_DARK) {
             $result .= "<img height=13 class='star-unchecked' src='/img/dark-images/star-unchecked.svg'>";
-        } else if ($ssdarkforce === STYLESHEET_DARKFORCE_Light) {
+        } else if ($ssdarkforce === STYLESHEET_DARKFORCE_LIGHT) {
             $result .= "<img height=13 class='star-unchecked' src='/img/star-unchecked.svg'>";
         } else {
             $result .= "<picture><source srcset='/img/dark-images/star-unchecked.svg' media='(prefers-color-scheme: dark)'>"
