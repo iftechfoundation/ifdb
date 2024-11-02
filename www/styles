@@ -56,14 +56,13 @@ if ($setID) {
 
         // update the profile data, if we haven't encountered an error already
         if (!$errMsg) {
-            $stmt = $db->prepare("UPDATE users set stylesheetid = ? where id = ?");
-            $stmt->bind_param('is', $setID, $userid);
-            $result = $stmt->execute();
+            $result = mysqli_execute_query($db,
+                "update users set stylesheetid = ?
+                where id = ?", [$setID, $userid]);
             if ($result) {
                 $succMsg = "Your profile has been updated - your new "
                            . "style sheet is now $newDesc.";
             } else {
-                error_log($stmt->error);
                 $errMsg = "An error occurred updating your profile - the "
                           . "style sheet selection has not been changed.";
             }
@@ -164,10 +163,10 @@ if ($setID) {
                     // make sure this wouldn't create too many entries for
                     // this user
                     $progress = "SCM002";
-                    $result = mysql_query(
+                    $result = mysqli_execute_query($db,
                         "select count(*) from stylesheets
-                         where userid = '$userid'", $db);
-                    list($scnt) = mysql_fetch_row($result);
+                         where userid = ?", [$userid]);
+                    [$scnt] = mysql_fetch_row($result);
 
                     if ($result && $scnt >= MaxSheets) {
                         $result = false;
@@ -250,9 +249,9 @@ if ($setID) {
         echo "<h1>Custom Style Sheet Editor</h1>";
 
         // check to see if this is the current style sheet
-        $result = mysql_query(
-            "select stylesheetid from users where id='$userid'", $db);
-        list($curssid) = mysql_fetch_row($result);
+        $result = mysqli_execute_query($db,
+            "select stylesheetid from users where id=?", [$userid]);
+        [$curssid] = mysql_fetch_row($result);
 
         // show error/success messages, if any
         if ($formErrCode)
@@ -606,24 +605,24 @@ appearance of the site.
 $curssid = false;
 if ($userid) {
     // get my current selection
-    $result = mysql_query(
-        "select stylesheetid from users where id='$userid'", $db);
-    $ssid = mysql_result($result, 0, "stylesheetid");
+    $result = mysqli_execute_query($db,
+        "select stylesheetid from users where id=?", [$userid]);
+    [$ssid] = mysql_fetch_row($result);
     $title = false;
     $author = false;
     $authorID = false;
 
     // if there's a selection, look it up
     if ($ssid) {
-        $result = mysql_query(
+        $result = mysqli_execute_query($db,
             "select s.title, s.userid, u.name
              from
                stylesheets as s
                left join users as u on u.id = s.userid
-             where s.stylesheetid = '$ssid'", $db);
+             where s.stylesheetid = ?", [$ssid]);
 
         if (mysql_num_rows($result) > 0) {
-            list($title, $authorID, $author) = mysql_fetch_row($result);
+            [$title, $authorID, $author] = mysql_fetch_row($result);
             $title = htmlspecialcharx($title);
             $author = htmlspecialcharx($author);
         }
@@ -684,20 +683,19 @@ IFDB provides limited image-file hosting for this purpose -
 
 if ($userid) {
 
-    $result = mysql_query(
+    $result = mysqli_execute_query($db,
         "select
           stylesheetid, title, `desc`,
           date_format(modified, '%M %e, %Y')
         from stylesheets
-        where userid='$userid'", $db);
+        where userid=?", [$userid]);
 
     if (mysql_num_rows($result) > 0) {
 
         echo "Here are the style sheets you've created:"
             . "<p><div class=indented>";
 
-        for ($i = 0 ; $i < mysql_num_rows($result) ; $i++) {
-            list($ssid, $title, $desc, $moddate) = mysql_fetch_row($result);
+        while ([$ssid, $title, $desc, $moddate] = mysql_fetch_row($result)) {
             $title = htmlspecialcharx($title);
             $desc = fixDesc($desc);
 

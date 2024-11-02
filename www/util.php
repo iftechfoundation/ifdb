@@ -397,23 +397,22 @@ function echoStylesheetLink()
     $userid = checkPersistentLogin();
     $ssid = false;
     if ($userid && !$cssOverride) {
-        $result = mysql_query(
+        $result = mysqli_execute_query($db,
             "select u.stylesheetid, s.userid, s.modified, s.dark
              from users as u
                join stylesheets as s on s.stylesheetid = u.stylesheetid
-             where u.id='$userid'", $db);
+             where u.id=?", [$userid]);
         if (mysql_num_rows($result) > 0)
-            list($ssid, $ssauthor, $ssmodified, $ssdarkforce) = mysql_fetch_row($result);
+            [$ssid, $ssauthor, $ssmodified, $ssdarkforce] = mysql_fetch_row($result);
     }
 
     // check for a temporary CSS override
     if ($cssOverride) {
-        $db = dbConnect();
-        $ssid = mysql_real_escape_string($cssOverride, $db);
-        $result = mysql_query(
+        $ssid = $cssOverride;
+        $result = mysqli_execute_query($db,
             "select userid, dark, modified from stylesheets
-             where stylesheetid = '$ssid'", $db);
-        list($ssauthor, $ssdarkforce, $ssmodified) = mysql_fetch_row($result);
+             where stylesheetid = ?", [$ssid]);
+        [$ssauthor, $ssdarkforce, $ssmodified] = mysql_fetch_row($result);
     }
 
     // If we found a custom style sheet selection, use it;
