@@ -465,7 +465,7 @@ if ($setID) {
         // make the paging controls
         $pageCtl = "<span class=details>"
                    . "(" . ($firstOnPage+1)
-                   . "-" . ($lastOnPage+1) . " of $totrowcnt) &nbsp; "
+                   . "&ndash;" . ($lastOnPage+1) . " of $totrowcnt) &nbsp; "
                    . makePageControl(
                        "styles?gallery&sort=$sortBy",
                        $pg, $lastPage, $firstOnPage, $lastOnPage,

@@ -1288,7 +1288,7 @@ else if ($term || $browse)
         if ($pgAll)
             $range = "$rowcnt Result" . ($rowcnt == 1 ? "" : "s");
         else
-            $range = ($firstOnPage+1) . "-" . ($lastOnPage+1) . " of $rowcnt";
+            $range = ($firstOnPage+1) . "&ndash;" . ($lastOnPage+1) . " of $rowcnt";
 
         // show where we are in the results
         echo ($term == "" ? "<div class=\"browseLabel\">Browsing</div>" : "")
