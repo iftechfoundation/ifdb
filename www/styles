@@ -56,15 +56,17 @@ if ($setID) {
 
         // update the profile data, if we haven't encountered an error already
         if (!$errMsg) {
-            $result = mysqli_execute_query($db,
-                "update users set stylesheetid = ?
-                where id = ?", [$setID, $userid]);
-            if ($result)
+            $stmt = $db->prepare("UPDATE users set stylesheetid = ? where id = ?");
+            $stmt->bind_param('is', $setID, $userid);
+            $result = $stmt->execute();
+            if ($result) {
                 $succMsg = "Your profile has been updated - your new "
                            . "style sheet is now $newDesc.";
-            else
+            } else {
+                error_log($stmt->error);
                 $errMsg = "An error occurred updating your profile - the "
                           . "style sheet selection has not been changed.";
+            }
         }
 
     } else {
