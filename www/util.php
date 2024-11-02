@@ -671,7 +671,7 @@ function makePageControl($baseUrl, $curPage, $lastPage,
     } else {
 
         // add the current page/item indicator
-        $p .= ($firstItemOnPage+1) . "-" . ($lastItemOnPage+1)
+        $p .= ($firstItemOnPage+1) . "&ndash;" . ($lastItemOnPage+1)
               . ($totalItems >= 0 ? " of $totalItems" : "");
 
     }
