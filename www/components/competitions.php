@@ -9,7 +9,65 @@
 <?php
 
 // get the latest competitions and competition news
-showNewItems($db, 0, 4, false, false, false, NEWITEMS_COMPS | NEWITEMS_COMPNEWS);
+$items = getNewItems($db, 7, NEWITEMS_COMPS | NEWITEMS_COMPNEWS);
+
+for ($idx = 0 ; $idx <= 7; $idx++)
+{
+    // get this item
+    list($pick, $rawDate, $row) = $items[$idx];
+
+    $eager = ($idx < 4 ? "class='eager'" : "");
+
+    if ($pick == 'N')
+    {
+        // it's a news item
+        $n = $row;
+
+        // pull out the game news item
+        $gid = $n['sourceID'];
+        $gtitle = htmlspecialcharx($n['sourceTitle']);
+        $nid = $n['newsID'];
+        $ncre = $n['createdFmt'];
+        $nmod = $n['modifiedFmt'];
+        $nuid = $n['userID'];
+        $nuname = htmlspecialcharx($n['userName']);
+        $nuidOrig = $n['origUserID'];
+        $nunameOrig = htmlspecialcharx($n['origUserName']);
+        $nhead = htmlspecialcharx($n['headline']);
+
+        $href = "viewcomp?id=$gid";
+        $divclass = "new-comp-news";
+
+        // summarize the item
+        echo "<div class=\"$divclass\">"
+            . "News on <a href=\"$href\">$gtitle</a>: "
+            . "<b>$nhead</b> "
+            . "<span class=notes><i>$ncre</i></span> "
+            . "<a href=\"newslog?newsid=$nid\">Details</a>"
+            . "</span></div>"
+            . "</div>";
+    }
+    else if ($pick == 'C')
+    {
+        // it's a competition
+        $c = $row;
+
+        // pull out the competition item
+        $cid = $c["compid"];
+        $ctitle = htmlspecialcharx($c["title"]);
+        $cdate = $c["fmtdate"];
+
+
+        // summarize the item
+        echo "<div class=\"new-competition\">"
+            . "<a href=\"viewcomp?id=$cid\">"
+            . "$ctitle</a> <span class=notes><i>created $cdate</i></span>"
+            . "<br><div class=indented>"
+            . "</div>"
+            . "</div>";
+    }
+
+}
 
 ?>
 <p><span class=details>
