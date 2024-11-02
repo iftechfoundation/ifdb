@@ -2570,13 +2570,13 @@ function dispTagTable(tableID, lst, editor, deleteTags)
                     var tag = lst[cklabel.dataset.ck].tag;
                     deleteTag(tag);
                 } else {
-                    ckboxClick(ck, false, doTagCkBox);
+                    ckboxClick(ck, doTagCkBox);
                 }
             });
         })
 
         if (editor)
-            ckboxCheck(ck, false, m);
+            ckboxCheck(ck, m);
     }
     if (editor && lst.length == 0) {
         tbl.insertRow(0).insertCell(0).innerHTML =

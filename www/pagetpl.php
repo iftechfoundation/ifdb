@@ -271,63 +271,56 @@ function ckboxGetObj(id)
     {
         var img = document.getElementById('ckImg' + id);
         ckboxStatus[id] = stat = new Object();
-        stat.checked = (img.className == "ckbox-checked"
-                        || img.className == "radio-checked");
+        stat.checked = (img.className == "ckbox-checked");
     }
     return stat;
 }
 function ckboxGetLabel(id) { return document.getElementById('ckLbl' + id); }
 function ckboxGetImage(id) { return document.getElementById('ckImg' + id); }
 
-function ckboxCheck(id, isRadio, checked)
+function ckboxCheck(id, checked)
 {
     var img = ckboxGetImage(id);
     var stat = ckboxGetObj(id);
     stat.checked = checked;
-    img.className = (isRadio
-               ? (checked ? "radio-checked" : "radio-unchecked")
-               : (checked ? "ckbox-checked" : "ckbox-unchecked"));
+    img.className = checked ? "ckbox-checked" : "ckbox-unchecked";
 }
 function ckboxIsChecked(id)
 {
     var stat = ckboxGetObj(id);
     return stat.checked;
 }
-function ckboxOver(id, isRadio)
+function ckboxOver(id)
 {
     var img = ckboxGetImage(id);
     var lbl = ckboxGetLabel(id);
     var stat = ckboxGetObj(id);
-    img.className = (isRadio ? "radio-hovering" : "ckbox-hovering");
+    img.className = "ckbox-hovering";
     lbl.style.textDecoration = "underline";
 }
-function ckboxLeave(id, isRadio)
+function ckboxLeave(id)
 {
     var img = ckboxGetImage(id);
     var lbl = ckboxGetLabel(id);
     var stat = ckboxGetObj(id);
-    img.className = (isRadio
-                     ? (stat.checked ? "radio-checked" : "radio-unchecked")
-                     : (stat.checked ? "ckbox-checked" : "ckbox-unchecked"));
+    img.className = stat.checked ? "ckbox-checked" : "ckbox-unchecked";
     lbl.style.textDecoration = "none";
 }
 
 var ckboxReq, ckboxReqID;
-function ckboxClick(id, isRadio, onUpdateFunc)
+function ckboxClick(id, onUpdateFunc)
 {
     var stat = ckboxGetObj(id);
-    var newchecked = (isRadio ? true : !stat.checked);
-    if (isRadio && stat.checked)
-        return;
-    ckboxCheck(id, isRadio, newchecked);
+    var newchecked = !stat.checked;
+    ckboxCheck(id, newchecked);
     if (onUpdateFunc)
         onUpdateFunc(id, newchecked);
 }
-function ckboxKey(id, event, isRadio, onUpdateFunc)
+function ckboxKey(id, event, onUpdateFunc)
 {
     var ch = (window.event || event.keyCode ? event.keyCode : event.which);
     if (ch == 32)
-        ckboxClick(id, isRadio, onUpdateFunc);
+        ckboxClick(id, onUpdateFunc);
 }
 //-->
 </script>
@@ -359,34 +352,20 @@ function addSiblingEventListeners($listeners) {
 // --------------------------------------------------------------------------
 // Generate a checkbox
 //
-function ckRbString($id, $label, $checked, $onUpdateFunc, $isRadio)
+function checkboxWrite($id, $label, $checked, $onUpdateFunc)
 {
     $label = htmlspecialcharx($label);
     echo "<span class=\"cklabel\" >"
-        . addEventListener("mouseover", "ckboxOver('$id', $isRadio);")
-        . addEventListener("mouseout", "ckboxLeave('$id', $isRadio);")
-        . addEventListener("click", "ckboxClick('$id', $isRadio, $onUpdateFunc); return false")
+        . addEventListener("mouseover", "ckboxOver('$id');")
+        . addEventListener("mouseout", "ckboxLeave('$id');")
+        . addEventListener("click", "ckboxClick('$id', $onUpdateFunc); return false")
         . "<img src=\"/img/blank.gif\" class=\""
-        . ($isRadio
-           ? ($checked ? "radio-checked" : "radio-unchecked")
-           : ($checked ? "ckbox-checked" : "ckbox-unchecked"))
+        . ($checked ? "ckbox-checked" : "ckbox-unchecked")
         . "\" id=\"ckImg$id\"> "
         . "<span id=\"ckLbl$id\"><a class=silent href=\"needjs\">"
-        . addEventListener("keypress", "ckboxKey('$id', event, $isRadio, $onUpdateFunc); return false")
+        . addEventListener("keypress", "ckboxKey('$id', event, $onUpdateFunc); return false")
         . "$label</a></span>"
         . "</span>";
-}
-function ckRbWrite($id, $label, $checked, $onUpdateFunc, $isRadio)
-{
-    ckRbString($id, $label, $checked, $onUpdateFunc, $isRadio);
-}
-function checkboxWrite($id, $label, $checked, $onUpdateFunc)
-{
-    ckRbWrite($id, $label, $checked, $onUpdateFunc, 0);
-}
-function radioBtnWrite($id, $label, $checked, $onUpdateFunc)
-{
-    ckRbWrite($id, $label, $checked, $onUpdateFunc, 1);
 }
 
 ?>

@@ -1941,7 +1941,7 @@ img.form-error-icon {
 }
 
 /*
-The various images for checkbox and radio button states.  Note that
+The various images for checkbox states.  Note that
 these are for our custom controls that we build out of HTML DOM and
 Javascript - these aren't for actual system controls, so we can
 completely customize the appearance.
@@ -1962,27 +1962,6 @@ img.ckbox-hovering {
 }
 img.ckbox-checked {
     background: url("/img/ckbox2.gif") no-repeat center center;
-    width: 14px;
-    height: 14px;
-    vertical-align: middle;
-    border: none;
-}
-img.radio-unchecked {
-    background: url("/img/radio0.gif") no-repeat center center;
-    width: 14px;
-    height: 14px;
-    vertical-align: middle;
-    border: none;
-}
-img.radio-hovering {
-    background: url("/img/radio1.gif") no-repeat center center;
-    width: 14px;
-    height: 14px;
-    vertical-align: middle;
-    border: none;
-}
-img.radio-checked {
-    background: url("/img/radio2.gif") no-repeat center center;
     width: 14px;
     height: 14px;
     vertical-align: middle;
