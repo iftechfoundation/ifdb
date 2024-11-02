@@ -30,6 +30,7 @@ if ($setID) {
     if ($userid) {
 
         if ($setID == 'default') {
+            $setID = 0;
             $newDesc = "the IFDB default";
         } else {
             // make sure the style sheet actually exists
