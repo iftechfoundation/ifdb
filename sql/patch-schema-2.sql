@@ -13,3 +13,8 @@ CREATE TABLE `blockedtagsynonyms` (
 
 insert into blockedtagsynonyms (blockedtag, preferredtag)
 values ('sci-fi', 'science fiction');
+
+
+ALTER TABLE `stylesheets` ADD COLUMN `dark` tinyint(1) NOT NULL DEFAULT 0;
+
+update stylesheets set contents = '@import url("/ifdb.css");', dark = 1, modified = now() where stylesheetid = 5;

@@ -30,20 +30,16 @@ if ($setID) {
     if ($userid) {
 
         if ($setID == 'default') {
-            $setVal = 'null';
             $newDesc = "the IFDB default";
         } else {
-            $setID = mysql_real_escape_string($setID, $db);
-            $setVal = "'" . $setID . "'";
-
             // make sure the style sheet actually exists
-            $result = mysql_query(
+            $result = mysqli_execute_query($db,
                 "select
                    s.title, u.id, u.name
                  from
                    stylesheets as s
                    left join users as u on u.id = s.userid
-                 where s.stylesheetid = '$setID'", $db);
+                 where s.stylesheetid = ?", [$setID]);
             if (mysql_num_rows($result) > 0) {
 
                 // get the style sheet information
@@ -60,9 +56,9 @@ if ($setID) {
 
         // update the profile data, if we haven't encountered an error already
         if (!$errMsg) {
-            $result = mysql_query(
-                "update users set stylesheetid = $setVal
-                where id = '$userid'", $db);
+            $result = mysqli_execute_query($db,
+                "update users set stylesheetid = ?
+                where id = ?", [$setID, $userid]);
             if ($result)
                 $succMsg = "Your profile has been updated - your new "
                            . "style sheet is now $newDesc.";
@@ -79,42 +75,44 @@ if ($setID) {
 
 } else if ($editID) {
     // ------------------- edit one of my style sheets ----------------------
-    $editID = mysql_real_escape_string($editID, $db);
     $formErrCode = $formErrMsg = false;
 
     // if this is a POST, get the values from the request parameters
     $reqTitle = false;
     $reqDesc = false;
     $reqContents = false;
+    $reqDark = false;
     if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $reqTitle = get_req_data('title');
         $reqDesc = get_req_data('desc');
         $reqContents = get_req_data('contents');
+        $reqDark = get_req_data('dark');
     }
 
     $dbTitle = false;
     $dbDesc = false;
     $dbContents = false;
+    $dbDark = false;
     if ($editID == 'new') {
         // creating a new one - no need to check for an existing copy
         $authorID = $userid;
         $userCnt = 0;
     } else {
         // make sure it exists, and that it's really mine
-        $result = mysql_query(
+        $result = mysqli_execute_query($db,
             "select
                s.stylesheetid, s.userid, count(u.id),
-               s.title, s.`desc`, s.contents
+               s.title, s.`desc`, s.contents, s.dark
              from stylesheets as s
                left join users as u
-                 on u.stylesheetid = s.stylesheetid and u.id != '$userid'
-             where s.stylesheetid = '$editID'
+                 on u.stylesheetid = s.stylesheetid and u.id != ?
+             where s.stylesheetid = ?
              group by s.stylesheetid",
-            $db);
+            [$userid, $editID]);
         $authorID = false;
         if (mysql_num_rows($result) > 0)
-            list($ssid, $authorID, $userCnt,
-                 $dbTitle, $dbDesc, $dbContents) = mysql_fetch_row($result);
+            [$ssid, $authorID, $userCnt,
+                 $dbTitle, $dbDesc, $dbContents, $dbDark] = mysql_fetch_row($result);
     }
 
     if (!$userid) {
@@ -136,6 +134,7 @@ if ($setID) {
         $formTitle = $reqTitle;
         $formDesc = $reqDesc;
         $formContents = $reqContents;
+        $formDark = $reqDark;
 
         // note if it's a Save operation of some kind
         $isSave = isset($_REQUEST['saveStyle'])
@@ -144,18 +143,13 @@ if ($setID) {
         // if this is a SAVE, try posting the update
         if ($isSave && !$errMsg) {
 
-            // quote the values for SQL
-            $qTitle = mysql_real_escape_string($formTitle, $db);
-            $qDesc = mysql_real_escape_string($formDesc, $db);
-            $qContents = mysql_real_escape_string($formContents, $db);
-
             // lock the style sheet table
             $progress = "SLC001";
             $result = mysql_query(
                 "lock tables stylesheets write, users write", $db);
 
             // make sure we have a title
-            if ($qTitle == '') {
+            if ($formTitle == '') {
                 $formErrMsg = "Please enter a title for the style sheet.";
                 $result = false;
             }
@@ -185,11 +179,10 @@ if ($setID) {
                     if ($result) {
                         // add the row
                         $progress = "SIN003";
-                        $result = mysql_query(
+                        $result = mysqli_execute_query($db,
                             "insert into stylesheets
-                             (title, userid, `desc`, contents, created)
-                             values ('$qTitle', '$userid', '$qDesc',
-                                     '$qContents', now())", $db);
+                             (title, userid, `desc`, contents, dark, created)
+                             values (?, ?, ?, ?, now())", [$formTitle, $userid, $formDesc, $formContents, $formDark]);
 
                         // if we succeeded, note the new ID
                         if ($result)
@@ -200,20 +193,20 @@ if ($setID) {
 
                     // it's an existing row - update it
                     $progress = "SUP004";
-                    $result = mysql_query(
+                    $result = mysqli_execute_query($db,
                         "update stylesheets
                          set
-                           title = '$qTitle', `desc` = '$qDesc',
-                           contents = '$qContents'
-                         where stylesheetid = '$editID'", $db);
+                           title = ?, `desc` = ?,
+                           contents = ?, dark = ?
+                         where stylesheetid = ?", [$formTitle, $formDesc, $formContents, $formDark, $editID]);
                 }
             }
 
             // if desired, activate the style
             if ($result && isset($_REQUEST['saveSetStyle'])) {
-                mysql_query(
-                    "update users set stylesheetid = '$editID'
-                     where id = '$userid'", $db);
+                mysqli_execute_query($db,
+                    "update users set stylesheetid = ?
+                     where id = ?", [$editID, $userid]);
             }
 
             // done with our table lock
@@ -234,6 +227,7 @@ if ($setID) {
         $formTitle = $dbTitle;
         $formDesc = $dbDesc;
         $formContents = $dbContents;
+        $formDark = $dbDark;
     }
 
     // quote all of the form values
@@ -276,7 +270,7 @@ if ($setID) {
             echo "<b><span class=warning>Please be aware that $userCnt "
                 . "other $usersWord $usersAre currently using this style "
                 . "sheet. Any changes you make will affect everyone "
-                . "using the style sheet.</span>";
+                . "using the style sheet.</span></b>";
         }
 
         echo "<form name=\"editstyle\" method=\"post\" "
@@ -289,9 +283,19 @@ if ($setID) {
             . "<p><b>2. Enter a brief description:</b><br>"
             . "<textarea name=desc id=desc rows=3 cols=60>$formDesc"
             .    "</textarea>"
-            . "<p>"
+            . "</p>"
 
-            . "<b>3. Enter the CSS for the style sheet:</b><br>"
+            . "<p><b>3. Force dark mode:</b> "
+            . "<select name='dark'>"
+            . "<option value='0' " . ($formDark == 0 ? "selected" : "") . ">Don't Force</option>"
+            . "<option value='1' " . ($formDark == 1 ? "selected" : "") . ">Force Dark</option>"
+            . "<option value='2' " . ($formDark == 2 ? "selected" : "") . ">Force Light</option>"
+            . "</select>"
+            . "<br><span class='details'>"
+            . "When dark mode is forced, all of the <code>(prefers-color-scheme: dark)</code> rules will be enabled, "
+            . "even if the user's browser hasn't picked a color preference.</p>"
+
+            . "<p><b>4. Enter the CSS for the style sheet:</b><br>"
 
             . "<div class=tipbox>"
             . helpWinLink("help-css", "Click here")
@@ -325,17 +329,16 @@ if ($setID) {
 
 } else if ($deleteID) {
     // ------------------- delete one of my style sheets --------------------
-    $deleteID = mysql_real_escape_string($deleteID, $db);
 
     // make sure it exists, and that it's really mine
-    $result = mysql_query(
+    $result = mysqli_execute_query($db,
         "select s.stylesheetid, s.userid, count(u.id)
          from stylesheets as s
            left join users as u
-             on u.stylesheetid = s.stylesheetid and u.id != '$userid'
-         where s.stylesheetid = '$deleteID'
+             on u.stylesheetid = s.stylesheetid and u.id != ?
+         where s.stylesheetid = ?
          group by s.stylesheetid",
-        $db);
+        [$userid, $deleteID]);
     $ssid = false;
     $authorID = false;
     if (mysql_num_rows($result) > 0)
@@ -368,8 +371,8 @@ if ($setID) {
 
     } else {
         // we got confirmation, so delete it
-        $result = mysql_query(
-            "delete from stylesheets where stylesheetid = '$ssid'", $db);
+        $result = mysqli_execute_query($db,
+            "delete from stylesheets where stylesheetid = ?", [$ssid]);
 
         if ($result)
             $succMsg = "The style sheet has been deleted.";
@@ -391,8 +394,8 @@ if ($setID) {
     $curssid = false;
     if ($userid) {
         // get my current selection
-        $result = mysql_query(
-            "select stylesheetid from users where id='$userid'", $db);
+        $result = mysqli_execute_query($db,
+            "select stylesheetid from users where id=?", [$userid]);
         $curssid = mysql_result($result, 0, "stylesheetid");
     }
 

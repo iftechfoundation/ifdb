@@ -49,6 +49,9 @@ define("FLAG_SHOULD_HIDE", 0x0001);
 define("POLL_FLAG_ANONYMOUS", 0x0001);
 define("POLL_FLAG_LOCKED", 0x0002);
 
+define("STYLESHEET_DARKFORCE_DARK", 1);
+define("STYLESHEET_DARKFORCE_LIGHT", 2);
+
 // --------------------------------------------------------------------------
 // shoot the recommendation cache
 //
@@ -387,7 +390,7 @@ function generateTUID($db, $tableCol, $maxtries)
 //
 function echoStylesheetLink()
 {
-    global $cssOverride;
+    global $cssOverride, $nonce, $ssdarkforce;
     $db = dbConnect();
 
     // check for a profile style
@@ -395,12 +398,12 @@ function echoStylesheetLink()
     $ssid = false;
     if ($userid && !$cssOverride) {
         $result = mysql_query(
-            "select u.stylesheetid, s.userid, s.modified
+            "select u.stylesheetid, s.userid, s.modified, s.dark
              from users as u
                join stylesheets as s on s.stylesheetid = u.stylesheetid
              where u.id='$userid'", $db);
         if (mysql_num_rows($result) > 0)
-            list($ssid, $ssauthor, $ssmodified) = mysql_fetch_row($result);
+            list($ssid, $ssauthor, $ssmodified, $ssdarkforce) = mysql_fetch_row($result);
     }
 
     // check for a temporary CSS override
@@ -408,9 +411,9 @@ function echoStylesheetLink()
         $db = dbConnect();
         $ssid = mysql_real_escape_string($cssOverride, $db);
         $result = mysql_query(
-            "select userid, modified from stylesheets
+            "select userid, dark, modified from stylesheets
              where stylesheetid = '$ssid'", $db);
-        list($ssauthor, $ssmodified) = mysql_fetch_row($result);
+        list($ssauthor, $ssdarkforce, $ssmodified) = mysql_fetch_row($result);
     }
 
     // If we found a custom style sheet selection, use it;
@@ -431,6 +434,11 @@ function echoStylesheetLink()
         $mtime = filemtime($_SERVER['DOCUMENT_ROOT'] . $stylesheet);
         echo "<link rel=\"stylesheet\" href=\"$stylesheet?t=$mtime\">";
     }
+
+    if ($ssdarkforce) {
+        echo "<script nonce='$nonce'>forceDarkMode($ssdarkforce);</script>";
+    }
+
 }
 
 // --------------------------------------------------------------------------
@@ -523,6 +531,7 @@ function sendImageLdesc($title, $imageID)
 //
 function showStars($num)
 {
+    global $ssdarkforce;
     // show no star image if there's no average
     if (isEmpty($num))
         return "";
@@ -537,13 +546,25 @@ function showStars($num)
     }
     // adding unused class='star-half-checked' and 'star-unchecked' so users can override them in IFDB custom stylesheets
     if (floor($roundedNum) != $roundedNum) {
-        $result .= "<picture><source srcset='/img/dark-images/star-half-checked.svg' media='(prefers-color-scheme: dark)'>"
-            ."<img height=13 class='star-half-checked' src='/img/star-half-checked.svg'></picture>";
+        if ($ssdarkforce === STYLESHEET_DARKFORCE_DARK) {
+            $result .= "<img height=13 class='star-half-checked' src='/img/dark-images/star-half-checked.svg'>";
+        } else if ($ssdarkforce === STYLESHEET_DARKFORCE_LIGHT) {
+            $result .= "<img height=13 class='star-half-checked' src='/img/star-half-checked.svg'>";
+        } else {
+            $result .= "<picture><source srcset='/img/dark-images/star-half-checked.svg' media='(prefers-color-scheme: dark)'>"
+                ."<img height=13 class='star-half-checked' src='/img/star-half-checked.svg'></picture>";
+        }
         $i++;
     }
     for (; $i <=5; $i++) {
-        $result .= "<picture><source srcset='/img/dark-images/star-unchecked.svg' media='(prefers-color-scheme: dark)'>"
-            ."<img height=13 class='star-unchecked' src='/img/star-unchecked.svg'></picture>";
+        if ($ssdarkforce === STYLESHEET_DARKFORCE_DARK) {
+            $result .= "<img height=13 class='star-unchecked' src='/img/dark-images/star-unchecked.svg'>";
+        } else if ($ssdarkforce === STYLESHEET_DARKFORCE_Light) {
+            $result .= "<img height=13 class='star-unchecked' src='/img/star-unchecked.svg'>";
+        } else {
+            $result .= "<picture><source srcset='/img/dark-images/star-unchecked.svg' media='(prefers-color-scheme: dark)'>"
+                ."<img height=13 class='star-unchecked' src='/img/star-unchecked.svg'></picture>";
+        }
     }
 
     $result .= "</span>";
