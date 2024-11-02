@@ -332,8 +332,7 @@ if (count($recs) == 0) {
            join $gameRatingsView on games.id = gameid
            $exclJoin
          where
-           starsort >= 4
-           and not (games.flags & " . FLAG_SHOULD_HIDE . ")
+           not (games.flags & " . FLAG_SHOULD_HIDE . ")
            $exclWhere
          order by
            starsort desc
@@ -366,8 +365,8 @@ if (count($recs) >= 2) {
     $_SESSION['ifdb_recommendations_source'] = $recsrc;
 
     // start the section
-    echo "<div class=headline>IFDB Recommends..."
-      .($overloaded ? "<span class='headlineRss'><a href='/search?searchbar=played%3Ano+willplay%3Ano+wontplay%3Ano+reviewed%3Ano+rated%3Ano'>More like this</a></span>" : "")
+    echo "<div class='headline' id='ifdb-recommends'><h1 class='unset'>IFDB Recommends...</h1>"
+      .($overloaded ? "<span class='headlineRss'><a href='/search?searchbar=played%3Ano+willplay%3Ano+wontplay%3Ano+reviewed%3Ano+rated%3Ano'>More recommendations</a></span>" : "")
       ."</div><div>";
     global $nonce;
     echo "<style nonce='$nonce'>\n"
@@ -376,7 +375,7 @@ if (count($recs) >= 2) {
 
 
     // show the first three entries
-    for ($i = 0 ; $i < count($recs) && $i < 3 ; $i++) {
+    for ($i = 0 ; $i < count($recs) && $i < 5 ; $i++) {
 
         // get the fields from the game record
         $r = $recs[$i];

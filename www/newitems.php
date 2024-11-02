@@ -1,8 +1,31 @@
 <?php
 
-define("ENABLE_IMAGES", 0);
+define("ENABLE_IMAGES", 1);
+define("NEWITEMS_SITENEWS", 0x0001);
+define("NEWITEMS_GAMES", 0x0002);
+define("NEWITEMS_LISTS", 0x0004);
+define("NEWITEMS_POLLS", 0x0008);
+define("NEWITEMS_REVIEWS", 0x0010);
+define("NEWITEMS_COMPS", 0x0020);
+define("NEWITEMS_CLUBS", 0x0040);
+define("NEWITEMS_GAMENEWS", 0x0080);
+define("NEWITEMS_COMPNEWS", 0x0100);
+define("NEWITEMS_CLUBNEWS", 0x0200);
 
-function getNewItems($db, $limit)
+define("NEWITEMS_ALLITEMS", 
+    NEWITEMS_SITENEWS
+    | NEWITEMS_GAMES
+    | NEWITEMS_LISTS
+    | NEWITEMS_POLLS
+    | NEWITEMS_REVIEWS
+    | NEWITEMS_COMPS
+    | NEWITEMS_CLUBS
+    | NEWITEMS_GAMENEWS
+    | NEWITEMS_COMPNEWS
+    | NEWITEMS_CLUBNEWS
+);
+
+function getNewItems($db, $limit, $itemTypes = NEWITEMS_ALLITEMS, $days = null)
 {
     // get the logged-in user
     checkPersistentLogin();
@@ -35,181 +58,220 @@ function getNewItems($db, $limit)
     // start with an empty list
     $items = array();
 
-    // query site news
-    $result = mysql_query(
-        "select
-           itemid as sitenewsid, title, ldesc as `desc`,
-           posted as d,
-           date_format(posted, '%M %e, %Y') as fmtdate,
-           (now() < date_add(posted, interval 7 day)) as freshest
-         from
-           sitenews
-         order by
-           d desc
-         $limit", $db);
-    $sitenewscnt = mysql_num_rows($result);
-    for ($i = 0 ; $i < $sitenewscnt ; $i++) {
-        $row = mysql_fetch_array($result, MYSQL_ASSOC);
-        if ($i) $row['freshest'] = 0;
-        $items[] = array('S', $row['d'], $row);
+    $dayWhere = 1;
+    if ($days) $dayWhere = "d > date_sub(now(), interval $days day)";
+
+    if ($itemTypes & NEWITEMS_SITENEWS) {
+        if ($days) $dayWhere = "posted > date_sub(now(), interval $days day)";
+        // query site news
+        $result = mysql_query(
+            "select
+               itemid as sitenewsid, title, ldesc as `desc`,
+               posted as d,
+               date_format(posted, '%M %e, %Y') as fmtdate,
+               (now() < date_add(posted, interval 7 day)) as freshest
+             from
+               sitenews
+             where $dayWhere
+             order by
+               d desc
+             $limit", $db);
+        $sitenewscnt = mysql_num_rows($result);
+        for ($i = 0 ; $i < $sitenewscnt ; $i++) {
+            $row = mysql_fetch_array($result, MYSQL_ASSOC);
+            if ($i) $row['freshest'] = 0;
+            $items[] = array('S', $row['d'], $row);
+        }
     }
 
-    // query the recent games
-    $result = mysql_query(
-        "select id, title, author, `desc`, created as d,
-           date_format(created, '%M %e, %Y') as fmtdate,
-           (coverart is not null) as hasart
-         from games
-         order by created desc
-         $limit", $db);
-    $gamecnt = mysql_num_rows($result);
-    for ($i = 0 ; $i < $gamecnt ; $i++) {
-        $row = mysql_fetch_array($result, MYSQL_ASSOC);
-        $items[] = array('G', $row['d'], $row);
+    if ($itemTypes & NEWITEMS_GAMES) {
+        if ($days) $dayWhere = "created > date_sub(now(), interval $days day)";
+        // query the recent games
+        $result = mysql_query(
+            "select id, title, author, `desc`, created as d,
+               date_format(created, '%M %e, %Y') as fmtdate,
+               system, pagevsn,
+               (coverart is not null) as hasart
+             from games
+             where $dayWhere
+             order by created desc
+             $limit", $db);
+        $gamecnt = mysql_num_rows($result);
+        for ($i = 0 ; $i < $gamecnt ; $i++) {
+            $row = mysql_fetch_array($result, MYSQL_ASSOC);
+            $items[] = array('G', $row['d'], $row);
+        }
     }
 
-    // query the recent recommended lists (minus plonked users)
-    $anp = str_replace('#USERID#', 'reclists.userid', $andNotPlonked);
-    $result = mysql_query(
-        "select
-           reclists.id as id, reclists.title as title,
-           reclists.`desc` as `desc`,
-           reclists.createdate as d,
-           date_format(reclists.createdate, '%M %e, %Y') as fmtdate,
-           count(reclists.id) as itemcnt,
-           reclists.userid, users.name as `username`,
-           (users.picture is not null) as haspic
-         from reclists
-           join reclistitems on reclistitems.listid=reclists.id
-           join users on users.id = reclists.userid
-         where
-           users.sandbox in $sandbox
-           $anp
-         group by reclists.id
-         order by reclists.createdate desc
-         $limit", $db);
-    $listcnt = mysql_num_rows($result);
-    for ($i = 0 ; $i < $listcnt ; $i++) {
-        $row = mysql_fetch_array($result, MYSQL_ASSOC);
-        $items[] = array('L', $row['d'], $row);
+    if ($itemTypes & NEWITEMS_LISTS) {
+        if ($days) $dayWhere = "reclists.createdate > date_sub(now(), interval $days day)";
+        // query the recent recommended lists (minus plonked users)
+        $anp = str_replace('#USERID#', 'reclists.userid', $andNotPlonked);
+        $result = mysql_query(
+            "select
+               reclists.id as id, reclists.title as title,
+               reclists.`desc` as `desc`,
+               reclists.createdate as d,
+               date_format(reclists.createdate, '%M %e, %Y') as fmtdate,
+               count(reclists.id) as itemcnt,
+               reclists.userid, users.name as `username`,
+               (users.picture is not null) as haspic
+             from reclists
+               join reclistitems on reclistitems.listid=reclists.id
+               join users on users.id = reclists.userid
+             where
+               users.sandbox in $sandbox
+               and $dayWhere
+               $anp
+             group by reclists.id
+             order by reclists.createdate desc
+             $limit", $db);
+        $listcnt = mysql_num_rows($result);
+        for ($i = 0 ; $i < $listcnt ; $i++) {
+            $row = mysql_fetch_array($result, MYSQL_ASSOC);
+            $items[] = array('L', $row['d'], $row);
+        }
     }
 
-    // query the recent polls (minus plonked users)
-    $anp = str_replace('#USERID#', 'p.userid', $andNotPlonked);
-    $result = mysql_query(
-        "select
-           p.pollid as pollid, p.title as title, p.`desc` as `desc`,
-           p.created as d,
-           date_format(p.created, '%M %e, %Y') as fmtdate,
-           count(v.gameid) as votecnt, count(distinct v.gameid) as gamecnt,
-           p.userid as userid, u.name as `username`,
-           (u.picture is not null) as haspic
-         from
-           polls as p
-           left outer join pollvotes as v on v.pollid = p.pollid
-           join users as u on u.id = p.userid
-         where
-           u.sandbox in $sandbox
-           $anp
-         group by
-           p.pollid
-         order by
-           p.created desc
-         $limit", $db);
-    $pollcnt = mysql_num_rows($result);
-    for ($i = 0 ; $i < $pollcnt ; $i++) {
-        $row = mysql_fetch_array($result, MYSQL_ASSOC);
-        $items[] = array('P', $row['d'], $row);
+    if ($itemTypes & NEWITEMS_POLLS) {
+        if ($days) $dayWhere = "p.created > date_sub(now(), interval $days day)";
+        // query the recent polls (minus plonked users)
+        $anp = str_replace('#USERID#', 'p.userid', $andNotPlonked);
+        $result = mysql_query(
+            "select
+               p.pollid as pollid, p.title as title, p.`desc` as `desc`,
+               p.created as d,
+               date_format(p.created, '%M %e, %Y') as fmtdate,
+               count(v.gameid) as votecnt, count(distinct v.gameid) as gamecnt,
+               p.userid as userid, u.name as `username`,
+               (u.picture is not null) as haspic
+             from
+               polls as p
+               left outer join pollvotes as v on v.pollid = p.pollid
+               join users as u on u.id = p.userid
+             where
+               u.sandbox in $sandbox
+               and $dayWhere
+               $anp
+             group by
+               p.pollid
+             order by
+               p.created desc
+             $limit", $db);
+        $pollcnt = mysql_num_rows($result);
+        for ($i = 0 ; $i < $pollcnt ; $i++) {
+            $row = mysql_fetch_array($result, MYSQL_ASSOC);
+            $items[] = array('P', $row['d'], $row);
+        }
     }
 
-    // query the recent reviews (minus plonks)
-    $anp = str_replace('#USERID#', 'reviews.userid', $andNotPlonked);
-    $result = mysql_query(
-        "select
-           reviews.id as reviewid, gameid, summary, review, rating, special,
-           games.title as title,
-           users.id as userid, users.name as username,
-           greatest(reviews.createdate,
-                    ifnull(reviews.embargodate, '0000-00-00')) as d,
-           date_format(greatest(reviews.createdate,
-                       ifnull(reviews.embargodate, '0000-00-00')),
-                       '%M %e, %Y') as fmtdate,
-           (games.coverart is not null) as hasart,
-           (users.picture is not null) as haspic,
-           games.flags
-         from
-           reviews
-           join games
-           join users
-           left outer join specialreviewers on specialreviewers.id = special
-         where
-           games.id = reviews.gameid
-           and users.id = reviews.userid
-           and reviews.review is not null
-           and ifnull(now() >= reviews.embargodate, 1)
-           and ifnull(specialreviewers.code, '') <> 'external'
-           and users.sandbox in $sandbox
-           $anp
-         order by d desc
-         $limit", $db);
-    $revcnt = mysql_num_rows($result);
-    for ($i = 0 ; $i < $revcnt ; $i++) {
-        $row = mysql_fetch_array($result, MYSQL_ASSOC);
-        $items[] = array('R', $row['d'], $row);
+    if ($itemTypes & NEWITEMS_REVIEWS) {
+        if ($days) $dayWhere = "greatest(reviews.createdate, ifnull(reviews.embargodate, '0000-00-00')) > date_sub(now(), interval $days day)";
+        // query the recent reviews (minus plonks)
+        $anp = str_replace('#USERID#', 'reviews.userid', $andNotPlonked);
+        $result = mysql_query(
+            "select
+               reviews.id as id, gameid, summary, review, rating, special,
+               games.title as title,
+               users.id as userid, users.name as username,
+               greatest(reviews.createdate,
+                        ifnull(reviews.embargodate, '0000-00-00')) as d,
+               date_format(greatest(reviews.createdate,
+                           ifnull(reviews.embargodate, '0000-00-00')),
+                           '%M %e, %Y') as fmtdate,
+               (games.coverart is not null) as hasart,
+               games.pagevsn,
+               (users.picture is not null) as haspic,
+               games.flags
+             from
+               reviews
+               join games
+               join users
+               left outer join specialreviewers on specialreviewers.id = special
+             where
+               games.id = reviews.gameid
+               and users.id = reviews.userid
+               and reviews.review is not null
+               and ifnull(now() >= reviews.embargodate, 1)
+               and ifnull(specialreviewers.code, '') <> 'external'
+               and users.sandbox in $sandbox
+               and $dayWhere
+               $anp
+             order by d desc, id desc
+             $limit", $db);
+        $revcnt = mysql_num_rows($result);
+        for ($i = 0 ; $i < $revcnt ; $i++) {
+            $row = mysql_fetch_array($result, MYSQL_ASSOC);
+            $items[] = array('R', $row['d'], $row);
+        }
     }
 
-    // query recent competition page additions
-    $result = mysql_query(
-        "select
-           c.compid as compid, c.title as title, c.`desc` as `desc`,
-           c.created as d,
-           date_format(c.created, '%M %e, %Y') as fmtdate
-         from
-           competitions as c
-         order by
-           d desc
-         $limit", $db);
-    $compcnt = mysql_num_rows($result);
-    for ($i = 0 ; $i < $compcnt ; $i++) {
-        $row = mysql_fetch_array($result, MYSQL_ASSOC);
-        $items[] = array('C', $row['d'], $row);
+    if ($itemTypes & NEWITEMS_COMPS) {
+        if ($days) $dayWhere = "c.created > date_sub(now(), interval $days day)";
+        // query recent competition page additions
+        $result = mysql_query(
+            "select
+               c.compid as compid, c.title as title, c.`desc` as `desc`,
+               c.created as d,
+               date_format(c.created, '%M %e, %Y') as fmtdate
+             from
+               competitions as c
+             where $dayWhere
+             order by
+               d desc
+             $limit", $db);
+        $compcnt = mysql_num_rows($result);
+        for ($i = 0 ; $i < $compcnt ; $i++) {
+            $row = mysql_fetch_array($result, MYSQL_ASSOC);
+            $items[] = array('C', $row['d'], $row);
+        }
     }
 
-    // query recent club page additions
-    $result = mysql_query(
-        "select
-           c.clubid as clubid, c.name as name, c.`desc` as `desc`,
-           c.created as d,
-           date_format(c.created, '%M %e, %Y') as fmtdate
-         from
-           clubs as c
-         order by
-           d desc
-         $limit", $db);
-    $clubcnt = mysql_num_rows($result);
-    for ($i = 0 ; $i < $clubcnt ; $i++) {
-        $row = mysql_fetch_array($result, MYSQL_ASSOC);
-        $items[] = array('U', $row['d'], $row);
+    if ($itemTypes & NEWITEMS_CLUBS) {
+        if ($days) $dayWhere = "c.created > date_sub(now(), interval $days day)";
+        // query recent club page additions
+        $result = mysql_query(
+            "select
+               c.clubid as clubid, c.name as name, c.`desc` as `desc`,
+               c.created as d,
+               date_format(c.created, '%M %e, %Y') as fmtdate
+             from
+               clubs as c
+             where $dayWhere
+             order by
+               d desc
+             $limit", $db);
+        $clubcnt = mysql_num_rows($result);
+        for ($i = 0 ; $i < $clubcnt ; $i++) {
+            $row = mysql_fetch_array($result, MYSQL_ASSOC);
+            $items[] = array('U', $row['d'], $row);
+        }
     }
 
-    // query game news updates
-    queryNewNews(
-        $items, $db, $limit, "G",
-        "join games as g on g.id = n.sourceid",
-        "g.id as sourceID, g.title as sourceTitle, "
-        . "(g.coverart is not null) as hasart");
+    if ($itemTypes & NEWITEMS_GAMENEWS) {
+        // query game news updates
+        queryNewNews(
+            $items, $db, $limit, "G",
+            "join games as g on g.id = n.sourceid",
+            "g.id as sourceID, g.title as sourceTitle, "
+            . "(g.coverart is not null) as hasart, g.pagevsn", $days);
+    }
 
-    // add the competition news updates
-    queryNewNews(
-        $items, $db, $limit, "C",
-        "join competitions as c on c.compid = n.sourceid",
-        "c.compid as sourceID, c.title as sourceTitle");
+    if ($itemTypes & NEWITEMS_COMPNEWS) {
+        // add the competition news updates
+        queryNewNews(
+            $items, $db, $limit, "C",
+            "join competitions as c on c.compid = n.sourceid",
+            "c.compid as sourceID, c.title as sourceTitle", $days);
+    }
 
-    // add club news updates
-    queryNewNews(
-        $items, $db, $limit, "U",
-        "join clubs as c on c.clubid = n.sourceid",
-        "c.clubid as sourceID, c.name as sourceTitle");
+    if ($itemTypes & NEWITEMS_CLUBNEWS) {
+        // add club news updates
+        queryNewNews(
+            $items, $db, $limit, "U",
+            "join clubs as c on c.clubid = n.sourceid",
+            "c.clubid as sourceID, c.name as sourceTitle", $days);
+    }
 
     // sort by date
     usort($items, "sortNewItemsByDate");
@@ -231,11 +293,15 @@ function sortNewItemsByDate($a, $b)
     // in the mysql raw date format, which collates like an ascii string,
     // so we can compare with strcmp.  Reverse the sense of the test so
     // that we sort newest first.
-    return strcmp($b[1], $a[1]);
+    if ($a[1] == $b[1]) {
+        return $b[2]['id'] - $a[2]['id'];
+    } else {
+        return strcmp($b[1], $a[1]);
+    }
 }
 
 function queryNewNews(&$items, $db, $limit, $sourceType,
-                      $sourceJoin, $sourceCols)
+                      $sourceJoin, $sourceCols, $days = null)
 {
     // get the logged-in user
     checkPersistentLogin();
@@ -250,6 +316,10 @@ function queryNewNews(&$items, $db, $limit, $sourceType,
                          . "and filtertype = 'K') = 0";
     }
 
+    $dayWhere = 1;
+    if ($days) {
+        $dayWhere = "n.created > date_sub(now(), interval $days day)";
+    }
     // Include only reviews from our sandbox or sandbox 0 (all users)
     $sandbox = "(0)";
     if ($curuser)
@@ -287,6 +357,7 @@ function queryNewNews(&$items, $db, $limit, $sourceType,
            and n.status = 'A'
            and nsuper.newsid is null
            and uorig.sandbox in $sandbox
+           and $dayWhere
            $andNotPlonked
          order by
            n.created desc
@@ -300,20 +371,20 @@ function queryNewNews(&$items, $db, $limit, $sourceType,
     }
 }
 
-function showNewItems($db, $first, $last, $items, $showFlagged = false, $allowHiddenBanner = true)
+function showNewItems($db, $first, $last, $items, $showFlagged = false, $allowHiddenBanner = true, $itemTypes = NEWITEMS_ALLITEMS, $days = null)
 {
     // if the caller didn't provide the new item lists, query them
     if (!$items)
-        $items = getNewItems($db, $last);
+        $items = getNewItems($db, $last, $itemTypes, $days);
 
     // show them
-    showNewItemList($db, $items, $first, $last, $showFlagged, $allowHiddenBanner);
+    showNewItemList($db, $items, $first, $last, $showFlagged, $allowHiddenBanner, $itemTypes);
 
     // indicate whether there's more to come
     return count($items) > $last;
 }
 
-function showNewItemList($db, $items, $first, $last, $showFlagged, $allowHiddenBanner)
+function showNewItemList($db, $items, $first, $last, $showFlagged, $allowHiddenBanner, $itemTypes)
 {
     // show the items
     $totcnt = count($items);
@@ -340,10 +411,13 @@ function showNewItemList($db, $items, $first, $last, $showFlagged, $allowHiddenB
             . "<a href=\"$showAllLink\">See all results</a></div></p>";
     }
 
+
     for ($idx = $first ; $idx <= $last && $idx < $totcnt ; $idx++)
     {
         // get this item
         list($pick, $rawDate, $row) = $items[$idx];
+
+        $eager = ($idx < 4 ? "class='eager'" : "");
 
         if (!$showFlagged && $pick == 'R' && ($row['flags'] & FLAG_SHOULD_HIDE)) {
             continue;
@@ -373,16 +447,16 @@ function showNewItemList($db, $items, $first, $last, $showFlagged, $allowHiddenB
             if (ENABLE_IMAGES) {
                 if ($r["haspic"]) {
                     echo "<a href=\"showuser?id={$r['userid']}\">"
-                        . "<img border=0 src=\"showuser?id={$r['userid']}&pic"
+                        . "<img border=0 width=50 height=50 src=\"showuser?id={$r['userid']}&pic"
                         . "&thumbnail=50x50\"></a>";
                 } else if ($r["hasart"]) {
                     echo "<a href=\"viewgame?id={$r['gameid']}\">"
-                        . coverArtThumbnail($r['gameid'], 50, null)
+                        . coverArtThumbnail($r['gameid'], 50, $r['pagevsn'])
                         . "</a>";
                 } else {
-                    echo "<a href=\"viewgame?id={$r['gameid']}"
-                        . "&review={$r['reviewid']}\">"
-                        . "<img border=0 src=\"review50.gif\"></a>";
+                    // echo "<a href=\"viewgame?id={$r['gameid']}"
+                    //     . "&review={$r['reviewid']}\">"
+                    //     . "<img border=0 src=\"review50.gif\"></a>";
                 }
                 echo "</td><td>";
             }
@@ -408,28 +482,13 @@ function showNewItemList($db, $items, $first, $last, $showFlagged, $allowHiddenB
             } else {
                 echo ": \""
                     . output_encode(htmlspecialcharx($r['summary']))
-                    . "\" <span class=notes><i>{$r['fmtdate']}</i></span>";
+                    . "\" ";
             }
 
-            $stars = showStars($r['rating']);
-            list($summary, $len, $trunc) = summarizeHtml($r['review'], 140);
-            $summary = fixDesc($summary);
-            if ($len != 0 || $stars != "")
-            {
-                echo "<br><div class=indented><span class=details>";
+            echo showStars($r['rating']);
 
-                if ($stars != "")
-                    echo "$stars ";
-
-                if ($len != 0)
-                    echo "<i>\"$summary\"</i>";
-
-                if ($trunc)
-                    echo " - <a class=eager href=\"viewgame?id={$r['gameid']}"
-                        . "&review={$r['reviewid']}\">See full review</a>";
-
-                echo "</span></div>";
-            }
+            echo " - <a $eager href=\"viewgame?id={$r['gameid']}"
+                . "&review={$r['id']}\">See full review</a>";
 
             echo "</div>";
             if (ENABLE_IMAGES)
@@ -451,19 +510,17 @@ function showNewItemList($db, $items, $first, $last, $showFlagged, $allowHiddenB
             $itemS = $itemcnt == 1 ? "" : "s";
             $title = output_encode(htmlspecialcharx($l['title']));
             $username = output_encode(htmlspecialcharx($l['username']));
-            list($desc, $len, $trunc) = summarizeHtml($l['desc'], 210);
-            $desc = fixDesc($desc);
 
             // show the image: user image if available, otherwise the
             // generic list icon
             if (ENABLE_IMAGES) {
                 if ($l["haspic"]) {
                     echo "<a href=\"showuser?id={$l['userid']}\">"
-                        . "<img border=0 src=\"showuser?id={$l['userid']}&pic"
+                        . "<img border=0 width=50 height=50 src=\"showuser?id={$l['userid']}&pic"
                         . "&thumbnail=50x50\"></a>";
                 } else {
-                    echo "<a href=\"viewlist?id={$l['id']}\">"
-                        . "<img border=0 src=\"reclist50.gif\"></a>";
+                    // echo "<a href=\"viewlist?id={$l['id']}\">"
+                    //     . "<img border=0 src=\"reclist50.gif\"></a>";
                 }
                 echo "</td><td>";
             }
@@ -476,7 +533,7 @@ function showNewItemList($db, $items, $first, $last, $showFlagged, $allowHiddenB
                 . "<span class=notes><i>{$l['fmtdate']}</i></span><br>"
                 . "<div class=indented>"
                 . "<span class=details>$itemcnt item$itemS</span><br>"
-                . "<span class=details><i>$desc</i></span></div></div>";
+                . "</div></div>";
         }
         else if ($pick == 'G')
         {
@@ -488,30 +545,23 @@ function showNewItemList($db, $items, $first, $last, $showFlagged, $allowHiddenB
             if (ENABLE_IMAGES) {
                 if ($g["hasart"]) {
                     echo "<a href=\"viewgame?id={$g['id']}\">"
-                        . coverArtThumbnail($g['id'], 50, null)
+                        . coverArtThumbnail($g['id'], 50, $g['pagevsn'])
                         . "</a>";
                 } else {
-                    echo "<a href=\"viewgame?id={$g['id']}\">"
-                        . "<img border=0 src=\"game50.gif\"></a>";
+                    // echo "<a href=\"viewgame?id={$g['id']}\">"
+                    //     . "<img border=0 src=\"game50.gif\"></a>";
                 }
                 echo "</td><td>";
             }
 
             // summarize this game
             echo "<div class=\"new-game\">"
-                . "A new listing for "
-                . "<a class=eager href=\"viewgame?id={$g['id']}\"><b><i>"
+                . "<a $eager href=\"viewgame?id={$g['id']}\"><b><i>"
                 . output_encode(htmlspecialcharx($g['title']))
                 . "</i></b></a>, by "
-                . output_encode(htmlspecialcharx($g['author']))
-                . " <span class=notes><i>{$g['fmtdate']}</i></span>";
+                . output_encode(htmlspecialcharx($g['author']));
 
-            list($summary, $len, $trunc) = summarizeHtml($g['desc'], 210);
-            $summary = fixDesc($summary);
-            if ($len != 0)
-                echo "<br><div class=indented><span class=details><i>"
-                    . $summary
-                    . "</i></span></div>";
+            if ($g['system']) echo " <div class=details>{$g['system']}</div>";
 
             echo "</div>";
         }
@@ -540,11 +590,11 @@ function showNewItemList($db, $items, $first, $last, $showFlagged, $allowHiddenB
             if (ENABLE_IMAGES) {
                 if ($p["haspic"]) {
                     echo "<a href=\"showuser?id={$p['userid']}\">"
-                        . "<img border=0 src=\"showuser?id={$p['userid']}&pic"
+                        . "<img border=0 width=50 height=50 src=\"showuser?id={$p['userid']}&pic"
                         . "&thumbnail=50x50\"></a>";
                 } else {
-                    echo "<a href=\"viewpoll?id={$p['pollid']}\">"
-                        . "<img border=0 src=\"poll50.gif\"></a>";
+                    // echo "<a href=\"viewpoll?id={$p['pollid']}\">"
+                    //     . "<img border=0 src=\"poll50.gif\"></a>";
                 }
                 echo "</td><td>";
             }
@@ -553,7 +603,7 @@ function showNewItemList($db, $items, $first, $last, $showFlagged, $allowHiddenB
             echo "<div class=\"new-poll\">"
                 . "A new poll by <a href=\"showuser?id=$uid\">"
                 . "$uname</a>, "
-                . "<a class=eager href=\"poll?id=$pid\"><b>$title</b></a> "
+                . "<a $eager href=\"poll?id=$pid\"><b>$title</b></a> "
                 . "<span class=notes><i>created $fmtdate</i></span>"
                 . "<br><div class=indented>"
                 . "<span class=details>$cntdesc</span><br>"
@@ -577,8 +627,6 @@ function showNewItemList($db, $items, $first, $last, $showFlagged, $allowHiddenB
             $nuidOrig = $n['origUserID'];
             $nunameOrig = htmlspecialcharx($n['origUserName']);
             $nhead = htmlspecialcharx($n['headline']);
-            list($nbody, $len, $trunc) = summarizeHtml($n['body'], 210);
-            $nbody = fixDesc($nbody);
 
             switch ($n['sourceType'])
             {
@@ -603,15 +651,15 @@ function showNewItemList($db, $items, $first, $last, $showFlagged, $allowHiddenB
             if (ENABLE_IMAGES) {
                 if (isset($n["haspic"]) && $n["haspic"]) {
                     echo "<a href=\"showuser?id={$n['userID']}\">"
-                        . "<img border=0 src=\"showuser?id={$n['userID']}&pic"
+                        . "<img border=0 width=50 height=50 src=\"showuser?id={$n['userID']}&pic"
                         . "&thumbnail=50x50\"></a>";
                 } else if ($n["hasart"]) {
                     echo "<a href=\"viewgame?id={$n['gameid']}\">"
-                        . coverArtThumbnail($gid, 50, null)
+                        . coverArtThumbnail($gid, 50, $n['pagevsn'])
                         . "</a>";
                 } else {
-                    echo "<a href=\"newslog?newsid=$nid\">"
-                        . "<img border=0 src=\"news50.gif\"></a>";
+                    // echo "<a href=\"newslog?newsid=$nid\">"
+                    //     . "<img border=0 src=\"news50.gif\"></a>";
                 }
                 echo "</td><td>";
             }
@@ -620,10 +668,9 @@ function showNewItemList($db, $items, $first, $last, $showFlagged, $allowHiddenB
             echo "<div class=\"$divclass\">"
                 . "News on <a href=\"$href\">$gtitle</a>: "
                 . "<b>$nhead</b> "
-                . "<span class=notes><i>$ncre</i></span><br>"
-                . "<div class=indented><span class=details>$nbody - "
+                . " <span class=details>"
                 . "<a href=\"newslog?newsid=$nid\">Details</a>"
-                . "</span></div>"
+                . "</span>"
                 . "</div>";
         }
         else if ($pick == 'C')
@@ -634,15 +681,13 @@ function showNewItemList($db, $items, $first, $last, $showFlagged, $allowHiddenB
             // pull out the competition item
             $cid = $c["compid"];
             $ctitle = htmlspecialcharx($c["title"]);
-            list($cdesc, $len, $trunc) = summarizeHtml($c["desc"], 210);
-            $cdesc = fixDesc($cdesc);
             $cdate = $c["fmtdate"];
 
             // show the generic competition icon
             if (ENABLE_IMAGES) {
-                echo "<a href=\"viewcomp?id=$cid\">"
-                    . "<img border=0 src=\"competition50.gif\">"
-                    . "</a>";
+                // echo "<a href=\"viewcomp?id=$cid\">"
+                //     . "<img border=0 src=\"competition50.gif\">"
+                //     . "</a>";
                 echo "</td><td>";
             }
 
@@ -650,8 +695,6 @@ function showNewItemList($db, $items, $first, $last, $showFlagged, $allowHiddenB
             echo "<div class=\"new-competition\">"
                 . "A new competition page: <a href=\"viewcomp?id=$cid\">"
                 . "$ctitle</a> <span class=notes><i>created $cdate</i></span>"
-                . "<br><div class=indented>"
-                . "<span class=details><i>$cdesc</i></span>"
                 . "</div>"
                 . "</div>";
         }
@@ -669,9 +712,9 @@ function showNewItemList($db, $items, $first, $last, $showFlagged, $allowHiddenB
 
             // show the generic club icon
             if (ENABLE_IMAGES) {
-                echo "<a href=\"viewcomp?id=$cid\">"
-                    . "<img border=0 src=\"club50.gif\">"
-                    . "</a>";
+                // echo "<a href=\"viewcomp?id=$cid\">"
+                //     . "<img border=0 src=\"club50.gif\">"
+                //     . "</a>";
                 echo "</td><td>";
             }
 

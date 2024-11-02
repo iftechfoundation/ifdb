@@ -969,16 +969,16 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse)
 
     case "member":
         $sortList = array(
-            'nm' => array('name,', 'Sort by Name'),
             'ffpts' => array('userScores_mv.score desc,',
                              'Highest Frequent Fiction First'),
             'ffrank' => array('userScores_mv.rankingScore desc,',
                               'Top Reviewer Status First'),
+            'nm' => array('name,', 'Sort by Name'),
             'loc' => array('location,', 'Sort by Location'),
             'new' => array('created desc,', 'Newest First'),
             'old' => array('created,', 'Oldest First'),
             'rand' => array('rand(),', 'Random Order'));
-        $defSortBy = 'nm';
+        $defSortBy = 'ffpts';
         break;
 
     case "comp":

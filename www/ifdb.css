@@ -332,8 +332,8 @@ div.main {
     min-width: 50%;
 }
 
-#download-advisor-aside{
-    flex-basis: 30ch;
+.col-peer {
+    min-width: 30ch;
 }
 
 /*
@@ -430,40 +430,40 @@ distinct classes so that custom style sheets can show each type
 in its own style.
 */
 div.new-review {
-    margin-top: 1.25em;
     margin-bottom: 1.25em;
+    break-inside: avoid-column;
 }
 div.new-list {
-    margin-top: 1.25em;
     margin-bottom: 1.25em;
+    break-inside: avoid-column;
 }
 div.new-game {
-    margin-top: 1.25em;
     margin-bottom: 1.25em;
+    break-inside: avoid-column;
 }
 div.new-poll {
-    margin-top: 1.25em;
     margin-bottom: 1.25em;
+    break-inside: avoid-column;
 }
 div.new-game-news {
-    margin-top: 1.25em;
     margin-bottom: 1.25em;
+    break-inside: avoid-column;
 }
 div.new-comp-news {
-    margin-top: 1.25em;
     margin-bottom: 1.25em;
+    break-inside: avoid-column;
 }
 div.new-competition {
-    margin-top: 1.25em;
     margin-bottom: 1.25em;
+    break-inside: avoid-column;
 }
 div.new-club-news {
-    margin-top: 1.25em;
     margin-bottom: 1.25em;
+    break-inside: avoid-column;
 }
 div.new-club {
-    margin-top: 1.25em;
     margin-bottom: 1.25em;
+    break-inside: avoid-column;
 }
 
 .restricted {
@@ -1108,6 +1108,10 @@ div.footer {
     font-size: 70%;
 }
 
+h1.unset {
+    all: unset;
+}
+
 #welcome-details summary {
     list-style: none;
     cursor: pointer;
@@ -1454,6 +1458,16 @@ element of the list.
 ul.doublespace li {
     margin-top: 1em;
     margin-bottom: 1em;
+}
+
+ul.horizontal {
+    padding: 0;
+    max-width: revert;
+}
+
+ul.horizontal > li {
+    display: inline-block;
+    margin-right: 0.5em;
 }
 
 /*
