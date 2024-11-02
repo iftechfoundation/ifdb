@@ -211,14 +211,18 @@ $browseTabs = [
     "tag"     => "Tags",
 ];
 
+
+/* Games is the default search type */
+$searchType = "game";
+$searchButton = "Search Games";
+$hiddenTypeField = "";
+
 foreach ($browseTabs as $browseParam => $browseName) {
     if (!isset($_REQUEST[$browseParam]))
         continue;
     $searchType = $browseParam;
     $searchButton = "Search $browseName";
-    if ($browseParam == 'game')
-        $hiddenTypeField = "";
-    else
+    if ($browseParam != 'game')
         $hiddenTypeField = "<input type=\"hidden\" name=\"$browseParam\" value=\"1\">";
     break;
 }
