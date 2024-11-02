@@ -771,17 +771,6 @@ span.hiddenSpoiler {
 }
 
 /*
-The "cklabel" span is used for checkbox labels in Ajax checkboxes.
-(These aren't "real" checkboxes - they're basically custom graphics
-that we generate, along with some Javascript code to make them
-interactive.)
-*/
-span.cklabel {
-    color: #000080;
-    cursor: pointer;
-}
-
-/*
 The "disabledCtl" span is used for navigation controls that happen to be
 disabled at the moment or for the current page, such as a "Next Page" button
 on the last page of a result set.
@@ -1946,26 +1935,49 @@ these are for our custom controls that we build out of HTML DOM and
 Javascript - these aren't for actual system controls, so we can
 completely customize the appearance.
 */
-img.ckbox-unchecked {
+.ckbox {
+    clip: rect(0 0 0 0);
+    clip-path: inset(100%);
+    overflow: hidden;
+    position: absolute;
+    white-space: nowrap;
+    width: 1px;
+    height: 1px;
+}
+
+.cklabel {
+    color: #000080;
+    cursor: pointer;
+}
+
+.ckboxImg {
     background: url("/img/ckbox0.gif") no-repeat center center;
     width: 14px;
     height: 14px;
     vertical-align: middle;
     border: none;
+    display: inline-block;
 }
-img.ckbox-hovering {
+
+.ckdelete + .ckboxImg {
+    background: url("/img/delrow.gif") no-repeat center center !important;
+}
+
+.ckbox:hover:not(:focus) + .ckboxImg {
     background: url("/img/ckbox1.gif") no-repeat center center;
-    width: 14px;
-    height: 14px;
-    vertical-align: middle;
-    border: none;
 }
-img.ckbox-checked {
+
+.ckbox:focus + .ckboxImg {
+	outline: 1px solid teal;
+	outline-offset: 2px;
+}
+
+.cklabel:hover > span {
+    text-decoration: underline;
+}
+
+.ckbox:checked + .ckboxImg {
     background: url("/img/ckbox2.gif") no-repeat center center;
-    width: 14px;
-    height: 14px;
-    vertical-align: middle;
-    border: none;
 }
 
 img.newcomment {

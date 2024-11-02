@@ -263,64 +263,16 @@ function ckboxSetup()
 <script type="text/javascript" nonce="<?php global $nonce; echo $nonce; ?>">
 <!--
 
-var ckboxStatus = [];
 function ckboxGetObj(id)
 {
-    var stat = ckboxStatus[id];
-    if (stat == null)
-    {
-        var img = document.getElementById('ckImg' + id);
-        ckboxStatus[id] = stat = new Object();
-        stat.checked = (img.className == "ckbox-checked");
-    }
-    return stat;
-}
-function ckboxGetLabel(id) { return document.getElementById('ckLbl' + id); }
-function ckboxGetImage(id) { return document.getElementById('ckImg' + id); }
-
-function ckboxCheck(id, checked)
-{
-    var img = ckboxGetImage(id);
-    var stat = ckboxGetObj(id);
-    stat.checked = checked;
-    img.className = checked ? "ckbox-checked" : "ckbox-unchecked";
-}
-function ckboxIsChecked(id)
-{
-    var stat = ckboxGetObj(id);
-    return stat.checked;
-}
-function ckboxOver(id)
-{
-    var img = ckboxGetImage(id);
-    var lbl = ckboxGetLabel(id);
-    var stat = ckboxGetObj(id);
-    img.className = "ckbox-hovering";
-    lbl.style.textDecoration = "underline";
-}
-function ckboxLeave(id)
-{
-    var img = ckboxGetImage(id);
-    var lbl = ckboxGetLabel(id);
-    var stat = ckboxGetObj(id);
-    img.className = stat.checked ? "ckbox-checked" : "ckbox-unchecked";
-    lbl.style.textDecoration = "none";
+    return document.getElementById('ckBox' + id);
 }
 
-var ckboxReq, ckboxReqID;
 function ckboxClick(id, onUpdateFunc)
 {
-    var stat = ckboxGetObj(id);
-    var newchecked = !stat.checked;
-    ckboxCheck(id, newchecked);
+    const elem = ckboxGetObj(id);
     if (onUpdateFunc)
-        onUpdateFunc(id, newchecked);
-}
-function ckboxKey(id, event, onUpdateFunc)
-{
-    var ch = (window.event || event.keyCode ? event.keyCode : event.which);
-    if (ch == 32)
-        ckboxClick(id, onUpdateFunc);
+        onUpdateFunc(id, elem.checked);
 }
 //-->
 </script>
@@ -331,6 +283,16 @@ function ckboxKey(id, event, onUpdateFunc)
 function addEventListener($event, $code) {
     global $nonce;
     return "<script nonce='$nonce'>\n" .
+        "document.currentScript.parentElement.addEventListener('$event', function (event) {\n" .
+        "var result = (function(){ $code }).apply(event.target);\nif (result === false) event.preventDefault();" .
+        "\n});\n" .
+        "</script>";
+}
+
+function addCheckboxEventListener($event, $code) {
+    global $nonce;
+    return "<script nonce='$nonce'>\n" .
+        "document.currentScript.parentElement.querySelector('a')?.removeAttribute('href');\n" .
         "document.currentScript.parentElement.addEventListener('$event', function (event) {\n" .
         "var result = (function(){ $code }).apply(event.target);\nif (result === false) event.preventDefault();" .
         "\n});\n" .
@@ -355,17 +317,11 @@ function addSiblingEventListeners($listeners) {
 function checkboxWrite($id, $label, $checked, $onUpdateFunc)
 {
     $label = htmlspecialcharx($label);
-    echo "<span class=\"cklabel\" >"
-        . addEventListener("mouseover", "ckboxOver('$id');")
-        . addEventListener("mouseout", "ckboxLeave('$id');")
-        . addEventListener("click", "ckboxClick('$id', $onUpdateFunc); return false")
-        . "<img src=\"/img/blank.gif\" class=\""
-        . ($checked ? "ckbox-checked" : "ckbox-unchecked")
-        . "\" id=\"ckImg$id\"> "
-        . "<span id=\"ckLbl$id\"><a class=silent href=\"needjs\">"
-        . addEventListener("keypress", "ckboxKey('$id', event, $onUpdateFunc); return false")
-        . "$label</a></span>"
-        . "</span>";
+    echo "<label class=\"cklabel\">"
+        . "<input type=\"checkbox\" class=\"ckbox\" id=\"ckBox$id\"" . ($checked ? " checked" : "") . "><div class=\"ckboxImg\" aria-hidden=\"true\"></div> "
+        . "<span><a class=silent href=\"needjs\">$label</a></span>"
+        . addCheckboxEventListener("change", "ckboxClick('$id', $onUpdateFunc); return false")
+        . "</label>";
 }
 
 ?>
