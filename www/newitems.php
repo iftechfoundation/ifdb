@@ -1,6 +1,5 @@
 <?php
 
-define("ENABLE_IMAGES", 1);
 define("NEWITEMS_SITENEWS", 0x0001);
 define("NEWITEMS_GAMES", 0x0002);
 define("NEWITEMS_LISTS", 0x0004);
@@ -21,8 +20,10 @@ define("NEWITEMS_ALLITEMS",
     | NEWITEMS_COMPNEWS
 );
 
-function getNewItems($db, $limit, $itemTypes = NEWITEMS_ALLITEMS, $days = null)
+function getNewItems($db, $limit, $itemTypes = NEWITEMS_ALLITEMS, $options = [])
 {
+    $days = $options['days'] ?? null;
+
     // get the logged-in user
     checkPersistentLogin();
     $curuser = $_SESSION['logged_in_as'] ?? null;
@@ -48,8 +49,7 @@ function getNewItems($db, $limit, $itemTypes = NEWITEMS_ALLITEMS, $days = null)
             $sandbox = "(0,$mysandbox)";
     }
 
-    // figure the LIMIT clause, if a row count limit was given
-    $limit = ($limit ? "limit 0, " . ($limit + 1) : "");
+    if ($limit) $limit++;
 
     // start with an empty list
     $items = array();
@@ -58,6 +58,7 @@ function getNewItems($db, $limit, $itemTypes = NEWITEMS_ALLITEMS, $days = null)
     if ($days) $dayWhere = "d > date_sub(now(), interval $days day)";
 
     if ($itemTypes & NEWITEMS_SITENEWS) {
+        $sitenews_limit = $options['sitenews_limit'] ?? $limit;
         if ($days) $dayWhere = "posted > date_sub(now(), interval $days day)";
         // query site news
         $result = mysql_query(
@@ -71,7 +72,7 @@ function getNewItems($db, $limit, $itemTypes = NEWITEMS_ALLITEMS, $days = null)
              where $dayWhere
              order by
                d desc
-             $limit", $db);
+             limit $sitenews_limit", $db);
         $sitenewscnt = mysql_num_rows($result);
         for ($i = 0 ; $i < $sitenewscnt ; $i++) {
             $row = mysql_fetch_array($result, MYSQL_ASSOC);
@@ -81,6 +82,7 @@ function getNewItems($db, $limit, $itemTypes = NEWITEMS_ALLITEMS, $days = null)
     }
 
     if ($itemTypes & NEWITEMS_GAMES) {
+        $games_limit = $options['games_limit'] ?? $limit;
         if ($days) $dayWhere = "created > date_sub(now(), interval $days day)";
         // query the recent games
         $result = mysql_query(
@@ -91,7 +93,7 @@ function getNewItems($db, $limit, $itemTypes = NEWITEMS_ALLITEMS, $days = null)
              from games
              where $dayWhere
              order by created desc
-             $limit", $db);
+             limit $games_limit", $db);
         $gamecnt = mysql_num_rows($result);
         for ($i = 0 ; $i < $gamecnt ; $i++) {
             $row = mysql_fetch_array($result, MYSQL_ASSOC);
@@ -100,6 +102,7 @@ function getNewItems($db, $limit, $itemTypes = NEWITEMS_ALLITEMS, $days = null)
     }
 
     if ($itemTypes & NEWITEMS_LISTS) {
+        $lists_limit = $options['lists_limit'] ?? $limit;
         if ($days) $dayWhere = "reclists.createdate > date_sub(now(), interval $days day)";
         // query the recent recommended lists (minus plonked users)
         $anp = str_replace('#USERID#', 'reclists.userid', $andNotPlonked);
@@ -121,7 +124,7 @@ function getNewItems($db, $limit, $itemTypes = NEWITEMS_ALLITEMS, $days = null)
                $anp
              group by reclists.id
              order by reclists.createdate desc
-             $limit", $db);
+             limit $lists_limit", $db);
         $listcnt = mysql_num_rows($result);
         for ($i = 0 ; $i < $listcnt ; $i++) {
             $row = mysql_fetch_array($result, MYSQL_ASSOC);
@@ -130,6 +133,7 @@ function getNewItems($db, $limit, $itemTypes = NEWITEMS_ALLITEMS, $days = null)
     }
 
     if ($itemTypes & NEWITEMS_POLLS) {
+        $polls_limit = $options['polls_limit'] ?? $limit;
         if ($days) $dayWhere = "p.created > date_sub(now(), interval $days day)";
         // query the recent polls (minus plonked users)
         $anp = str_replace('#USERID#', 'p.userid', $andNotPlonked);
@@ -153,7 +157,7 @@ function getNewItems($db, $limit, $itemTypes = NEWITEMS_ALLITEMS, $days = null)
                p.pollid
              order by
                p.created desc
-             $limit", $db);
+             limit $polls_limit", $db);
         $pollcnt = mysql_num_rows($result);
         for ($i = 0 ; $i < $pollcnt ; $i++) {
             $row = mysql_fetch_array($result, MYSQL_ASSOC);
@@ -162,6 +166,7 @@ function getNewItems($db, $limit, $itemTypes = NEWITEMS_ALLITEMS, $days = null)
     }
 
     if ($itemTypes & NEWITEMS_REVIEWS) {
+        $reviews_limit = $options['reviews_limit'] ?? $limit;
         if ($days) $dayWhere = "greatest(reviews.createdate, ifnull(reviews.embargodate, '0000-00-00')) > date_sub(now(), interval $days day)";
         // query the recent reviews (minus plonks)
         $anp = str_replace('#USERID#', 'reviews.userid', $andNotPlonked);
@@ -194,7 +199,7 @@ function getNewItems($db, $limit, $itemTypes = NEWITEMS_ALLITEMS, $days = null)
                and $dayWhere
                $anp
              order by d desc, id desc
-             $limit", $db);
+             limit $reviews_limit", $db);
         $revcnt = mysql_num_rows($result);
         for ($i = 0 ; $i < $revcnt ; $i++) {
             $row = mysql_fetch_array($result, MYSQL_ASSOC);
@@ -203,6 +208,7 @@ function getNewItems($db, $limit, $itemTypes = NEWITEMS_ALLITEMS, $days = null)
     }
 
     if ($itemTypes & NEWITEMS_COMPS) {
+        $comps_limit = $options['comps_limit'] ?? $limit;
         if ($days) $dayWhere = "c.created > date_sub(now(), interval $days day)";
         // query recent competition page additions
         $result = mysql_query(
@@ -215,7 +221,7 @@ function getNewItems($db, $limit, $itemTypes = NEWITEMS_ALLITEMS, $days = null)
              where $dayWhere
              order by
                d desc
-             $limit", $db);
+             limit $comps_limit", $db);
         $compcnt = mysql_num_rows($result);
         for ($i = 0 ; $i < $compcnt ; $i++) {
             $row = mysql_fetch_array($result, MYSQL_ASSOC);
@@ -224,18 +230,20 @@ function getNewItems($db, $limit, $itemTypes = NEWITEMS_ALLITEMS, $days = null)
     }
 
     if ($itemTypes & NEWITEMS_GAMENEWS) {
+        $games_limit = $options['games_limit'] ?? $limit;
         // query game news updates
         queryNewNews(
-            $items, $db, $limit, "G",
+            $items, $db, $games_limit, "G",
             "join games as g on g.id = n.sourceid",
             "g.id as sourceID, g.title as sourceTitle, "
             . "(g.coverart is not null) as hasart, g.pagevsn", $days);
     }
 
     if ($itemTypes & NEWITEMS_COMPNEWS) {
+        $comps_limit = $options['comps_limit'] ?? $limit;
         // add the competition news updates
         queryNewNews(
-            $items, $db, $limit, "C",
+            $items, $db, $comps_limit, "C",
             "join competitions as c on c.compid = n.sourceid",
             "c.compid as sourceID, c.title as sourceTitle", $days);
     }
@@ -260,7 +268,7 @@ function sortNewItemsByDate($a, $b)
     // in the mysql raw date format, which collates like an ascii string,
     // so we can compare with strcmp.  Reverse the sense of the test so
     // that we sort newest first.
-    if ($a[1] == $b[1]) {
+    if ($a[1] == $b[1] && is_numeric($a[2]['id'])) {
         return $b[2]['id'] - $a[2]['id'];
     } else {
         return strcmp($b[1], $a[1]);
@@ -328,7 +336,7 @@ function queryNewNews(&$items, $db, $limit, $sourceType,
            $andNotPlonked
          order by
            n.created desc
-         $limit", $db);
+         limit $limit", $db);
 
     $cnt = mysql_num_rows($result);
     for ($i = 0 ; $i < $cnt ; $i++) {
@@ -338,21 +346,27 @@ function queryNewNews(&$items, $db, $limit, $sourceType,
     }
 }
 
-function showNewItems($db, $first, $last, $items, $showFlagged = false, $allowHiddenBanner = true, $itemTypes = NEWITEMS_ALLITEMS, $days = null)
+function showNewItems($db, $first, $last, $items, $options = [])
 {
+    $itemTypes = $options['itemTypes'] ?? NEWITEMS_ALLITEMS;
     // if the caller didn't provide the new item lists, query them
     if (!$items)
-        $items = getNewItems($db, $last, $itemTypes, $days);
+        $items = getNewItems($db, $last, $itemTypes, $options);
 
     // show them
-    showNewItemList($db, $items, $first, $last, $showFlagged, $allowHiddenBanner, $itemTypes);
+    showNewItemList($db, $first, $last, $items, $options);
 
     // indicate whether there's more to come
     return count($items) > $last;
 }
 
-function showNewItemList($db, $items, $first, $last, $showFlagged, $allowHiddenBanner, $itemTypes)
+function showNewItemList($db, $first, $last, $items, $options)
 {
+    $showFlagged = $options['showFlagged'] ?? false;
+    $allowHiddenBanner = $options['allowHiddenBanner'] ?? true;
+    $showDescriptions = $options['showDescriptions'] ?? true;
+    $enableImages = $options['enableImages'] ?? true;
+
     // show the items
     $totcnt = count($items);
 
@@ -391,7 +405,7 @@ function showNewItemList($db, $items, $first, $last, $showFlagged, $allowHiddenB
         }
 
         // display the item according to its type
-        if (ENABLE_IMAGES) {
+        if ($enableImages) {
             global $nonce;
             echo "<style nonce='$nonce'>\n"
                 . ".new-item tr:first-child { vertical-align: top }\n"
@@ -411,7 +425,7 @@ function showNewItemList($db, $items, $first, $last, $showFlagged, $allowHiddenB
 
             // show the image: user image if available, otherwise game
             // image, otherwise generic review icon
-            if (ENABLE_IMAGES) {
+            if ($enableImages) {
                 if ($r["haspic"]) {
                     echo "<a href=\"showuser?id={$r['userid']}\">"
                         . "<img border=0 width=50 height=50 src=\"showuser?id={$r['userid']}&pic"
@@ -473,7 +487,7 @@ function showNewItemList($db, $items, $first, $last, $showFlagged, $allowHiddenB
             }
 
             echo "</div>";
-            if (ENABLE_IMAGES)
+            if ($enableImages)
                 echo "</td>";
         }
         else if ($pick == 'S')
@@ -497,7 +511,7 @@ function showNewItemList($db, $items, $first, $last, $showFlagged, $allowHiddenB
 
             // show the image: user image if available, otherwise the
             // generic list icon
-            if (ENABLE_IMAGES) {
+            if ($enableImages) {
                 if ($l["haspic"]) {
                     echo "<a href=\"showuser?id={$l['userid']}\">"
                         . "<img border=0 width=50 height=50 src=\"showuser?id={$l['userid']}&pic"
@@ -516,8 +530,9 @@ function showNewItemList($db, $items, $first, $last, $showFlagged, $allowHiddenB
                 . "<a href=\"viewlist?id={$l['id']}\"><b>$title</b></a> "
                 . "<span class=notes><i>{$l['fmtdate']}</i></span><br>"
                 . "<div class=indented>"
-                . "<span class=details>$itemcnt item$itemS</span><br>"
-                . "<span class=details><i>$desc</i></span></div></div>";
+                . "<span class=details>$itemcnt item$itemS</span>"
+                . ($showDescriptions ? "<br><span class=details><i>$desc</i></span>" : "")
+                . "</div></div>";
         }
         else if ($pick == 'G')
         {
@@ -526,7 +541,7 @@ function showNewItemList($db, $items, $first, $last, $showFlagged, $allowHiddenB
 
             // show the image: game cover art if available, otherwise the
             // generic game icon
-            if (ENABLE_IMAGES) {
+            if ($enableImages) {
                 if ($g["hasart"]) {
                     echo "<a href=\"viewgame?id={$g['id']}\">"
                         . coverArtThumbnail($g['id'], 50, $g['pagevsn'])
@@ -578,7 +593,7 @@ function showNewItemList($db, $items, $first, $last, $showFlagged, $allowHiddenB
 
             // show the image: user image if available, otherwise the
             // generic list icon
-            if (ENABLE_IMAGES) {
+            if ($enableImages) {
                 if ($p["haspic"]) {
                     echo "<a href=\"showuser?id={$p['userid']}\">"
                         . "<img border=0 width=50 height=50 src=\"showuser?id={$p['userid']}&pic"
@@ -596,10 +611,10 @@ function showNewItemList($db, $items, $first, $last, $showFlagged, $allowHiddenB
                 . "$uname</a>, "
                 . "<a $eager href=\"poll?id=$pid\"><b>$title</b></a> "
                 . "<span class=notes><i>created $fmtdate</i></span>"
-                . "<br><div class=indented>"
+                . ($showDescriptions ? "<br><div class=indented>"
                 . "<span class=details>$cntdesc</span><br>"
                 . "<span class=details><i>$desc</i></span>"
-                . "</div>"
+                . "</div>" : "")
                 . "</div>";
         }
         else if ($pick == 'N')
@@ -636,7 +651,7 @@ function showNewItemList($db, $items, $first, $last, $showFlagged, $allowHiddenB
 
             // show the image: user image if available, otherwise game
             // image, otherwise generic review icon
-            if (ENABLE_IMAGES) {
+            if ($enableImages) {
                 if (isset($n["haspic"]) && $n["haspic"]) {
                     echo "<a href=\"showuser?id={$n['userID']}\">"
                         . "<img border=0 width=50 height=50 src=\"showuser?id={$n['userID']}&pic"
@@ -675,7 +690,7 @@ function showNewItemList($db, $items, $first, $last, $showFlagged, $allowHiddenB
             $cdate = $c["fmtdate"];
 
             // show the generic competition icon
-            if (ENABLE_IMAGES) {
+            if ($enableImages) {
                 // echo "<a href=\"viewcomp?id=$cid\">"
                 //     . "<img border=0 src=\"competition50.gif\">"
                 //     . "</a>";
@@ -686,13 +701,13 @@ function showNewItemList($db, $items, $first, $last, $showFlagged, $allowHiddenB
             echo "<div class=\"new-competition\">"
                 . "A new competition page: <a href=\"viewcomp?id=$cid\">"
                 . "$ctitle</a> <span class=notes><i>created $cdate</i></span>"
-                . "<br><div class=indented>"
+                . ($showDescriptions ? "<br><div class=indented>"
                 . "<span class=details><i>$cdesc</i></span>"
-                . "</div>"
+                . "</div>" : "")
                 . "</div>";
         }
 
-        if (ENABLE_IMAGES)
+        if ($enableImages)
             echo "</tr></table>";
     }
 

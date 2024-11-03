@@ -43,7 +43,7 @@ echo "<h1>$pageTitle</h1>\n<div class='prerender-moderate'>\n";
 echo "$pageCtl<p><hr class=dots><p>";
 
 // show the new items
-showNewItems($db, $firstOnPage, $lastOnPage, $items, $showFlagged, false, $type);
+showNewItems($db, $firstOnPage, $lastOnPage, $items, ['showFlagged' => $showFlagged]);
 
 // show the page controls again at the bottom
 echo "<p><hr class=dots><p>$pageCtl<br>\n";

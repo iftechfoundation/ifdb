@@ -112,7 +112,16 @@ if ($debugflag) echo "debug mode enabled...<br>";
       <?php
       // get the latest site news, polls, competitions, and lists, and show a mix
       $days = 3;
-      $items = getNewItems($db, 8, NEWITEMS_SITENEWS | NEWITEMS_LISTS | NEWITEMS_POLLS | NEWITEMS_COMPS | NEWITEMS_COMPNEWS, $days);
+      $items = getNewItems($db, 8,
+         NEWITEMS_SITENEWS | NEWITEMS_LISTS | NEWITEMS_POLLS | NEWITEMS_COMPS | NEWITEMS_COMPNEWS,
+         [
+            'days' => $days,
+            'sitenews_limit' => 1,
+            'lists_limit' => 2,
+            'polls_limit' => 2,
+            'comps_limit' => 2,
+         ]
+      );
       if ($items) {
          ?>
       <div class="block flexer">
@@ -120,7 +129,12 @@ if ($debugflag) echo "debug mode enabled...<br>";
             <div class=headline><h1 class='unset'>New on IFDB</h1></div>
             <div>
             <?php
-            showNewItems($db, 0, 8, $items, false, false, NEWITEMS_SITENEWS | NEWITEMS_LISTS | NEWITEMS_POLLS | NEWITEMS_COMPS | NEWITEMS_COMPNEWS, $days);
+            showNewItems($db, 0, 8, $items, [
+               'allowHiddenBanner' => false,
+               'days' => $days,
+               'showDescriptions' => false,
+               'enableImages' => false,
+            ]);
             ?>
             </div>
             </div>
