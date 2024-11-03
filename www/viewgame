@@ -2859,6 +2859,7 @@ dispTags();
                         echo "<div id=\"ifwiki-link\" class=\"displayNone\"><a href=\"https://www.ifwiki.org/\">IF Wiki</a>: <a href=\"https://www.ifwiki.org/index.php?title=IFID:"
                             .htmlspecialcharx($ifids[0])."\">$title</a><br></div>";
                         $jifid = htmlspecialcharx(str_replace("\"", "&#34;", $ifids[0]));
+                        if (!$cssOverride) {
                         ?>
                         <script nonce="<?php global $nonce; echo $nonce; ?>">
                             xmlSend("ifwiki-check?ifid=<?php echo $jifid ?>", null,
@@ -2869,6 +2870,7 @@ dispTags();
                                 }, null);
                         </script>
                         <?php
+                        }
                     }
                 ?>
                <?php if(!isEmpty($bafsid))
