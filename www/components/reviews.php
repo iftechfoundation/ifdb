@@ -1,7 +1,5 @@
 <div class=headline id='reviews'><h1 class='unset'>Reviews</h1></div>
 <?php
-define("ENABLE_IMAGES", 1);
-
 // get the latest reviews
 $items = getNewItems($db, 7, NEWITEMS_REVIEWS);
 
@@ -15,7 +13,7 @@ for ($idx = 0 ; $idx <= 5 ; $idx++)
 
     $eager = ($idx < 4 ? "class='eager'" : "");
 
-    if (($row['flags'] & FLAG_SHOULD_HIDE)) {
+    if (($r['flags'] & FLAG_SHOULD_HIDE)) {
         continue;
     }
 

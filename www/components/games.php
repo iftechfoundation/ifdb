@@ -14,8 +14,6 @@
     <li><a href="/search">Advanced Search</a></li>
 </ul>
 <?php
-define("ENABLE_IMAGES", 1);
-
 // get the latest games and game news
 $items = getNewItems($db, 6, NEWITEMS_GAMES | NEWITEMS_GAMENEWS);
 
