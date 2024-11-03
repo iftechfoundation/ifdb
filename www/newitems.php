@@ -1,6 +1,5 @@
 <?php
 
-define("ENABLE_IMAGES", 1);
 define("NEWITEMS_SITENEWS", 0x0001);
 define("NEWITEMS_GAMES", 0x0002);
 define("NEWITEMS_LISTS", 0x0004);
@@ -366,6 +365,7 @@ function showNewItemList($db, $items, $first, $last, $options)
     $showFlagged = $options['showFlagged'] ?? false;
     $allowHiddenBanner = $options['allowHiddenBanner'] ?? true;
     $showDescriptions = $options['showDescriptions'] ?? true;
+    $enableImages = $options['enableImages'] ?? true;
 
     // show the items
     $totcnt = count($items);
@@ -405,7 +405,7 @@ function showNewItemList($db, $items, $first, $last, $options)
         }
 
         // display the item according to its type
-        if (ENABLE_IMAGES) {
+        if ($enableImages) {
             global $nonce;
             echo "<style nonce='$nonce'>\n"
                 . ".new-item tr:first-child { vertical-align: top }\n"
@@ -425,7 +425,7 @@ function showNewItemList($db, $items, $first, $last, $options)
 
             // show the image: user image if available, otherwise game
             // image, otherwise generic review icon
-            if (ENABLE_IMAGES) {
+            if ($enableImages) {
                 if ($r["haspic"]) {
                     echo "<a href=\"showuser?id={$r['userid']}\">"
                         . "<img border=0 width=50 height=50 src=\"showuser?id={$r['userid']}&pic"
@@ -487,7 +487,7 @@ function showNewItemList($db, $items, $first, $last, $options)
             }
 
             echo "</div>";
-            if (ENABLE_IMAGES)
+            if ($enableImages)
                 echo "</td>";
         }
         else if ($pick == 'S')
@@ -511,7 +511,7 @@ function showNewItemList($db, $items, $first, $last, $options)
 
             // show the image: user image if available, otherwise the
             // generic list icon
-            if (ENABLE_IMAGES) {
+            if ($enableImages) {
                 if ($l["haspic"]) {
                     echo "<a href=\"showuser?id={$l['userid']}\">"
                         . "<img border=0 width=50 height=50 src=\"showuser?id={$l['userid']}&pic"
@@ -541,7 +541,7 @@ function showNewItemList($db, $items, $first, $last, $options)
 
             // show the image: game cover art if available, otherwise the
             // generic game icon
-            if (ENABLE_IMAGES) {
+            if ($enableImages) {
                 if ($g["hasart"]) {
                     echo "<a href=\"viewgame?id={$g['id']}\">"
                         . coverArtThumbnail($g['id'], 50, $g['pagevsn'])
@@ -593,7 +593,7 @@ function showNewItemList($db, $items, $first, $last, $options)
 
             // show the image: user image if available, otherwise the
             // generic list icon
-            if (ENABLE_IMAGES) {
+            if ($enableImages) {
                 if ($p["haspic"]) {
                     echo "<a href=\"showuser?id={$p['userid']}\">"
                         . "<img border=0 width=50 height=50 src=\"showuser?id={$p['userid']}&pic"
@@ -651,7 +651,7 @@ function showNewItemList($db, $items, $first, $last, $options)
 
             // show the image: user image if available, otherwise game
             // image, otherwise generic review icon
-            if (ENABLE_IMAGES) {
+            if ($enableImages) {
                 if (isset($n["haspic"]) && $n["haspic"]) {
                     echo "<a href=\"showuser?id={$n['userID']}\">"
                         . "<img border=0 width=50 height=50 src=\"showuser?id={$n['userID']}&pic"
@@ -690,7 +690,7 @@ function showNewItemList($db, $items, $first, $last, $options)
             $cdate = $c["fmtdate"];
 
             // show the generic competition icon
-            if (ENABLE_IMAGES) {
+            if ($enableImages) {
                 // echo "<a href=\"viewcomp?id=$cid\">"
                 //     . "<img border=0 src=\"competition50.gif\">"
                 //     . "</a>";
@@ -707,7 +707,7 @@ function showNewItemList($db, $items, $first, $last, $options)
                 . "</div>";
         }
 
-        if (ENABLE_IMAGES)
+        if ($enableImages)
             echo "</tr></table>";
     }
 

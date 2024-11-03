@@ -124,7 +124,12 @@ if ($debugflag) echo "debug mode enabled...<br>";
             <div class=headline><h1 class='unset'>New on IFDB</h1></div>
             <div>
             <?php
-            showNewItems($db, 0, 8, $items, [ 'allowHiddenBanner' => false, 'days' => $days, 'showDescriptions' => false ]);
+            showNewItems($db, 0, 8, $items, [
+               'allowHiddenBanner' => false,
+               'days' => $days,
+               'showDescriptions' => false,
+               'enableImages' => false,
+            ]);
             ?>
             </div>
             </div>
