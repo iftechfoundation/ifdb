@@ -354,13 +354,13 @@ function showNewItems($db, $first, $last, $items, $options = [])
         $items = getNewItems($db, $last, $itemTypes, $options);
 
     // show them
-    showNewItemList($db, $items, $first, $last, $options);
+    showNewItemList($db, $first, $last, $items, $options);
 
     // indicate whether there's more to come
     return count($items) > $last;
 }
 
-function showNewItemList($db, $items, $first, $last, $options)
+function showNewItemList($db, $first, $last, $items, $options)
 {
     $showFlagged = $options['showFlagged'] ?? false;
     $allowHiddenBanner = $options['allowHiddenBanner'] ?? true;
