@@ -21,8 +21,10 @@ define("NEWITEMS_ALLITEMS",
     | NEWITEMS_COMPNEWS
 );
 
-function getNewItems($db, $limit, $itemTypes = NEWITEMS_ALLITEMS, $days = null)
+function getNewItems($db, $limit, $itemTypes = NEWITEMS_ALLITEMS, $options = [])
 {
+    $days = $options['days'] ?? null;
+
     // get the logged-in user
     checkPersistentLogin();
     $curuser = $_SESSION['logged_in_as'] ?? null;
@@ -48,8 +50,7 @@ function getNewItems($db, $limit, $itemTypes = NEWITEMS_ALLITEMS, $days = null)
             $sandbox = "(0,$mysandbox)";
     }
 
-    // figure the LIMIT clause, if a row count limit was given
-    $limit = ($limit ? "limit 0, " . ($limit + 1) : "");
+    if ($limit) $limit++;
 
     // start with an empty list
     $items = array();
@@ -58,6 +59,7 @@ function getNewItems($db, $limit, $itemTypes = NEWITEMS_ALLITEMS, $days = null)
     if ($days) $dayWhere = "d > date_sub(now(), interval $days day)";
 
     if ($itemTypes & NEWITEMS_SITENEWS) {
+        $sitenews_limit = $options['sitenews_limit'] ?? $limit;
         if ($days) $dayWhere = "posted > date_sub(now(), interval $days day)";
         // query site news
         $result = mysql_query(
@@ -71,7 +73,7 @@ function getNewItems($db, $limit, $itemTypes = NEWITEMS_ALLITEMS, $days = null)
              where $dayWhere
              order by
                d desc
-             $limit", $db);
+             limit $sitenews_limit", $db);
         $sitenewscnt = mysql_num_rows($result);
         for ($i = 0 ; $i < $sitenewscnt ; $i++) {
             $row = mysql_fetch_array($result, MYSQL_ASSOC);
@@ -81,6 +83,7 @@ function getNewItems($db, $limit, $itemTypes = NEWITEMS_ALLITEMS, $days = null)
     }
 
     if ($itemTypes & NEWITEMS_GAMES) {
+        $games_limit = $options['games_limit'] ?? $limit;
         if ($days) $dayWhere = "created > date_sub(now(), interval $days day)";
         // query the recent games
         $result = mysql_query(
@@ -91,7 +94,7 @@ function getNewItems($db, $limit, $itemTypes = NEWITEMS_ALLITEMS, $days = null)
              from games
              where $dayWhere
              order by created desc
-             $limit", $db);
+             limit $games_limit", $db);
         $gamecnt = mysql_num_rows($result);
         for ($i = 0 ; $i < $gamecnt ; $i++) {
             $row = mysql_fetch_array($result, MYSQL_ASSOC);
@@ -100,6 +103,7 @@ function getNewItems($db, $limit, $itemTypes = NEWITEMS_ALLITEMS, $days = null)
     }
 
     if ($itemTypes & NEWITEMS_LISTS) {
+        $lists_limit = $options['lists_limit'] ?? $limit;
         if ($days) $dayWhere = "reclists.createdate > date_sub(now(), interval $days day)";
         // query the recent recommended lists (minus plonked users)
         $anp = str_replace('#USERID#', 'reclists.userid', $andNotPlonked);
@@ -121,7 +125,7 @@ function getNewItems($db, $limit, $itemTypes = NEWITEMS_ALLITEMS, $days = null)
                $anp
              group by reclists.id
              order by reclists.createdate desc
-             $limit", $db);
+             limit $lists_limit", $db);
         $listcnt = mysql_num_rows($result);
         for ($i = 0 ; $i < $listcnt ; $i++) {
             $row = mysql_fetch_array($result, MYSQL_ASSOC);
@@ -130,6 +134,7 @@ function getNewItems($db, $limit, $itemTypes = NEWITEMS_ALLITEMS, $days = null)
     }
 
     if ($itemTypes & NEWITEMS_POLLS) {
+        $polls_limit = $options['polls_limit'] ?? $limit;
         if ($days) $dayWhere = "p.created > date_sub(now(), interval $days day)";
         // query the recent polls (minus plonked users)
         $anp = str_replace('#USERID#', 'p.userid', $andNotPlonked);
@@ -153,7 +158,7 @@ function getNewItems($db, $limit, $itemTypes = NEWITEMS_ALLITEMS, $days = null)
                p.pollid
              order by
                p.created desc
-             $limit", $db);
+             limit $polls_limit", $db);
         $pollcnt = mysql_num_rows($result);
         for ($i = 0 ; $i < $pollcnt ; $i++) {
             $row = mysql_fetch_array($result, MYSQL_ASSOC);
@@ -162,6 +167,7 @@ function getNewItems($db, $limit, $itemTypes = NEWITEMS_ALLITEMS, $days = null)
     }
 
     if ($itemTypes & NEWITEMS_REVIEWS) {
+        $reviews_limit = $options['reviews_limit'] ?? $limit;
         if ($days) $dayWhere = "greatest(reviews.createdate, ifnull(reviews.embargodate, '0000-00-00')) > date_sub(now(), interval $days day)";
         // query the recent reviews (minus plonks)
         $anp = str_replace('#USERID#', 'reviews.userid', $andNotPlonked);
@@ -194,7 +200,7 @@ function getNewItems($db, $limit, $itemTypes = NEWITEMS_ALLITEMS, $days = null)
                and $dayWhere
                $anp
              order by d desc, id desc
-             $limit", $db);
+             limit $reviews_limit", $db);
         $revcnt = mysql_num_rows($result);
         for ($i = 0 ; $i < $revcnt ; $i++) {
             $row = mysql_fetch_array($result, MYSQL_ASSOC);
@@ -203,6 +209,7 @@ function getNewItems($db, $limit, $itemTypes = NEWITEMS_ALLITEMS, $days = null)
     }
 
     if ($itemTypes & NEWITEMS_COMPS) {
+        $comps_limit = $options['comps_limit'] ?? $limit;
         if ($days) $dayWhere = "c.created > date_sub(now(), interval $days day)";
         // query recent competition page additions
         $result = mysql_query(
@@ -215,7 +222,7 @@ function getNewItems($db, $limit, $itemTypes = NEWITEMS_ALLITEMS, $days = null)
              where $dayWhere
              order by
                d desc
-             $limit", $db);
+             limit $comps_limit", $db);
         $compcnt = mysql_num_rows($result);
         for ($i = 0 ; $i < $compcnt ; $i++) {
             $row = mysql_fetch_array($result, MYSQL_ASSOC);
@@ -224,18 +231,20 @@ function getNewItems($db, $limit, $itemTypes = NEWITEMS_ALLITEMS, $days = null)
     }
 
     if ($itemTypes & NEWITEMS_GAMENEWS) {
+        $games_limit = $options['games_limit'] ?? $limit;
         // query game news updates
         queryNewNews(
-            $items, $db, $limit, "G",
+            $items, $db, $games_limit, "G",
             "join games as g on g.id = n.sourceid",
             "g.id as sourceID, g.title as sourceTitle, "
             . "(g.coverart is not null) as hasart, g.pagevsn", $days);
     }
 
     if ($itemTypes & NEWITEMS_COMPNEWS) {
+        $comps_limit = $options['comps_limit'] ?? $limit;
         // add the competition news updates
         queryNewNews(
-            $items, $db, $limit, "C",
+            $items, $db, $comps_limit, "C",
             "join competitions as c on c.compid = n.sourceid",
             "c.compid as sourceID, c.title as sourceTitle", $days);
     }
@@ -328,7 +337,7 @@ function queryNewNews(&$items, $db, $limit, $sourceType,
            $andNotPlonked
          order by
            n.created desc
-         $limit", $db);
+         limit $limit", $db);
 
     $cnt = mysql_num_rows($result);
     for ($i = 0 ; $i < $cnt ; $i++) {
@@ -341,10 +350,9 @@ function queryNewNews(&$items, $db, $limit, $sourceType,
 function showNewItems($db, $first, $last, $items, $options = [])
 {
     $itemTypes = $options['itemTypes'] ?? NEWITEMS_ALLITEMS;
-    $days = $options['days'] ?? null;
     // if the caller didn't provide the new item lists, query them
     if (!$items)
-        $items = getNewItems($db, $last, $itemTypes, $days);
+        $items = getNewItems($db, $last, $itemTypes, $options);
 
     // show them
     showNewItemList($db, $items, $first, $last, $options);

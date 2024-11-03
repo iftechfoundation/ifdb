@@ -107,7 +107,16 @@ if ($debugflag) echo "debug mode enabled...<br>";
       <?php
       // get the latest site news, polls, competitions, and lists, and show a mix
       $days = 3;
-      $items = getNewItems($db, 8, NEWITEMS_SITENEWS | NEWITEMS_LISTS | NEWITEMS_POLLS | NEWITEMS_COMPS | NEWITEMS_COMPNEWS, $days);
+      $items = getNewItems($db, 8,
+         NEWITEMS_SITENEWS | NEWITEMS_LISTS | NEWITEMS_POLLS | NEWITEMS_COMPS | NEWITEMS_COMPNEWS,
+         [
+            'days' => $days,
+            'sitenews_limit' => 1,
+            'lists_limit' => 2,
+            'polls_limit' => 2,
+            'comps_limit' => 2,
+         ]
+      );
       if ($items) {
          ?>
       <div class="block flexer">
