@@ -191,7 +191,7 @@ $hrefTerm = ($term ? $term : $tTerm);
 $hrefTerm = urlencode($hrefTerm);
 
 // get the search type
-const SEARCH_TYPES = ['list', 'poll', 'member', 'comp', 'club', 'tag'];
+const SEARCH_TYPES = ['list', 'poll', 'member', 'comp', 'tag'];
 $searchType = 'game';
 $searchButton = "Search Games";
 foreach (SEARCH_TYPES as $st) {
@@ -206,7 +206,6 @@ $browseTabs = [
     "list"    => "Lists",
     "poll"    => "Polls",
     "comp"    => "Competitions",
-    "club"    => "Clubs",
     "member"  => "Members",
     "tag"     => "Tags",
 ];
@@ -303,10 +302,6 @@ if ($term || $browse) {
             $redir = "viewcomp?id={$rows[0]['compid']}";
             break;
 
-        case "club":
-            $redir = "club?id={$rows[0]['clubid']}";
-            break;
-
         // Does not apply to tags
         }
 
@@ -335,9 +330,8 @@ if (!$xml) {
                        ($searchType == "poll" ? "Polls" :
                         ($searchType == "member" ? "Members" :
                          ($searchType == "comp" ? "Competitions" :
-                          ($searchType == "club" ? "Clubs" :
                            ($searchType == "tag" ? "Tags" :
-                           "Games"))))));
+                           "Games")))));
 
     pageHeader($term == "" && $browse ? "Browse $searchTypeName"
                                       : "Search for $searchTypeName",
@@ -651,63 +645,6 @@ else if ($searchType == "comp") {
 
     <?php
 }
-else if ($searchType == "club") {
-
-    ?>
-
-    <form name="advsearch" method="get" action="search">
-       <!-- <h2>Search Clubs</h2> -->
-       <table cellpadding=0 cellspacing=0>
-          <tr>
-             <td>
-                <input type="text" name="searchfor" id="searchfor" size=70
-                      value="<?php echo htmlspecialcharx($tTerm) ?>">
-                <input type="submit" name="searchgo" value="Search Clubs">
-             </td>
-          </tr>
-          <tr>
-             <td></td>
-          </tr>
-       </table>
-       <input type="hidden" name="club" value="1">
-    </form>
-
-    <h3>Search Tips</h3>
-
-    <div class=searchnotes>
-
-    <p>By default, IFDB searches each club's title, description, and
-    keywords for the words you enter, and show clubs that match
-    at least one of your search terms.  You can customize the search
-    with the special modifiers below.
-    Note that modifiers with ":" parameters
-    have to go <i>last</i>, after regular search words.
-
-
-    <div class=indented>
-
-       <?php echo $commonInstructions ?>
-
-       <p><b>#members:<i>low-high</i></b> shows clubs with IFDB member
-       enrollment in the given range.  You can
-       make the range open-ended by leaving out one or the other endpoint;
-       for example, <b>#members:100-</b> searches for clubs with at least
-       100 members.  Note that this only works for clubs with public
-       membership lists and clubs you belong to; otherwise the number
-       of members will be counted as zero.
-
-       <p><b>contact:<i>name</i></b> searches for clubs with <i>name</i>
-       in the contact list
-
-    </div>
-
-    <?php echo $commonPostInstructions ?>
-
-    </div>
-
-
-    <?php
-}
 else if ($searchType == "member") {
 
     ?>
@@ -749,10 +686,6 @@ else if ($searchType == "member") {
        given place name within their location.  For example,
        "location:california" would show members with locations
        that include the word "california."
-
-       <p><b>club:<i>name</i></b> shows members who belong to clubs
-       that have <i>name</i> in their club names.  This only works
-       for clubs with public membership lists or that you belong to.
 
     </div>
 
@@ -1037,7 +970,6 @@ if ($xml) {
         "list" => "lists",
         "poll" => "polls",
         "comp" => "competitions",
-        "club" => "clubs",
         "member" => "members"
     );
     $grouptag = $grouptags[$searchType];
@@ -1162,23 +1094,6 @@ if ($xml) {
                 . "</competition>");
             break;
 
-        case "club":
-            $id = $row['clubid'];
-            $title = htmlspecialcharx($row['name']);
-            $desc = fixDesc($row['desc']);
-            $membercnt = $row['membercnt'];
-            $link = htmlspecialcharx(get_root_url() . "club?id=$id");
-
-            echo rss_encode(
-                "<club>"
-                .  "<tuid>$id</tuid>"
-                .  "<name>$title</name>"
-                .   "<link>$link</link>"
-                .  "<desc>$desc</desc>"
-                .  "<numMembers>$membercnt</numMembers>"
-                . "</club>");
-            break;
-
         case "member":
             $id = $row['id'];
             $name = htmlspecialcharx($row['name']);
@@ -1242,7 +1157,6 @@ else if ($term || $browse)
                                  . ($searchType == "poll" ? "&poll" : "")
                                  . ($searchType == "member" ? "&member" : "")
                                  . ($searchType == "comp" ? "&comp" : "")
-                                 . ($searchType == "club" ? "&club" : "")
                                  . ($searchType == "tag" ? "&tag" : ""),
                                  $pg, $lastPage, $firstOnPage, $lastOnPage,
                                  $rowcnt, true,
@@ -1347,14 +1261,6 @@ else if ($term || $browse)
                 . "<h1><a href=\"editcomp?id=new\">Add a competition page</a></h1>"
                 . "If a competition isn't in our database yet, you can "
                 . "add a new competition page."
-                . "</div>";
-        }
-
-        // if this is a club search, show the club tip box
-        if ($searchType == "club") {
-            echo "<div class=tipbox>"
-                . "<h1><a href=\"editclub?id=new\">Add a club listing</a></h1>"
-                . "If you have a club for IFDB members, you can add a listing for it."
                 . "</div>";
         }
 
@@ -1601,29 +1507,6 @@ else if ($term || $browse)
                     . ($adate ? "; award date $adate" : "")
                     . "</span><br>"
                     . ($desc ? "<div class=indented><i>$desc</i></div>" : "");
-                break;
-
-            case "club":
-                $id = $row['clubid'];
-                $name = htmlspecialcharx($row['name']);
-                $descInfo = summarizeHtml($row['desc'], 240);
-                $desc = fixDesc($descInfo[0]);
-                $created = $row['created'];
-                $membercnt = $row['membercnt'];
-                $contacts = false;
-                if ($sortby == 'con'
-                    || isset($specialsUsed['contact:'])
-                    || isset($specialsUsed['contacts:']))
-                    $contacts = $row['contacts'];
-
-                echo "<p><h3 class=result><a class='$eagerness' href=\"club?id=$id\"><b>$name</b></a></h3><br>"
-                    . "<span class=details>Listed on IFDB $created"
-                    . ($membercnt ? "; $membercnt member"
-                       . ($membercnt == 1 ? "" : "s") : "")
-                    . ($contacts ? "<br>Contact(s): $contacts" : "")
-                    . "</span>"
-                    . ($desc ? "<div class=\"indented details\">"
-                       . "<i>$desc</i></div>" : "");
                 break;
 
             case "member":
