@@ -1274,7 +1274,7 @@ span.headlineRss {
 
 @media (max-width: 75ch) {
 
-    .mobile-menu .mobile-hidden {
+    .mobile-hidden, .mobile-menu .mobile-hidden {
         display: none;
     }
 

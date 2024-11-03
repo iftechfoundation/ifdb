@@ -47,8 +47,8 @@ if ($debugflag) echo "debug mode enabled...<br>";
                   }
                   ?>
                   <a href="allnew">All Updates</a> |
-                  <a href="news">Site News</a> |
-                  <a href="allnew-rss"><img src="img/blank.gif" class="rss-icon" alt="">RSS Feed</a>
+                  <a href="news">Site News</a>
+                  <span class='mobile-hidden'> | <a href="allnew-rss"><img src="img/blank.gif" class="rss-icon" alt="">RSS Feed</a></span>
                </span>
             </div>
          </summary>
