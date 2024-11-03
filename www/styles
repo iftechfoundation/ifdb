@@ -504,7 +504,7 @@ if ($setID) {
 
             echo "<table class=\"styles__table\"><tr><td>";
 
-            echo "<iframe src=\"iframe?t="
+            echo "<iframe loading=\"lazy\" src=\"iframe?t="
                 . urlencode($thumbSrc) . "\" type=\"text/html\" "
                 . "class=\"styles__iframe\" scrolling=yes>"
                 . "</iframe><br>";
