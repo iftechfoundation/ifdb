@@ -53,13 +53,11 @@ function newsSummary($db, $sourceType, $sourceID, $maxItems,
             }
 
             // display it
-            echo "<div class=\"newsItemHeadline\">"
-                . "<a href=\"needjs\">"
-                . addEventListener('click', "expandNews($i); return false;")
-                . "$newshead</a>"
-                . " <span class=\"newsItemDate\">$newsdate</span>"
-                . "</div>"
-                . "<div id=\"newsBody$i\" class=\"newsItemBody displayNone\">"
+            echo "<details><summary class=\"newsItemHeadline\">"
+                . "<span>$newshead</span>"
+                . "<span class=\"newsItemDate\">$newsdate</span>"
+                . "</summary>"
+                . "<div id=\"newsBody$i\" class=\"newsItemBody\">"
                 . "<div>$newsbody</div>"
                 . "<span class=details>$byline | "
                 . "<a href=\"newslog?newsid=$newsid&history\">History</a> | "
@@ -67,28 +65,14 @@ function newsSummary($db, $sourceType, $sourceID, $maxItems,
                 . "Edit</a> | "
                 . "<a href=\"editnews?newsid=$newsid$src&delete\">Delete</a>"
                 . "</span>"
-                . "</div>";
+                . "</details>";
         }
 
-?>
-<script type="text/javascript" nonce="<?php global $nonce; echo $nonce; ?>">
-<!--
-
-function expandNews(n)
-{
-    var ele = document.getElementById("newsBody" + n);
-    ele.style.display = (ele.style.display == "block" ? "none" : "block");
-}
-
-//-->
-</script>
-<?php
-
-            echo "<span class=details>"
-                . "<a href=\"newslog?$src\">"
-                . ($rowcnt > $maxItems ? "More news..." : "Expand all")
-                . "</a> | <a href=\"editnews?$src\">"
-                . "Add a news item</a></span>$sectionFooter";
+        echo "<span class=details>"
+            . "<a href=\"newslog?$src\">"
+            . ($rowcnt > $maxItems ? "More news..." : "Expand all")
+            . "</a> | <a href=\"editnews?$src\">"
+            . "Add a news item</a></span>$sectionFooter";
     }
 
     return $rowcnt;
