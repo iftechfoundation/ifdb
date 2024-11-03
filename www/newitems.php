@@ -7,10 +7,8 @@ define("NEWITEMS_LISTS", 0x0004);
 define("NEWITEMS_POLLS", 0x0008);
 define("NEWITEMS_REVIEWS", 0x0010);
 define("NEWITEMS_COMPS", 0x0020);
-define("NEWITEMS_CLUBS", 0x0040);
 define("NEWITEMS_GAMENEWS", 0x0080);
 define("NEWITEMS_COMPNEWS", 0x0100);
-define("NEWITEMS_CLUBNEWS", 0x0200);
 
 define("NEWITEMS_ALLITEMS", 
     NEWITEMS_SITENEWS
@@ -19,10 +17,8 @@ define("NEWITEMS_ALLITEMS",
     | NEWITEMS_POLLS
     | NEWITEMS_REVIEWS
     | NEWITEMS_COMPS
-    | NEWITEMS_CLUBS
     | NEWITEMS_GAMENEWS
     | NEWITEMS_COMPNEWS
-    | NEWITEMS_CLUBNEWS
 );
 
 function getNewItems($db, $limit, $itemTypes = NEWITEMS_ALLITEMS, $days = null)
@@ -227,27 +223,6 @@ function getNewItems($db, $limit, $itemTypes = NEWITEMS_ALLITEMS, $days = null)
         }
     }
 
-    if ($itemTypes & NEWITEMS_CLUBS) {
-        if ($days) $dayWhere = "c.created > date_sub(now(), interval $days day)";
-        // query recent club page additions
-        $result = mysql_query(
-            "select
-               c.clubid as clubid, c.name as name, c.`desc` as `desc`,
-               c.created as d,
-               date_format(c.created, '%M %e, %Y') as fmtdate
-             from
-               clubs as c
-             where $dayWhere
-             order by
-               d desc
-             $limit", $db);
-        $clubcnt = mysql_num_rows($result);
-        for ($i = 0 ; $i < $clubcnt ; $i++) {
-            $row = mysql_fetch_array($result, MYSQL_ASSOC);
-            $items[] = array('U', $row['d'], $row);
-        }
-    }
-
     if ($itemTypes & NEWITEMS_GAMENEWS) {
         // query game news updates
         queryNewNews(
@@ -263,14 +238,6 @@ function getNewItems($db, $limit, $itemTypes = NEWITEMS_ALLITEMS, $days = null)
             $items, $db, $limit, "C",
             "join competitions as c on c.compid = n.sourceid",
             "c.compid as sourceID, c.title as sourceTitle", $days);
-    }
-
-    if ($itemTypes & NEWITEMS_CLUBNEWS) {
-        // add club news updates
-        queryNewNews(
-            $items, $db, $limit, "U",
-            "join clubs as c on c.clubid = n.sourceid",
-            "c.clubid as sourceID, c.name as sourceTitle", $days);
     }
 
     // sort by date
@@ -666,12 +633,6 @@ function showNewItemList($db, $items, $first, $last, $showFlagged, $allowHiddenB
                 $divclass = "new-comp-news";
                 break;
 
-            case 'U':
-                $href = "club?id=$gid";
-                $divclass = "new-club-news";
-                break;
-            }
-
             // show the image: user image if available, otherwise game
             // image, otherwise generic review icon
             if (ENABLE_IMAGES) {
@@ -723,35 +684,6 @@ function showNewItemList($db, $items, $first, $last, $showFlagged, $allowHiddenB
             // summarize the item
             echo "<div class=\"new-competition\">"
                 . "A new competition page: <a href=\"viewcomp?id=$cid\">"
-                . "$ctitle</a> <span class=notes><i>created $cdate</i></span>"
-                . "<br><div class=indented>"
-                . "<span class=details><i>$cdesc</i></span>"
-                . "</div>"
-                . "</div>";
-        }
-        else if ($pick == 'U')
-        {
-            // it's a club
-            $c = $row;
-
-            // pull out the club item
-            $cid = $c["clubid"];
-            $ctitle = htmlspecialcharx($c["name"]);
-            list($cdesc, $len, $trunc) = summarizeHtml($c["desc"], 210);
-            $cdesc = fixDesc($cdesc);
-            $cdate = $c["fmtdate"];
-
-            // show the generic club icon
-            if (ENABLE_IMAGES) {
-                // echo "<a href=\"viewcomp?id=$cid\">"
-                //     . "<img border=0 src=\"club50.gif\">"
-                //     . "</a>";
-                echo "</td><td>";
-            }
-
-            // summarize the item
-            echo "<div class=\"new-club\">"
-                . "A new club listing: <a href=\"club?id=$cid\">"
                 . "$ctitle</a> <span class=notes><i>created $cdate</i></span>"
                 . "<br><div class=indented>"
                 . "<span class=details><i>$cdesc</i></span>"
@@ -857,15 +789,6 @@ function showNewItemsRSS($db, $showcnt)
             list($desc, $len, $trunc) = summarizeHtml($c['desc'], 210);
             $desc = fixDesc($desc);
             $link = get_root_url() . "viewcomp?id={$c['compid']}";
-            $pubDate = $c['d'];
-        }
-        else if ($pick == 'U')
-        {
-            $c = $row;
-            $title = "A new club page: {$c['name']}";
-            list($desc, $len, $trunc) = summarizeHtml($c['desc'], 210);
-            $desc = fixDesc($desc);
-            $link = get_root_url() . "club?id={$c['clubid']}";
             $pubDate = $c['d'];
         }
         else if ($pick == 'G')

@@ -180,40 +180,6 @@ if ($commentCnt == 0) {
 echo "</div>";
 
 
-// ---------------------------- CLUBS ------------------------------
-
-headline("<img src=\"/img/blank.gif\" class=\"club-list-icon\"> Your Clubs");
-
-echo "<style nonce='$nonce'>\n"
-    . ".personal__cjoined { margin-left: 1.5em; }\n"
-    . "</style>\n";
-
-$result = mysql_query(
-    "select
-       c.clubid, c.name, date_format(m.joindate, '%M %e, %Y')
-     from
-       clubmembers as m
-       join clubs as c on c.clubid = m.clubid
-     where
-       m.userid = '$quid'
-     order by
-       lower(c.name)", $db);
-
-$clubCnt = mysql_num_rows($result);
-if ($clubCnt == 0) {
-    echo "<span class=notes><i>You haven't joined any clubs yet.</i></span><p>";
-} else {
-    for ($i = 0 ; $i < mysql_num_rows($result) ; $i++) {
-        list($cid, $cname, $cjoined) = mysql_fetch_row($result);
-        $cname = htmlspecialcharx($cname);
-        echo "<a href=\"club?id=$cid\">$cname</a> "
-            . "<span class='details personal__cjoined'>"
-            . "<i>Joined $cjoined</i></span><br>";
-    }
-}
-echo "</div>";
-
-
 // ---------------------------- LISTS ------------------------------
 headline("<img src=\"/img/blank.gif\" class=\"list-list-icon\"> "
          . "Your Recommended Lists");
