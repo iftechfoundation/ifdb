@@ -47,8 +47,8 @@ if ($debugflag) echo "debug mode enabled...<br>";
                   }
                   ?>
                   <a href="allnew">All Updates</a> |
-                  <a href="news">Site News</a> |
-                  <a href="allnew-rss"><img src="img/blank.gif" class="rss-icon" alt="">RSS Feed</a>
+                  <a href="news">Site News</a>
+                  <span class='mobile-hidden'> | <a href="allnew-rss"><img src="img/blank.gif" class="rss-icon" alt="">RSS Feed</a></span>
                </span>
             </div>
          </summary>
@@ -72,7 +72,12 @@ if ($debugflag) echo "debug mode enabled...<br>";
          }
          ?>
 
-         <p>The Interactive Fiction Database is an IF game catalog and recommendation engine. IFDB is a Wiki-style community project: members can add new game listings, write reviews, exchange game recommendations, and more. <span class=details><a href="tips">Tips & More Info</a></span><p>
+         <style nonce="<?php global $nonce; echo $nonce; ?>">
+            p.intro {
+               max-width: revert;
+            }
+         </style>
+         <p class='intro'>The Interactive Fiction Database is an IF game catalog and recommendation engine. IFDB is a Wiki-style community project. <span class=details><a href="tips">Tips & More Info</a></span><p>
 
          <div class="iftf-donation details">
             <div>
