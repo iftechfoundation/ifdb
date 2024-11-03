@@ -15,7 +15,7 @@ $items = getNewItems($db, 10, NEWITEMS_LISTS);
 for ($idx = 0 ; $idx <= 8; $idx++)
 {
     // get this item
-    list($pick, $rawDate, $l) = $items[$idx];
+    [$pick, $rawDate, $l] = $items[$idx];
 
     $eager = ($idx < 4 ? "class='eager'" : "");
 

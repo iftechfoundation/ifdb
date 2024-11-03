@@ -23,7 +23,7 @@ $totcnt = count($items);
 for ($idx = 0 ; $idx <= 5; $idx++)
 {
     // get this item
-    list($pick, $rawDate, $row) = $items[$idx];
+    [$pick, $rawDate, $row] = $items[$idx];
 
     $eager = ($idx < 4 ? "class='eager'" : "");
 

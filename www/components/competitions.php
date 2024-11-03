@@ -14,7 +14,7 @@ $items = getNewItems($db, 7, NEWITEMS_COMPS | NEWITEMS_COMPNEWS);
 for ($idx = 0 ; $idx <= 7; $idx++)
 {
     // get this item
-    list($pick, $rawDate, $row) = $items[$idx];
+    [$pick, $rawDate, $row] = $items[$idx];
 
     $eager = ($idx < 4 ? "class='eager'" : "");
 
