@@ -305,7 +305,7 @@ margins here.
 */
 div.main {
     max-width: 100ch;
-    padding: 1em 1em 1em 1em;
+    padding: 0 1em;
     margin: 0 auto;
 }
 
@@ -1191,7 +1191,15 @@ div.headline {
     margin: 2em 0 1em 0;
     display: flex;
     justify-content: space-between;
+    scroll-margin-top: 3em;
 }
+
+@media (max-width: 120ch) {
+    div.headline {
+        scroll-margin-top: 5em;
+    }
+}
+
 div.headline1 {
     margin-top: 0;
 }
@@ -1454,6 +1462,22 @@ element of the list.
 ul.doublespace li {
     margin-top: 1em;
     margin-bottom: 1em;
+}
+
+div.scroll-links {
+    position: sticky;
+    text-wrap: balance;
+    top: 0;
+    margin: 0 -0.5em 1em -0.5em;
+    display: flex;
+    font: revert;
+    width: revert;
+    justify-content: center;
+    padding: 0.5em 0;
+}
+
+.scroll-links ul {
+    margin: 0;
 }
 
 ul.horizontal {
