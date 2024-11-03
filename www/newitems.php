@@ -338,21 +338,26 @@ function queryNewNews(&$items, $db, $limit, $sourceType,
     }
 }
 
-function showNewItems($db, $first, $last, $items, $showFlagged = false, $allowHiddenBanner = true, $itemTypes = NEWITEMS_ALLITEMS, $days = null)
+function showNewItems($db, $first, $last, $items, $options = [])
 {
+    $itemTypes = $options['itemTypes'] ?? NEWITEMS_ALLITEMS;
+    $days = $options['days'] ?? null;
     // if the caller didn't provide the new item lists, query them
     if (!$items)
         $items = getNewItems($db, $last, $itemTypes, $days);
 
     // show them
-    showNewItemList($db, $items, $first, $last, $showFlagged, $allowHiddenBanner, $itemTypes);
+    showNewItemList($db, $items, $first, $last, $options);
 
     // indicate whether there's more to come
     return count($items) > $last;
 }
 
-function showNewItemList($db, $items, $first, $last, $showFlagged, $allowHiddenBanner, $itemTypes)
+function showNewItemList($db, $items, $first, $last, $options)
 {
+    $showFlagged = $options['showFlagged'] ?? false;
+    $allowHiddenBanner = $options['allowHiddenBanner'] ?? true;
+
     // show the items
     $totcnt = count($items);
 
