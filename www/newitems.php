@@ -632,6 +632,7 @@ function showNewItemList($db, $items, $first, $last, $showFlagged, $allowHiddenB
                 $href = "viewcomp?id=$gid";
                 $divclass = "new-comp-news";
                 break;
+            }
 
             // show the image: user image if available, otherwise game
             // image, otherwise generic review icon
