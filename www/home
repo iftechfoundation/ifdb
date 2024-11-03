@@ -72,7 +72,7 @@ if ($debugflag) echo "debug mode enabled...<br>";
          }
          ?>
 
-         <p>The Interactive Fiction Database is an IF game catalog and recommendation engine. IFDB is a Wiki-style community project: members can add new game listings, write reviews, exchange game recommendations, and more. <span class=details><a href="tips">Tips & More Info</a></span><p>
+         <p>The Interactive Fiction Database is an IF game catalog and recommendation engine. IFDB is a Wiki-style community project. <span class=details><a href="tips">Tips & More Info</a></span><p>
 
          <div class="iftf-donation details">
             <div>
