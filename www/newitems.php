@@ -357,6 +357,7 @@ function showNewItemList($db, $items, $first, $last, $options)
 {
     $showFlagged = $options['showFlagged'] ?? false;
     $allowHiddenBanner = $options['allowHiddenBanner'] ?? true;
+    $showDescriptions = $options['showDescriptions'] ?? true;
 
     // show the items
     $totcnt = count($items);
@@ -521,8 +522,9 @@ function showNewItemList($db, $items, $first, $last, $options)
                 . "<a href=\"viewlist?id={$l['id']}\"><b>$title</b></a> "
                 . "<span class=notes><i>{$l['fmtdate']}</i></span><br>"
                 . "<div class=indented>"
-                . "<span class=details>$itemcnt item$itemS</span><br>"
-                . "<span class=details><i>$desc</i></span></div></div>";
+                . "<span class=details>$itemcnt item$itemS</span>"
+                . ($showDescriptions ? "<br><span class=details><i>$desc</i></span>" : "")
+                . "</div></div>";
         }
         else if ($pick == 'G')
         {
@@ -601,10 +603,10 @@ function showNewItemList($db, $items, $first, $last, $options)
                 . "$uname</a>, "
                 . "<a $eager href=\"poll?id=$pid\"><b>$title</b></a> "
                 . "<span class=notes><i>created $fmtdate</i></span>"
-                . "<br><div class=indented>"
+                . ($showDescriptions ? "<br><div class=indented>"
                 . "<span class=details>$cntdesc</span><br>"
                 . "<span class=details><i>$desc</i></span>"
-                . "</div>"
+                . "</div>" : "")
                 . "</div>";
         }
         else if ($pick == 'N')
@@ -691,9 +693,9 @@ function showNewItemList($db, $items, $first, $last, $options)
             echo "<div class=\"new-competition\">"
                 . "A new competition page: <a href=\"viewcomp?id=$cid\">"
                 . "$ctitle</a> <span class=notes><i>created $cdate</i></span>"
-                . "<br><div class=indented>"
+                . ($showDescriptions ? "<br><div class=indented>"
                 . "<span class=details><i>$cdesc</i></span>"
-                . "</div>"
+                . "</div>" : "")
                 . "</div>";
         }
 
