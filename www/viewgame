@@ -620,11 +620,11 @@ if (isset($_REQUEST['ifiction']))
     xmlField("forgiveness", $forgiveness);
 
     echo "</bibliographic>"
-        . "<contact>";
+        . "<contacts>";
 
     xmlField("url", $website);
 
-    echo "</contact>";
+    echo "</contacts>";
 
     echo "<ifdb xmlns=\"http://ifdb.org/api/xmlns\">";
     xmlField("tuid", $id);
