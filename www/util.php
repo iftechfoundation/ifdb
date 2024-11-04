@@ -85,7 +85,7 @@ function output_encode($str)
 //
 function rss_encode($str)
 {
-    return iconv("ISO-8859-1", "UTF-8", $str);
+    return iconv("WINDOWS-1252", "UTF-8", $str);
 }
 
 // ------------------------------------------------------------------------
