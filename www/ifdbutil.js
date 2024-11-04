@@ -15,13 +15,7 @@ function encodeHTML(str)
 }
 function encodeURI8859(str)
 {
-    return str.replace(/[^-a-zA-Z0-9_.!~*'()]/g, function(m) {
-        var c = m.charCodeAt(0);
-        if (c <= 255)
-            return '%' + c.toString(16);
-        else
-            return '%26%23' + c + '%3B';
-    });
+    return encodeURIComponent(str);
 }
 function jsQuote(str)
 {

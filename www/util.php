@@ -159,7 +159,7 @@ function is_utf8($str)
 
 // ------------------------------------------------------------------------
 //
-// Given a UTF-8 string, substitute 8859-1 approximations for certain
+// Given a UTF-8 string, substitute ASCII approximations for certain
 // characters that we'd otherwise lose on translation.
 //
 function approx_utf8($str)

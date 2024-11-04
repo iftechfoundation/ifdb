@@ -52,9 +52,8 @@ for ($i = 0, $tags = array() ; ; $i++) {
     // get this tag
     $tag = get_req_data("t$i");
 
-    // if it's UTF-8 encoded, translate to 8859-1
-    if (is_utf8($tag))
-        $tag = iconv("UTF-8", "ISO-8859-1//IGNORE", approx_utf8($tag));
+    // convert smart apostrophes, quotes, etc. to ASCII
+    $tag = approx_utf8($tag);
 
     // trim it
     $tag = trim($tag);
