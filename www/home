@@ -49,8 +49,7 @@ if ($debugflag) echo "debug mode enabled...<br>";
 </div>
 
 <div class="flexer prerender-moderate">
-   <div class="column col-main">
-
+   <div class="col-main">
       <div class="block">
          <details id="welcome-details" <?= $welcomeOpen ? "open" : ""?>>
          <summary>
