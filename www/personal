@@ -29,22 +29,10 @@ echo "<div>
     <table width=\"100%\" cellpadding=0 cellspacing=0>
     <tr valign=top><td id='personal__main'>";
 
-$divclass = "headline headline1";
 function headline($text)
 {
-    global $divclass;
-    echo "<div class=\"headlineGroup\">"
-        .  "<div class=\"$divclass\">"
-        .    "<div class=\"headlineTL\"></div>"
-        .    "<div class=\"headlineTR\"></div>"
-        .    "<div class=\"headlineCont\">"
-        .      $text
-        .    "</div>"
-        .  "</div>"
-        . "</div>"
+    echo "<div class=\"headline\">$text</div>"
         . "<div class=headlineBody>";
-
-    $divclass = "headline";
 }
 
 
@@ -63,8 +51,7 @@ if (mysql_num_rows($result) > 0) {
 
     $foundAuthorCredits = true;
 
-    headline("<img src=\"/img/blank.gif\" class=\"authored-list-icon\"> "
-             . "Your Authorship Credits");
+    headline("Your Authorship Credits");
 
     for ($i = 0 ; $i < mysql_num_rows($result) ; $i++) {
         $id = mysql_result($result, $i, "id");
@@ -82,7 +69,7 @@ if (mysql_num_rows($result) > 0) {
 
 
 // ---------------------------- REVIEWS ------------------------------
-headline("<img src=\"/img/blank.gif\" class=\"review-list-icon\"> Your Reviews");
+headline("Your Reviews");
 
 $maxreviews = 10;
 $result = mysql_query("select count(*) as c from reviews
@@ -139,8 +126,7 @@ echo "</div>";
 
 
 // ---------------------------- COMMENTS ------------------------------
-headline("<img src=\"/img/blank.gif\" class=\"list-message-icon\"> "
-         . "Your Discussions");
+headline("Your Discussions");
 
 echo "<style nonce='$nonce'>\n"
     . ".personal__ccre { padding-left: 3ex; }\n"
@@ -181,8 +167,7 @@ echo "</div>";
 
 
 // ---------------------------- LISTS ------------------------------
-headline("<img src=\"/img/blank.gif\" class=\"list-list-icon\"> "
-         . "Your Recommended Lists");
+headline("Your Recommended Lists");
 
 $maxlists = 10;
 $result = mysql_query("select count(*) as c from reclists
@@ -215,7 +200,7 @@ echo "</div>";
 
 
 // ---------------------------- POLLS ------------------------------
-headline("<img src=\"/img/blank.gif\" class=\"poll-list-icon\"> Your Polls");
+headline("Your Polls");
 
 echo "<style nonce='$nonce'>\n"
     . ".personal__votecnt { padding-left: 1em; }\n"
@@ -269,7 +254,7 @@ echo "</div>";
 
 // ---------------------- GAME I'VE PLAYED ---------------------------
 
-headline("<img src=\"/img/blank.gif\" class=\"playlists-icon\"> Your Play Lists");
+headline("Your Play Lists");
 
 $maxgames = 5;
 $result = mysql_query(
@@ -363,8 +348,7 @@ echo "</div>";
 
 // ---------------------- GAME LISTINGS EDITED ---------------------------
 
-headline("<img src=\"/img/blank.gif\" class=\"game-list-icon\"> "
-         . "Your Catalog Contributions");
+headline("Your Catalog Contributions");
 
 $maxgames = 5;
 mysql_query(
@@ -420,7 +404,7 @@ echo "</div>";
 
 // ---------------------------- PROFILE ------------------------------
 
-headline("<img src=\"/img/blank.gif\" class=\"my-profile-icon\"> Your Profile");
+headline("Your Profile");
 
 echo "<a href=\"showuser?id=$uid\">View your public profile</a><br>"
    . "<a href=\"editprofile\">Edit your profile</a><br>"
