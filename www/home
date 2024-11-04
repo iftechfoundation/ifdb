@@ -58,12 +58,9 @@ if ($debugflag) echo "debug mode enabled...<br>";
                <span class=headlineRss>
                   <?php
                   if ($adminPriv) {
-                     echo "<a href='/adminops'>Admin</a> | ";
+                     echo "<a href='/adminops'>Admin</a>";
                   }
                   ?>
-                  <a href="allnew">All Updates</a> |
-                  <a href="news">Site News</a>
-                  <span class='mobile-hidden'> | <a href="allnew-rss"><img src="img/blank.gif" class="rss-icon" alt="">RSS Feed</a></span>
                </span>
             </div>
          </summary>
@@ -112,29 +109,27 @@ if ($debugflag) echo "debug mode enabled...<br>";
 
       <?php include "components/check-inbox.php"?>
 
-      <?php
-      // get the latest site news, polls, competitions, and lists, and show a mix
-      $days = 3;
-      $items = getNewItems($db, 8,
-         NEWITEMS_SITENEWS | NEWITEMS_LISTS | NEWITEMS_POLLS | NEWITEMS_COMPS | NEWITEMS_COMPNEWS,
-         [
-            'days' => $days,
-            'sitenews_limit' => 1,
-            'lists_limit' => 2,
-            'polls_limit' => 2,
-            'comps_limit' => 2,
-         ]
-      );
-      if ($items) {
-         ?>
       <div class="block flexer">
          <div class="column col-peer">
-            <div class=headline><h1 class='unset'>New on IFDB</h1></div>
+            <div class=headline>
+                  <h1 class='unset'>New on IFDB</h1>
+                  <span class=headlineRss>
+                     <a href="allnew">All Updates</a> |
+                     <a href="news">Site News</a>
+                     <span class='mobile-hidden'> | <a href="allnew-rss"><img src="img/blank.gif" class="rss-icon" alt="">RSS Feed</a>
+                  </span>
+            </div>
             <div>
             <?php
-            showNewItems($db, 0, 8, $items, [
+            // get the latest site news, polls, competitions, and lists, and show a mix
+            showNewItems($db, 0, 8, null, [
+               'itemTypes' => NEWITEMS_SITENEWS | NEWITEMS_LISTS | NEWITEMS_POLLS | NEWITEMS_COMPS | NEWITEMS_COMPNEWS,
+               'days' => 3,
+               'sitenews_limit' => 1,
+               'lists_limit' => 2,
+               'polls_limit' => 2,
+               'comps_limit' => 2,
                'allowHiddenBanner' => false,
-               'days' => $days,
                'showDescriptions' => false,
                'enableImages' => false,
             ]);
@@ -143,9 +138,6 @@ if ($debugflag) echo "debug mode enabled...<br>";
             </div>
          </div>
       </div>
-      <?php
-      }
-      ?>
 
       <div class="block flexer">
          <div class="column col-peer">
