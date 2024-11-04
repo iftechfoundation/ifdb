@@ -767,7 +767,7 @@ function showNewItemsRSS($db, $showcnt)
             }
             $desc = fixDesc($r['review'], FixDescSpoiler | FixDescRSS);
             $link = get_root_url() . "viewgame?id={$r['gameid']}"
-                    . "&review={$r['reviewid']}";
+                    . "&review={$r['id']}";
             $pubDate = $r['d'];
         }
         else if ($pick == 'L')
