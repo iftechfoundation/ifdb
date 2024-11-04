@@ -996,7 +996,7 @@ administrators can see who voted for what.)
         iconv_set_encoding("output_encoding", "UTF-8");
 
         // send the RSS content header
-        header("Content-Type: application/rss+xml");
+        header("Content-Type: application/rss+xml; charset=utf-8");
         header("Expires: Mon, 26 Jul 1997 05:00:00 GMT");
         header("Cache-Control: no-store, no-cache, must-revalidate");
         header("Cache-Control: post-check=0, pre-check=0", false);
