@@ -41,7 +41,7 @@ if ($debugflag) echo "debug mode enabled...<br>";
       <li><a href="#competitions">Competitions</a></li>
       <li><a href="#polls">Polls</a></li>
       <li><a href="#lists">Lists</a></li>
-      <li><a href="#ifdb-recommends">IFDB Recommends...</a></li>
+      <li><a href="#ifdb-recommends">IFDB Recommends</a></li>
       <li><a href="#top-reviewers">Top Reviewers</a></li>
       <li><a href="#new-to-if">New to IF?</a></li>
       <li><a href="#stats">Database Stats</a></li>
