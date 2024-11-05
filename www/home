@@ -121,9 +121,10 @@ if ($debugflag) echo "debug mode enabled...<br>";
             <div>
             <?php
             // get the latest site news, polls, competitions, and lists, and show a mix
-            showNewItems($db, 0, 8, null, [
-               'itemTypes' => NEWITEMS_SITENEWS | NEWITEMS_LISTS | NEWITEMS_POLLS | NEWITEMS_COMPS | NEWITEMS_COMPNEWS,
-               'days' => 3,
+            $itemTypes = NEWITEMS_SITENEWS | NEWITEMS_LISTS | NEWITEMS_POLLS | NEWITEMS_COMPS | NEWITEMS_COMPNEWS;
+            $items = getNewItems($db, 8, $itemTypes, ['days' => 3]);
+            if (!$items) getNewItems($db, 0, $itemTypes);
+            showNewItems($db, 0, 0, $items, [
                'sitenews_limit' => 1,
                'lists_limit' => 2,
                'polls_limit' => 2,
