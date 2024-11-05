@@ -2846,12 +2846,9 @@ dispTags();
                         if (!$cssOverride) {
                         ?>
                         <script nonce="<?php global $nonce; echo $nonce; ?>">
-                            xmlSend("ifwiki-check?ifid=<?php echo $jifid ?>", null,
-                                function(doc) {
-                                    if (xmlChildText(doc, "exists") == "yes") {
-                                        document.getElementById("ifwiki-link").style.display = "initial";
-                                    }
-                                }, null);
+                            fetch("ifwiki-check?ifid=<?php echo $jifid ?>").then(r => { if (r.ok)
+                                document.getElementById("ifwiki-link").style.display = "initial";
+                            });
                         </script>
                         <?php
                         }
