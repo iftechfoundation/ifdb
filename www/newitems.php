@@ -447,13 +447,13 @@ function showNewItemList($db, $first, $last, $items, $options)
 
             if (is_null($r['special']))
                 echo "<a href=\"showuser?id={$r['userid']}\"><b>"
-                    . output_encode(htmlspecialcharx($r['username']))
+                    . htmlspecialcharx($r['username'])
                     . "</b></a> reviews ";
             else
                 echo "A new review of ";
 
             echo "<a href=\"viewgame?id={$r['gameid']}\"><i><b>"
-                . output_encode(htmlspecialcharx($r['title']))
+                . htmlspecialcharx($r['title'])
                 . "</b></i></a>";
 
             if (!is_null($r['special'])) {
@@ -462,7 +462,7 @@ function showNewItemList($db, $first, $last, $items, $options)
                 echo " - " . mysql_result($result, 0, "name");
             } else {
                 echo ": \""
-                    . output_encode(htmlspecialcharx($r['summary']))
+                    . htmlspecialcharx($r['summary'])
                     . "\" <span class=notes><i>{$r['fmtdate']}</i></span>";
             }
 
@@ -504,8 +504,8 @@ function showNewItemList($db, $first, $last, $items, $options)
             // pull out the list record
             $itemcnt = $l['itemcnt'];
             $itemS = $itemcnt == 1 ? "" : "s";
-            $title = output_encode(htmlspecialcharx($l['title']));
-            $username = output_encode(htmlspecialcharx($l['username']));
+            $title = htmlspecialcharx($l['title']);
+            $username = htmlspecialcharx($l['username']);
             list($desc, $len, $trunc) = summarizeHtml($l['desc'], 210);
             $desc = fixDesc($desc);
 
@@ -557,9 +557,9 @@ function showNewItemList($db, $first, $last, $items, $options)
             echo "<div class=\"new-game\">"
                 . "A new listing for "
                 . "<a class=eager href=\"viewgame?id={$g['id']}\"><b><i>"
-                . output_encode(htmlspecialcharx($g['title']))
+                . htmlspecialcharx($g['title'])
                 . "</i></b></a>, by "
-                . output_encode(htmlspecialcharx($g['author']))
+                . htmlspecialcharx($g['author'])
                 . " <span class=notes><i>{$g['fmtdate']}</i></span>";
 
             list($summary, $len, $trunc) = summarizeHtml($g['desc'], 210);
@@ -579,8 +579,8 @@ function showNewItemList($db, $first, $last, $items, $options)
             // pull out the poll record
             $pid = $p['pollid'];
             $uid = $p['userid'];
-            $uname = output_encode(htmlspecialcharx($p['username']));
-            $title = output_encode(htmlspecialcharx($p['title']));
+            $uname = htmlspecialcharx($p['username']);
+            $title = htmlspecialcharx($p['title']);
             list($desc, $len, $trunc) = summarizeHtml($p['desc'], 210);
             $desc = fixDesc($desc);
             $votecnt = $p['votecnt'];

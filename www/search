@@ -1344,11 +1344,11 @@ else if ($term || $browse)
                 if (!$showFlagged && $shouldHide) {
                     break;
                 }
-                $title = output_encode(htmlspecialcharx($row['title']));
-                $author = output_encode(htmlspecialcharx($row['author']));
+                $title = htmlspecialcharx($row['title']);
+                $author = htmlspecialcharx($row['author']);
                 $author = collapsedAuthors($author);
                 $stars = $shouldHide ? "" : showStars($row['avgrating']);
-                $year = output_encode(htmlspecialcharx($row['pubyear']));
+                $year = htmlspecialcharx($row['pubyear']);
                 $art = $row['hasart'];
                 $rcnt = $row['ratingcnt'];
                 $rdev = $row['ratingdev'];
@@ -1451,7 +1451,7 @@ else if ($term || $browse)
             case "list":
                 // get the row data
                 $id = $row['id'];
-                $title = output_encode(htmlspecialcharx($row['title']));
+                $title = htmlspecialcharx($row['title']);
                 $descInfo = summarizeHtml($row['desc'], 240);
                 $desc = fixDesc($descInfo[0]);
                 $userid = $row['userid'];
@@ -1472,7 +1472,7 @@ else if ($term || $browse)
 
             case "poll":
                 $id = $row['id'];
-                $title = output_encode(htmlspecialcharx($row['title']));
+                $title = htmlspecialcharx($row['title']);
                 $descInfo = summarizeHtml($row['desc'], 240);
                 $desc = fixDesc($descInfo[0]);
                 $userid = $row['userid'];

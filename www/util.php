@@ -60,16 +60,6 @@ function shoot_recommendation_cache()
     unset($_SESSION['ifdb_recommendations']);
 }
 
-// --------------------------------------------------------------------------
-// Encode for output.
-//
-// Does nothing. TODO: Delete
-//
-function output_encode($str)
-{
-    return $str;
-}
-
 // ------------------------------------------------------------------------
 //
 // Encode output for RSS.  We send RSS in UTF-8 format, so this converts
@@ -1243,7 +1233,7 @@ function fixDesc($desc, $specials = 0)
         $desc .= spoilerWarningScript();
 
     // return the result
-    return output_encode($desc);
+    return $desc;
 }
 
 // Translate a stacked close tag to the actual HTML close tag

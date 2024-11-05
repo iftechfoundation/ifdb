@@ -55,13 +55,13 @@ for ($idx = 0 ; $idx <= 5 ; $idx++)
 
     if (is_null($r['special']))
         echo "<a href=\"showuser?id={$r['userid']}\"><b>"
-            . output_encode(htmlspecialcharx($r['username']))
+            . htmlspecialcharx($r['username'])
             . "</b></a> reviews ";
     else
         echo "A new review of ";
 
     echo "<a href=\"viewgame?id={$r['gameid']}\"><i><b>"
-        . output_encode(htmlspecialcharx($r['title']))
+        . htmlspecialcharx($r['title'])
         . "</b></i></a>";
 
     if (!is_null($r['special'])) {
@@ -70,7 +70,7 @@ for ($idx = 0 ; $idx <= 5 ; $idx++)
         echo " - " . mysql_result($result, 0, "name");
     } else {
         echo ": \""
-            . output_encode(htmlspecialcharx($r['summary']))
+            . htmlspecialcharx($r['summary'])
             . "\" ";
     }
 
