@@ -1243,34 +1243,26 @@ function updateRating(rating)
     } else {
         submitRating.style.display = 'none';
     }
-    xmlSend("setrating?game=<?php echo $id?>&rating=" + rating,
-            "ratingSaveMsg", null, null);
+    jsonSend("setrating?game=<?php echo $id?>&rating=" + rating,
+             "ratingSaveMsg");
 }
 function updatePlayed(id, stat)
 {
-    var func = function(d)
-    {
-        updatePlaylistCount(Number(xmlChildText(d, "newCount")));
-    };
-    xmlSend("setplayed?game=<?php echo $id?>&played="
-            + (ckboxIsChecked("ckPlayed") ? "1" : "0"),
-            "ckPlaySaveMsg", func, null);
+    jsonSend("setplayed?game=<?php echo $id?>&played="
+             + (ckboxIsChecked("ckPlayed") ? "1" : "0"),
+             "ckPlaySaveMsg", (d) => {updatePlaylistCount(d.newCount);});
 }
 function updateWishList(id, stat)
 {
-    var func = function(d)
-    {
-        updateWishlistCount(Number(xmlChildText(d, "newCount")));
-    };
-    xmlSend("setwishlist?game=<?php echo $id?>&add="
-            + (ckboxIsChecked("ckWishList") ? "1" : "0"),
-            "ckWishlistSaveMsg", func, null);
+    jsonSend("setwishlist?game=<?php echo $id?>&add="
+             + (ckboxIsChecked("ckWishList") ? "1" : "0"),
+             "ckWishlistSaveMsg", (d) => {updateWishlistCount(d.newCount)});
 }
 function updateUnwishList(id, stat)
 {
-    xmlSend("setunwishlist?game=<?php echo $id?>&add="
-            + (ckboxIsChecked("ckUnwishList") ? "1" : "0"),
-            "ckUnwishlistSaveMsg", null, null);
+    jsonSend("setunwishlist?game=<?php echo $id?>&add="
+             + (ckboxIsChecked("ckUnwishList") ? "1" : "0"),
+             "ckUnwishlistSaveMsg");
 }
 //-->
 </script>
@@ -1785,12 +1777,16 @@ if (!$should_hide) {
 <!--
 function updatePlaylistCount(n)
 {
+    if (n === null || n === undefined)
+        return;
     document.getElementById("playlistCount").innerHTML =
         "" + (n == 0 ? "No" : n) + " member" + (n == 1 ? " has" : "s have")
         + " played this game.";
 }
 function updateWishlistCount(n)
 {
+    if (n === null || n === undefined)
+        return;
     document.getElementById("wishlistCount").innerHTML =
         (n == 0 ? "It's not on any wish lists yet" :
          "It's on " + n + " wishlist" + (n == 1 ? "." : "s."));

@@ -2,49 +2,24 @@
 
 include_once "session-start.php";
 include_once "util.php";
-include_once "pagetpl.php";
 include_once "login-check.php";
+include_once "dbconnect.php";
 
-function sendResponse($statmsg, $errmsg, $detail, $newCount = -1)
-{
-    global $xml;
-
-    if ($xml)
-    {
-        header("Content-Type: text/xml");
-        header("Expires: Mon, 26 Jul 1997 05:00:00 GMT");
-        header("Cache-Control: no-store, no-cache, must-revalidate");
-
-        echo "<?xml version=\"1.0\" encoding=\"UTF-8\" ?><response>"
-            . ($statmsg ? "<label>$statmsg</label>" : "")
-            . ($errmsg ? "<error>$errmsg</error>" : "")
-            . ($newCount >= 0 ? "<newCount>$newCount</newCount>" : "")
-            . "</response>";
-    }
-    else
-    {
-        smallPageHeader("Review Vote");
-        if ($errmsg)
-            echo "<span class=errmsg>$errmsg</span><p>";
-
-        echo $detail;
-        smallPageFooter();
-    }
-
+if ($_SERVER['REQUEST_METHOD'] != 'POST') {
+    http_response_code(405);
+    echo "405 Method Not Allowed";
     exit();
 }
 
 // connect to the database
-include_once "dbconnect.php";
 $db = dbConnect();
 if ($db == false)
-    sendResponse("Not Saved", "An error occurred connecting to the database. "
-                 . "Please try again later.", false);
+    send_action_response("Not Saved", "An error occurred connecting to the database. "
+                         . "Please try again later.");
 
 // get the request parameters
 $gameid = get_req_data("game");
 $add = (int)get_req_data("add");
-$xml = isset($_REQUEST['xml']);
 
 // validate & quote the parameters
 $qgameid = mysql_real_escape_string($gameid, $db);
@@ -52,16 +27,19 @@ $qgameid = mysql_real_escape_string($gameid, $db);
 // make sure it's a valid game
 $result = mysql_query("select title from games where id='$qgameid'", $db);
 if (mysql_num_rows($result) == 0)
-    sendResponse("Not Saved", "The specified game doesn't exist in the "
-                 . "database.");
+    send_action_response("Not Saved", "The specified game doesn't exist in the "
+                         . "database.");
 
 // make sure we process any persistent login state
 $userid = checkPersistentLogin();
-if (!$userid && !$xml && !logged_in(true))
+if (!$userid && !logged_in(true)) {
+    http_response_code(401);
+    echo "401 Unauthorized";
     exit();
+}
 
 if (!$userid)
-    sendResponse("Not Saved", "You must log in to use this feature.", false);
+    send_action_response("Not Saved", "You must log in to use this feature.");
 
 $progress = "QU107";
 $result = mysql_query(
@@ -91,11 +69,10 @@ if ($result) {
     list($newCnt) = mysql_fetch_row($result);
 
     // send the success reply
-    sendResponse("Saved", false, "Your change has been recorded.", $newCnt);
+    send_action_response("Saved", null, ["newCount" => $newCnt]);
 }
 else
-    sendResponse("Not Saved", "An error occurred updating the database "
-                 . "(failed operation: $progress). Please try again later.",
-                 false);
+    send_action_response("Not Saved", "An error occurred updating the database "
+                         . "(failed operation: $progress). Please try again later.");
 
 ?>

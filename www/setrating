@@ -2,67 +2,47 @@
 
 include_once "session-start.php";
 include_once "util.php";
-include_once "pagetpl.php";
 include_once "login-check.php";
+include_once "dbconnect.php";
 
-function sendResponse($statmsg, $errmsg, $detail)
-{
-    global $xml;
-
-    if ($xml)
-    {
-        header("Content-Type: text/xml");
-        header("Expires: Mon, 26 Jul 1997 05:00:00 GMT");
-        header("Cache-Control: no-store, no-cache, must-revalidate");
-
-        echo "<?xml version=\"1.0\" encoding=\"UTF-8\" ?><response>"
-            . ($statmsg ? "<label>$statmsg</label>" : "")
-            . ($errmsg ? "<error>$errmsg</error>" : "")
-            . "</response>";
-    }
-    else
-    {
-        smallPageHeader("Rate a Game");
-        if ($errmsg)
-            echo "<span class=errmsg>$errmsg</span><p>";
-
-        echo $detail;
-        smallPageFooter();
-    }
-
+if ($_SERVER['REQUEST_METHOD'] != 'POST') {
+    http_response_code(405);
+    echo "405 Method Not Allowed";
     exit();
 }
 
 // connect to the database
-include_once "dbconnect.php";
 $db = dbConnect();
-if ($db == false)
-    sendResponse("Not Saved", "An error occurred connecting to the database. "
-                 . "Please try again later.", false);
+if ($db == false) {
+    send_action_response("Not Saved", "An error occurred connecting to the database. "
+                         . "Please try again later.");
+}
 
 // get the request parameters
 $game = get_req_data('game');
 $rating = (int)get_req_data('rating');
-$xml = isset($_REQUEST['xml']);
 
 // make sure there's a game
 if ($game == "")
-    sendResponse("Not Saved", "No game was specified.", false);
+    send_action_response("Not Saved", "No game was specified.");
 
 // make sure we process any persistent login state
 $userid = checkPersistentLogin();
-if (!$userid && !$xml && !logged_in(true))
+if (!$userid && !logged_in(true)) {
+    http_response_code(401);
+    echo "401 Unauthorized";
     exit();
+}
 
 // make sure we're logged in
 if (!$userid)
-    sendResponse("Not Saved", "To rate a game, please log in.", false);
+    send_action_response("Not Saved", "To rate a game, please log in.");
 
 // make sure the game is valid
 $qgame = mysql_real_escape_string($game, $db);
 $result = mysql_query("select id from games where id = '$qgame'", $db);
 if (mysql_num_rows($result) == 0)
-    sendResponse("Not Saved", "The specified game was not found.", false);
+    send_action_response("Not Saved", "The specified game was not found.");
 
 // if there's an existing review for this user for this game, simply update
 // the rating; otherwise insert a new row with an empty review
@@ -82,7 +62,7 @@ if ($result && mysql_num_rows($result)) {
 }
 
 if ($rating < 0 || $rating > 5) {
-    sendResponse("Not Saved", "The rating specified is not valid.", false);
+    send_action_response("Not Saved", "The rating specified is not valid.");
 }
 
 // set the rating:
@@ -119,13 +99,12 @@ mysql_query("unlock tables", $db);
 
 // check the result
 if ($result) {
-    sendResponse("Saved", false, $ok);
+    send_action_response("Saved");
 } else if ($ok) {
-    sendResponse("Not Saved", "An error occurred updating the database. "
-                 . "Please try again later.", false);
+    send_action_response("Not Saved", "An error occurred updating the database. "
+                         . "Please try again later.");
 } else {
-    sendResponse("Not Saved", "The request was invalid.", false);
+    send_action_response("Not Saved", "The request was invalid.");
 }
 
-smallPageFooter();
 ?>

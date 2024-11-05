@@ -229,3 +229,48 @@ function forceDarkMode(force) {
         parseSheet(sheet);
     }
 }
+
+async function jsonSend(url, statusSpanID, cbFunc, content, silentMode)
+{
+    if (statusSpanID)
+        document.getElementById(statusSpanID).innerHTML = "";
+
+    const options = {
+        method: 'POST',
+    };
+    if (content != null) {
+        options.body = JSON.stringify(content);
+    }
+
+    let jsonResponse = null;
+    try {
+        const response = await fetch(url, options);
+        jsonResponse = await response.json();
+        const msgspan = (statusSpanID
+                       ? document.getElementById(statusSpanID)
+                       : null);
+
+        if (!response || !response.ok)
+            throw new Error();
+
+        if (msgspan) {
+            const lbl = jsonResponse.label;
+            if (lbl)
+                msgspan.innerHTML = lbl;
+        }
+
+        const errmsg = jsonResponse.error;
+        if (errmsg)
+            alert(errmsg);
+    } catch (e) {
+        if (msgspan)
+            msgspan.innerHTML = "Not Saved";
+        if (!silentMode)
+            alert("An error occurred sending the update to the server. "
+                   + "(" + response.status + ") "
+                   + "Please try again later.");
+    }
+    if (cbFunc) {
+        cbFunc(jsonResponse);
+    }
+}
