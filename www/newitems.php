@@ -66,7 +66,6 @@ function getNewItems($db, $limit, $itemTypes = NEWITEMS_ALLITEMS, $options = [])
                itemid as sitenewsid, title, ldesc as `desc`,
                posted as d,
                date_format(posted, '%M %e, %Y') as fmtdate,
-               (now() < date_add(posted, interval 7 day)) as freshest
              from
                sitenews
              where $dayWhere
