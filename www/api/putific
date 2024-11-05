@@ -302,10 +302,7 @@ previously edited, the parameter is not required.
 valid XML.  The API does not validate against any XML schema, so you
 can use custom tags beyond what's in the Babel spec (to store
 development system-specific extensions to the basic Babel metadata,
-for example).  The file must be encoded in the UTF-8 character set,
-although be aware that IFDB will convert content data to ISO-8859-1
-(Latin-1), so there could be loss of fidelity for characters outside
-of the 8859-1 subset of Unicode.
+for example).  The file must be encoded in the UTF-8 character set.
 
 <p>As in the Babel spec, the file must not contain any entity markups
 beyond the primitive XML set, namely &amp;lt; for &lt;, &amp;gt; for
