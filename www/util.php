@@ -95,6 +95,14 @@ function serialize_xml($array) {
             $value = $value['_contents'];
         }
 
+        // Booleans are just empty tags
+        if (is_bool($value)) {
+            if ($value) {
+                $parts[] = "<$key$attrs_str/>";
+            }
+            continue;
+        }
+
         $parts[] = "<$key$attrs_str>";
         if (is_array($value)) {
             $parts[] = serialize_xml($value);
