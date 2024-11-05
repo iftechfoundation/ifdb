@@ -170,19 +170,6 @@ function aplClose()
     document.getElementById("aplStep2").style.display = "none";
     document.getElementById("aplDiv").style.display = "none";
 }
-async function aplPopupKey(event)
-{
-    var ch = (window.event || event.keyCode ? event.keyCode : event.which);
-    if (ch == 13 || ch == 10) {
-        await aplSearch();
-        return false;
-    }
-    if (ch == 27) {
-        aplClose();
-        return false;
-    }
-    return true;
-}
 async function aplSearch()
 {
     document.getElementById("aplStep2").style.display = "none";
@@ -291,17 +278,16 @@ function profileLinkDiv()
       <p><b>Step 1:</b> Search for an IFDB profile by member name.
       <br>
       <input id="aplSearchBox" type=text size=50>
-      <input type=submit name="aplSearchGo" id="aplSearchGo"
+      <input type=button name="aplSearchGo" id="aplSearchGo"
          value="Search">
       <script type="text/javascript" nonce="<?php global $nonce; echo $nonce; ?>">
-        aplSearchBox.addEventListener('keypress', async function(event) {
-            var result = await aplPopupKey(event);
-            if (result === false) event.preventDefault();
-        })
-        aplSearchGo.addEventListener('click', async function (event) {
-            event.preventDefault();
-            await aplSearch();
-        })
+        aplSearchBox.addEventListener('keypress', function({code}) {
+            if (code === 'Enter') aplSearch();
+        });
+        aplSearchBox.addEventListener('keydown', function({code}) {
+            if (code === 'Escape') aplClose();
+        });
+        aplSearchGo.addEventListener('click', aplSearch);
       </script>
       <div id="aplStep2" class="displayNone">
          <p><b>Step 2:</b> Click in the <span id="aplFieldName">text</span>
