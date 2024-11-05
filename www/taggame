@@ -3,6 +3,7 @@
 include_once "session-start.php";
 include_once "util.php";
 include_once "login-check.php";
+include_once "tags.php";
 
 function sendResponse($status, $statmsg, $errmsg, $tagInfo = null)
 {
@@ -184,49 +185,9 @@ foreach ($tags as $t) {
         break;
 }
 
-// copy the new full set of tags for the game into the GAMES table
 if ($result) {
-
-    $result = mysqli_execute_query($db,
-        "select tag from gametags where gameid = ?", [$id]);
-
-    $tagList = [];
-    while ([$tag] = mysql_fetch_row($result)) {
-        $tagList[] = $tag;
-    }
-
-    if (count($tagList) != 0) {
-        $allTags = implode(",", $tagList);
-    } else {
-        $allTags = null;
-    }
-
-    $result = mysqli_execute_query($db,
-        "update games set tags = ? where id = ?", [$allTags, $id]);
-}
-
-// query the new counts
-$tagInfo = [];
-if ($result && $tagList) {
-
-    $questionMarks = implode(',', array_fill(0, count($tagList), '?'));
-    $result = mysqli_execute_query($db,
-        "select
-           tag,
-           cast(sum(gameid = ?) as int) as tagcnt,
-           count(distinct gameid) as gamecnt
-         from gametags
-         where tag in ($questionMarks)
-         group by tag
-         having tagcnt != 0", array_merge([$id], $tagList));
-
-    while ([$tag, $tagCnt, $gameCnt] = mysql_fetch_row($result)) {
-        $tagInfo[] = [
-            'name' => $tag,
-            'tagcnt' => $tagCnt,
-            'gamecnt' => $gameCnt,
-        ];
-    }
+    // copy the new full set of tags for the game into the GAMES table
+    [$result, $tagInfo] = updateGameTagsColumn($id);
 }
 
 // explain what happened

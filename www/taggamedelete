@@ -3,6 +3,7 @@
 include_once "util.php";
 include_once "login-check.php";
 include_once "dbconnect.php";
+include_once "tags.php";
 
 if ($_SERVER['REQUEST_METHOD'] != 'POST') {
     http_response_code(405);
@@ -39,8 +40,7 @@ if (!$adminPriv) {
 }
 
 // make sure the game is valid
-$qid = mysql_real_escape_string($id, $db);
-$result = mysql_query("select id from games where id = '$qid'", $db);
+$result = mysqli_execute_query($db, "select id from games where id = ?", [$id]);
 if (mysql_num_rows($result) == 0)
     send_action_response("Not Saved",
                          "This tag request refers to a non-existent game.");
@@ -56,64 +56,12 @@ foreach(($input_json['tags'] ?? []) as $tag) {
         $tags[] = $tag;
 }
 
-foreach ($tags as $t) {
-    $t = mysql_real_escape_string($t, $db);
-    $result = mysql_query("delete from gametags where gameid = '$qid' and tag ='$t'", $db);
+$questionMarks = implode(',', array_fill(0, count($tags), '?'));
+$result = mysqli_execute_query($db, "delete from gametags where gameid = ? and tag in ($questionMarks)", array_merge([$id], $tags));
 
-    if (!$result)
-        break;
-}
-
-
-
-
-// copy the new full set of tags for the game into the GAMES table
 if ($result) {
-
-    $result = mysql_query(
-        "select tag from gametags where gameid = '$qid'", $db);
-
-    for ($i = 0, $allTags = array(), $tagList = array(), $cnt = mysql_num_rows($result) ; $i < $cnt ; $i++) {
-        $curTag = mysql_result($result, $i, "tag");
-        $allTags[] = $curTag;
-        $tagList[] = "'" . mysql_real_escape_string($curTag, $db) . "'";
-    }
-
-    if (count($allTags) != 0) {
-        $allTags = implode(",", $allTags);
-        $allTags = '\'' . mysql_real_escape_string($allTags, $db) . '\'';
-        $tagList = implode(",", $tagList);
-    } else {
-        $allTags = "null";
-        $tagList = "";
-    }
-
-    $result = mysql_query(
-        "update games set tags = $allTags where id = '$qid'", $db);
-}
-
-
-// query the new counts
-$tagInfo = [];
-if ($result && $tagList) {
-
-    $result = mysql_query(
-        "select
-           tag,
-           sum(gameid = '$qid') as tagcnt,
-           count(distinct gameid) as gamecnt
-         from gametags
-         where tag in ($tagList)
-         group by tag
-         having tagcnt != 0", $db);
-
-    while ([$tag, $tagCnt, $gameCnt] = mysql_fetch_row($result)) {
-        $tagInfo[] = [
-            "name" => $tag,
-            "tagcnt" => $tagCnt,
-            "gamecnt" => $gameCnt,
-        ];
-    }
+    // copy the new full set of tags for the game into the GAMES table
+    [$result, $tagInfo] = updateGameTagsColumn($id);
 }
 
 // explain what happened
