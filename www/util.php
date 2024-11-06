@@ -529,7 +529,7 @@ function showStars($num)
     list($roundedNum, $starimg, $startxt) = roundStars($num);
 
     // return the image string
-    $result = "<span role='img' aria-label='$startxt out of 5'>";
+    $result = "<span role='img' class='nobr' aria-label='$startxt out of 5'>";
     for ($i = 1; $i <= $roundedNum; $i++) {
         $result .= "<img height=13 src='/img/star-checked.svg'>";
     }
