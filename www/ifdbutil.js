@@ -237,12 +237,13 @@ async function jsonSend(url, statusSpanID, cbFunc, content, silentMode)
     }
 
     let jsonResponse = null;
+    let msgspan = null;
     try {
         const response = await fetch(url, options);
         jsonResponse = await response.json();
-        const msgspan = (statusSpanID
-                       ? document.getElementById(statusSpanID)
-                       : null);
+        msgspan = (statusSpanID
+                ? document.getElementById(statusSpanID)
+                : null);
 
         if (!response || !response.ok)
             throw new Error();
@@ -254,7 +255,7 @@ async function jsonSend(url, statusSpanID, cbFunc, content, silentMode)
         }
 
         const errmsg = jsonResponse.error;
-        if (errmsg)
+        if (errmsg && !silentMode)
             alert(errmsg);
     } catch (e) {
         if (msgspan)
