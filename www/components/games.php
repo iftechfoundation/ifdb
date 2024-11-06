@@ -65,9 +65,9 @@ for ($idx = 0 ; $idx <= 5; $idx++)
         // summarize this game
         echo "<div class=\"new-game\">"
             . "<a $eager href=\"viewgame?id={$g['id']}\"><b><i>"
-            . output_encode(htmlspecialcharx($g['title']))
+            . htmlspecialcharx($g['title'])
             . "</i></b></a>, by "
-            . output_encode(htmlspecialcharx($g['author']));
+            . htmlspecialcharx($g['author']);
 
         if ($g['system']) echo " <div class=details>{$g['system']}</div>";
 

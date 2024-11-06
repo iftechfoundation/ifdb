@@ -388,9 +388,6 @@ if (!$errMsg) {
 
     $should_hide = ($flags & FLAG_SHOULD_HIDE);
 
-    // encode some items for output
-    $title = output_encode($title);
-    $desc = output_encode($desc);
 }
 
 // check for an explicit redirect from this TUID to another TUID
@@ -790,8 +787,8 @@ echo helpWinLink("help-ifid", "IFID");
                echo " based on the title:<ul>";
                foreach ($titleSearch as $t) {
                    $sid = $t['id'];
-                   $stitle = output_encode(htmlspecialcharx($t['title']));
-                   $sauthor = output_encode(htmlspecialcharx($t['author']));
+                   $stitle = htmlspecialcharx($t['title']);
+                   $sauthor = htmlspecialcharx($t['author']);
                    echo "<li><a href=\"viewgame?id=$sid\">$stitle</a>, "
                        . "by $sauthor";
                }
@@ -1107,9 +1104,9 @@ if (count($links) == 0 && $dlnotes == "") {
         $zipped = (strcasecmp(substr($url, -4), ".zip") == 0);
         $fmtisgame = $link['isgame'];
         $linktitle = zeroWidthSpaceUnderscores(
-            output_encode(htmlspecialcharx($link['title'])
+            htmlspecialcharx($link['title']
         ));
-        $linkdesc = output_encode(htmlspecialcharx($link['desc']));
+        $linkdesc = htmlspecialcharx($link['desc']);
         $fmtid = $link['fmtid'];
         $fmtexternid = $link['fmtexternid'];
         $fmtos = $link['osid'];
@@ -1419,7 +1416,7 @@ foreach ($authorList as $i => $au) {
 
     // quote the author's name for display and use in the search HREF
     $uau = urlencode($au);
-    $dau = output_encode(htmlspecialcharx($au));
+    $dau = htmlspecialcharx($au);
 
     // show the link
     echo "$conj<a href=\"search?searchfor=author%3A$uau\">$dau</a>$proLink";
@@ -2661,10 +2658,8 @@ function editTags()
     dispEditTags();
     const tagInputElem = document.getElementById('myTagFld');
     tagInputElem.focus();
-    fetch('/showtags?datalist=1').then(r=>r.ok ? r.arrayBuffer() : null).then(buffer => {
-        if (!buffer) return;
-        const decoder = new TextDecoder('iso-8859-1');
-        const text = decoder.decode(buffer);
+    fetch('/showtags?datalist=1').then(r=>r.ok ? r.text() : null).then(text => {
+        if (!text) return;
         const datalist = document.createElement('datalist');
         document.body.appendChild(datalist);
         datalist.outerHTML = text;
@@ -3010,8 +3005,8 @@ if (count($inrefs) != 0 && !$historyView) {
 
                     // format the data for display
                     $crid = mysql_real_escape_string($c['id'], $db);
-                    $crtitle = output_encode(htmlspecialcharx($c['title']));
-                    $crauthor = output_encode(htmlspecialcharx($c['author']));
+                    $crtitle = htmlspecialcharx($c['title']);
+                    $crauthor = htmlspecialcharx($c['author']);
                     $crdescInfo = summarizeHtml($c['desc'], 240);
                     $crdesc = fixDesc($crdescInfo[0]);
                     $crart = $c['hasart'];

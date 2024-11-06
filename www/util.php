@@ -60,24 +60,6 @@ function shoot_recommendation_cache()
     unset($_SESSION['ifdb_recommendations']);
 }
 
-// --------------------------------------------------------------------------
-// Encode for output.
-//
-// CURRENTLY, this does nothing, since we output in ISO-8859-1, just like
-// PHP's internal string representation.
-//
-// This function exists mainly so that we can change to UTF-8 or another
-// encoding more easily at some point in the future.  Many of the output
-// points where we display strings are covered by output_encode() calls -
-// we didn't catch them all, but we caught many of them, so changing to
-// another output character set would just involve doing the translation
-// here.
-//
-function output_encode($str)
-{
-    return $str;
-}
-
 // ------------------------------------------------------------------------
 //
 // Encode output for RSS.  We send RSS in UTF-8 format, so this converts
@@ -85,7 +67,7 @@ function output_encode($str)
 //
 function rss_encode($str)
 {
-    return iconv("ISO-8859-1", "UTF-8", $str);
+    return $str;
 }
 
 // ------------------------------------------------------------------------
@@ -159,7 +141,7 @@ function is_utf8($str)
 
 // ------------------------------------------------------------------------
 //
-// Given a UTF-8 string, substitute 8859-1 approximations for certain
+// Given a UTF-8 string, substitute ASCII approximations for certain
 // characters that we'd otherwise lose on translation.
 //
 function approx_utf8($str)
@@ -300,40 +282,6 @@ function get_req_data($id)
     // get the raw value from the posted data
     $val = (isset($_POST[$id]) && $_POST[$id]) ? $_POST[$id] :
            (isset($_REQUEST[$id]) ? $_REQUEST[$id] : "");
-
-    // Opera has a bug (at least, it looks like a bug to me) that we need
-    // to work around here.  If the form data contain certain extended
-    // characters, Opera will encode them as &#dddd; entities.  This is
-    // problematic because it *doesn't* encode ampersands the same way,
-    // so we can't be sure whether a &#dddd; sequence was originally a
-    // special character, or is that literal sequence typed in by the
-    // user.  As a workaround, we just flatly assume that all such
-    // sequences are Opera encodings, since it seems so unlikely that
-    // a user would type such a thing literally.  We only apply this for
-    // curly quotes.
-    if (is_opera()) {
-        $val = str_replace(
-            array('&#8220;', '&#8221;', '&#8216;', '&#8217;'),
-            array("\223", "\224", "\221", "\222"),
-            $val);
-    }
-
-    // if this looks like UTF-8, it probably came from javascript encoding;
-    // translate into 8859-1
-    //   [ Disabled for now - we've solved the problem another way, by
-    //     using our own custom encodeURIComponent()  substitute called
-    //     encodeURI8859() that we define in ifdbutil.js.  The problem we
-    //     were having was that encodeURIComponent() encodes 8-bit
-    //     characters in UTF-8, whereas we expect our URLs to be in
-    //     8859-1.  I don't fully trust is_utf() to be able to reliably
-    //     distinguish UTF-8 from 8859-1 in all cases, and I'm worried
-    //     about obscure side effects of changing this routine that
-    //     practically everyone calls.  So it seems much better to avoid
-    //     creating the problem in the first place.  The only place it
-    //     seemed to be coming from was our own javascript generated
-    //     URLs, and it was easy enough to fix those. ]
-//    if (is_utf8($val))
-//        $val = iconv("UTF-8", "ISO-8859-1//IGNORE", approx_utf8($val));
 
     // return the result
     return $val;
@@ -1285,7 +1233,7 @@ function fixDesc($desc, $specials = 0)
         $desc .= spoilerWarningScript();
 
     // return the result
-    return output_encode($desc);
+    return $desc;
 }
 
 // Translate a stacked close tag to the actual HTML close tag

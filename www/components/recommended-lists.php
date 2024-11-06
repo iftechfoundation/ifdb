@@ -36,8 +36,8 @@ for ($idx = 0 ; $idx <= 8; $idx++)
     // pull out the list record
     $itemcnt = $l['itemcnt'];
     $itemS = $itemcnt == 1 ? "" : "s";
-    $title = output_encode(htmlspecialcharx($l['title']));
-    $username = output_encode(htmlspecialcharx($l['username']));
+    $title = htmlspecialcharx($l['title']);
+    $username = htmlspecialcharx($l['username']);
 
     // show the image: user image if available, otherwise the
     // generic list icon

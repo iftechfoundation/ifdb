@@ -20,20 +20,9 @@ function scriptSrc($filename)
 function basePageHeader($title, $focusCtl, $extraOnLoad, $extraHead,
                         $ckbox, $bodyAttrs)
 {
-//<?xml version="1.0" encoding="iso-8859-1" ? >
-//<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-//  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-//<html xmlns="http://www.w3.org/1999/xhtml">
-
-// $$$ UTF8 encoding - NOT CURRENTLY ACTIVE:
-// iconv_set_encoding("output_encoding", "UTF-8");
-// NOTE: if changing to UTF-8, also change the <meta> below to set
-// the charset clause in the Content_Type parameter to UTF-8.
-
-// instead, use ISO-8859-1
-    ini_set("default_charset", "ISO-8859-1");
-    iconv_set_encoding("output_encoding", "ISO-8859-1");
-    iconv_set_encoding("input_encoding", "ISO-8859-1");
+    ini_set("default_charset", "utf-8");
+    iconv_set_encoding("output_encoding", "utf-8");
+    iconv_set_encoding("input_encoding", "utf-8");
 ?>
 <html lang="en">
 <head>
@@ -48,7 +37,7 @@ function basePageHeader($title, $focusCtl, $extraOnLoad, $extraHead,
          title="IFDB Search Plugin"
          href="<?php echo get_root_url() ?>plugins/ifdb-opensearchdesc.xml">
    <script src="<?php echo srcCacheBust('/ifdbutil.js')?>"></script>
-   <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+   <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
    <meta name="description" content="IFDB is a game catalog and recommendation engine for Interactive Fiction, also known as Text Adventures. IFDB is a collaborative, wiki-style community project.  Members can contribute game listings, reviews, recommendations, and more.">
    <title><?php echo $title ?></title>
    <?php echoStylesheetLink(); ?>
