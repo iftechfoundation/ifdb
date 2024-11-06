@@ -1,6 +1,5 @@
 <?php
 
-@session_start();
 include_once "util.php";
 include_once "pagetpl.php";
 include_once "login-check.php";
@@ -64,18 +63,15 @@ for ($i = 0, $tags = array() ; ; $i++) {
 $userid = checkPersistentLogin();
 
 $adminPriv = false;
-if ($curuser) {
-    $result = mysql_query(
-        "select `privileges` from users where id='$userid'", $db);
-    $adminPriv = (strpos($userprivs, "A") !== false);
+if ($userid) {
+    $result = mysqli_execute_query($db, "select privileges from users where privileges like '%A%' and id = ?", [$userid]);
+    $adminPriv = mysqli_fetch_row($result);
 }
 
-
-if (!$userid && !$xml && !logged_in(true) && !$adminPriv)
-    exit();
-
-if (!$userid)
-    sendResponse("Not Saved", "To tag a game, please log in.", false);
+if (!$adminPriv) {
+    http_response_code(403);
+    exit("Only administrators are allowed to delete tags.");
+}
 
 if (isEmpty($id))
     sendResponse(
