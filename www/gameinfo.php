@@ -198,22 +198,21 @@ function getGameInfo($db, $id, $curuser, $requestVersion, &$errMsg, &$errCode)
         $historyView = true;
     }
 
-    // massage the retrieved fields into our display formats
-    $title = htmlspecialcharx($rec["title"]);
+    $title = $rec["title"];
     $author = $rec["author"];
     $authorExt = $rec["authorExt"];
     $rawDesc = $rec["desc"];
     $desc = fixDesc($rawDesc);
     $published = $rec["published"];
     $version = $rec["version"];
-    $license = htmlspecialcharx($rec["license"]);
-    $language = htmlspecialcharx($rec["language"]);
-    $system = htmlspecialcharx($rec["system"]);
+    $license = $rec["license"];
+    $language = $rec["language"];
+    $system = $rec["system"];
     $hasart = !is_null($rec["hasart"]);
-    $genre = htmlspecialcharx($rec["genre"]);
-    $seriesname = htmlspecialcharx($rec["seriesname"]);
-    $seriesnum = htmlspecialcharx($rec["seriesnumber"]);
-    $forgiveness = htmlspecialcharx($rec["forgiveness"]);
+    $genre = $rec["genre"];
+    $seriesname = $rec["seriesname"];
+    $seriesnum = $rec["seriesnumber"];
+    $forgiveness = $rec["forgiveness"];
     $bafsid = $rec["bafsid"];
     $website = fixUrl($rec["website"]);
     $dlnotes = fixDesc($rec["downloadnotes"]);

@@ -385,6 +385,14 @@ if (!$errMsg) {
          $dlnotes, $extReviews, $extRevDisplayRank,
          $ratingHisto, $xrefs, $inrefs, $flags) =
              getGameInfo($db, $id, $curuser, $reqVersion, $errMsg, $errCode);
+    $title = htmlspecialchars($title);
+    $license = htmlspecialchars($license);
+    $language = htmlspecialchars($language);
+    $system = htmlspecialchars($system);
+    $genre = htmlspecialchars($genre);
+    $seriesname = htmlspecialchars($seriesname);
+    $seriesnum = htmlspecialchars($seriesnum);
+    $forgiveness = htmlspecialchars($forgiveness);
 
     $should_hide = ($flags & FLAG_SHOULD_HIDE);
 
