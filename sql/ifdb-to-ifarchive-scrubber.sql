@@ -1,6 +1,6 @@
 create database if not exists ifarchive;
 drop database ifarchive;
-create database ifarchive CHARACTER SET latin1 COLLATE latin1_german2_ci;
+create database ifarchive CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 use ifarchive;
 
 source ifdb.sql
