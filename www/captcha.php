@@ -326,7 +326,6 @@ function captchaFinish($sessionKey)
 //
 function captchaCheckPost($sessionKey)
 {
-    if (isLocalDev()) return array(true, false);
     if (isset($_POST["g-recaptcha-response"]))
     {
         $resp = recaptcha_check_answer(
