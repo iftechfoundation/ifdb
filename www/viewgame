@@ -1246,19 +1246,19 @@ function updateRating(rating)
 function updatePlayed(id, stat)
 {
     jsonSend("setplayed?game=<?php echo $id?>&played="
-             + (ckboxIsChecked("ckPlayed") ? "1" : "0"),
+             + (ckboxGetObj("ckPlayed").checked ? "1" : "0"),
              "ckPlaySaveMsg", (d) => {updatePlaylistCount(d.newCount);});
 }
 function updateWishList(id, stat)
 {
     jsonSend("setwishlist?game=<?php echo $id?>&add="
-             + (ckboxIsChecked("ckWishList") ? "1" : "0"),
+             + (ckboxGetObj("ckWishList").checked ? "1" : "0"),
              "ckWishlistSaveMsg", (d) => {updateWishlistCount(d.newCount)});
 }
 function updateUnwishList(id, stat)
 {
     jsonSend("setunwishlist?game=<?php echo $id?>&add="
-             + (ckboxIsChecked("ckUnwishList") ? "1" : "0"),
+             + (ckboxGetObj("ckUnwishList").checked ? "1" : "0"),
              "ckUnwishlistSaveMsg");
 }
 //-->
@@ -2509,23 +2509,12 @@ function dispTagTable(tableID, lst, editor, deleteTags)
         var cell = document.createElement("div");
         tbl.appendChild(cell);
         var s;
+        const ck = "tagCk" + i;
         if (editor) {
-
-            var ck = "tagCk" + i;
-
-
-            if (!deleteTags) {
-                s = "<span class=\"cklabel\" data-ck='"+i+"'>"
-                    + "<img align=absmiddle border=0 id=\"ckImg"+ck+"\"> "
-            } else {
-               s = "<span class=\"cklabel\" data-ck='"+i+"'>"
-                    + "<input type=image align=absmiddle border=0 id=\"ckImg"+ck+"\""
-                    + "src='img/delrow.gif' >";
-
-            }
-
-            s += "<span id=\"ckLbl"+ck+"\">" + t + "</span></span>&nbsp;<span class=details id=\"tagCnt"+i+"\">";
-
+            const deleteCls = deleteTags ? ' ckdelete' : '';
+            s = `<label class="cklabel" data-ck='${i}'>`
+                + `<input type="checkbox" class="ckbox${deleteCls}" id="ckBox${ck}"><div class="ckboxImg" aria-hidden="true"></div> `
+                + `<span>${t}</span></label>&nbsp;<span class=details id="tagCnt${i}">`;
         }
         else
             s = "<span class=details title=\"Search for games tagged with "
@@ -2555,25 +2544,19 @@ function dispTagTable(tableID, lst, editor, deleteTags)
         cell.innerHTML = s;
         cell.querySelectorAll('.cklabel').forEach(function (cklabel) {
             var ck = "tagCk" + cklabel.dataset.ck;
-            cklabel.addEventListener('mouseover', function (event) {
-                ckboxOver(ck, false);
-            });
-            cklabel.addEventListener('mouseout', function (event) {
-                ckboxLeave(ck, false);
-            });
-            cklabel.addEventListener('click', function (event) {
+            cklabel.addEventListener('change', function (event) {
                 event.preventDefault();
                 if (deleteTags) {
                     var tag = lst[cklabel.dataset.ck].tag;
                     deleteTag(tag);
                 } else {
-                    ckboxClick(ck, false, doTagCkBox);
+                    ckboxClick(ck, doTagCkBox);
                 }
             });
         })
 
         if (editor)
-            ckboxCheck(ck, false, m);
+            ckboxGetObj(ck).checked = m;
     }
     if (editor && lst.length == 0) {
         tbl.insertRow(0).insertCell(0).innerHTML =
