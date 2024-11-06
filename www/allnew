@@ -23,12 +23,16 @@ $firstOnPage = ($pg - 1) * PER_PAGE;
 $lastOnPage = $firstOnPage + PER_PAGE - 1;
 
 // query the items
-$items = getNewItems($db, $lastOnPage, $type);
+$items = getNewItems($db, $lastOnPage + 1, $type);
 $tot = count($items);
+
+$params = [];
+if ($showFlagged) $params['showFlagged'] = 1;
+if ($reviews) $params['reviews'] = "";
 
 // set up the page controls
 $pageCtl = "<span class=details>"
-           . makePageControl("allnew?" . ($showFlagged ? "showFlagged=1&" : ""), $pg, $pg + ($tot > PER_PAGE ? 1 : 0),
+           . makePageControl("allnew?" . http_build_query($params), $pg, $pg + ($tot > PER_PAGE ? 1 : 0),
                              $firstOnPage, $lastOnPage, -1,
                              false, false, false)
            . "</span>";
