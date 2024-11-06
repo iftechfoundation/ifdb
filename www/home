@@ -53,7 +53,7 @@ if ($debugflag) echo "debug mode enabled...<br>";
       <div class="block">
          <details id="welcome-details" <?= $welcomeOpen ? "open" : ""?>>
          <summary>
-            <div class="headline headline1"><span><span id="welcome-disclosure"></span> <h1 class='unset'>Welcome to IFDB!</h1></a></span>
+            <div class="headline headline1"><span><span id="welcome-disclosure"></span> <h1 class='unset'>Welcome to IFDB!</h1></span>
                <span class=headlineRss>
                   <?php
                   if ($adminPriv) {
@@ -104,6 +104,7 @@ if ($debugflag) echo "debug mode enabled...<br>";
                </form>
             </div>
          </div>
+         </details>
       </div>
 
       <?php include "components/check-inbox.php"?>
@@ -115,7 +116,7 @@ if ($debugflag) echo "debug mode enabled...<br>";
                   <span class=headlineRss>
                      <a href="allnew">All Updates</a> |
                      <a href="news">Site News</a>
-                     <span class='mobile-hidden'> | <a href="allnew-rss"><img src="img/blank.gif" class="rss-icon" alt="">RSS Feed</a>
+                     <span class='mobile-hidden'> | <a href="allnew-rss"><img src="img/blank.gif" class="rss-icon" alt="">RSS Feed</a></span>
                   </span>
             </div>
             <div>
@@ -134,7 +135,6 @@ if ($debugflag) echo "debug mode enabled...<br>";
                'enableImages' => false,
             ]);
             ?>
-            </div>
             </div>
          </div>
       </div>
@@ -193,6 +193,6 @@ if ($debugflag) echo "debug mode enabled...<br>";
             <p>IFDB was originally developed by <a href="https://www.tads.org/">Mike Roberts</a>.
          </div>
       </div>
-      <?php pageFooter()?>
    </div>
 </div>
+<?php pageFooter()?>

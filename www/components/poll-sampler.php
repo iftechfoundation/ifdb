@@ -69,16 +69,16 @@ echo "<div>New Polls: <span class='details'><a href='/search?browse&poll'>See Mo
 foreach ($recently_created as $row) {
     displayPoll($row);
 }
-echo "</p></div><div>Polls with Recent Votes: <span class='details'><a href='/search?browse&poll&sortby=newvote'>See More</a></span><p>\n";
+echo "<p></div><div>Polls with Recent Votes: <span class='details'><a href='/search?browse&poll&sortby=newvote'>See More</a></span><p>\n";
 foreach ($recently_voted as $row) {
     displayPoll($row);
 }
 
-echo "</p></div>\n<div class=\"details poll-sampler__create\">"
+echo "<p></div>\n<div class=\"details poll-sampler__create\">"
     . "<a href=\"search?browse&poll&sortby=votes\">Browse all polls</a> | "
     . "<a href=\"search?poll\">Search for polls</a> | "
     . helpWinLink("help-polls", "What are polls?")
-    . "</div></td></tr></table></div>";
+    . "</div></div>";
 
 //  ------------------------ end poll sampler box ---------------------------
 ?>

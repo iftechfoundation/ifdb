@@ -1107,7 +1107,7 @@ h1.unset {
 }
 
 #welcome-details[open] #welcome-disclosure::before {
-    content: '[-]';
+    content: '[−]';
 }
 
 #welcome-details:not([open]) #welcome-disclosure::before {
