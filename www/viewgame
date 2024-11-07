@@ -498,55 +498,70 @@ if (!$errMsg && isset($_REQUEST['rss'])) {
     exit();
 }
 
-// check for an iFiction request
-function xmlField($fld, $val)
+$json = isset($_REQUEST['json']);
+if (isset($_REQUEST['ifiction']) || $json)
 {
-    if ($val)
-        echo "<$fld>" . rss_encode(htmlspecialcharx($val)) . "</$fld>";
-}
-function xmlDescField($fld, $val)
-{
-    if ($val)
-        echo "<$fld>" . rss_encode(fixDesc($val, FixDescIfic)) . "</$fld>";
-}
-if (isset($_REQUEST['ifiction']))
-{
-    header("Content-Type: text/xml");
-    header("Expires: Mon, 26 Jul 1997 05:00:00 GMT");
-    header("Cache-Control: no-store, no-cache, must-revalidate");
-
-    echo "<?xml version=\"1.0\" encoding=\"UTF-8\"?>";
+    if (!$json) {
+        header("Content-Type: text/xml");
+        header("Expires: Mon, 26 Jul 1997 05:00:00 GMT");
+        header("Cache-Control: no-store, no-cache, must-revalidate");
+    }
 
     // if an error occurred, show the error
     if ($errMsg) {
-        echo "<viewgame xmlns=\"http://ifdb.org/api/xmlns\">";
-        xmlField("errorCode", $errCode);
-        xmlField("errorMessage", $errMsg);
-        echo "</viewgame>";
+        $error_fields = [
+            'errorCode' => $errCode,
+            'errorMessage' => $errMsg,
+        ];
+        if ($json) {
+            send_json_response($error_fields);
+        } else {
+            echo "<viewgame xmlns=\"http://ifdb.org/api/xmlns\">";
+            echo serialize_xml($error_fields);
+            echo "</viewgame>";
+        }
         exit();
     }
 
-    echo "<ifindex version=\"1.0\" "
-        .    "xmlns=\"http://babel.ifarchive.org/protocol/iFiction/\">"
-        . "<story>"
+    $identification = [];
+    $bibliographic = [];
+    $contacts = [];
+    $ifdb_section = [];
 
-        . "<colophon>"
-        .    "<generator>ifdb.org/viewgame</generator>"
-        .   "<generatorversion>1</generatorversion>"
-        .   "<originated>" . date("Y-m-d", strtotime($moddate2)) . "</originated>"
-        . "</colophon>"
+    $story_obj = [
+        'colophon' => [
+            'generator' => 'ifdb.org/viewgame',
+            'generatorversion' => 1,
+            'originated' => date('Y-m-d', strtotime($moddate2)),
+        ],
+        'identification' => &$identification,
+        'bibliographic' => &$bibliographic,
+        'contacts' => &$contacts,
+    ];
 
-        . "<identification>";
+    if ($json) {
+        $identification['ifids'] = $ifids;
+        if ($bafsid)
+            $identification['bafn'] = $bafsid;
 
-    foreach($ifids as $i)
-        echo xmlField("ifid", $i);
-    xmlField("bafn", $bafsid);
+        $story_obj['ifdb'] = &$ifdb_section;
+    } else {
+        foreach($ifids as $i)
+            $identification[] = ['ifid' => $i];
+        if ($bafsid)
+            $identification[] = ['bafn' => $bafsid];
+
+        $story_obj['ifdb'] = [
+            '_attrs' => ['xmlns' => 'http://ifdb.org/api/xmlns'],
+            '_contents' => &$ifdb_section,
+        ];
+    }
 
     // Figure the format.  This is actually a bit tricky, since we keep
     // different data from babel on this count.  First, try basing this
     // on the development system ID, since many development systems map
     // to specific output formats.
-    $formatMap = array(
+    $formatMap = [
         "TADS 2" => "tads2",
         "TADS 3" => "tads3",
         "Hugo" => "hugo",
@@ -556,7 +571,8 @@ if (isset($_REQUEST['ifiction']))
         "ADRIFT" => "adrift",
         "AdvSys" => "advsys",
         "Level 9" => "level9",
-        "Magnetic Scrolls" => "magscrolls");
+        "Magnetic Scrolls" => "magscrolls"
+    ];
     $format = false;
     if (isset($formatMap[$system])) {
         $format = $formatMap[$system];
@@ -567,7 +583,7 @@ if (isset($_REQUEST['ifiction']))
     // So, if we can find a story file among the downloads, we'll know the
     // babel format.
     if (!$format) {
-        $linkTypeMap = array(
+        $linkTypeMap = [
             "tads2" => "tads2",
             "tads3" => "tads3",
             "zcode" => "zcode",
@@ -580,7 +596,8 @@ if (isset($_REQUEST['ifiction']))
             "agt" => "agt",
             "adrift" => "adrift",
             "advsys" => "advsys",
-            "executable" => "executable");
+            "executable" => "executable"
+        ];
 
         foreach ($links as $l) {
             $xid = $l['fmtexternid'];
@@ -590,47 +607,48 @@ if (isset($_REQUEST['ifiction']))
             }
         }
     }
-    xmlField("format", $format);
 
-    echo "</identification>"
-        . "<bibliographic>";
+    if ($format) {
+        if ($json) {
+            $identification['format'] = $format;
+        } else {
+            $identification[] = ['format' => $format];
+        }
+    }
 
-    xmlField("title", $title);
-    xmlField("author", $author);
+    $bibliographic['title'] = $title;
+    $bibliographic['author'] = $author;
 
     // Pull out the language code from the language string, which
     // we've formatted as something like "English (en-US)".  If there
     // are no parens, we must not have found a name for the language,
     // so the whole language string is the identifier.
     if (preg_match("/\(([-a-z]+)\)$/i", $language, $match))
-        xmlField("language", $match[1]);
-    else
-        xmlField("language", $language);
+        $language = $match[1];
+    if ($language)
+        $bibliographic['language'] = $language;
 
-    xmlField("firstpublished",
-             $pubFull ? date("Y-m-d", strtotime($pubFull)) : $pubYear);
+    $firstpublished = $pubFull ? date("Y-m-d", strtotime($pubFull)) : $pubYear;
+    if ($firstpublished)
+        $bibliographic['firstpublished'] = $firstpublished;
 
-    xmlField("genre", $genre);
-    xmlDescField("description", $rawDesc);
-    xmlField("series", $seriesname);
-    xmlField("seriesnumber", $seriesnum);
-    xmlField("forgiveness", $forgiveness);
+    if ($genre)
+        $bibliographic['genre'] = $genre;
 
-    echo "</bibliographic>"
-        . "<contacts>";
+    $desc = fixDesc($rawDesc, $json ? 0 : FixDescIfic);
+    if ($desc)
+        $bibliographic['description'] = $desc;
 
-    xmlField("url", $website);
+    if ($website)
+        $contacts['url'] = $website;
 
-    echo "</contacts>";
-
-    echo "<ifdb xmlns=\"http://ifdb.org/api/xmlns\">";
-    xmlField("tuid", $id);
-    xmlField("pageversion", $pagevsn);
-    xmlField("link", get_root_url() . "viewgame?id=$id");
+    $ifdb_section['tuid'] = $id;
+    $ifdb_section['pageversion'] = $pagevsn;
+    $ifdb_section['link'] = get_root_url() . "viewgame?id=$id";
     if ($hasart) {
-        echo "<coverart>";
-        xmlField("url", get_root_url() . "coverart?id=$id&version=$pagevsn");
-        echo "</coverart>";
+        $ifdb_section['coverart'] = [
+            'url' => get_root_url() . "coverart?id=$id&version=$pagevsn",
+        ];
     }
     if ($links) {
         // load the translation table for the file formats
@@ -640,41 +658,51 @@ if (isset($_REQUEST['ifiction']))
         while ([$id, $ext] = mysql_fetch_row($result)) {
             $fmtMap[$id] = $ext;
         }
-        echo "<downloads><links>";
+        $links_section = [];
+        $ifdb_section['downloads'] = ['links' => &$links_section];
         foreach ($links as $l) {
-            echo "<link>";
-            xmlField("url", $l['url']);
-            if ($l['title']) xmlField("title", $l['title']);
-            if ($l['desc']) xmlField("desc", $l['desc']);
-            if ($l['isgame']) echo "<isGame/>";
-            if ($l['fmtexternid']) xmlField("format", $l['fmtexternid']);
+            $link_obj = [
+                'url' => $l['url'],
+            ];
+            if ($l['title']) $link_obj['title'] = $l['title'];
+            if ($l['desc']) $link_obj['desc'] = $l['desc'];
+            if ($l['isgame']) $link_obj['isGame'] = true;
+            if ($l['fmtexternid']) $link_obj['format'] = $l['fmtexternid'];
             if (isset($l['osext'])) {
                 if (isset($l['osvsn'])) {
-                    xmlField("os", $l['osext'] . "." . $l['osvsnext']);
+                    $link_obj['os'] = $l['osext'] . "." . $l['osvsnext'];
                 } else {
-                    xmlField("os", $l['osext'] . ".");
+                    $link_obj['os'] = $l['osext'] . ".";
                 }
             }
-            if ($l['compression']) xmlField("compression", $fmtMap[$l['compression']]);
-            if ($l['compressedprimary']) xmlField("compressedPrimary", $l['compressedprimary']);
-            echo "</link>";
+            if ($l['compression']) $link_obj['compression'] = $fmtMap[$l['compression']];
+            if ($l['compressedprimary']) $link_obj['compressedPrimary'] = $l['compressedprimary'];
+
+            if ($json) {
+                $links_section[] = $link_obj;
+            } else {
+                $links_section[] = ['link' => $link_obj];
+            }
         }
-        echo "</links></downloads>";
     }
     if (!$should_hide) {
-        xmlField("averageRating", $ratingAvg);
-        list($stars) = roundStars($ratingAvg);
-        xmlField("starRating", $stars);
-        xmlField("ratingCountAvg", $ratingCntAvg);
-        xmlField("ratingCountTot", $ratingCntTot);
+        $ifdb_section['averageRating'] = $ratingAvg;
+        [$stars] = roundStars($ratingAvg);
+        if ($stars) {
+            $ifdb_section['starRating'] = $stars;
+        }
+        $ifdb_section['ratingCountAvg'] = $ratingCntAvg;
+        $ifdb_section['ratingCountTot'] = $ratingCntTot;
     }
-    echo "</ifdb>";
 
-    // main end tags
-    echo "</story>"
-        . "</ifindex>";
-
-    // done
+    if ($json) {
+        send_json_response($story_obj);
+    } else {
+        echo "<ifindex version=\"1.0\" "
+            .    "xmlns=\"http://babel.ifarchive.org/protocol/iFiction/\">";
+        echo serialize_xml(['story' => $story_obj]);
+        echo '</ifindex>';
+    }
     exit();
 }
 
