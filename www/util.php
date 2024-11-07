@@ -2918,7 +2918,7 @@ function convertTimeToText($time) {
             $text .= "hours";
         }
         if ($m >= 1) {
-            $text .= " and";
+            $text .= " and ";
         }
     }
     if ($m >= 1) {
