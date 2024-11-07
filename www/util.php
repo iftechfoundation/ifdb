@@ -2895,6 +2895,44 @@ function collapsedAuthors($authors) {
     return $str;
 }
 
+//Convert total minutes of play time to hours and minutes for display
+function convertToHoursAndMinutes($total_minutes) {
+	$hours = floor($total_minutes/60);
+	$remaining_minutes = $total_minutes - ($hours * 60);
+	return (['hours' => $hours, 'minutes' => $remaining_minutes]);
+}
+
+
+// When we have a time in minutes, convert it into hours and minutes,
+// and then add the words "hours" and "minutes" as needed
+function convertTimeToText($time) {
+    $text="";
+    $hours_and_minutes=convertToHoursAndMinutes($time);
+    $h=$hours_and_minutes['hours'];
+    $m=$hours_and_minutes['minutes'];
+    if ($h >= 1) {
+        $text = $h . " ";
+        if ($h == 1) {
+            $text .= "hour";
+        } else {
+            $text .= "hours";
+        }
+        if ($m >= 1) {
+            $text .= " and";
+        }
+    }
+    if ($m >= 1) {
+        $text .= $m . " ";
+        if ($m == 1) {
+            $text .= " minute";
+        } else {
+            $text .= " minutes";
+        }
+    }
+    return $text;
+
+}
+
 // ----------------------------------------------------------------------------
 //
 // Sends a JSON response, used by the API
