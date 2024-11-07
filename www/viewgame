@@ -388,9 +388,6 @@ if (!$errMsg) {
     $title = htmlspecialchars($title);
     $license = htmlspecialchars($license);
     $language = htmlspecialchars($language);
-    $system = htmlspecialchars($system);
-    $genre = htmlspecialchars($genre);
-    $seriesname = htmlspecialchars($seriesname);
     $seriesnum = htmlspecialchars($seriesnum);
     $forgiveness = htmlspecialchars($forgiveness);
 
@@ -1440,8 +1437,8 @@ if (!isEmpty($seriesname)) {
         echo "Part of ";
     else
         echo "Episode $seriesnum of ";
-    echo "<a href=\"search?searchfor=series:" . urlencodeFromHTML($seriesname)
-        . "\">$seriesname</a><br>";
+    echo "<a href=\"search?searchfor=series:" . urlencode($seriesname)
+        . "\">".htmlspecialchars($seriesname)."</a><br>";
 }
                      ?>
                      <?php if (!isEmpty($pubYear)) echo "$pubYear<br>" ?>
@@ -1449,11 +1446,11 @@ if (!isEmpty($seriesname)) {
 if (!isEmpty($genre)) {
     $genres = explode(",", str_replace("/", ",", $genre));
     echo join(", ", array_map(
-        fn($genre) => "<a href=\"search?searchfor=genre:" . urlencodeFromHTML($genre) . "\">$genre</a>",
+        fn($genre) => "<a href=\"search?searchfor=genre:" . urlencode($genre) . "\">".htmlspecialchars($genre)."</a>",
         $genres)) . "<br>";
 }
                      ?>
-                     <?php if (!isEmpty($system)) echo "<div>$system</div>" ?>
+                     <?php if (!isEmpty($system)) echo "<div>".htmlspecialchars($system)."</div>" ?>
                      <?php
                         $showExternalLinksAnchor = count($links) && ($detailView || $historyView);
                         if (!isEmpty($website) || $showExternalLinksAnchor) {
@@ -2797,7 +2794,7 @@ dispTags();
                <?php if (!isEmpty($license))
                    echo "License: $license<br>" ?>
                <?php if (!isEmpty($system))
-                   echo "Development System: <a href=\"search?searchfor=system:" . urlencodeFromHTML($system) . "\">$system</a><br>" ?>
+                   echo "Development System: <a href=\"search?searchfor=system:" . urlencode($system) . "\">".htmlspecialchars($system)."</a><br>" ?>
                <?php if (!isEmpty($forgiveness))
                    echo helpWinLink("help-forgiveness", "Forgiveness Rating")
                        . ": $forgiveness<br>" ?>
