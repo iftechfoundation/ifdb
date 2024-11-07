@@ -195,7 +195,7 @@ function urlencodeFromHTML($str)
 function is_mobile()
 {
     // get the browser ID string
-    $b = $_SERVER['HTTP_USER_AGENT'];
+    $b = $_SERVER['HTTP_USER_AGENT'] ?? '';
 
     // check for the relevant strings
     return preg_match(
