@@ -269,3 +269,13 @@ async function jsonSend(url, statusSpanID, cbFunc, content, silentMode)
         cbFunc(jsonResponse);
     }
 }
+
+async function check_ifid_in_ifwiki(ifid) {
+    ifid = escape(ifid).toUpperCase();
+    try {
+        const response = await fetch(`https://www.ifwiki.org/api.php?action=query&format=json&prop=info&origin=*&titles=IFID:${ifid}`);
+        if (response.ok)
+            return (await response.json()).query.pages["-1"] === undefined;
+    } catch (e) {}
+    return false;
+}
