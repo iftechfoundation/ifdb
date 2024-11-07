@@ -2795,15 +2795,15 @@ dispTags();
                        . ": $forgiveness<br>" ?>
                <?php
                     if (count($ifids) > 0) {
-                        echo "<div id=\"ifwiki-link\" class=\"displayNone\"><a href=\"https://www.ifwiki.org/\">IF Wiki</a>: <a href=\"https://www.ifwiki.org/index.php?title=IFID:"
+                        echo "<div id=\"ifwiki-link\" class=\"displayNone\"><a href=\"https://www.ifwiki.org/\">IFWiki</a>: <a href=\"https://www.ifwiki.org/index.php?title=IFID:"
                             .htmlspecialcharx($ifids[0])."\">$title</a><br></div>";
                         $jifid = htmlspecialcharx(str_replace("\"", "&#34;", $ifids[0]));
                         if (!$cssOverride) {
                         ?>
-                        <script nonce="<?php global $nonce; echo $nonce; ?>">
-                            fetch("ifwiki-check?ifid=<?php echo $jifid ?>").then(r => { if (r.ok)
+                        <script type="module" nonce="<?php global $nonce; echo $nonce; ?>">
+                            if (await check_ifid_in_ifwiki("<?php echo $jifid ?>")) {
                                 document.getElementById("ifwiki-link").style.display = "initial";
-                            });
+                            }
                         </script>
                         <?php
                         }
