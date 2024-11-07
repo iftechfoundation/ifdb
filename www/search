@@ -1562,8 +1562,8 @@ else if ($term || $browse)
                 $id = $row['tag'];
 
                 // show the listing
-                echo "<p><h3 class=result><a class='$eagerness' href=\"search?searchfor=tag:$id\">"
-                    . "<b>$id</b></a></h3><br>";
+                echo "<p><h3 class=result><a class='$eagerness' href=\"search?searchfor=tag:".urlencode($id)."\">"
+                    . "<b>".htmlspecialchars($id)."</b></a></h3><br>";
 
                 break;
             }
