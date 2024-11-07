@@ -1352,7 +1352,7 @@ function updateUnwishList(id, stat)
         }
     // At this point $mystoredtime should reflect the player's actual stored time for this game
     $my_time_as_text = "";
-    $time_announcement = ""; // The string shown in the Game Length panel
+    $time_announcement = ""; // The string shown in the How Long Is Ths Game panel
     if ($mystoredtime >= 1) {
         $my_time_as_text=convertTimeToText($mystoredtime);
         $time_announcement = "Your vote: " . $my_time_as_text;
@@ -1363,10 +1363,10 @@ function updateUnwishList(id, stat)
 //-----------------------Game Length Panel Begins----------------------------
         echo "<div class=indented>";
         echo "<div id='gameLengthPanel' class='viewgame__playedSection'>"
-        . "<span id=\"gameLengthCaption\"><b>Game length:</b></span>";
+        . "<span id=\"gameLengthCaption\"><b>How long is this game?</b></span>";
 
         echo "<div id='submitTimeSection'>"
-        . "<span id='howLong'>Vote on long it takes to finish this game.</span><br>"
+        . "<span id='howLong'>Vote on how long it takes to finish this game.</span><br>"
         . "<details><summary>Tips</summary>"
         . "<ul>"
         . "<li>Vote only if you've played the game.</li>"
@@ -1393,7 +1393,7 @@ function updateUnwishList(id, stat)
 	    . "</div>";
 
 
-// ---------------------Javascript for the Game Length Panel---------------------
+// -------------------Javascript for the How Long is This Game Panel---------------------
 ?>
 
 <script type="text/JavaScript" nonce="<?php global $nonce; echo $nonce; ?>">
@@ -1917,9 +1917,12 @@ if ($ratingCntTot == 0 && $memberReviewCnt == 0) {
             . "$ratingCntAvg rating" . ($ratingCntAvg != 1 ? "s" : "")
             . "</a>)<br>";
     }
-// &&&&&&&&&&&&&&&&&&&&&&&&&&& Move the new times stuff here
 
-//******find median function starts here
+echo "</p>";
+
+// --------------------PHP Functions for Displaying Median Play Time--------------------------
+
+// Find the median of the numbers in an array
 function findMedian($array_input) {
        if(is_array($array_input)) {
            // Sort the entries in the array
@@ -1942,9 +1945,7 @@ function findMedian($array_input) {
        }    
    }
 
-// **** Find Median Function Ends Here
-
-//***** Query for Times sectionbegins here */
+// Get all of the estimated play times for this game, and put them in an array
 $result = mysqli_execute_query($db, "select time_in_minutes from playertimes where gameid = ?", [$id]);
 if (!$result) throw new Exception("Error: " . mysqli_error($db));
 $alltimes= array();
@@ -1953,7 +1954,8 @@ while ($row = mysqli_fetch_assoc($result)) {
     $alltimes[]=$time;
   }
 
-echo "</p>";
+
+// Find the median play time for this game, and round the minutes if necessary
 $estimated_hours = 0;
 $estimated_minutes = 0;
 $mediantime=findMedian($alltimes);
@@ -1970,28 +1972,31 @@ if ($median_minutes != 0) {
     }
 }
 
-//******Query for Times section ends here */
-
-    //If there is an estimated play time, display it
+    // If there is an estimated play time, display it
     if (($estimated_hours >= 1) or ($estimated_minutes >= 1)) {
-            echo "<span class=details><details><summary>";
+            echo "<span class=details>";
+            echo "<details><summary>Estimated play time: ";
             if ($estimated_hours >= 1) {
                 echo $estimated_hours . " hours ";
+                if ($estimated_minutes >= 1) {
+                    echo "and ";
+                }
             }
             if ($estimated_minutes >= 1) {
                 echo $estimated_minutes . " minutes ";
              }
             echo "(based on " . count($alltimes) . " votes)</span></summary><br>";
-            echo "[Votes: ";
+            echo "<strong>Votes:</strong> ";
+            echo "<ul>";
             foreach ($alltimes as $t) {
-                echo " " .$t . " minutes.";
+                $t = convertTimeToText($t);
+                echo "<li>$t</li>";
             }
-            echo " Median: " . $mediantime . " minutes]<br>";
-            echo "<br><br></details>";
-
+            echo "</ul></details>";
         }
 
-// &&&&&&&&&&&&&&&&&&&&&&&&&&& Finish new times stuff
+//--------------------Code for Estimated Median Time Ends Here-----------------
+
     if ($memberReviewCnt != 0) {
         $href = ($memberReviewCnt > $reviewsOnHomePage)
                 ? "viewgame?id=$id&reviews" : "#memberReviews";
