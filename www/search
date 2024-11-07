@@ -986,7 +986,8 @@ if ($api_mode) {
         "list" => "lists",
         "poll" => "polls",
         "comp" => "competitions",
-        "member" => "members"
+        "member" => "members",
+        "tag" => "tags",
     ];
     $group_item_names = [
         'comp' => 'competition',
@@ -1103,7 +1104,10 @@ if ($api_mode) {
 
         case "tag":
             $id = $row['tag'];
-            $link = htmlspecialcharx(get_root_url() . "search?searchfor=tag:$id");
+            $item = [
+                'id' => $id,
+                'link' => get_root_url() . "search?searchfor=tag:" . urlencode($id),
+            ];
             break;
 
         default:
