@@ -966,14 +966,14 @@ foreach ($links as $link)
 
     // if this is the first Parchment-capable link, and it's not compressed,
     // note it so that we can set up a Parchment play link to it
-    if ($link['fmtexternid'] == 'zcode'
-            || $link['fmtexternid'] == 'blorb/zcode'
-            || $link['fmtexternid'] == 'glulx'
-            || $link['fmtexternid'] == 'blorb/glulx'
-            || $link['fmtexternid'] == 'tads2'
-            || $link['fmtexternid'] == 'tads3'
-            || $link['fmtexternid'] == 'hugo'
-        )
+    if (in_array($link['fmtexternid'], [
+        'zcode',
+        'blorb/zcode',
+        'glulx',
+        'blorb/glulx',
+        'tads2',
+        'tads3',
+        'hugo']))
     {
         if (!$link['compression']) {
             $foundPC = true;
@@ -986,12 +986,12 @@ foreach ($links as $link)
         }
     }
 
-    if ($link['fmtexternid'] == 'adrift'
-            || $link['fmtexternid'] == 'adrift38'
-            || $link['fmtexternid'] == 'adrift39'
-            || $link['fmtexternid'] == 'adrift5'
-            || $link['fmtexternid'] == 'adrift5/blorb'
-        )
+    if (in_array($link['fmtexternid'], [
+        'adrift',
+        'adrift38',
+        'adrift39',
+        'adrift5',
+        'adrift5/blorb']))
     {
         if (!$link['compression']) {
             $foundAdrift = true;
