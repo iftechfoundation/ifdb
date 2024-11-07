@@ -155,19 +155,11 @@ function approx_utf8($str)
 
 // ------------------------------------------------------------------------
 //
-// htmlspecialchars() replacement.  This converts everything that
-// the standard htmlspecialchars() does, *except* that it leaves
-// &#nnnn; sequences intact.  Since we don't store Unicode directly,
-// this provides a rudimentary way of storing these characters.
+// htmlspecialchars() replacement. TODO delete
 //
 function htmlspecialcharx($str)
 {
-    // first do the ampersands
-    $str = preg_replace("/&(?!#[0-9]{1,7};)/", "&amp;", $str);
-
-    // now do the rest of the characters and return the result
-    return str_replace(
-        array('"', '<', '>'), array('&quot;', '&lt;', '&gt;'), $str);
+    return htmlspecialchars($str);
 }
 
 // sometimes we want to display long file names containing underscores
@@ -1130,9 +1122,9 @@ function fixDesc($desc, $specials = 0)
             break;
 
         case '&':
-            // if it's &lt;, &gt;, &#xxxxx;, &quot; or &amp;, leave it;
+            // if it's &lt;, &gt;, &quot; or &amp;, leave it;
             // otherwise convert the & to &amp;
-            $therest = substr($desc, $ofs + 1, 8);
+            $therest = substr($desc, $ofs + 1, 5);
             if (strncasecmp($therest, "lt;", 3) == 0
                 || strncasecmp($therest, "gt;", 3) == 0) {
                 $ofs += 3;
@@ -1140,10 +1132,6 @@ function fixDesc($desc, $specials = 0)
                 $ofs += 4;
             } else if (strncasecmp($desc, "quot;", 5) == 0) {
                 $ofs += 5;
-            } else if (preg_match("/^#[0-9]{1,7};/", $therest, $matches)) {
-                $ofs += strlen($matches[0]);
-            } else if (preg_match("/^#[xX][0-9A-Fa-f]{1,6};/", $therest, $matches)) {
-                $ofs += strlen($matches[0]);
             } else {
                 // not recognized - make it an explicit &amp;
                 $desc = substr_replace($desc, "&amp;", $ofs, 1);
@@ -1361,13 +1349,12 @@ function summarizeHtml($str, $maxlen)
             }
             else if ($c == '&')
             {
-                // if it's &lt;, &gt;, or &amp;, it's an entity
-                $entTxt = substr($str, $ofs + 1, 7);
+                // if it's &lt;, &gt;, &quot; or &amp;, it's an entity
+                $entTxt = substr($str, $ofs + 1, 5);
                 if (strncasecmp($entTxt, "lt;", 3) == 0
                     || strncasecmp($entTxt, "gt;", 3) == 0
                     || strncasecmp($entTxt, "amp;", 4) == 0
-                    || strncasecmp($entTxt, "quot;", 5) == 0
-                    || preg_match("/^#[0-9]{1,7};/", $entTxt)) {
+                    || strncasecmp($entTxt, "quot;", 5) == 0) {
 
                     // it's an entity markup, not an ordinary character
                     $inEnt = true;
