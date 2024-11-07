@@ -1341,14 +1341,14 @@ function updateUnwishList(id, stat)
 //-----------PHP for the Game Length Panel----------------------
 
 
-    // Check the database to see if the user has a "timevote" stored for this game.
+    // Check the database to see if the user has a "time_in_minutes" vote stored for this game.
     // If one exists, return the stored time in minutes. If not, return 0.
     $mystoredtime=0;
 
-    $result = mysqli_execute_query($db, "select timevote from playertimes where gameid = ? and userid = ?", [$id, $curuser]);
+    $result = mysqli_execute_query($db, "select time_in_minutes from playertimes where gameid = ? and userid = ?", [$id, $curuser]);
     if (!$result) throw new Exception("Error: " . mysqli_error($db));
         while ($row = mysqli_fetch_assoc($result)) {     // There should only be one row, at most
-            $mystoredtime = $row['timevote']; 
+            $mystoredtime = $row['time_in_minutes']; 
         }
     // At this point $mystoredtime should reflect the player's actual stored time for this game
     $my_time_as_text = "";
@@ -1945,11 +1945,11 @@ function findMedian($array_input) {
 // **** Find Median Function Ends Here
 
 //***** Query for Times sectionbegins here */
-$result = mysqli_execute_query($db, "select timevote from playertimes where gameid = ?", [$id]);
+$result = mysqli_execute_query($db, "select time_in_minutes from playertimes where gameid = ?", [$id]);
 if (!$result) throw new Exception("Error: " . mysqli_error($db));
 $alltimes= array();
 while ($row = mysqli_fetch_assoc($result)) {
-    $time=$row['timevote'];
+    $time=$row['time_in_minutes'];
     $alltimes[]=$time;
   }
 
