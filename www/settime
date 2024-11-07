@@ -70,13 +70,13 @@ if (mysql_num_rows($result) == 0)
 $result = mysql_query("lock tables playertimes write", $db);
 if ($result) {
     $result = mysql_query(
-        "select id, timevote from playertimes
+        "select id, time_in_minutes from playertimes
          where gameid='$qgame' and userid='$userid'", $db);
 }
 if ($result && mysql_num_rows($result)) {
     // get the ID of the existing record
     $rid = mysql_result($result, 0, "id");
-    $oldtime = mysql_result($result, 0, "timevote");
+    $oldtime = mysql_result($result, 0, "time_in_minutes");
 } else {
     $rid = false;
     $oldtime = false;
@@ -100,14 +100,14 @@ if ($newtime == 0 && $rid) {
 } else if ($rid) {
     // there's an existing time record, and the new time is not 0, so update the record
     $result = mysql_query(
-        "update playertimes set timevote = '$newtime' where id='$rid'", $db);
+        "update playertimes set time_in_minutes = '$newtime' where id='$rid'", $db);
     if (!$result) error_log(mysql_error($db));
     $ok = "Your time has been updated.";
 
 } else if ($newtime != 0) {
     // there's no time there yet for this user, so insert a new one
     $result = mysql_query(
-        "insert into playertimes (gameid, userid, timevote)
+        "insert into playertimes (gameid, userid, time_in_minutes)
          values ('$qgame', '$userid', '$newtime')", $db);
     $ok = "Your time has been saved.";
 } else {
