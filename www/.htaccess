@@ -52,6 +52,9 @@ RewriteRule ^index$ home [L]
 RewriteRule ^index\.htm$ home [L]
 RewriteRule ^index\.html$ home [L]
 
+RewriteRule ^api/$ /api/index [END]
+RewriteRule ^api/index$ /api/ [L,R=301]
+
 RewriteRule ^dla-zoom/([a-z0-9]+)/[^/]+\.signpost$ /dladviser?id=$1&xml&os=MacOSX [L]
 
 RewriteRule ^users/([a-z0-9]+)/(.+)$ /userfile?u=$1&f=$2 [L]

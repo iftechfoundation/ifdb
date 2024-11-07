@@ -2,67 +2,45 @@
 
 include_once "session-start.php";
 include_once "util.php";
-include_once "pagetpl.php";
 include_once "login-check.php";
+include_once "dbconnect.php";
 
-function sendResponse($statmsg, $errmsg, $detail)
-{
-    global $xml;
-
-    if ($xml)
-    {
-        header("Content-Type: text/xml");
-        header("Expires: Mon, 26 Jul 1997 05:00:00 GMT");
-        header("Cache-Control: no-store, no-cache, must-revalidate");
-
-        echo "<?xml version=\"1.0\" encoding=\"UTF-8\" ?><response>"
-            . ($statmsg ? "<label>$statmsg</label>" : "")
-            . ($errmsg ? "<error>$errmsg</error>" : "")
-            . "</response>";
-    }
-    else
-    {
-        smallPageHeader("Review Vote");
-        if ($errmsg)
-            echo "<span class=errmsg>$errmsg</span><p>";
-
-        echo $detail;
-        smallPageFooter();
-    }
-
+if ($_SERVER['REQUEST_METHOD'] != 'POST') {
+    http_response_code(405);
+    echo "405 Method Not Allowed";
     exit();
 }
 
 // connect to the database
-include_once "dbconnect.php";
 $db = dbConnect();
 if ($db == false)
-    sendResponse("Not Saved", "An error occurred connecting to the database. "
-                 . "Please try again later.", false);
+    send_action_response("Not Saved", "An error occurred connecting to the database. "
+                         . "Please try again later.");
 
 // get the request parameters
 $id = $_REQUEST['id'];
 $vote = $_REQUEST['vote'];
-$xml = isset($_REQUEST['xml']);
 
 // make sure we process any persistent login state
 $userid = checkPersistentLogin();
-if (!$userid && !$xml && !logged_in(true))
+if (!$userid && !logged_in(true)) {
+    http_response_code(401);
+    echo "401 Unauthorized";
     exit();
+}
 
 if (!$userid)
-    sendResponse("Not Saved", "To vote on a review, please log in.", false);
+    send_action_response("Not Saved", "To vote on a review, please log in.");
 
 if (isEmpty($id) || isEmpty($vote) || strstr("YNR", $vote) == false)
-    sendResponse("Not Saved", "This voting link is not valid.", false);
+    send_action_response("Not Saved", "This voting link is not valid.");
 
 // make sure the game is valid
 $qid = mysql_real_escape_string($id, $db);
 $result = mysql_query("select id from reviews where id = '$qid'", $db);
 if (mysql_num_rows($result) == 0)
-    sendResponse("Not Saved",
-                 "This voting link refers to a non-existent review.",
-                 false);
+    send_action_response("Not Saved",
+                         "This voting link refers to a non-existent review.");
 
 // check for any past review for the same game by the same user
 $result = mysql_query("select vote from reviewvotes
@@ -82,26 +60,13 @@ if (strstr("YN", $vote)) {
 
     // explain what happened
     if ($result) {
-        sendResponse("Vote Recorded - Thanks!", false,
-                     "Thanks for voting! Your vote has been recorded."
-                     . (!isEmpty($oldvote)
-                        ? "<p>This replaces your previous vote for this review. "
-                        . "(Everyone gets one vote, so this doesn't count as an "
-                        . "extra vote, but you <i>can</i> switch your vote at any "
-                        . "time.)"
-                        : ""));
+        send_action_response("Vote Recorded - Thanks!");
     } else {
-        sendResponse("Not Saved", "An error occurred updating the database. "
-                     . "Please try again later.", false);
+        send_action_response("Not Saved", "An error occurred updating the database. "
+                     . "Please try again later.");
     }
 } else {
-// Reset Vote result
-    sendResponse("Vote Removed - Thanks!", false,
-                 "Thanks for voting! Your vote has been removed.", false);
-
+    // Reset Vote result
+    send_action_response("Vote Removed - Thanks!");
 }
-
-
-
-smallPageFooter();
 ?>

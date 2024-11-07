@@ -136,6 +136,9 @@ function getGameInfo($db, $id, $curuser, $requestVersion, &$errMsg, &$errCode)
     $rec["extreviews"] = $extrevs;
     $rec["xrefs"] = $xrefs;
 
+    // Copy the modification date before replacing it for the requested version
+    $rec["moddatelatest"] = $rec["moddate2"];
+
     // if we want to go back in time, apply the history
     $historyView = false;
     if ($requestVersion && (int)$requestVersion != $rec['pagevsn']) {
@@ -217,6 +220,7 @@ function getGameInfo($db, $id, $curuser, $requestVersion, &$errMsg, &$errCode)
     $editedbyid = $rec["editedby"];
     $moddate = $rec["moddate"];
     $moddate2 = $rec["moddate2"];
+    $moddatelatest = $rec["moddatelatest"];
     $pagevsn = $rec["pagevsn"];
     $ifids = $rec["ifids"];
     $links = $rec["links"];
@@ -420,6 +424,7 @@ function getGameInfo($db, $id, $curuser, $requestVersion, &$errMsg, &$errCode)
                  $ratingAvgCnt, $ratingTotCnt, $ratingAvg, $memberReviewCnt,
                  $currentUserRating, $currentUserReview,
                  $editedbyid, $editedbyname, $moddate, $moddate2, $pagevsn,
+                 $moddatelatest,
                  $historyView,
                  $dlnotes, $extReviews, $extRevDisplayRank,
                  $ratingHisto, $xrefs, $inrefs, $flags);

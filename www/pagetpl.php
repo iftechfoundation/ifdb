@@ -20,20 +20,9 @@ function scriptSrc($filename)
 function basePageHeader($title, $focusCtl, $extraOnLoad, $extraHead,
                         $ckbox, $bodyAttrs)
 {
-//<?xml version="1.0" encoding="iso-8859-1" ? >
-//<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-//  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-//<html xmlns="http://www.w3.org/1999/xhtml">
-
-// $$$ UTF8 encoding - NOT CURRENTLY ACTIVE:
-// iconv_set_encoding("output_encoding", "UTF-8");
-// NOTE: if changing to UTF-8, also change the <meta> below to set
-// the charset clause in the Content_Type parameter to UTF-8.
-
-// instead, use ISO-8859-1
-    ini_set("default_charset", "ISO-8859-1");
-    iconv_set_encoding("output_encoding", "ISO-8859-1");
-    iconv_set_encoding("input_encoding", "ISO-8859-1");
+    ini_set("default_charset", "utf-8");
+    iconv_set_encoding("output_encoding", "utf-8");
+    iconv_set_encoding("input_encoding", "utf-8");
 ?>
 <html lang="en">
 <head>
@@ -48,7 +37,7 @@ function basePageHeader($title, $focusCtl, $extraOnLoad, $extraHead,
          title="IFDB Search Plugin"
          href="<?php echo get_root_url() ?>plugins/ifdb-opensearchdesc.xml">
    <script src="<?php echo srcCacheBust('/ifdbutil.js')?>"></script>
-   <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+   <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
    <meta name="description" content="IFDB is a game catalog and recommendation engine for Interactive Fiction, also known as Text Adventures. IFDB is a collaborative, wiki-style community project.  Members can contribute game listings, reviews, recommendations, and more.">
    <title><?php echo $title ?></title>
    <?php echoStylesheetLink(); ?>
@@ -181,7 +170,8 @@ function pageFooter()
 <a class="nav" id="footer-coc" href="/code-of-conduct">Code of Conduct</a> |
 <a class="nav" id="footer-tos" href="/tos">Terms of Service</a> |
 <a class="nav" id="footer-privacy" href="/privacy">Privacy</a> |
-<a class="nav" id="footer-copyright" href="/copyright">Copyrights &amp; Trademarks</a>
+<a class="nav" id="footer-copyright" href="/copyright">Copyrights &amp; Trademarks</a> |
+<a class="nav" id="footer-api" href="/api/">API</a>
 <div class="iftf-donation">
     <div>
         <a href="http://iftechfoundation.org/"><img class="iftf invert" alt="Interactive Fiction technology Foundation" src="/img/iftf-logo.svg"></a>
@@ -263,71 +253,16 @@ function ckboxSetup()
 <script type="text/javascript" nonce="<?php global $nonce; echo $nonce; ?>">
 <!--
 
-var ckboxStatus = [];
 function ckboxGetObj(id)
 {
-    var stat = ckboxStatus[id];
-    if (stat == null)
-    {
-        var img = document.getElementById('ckImg' + id);
-        ckboxStatus[id] = stat = new Object();
-        stat.checked = (img.className == "ckbox-checked"
-                        || img.className == "radio-checked");
-    }
-    return stat;
-}
-function ckboxGetLabel(id) { return document.getElementById('ckLbl' + id); }
-function ckboxGetImage(id) { return document.getElementById('ckImg' + id); }
-
-function ckboxCheck(id, isRadio, checked)
-{
-    var img = ckboxGetImage(id);
-    var stat = ckboxGetObj(id);
-    stat.checked = checked;
-    img.className = (isRadio
-               ? (checked ? "radio-checked" : "radio-unchecked")
-               : (checked ? "ckbox-checked" : "ckbox-unchecked"));
-}
-function ckboxIsChecked(id)
-{
-    var stat = ckboxGetObj(id);
-    return stat.checked;
-}
-function ckboxOver(id, isRadio)
-{
-    var img = ckboxGetImage(id);
-    var lbl = ckboxGetLabel(id);
-    var stat = ckboxGetObj(id);
-    img.className = (isRadio ? "radio-hovering" : "ckbox-hovering");
-    lbl.style.textDecoration = "underline";
-}
-function ckboxLeave(id, isRadio)
-{
-    var img = ckboxGetImage(id);
-    var lbl = ckboxGetLabel(id);
-    var stat = ckboxGetObj(id);
-    img.className = (isRadio
-                     ? (stat.checked ? "radio-checked" : "radio-unchecked")
-                     : (stat.checked ? "ckbox-checked" : "ckbox-unchecked"));
-    lbl.style.textDecoration = "none";
+    return document.getElementById('ckBox' + id);
 }
 
-var ckboxReq, ckboxReqID;
-function ckboxClick(id, isRadio, onUpdateFunc)
+function ckboxClick(id, onUpdateFunc)
 {
-    var stat = ckboxGetObj(id);
-    var newchecked = (isRadio ? true : !stat.checked);
-    if (isRadio && stat.checked)
-        return;
-    ckboxCheck(id, isRadio, newchecked);
+    const elem = ckboxGetObj(id);
     if (onUpdateFunc)
-        onUpdateFunc(id, newchecked);
-}
-function ckboxKey(id, event, isRadio, onUpdateFunc)
-{
-    var ch = (window.event || event.keyCode ? event.keyCode : event.which);
-    if (ch == 32)
-        ckboxClick(id, isRadio, onUpdateFunc);
+        onUpdateFunc(id, elem.checked);
 }
 //-->
 </script>
@@ -338,6 +273,16 @@ function ckboxKey(id, event, isRadio, onUpdateFunc)
 function addEventListener($event, $code) {
     global $nonce;
     return "<script nonce='$nonce'>\n" .
+        "document.currentScript.parentElement.addEventListener('$event', function (event) {\n" .
+        "var result = (function(){ $code }).apply(event.target);\nif (result === false) event.preventDefault();" .
+        "\n});\n" .
+        "</script>";
+}
+
+function addCheckboxEventListener($event, $code) {
+    global $nonce;
+    return "<script nonce='$nonce'>\n" .
+        "document.currentScript.parentElement.querySelector('a')?.removeAttribute('href');\n" .
         "document.currentScript.parentElement.addEventListener('$event', function (event) {\n" .
         "var result = (function(){ $code }).apply(event.target);\nif (result === false) event.preventDefault();" .
         "\n});\n" .
@@ -359,34 +304,14 @@ function addSiblingEventListeners($listeners) {
 // --------------------------------------------------------------------------
 // Generate a checkbox
 //
-function ckRbString($id, $label, $checked, $onUpdateFunc, $isRadio)
-{
-    $label = htmlspecialcharx($label);
-    echo "<span class=\"cklabel\" >"
-        . addEventListener("mouseover", "ckboxOver('$id', $isRadio);")
-        . addEventListener("mouseout", "ckboxLeave('$id', $isRadio);")
-        . addEventListener("click", "ckboxClick('$id', $isRadio, $onUpdateFunc); return false")
-        . "<img src=\"/img/blank.gif\" class=\""
-        . ($isRadio
-           ? ($checked ? "radio-checked" : "radio-unchecked")
-           : ($checked ? "ckbox-checked" : "ckbox-unchecked"))
-        . "\" id=\"ckImg$id\"> "
-        . "<span id=\"ckLbl$id\"><a class=silent href=\"needjs\">"
-        . addEventListener("keypress", "ckboxKey('$id', event, $isRadio, $onUpdateFunc); return false")
-        . "$label</a></span>"
-        . "</span>";
-}
-function ckRbWrite($id, $label, $checked, $onUpdateFunc, $isRadio)
-{
-    ckRbString($id, $label, $checked, $onUpdateFunc, $isRadio);
-}
 function checkboxWrite($id, $label, $checked, $onUpdateFunc)
 {
-    ckRbWrite($id, $label, $checked, $onUpdateFunc, 0);
-}
-function radioBtnWrite($id, $label, $checked, $onUpdateFunc)
-{
-    ckRbWrite($id, $label, $checked, $onUpdateFunc, 1);
+    $label = htmlspecialcharx($label);
+    echo "<label class=\"cklabel\">"
+        . "<input type=\"checkbox\" class=\"ckbox\" id=\"ckBox$id\"" . ($checked ? " checked" : "") . "><div class=\"ckboxImg\" aria-hidden=\"true\"></div> "
+        . "<span><a class=silent href=\"needjs\">$label</a></span>"
+        . addCheckboxEventListener("change", "ckboxClick('$id', $onUpdateFunc); return false")
+        . "</label>";
 }
 
 ?>

@@ -170,25 +170,19 @@ function aplClose()
     document.getElementById("aplStep2").style.display = "none";
     document.getElementById("aplDiv").style.display = "none";
 }
-function aplPopupKey(event)
-{
-    var ch = (window.event || event.keyCode ? event.keyCode : event.which);
-    if (ch == 13 || ch == 10) {
-        aplSearch();
-        return false;
-    }
-    if (ch == 27) {
-        aplClose();
-        return false;
-    }
-    return true;
-}
-function aplSearch()
+async function aplSearch()
 {
     document.getElementById("aplStep2").style.display = "none";
-    xmlSend("search?xml&member&searchfor="
-            + encodeURI8859(document.getElementById("aplSearchBox").value),
-            null, aplSearchDone, null);
+    try {
+        const response = await fetch("search?json&member&searchfor="
+                + encodeURI8859(document.getElementById("aplSearchBox").value));
+        if (!response.ok) {
+            throw new Error("Failed fetching the profiles.");
+        }
+        aplSearchDone(await response.json());
+    } catch (e) {
+        alert("Error: " + e.message);
+    }
 }
 function aplInsertID(id)
 {
@@ -205,15 +199,12 @@ function aplSearchDone(d)
 {
     if (d)
     {
-        var lst = d.getElementsByTagName('member');
         var s = "";
-        for (var i = 0 ; i < lst.length ; i++)
+        for (const m of d.members)
         {
-            var nm = lst[i].getElementsByTagName('name')[0].firstChild.data;
-            var id = lst[i].getElementsByTagName('tuid')[0].firstChild.data;
-            s += "<a href=\"needjs\" data-id='"+id+"'>"
-                 + encodeHTML(nm) + "</a>"
-                 + " - <a href=\"showuser?id=" + id + "\" target=\"_blank\">"
+            s += "<a href=\"needjs\" data-id='"+m.tuid+"'>"
+                 + encodeHTML(m.name) + "</a>"
+                 + " - <a href=\"showuser?id=" + m.tuid + "\" target=\"_blank\">"
                  + "view profile</a><br>";
         }
         if (s == "")
@@ -287,17 +278,16 @@ function profileLinkDiv()
       <p><b>Step 1:</b> Search for an IFDB profile by member name.
       <br>
       <input id="aplSearchBox" type=text size=50>
-      <input type=submit name="aplSearchGo" id="aplSearchGo"
+      <input type=button name="aplSearchGo" id="aplSearchGo"
          value="Search">
       <script type="text/javascript" nonce="<?php global $nonce; echo $nonce; ?>">
-        aplSearchBox.addEventListener('keypress', function(event) {
-            var result = aplPopupKey(event);
-            if (result === false) event.preventDefault();
-        })
-        aplSearchGo.addEventListener('click', function (event) {
-            event.preventDefault();
-            aplSearch();
-        })
+        aplSearchBox.addEventListener('keypress', function({code}) {
+            if (code === 'Enter') aplSearch();
+        });
+        aplSearchBox.addEventListener('keydown', function({code}) {
+            if (code === 'Escape') aplClose();
+        });
+        aplSearchGo.addEventListener('click', aplSearch);
       </script>
       <div id="aplStep2" class="displayNone">
          <p><b>Step 2:</b> Click in the <span id="aplFieldName">text</span>

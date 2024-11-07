@@ -14,7 +14,12 @@ include_once "dbconnect.php";
 $db = dbConnect();
 
 // check for API requests
-$xml = isset($_REQUEST['xml']);
+$api_mode = null;
+foreach (['xml', 'json'] as $api_param) {
+    if (isset($_REQUEST[$api_param])) {
+        $api_mode = $api_param;
+    }
+}
 
 // get the request parameters
 $term = get_req_data('searchfor');
@@ -26,14 +31,13 @@ if ($term == "" && $bTerm != "")
 
 // check for special API requests
 $enum = get_req_data("enum");
-if ($xml && $enum)
+if ($api_mode && $enum)
 {
     // assume no error
-    $errmsg = false;
     $itemType = false;
 
     // queries for the various types
-    $queries = array(
+    $queries = [
         "genre" => "select distinct genre from games",
         "forgiveness" => "select distinct forgiveness from games",
         "language" => "select distinct language from games",
@@ -44,20 +48,29 @@ if ($xml && $enum)
                   .   "join filetypes as f on f.id = gl.fmtid "
                   .   "left outer join operatingsystems as os "
                   .       "on os.id = gl.osid "
-                  . "where f.fmtclass in ('X', 'G')");
+                  . "where f.fmtclass in ('X', 'G')"
+    ];
+
+    $responseObj = [];
 
     // get the query
-    if (isset($queries[$enum]))
+    $enum_query = $queries[$enum] ?? null;
+    if (!$enum_query)
+    {
+        $responseObj['enumError'] = 'Invalid enumeration type';
+    }
+    else
     {
         // query the data set
-        $result = mysql_query($queries[$enum], $db);
+        $result = mysqli_execute_query($db, $enum_query);
 
         // fetch the rows
-        for ($i = 0, $cnt = mysql_num_rows($result), $items = array() ;
-             $i < $cnt ; ++$i)
+        $items = [];
+        while ([$g] = mysql_fetch_row($result))
         {
-            // fetch this row
-            list($g) = mysql_fetch_row($result);
+            // Convert database row from latin1 to UTF-8
+            $g = rss_encode($g);
+            $g = html_entity_decode($g);
 
             // apply any special per-row handling
             switch ($enum)
@@ -97,22 +110,22 @@ if ($xml && $enum)
                 if (preg_match("/^([a-z0-9]+)-/i", $l, $m))
                     $l = $m[1];
 
-                // lower-case it and quote it
-                $l = mysql_real_escape_string(strtolower($l), $db);
+                // lower-case it
+                $l = strtolower($l);
 
                 // figure the search column
                 $col = (strlen($l) == 2 ? "id2" : "id3");
 
                 // look up this language
-                $result = mysql_query(
+                $result = mysqli_execute_query($db,
                     "select group_concat(distinct name separator '/') "
                     . "from iso639x "
-                    . "where $col = '$l' "
-                    . "group by $col", $db);
+                    . "where $col = ? "
+                    . "group by $col", [$l]);
 
                 if (mysql_num_rows($result) > 0)
                 {
-                    list($langName) = mysql_fetch_row($result);
+                    [$langName] = mysql_fetch_row($result);
                     $items[$i] = "$langName ($lorig)";
                 }
             }
@@ -140,29 +153,19 @@ if ($xml && $enum)
             if ($g && ($dst == 0 || strcasecmp($g, $items[$dst-1]) != 0))
                 $items[$dst++] = $g;
         }
-    }
-    else
-    {
-        $errmsg = "<enumError>Invalid enumeration type</enumError>";
+        $items = array_slice($items , 0, $dst);
     }
 
     // send the results
-    ini_set("default_charset", "ISO-8859-1");
-    header("Content-type: text/xml");
+    ini_set("default_charset", "utf-8");
+    header("Content-type: application/json");
     header("Expires: Mon, 26 Jul 1997 05:00:00 GMT");
     header("Cache-Control: no-store, no-cache, must-revalidate");
 
-    echo "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
-        . "<searchEnum xmlns=\"http://ifdb.org/api/xmlns\">"
-        . rss_encode($errmsg)
-        . "<itemType>$enum</itemType>"
-        . "<items>";
+    if ($items)
+        $responseObj['items'] = $items;
 
-    for ($i = 0 ; $i < $dst ; $i++)
-        echo "<item>" . rss_encode(htmlspecialcharx($items[$i])) . "</item>";
-
-    echo "</items>"
-        . "</searchEnum>";
+    echo json_encode($responseObj);
 
     // done
     exit();
@@ -191,7 +194,7 @@ $hrefTerm = ($term ? $term : $tTerm);
 $hrefTerm = urlencode($hrefTerm);
 
 // get the search type
-const SEARCH_TYPES = ['list', 'poll', 'member', 'comp', 'club', 'tag'];
+const SEARCH_TYPES = ['list', 'poll', 'member', 'comp', 'tag'];
 $searchType = 'game';
 $searchButton = "Search Games";
 foreach (SEARCH_TYPES as $st) {
@@ -206,19 +209,22 @@ $browseTabs = [
     "list"    => "Lists",
     "poll"    => "Polls",
     "comp"    => "Competitions",
-    "club"    => "Clubs",
     "member"  => "Members",
     "tag"     => "Tags",
 ];
+
+
+/* Games is the default search type */
+$searchType = "game";
+$searchButton = "Search Games";
+$hiddenTypeField = "";
 
 foreach ($browseTabs as $browseParam => $browseName) {
     if (!isset($_REQUEST[$browseParam]))
         continue;
     $searchType = $browseParam;
     $searchButton = "Search $browseName";
-    if ($browseParam == 'game')
-        $hiddenTypeField = "";
-    else
+    if ($browseParam != 'game')
         $hiddenTypeField = "<input type=\"hidden\" name=\"$browseParam\" value=\"1\">";
     break;
 }
@@ -276,7 +282,7 @@ if ($term || $browse) {
     }
 
     // if there's exactly one row, jump directly to the result page
-    if ($rowcnt == 1 && !$browse && !$xml) {
+    if ($rowcnt == 1 && !$browse && !$api_mode) {
         $redir = false;
         switch ($searchType) {
         case "game":
@@ -297,10 +303,6 @@ if ($term || $browse) {
 
         case "comp":
             $redir = "viewcomp?id={$rows[0]['compid']}";
-            break;
-
-        case "club":
-            $redir = "club?id={$rows[0]['clubid']}";
             break;
 
         // Does not apply to tags
@@ -324,16 +326,15 @@ if ($term || $browse) {
 //   Start the page, if we're showing a UI (i.e., HTML mode, not XML mode)
 //
 
-if (!$xml) {
+if (!$api_mode) {
 
     // start the page
     $searchTypeName = ($searchType == "list" ? "Recommended Lists" :
                        ($searchType == "poll" ? "Polls" :
                         ($searchType == "member" ? "Members" :
                          ($searchType == "comp" ? "Competitions" :
-                          ($searchType == "club" ? "Clubs" :
                            ($searchType == "tag" ? "Tags" :
-                           "Games"))))));
+                           "Games")))));
 
     pageHeader($term == "" && $browse ? "Browse $searchTypeName"
                                       : "Search for $searchTypeName",
@@ -383,11 +384,11 @@ function helpExtLink($title, $url)
         . "</div>";
 }
 
-if (!$xml) {
+if (!$api_mode) {
     echo "<div class='prerender-moderate'>\n";
 }
 
-if (!$browse && !$xml) {
+if (!$browse && !$api_mode) {
     $otherTabs = "<div class=\"browseLabel\">Searching</div>"
                  . "<div class=\"browseBar\">"
                  . "<div class=\"browseTabs\">";
@@ -411,31 +412,34 @@ if (!$browse && !$xml) {
     ?>
 <script type="text/javascript" nonce="<?php global $nonce; echo $nonce; ?>">
 
-function openHelpList(id, tableWid, params)
+async function openHelpList(id, tableWid, params)
 {
     var divId = "helpList." + id;
     var div = document.getElementById(divId);
-    xmlSend("search?enum=" + id, divId,
-            function(xml) {
-                populateHelpList(id, div, tableWid, params, xml);
-            }, null);
     div.innerHTML = "(Retrieving list...)";
+    const response = await fetch("search?json&enum=" + id);
+    if (!response.ok) {
+        div.innerHTML = "Failed loading list";
+        return;
+    }
+    const json = await response.json();
+    populateHelpList(id, div, tableWid, params, json);
 }
 
-function populateHelpList(id, div, tableWid, params, xml)
+function populateHelpList(id, div, tableWid, params, json)
 {
-    var err = xmlChildText(xml, "enumError");
+    const err = json.enumError;
     if (err)
     {
         div.innerHTML = err;
         return;
     }
 
-    var items = xml.getElementsByTagName("item");
+    const items = json.items;
     var s = [];
-    for (var i = 0 ; i < items.length ; ++i)
+    for (const [i, item] of items.entries())
     {
-        var txt = items[i].firstChild.data;
+        const txt = item;
         var hrefParam = txt;
 
         var match;
@@ -459,7 +463,7 @@ function populateHelpList(id, div, tableWid, params, xml)
     <?php
 }
 
-if ($xml) {
+if ($api_mode) {
 
     // no UI in XML mode - this is an API request
 
@@ -647,63 +651,6 @@ else if ($searchType == "comp") {
 
     <?php
 }
-else if ($searchType == "club") {
-
-    ?>
-
-    <form name="advsearch" method="get" action="search">
-       <!-- <h2>Search Clubs</h2> -->
-       <table cellpadding=0 cellspacing=0>
-          <tr>
-             <td>
-                <input type="text" name="searchfor" id="searchfor" size=70
-                      value="<?php echo htmlspecialcharx($tTerm) ?>">
-                <input type="submit" name="searchgo" value="Search Clubs">
-             </td>
-          </tr>
-          <tr>
-             <td></td>
-          </tr>
-       </table>
-       <input type="hidden" name="club" value="1">
-    </form>
-
-    <h3>Search Tips</h3>
-
-    <div class=searchnotes>
-
-    <p>By default, IFDB searches each club's title, description, and
-    keywords for the words you enter, and show clubs that match
-    at least one of your search terms.  You can customize the search
-    with the special modifiers below.
-    Note that modifiers with ":" parameters
-    have to go <i>last</i>, after regular search words.
-
-
-    <div class=indented>
-
-       <?php echo $commonInstructions ?>
-
-       <p><b>#members:<i>low-high</i></b> shows clubs with IFDB member
-       enrollment in the given range.  You can
-       make the range open-ended by leaving out one or the other endpoint;
-       for example, <b>#members:100-</b> searches for clubs with at least
-       100 members.  Note that this only works for clubs with public
-       membership lists and clubs you belong to; otherwise the number
-       of members will be counted as zero.
-
-       <p><b>contact:<i>name</i></b> searches for clubs with <i>name</i>
-       in the contact list
-
-    </div>
-
-    <?php echo $commonPostInstructions ?>
-
-    </div>
-
-
-    <?php
-}
 else if ($searchType == "member") {
 
     ?>
@@ -745,10 +692,6 @@ else if ($searchType == "member") {
        given place name within their location.  For example,
        "location:california" would show members with locations
        that include the word "california."
-
-       <p><b>club:<i>name</i></b> shows members who belong to clubs
-       that have <i>name</i> in their club names.  This only works
-       for clubs with public membership lists or that you belong to.
 
     </div>
 
@@ -952,7 +895,7 @@ else {  // ...default is searching games
 
         <p><b>authorid:<i>id</i></b> lists games by the author with
             the given id.
-       
+
         <p><b>competitionid:<i>id</i></b> lists games in a competition with
             the given id.
 
@@ -1007,213 +950,196 @@ else {  // ...default is searching games
 //   If we had a search term, show the results
 //
 
-if ($xml) {
+if ($api_mode) {
 
-    // start the XML reply
-    header("Content-type: text/xml");
+    // start the API reply
+    if ($api_mode == 'json') {
+        header("Content-type: application/json");
+    } else if ($api_mode == 'xml') {
+        header("Content-type: text/xml");
+    }
     header("Expires: Mon, 26 Jul 1997 05:00:00 GMT");
     header("Cache-Control: no-store, no-cache, must-revalidate");
 
-    echo "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
-        . "<searchReply xmlns=\"http://ifdb.org/api/xmlns\">";
+    if ($api_mode == 'xml') {
+        echo "<?xml version=\"1.0\" encoding=\"UTF-8\"?>";
+    }
 
     // check for errors
     if ($errMsg)
     {
-        echo "<error>"
-            . rss_encode(htmlspecialcharx($errMsg))
-            . "</error>"
-            . "</searchReply>";
+        $error_answer = [
+            'error'=> $errMsg,
+        ];
+
+        if ($api_mode == 'json') {
+            echo json_encode($error_answer);
+        } else if ($api_mode == 'xml') {
+            echo serialize_xml(['searchReply' => $error_answer]);
+        }
         exit();
     }
 
+    if ($api_mode == 'xml') {
+        echo "<searchReply xmlns=\"http://ifdb.org/api/xmlns\">";
+    }
+
     // we have a valid reply - start it
-    $grouptags = array(
+    $grouptags = [
         "game" => "games",
         "list" => "lists",
         "poll" => "polls",
         "comp" => "competitions",
-        "club" => "clubs",
         "member" => "members"
-    );
+    ];
+    $group_item_names = [
+        'comp' => 'competition',
+    ];
+
     $grouptag = $grouptags[$searchType];
-    echo "<$grouptag>";
+    $groupItemName = $group_item_names[$searchType] ?? $searchType;
+
+    if ($api_mode == 'json') {
+        echo "{\n    \"$grouptag\": [\n";
+    } else if ($api_mode == 'xml') {
+        echo "<$grouptag>";
+    }
 
     $showFlagged = isset($_GET['showFlagged']) && $_GET['showFlagged'];
     // send the results
-    for ($i = 0 ; $i < count($rows) ; $i++)
+    foreach ($rows as $i => $row)
     {
-        $row = $rows[$i];
+        // Convert database row from latin1 to UTF-8
+        array_walk($row, function(&$value, $key) {
+            if (is_string($value)) {
+                $value = rss_encode($value);
+                $value = html_entity_decode($value);
+            }
+        });
+
         switch($searchType)
         {
         case "game":
             $id = $row['id'];
-            $flags = $row['flags'];
-            $shouldHide = $flags & FLAG_SHOULD_HIDE;
+            $shouldHide = $row['flags'] & FLAG_SHOULD_HIDE;
             if (!$showFlagged && $shouldHide) {
                 break;
             }
-            $title = htmlspecialcharx($row['title']);
-            $author = htmlspecialcharx($row['author']);
-            $published = $row['published'];
-            $pubfmt = $row['pubfmt'];
-            $devsys = $row['devsys'];
-            $rating = $row['avgrating'];
-            list($stars) = roundStars($rating);
-            $ratingCnt = $row['ratingcnt'];
-            $starsort = $row['starsort'];
-            $art = ($row['hasart'] ? "yes" : "no");
-            $link = htmlspecialcharx(get_root_url() . "viewgame?id=$id");
 
-            $coverArtLink = "";
-            if ($art == "yes") {
-                $coverArtLink =
-                    "<coverArtLink>"
-                    . htmlspecialcharx(get_root_url() . "coverart?id=$id&version={$row['pagevsn']}")
-                    . "</coverArtLink>";
+            $item = [
+                'tuid' => $id,
+                'title' => $row['title'],
+                'link' => get_root_url() . "viewgame?id=$id",
+                'author' => $row['author'],
+                'hasCoverArt' => boolval($row['hasart']),
+                'devsys' => $row['devsys'],
+                'published' => [
+                    'machine' => $row['published'],
+                    'printable' => $row['pubfmt'],
+                ]
+            ];
+            if (!$shouldHide) {
+                $rating = $row['avgrating'];
+                $item['averageRating'] = $rating;
+                $item['numRatings'] = $row['ratingcnt'];
+                [$item['starRating']] = roundStars($rating);
+                $item['starSort'] = $row['starsort'];
+            }
+            if ($row['hasart']) {
+                $item['coverArtLink'] =
+                    get_root_url() . "coverart?id=$id&version={$row['pagevsn']}";
             }
 
-            echo rss_encode(
-                "<game>"
-                .   "<tuid>$id</tuid>"
-                .   "<title>$title</title>"
-                .   "<link>$link</link>"
-                .   "<author>$author</author>"
-                .   ($shouldHide ? "" : (
-                        "<averageRating>$rating</averageRating>"
-                    .   "<numRatings>$ratingCnt</numRatings>"
-                    .   "<starRating>$stars</starRating>"
-                    .   "<starSort>$starsort</starSort>"
-                ))
-                .   "<hasCoverArt>$art</hasCoverArt>"
-                .   "<devsys>$devsys</devsys>"
-                .   "<published>"
-                .     "<machine>$published</machine>"
-                .     "<printable>$pubfmt</printable>"
-                .   "</published>"
-                .   $coverArtLink
-                . "</game>");
             break;
 
         case "list":
             $id = $row['id'];
-            $title = htmlspecialcharx($row['title']);
-            $desc = htmlspecialcharx(fixDesc($row['desc']));
-            $userid = $row['userid'];
-            $username = htmlspecialcharx($row['username']);
-            $items = $row['itemcount'];
-            $link = htmlspecialcharx(get_root_url() . "viewlist?id=$id");
 
-            echo rss_encode(
-                "<list>"
-                .  "<tuid>$id</tuid>"
-                .  "<title>$title</title>"
-                .   "<link>$link</link>"
-                .  "<desc>$desc</desc>"
-                .  "<creatorID>$userid</creatorID>"
-                .  "<creatorName>$username</creatorName>"
-                .  "<numItems>$items</numItems>"
-                . "</list>");
+            $item = [
+                'tuid' => $id,
+                'title' => $row['title'],
+                'link' => get_root_url() . "viewlist?id=$id",
+                'desc' => fixDesc($row['desc']),
+                'creatorID' => $row['userid'],
+                'creatorName' => $row['username'],
+                'numItems' => $row['itemcount'],
+            ];
             break;
 
         case "poll":
             $id = $row['id'];
-            $title = htmlspecialcharx($row['title']);
-            $desc = fixDesc($row['desc']);
-            $userid = $row['userid'];
-            $username = htmlspecialcharx($row['username']);
-            $votecnt = $row['votecnt'];
-            $gamecnt = $row['gamecnt'];
-            $link = htmlspecialcharx(get_root_url() . "poll?id=$id");
 
-            echo rss_encode(
-                "<poll>"
-                .  "<tuid>$id</tuid>"
-                .  "<title>$title</title>"
-                .   "<link>$link</link>"
-                .  "<desc>$desc</desc>"
-                .  "<creatorID>$userid</creatorID>"
-                .  "<creatorName>$username</creatorName>"
-                .  "<numVotes>$votecnt</numVotes>"
-                .  "<numGames>$gamecnt</numGames>"
-                . "</poll>");
+            $item = [
+                'tuid' => $id,
+                'title' => $row['title'],
+                'link' => get_root_url() . "poll?id=$id",
+                'desc' => fixDesc($row['desc']),
+                'creatorID' => $row['userid'],
+                'creatorName' => $row['username'],
+                'numVotes' => $row['votecnt'],
+                'numGames' => $row['gamecnt'],
+            ];
             break;
 
         case "comp":
             $id = $row['compid'];
-            $title = htmlspecialcharx($row['title']);
-            $desc = fixDesc($row['desc']);
-            $gamecnt = $row['gamecnt'];
-            $divcnt = $row['divcnt'];
-            $link = htmlspecialcharx(get_root_url() . "viewcomp?id=$id");
 
-            echo rss_encode(
-                "<competition>"
-                .  "<tuid>$id</tuid>"
-                .  "<title>$title</title>"
-                .   "<link>$link</link>"
-                .  "<desc>$desc</desc>"
-                .  "<numGames>$gamecnt</numGames>"
-                .  "<numDivisions>$divcnt</numDivisions>"
-                . "</competition>");
-            break;
-
-        case "club":
-            $id = $row['clubid'];
-            $title = htmlspecialcharx($row['name']);
-            $desc = fixDesc($row['desc']);
-            $membercnt = $row['membercnt'];
-            $link = htmlspecialcharx(get_root_url() . "club?id=$id");
-
-            echo rss_encode(
-                "<club>"
-                .  "<tuid>$id</tuid>"
-                .  "<name>$title</name>"
-                .   "<link>$link</link>"
-                .  "<desc>$desc</desc>"
-                .  "<numMembers>$membercnt</numMembers>"
-                . "</club>");
+            $item = [
+                'tuid' => $id,
+                'title' => $row['title'],
+                'link' => get_root_url() . "viewcomp?id=$id",
+                'desc' => fixDesc($row['desc']),
+                'numGames' => $row['gamecnt'],
+                'numDivisions' => $row['divcnt'],
+            ];
             break;
 
         case "member":
             $id = $row['id'];
-            $name = htmlspecialcharx($row['name']);
-            $loc = htmlspecialcharx($row['location']);
-            $pic = ($row['haspic'] ? "yes" : "no");
             $badgeInfo = $badges ? ($badges[$id] ?? false) : false;
-            $badge = ($badgeInfo ? $badgeInfo[1] : false);
-            $link = htmlspecialcharx(get_root_url() . "showuser?id=$id");
 
-            $picLink = "";
-            if ($pic == "yes") {
-                $picLink =
-                    "<pictureLink>"
-                    . htmlspecialcharx(get_root_url() . "showuser?id=$id&pic")
-                    . "</pictureLink>";
+            $item = [
+                'tuid' => $id,
+                'name' => $row['name'],
+                'link' => get_root_url() . "showuser?id=$id",
+                'location' => $row['location'],
+                'hasPicture' => boolval($row['haspic']),
+                'badge' => ($badgeInfo ? $badgeInfo[1] : ''),
+            ];
+
+            if ($row['haspic']) {
+                $item['pictureLink'] = get_root_url() . "showuser?id=$id&pic";
             }
 
-            echo rss_encode(
-                "<member>"
-                .  "<tuid>$id</tuid>"
-                .  "<name>$name</name>"
-                .   "<link>$link</link>"
-                .  "<location>$loc</location>"
-                .  "<hasPicture>$pic</hasPicture>"
-                .  $picLink
-                .  "<badge>$badge</badge>"
-                . "</member>");
             break;
 
         case "tag":
             $id = $row['tag'];
             $link = htmlspecialcharx(get_root_url() . "search?searchfor=tag:$id");
             break;
+
+        default:
+            $item = [];
+        }
+
+        if ($api_mode == 'json') {
+            echo "        ";
+            echo json_encode($item);
+            if ($i != count($rows) - 1) {
+                echo ",\n";
+            }
+        } else if ($api_mode == 'xml') {
+            echo serialize_xml([$groupItemName => $item]);
         }
     }
 
-    // end the XML reply
-    echo "</$grouptag>"
-        . "</searchReply>";
+    // end the reply
+    if ($api_mode == 'json') {
+        echo "\n    ]\n}";
+    } else if ($api_mode == 'xml') {
+        echo "</$grouptag></searchReply>";
+    }
+
     exit();
 }
 else if ($term || $browse)
@@ -1238,7 +1164,6 @@ else if ($term || $browse)
                                  . ($searchType == "poll" ? "&poll" : "")
                                  . ($searchType == "member" ? "&member" : "")
                                  . ($searchType == "comp" ? "&comp" : "")
-                                 . ($searchType == "club" ? "&club" : "")
                                  . ($searchType == "tag" ? "&tag" : ""),
                                  $pg, $lastPage, $firstOnPage, $lastOnPage,
                                  $rowcnt, true,
@@ -1288,7 +1213,7 @@ else if ($term || $browse)
         if ($pgAll)
             $range = "$rowcnt Result" . ($rowcnt == 1 ? "" : "s");
         else
-            $range = ($firstOnPage+1) . "-" . ($lastOnPage+1) . " of $rowcnt";
+            $range = ($firstOnPage+1) . "&ndash;" . ($lastOnPage+1) . " of $rowcnt";
 
         // show where we are in the results
         echo ($term == "" ? "<div class=\"browseLabel\">Browsing</div>" : "")
@@ -1343,14 +1268,6 @@ else if ($term || $browse)
                 . "<h1><a href=\"editcomp?id=new\">Add a competition page</a></h1>"
                 . "If a competition isn't in our database yet, you can "
                 . "add a new competition page."
-                . "</div>";
-        }
-
-        // if this is a club search, show the club tip box
-        if ($searchType == "club") {
-            echo "<div class=tipbox>"
-                . "<h1><a href=\"editclub?id=new\">Add a club listing</a></h1>"
-                . "If you have a club for IFDB members, you can add a listing for it."
                 . "</div>";
         }
 
@@ -1427,11 +1344,11 @@ else if ($term || $browse)
                 if (!$showFlagged && $shouldHide) {
                     break;
                 }
-                $title = output_encode(htmlspecialcharx($row['title']));
-                $author = output_encode(htmlspecialcharx($row['author']));
+                $title = htmlspecialcharx($row['title']);
+                $author = htmlspecialcharx($row['author']);
                 $author = collapsedAuthors($author);
                 $stars = $shouldHide ? "" : showStars($row['avgrating']);
-                $year = output_encode(htmlspecialcharx($row['pubyear']));
+                $year = htmlspecialcharx($row['pubyear']);
                 $art = $row['hasart'];
                 $rcnt = $row['ratingcnt'];
                 $rdev = $row['ratingdev'];
@@ -1534,7 +1451,7 @@ else if ($term || $browse)
             case "list":
                 // get the row data
                 $id = $row['id'];
-                $title = output_encode(htmlspecialcharx($row['title']));
+                $title = htmlspecialcharx($row['title']);
                 $descInfo = summarizeHtml($row['desc'], 240);
                 $desc = fixDesc($descInfo[0]);
                 $userid = $row['userid'];
@@ -1555,7 +1472,7 @@ else if ($term || $browse)
 
             case "poll":
                 $id = $row['id'];
-                $title = output_encode(htmlspecialcharx($row['title']));
+                $title = htmlspecialcharx($row['title']);
                 $descInfo = summarizeHtml($row['desc'], 240);
                 $desc = fixDesc($descInfo[0]);
                 $userid = $row['userid'];
@@ -1597,29 +1514,6 @@ else if ($term || $browse)
                     . ($adate ? "; award date $adate" : "")
                     . "</span><br>"
                     . ($desc ? "<div class=indented><i>$desc</i></div>" : "");
-                break;
-
-            case "club":
-                $id = $row['clubid'];
-                $name = htmlspecialcharx($row['name']);
-                $descInfo = summarizeHtml($row['desc'], 240);
-                $desc = fixDesc($descInfo[0]);
-                $created = $row['created'];
-                $membercnt = $row['membercnt'];
-                $contacts = false;
-                if ($sortby == 'con'
-                    || isset($specialsUsed['contact:'])
-                    || isset($specialsUsed['contacts:']))
-                    $contacts = $row['contacts'];
-
-                echo "<p><h3 class=result><a class='$eagerness' href=\"club?id=$id\"><b>$name</b></a></h3><br>"
-                    . "<span class=details>Listed on IFDB $created"
-                    . ($membercnt ? "; $membercnt member"
-                       . ($membercnt == 1 ? "" : "s") : "")
-                    . ($contacts ? "<br>Contact(s): $contacts" : "")
-                    . "</span>"
-                    . ($desc ? "<div class=\"indented details\">"
-                       . "<i>$desc</i></div>" : "");
                 break;
 
             case "member":
@@ -1711,7 +1605,7 @@ else if ($term || $browse)
 
 }
 
-if (!$xml) {
+if (!$api_mode) {
 ?>
 </div>
 <script type="text/javascript" nonce="<?php global $nonce; echo $nonce; ?>">

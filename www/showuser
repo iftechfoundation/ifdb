@@ -207,6 +207,7 @@ if ($rss == 'gamenews')
              $ratingcountavg, $ratingcounttot, $ratingavg, $memberReviewCnt,
              $currentUserRating, $currentUserReview,
              $editedbyid, $editedbyname, $moddate, $moddate2, $pagevsn,
+             $moddatelatest,
              $historyView,
              $dlnotes, $extReviews, $extRevDisplayRank,
              $ratingHisto, $xrefs, $inrefs) =

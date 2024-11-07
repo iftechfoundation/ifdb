@@ -379,6 +379,7 @@ if (!$errMsg) {
          $ratingCntAvg, $ratingCntTot, $ratingAvg, $memberReviewCnt,
          $currentUserRating, $currentUserReview,
          $editedbyid, $editedbyname, $moddate, $moddate2, $pagevsn,
+         $moddatelatest,
          $historyView,
          $dlnotes, $extReviews, $extRevDisplayRank,
          $ratingHisto, $xrefs, $inrefs, $flags) =
@@ -386,9 +387,6 @@ if (!$errMsg) {
 
     $should_hide = ($flags & FLAG_SHOULD_HIDE);
 
-    // encode some items for output
-    $title = output_encode($title);
-    $desc = output_encode($desc);
 }
 
 // check for an explicit redirect from this TUID to another TUID
@@ -618,11 +616,11 @@ if (isset($_REQUEST['ifiction']))
     xmlField("forgiveness", $forgiveness);
 
     echo "</bibliographic>"
-        . "<contact>";
+        . "<contacts>";
 
     xmlField("url", $website);
 
-    echo "</contact>";
+    echo "</contacts>";
 
     echo "<ifdb xmlns=\"http://ifdb.org/api/xmlns\">";
     xmlField("tuid", $id);
@@ -788,8 +786,8 @@ echo helpWinLink("help-ifid", "IFID");
                echo " based on the title:<ul>";
                foreach ($titleSearch as $t) {
                    $sid = $t['id'];
-                   $stitle = output_encode(htmlspecialcharx($t['title']));
-                   $sauthor = output_encode(htmlspecialcharx($t['author']));
+                   $stitle = htmlspecialcharx($t['title']);
+                   $sauthor = htmlspecialcharx($t['author']);
                    echo "<li><a href=\"viewgame?id=$sid\">$stitle</a>, "
                        . "by $sauthor";
                }
@@ -1105,9 +1103,9 @@ if (count($links) == 0 && $dlnotes == "") {
         $zipped = (strcasecmp(substr($url, -4), ".zip") == 0);
         $fmtisgame = $link['isgame'];
         $linktitle = zeroWidthSpaceUnderscores(
-            output_encode(htmlspecialcharx($link['title'])
+            htmlspecialcharx($link['title']
         ));
-        $linkdesc = output_encode(htmlspecialcharx($link['desc']));
+        $linkdesc = htmlspecialcharx($link['desc']);
         $fmtid = $link['fmtid'];
         $fmtexternid = $link['fmtexternid'];
         $fmtos = $link['osid'];
@@ -1241,38 +1239,26 @@ function updateRating(rating)
     } else {
         submitRating.style.display = 'none';
     }
-    xmlSend("setrating?game=<?php echo $id?>&rating=" + rating,
-            "ratingSaveMsg", null, null);
+    jsonSend("setrating?game=<?php echo $id?>&rating=" + rating,
+             "ratingSaveMsg");
 }
 function updatePlayed(id, stat)
 {
-    var func = function(d)
-    {
-        updatePlaylistCount(Number(xmlChildText(d, "newCount")));
-    };
-    xmlSend("setplayed?game=<?php echo $id?>&played="
-            + (ckboxIsChecked("ckPlayed") ? "1" : "0"),
-            "ckPlaySaveMsg", func, null);
+    jsonSend("setplayed?game=<?php echo $id?>&played="
+             + (ckboxGetObj("ckPlayed").checked ? "1" : "0"),
+             "ckPlaySaveMsg", (d) => {updatePlaylistCount(d.newCount);});
 }
 function updateWishList(id, stat)
 {
-    var func = function(d)
-    {
-        updateWishlistCount(Number(xmlChildText(d, "newCount")));
-    };
-    xmlSend("setwishlist?game=<?php echo $id?>&add="
-            + (ckboxIsChecked("ckWishList") ? "1" : "0"),
-            "ckWishlistSaveMsg", func, null);
+    jsonSend("setwishlist?game=<?php echo $id?>&add="
+             + (ckboxGetObj("ckWishList").checked ? "1" : "0"),
+             "ckWishlistSaveMsg", (d) => {updateWishlistCount(d.newCount)});
 }
 function updateUnwishList(id, stat)
 {
-    var func = function(d)
-    {
-        updateUnwishlistCount(Number(xmlChildText(d, "newCount")));
-    };
-    xmlSend("setunwishlist?game=<?php echo $id?>&add="
-            + (ckboxIsChecked("ckUnwishList") ? "1" : "0"),
-            "ckUnwishlistSaveMsg", func, null);
+    jsonSend("setunwishlist?game=<?php echo $id?>&add="
+             + (ckboxGetObj("ckUnwishList").checked ? "1" : "0"),
+             "ckUnwishlistSaveMsg");
 }
 
 
@@ -1701,7 +1687,7 @@ foreach ($authorList as $i => $au) {
 
     // quote the author's name for display and use in the search HREF
     $uau = urlencode($au);
-    $dau = output_encode(htmlspecialcharx($au));
+    $dau = htmlspecialcharx($au);
 
     // show the link
     echo "$conj<a href=\"search?searchfor=author%3A$uau\">$dau</a>$proLink";
@@ -2134,23 +2120,19 @@ if (!$should_hide) {
 <!--
 function updatePlaylistCount(n)
 {
+    if (n === null || n === undefined)
+        return;
     document.getElementById("playlistCount").innerHTML =
         "" + (n == 0 ? "No" : n) + " member" + (n == 1 ? " has" : "s have")
         + " played this game.";
 }
 function updateWishlistCount(n)
 {
+    if (n === null || n === undefined)
+        return;
     document.getElementById("wishlistCount").innerHTML =
         (n == 0 ? "It's not on any wish lists yet" :
          "It's on " + n + " wishlist" + (n == 1 ? "." : "s."));
-}
-function updateUnwishlistCount(n)
-{
-<?php
-//    document.getElementById("unwishlistCount").innerHTML =
-//        (n == 0 ? "It's not on any no-interest lists" :
-//         "It's on " + n + " no-interest list" + (n == 1 ? "" : "s"));
-?>
 }
 </script>
 <?php
@@ -2266,7 +2248,7 @@ if ($embargoCnt > 0)
 
     echo "</td><td>
             <a href=\"viewgame?history&version=$pagevsn&id=$id\">
-            v.$pagevsn: $moddate2</a> -
+            v.$pagevsn: $moddatelatest</a> -
             <a href=\"showuser?id=$editedbyid\">$editedbyname</a>
             (Current Version)
             - <a href=\"editgame?id=$id\">Edit Page</a>";
@@ -2873,23 +2855,12 @@ function dispTagTable(tableID, lst, editor, deleteTags)
         var cell = document.createElement("div");
         tbl.appendChild(cell);
         var s;
+        const ck = "tagCk" + i;
         if (editor) {
-
-            var ck = "tagCk" + i;
-
-
-            if (!deleteTags) {
-                s = "<span class=\"cklabel\" data-ck='"+i+"'>"
-                    + "<img align=absmiddle border=0 id=\"ckImg"+ck+"\"> "
-            } else {
-               s = "<span class=\"cklabel\" data-ck='"+i+"'>"
-                    + "<input type=image align=absmiddle border=0 id=\"ckImg"+ck+"\""
-                    + "src='img/delrow.gif' >";
-
-            }
-
-            s += "<span id=\"ckLbl"+ck+"\">" + t + "</span></span>&nbsp;<span class=details id=\"tagCnt"+i+"\">";
-
+            const deleteCls = deleteTags ? ' ckdelete' : '';
+            s = `<label class="cklabel" data-ck='${i}'>`
+                + `<input type="checkbox" class="ckbox${deleteCls}" id="ckBox${ck}"><div class="ckboxImg" aria-hidden="true"></div> `
+                + `<span>${t}</span></label>&nbsp;<span class=details id="tagCnt${i}">`;
         }
         else
             s = "<span class=details title=\"Search for games tagged with "
@@ -2919,25 +2890,19 @@ function dispTagTable(tableID, lst, editor, deleteTags)
         cell.innerHTML = s;
         cell.querySelectorAll('.cklabel').forEach(function (cklabel) {
             var ck = "tagCk" + cklabel.dataset.ck;
-            cklabel.addEventListener('mouseover', function (event) {
-                ckboxOver(ck, false);
-            });
-            cklabel.addEventListener('mouseout', function (event) {
-                ckboxLeave(ck, false);
-            });
-            cklabel.addEventListener('click', function (event) {
+            cklabel.addEventListener('change', function (event) {
                 event.preventDefault();
                 if (deleteTags) {
                     var tag = lst[cklabel.dataset.ck].tag;
                     deleteTag(tag);
                 } else {
-                    ckboxClick(ck, false, doTagCkBox);
+                    ckboxClick(ck, doTagCkBox);
                 }
             });
         })
 
         if (editor)
-            ckboxCheck(ck, false, m);
+            ckboxGetObj(ck).checked = m;
     }
     if (editor && lst.length == 0) {
         tbl.insertRow(0).insertCell(0).innerHTML =
@@ -3022,10 +2987,8 @@ function editTags()
     dispEditTags();
     const tagInputElem = document.getElementById('myTagFld');
     tagInputElem.focus();
-    fetch('/showtags?datalist=1').then(r=>r.ok ? r.arrayBuffer() : null).then(buffer => {
-        if (!buffer) return;
-        const decoder = new TextDecoder('iso-8859-1');
-        const text = decoder.decode(buffer);
+    fetch('/showtags?datalist=1').then(r=>r.ok ? r.text() : null).then(text => {
+        if (!text) return;
         const datalist = document.createElement('datalist');
         document.body.appendChild(datalist);
         datalist.outerHTML = text;
@@ -3204,16 +3167,15 @@ dispTags();
                         echo "<div id=\"ifwiki-link\" class=\"displayNone\"><a href=\"https://www.ifwiki.org/\">IF Wiki</a>: <a href=\"https://www.ifwiki.org/index.php?title=IFID:"
                             .htmlspecialcharx($ifids[0])."\">$title</a><br></div>";
                         $jifid = htmlspecialcharx(str_replace("\"", "&#34;", $ifids[0]));
+                        if (!$cssOverride) {
                         ?>
                         <script nonce="<?php global $nonce; echo $nonce; ?>">
-                            xmlSend("ifwiki-check?ifid=<?php echo $jifid ?>", null,
-                                function(doc) {
-                                    if (xmlChildText(doc, "exists") == "yes") {
-                                        document.getElementById("ifwiki-link").style.display = "initial";
-                                    }
-                                }, null);
+                            fetch("ifwiki-check?ifid=<?php echo $jifid ?>").then(r => { if (r.ok)
+                                document.getElementById("ifwiki-link").style.display = "initial";
+                            });
                         </script>
                         <?php
+                        }
                     }
                 ?>
                <?php if(!isEmpty($bafsid))
@@ -3369,8 +3331,8 @@ if (count($inrefs) != 0 && !$historyView) {
 
                     // format the data for display
                     $crid = mysql_real_escape_string($c['id'], $db);
-                    $crtitle = output_encode(htmlspecialcharx($c['title']));
-                    $crauthor = output_encode(htmlspecialcharx($c['author']));
+                    $crtitle = htmlspecialcharx($c['title']);
+                    $crauthor = htmlspecialcharx($c['author']);
                     $crdescInfo = summarizeHtml($c['desc'], 240);
                     $crdesc = fixDesc($crdescInfo[0]);
                     $crart = $c['hasart'];
