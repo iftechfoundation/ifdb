@@ -1363,7 +1363,7 @@ function updateUnwishList(id, stat)
 //-----------------------Game Length Panel Begins----------------------------
         echo "<div class=indented>";
         echo "<div id='gameLengthPanel' class='viewgame__playedSection'>"
-        . "<span id=\"gameLengthCaption\"><b>How long is this game?</b></span>";
+        . "<span id=\"gameLengthCaption\"><b>Estimated play time:</b></span>";
 
         echo "<div id='submitTimeSection'>"
         . "<span id='howLong'>Vote on how long it takes to finish this game.</span><br>"
@@ -1402,6 +1402,10 @@ function updateUnwishList(id, stat)
 // from the hours and minutes fields, validate it, convert it to 
 // minutes only, and save it to the database. 
 function submitTime() {
+    if (document.getElementById('ckBoxckPlayed').checked==false) {
+         document.getElementById("timeSaveMsg").innerHTML='Not saved. This game is not on your "I've played it" list.";
+         return;
+    }
     var new_hours = document.getElementById('hours').value;
     var new_minutes = document.getElementById('minutes').value;
     if (new_hours == "") {    // If the hours field was blank, interpret it as 0
