@@ -1434,10 +1434,7 @@ function submitTime() {
 }
 // Attach the submitTime function to the "Submit Time" button.
 document.getElementById("submitTimeButton").addEventListener("click", submitTime);
-</script>
 
-
-<script nonce="<?php global $nonce; echo $nonce; ?>">
 
 // When the user clicks the Remove Time button, remove the user's time 
 // for this game from the database.
@@ -1446,10 +1443,8 @@ function removeTime() {
 }
 // Attach the removeTime function to the Remove Time button.
 document.getElementById("removeTimeButton").addEventListener("click", removeTime);
-</script>
 
 
-<script type="text/JavaScript" nonce="<?php global $nonce; echo $nonce; ?>">
 // Check whether a string contains only digits. (May need to test "+" and "-")
 function isOnlyDigits(a_string) {
     if (/^\d+$/.test(a_string)) {
@@ -1457,6 +1452,7 @@ function isOnlyDigits(a_string) {
     }
     return false;
 }
+
 
 // Take hours and minutes and convert them into just minutes
 // so we can store the time as minutes only in the database.
@@ -1467,13 +1463,9 @@ function convertToMinutes(hours, minutes) {
 	total_minutes = hours_into_minutes + minutes;
 	return total_minutes;
 }
-</script>
 
-
-<script type="text/JavaScript" nonce="<?php global $nonce; echo $nonce; ?>">
-
-//The game length panel has a "submitTimeSection," a "removeTimeSection," and
-//a "timeSavedSection." Only one of the sections should be visible at a time.
+// The game length panel has a "submitTimeSection," a "removeTimeSection," and
+// a "timeSavedSection." Only one of the sections should be visible at a time.
 
 function showSubmitTimeSection() { 
     submitTimeSection.style.display = "block";
@@ -1511,13 +1503,6 @@ function swapTimeSections() {
 // Attach the swapTimeSections function to the gameLengthPanel.
 document.getElementById("gameLengthPanel").addEventListener("load", swapTimeSections);
 
-</script>
-<!--//******* New swaptimecontrols function ends here-->
-
-
-
-<!--//***** function to initially display time controls begins here-->
-<script type="text/JavaScript" nonce="<?php global $nonce; echo $nonce; ?>">
 
 // When the page first loads, show the relevant time controls based on
 // whether the user has a time already stored for this game. To find out, we
@@ -1532,35 +1517,16 @@ function prepareTimeControls() {
         showRemoveTimeSection();
     }
 }
-
-
-//    document.getElementById("myStoredTime").innerHTML
-//    if (stored_time >= 1) {
-        // The user has a time stored for this game, so hide the 
-        // "submit time" controls, show the "remove time" controls, 
-        // and display the user's time.
-//        alert("There's no stored time message");
-//        submit_time_controls.style.display = "block";
-//        remove_time_controls.style.display = "none";
-//        displayMyStoredTime(stored_time);
-//    } else {
-        // The user has no time stored for this game, so show the 
-        // "submit time" controls and hide the "remove time" controls.
-//        alert("There's a stored time message");
-//        submit_time_controls.style.display = "none";
-//        remove_time_controls.style.display = "block";
-//    }
-//}    
-
 prepareTimeControls();
 
-</script>
 
-<!--//###############End New JS for Time to Completion-->
+
+//----------------------End of JavaScript for Estimated Play Time-----------------------
+</script>
 
 <?php
 
-//************New code ends here
+
 } else {
     echo "You can rate this game, record that you've played it, "
         . "or put it on your wish list after you "
