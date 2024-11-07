@@ -2147,6 +2147,139 @@ else if (isset($_REQUEST['users'])) {
 
     echo "<p><hr class=dots><p>";
 
+} else if (isset($_REQUEST['utf8entities'])) {
+    function find_columns_to_fix($db, $table, $columns) {
+        $columns_to_fix = [];
+        foreach ($columns as $column) {
+            $result = mysqli_query($db, "SELECT count(`$column`) from `$table` where `$column` like '%&#%;%'");
+            [$count] = mysqli_fetch_row($result);
+            if ($count) $columns_to_fix[] = $column;
+        }
+        error_log("$table " . json_encode($columns_to_fix));
+        return $columns_to_fix;
+    }
+
+    $result = mysqli_query($db, "SELECT table_name FROM information_schema.tables
+        WHERE TABLE_SCHEMA = 'ifdb'
+        and TABLE_TYPE='BASE TABLE'
+        and table_name not like '%_mv'
+        order by table_name
+    ");
+    if (!$result) echo(htmlspecialchars(mysqli_error($db)));
+    $tables = array_merge(...mysqli_fetch_all($result, MYSQLI_NUM));
+    echo "<ul>";
+    $found = false;
+    foreach ($tables as $table) {
+        $result = mysqli_execute_query($db, "SELECT column_name FROM information_schema.columns
+            WHERE TABLE_SCHEMA = 'ifdb'
+            and TABLE_NAME=?
+            and DATA_TYPE in ('varchar', 'mediumtext', 'longtext', 'blob')
+        ", [$table]);
+        if (!$result) echo(htmlspecialchars(mysqli_error($db)));
+        $columns = array_merge(...mysqli_fetch_all($result, MYSQLI_NUM));
+        if (!$columns) continue;
+        $result = mysqli_execute_query($db, "SELECT column_name FROM information_schema.columns WHERE TABLE_SCHEMA='ifdb' and TABLE_NAME=? and COLUMN_KEY='PRI'", [$table]);
+        if (!$result) echo(htmlspecialchars(mysqli_error($db)));
+        $primary_keys = mysqli_fetch_row($result);
+
+        if ($table === 'comps_history') {
+            $primary_keys = ['compid', 'pagevsn'];
+        }
+        else if ($table === 'extreviews') {
+            $primary_keys = ['gameid', 'reviewid'];
+        }
+        else if ($table === 'gamelinks') {
+            $primary_keys = ['gameid', 'displayorder'];
+        }
+        else if ($table === 'games_history') {
+            $primary_keys = ['id', 'pagevsn'];
+        }
+        else if ($table === 'gametags') {
+            $primary_keys = ['gameid', 'userid', 'moddate'];
+        }
+        else if ($table === 'pollvotes') {
+            $primary_keys = ['pollid', 'userid', 'gameid'];
+        }
+        else if ($table === 'reclistitems') {
+            $primary_keys = ['listid', 'gameid'];
+        }
+
+        $columns_to_fix = [];
+        foreach ($columns as $column) {
+            $result = mysqli_query($db, "SELECT count(`$column`) from `$table` where `$column` like '%&#%;%'");
+            [$count] = mysqli_fetch_row($result);
+            if ($count) $columns_to_fix[] = $column;
+        }
+        error_log("$table " . json_encode($columns_to_fix));
+
+        if (!$columns_to_fix) continue;
+        $found = true;
+
+        $logging_level = 1;
+        if (isset($_POST['fix'])) {
+            error_log("starting $table");
+            foreach ($columns_to_fix as $column) {
+                error_log("starting $table $column");
+                $key_columns = join(", ", array_map(function($k) {return "`$k`";}, $primary_keys));
+                $sql = "SELECT `$column`, $key_columns from `$table` where `$column` like '%&#%;%'";
+                if ($logging_level) {
+                    error_log($sql);
+                }
+                $result = mysqli_query($db, $sql);
+                if (!$result) echo(htmlspecialchars(mysqli_error($db)));
+                $rows = mysqli_fetch_all($result, MYSQLI_NUM);
+                foreach ($rows as $row) {
+                    // echo "BEFORE: " . htmlspecialchars($before). "<br>\n";
+                    $before = $row[0];
+                    $row[0] = $after = html_entity_decode($before, ENT_HTML5, "UTF-8");
+                    $row[] = $before;
+                    if (!$row[0]) {
+                        echo "Failed decoding<br>\n";
+                        continue;
+                    }
+                    // echo "AFTER: " . htmlspecialchars($after). "<br>\n";
+                    $where = join(" and ", array_map(function($k) {return "`$k` = ?";}, $primary_keys));
+                    $sql = "UPDATE $table SET `$column` = ? WHERE $where and `$column` = ?";
+                    if ($logging_level) {
+                        error_log($sql);
+                        error_log(json_encode($row));
+                    }
+                    $stmt = $db->prepare($sql);
+                    if (!$stmt->bind_param(str_repeat('s', count($row)), ...$row)) {
+                        echo "error " . $stmt->error . "<br>\n";
+                        exit();
+                    }
+                    if (!$stmt->execute()) {
+                        echo("error " . htmlspecialchars(mysqli_error($db)));
+                        exit();
+                    }
+                    if (mysqli_affected_rows($db) !== 1) {
+                        echo "$table $column wrong number of rows: " . mysqli_affected_rows($db) . " row(s)<br>\n";
+                        echo htmlspecialchars(json_encode($row));
+                        exit();
+                    }
+                }
+                echo "$table $column: " . count($rows) . "<br>\n";
+            }
+            $found = false;
+        } else {
+            echo "<li>$table (".join(", ", $primary_keys).")<ul>\n";
+            foreach ($columns as $column) {
+                $result = mysqli_query($db, "SELECT count(`$column`) from `$table` where `$column` like '%&#%;%'");
+                if (!$result) echo(htmlspecialchars(mysqli_error($db)));
+                [$count] = mysqli_fetch_row($result);
+                echo "<li>$column ($count)";
+            }
+            echo "</ul>\n";
+        }
+    }
+    if ($found) {
+        echo "<p><form method=post action='/adminops?utf8entities'><input type=submit name=fix value='Fix'></form></p>";
+    } else {
+        echo "No rows left that needed fixing";
+    }
+    exit();
+
 } else if (isset($_REQUEST['sysinfo'])) {
 
     $phpVsn = phpversion();
@@ -2489,7 +2622,7 @@ function cleanutf8($str)
 <a href="fileformat">Edit file format list</a><br>
 <a href="adminops?osfmtprivs">Show OS/file format editors</a><br>
 <a href="adminops?filters">View/edit game filter list</a><br>
-<a href="adminops?unicodeCheck">Check for Unicode encodings in database</a><br>
+<a href="adminops?utf8entities">Fix UTF-8 entities in database</a><br>
 <a href="adminops?sysinfo">Show server software versions</a><br>
 <a href="adminops?addnews">Add a Site News item</a><br>
 
