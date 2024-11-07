@@ -485,8 +485,7 @@ if ($succMsg) {
     exit();
 }
 
-pageHeader($title, "commentForm.commentField", false,
-           scriptSrc('/xmlreq.js'));
+pageHeader($title, "commentForm.commentField", false);
 captchaSupportScripts($captchaKey);
 
 if (!$submit || $errMsg || !$captchaOK) {

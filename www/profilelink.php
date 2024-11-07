@@ -8,18 +8,15 @@
 //
 //  1. Include this file
 //
-//  2. In the pageHeader call, include scriptSrc('/xmlreq.js')
-//     in the extra header text.
-//
-//  3. Somewhere in the file, call profileLinkSupportFuncs() to generate
+//  2. Somewhere in the file, call profileLinkSupportFuncs() to generate
 //     the javascript support functions.  This generates a <script> section,
 //     so it can go almost anywhere in the main body of the html.
 //
-//  4. Somewhere in the file, call profileLinkDiv() to generate the
+//  3. Somewhere in the file, call profileLinkDiv() to generate the
 //     HTML for the popup itself.  This is a position:absolute DIV, so
 //     it can go almost anywhere in the main body of the html.
 //
-//  5. For each field where you want to be able to insert a profile
+//  4. For each field where you want to be able to insert a profile
 //     link, use
 //       addEventListener("click", "aplOpen('fieldID', 'fieldName');return false;")
 //     as the link's script.  This will pop up the link box just under

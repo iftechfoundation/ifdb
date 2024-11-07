@@ -679,7 +679,7 @@ if (isset($_REQUEST['ifiction']))
 }
 
 // start the page
-$extraHead = scriptSrc('/xmlreq.js');
+$extraHead = "";
 if ($should_hide) {
     $extraHead .= "<meta name=\"robots\" content=\"noindex\">";
 }

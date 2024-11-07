@@ -394,8 +394,7 @@ function saveChanges()
             && !$captchaOK) {
 
             // we need the captcha form step
-            pageHeader("Update Profile", false, false,
-                       scriptSrc('/xmlreq.js'));
+            pageHeader("Update Profile", false, false);
             captchaSupportScripts($captchaKey);
 
             ?>
@@ -618,8 +617,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST'
 }
 
 // start the page
-pageHeader("Update Settings", "editprofile.email", false,
-           scriptSrc('/xmlreq.js'));
+pageHeader("Update Settings", "editprofile.email", false);
 imageUploadScripts();
 captchaSupportScripts($captchaKey);
 

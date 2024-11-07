@@ -64,7 +64,7 @@ if (mysql_num_rows($result) == 0) {
     $pageTitle .= " by ". htmlspecialcharx($username);
 }
 
-pageHeader($pageTitle, false, false, scriptSrc('/xmlreq.js'));
+pageHeader($pageTitle, false, false);
 initReviewVote();
 
 if ($errMsg) {
