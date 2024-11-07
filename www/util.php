@@ -190,38 +190,6 @@ function urlencodeFromHTML($str)
 }
 
 // --------------------------------------------------------------------------
-// OS detect - this attempts to guess the user's OS based on the browser
-// identification string.  Returns an (OS ID, Version ID) pair.
-//
-function browser_os_detect()
-{
-    // get the browser ID string
-    $b = strtolower($_SERVER['HTTP_USER_AGENT']);
-
-    // get the list of version strings to try
-    $db = dbConnect();
-    $result = mysql_query(
-        "select
-           id, vsnid, operatingsystems.name as name,
-           browserid, seq, displaypriority
-         from operatingsystems
-           left outer join osversions
-           on operatingsystems.id = osversions.osid
-         order by displaypriority desc, name, seq desc", $db);
-
-    // look for the first match
-    for ($i = 0 ; $i < mysql_num_rows($result) ; $i++) {
-        list($osid, $vsnid, $nm, $pat, $seq, $pri) = mysql_fetch_row($result);
-        $pat = str_replace("/", "\\/", $pat);
-        if ($pat != "" && preg_match("/$pat/i", $b))
-            return array($osid, $vsnid);
-    }
-
-    // no match found
-    return false;
-}
-
-// --------------------------------------------------------------------------
 // are we on an iPhone or Android device?
 //
 function is_mobile()
