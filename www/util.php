@@ -177,18 +177,6 @@ function zeroWidthSpaceUnderscores($str) {
     return str_replace('/', '&#8203;/', str_replace('_', '&#8203;_', $str));
 }
 
-// extended URL encoding, with UTF8 conversion
-function urlencodex($str)
-{
-    return urlencode(utf8_encode($str));
-}
-
-// URL-encode from a string that's been HTML quoted
-function urlencodeFromHTML($str)
-{
-    return urlencode(utf8_encode(htmlspecialchars_decode($str)));
-}
-
 // --------------------------------------------------------------------------
 // are we on an iPhone or Android device?
 //
