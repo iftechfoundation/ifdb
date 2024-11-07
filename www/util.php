@@ -49,30 +49,15 @@ define("FLAG_SHOULD_HIDE", 0x0001);
 define("POLL_FLAG_ANONYMOUS", 0x0001);
 define("POLL_FLAG_LOCKED", 0x0002);
 
+define("STYLESHEET_DARKFORCE_DARK", 1);
+define("STYLESHEET_DARKFORCE_LIGHT", 2);
+
 // --------------------------------------------------------------------------
 // shoot the recommendation cache
 //
 function shoot_recommendation_cache()
 {
     unset($_SESSION['ifdb_recommendations']);
-}
-
-// --------------------------------------------------------------------------
-// Encode for output.
-//
-// CURRENTLY, this does nothing, since we output in ISO-8859-1, just like
-// PHP's internal string representation.
-//
-// This function exists mainly so that we can change to UTF-8 or another
-// encoding more easily at some point in the future.  Many of the output
-// points where we display strings are covered by output_encode() calls -
-// we didn't catch them all, but we caught many of them, so changing to
-// another output character set would just involve doing the translation
-// here.
-//
-function output_encode($str)
-{
-    return $str;
 }
 
 // ------------------------------------------------------------------------
@@ -82,7 +67,49 @@ function output_encode($str)
 //
 function rss_encode($str)
 {
-    return iconv("ISO-8859-1", "UTF-8", $str);
+    return $str;
+}
+
+// ------------------------------------------------------------------------
+//
+// XML serialization of arrays. Assumes UTF-8 data.
+//
+function serialize_xml($array) {
+    $parts = [];
+
+    foreach ($array as $key => $value) {
+        if (is_int($key)) {
+            $parts[] = serialize_xml($value);
+            continue;
+        }
+
+        $attrs_str = '';
+        if ($attrs = $value['_attrs'] ?? null) {
+            $attrs_parts = [];
+            foreach ($attrs as $akey => $avalue) {
+                $avalue = htmlspecialcharx($avalue);
+                $attrs_parts[] = " ${akey}=\"${avalue}\"";
+            }
+            $attrs_str = implode('', $attrs_parts);
+
+            $value = $value['_contents'];
+        }
+
+        $parts[] = "<$key$attrs_str>";
+        if (is_array($value)) {
+            $parts[] = serialize_xml($value);
+        } else {
+            if (is_string($value)) {
+                $value = htmlspecialcharx($value);
+            } else if (is_bool($value)) {
+                $value = $value ? 'yes' : 'no';
+            }
+            $parts[] = $value;
+        }
+        $parts[] = "</$key>";
+    }
+
+    return implode('', $parts);
 }
 
 // ------------------------------------------------------------------------
@@ -114,7 +141,7 @@ function is_utf8($str)
 
 // ------------------------------------------------------------------------
 //
-// Given a UTF-8 string, substitute 8859-1 approximations for certain
+// Given a UTF-8 string, substitute ASCII approximations for certain
 // characters that we'd otherwise lose on translation.
 //
 function approx_utf8($str)
@@ -256,40 +283,6 @@ function get_req_data($id)
     $val = (isset($_POST[$id]) && $_POST[$id]) ? $_POST[$id] :
            (isset($_REQUEST[$id]) ? $_REQUEST[$id] : "");
 
-    // Opera has a bug (at least, it looks like a bug to me) that we need
-    // to work around here.  If the form data contain certain extended
-    // characters, Opera will encode them as &#dddd; entities.  This is
-    // problematic because it *doesn't* encode ampersands the same way,
-    // so we can't be sure whether a &#dddd; sequence was originally a
-    // special character, or is that literal sequence typed in by the
-    // user.  As a workaround, we just flatly assume that all such
-    // sequences are Opera encodings, since it seems so unlikely that
-    // a user would type such a thing literally.  We only apply this for
-    // curly quotes.
-    if (is_opera()) {
-        $val = str_replace(
-            array('&#8220;', '&#8221;', '&#8216;', '&#8217;'),
-            array("\223", "\224", "\221", "\222"),
-            $val);
-    }
-
-    // if this looks like UTF-8, it probably came from javascript encoding;
-    // translate into 8859-1
-    //   [ Disabled for now - we've solved the problem another way, by
-    //     using our own custom encodeURIComponent()  substitute called
-    //     encodeURI8859() that we define in ifdbutil.js.  The problem we
-    //     were having was that encodeURIComponent() encodes 8-bit
-    //     characters in UTF-8, whereas we expect our URLs to be in
-    //     8859-1.  I don't fully trust is_utf() to be able to reliably
-    //     distinguish UTF-8 from 8859-1 in all cases, and I'm worried
-    //     about obscure side effects of changing this routine that
-    //     practically everyone calls.  So it seems much better to avoid
-    //     creating the problem in the first place.  The only place it
-    //     seemed to be coming from was our own javascript generated
-    //     URLs, and it was easy enough to fix those. ]
-//    if (is_utf8($val))
-//        $val = iconv("UTF-8", "ISO-8859-1//IGNORE", approx_utf8($val));
-
     // return the result
     return $val;
 }
@@ -387,30 +380,29 @@ function generateTUID($db, $tableCol, $maxtries)
 //
 function echoStylesheetLink()
 {
-    global $cssOverride;
+    global $cssOverride, $nonce, $ssdarkforce;
     $db = dbConnect();
 
     // check for a profile style
     $userid = checkPersistentLogin();
     $ssid = false;
     if ($userid && !$cssOverride) {
-        $result = mysql_query(
-            "select u.stylesheetid, s.userid, s.modified
+        $result = mysqli_execute_query($db,
+            "select u.stylesheetid, s.userid, s.modified, s.dark
              from users as u
                join stylesheets as s on s.stylesheetid = u.stylesheetid
-             where u.id='$userid'", $db);
+             where u.id=?", [$userid]);
         if (mysql_num_rows($result) > 0)
-            list($ssid, $ssauthor, $ssmodified) = mysql_fetch_row($result);
+            [$ssid, $ssauthor, $ssmodified, $ssdarkforce] = mysql_fetch_row($result);
     }
 
     // check for a temporary CSS override
     if ($cssOverride) {
-        $db = dbConnect();
-        $ssid = mysql_real_escape_string($cssOverride, $db);
-        $result = mysql_query(
-            "select userid, modified from stylesheets
-             where stylesheetid = '$ssid'", $db);
-        list($ssauthor, $ssmodified) = mysql_fetch_row($result);
+        $ssid = $cssOverride;
+        $result = mysqli_execute_query($db,
+            "select userid, dark, modified from stylesheets
+             where stylesheetid = ?", [$ssid]);
+        [$ssauthor, $ssdarkforce, $ssmodified] = mysql_fetch_row($result);
     }
 
     // If we found a custom style sheet selection, use it;
@@ -431,6 +423,11 @@ function echoStylesheetLink()
         $mtime = filemtime($_SERVER['DOCUMENT_ROOT'] . $stylesheet);
         echo "<link rel=\"stylesheet\" href=\"$stylesheet?t=$mtime\">";
     }
+
+    if ($ssdarkforce) {
+        echo "<script nonce='$nonce'>forceDarkMode($ssdarkforce);</script>";
+    }
+
 }
 
 // --------------------------------------------------------------------------
@@ -523,6 +520,7 @@ function sendImageLdesc($title, $imageID)
 //
 function showStars($num)
 {
+    global $ssdarkforce;
     // show no star image if there's no average
     if (isEmpty($num))
         return "";
@@ -531,19 +529,31 @@ function showStars($num)
     list($roundedNum, $starimg, $startxt) = roundStars($num);
 
     // return the image string
-    $result = "<span role='img' aria-label='$startxt out of 5'>";
+    $result = "<span role='img' class='nobr' aria-label='$startxt out of 5'>";
     for ($i = 1; $i <= $roundedNum; $i++) {
         $result .= "<img height=13 src='/img/star-checked.svg'>";
     }
     // adding unused class='star-half-checked' and 'star-unchecked' so users can override them in IFDB custom stylesheets
     if (floor($roundedNum) != $roundedNum) {
-        $result .= "<picture><source srcset='/img/dark-images/star-half-checked.svg' media='(prefers-color-scheme: dark)'>"
-            ."<img height=13 class='star-half-checked' src='/img/star-half-checked.svg'></picture>";
+        if ($ssdarkforce === STYLESHEET_DARKFORCE_DARK) {
+            $result .= "<img height=13 class='star-half-checked' src='/img/dark-images/star-half-checked.svg'>";
+        } else if ($ssdarkforce === STYLESHEET_DARKFORCE_LIGHT) {
+            $result .= "<img height=13 class='star-half-checked' src='/img/star-half-checked.svg'>";
+        } else {
+            $result .= "<picture><source srcset='/img/dark-images/star-half-checked.svg' media='(prefers-color-scheme: dark)'>"
+                ."<img height=13 class='star-half-checked' src='/img/star-half-checked.svg'></picture>";
+        }
         $i++;
     }
     for (; $i <=5; $i++) {
-        $result .= "<picture><source srcset='/img/dark-images/star-unchecked.svg' media='(prefers-color-scheme: dark)'>"
-            ."<img height=13 class='star-unchecked' src='/img/star-unchecked.svg'></picture>";
+        if ($ssdarkforce === STYLESHEET_DARKFORCE_DARK) {
+            $result .= "<img height=13 class='star-unchecked' src='/img/dark-images/star-unchecked.svg'>";
+        } else if ($ssdarkforce === STYLESHEET_DARKFORCE_LIGHT) {
+            $result .= "<img height=13 class='star-unchecked' src='/img/star-unchecked.svg'>";
+        } else {
+            $result .= "<picture><source srcset='/img/dark-images/star-unchecked.svg' media='(prefers-color-scheme: dark)'>"
+                ."<img height=13 class='star-unchecked' src='/img/star-unchecked.svg'></picture>";
+        }
     }
 
     $result .= "</span>";
@@ -650,7 +660,7 @@ function makePageControl($baseUrl, $curPage, $lastPage,
     } else {
 
         // add the current page/item indicator
-        $p .= ($firstItemOnPage+1) . "-" . ($lastItemOnPage+1)
+        $p .= ($firstItemOnPage+1) . "&ndash;" . ($lastItemOnPage+1)
               . ($totalItems >= 0 ? " of $totalItems" : "");
 
     }
@@ -1223,7 +1233,7 @@ function fixDesc($desc, $specials = 0)
         $desc .= spoilerWarningScript();
 
     // return the result
-    return output_encode($desc);
+    return $desc;
 }
 
 // Translate a stacked close tag to the actual HTML close tag
@@ -2883,6 +2893,40 @@ function collapsedAuthors($authors) {
         $str = $authors;
     }
     return $str;
+}
+
+// ----------------------------------------------------------------------------
+//
+// Sends a JSON response, used by the API
+//
+
+function send_json_response($data) {
+    header("Content-Type: application/json");
+    header("Expires: Mon, 26 Jul 1997 05:00:00 GMT");
+    header("Cache-Control: no-store, no-cache, must-revalidate");
+
+    echo json_encode($data);
+}
+
+// ----------------------------------------------------------------------------
+//
+// Sends a response to small update operations made by users
+//
+
+function send_action_response($label, $error = null, $extra = null) {
+    $arr = [];
+    if ($label)
+        $arr['label'] = $label;
+    if ($error)
+        $arr['error'] = $error;
+    if ($extra) {
+        foreach ($extra as $k => $v) {
+            $arr[$k] = $v;
+        }
+    }
+
+    send_json_response($arr);
+    exit();
 }
 
 ?>

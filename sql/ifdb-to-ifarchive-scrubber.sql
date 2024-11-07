@@ -1,6 +1,6 @@
 create database if not exists ifarchive;
 drop database ifarchive;
-create database ifarchive CHARACTER SET latin1 COLLATE latin1_german2_ci;
+create database ifarchive CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 use ifarchive;
 
 source ifdb.sql
@@ -17,14 +17,6 @@ drop table reviews2;
 drop table reviewflags;
 drop table userfilters;
 drop table stylepics;
-
-alter table clubs
-  drop column password,
-  drop column pswsalt;
-
-delete from clubmembers
-  where (select members_public from clubs
-         where clubs.clubid = clubmembers.clubid) != 'Y';
 
 delete from users
   where acctstatus != 'A';
@@ -73,7 +65,6 @@ delete from playedgames where userid in (select id from users where sandbox = 1)
 delete from unwishlists where userid in (select id from users where sandbox = 1);
 delete from news where userid in (select id from users where sandbox = 1);
 delete from stylesheets where userid in (select id from users where sandbox = 1);
-delete from clubmembers where userid in (select id from users where sandbox = 1);
 
 delete from reclists, reclistitems
   using reclists

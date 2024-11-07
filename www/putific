@@ -128,12 +128,6 @@ function load_xml_file($fname, $fdesc)
     return $xml;
 }
 
-// UTF-8 conversion from XML to local 8859-1
-function xcvt($str)
-{
-    return iconv("UTF-8", "ISO-8859-1//TRANSLIT", (string)$str);
-}
-
 // ------------------------------------------------------------------------
 //
 //  Get the iFiction data.  This is in the iFiction XML file that's
@@ -173,23 +167,23 @@ $colMap["website"] = array("contacts/url", "game Web site URL");
 // parse out the fields that we can map from iFiction to our game record
 $ifids = array();
 foreach ($xml->story->identification->ifid as $i) {
-    $ifids[] = mysql_real_escape_string(xcvt($i), $db);
+    $ifids[] = mysql_real_escape_string((string)$i, $db);
 }
 $ifid = implode(",", $ifids);
 
-$gameid = xcvt($xml->story->identification->tuid);
+$gameid = (string)$xml->story->identification->tuid;
 
-$title = xcvt($xml->story->bibliographic->title);
-$author = xcvt($xml->story->bibliographic->author);
-$pubDate = xcvt($xml->story->bibliographic->firstpublished);
-$fmt = xcvt($xml->story->identification->format);
-$lang = xcvt($xml->story->bibliographic->language);
-$series = xcvt($xml->story->bibliographic->series);
-$episode = xcvt($xml->story->bibliographic->seriesnumber);
-$genre = xcvt($xml->story->bibliographic->genre);
-$forgiveness = xcvt($xml->story->bibliographic->forgiveness);
-$bafsid = xcvt($xml->story->identification->bafn);
-$website = xcvt($xml->story->contacts->url);
+$title = (string)$xml->story->bibliographic->title;
+$author = (string)$xml->story->bibliographic->author;
+$pubDate = (string)$xml->story->bibliographic->firstpublished;
+$fmt = (string)$xml->story->identification->format;
+$lang = (string)$xml->story->bibliographic->language;
+$series = (string)$xml->story->bibliographic->series;
+$episode = (string)$xml->story->bibliographic->seriesnumber;
+$genre = (string)$xml->story->bibliographic->genre;
+$forgiveness = (string)$xml->story->bibliographic->forgiveness;
+$bafsid = (string)$xml->story->identification->bafn;
+$website = (string)$xml->story->contacts->url;
 
 
 // version is special, since it can come from four places (in order of
@@ -200,17 +194,17 @@ $website = xcvt($xml->story->contacts->url);
 //   - tads2/version
 //   - tads3/version
 //
-$version = xcvt($xml->story->releases->attached->release->version);
+$version = (string)$xml->story->releases->attached->release->version;
 if (!$version) {
-    $version = xcvt($xml->story->releases->history[0]->release->version);
+    $version = (string)$xml->story->releases->history[0]->release->version;
     $colMap["version"][0] = "releases/history/release/version";
 }
 if (!$version) {
-    $version = xcvt($xml->story->tads2->version);
+    $version = (string)$xml->story->tads2->version;
     $colMap["version"][0] = "tads2/version";
 }
 if (!$version) {
-    $version = xcvt($xml->story->tads3->version);
+    $version = (string)$xml->story->tads3->version;
     $colMap["version"][0] = "tads3/version";
 }
 
@@ -222,7 +216,7 @@ if (!$version) {
 $desc = $xml->story->bibliographic->description;
 if ($desc)
 {
-    $desc = xcvt($desc->asXML());
+    $desc = (string)$desc->asXML();
     $desc = preg_replace("/^<description>|<\/description>$/", "", $desc);
 
     // now fix up the description: change any HTML curly quote markups to
@@ -593,25 +587,25 @@ if ($linkFile)
     foreach ($xml->links->link as $l)
     {
         // get the items requiring mapping
-        $fmtid = xcvt($l->format);
-        $os = xcvt($l->os);
-        $cmp = xcvt($l->compression);
+        $fmtid = (string)$l->format;
+        $os = (string)$l->os;
+        $cmp = (string)$l->compression;
 
         // get the URL
-        $url = xcvt($l->url);
+        $url = (string)$l->url;
 
         // build the link record in the database format
         $link = array(
             "url" => $url,
-            "title" => xcvt($l->title),
-            "desc" => xcvt($l->desc),
+            "title" => (string)$l->title,
+            "desc" => (string)$l->desc,
             "attrs" => (isset($l->isGame) ? GAMELINK_IS_GAME : 0)
                      | (isset($l->pending) ? GAMELINK_PENDING : 0),
             "fmtid" => (isset($fmtMap[$fmtid]) ? $fmtMap[$fmtid] : false),
             "osid" => (isset($osMap[$os]) ? $osMap[$os][0] : false),
             "osvsn" => (isset($osMap[$os]) ? $osMap[$os][1] : false),
             "compression" => (isset($fmtMap[$cmp]) ? $fmtMap[$cmp] : false),
-            "compressedprimary" => xcvt($l->compressedPrimary));
+            "compressedprimary" => (string)$l->compressedPrimary);
 
         $i = null;
         if (!$replaceLinks) {

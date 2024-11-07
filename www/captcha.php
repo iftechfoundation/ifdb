@@ -6,17 +6,14 @@ include_once "dbconnect.php";
 //
 // This module has two main uses:
 //
-//   A. Email masker (AJAX; in-line javascript and XML requests)
+//   A. Email masker (AJAX; in-line javascript and JSON requests)
 //   B. Submitted form protector (adds captcha to a regular POST form)
 //
 // General instructions for all functions:
 //
 //   1. Include this file in your php file
 //
-//   2. In your pageHeader() extra header text, include
-//       scriptSrc('/xmlreq.js')
-//
-//   3. Generate a "key" for the captcha session (see below).  This is
+//   2. Generate a "key" for the captcha session (see below).  This is
 //      a unique key for the $_SESSION array to identify this captcha
 //      interaction.  A good formula is to use the name of the page
 //      plus the object key that's used to generate the page.  It's
@@ -25,7 +22,7 @@ include_once "dbconnect.php";
 //      anything else that will change on refresh, since the session
 //      key has to survive the POST.
 //
-//   4. Call captchaSupportScripts($key) to generate support scripts
+//   3. Call captchaSupportScripts($key) to generate support scripts
 //      This can go almost anywhere - it just echoes some in-line
 //      <script> code.
 //
@@ -39,10 +36,10 @@ include_once "dbconnect.php";
 //    masked email is a link; clicking the link displays a hidden CAPTCHA
 //    form.  The form is AJAX-driven - if the user enters a code and
 //    presses Return or clicks Submit, the form doesn't do a POST, but
-//    simply sends an xml http request to the server, passing along
+//    simply sends a JSON http request to the server, passing along
 //    the code the user entered and asking the server for the missing
 //    email information.  The server verifies the code and sends back
-//    the full emails via XML; the page hides the CAPTCHA form and
+//    the full emails via JSON; the page hides the CAPTCHA form and
 //    replaces the masked emails with the real addresses, hyperlinked
 //    with mailto: links.  The emails aren't included anywhere in the
 //    initial page load - they're only on the server, so there's no way
@@ -56,7 +53,7 @@ include_once "dbconnect.php";
 //   2. To mask an email: Use captchaMaskEmail($email, $msg) to generate
 //      the masked display string.  Display this string at the spot where
 //      you want the email to appear.  The form will automatically
-//      rewrite it with the correct email on receiving the xml reply.
+//      rewrite it with the correct email on receiving the json reply.
 //
 //   3. AFTER generating all masked emails, call captchaFinish($key) to
 //      set up the session information.
@@ -193,46 +190,6 @@ function hideCaptchaForm()
     document.getElementById("captchaFormDiv").style.display = "none";
     captchaFormStatus("", "");
 }
-function submitCaptchaForm()
-{
-    var val = Recaptcha.get_response();
-    var chal = Recaptcha.get_challenge();
-    if (val == "")
-    {
-        hideCaptchaForm();
-        return;
-    }
-    var url = "capreq?id=<?php echo $sessionKey ?>&code="
-              + encodeURIComponent(val)
-              + "&chal=" + encodeURIComponent(chal);
-    xmlSend(url, null, function(resp) {
-
-        var err = resp.getElementsByTagName("captchaError");
-        if (err && err.length && err[0].firstChild)
-        {
-            captchaFormStatus(err[0].firstChild.data, "errmsg");
-            Recaptcha.reload();
-            return;
-        }
-        var emails = resp.getElementsByTagName("email");
-        if (emails && emails.length)
-        {
-            for (var i = 0 ; i < emails.length ; i++)
-            {
-                var e = emails[i].firstChild.data;
-                var ele = document.getElementById("emailMasker" + i);
-                ele.innerHTML = "<a href=\"mailto:" + e + "\">"
-                    + encodeHTML(e) + "</a>";
-            }
-            hideCaptchaForm();
-        }
-        <?php if ($okcb) echo "$okcb(resp);" ?>
-    }, null);
-}
-function newCaptchaImage()
-{
-    Recaptcha.reload();
-}
 function captchaFormStatus(msg, cls)
 {
     var ele = document.getElementById("captchaStatusMsg");
@@ -243,29 +200,27 @@ function captchaSolved(response)
 {
     var url = "capreq?id=<?php echo $sessionKey ?>&code="
         + encodeURIComponent(response);
-    xmlSend(url, null, function(resp) {
+    jsonSend(url, null, function(resp) {
 
-        var err = resp.getElementsByTagName("captchaError");
-        if (err && err.length && err[0].firstChild)
+        if (resp.error)
         {
-            captchaFormStatus(err[0].firstChild.data, "errmsg");
-            Recaptcha.reload();
+            captchaFormStatus(resp.error, "errmsg");
+            grecaptcha.reset();
             return;
         }
-        var emails = resp.getElementsByTagName("email");
+        const emails = resp.reply;
         if (emails && emails.length)
         {
-            for (var i = 0 ; i < emails.length ; i++)
+            for (const [i, e] of emails.entries())
             {
-                var e = emails[i].firstChild.data;
-                var ele = document.getElementById("emailMasker" + i);
+                const ele = document.getElementById("emailMasker" + i);
                 ele.innerHTML = "<a href=\"mailto:" + e + "\">"
                     + encodeHTML(e) + "</a>";
             }
             hideCaptchaForm();
         }
         <?php if ($okcb) echo "$okcb(resp);" ?>
-    }, null);
+    }, null, true);
 }
 //-->
 </script>
@@ -280,8 +235,6 @@ function captchaAjaxForm($sessionKey)
 {
     echo "<div id='captchaFormDiv' class='hidden'>"
         . "<form name='captchaAjaxForm'>"
-        . addEventListener('submit', 'submitCaptchaForm();return false;')
-//        . getCaptchaSubForm($sessionKey, false, false)
         . "<div id='captchaFormCont'></div>"
         . "<div><span id='captchaStatusMsg'></span></div>"
         . "<div class=\"g-recaptcha\" data-callback=\"captchaSolved\" data-sitekey=\"" . RECAPTCHA_PUBLIC_KEY . "\"></div>"
@@ -298,26 +251,7 @@ function captchaFinish($sessionKey)
 {
     global $captchaEmailList;
 
-    // start with an empty XML reply
-    $xml = "";
-
-    // generate the reply with all the emails
-    if ($captchaEmailList)
-    {
-        // make the list of <email> tags
-        for ($i = 0, $xml = false ; $i < count($captchaEmailList) ; $i++)
-        {
-            $xml[] = "<email>"
-                     . htmlspecialcharx($captchaEmailList[$i])
-                     . "</email>";
-        }
-
-        // wrap the list in an <emails> section and add it to the result
-        $xml .= "<emails>" . implode("", $xml) . "</emails>";
-    }
-
-    // set the XML in the session
-    $_SESSION["CAPTCHA.$sessionKey"] = array($xml);
+    $_SESSION["CAPTCHA.$sessionKey"] = $captchaEmailList ? json_encode($captchaEmailList) : "[]";
 }
 
 // ------------------------------------------------------------------------
@@ -326,7 +260,6 @@ function captchaFinish($sessionKey)
 //
 function captchaCheckPost($sessionKey)
 {
-    if (isLocalDev()) return array(true, false);
     if (isset($_POST["g-recaptcha-response"]))
     {
         $resp = recaptcha_check_answer(

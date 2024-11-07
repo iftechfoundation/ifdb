@@ -102,7 +102,7 @@ if (count($tags) == 0) {
     $cloud = get_req_data("cloud");
 
     if ($datalist) {
-        header('Content-Type: text/xml;charset=ISO-8859-1');
+        header('Content-Type: text/xml; charset=utf-8');
         header('Cache-Control: public, max-age=3600');
         echo "<datalist id=\"tags-list\">\n";
         foreach ($tags as $t) {

@@ -15,13 +15,7 @@ function encodeHTML(str)
 }
 function encodeURI8859(str)
 {
-    return str.replace(/[^-a-zA-Z0-9_.!~*'()]/g, function(m) {
-        var c = m.charCodeAt(0);
-        if (c <= 255)
-            return '%' + c.toString(16);
-        else
-            return '%26%23' + c + '%3B';
-    });
+    return encodeURIComponent(str);
 }
 function jsQuote(str)
 {
@@ -202,5 +196,76 @@ function replaceSelRange(ele, txt, selectNewText)
         setSelRange(ele,
                     { start: selectNewText ? r.start : r.start + txt.length,
                       end: r.start + txt.length });
+    }
+}
+
+// if the user has opted into a dark-mode stylesheet, activate all of the dark mode rules
+function forceDarkMode(force) {
+    if (!force) return;
+    var dark = force === 1;
+    function parseSheet(sheet) {
+        for (var i = sheet.cssRules.length - 1; i >=0 ; i--) {
+            var rule = sheet.cssRules[i];
+            if (rule.type === CSSRule.IMPORT_RULE) {
+                parseSheet(rule.styleSheet);
+                continue;
+            }
+            if (rule.media?.mediaText?.includes("prefers-color-scheme: dark")) {
+                if (dark) {
+                    rule.media.appendMedium("(prefers-color-scheme: light)");
+                } else {
+                    sheet.deleteRule(i);
+                }
+            }
+        }
+    }
+    for (const sheet of document.styleSheets) {
+        parseSheet(sheet);
+    }
+}
+
+async function jsonSend(url, statusSpanID, cbFunc, content, silentMode)
+{
+    if (statusSpanID)
+        document.getElementById(statusSpanID).innerHTML = "";
+
+    const options = {
+        method: 'POST',
+    };
+    if (content != null) {
+        options.body = JSON.stringify(content);
+    }
+
+    let jsonResponse = null;
+    let msgspan = null;
+    try {
+        const response = await fetch(url, options);
+        jsonResponse = await response.json();
+        msgspan = (statusSpanID
+                ? document.getElementById(statusSpanID)
+                : null);
+
+        if (!response || !response.ok)
+            throw new Error();
+
+        if (msgspan) {
+            const lbl = jsonResponse.label;
+            if (lbl)
+                msgspan.innerHTML = lbl;
+        }
+
+        const errmsg = jsonResponse.error;
+        if (errmsg && !silentMode)
+            alert(errmsg);
+    } catch (e) {
+        if (msgspan)
+            msgspan.innerHTML = "Not Saved";
+        if (!silentMode)
+            alert("An error occurred sending the update to the server. "
+                   + "(" + response.status + ") "
+                   + "Please try again later.");
+    }
+    if (cbFunc) {
+        cbFunc(jsonResponse);
     }
 }

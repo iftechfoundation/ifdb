@@ -24,20 +24,19 @@ function checkPersistentLogin()
 
         // see if we can find the session ID in the persistent session table
         $key = $_COOKIE['IFDBSessionID'];
-        $key = mysql_real_escape_string($_COOKIE['IFDBSessionID'], $db);
-        $result = mysql_query("select userid from persistentsessions
-            where id = '$key'", $db);
+        $result = mysqli_execute_query($db, "select userid from persistentsessions
+            where id = ?", [$key]);
         if (mysql_num_rows($result) > 0) {
             // Got it - the user is logged in.  Fetch the user ID.
             $userid = mysql_result($result, 0, "userid");
 
             // update the last login timestamp for the persistent session
-            mysql_query("update persistentsessions set lastlogin = now()
-                where id = '$key'", $db);
+            mysqli_execute_query($db, "update persistentsessions set lastlogin = now()
+                where id = ?", [$key]);
 
             // also update the last login time in the user record
-            $result = mysql_query("update users set lastlogin = now()
-                where id = '$userid'", $db);
+            $result = mysqli_execute_query($db, "update users set lastlogin = now()
+                where id = ?", [$userid]);
 
             // save the user credentials in the session
             $_SESSION['logged_in'] = true;
@@ -59,8 +58,8 @@ function checkPersistentLogin()
 
 function check_banned($userid) {
     $db = dbConnect();
-    $result = mysql_query(
-        "select 1 from users where id = '$userid' and acctstatus = 'B'", $db);
+    $result = mysqli_execute_query($db,
+        "select 1 from users where id = ? and acctstatus = 'B'", [$userid]);
     $banned = mysql_num_rows($result) > 0;
     if ($banned) {
         error_log("user $user_id is banned; logging out");

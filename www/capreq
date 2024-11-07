@@ -1,6 +1,6 @@
 <?php
 
-// Generic xml http request CAPTCHA handler.
+// Generic JSON http request CAPTCHA handler.
 //
 // This coordinates captcha handling with other scripts via the $_SESSION
 // context.  See captcha.php for an example of use.
@@ -10,27 +10,10 @@ include_once "session-start.php";
 include_once "util.php";
 include_once "captcha.php";
 
-// send an XML reply
-function replyXML($body)
-{
-    // send the XML content header, and disable caching
-    header("Content-type: text/xml");
-    header("Expires: Mon, 26 Jul 1997 05:00:00 GMT");
-    header("Cache-Control: no-store, no-cache, must-revalidate");
-
-    // send the XML
-    echo "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
-        . "<captchaReply>"
-        . $body
-        . "</captchaReply>";
-
-    // that's all we need to send
-    exit();
-}
-
 function replyErr($msg)
 {
-    replyXML("<captchaError>" . htmlspecialcharx($msg) . "</captchaError>");
+    send_json_response(["error" => $msg]);
+    exit();
 }
 
 // Get the captcha key.  This identifiers the $_SESSION parameter for
@@ -46,7 +29,7 @@ if (!isset($_SESSION[$skey]))
     replyErr("The session key is invalid. "
              . "Please refresh the page and try again.");
 
-list($succReply) = $_SESSION[$skey];
+$succReply = $_SESSION[$skey];
 
 // Check to see if this is a reply with a code.  If there's a code,
 // replace the commonly confused characters with the canonical mappings.
@@ -55,11 +38,15 @@ if ($answer)
 {
     // it's a response - validate it
     $resp = recaptcha_check_answer(RECAPTCHA_PRIVATE_KEY, $_SERVER["REMOTE_ADDR"], $answer);
-    if ($resp->is_valid)
-        replyXML("<ok/>$succReply");
-    else {
-        $errTab = array(
-            "incorrect-captcha-sol" => "Incorrect entry - please try again.");
+    if ($resp->is_valid) {
+        header("Content-Type: application/json");
+        header("Expires: Mon, 26 Jul 1997 05:00:00 GMT");
+        header("Cache-Control: no-store, no-cache, must-revalidate");
+        echo "{\"reply\": $succReply}";
+        exit();
+    } else {
+        $errTab = [
+            "incorrect-captcha-sol" => "Incorrect entry - please try again."];
         if (isset($errTab[$resp->error]))
             replyErr($errTab[$resp->error]);
         else
