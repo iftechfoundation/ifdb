@@ -1468,7 +1468,7 @@ function submitTime() {
         return;
     }
     // Time is valid, as far as we can tell
-    xmlSend("settime?game=<?php echo $id?>&newtime=" + new_time, "timeSaveMsg", swapTimeSections, null);
+    jsonSend("settime?game=<?php echo $id?>&newtime=" + new_time, "timeSaveMsg", swapTimeSections);
 }
 // Attach the submitTime function to the "Submit Time" button.
 document.getElementById("submitTimeButton").addEventListener("click", submitTime);
@@ -1476,7 +1476,7 @@ document.getElementById("submitTimeButton").addEventListener("click", submitTime
 
 // Remove the user's time for this game from the database.
 function removeTime() {
-    xmlSend("settime?game=<?php echo $id?>&newtime=0", "timeSaveMsg", swapTimeSections, null);
+    jsonSend("settime?game=<?php echo $id?>&newtime=0", "timeSaveMsg", swapTimeSections);
 }
 // Attach the removeTime function to the Remove Time button.
 document.getElementById("removeTimeButton").addEventListener("click", removeTime);
