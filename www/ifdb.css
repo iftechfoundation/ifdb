@@ -726,6 +726,7 @@ span.zipstar {
 listing.  This is used on game listing pages in the Download box.
 */
 span.fmtnotes {
+    display: inline-block;
     font-size: 85%;
     line-height: 1.25em;
     color: #606060;

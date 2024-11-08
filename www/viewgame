@@ -1207,7 +1207,10 @@ if (count($links) == 0 && $dlnotes == "") {
             echo "<span class=dlnotes>$linkdesc<br></span>";
         }
 
-        echo "<span class=fmtnotes>$typedesc$zipnote</span></div></li>";
+        if ($typedesc || $zipnote) {
+            echo "<span class=fmtnotes>$typedesc$zipnote</span>";
+        }
+        echo "</div></li>";
     }
     echo "</ul>";
 
