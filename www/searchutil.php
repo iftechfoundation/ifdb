@@ -118,49 +118,12 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse)
         $likeCol = "title";
         $summaryDesc = "Polls";
     }
-    else if ($searchType == "club")
-    {
-        // special keywords for clubs
-        $specialMap = array(
-            "#members:" => array("membercnt", 1, true),
-            "contact:" => array("c.contacts_plain", 0),
-            "contacts:" => array("c.contacts_plain", 0));
-
-        // if we're logged in, we can see clubs we belong to
-        $orMyClub = $joinMyClubs = "";
-        if ($curuser) {
-            $orMyClub = "or mcur.userid is not null";
-            $joinMyClubs = "left outer join clubmembers as mcur "
-                           . "on mcur.clubid = c.clubid "
-                           . "and mcur.userid = '$curuser'";
-        }
-
-        // SELECT parameters for club search
-        $selectList = "c.clubid as clubid,
-                       c.contacts_plain as contacts,
-                       c.name as name,
-                       c.`desc` as `desc`,
-                       date_format(c.created, '%M %e, %Y') as created,
-                       if (c.members_public = 'Y' $orMyClub,
-                           count(m.userid), 0) as membercnt";
-        $tableList = "clubs as c
-                      left outer join clubmembers as m
-                        on m.clubid = c.clubid
-                      $joinMyClubs";
-        $baseWhere = "";
-        $groupBy = "group by c.clubid";
-        $baseOrderBy = "name";
-        $matchCols = "c.name, c.keywords, c.`desc`";
-        $likeCol = "c.name";
-        $summaryDesc = "Clubs";
-    }
     else if ($searchType == "member")
     {
         // special keywords for member search
         $specialMap = array(
             "location:" => array("location", 0),
-            "hyperlinks:" => array("/hyperlinks/", 99),
-            "club:" => array("/clubname/", 99));
+            "hyperlinks:" => array("/hyperlinks/", 99));
 
         // SELECT parameters for member queries
         $selectList = "u.id as id,
@@ -800,45 +763,6 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse)
                         . "like '$txt'";
                 break;
 
-            case '/clubname/':
-                // we need club memberships added to the list
-                if (!isset($extraJoins[$col]))
-                {
-                    // note that we've added the joins for this query
-                    $extraJoins[$col] = true;
-
-                    // if we're logged in, we can see the membership lists
-                    // for clubs we belong to, even if they're private
-                    $orMember = $joinMyClubs = "";
-                    if ($curuser) {
-                        $orMember = "or mcur.userid is not null";
-                        $joinMyClub = "left outer join clubmembers as mcur "
-                                      . "on mcur.clubid = m.clubid "
-                                      . "and mcur.userid = '$curuser'";
-                    }
-
-                    // set up the join: join with each club membership
-                    // per user, for each membership join with the club
-                    // information to get the club name
-                    $tableList .= " join clubmembers as m
-                                      on m.userid = u.id
-                                    $joinMyClub
-                                    join clubs as c
-                                      on c.clubid = m.clubid
-                                      and (c.members_public = 'Y' $orMember)";
-
-                    // ... and then group the results by user, since we
-                    // only want to keep one row per user
-                    $groupBy = "group by u.id";
-                }
-
-                // quote the club name
-                $txt = mysql_real_escape_string(quoteSqlLike($txt), $db);
-
-                // include only rows matching this club name
-                $expr = "c.name like '%$txt%'";
-                break;
-
             case '/hyperlinks/':
                 $expr = "u.profile rlike '<[[:space:]]*a[[:space:]]+href'";
                 break;
@@ -968,18 +892,6 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse)
             'org' => array('lower(c.organizers),', 'Sort by Organizer Name'),
             'rand' => array('rand(),', 'Random Order'));
         $defSortBy = 'awn';
-        break;
-
-    case "club":
-        $sortList = array(
-            'new' => array('c.created desc,', 'Newest First'),
-            'old' => array('c.created,', 'Oldest First'),
-            'name' => array('c.name,', 'Sort by Name'),
-            'mcd' => array('membercnt desc,', 'Most Members First'),
-            'mcu' => array('membercnt,', 'Fewest Members First'),
-            'con' => array('lower(c.contacts),', 'Sort by Contact Name'),
-            'rand' => array('rand(),', 'Random Order'));
-        $defSortBy = 'new';
         break;
 
     case "tag":
