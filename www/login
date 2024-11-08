@@ -185,7 +185,7 @@ else
    ?>
 
    <div><label for="userid"><b>Email</b></label></div>
-   <div><input type="text" name="userid" id="userid" size=30
+   <div><input type="email" name="userid" id="userid" size=30
                    value="<?php echo $username ?>" tabindex=0></div>
    <br>
    <div><label for="password"><b>Password</b></label></div>
@@ -241,7 +241,7 @@ if ($errFlagged != false)
    </div>
 
    <div><label for="userid"><b>Email</b></label></div>
-   <div><input type="text" name="userid" id="userid" size=30
+   <div><input type="email" name="userid" id="userid" size=30
                    value="<?php echo $username ?>" tabindex=0></div>
    <br>
    <div><label for="password"><b>Password</b></label></div>
