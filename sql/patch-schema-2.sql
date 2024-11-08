@@ -116,10 +116,10 @@ insert into playertimes (gameid, userid, time_in_minutes)
 values ('n93jonigjmva9e3g', 'kaw2cas7dyiq2tmg', 139);
 
 insert into playertimes (gameid, userid, time_in_minutes)
-values ('59g5czw7izz7aoip', '0000000000000001', 134);
+values ('n93jonigjmva9e3g', '0000000000000001', 134);
 
 insert into playertimes (gameid, userid, time_in_minutes)
-values ('59g5czw7izz7aoip', '0000000000000000', 204);
+values ('n93jonigjmva9e3g', '0000000000000000', 204);
 
 insert into playertimes (gameid, userid, time_in_minutes)
 values ('n93jonigjmva9e3g', 'pwamtkqtbeyc8eyn', 116);
