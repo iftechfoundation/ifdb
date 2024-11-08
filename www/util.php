@@ -367,12 +367,6 @@ function echoStylesheetLink()
         $mtime = strtotime($ssmodified);
         echo "<link rel=\"stylesheet\" href=\"$stylesheet?t=$mtime\">";
     }
-    // otherwise, use the mobile stylesheet if we're on mobile
-    else if (is_mobile()) {
-        $stylesheet = "/legacy-mobile-styles.css";
-        $mtime = filemtime($_SERVER['DOCUMENT_ROOT'] . $stylesheet);
-        echo "<link rel=\"stylesheet\" href=\"$stylesheet?t=$mtime\">";
-    }
     // or the regular stylesheet if we're not
     else {
         $stylesheet = "/ifdb.css";

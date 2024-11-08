@@ -1296,6 +1296,14 @@ span.headlineRss {
         display: block;
     }
 
+    .rightbar {
+        display: none;
+    }
+
+    div.tipbox {
+        display: none;
+    }
+
 }
 
 /*
