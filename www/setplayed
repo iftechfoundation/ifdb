@@ -19,11 +19,10 @@ if ($db == false)
 
 // get the request parameters
 $gameid = get_req_data("game");
-$qgameid = mysql_real_escape_string($gameid, $db);
 $played = (int)get_req_data("played");
 
 // make sure it's a valid game
-$result = mysql_query("select title from games where id='$qgameid'", $db);
+$result = mysqli_execute_query($db, "select title from games where id=?", [$gameid]);
 if (mysql_num_rows($result) == 0)
     send_action_response("Not Saved", "The specified game doesn't exist in the "
                          . "database.");
@@ -40,31 +39,31 @@ if (!$userid)
     send_action_response("Not Saved", "You must log in to use this feature.");
 
 $progress = "QU107";
-$result = mysql_query(
+$result = mysqli_execute_query($db,
     "select gameid from playedgames
-     where gameid='$qgameid' and userid='$userid'", $db);
+     where gameid=? and userid=?", [$gameid, $userid]);
 $cnt = mysql_num_rows($result);
 if ($cnt == 0 && $played) {
     // it's not already marked as played, so insert a PLAYED row
     $progress = "IN108";
-    $sql = "insert into playedgames (gameid, userid, date_added)
-             values ('$qgameid', '$userid', now())";
-        $result = mysql_query($sql, $db);
+    $result = mysqli_execute_query($db,
+        "insert into playedgames (gameid, userid, date_added)
+         values (?, ?, now())", [$gameid, $userid]);
 } else if ($cnt != 0 && !$played) {
     // it was played, but it no longer is - delete the PLAYED row
     $progress = "DL109";
-    $sql = "delete from playedgames
-            where gameid='$qgameid' and userid='$userid'";
-    $result = mysql_query($sql, $db);
+    $result = mysqli_execute_query($db,
+        "delete from playedgames
+         where gameid=? and userid=?", [$gameid, $userid]);
 }
 
 if ($result) {
 
     // get the new count to send with the reply
-    $result = mysql_query(
+    $result = mysqli_execute_query($db,
         "select count(userid) from playedgames
-         where gameid='$qgameid'", $db);
-    list($newCnt) = mysql_fetch_row($result);
+         where gameid=?", [$gameid]);
+    [$newCnt] = mysql_fetch_row($result);
 
     // send the success reply
     send_action_response("Saved", null, ["newCount" => $newCnt]);
