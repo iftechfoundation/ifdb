@@ -59,12 +59,6 @@ function openGameSearchPopup(ele, doneFunc, defaultTitle, openerBtn)
     fld.focus();
     fld.value = defaultTitle;
 }
-function gameSearchPopupKey(event)
-{
-    if (event.code === 'Escape') {
-        gameSearchPopupClose();
-    }
-}
 function gameSearchPopupClose()
 {
     document.getElementById("gameSearchPopupDiv").style.display = "none";
@@ -196,7 +190,15 @@ function gameSearchPopupDiv()
           <input type=submit name="gameSearchPopupGoBtn"
               id="gameSearchPopupGoBtn" value="Search">
           <script type="text/javascript" nonce="<?php global $nonce; echo $nonce; ?>">
-            gameSearchPopupSearchBox.addEventListener('keydown', gameSearchPopupKey);
+            gameSearchPopupSearchBox.addEventListener('keypress', function({code}) {
+                if (code === 'Enter') {
+                    event.preventDefault();
+                    gameSearchPopupGo();
+                }
+            });
+            gameSearchPopupSearchBox.addEventListener('keydown', function({code}) {
+                if (code === 'Escape') gameSearchPopupClose();
+            });
             gameSearchPopupGoBtn.addEventListener('click', async function (event) {
                 event.preventDefault();
                 gameSearchPopupGo();
