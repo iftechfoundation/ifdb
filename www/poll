@@ -624,7 +624,7 @@ if ($userid && $id && isset($_REQUEST['addVote'])) {
             $noChangeMsg = "without submitting a vote";
         }
 
-        pageHeader("Vote for $gameTitle", "voteForm.quickQuote");
+        pageHeader("Vote for $gameTitle");
         echo "<h1>Vote for $gameTitle</h1>";
 
         if ($formErrMsg) {
@@ -716,7 +716,7 @@ if ($userid && $id && isset($_REQUEST['addVote'])) {
         // and confirmation
         $cnt = count($matches);
 
-        pageHeader("Vote for a game", "addVoteForm.addTitle");
+        pageHeader("Vote for a game");
         echo "<h1>Vote for a game</h1>";
         echo "<b>Poll: " . htmlspecialcharx($title) . "</b><p>";
 
@@ -889,7 +889,7 @@ if ($userid && isset($_REQUEST['comment'])) {
 if ($id == 'new') {
 
     // Create a new poll
-    pageHeader("Create a New Poll", "newPollForm.title");
+    pageHeader("Create a New Poll");
 ?>
 
 <div class="tipbox"><h1>Ask a question</h1>

@@ -163,15 +163,8 @@ function login()
 if (!login())
     exit();
 
-// Figure the initial focus: if this is a GET with a user ID but no
-// password, assume the user ID field was pre-populated by the referring
-// page, so start in the password field.  Otherwise start in the user ID
-// field.
-$initField = (($_SERVER['REQUEST_METHOD'] == 'GET'
-               && $username && !$psw) ? "login.password" : "login.userid");
-
 // start the page
-varPageHeader("Log in", $initField, $smallPage);
+varPageHeader("Log in", false, $smallPage);
 
 if ($smallPage) {
 ?>

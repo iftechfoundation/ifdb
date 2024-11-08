@@ -28,7 +28,7 @@ if (!$showForm)
 // Main form display
 //
 
-pageHeader("New User Registration", "newuser.userid", false,
+pageHeader("New User Registration", false, false,
            scriptSrc('/passwords.js'));
 ?>
 

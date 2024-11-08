@@ -51,7 +51,7 @@ if (isset($_REQUEST['id'])) {
 
     if ($rowcnt == 0) {
 
-        smallPageHeader("Hyperlink to a Game", "pickGame.title");
+        smallPageHeader("Hyperlink to a Game");
         echo "<h1>Hyperlink to a Game</h1>
              The title you entered didn't match any games in the
              database.  Please check the title and try again.";
@@ -77,7 +77,7 @@ if (isset($_REQUEST['id'])) {
 
     } else {
 
-        smallPageHeader("Hyperlink to a Game", "pickGame.title");
+        smallPageHeader("Hyperlink to a Game");
         echo "<h1>Hyperlink to a Game</h1>
              The title you entered matches multiple games.  Select
              the game you're looking for:
@@ -101,7 +101,7 @@ if (isset($_REQUEST['id'])) {
 } else {
 
     $title = htmlspecialcharx(get_req_data('title'));
-    smallPageHeader("Hyperlink to a Game", "pickGame.title");
+    smallPageHeader("Hyperlink to a Game");
 
 ?>
 

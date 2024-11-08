@@ -42,7 +42,7 @@ echo "<style nonce='$nonce'>\n"
 //
 if (isset($_REQUEST['browse']))
 {
-    pageHeader("Review a Game", "editSearchForm.searchFor");
+    pageHeader("Review a Game");
     echo "<h1>Review a Game</h1>";
 
     // get the search term from a previous iteration, if present
@@ -680,7 +680,7 @@ up your existing review for further editing.
 }
 
 // show the page header
-pageHeader("Write a Review", "review.summary");
+pageHeader("Write a Review");
 ?>
 
 <div class=title><?php echo $title ?></div>
