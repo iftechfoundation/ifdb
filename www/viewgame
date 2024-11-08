@@ -278,7 +278,6 @@ function showMemberReviewsHeader($showHisto)
             . " based on $ratingCntAvg ratings<br>"
             . "Number of Reviews Written by IFDB Members: $memberReviewCnt<br></span>";
     }
-
     echo "<span class=details><a href=\"review?id=$id&userid=$curuser\">"
         . ($currentUserReview ? "Revise your review" : ($oneReviewView ? "" : "Write a review"))
         . "</a>"
@@ -1359,8 +1358,200 @@ function updateUnwishList(id, stat)
         . " &nbsp; <span id=\"ckUnwishlistSaveMsg\" class=\"xmlstatmsg\">"
         . "</span><br></div></div>";
 
-    ?>
-            <?php
+ 
+//------------------PHP for the estimated play time control panel---------------------------------
+
+
+    // Check the database to see if the user has a "time_in_minutes" vote stored for this game.
+    // If one exists, return the stored time in minutes. If not, return 0.
+    $mystoredtime=0;
+
+    $result = mysqli_execute_query($db, "select time_in_minutes from playertimes where gameid = ? and userid = ?", [$id, $curuser]);
+    if (!$result) throw new Exception("Error: " . mysqli_error($db));
+        while ($row = mysqli_fetch_assoc($result)) {     
+            // There should only be one row, at most
+            $mystoredtime = $row['time_in_minutes']; 
+        }
+    // At this point $mystoredtime should reflect the player's actual stored time for this game
+    $my_time_as_text = "";
+    $time_announcement = ""; // The string shown in the Estimated Play Time control panel
+    if ($mystoredtime >= 1) {
+        $hours_and_minutes = convertToHoursAndMinutes($mystoredtime);
+        $my_time_as_text=convertTimeToText($hours_and_minutes);
+        $time_announcement = "Your vote: " . $my_time_as_text;
+    }
+   
+
+//-----------------------Estimated play time control panel begins----------------------------
+
+        echo "<div class=indented>";
+        echo "<div id='timeVoteControls' class='viewgame__playedSection'>"  // There's an event listener attached to "timeVoteControls"
+        . "<span id=\"timeVoteControlsCaption\"><b>Estimated play time:</b></span>";
+
+        echo "<div id='submitTimeSection'>"
+        . "<span id='howLong'>Vote on how long it takes to finish this game.</span><br>"
+        . "<details><summary>Tips</summary>"
+        . "<ul>"
+        . "<li>Vote only if you've played the game.</li>"
+        . "<li>Vote on how long it would take to get to one final ending without hints or a walkthrough.</li>"
+        . "<li>Time spent away from the game doesn't count.</li>"
+        . "<li>Times don't need to be exact. Good-faith estimates are fine."
+        . "<ul></details>"
+        . "<p><label for='hours'>Hours:</label> "
+        . "<input type='number' name='hours' id='hours' min=0 max=200> "
+        . "<label for='minutes'>Minutes:</label> "
+        . "<input type='number' name='minutes' id='minutes' min=0 max=59></p>"
+        . "<button id='submitTimeButton' class='fancy-button' type='submit'>Submit Time</button>"
+	    . "</div>";
+
+        echo "<div id='removeTimeSection'>"
+        . "<span id='yourTime'>" . $time_announcement . "</span><br>"
+        . "<button id='removeTimeButton' class='fancy-button'>Remove Time</button>"
+        . "</div>";
+
+        echo " <span id=\"timeSaveMsg\" class=xmlstatmsg aria-live='polite'></span><br>";
+
+	    echo "<div id='timeSavedSection'>"
+        . "<p id='timeSubmittedMessage'>Your time has been submitted.</p>"
+	    . "</div>";
+
+
+// -------------------JavaScript for the estimated play time control panel---------------------
+?>
+
+<script nonce="<?php global $nonce; echo $nonce; ?>">
+
+// When the user clicks the "Submit Time" button, get the input 
+// from the hours and minutes fields, validate it, convert it to 
+// minutes only, and save it to the database. 
+function submitTime() {
+    if (document.getElementById('ckBoxckPlayed').checked==false) {
+         document.getElementById("timeSaveMsg").innerHTML="Error: This game isn't on your list of played games.";
+         return;
+    }
+    var new_hours = document.getElementById('hours').value;
+    var new_minutes = document.getElementById('minutes').value;
+    if (new_hours == "") {    // If the hours field was blank, interpret it as 0
+        new_hours = 0;
+    }
+    if (new_minutes == "") {  //If the minutes field was blank, interpret it as 0
+        new_minutes = 0;
+    }
+    var hours_are_digits = isOnlyDigits(new_hours); 
+    var minutes_are_digits = isOnlyDigits(new_minutes);
+    if (hours_are_digits == false || minutes_are_digits == false) {
+        document.getElementById("timeSaveMsg").innerHTML="Please enter valid numbers.";
+        return;
+    }
+    if (new_hours > 200) {     // Negative numbers will hopefully be eliminated by "Digits only"
+        document.getElementById("timeSaveMsg").innerHTML="For hours, please enter a number from 0 to 200.";
+        return;
+    }
+    if (new_minutes >= 59) {
+        document.getElementById("timeSaveMsg").innerHTML="For minutes, please enter a number from 0 to 59.";
+        return;
+    }
+    var new_time = convertToMinutes(new_hours, new_minutes);
+    if (new_time < 1) {
+        document.getElementById("timeSaveMsg").innerHTML="The total time must be at least one minute.";
+        return;
+    }
+    // Time is valid, as far as we can tell
+    jsonSend("settime?game=<?php echo $id?>&newtime=" + new_time, "timeSaveMsg", swapTimeSections);
+}
+// Attach the submitTime function to the "Submit Time" button.
+document.getElementById("submitTimeButton").addEventListener("click", submitTime);
+
+
+// Remove the user's time for this game from the database.
+function removeTime() {
+    jsonSend("settime?game=<?php echo $id?>&newtime=0", "timeSaveMsg", swapTimeSections);
+}
+// Attach the removeTime function to the Remove Time button.
+document.getElementById("removeTimeButton").addEventListener("click", removeTime);
+
+
+// Check whether a string contains only digits.
+function isOnlyDigits(a_string) {
+    if (/^\d+$/.test(a_string)) {
+        return true;
+    }
+    return false;
+}
+
+
+// Take hours and minutes and convert them into just minutes
+// so we can store the time as minutes in the database.
+function convertToMinutes(hours, minutes) {
+    // They need to be integers so they don't get concatenated when we're trying to add them
+    hours = Number(hours); 
+    minutes = Number(minutes);
+    hours_into_minutes = hours * 60;
+    total_minutes = hours_into_minutes + minutes;
+    return total_minutes;
+}
+
+
+// The Estimated Play Time control panel has a "submitTimeSection," a "removeTimeSection," and
+// a "timeSavedSection." Only one of the sections should be visible at a time. These functions
+// show and hide the sections.
+
+function showSubmitTimeSection() { 
+    submitTimeSection.style.display = "block";
+    removeTimeSection.style.display  = "none";
+    timeSavedSection.style.display = "none";
+}
+
+function showRemoveTimeSection() { 
+    submitTimeSection.style.display = "none";
+    removeTimeSection.style.display = "block";
+    timeSavedSection.style.display = "none";
+}
+
+function showTimeSavedSection() { 
+    submitTimeSection.style.display = "none";
+    removeTimeSection.style.display = "none";
+    timeSavedSection.style.display = "block";
+    
+}
+
+// After successfully submitting or removing a time, hide or show 
+// the appropriate sections of the estimated play time control panel.
+function swapTimeSections() {
+    if (document.getElementById("timeSaveMsg").innerHTML == "Saved") { 
+        if (submitTimeSection.style.display == "block") { 
+            //The submit time section is visible, which means we just successfully saved a new time.        
+            showTimeSavedSection();
+        } else if (removeTimeSection.style.display == "block") {
+            //The remove time section is visible, which means we just successfully removed our time.  
+            showSubmitTimeSection();
+        }
+    } // Don't swap the time controls if there was an error saving.
+}
+// Attach the swapTimeSections function to the timeVoteControls div.
+document.getElementById("timeVoteControls").addEventListener("load", swapTimeSections);
+
+
+// When the page first loads, show the relevant time controls based on
+// whether the user has a time already stored for this game. To find out, we
+// check whether there's a message displaying the user's time.
+function prepareTimeControls() {
+    var your_time_message = document.getElementById("yourTime").innerHTML;
+    if (your_time_message == "") {
+        showSubmitTimeSection();
+    } else if (your_time_message != "") {
+        showRemoveTimeSection();
+    }
+}
+prepareTimeControls();
+
+
+
+//----------------------End of JavaScript for Estimated Play Time Control Panel-----------------------
+</script>
+
+<?php
+
 
 } else {
     echo "You can rate this game, record that you've played it, "
@@ -1720,7 +1911,7 @@ if (!isEmpty($genre)) {
     if ($detailView) {
 ?>
          <p>
-         <span class=details>
+         <div class=details>
             <?php
 
 $embargoCnt = 0;
@@ -1734,7 +1925,84 @@ if ($curuser) {
         list($embargoID, $embargoDate) = mysql_fetch_row($result);
 }
 
+// --------------------PHP Functions for Displaying Median Play Time--------------------------
+
+
+// Find the median of the numbers in an array
+function findMedian($array_input) {
+    if (!is_array($array_input)) return false;
+    // Sort the entries in the array
+    sort($array_input);
+    // Divide the number of entries by two
+    $total_entries = count($array_input);
+    $half = $total_entries / 2;
+    $int_half = (int) $half;      // Find just the integer part of a number, in case it's not a whole number
+
+    // Calculate median
+    if ($total_entries % 2 != 0) {            // Dividing by 2 gives a remainder, so the array must have an odd number of entries
+        $median = $array_input[$int_half];	     // Choose the middle entry
+    } else {                                  // The array has an even number of entries, so there will be two middle entries
+        $middle1 = $array_input[$int_half-1];     // Find the first middle entry
+        $middle2 = $array_input[$int_half];      // Find the second middle entry
+        $median = ($middle1 + $middle2) / 2;
+    }
+    return $median;
+}
+
+// Get all of the estimated play times for this game, and put them in an array
+$result = mysqli_execute_query($db, "select time_in_minutes from playertimes where gameid = ?", [$id]);
+if (!$result) throw new Exception("Error: " . mysqli_error($db));
+$alltimes= array();
+while ($row = mysqli_fetch_assoc($result)) {
+    $time=$row['time_in_minutes'];
+    $alltimes[]=$time;
+}
+
+// Find the median play time for this game, and separate the hous and minutes
+$mediantime=findMedian($alltimes);
+$median_hours_and_minutes=convertToHoursAndMinutes($mediantime);
+$median_hours=$median_hours_and_minutes['hours'];
+$median_minutes=$median_hours_and_minutes['minutes'];
+
+// For the official estimated time for a game, we we want to round to the 
+// nearest 5 minutes when the game is longer than 1 hour.
+$official_estimated_time_text="";
+if ($median_minutes != 0) {
+    if ($median_hours >= 1 ) {
+        // If the game is over an hour, round the minutes to the nearest 5 minutes. 
+	$minutes_rounded_to_five = round( $median_minutes / 5 ) * 5;
+        $official_estimated_time_text = convertTimeToText(['hours' => $median_hours, 'minutes' => $minutes_rounded_to_five]);
+    } else {
+        // If the game is under an hour, round the minutes to the nearest whole number.
+        $whole_minutes = round($median_minutes);
+        $official_estimated_time_text = convertTimeToText(['hours' => $median_hours, 'minutes' => $whole_minutes]);
+    }
+} else {
+    $official_estimated_time_text=convertTimeToText($median_hours_and_minutes);
+}
+
+
+
+function displayMedianTime($median_hours, $median_minutes, $official_estimated_time_text, $alltimes) {
+    if (($median_hours < 1) && ($median_minutes < 1)) return;
+    echo "<details><summary>Estimated play time: ";
+    echo $official_estimated_time_text;
+    $s = (count($alltimes) === 1) ? "" : "s";
+    echo " (based on " . count($alltimes) . " vote$s)</span></summary><br>";
+    echo "Members voted for the following times for this game:";
+    echo "<ul>";
+    foreach ($alltimes as $timevote) {
+        $hours_and_minutes = convertToHoursAndMinutes($timevote);
+        $time_vote_text = convertTimeToText($hours_and_minutes);
+        echo "<li>$time_vote_text</li>";
+    }
+    echo "</ul></details>";
+}
+
+//--------------------Code for Estimated Median Time Ends Here-----------------
+
 if ($ratingCntTot == 0 && $memberReviewCnt == 0) {
+    displayMedianTime($median_hours, $median_minutes, $official_estimated_time_text, $alltimes);
     echo showStars(0) . " No reviews yet";
     if ($embargoCnt == 0)
         echo " - <a href=\"review?id=$id&userid=$curuser\">be the first</a>";
@@ -1743,6 +2011,7 @@ if ($ratingCntTot == 0 && $memberReviewCnt == 0) {
         . "title=\"View all ratings and reviews for this game\">"
         . "$ratingCntTot rating" . ($ratingCntTot != 1 ? "s" : "")
         . "</a><br>";
+    displayMedianTime($median_hours, $median_minutes, $official_estimated_time_text, $alltimes);
 } else {
     if (!$should_hide && $ratingAvg != 0) {
         echo showStars($ratingAvg)
@@ -1751,6 +2020,10 @@ if ($ratingCntTot == 0 && $memberReviewCnt == 0) {
             . "$ratingCntAvg rating" . ($ratingCntAvg != 1 ? "s" : "")
             . "</a>)<br>";
     }
+
+    echo "</p>";
+
+    displayMedianTime($median_hours, $median_minutes, $official_estimated_time_text, $alltimes);
 
     if ($memberReviewCnt != 0) {
         $href = ($memberReviewCnt > $reviewsOnHomePage)
@@ -1828,7 +2101,7 @@ if ($embargoCnt > 0)
         . "<a href=\"review?id=$id&userid=$curuser\">Revise it</a></i>";
 
             ?>
-         </span>
+         </div>
 
 <?php
 
