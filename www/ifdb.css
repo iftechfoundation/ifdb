@@ -585,17 +585,16 @@ the page.
         width: 20rem;
     }
 
-    table.downloads {
+    #externalLinks.downloads {
         background: #F0F0F0;
         border: thin dotted #e0e0e0;
     }
 
-    table.downloads td {
+    #externalLinks.downloads {
         font: 80%/140% Verdana, Arial, Helvetica, Sans-Serif;
     }
 
-
-    table.downloads h3 {
+    #externalLinks.downloads h3 {
         color: #000080;
     }
 
@@ -628,32 +627,60 @@ the page.
 }
 
 /*
-The "downloads" table is for the table we use to lay out the
-contents of the Download box.
+The "downloads" section is for external links.
 */
-table.downloads {
-    padding: 0;
+#externalLinks {
     margin: 0;
+}
+
+#externalLinks.downloads {
+    padding: 3px;
     width: 100%;
     max-width: 60ch;
 }
-table.downloads h3 {
+
+#externalLinks > div:first-child {
+	display: flex;
+	justify-content: space-between;
+}
+
+#externalLinks h3 {
     font: 100%/140% Verdana, Arial, Helvetica, Sans-Serif;
     font-weight: bold;
     margin: 0;
 }
 
-table.downloads td div.downloaditem {
+.viewgame__playOnline {
+    display: inline-block;
+	margin: 0px 0px 0.3em 0px;
+	cursor: pointer;
+}
+
+#externalLinks .downloadlist {
+	display: flex;
+	flex-direction: column;
+	list-style: none;
+	padding-left: 0;
+	gap: 1em;
+	margin-top: 1em;
+	margin-bottom: 0;
+}
+
+#externalLinks .downloadlist li {
+	display: flex;
+	padding: 2px;
+	gap: 4px;
+}
+
+#externalLinks.downloads .downloaditem {
     overflow: hidden;
     overflow-wrap: anywhere;
 }
 
-/*
-The "downloadlist" table is a sub-table within the Download box,
-where we display the list of links to individual downloads.
-*/
-table.downloadlist td {
-   padding-top: 1em;
+#externalLinks.fileIcon {
+	width: 40px;
+	height: 40px;
+	border: 0;
 }
 
 /*
@@ -2152,11 +2179,11 @@ span.sfl-save-autodesc {
         filter: invert(1);
     }
     @media (min-width: 60rem) {
-        table.downloads {
+        #externalLinks.downloads {
             background: #101030;
             border: thin dotted #303030;
         }
-        table.downloads h3 {
+        #externalLinks.downloads h3 {
             color: #d0d0ff;
         }
         table.gamerightbar {
