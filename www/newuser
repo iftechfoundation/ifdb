@@ -51,65 +51,53 @@ if ($errFlagged != false) {
 
 <p>
 <style nonce="<?php global $nonce; echo $nonce; ?>">
-    #newuser table { margin-top: 1ex; margin-left: 2em; }
-    .newuser__label { padding-right: 1em; }
-    .newuser__strength { font-size: 80%; padding-left:2em; }
-    .newuser__captcha { margin-left: 2em; }
+    .newuser__strength { font-size: 80%; }
 </style>
 <form method=post id="newuser" action="newuser" name="newuser">
 
-   <span class=details>
+   <p><span class=details>
    Your email address is your IFDB user ID:  you'll use it to log
    in when you visit.  Be sure to enter a working address, since we have
    to send you an activation email before you can use the new account.
    Your email address won't be displayed to other users by default.
-   </span>
-   <br>
-   <table border=0 cellpadding=0 cellspacing=0>
-      <tr>
-         <td class="newuser__label" width=0>
-            Email Address:
-         <td>
-            <input type="text" name="userid" id="userid" size=30
-                  value="<?php echo get_req_data("userid")?>">
+   </span></p>
 
-      <tr>
-         <td class="newuser__label" width=0>
-            Confirm Email:
-         <td>
-            <input type="text" name="userid2" id="userid2" size=30
-                  value="<?php echo get_req_data("userid2") ?>">
-   </table>
+   <div><label for="userid">Email Address</label></div>
+   <div>
+        <input type="email" name="userid" id="userid" size=30
+            value="<?php echo get_req_data("userid")?>">
+    </div>
+    <div><label for="userid2">Confirm Email</label></div>
+    <div>
+        <input type="email" name="userid2" id="userid2" size=30
+            value="<?php echo get_req_data("userid2") ?>">
+    </div>
 
-   <p>
-   <span class=details>
+    <p>
+    <span class=details>
     Select your new password.  It's <b>case sensitive</b> and must be
     at least six characters long.  For a stronger password, make it
     eight or more characters, using a mix
     of capital letters, lower-case letters, and digits or punctuation marks.
-   </span>
-   <br>
-   <table border=0 cellpadding=0 cellspacing=0>
-      <tr>
-         <td class="newuser__label" width=0>
-            Password:
-         <td>
-            <input type="password" name="password" id="password" size=30
+    </span>
+    </p>
+    <div><label for="password">Password</label></div>
+    <div>
+        <input type="password" name="password" id="password" size=30
                value="<?php echo get_req_data('password') ?>">
-            <span class='newuser__strength'>Strength:
-               <span id="pswStrength">&nbsp;</span>
-            </span>
-
-      <tr>
-         <td class="newuser__label" width=0>
-            Confirm Password:
-         <td>
-            <input type="password" name="password2" id="password2" size=30
+    </div>
+    <div class='newuser__strength'>Strength:
+        <span id="pswStrength">&nbsp;</span>
+    </div>
+    <div><label for="password2">Confirm Password</label></div>
+    <div>
+        <input type="password" name="password2" id="password2" size=30
                value="<?php echo get_req_data('password2') ?>">
-            <span class='newuser__strength'>Match:
-               <span id="confMatch">&nbsp;</span>
-            </span>
-   </table>
+    </div>
+    <div class='newuser__strength'>Match:
+        <span id="confMatch">&nbsp;</span>
+    </div>
+
    <script type="text/javascript" nonce="<?php global $nonce; echo $nonce; ?>">
         document.getElementById('password').addEventListener('input', function(event) {
             onPasswordChange(event.target);
@@ -158,26 +146,22 @@ if ($errFlagged != false) {
     }
 </style>
 
-<p>
-<span class=details>
-   Your Screen Name will appear with any comments, reviews, or other
-information you post on IFDB.  You don't have to use your real name,
-but if you're active on the <a
-href="https://intfiction.org/">Interactive Fiction Community Forum</a> or
-other IF forums, we recommend using the same name you're known
-by there.</span><br>
-
-   <table border=0 cellpadding=0 cellspacing=0>
-      <tr>
-         <td class="newuser__label" width=0>
-            Screen Name:
-         <td>
-            <input type="text" name="dname" id="dname" size=30
-                  value="<?php echo get_req_data('dname') ?>">
-   </table>
+    <p>
+    <span class=details>
+    Your Screen Name will appear with any comments, reviews, or other
+    information you post on IFDB.  You don't have to use your real name,
+    but if you're active on the <a
+    href="https://intfiction.org/">Interactive Fiction Community Forum</a> or
+    other IF forums, we recommend using the same name you're known
+    by there.</span></p>
+    <div><label for="dname">Screen Name</label></div>
+    <div>
+        <input type="text" name="dname" id="dname" size=30
+            value="<?php echo get_req_data('dname') ?>">
+    </div>
 
    <p>
-   <div class='newuser__captcha'>
+   <div>
    <?php
       captchaSupportScripts($capKey);
       captchaSubForm($capKey, $capErrMsg, "");
@@ -185,9 +169,7 @@ by there.</span><br>
    ?>
    </div>
 
-   <br><br>
-
-   <br><br>
+   <br>
    <b>Important:</b> by registering, you confirm that you agree to
       our <?php
          echo helpWinLink("/code-of-conduct?helpwin=1", "Code of Conduct");
