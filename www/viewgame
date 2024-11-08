@@ -1984,12 +1984,17 @@ if ($median_minutes != 0) {
             echo "<span class=details>";
             echo "<details><summary>Estimated play time: ";
             if ($estimated_hours >= 1) {
-                echo $estimated_hours . " hours ";
-                if ($estimated_minutes >= 1) {
-                    echo "and ";
+                if ($estimated_hours == 1) {
+                    echo $estimated_hours . " hour ";
+                } else if ($estimated_hours > 1) {
+                    echo $estimated_hours . " hours ";
                 }
+                if ($estimated_minutes >= 1)
+                echo "and ";
             }
-            if ($estimated_minutes >= 1) {
+            if ($estimated_minutes == 1) {
+                echo $estimated_minutes . " minute ";
+            } else if ($estimated_minutes > 1) {
                 echo $estimated_minutes . " minutes ";
             }
             $s = (count($alltimes) === 1) ? "" : "s";
