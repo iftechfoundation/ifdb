@@ -1290,6 +1290,12 @@ span.headlineRss {
 
 @media (max-width: 75ch) {
 
+    input, select, select:focus, textarea {
+        /* prevent browser zoom on focus */
+        font-size: 16px;
+        max-width: 100%;
+    }
+
     .mobile-hidden, .mobile-menu .mobile-hidden {
         display: none;
     }
