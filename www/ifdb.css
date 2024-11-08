@@ -1250,18 +1250,22 @@ span.headlineRss {
     display: none;
 }
 
-.menu-toggle-button{
+.mobile-menu #mobile-menu-toggle-button {
     display: none;
+}
+.menu-toggle-button{
+    display: flex;
     align-items: center;
     align-self: start;
     padding: 0.25em 0.75em 0.25em 0.75em;
     border: none;
     background: none;
     cursor: pointer;
+    font-size: inherit;
+    color: black;
 }
 
 .menu-toggle-button:hover{
-    text-decoration: underline;
     background-color: #dcdcdc;
 }
 
@@ -1310,6 +1314,9 @@ span.headlineRss {
 
     .mobile-menu #mobile-menu-toggle-button{
         display: flex;
+        font-size: 16px;
+        align-content: center;
+        flex-wrap: wrap; /* to enable align-content: center */
     }
 
     .mobile-menu ul{
