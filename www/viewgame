@@ -1404,7 +1404,7 @@ function updateUnwishList(id, stat)
 // minutes only, and save it to the database. 
 function submitTime() {
     if (document.getElementById('ckBoxckPlayed').checked==false) {
-         document.getElementById("timeSaveMsg").innerHTML='Error: This game isn't on your list of played games.";
+         document.getElementById("timeSaveMsg").innerHTML="Error: This game isn't on your list of played games.";
          return;
     }
     var new_hours = document.getElementById('hours').value;
@@ -1507,7 +1507,7 @@ function swapTimeSections() {
     } // Don't swap the time controls if there was an error saving.
 }
 // Attach the swapTimeSections function to the timeVoteControls div.
-document.getElementById("timevoteControls").addEventListener("load", swapTimeSections);
+document.getElementById("timeVoteControls").addEventListener("load", swapTimeSections);
 
 
 // When the page first loads, show the relevant time controls based on
