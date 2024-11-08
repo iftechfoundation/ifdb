@@ -21,13 +21,13 @@ thing that makes an API call different from an ordinary page view is
 that the results of an API call are designed to be machine-readable,
 whereas an ordinary page view returns HTML formatted for visual
 display.  The API calls return function-specific data structures
-formatted into XML, which is readily parseable in software.
+formatted into JSON, which is readily parseable in software.
 
 <p>Since the IFDB API calls are performed using standard HTML verbs
 and content formats, you should be able to use any HTTP client library
-to construct the calls, and any XML library to parse the XML
+to construct the calls, and any JSON library to parse the JSON
 responses.  Most modern programming languages have some degree of HTTP
-client and XML parsing support, either built in or via open source
+client and JSON parsing support, either built in or via open source
 libraries.
 
 
@@ -63,6 +63,28 @@ so that we can keep you in mind as the system evolves.  Likewise, if
 you have a need for any additional API services beyond what's
 currently available, let us know.
 
+<h3>Beware HTTP Error 403 Forbidden: Error Code 1010</h3>
+
+<p>IFDB is hosted behind Cloudflare, which attempts to detect and reject
+"bot" traffic with <a href="https://developers.cloudflare.com/support/troubleshooting/cloudflare-errors/troubleshooting-cloudflare-1xxx-errors/#error-1010-the-owner-of-this-website-has-banned-your-access-based-on-your-browsers-signature">Error Code 1010</a>.
+</p>
+
+<p>This error indicates that Cloudflare thinks you're a "bot." To circumvent
+it, you must set a custom user-agent header on your HTTP request.</p>
+
+<p>For example, in Python <code>urllib</code>, you could do this, setting
+your user-agent header to literally "whatever":</p>
+
+<p>
+<pre>
+url = 'https://ifdb.org/viewgame?id=aearuuxv83plclpl&json'
+req = urllib.request.Request(u)
+req.add_header('user-agent', 'whatever')
+with urllib.request.urlopen(req) as response:
+    print(response.read())
+</pre>
+</p>
+
 <h2>List of APIs</h2>
 
 <p><a href="putific"><b>putific</b></a>: Create or edit a listing by
@@ -76,7 +98,7 @@ Recommended Lists, etc).  This invokes IFDB's Advanced Search engine,
 which can perform both full-text and structured (metadata-based)
 searches.
 
-<p><a href="viewgame"><b>viewgame</b></a>: Retrieve a game listing in
+<p><a href="viewgame"><b>viewgame</b></a>: Retrieve a game listing, either in JSON or in
 the iFiction XML format.  This allows client programs, such as IF
 browsers or "jukeboxes", to take advantage of IFDB's structured data
 about most of the IF games in circulation.
@@ -87,9 +109,16 @@ tags associated with an IFDB listing.
 <p><a href="taggame"><b>taggame</b></a>: Edit tags on an IFDB
 listing.
 
+<h2>JSON is preferred for most APIs</h2>
+
+<p>Most of our public APIs have the option to use XML or JSON, but we recommend that
+you use JSON for all new code.</p>
+
+<p>One exception: the <code>putific</code> only supports XML iFiction submissions.</p>
+
 <h2>Note on XML namespaces</h2>
 
-<p>Most of the APIs reply with XML and/or take XML content parameters,
+<p>Most of the APIs can reply with XML and/or take XML content parameters,
 and most of the XML formats use XML namespaces.  The namespace
 identifiers are in the form of URLs, according to the XML convention,
 but we use them simply as GUIDs (which is also a typical XML

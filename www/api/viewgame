@@ -8,7 +8,7 @@ apiPageHeader("viewgame");
 ?>
 
 <p>The viewgame API lets applications retrieve IFDB's listing data for
-a game in the <a href="https://babel.ifarchive.org/">Treaty of
+a game, either in JSON, or in the <a href="https://babel.ifarchive.org/">Treaty of
 Babel</a>'s iFiction XML format.
 
 <h2>Identifying a game</h2>
@@ -41,11 +41,110 @@ files, which means that if you have a copy of a story file, you can
 get an IFID.  So given a story file, you can directly look up the
 game's IFDB listing data using this API.
 
-<h2>Protocol</h2>
+<h2>JSON API</h2>
 
-<p>The viewgame API is implemented as an http XML web service.  To
+<p>The viewgame API is implemented as an http web service.  To
 invoke the API, you construct a URL that encodes the game's identifier
-(see above) and send it to IFDB with an http GET request.  IFDB
+(see above) and send it to IFDB with an http GET request. You must
+choose whether you want to use the JSON API or the <a href="#ifiction">XML API</a> (see below).
+
+<p><b>In new code, prefer the JSON API.</b></p>
+
+<p>To retrieve data by TUID, use this URL:
+
+<p>
+<pre>
+  https://ifdb.org/viewgame?json&amp;id=<i>TUID</i>
+</pre>
+
+<p>To retrieve data by IFID, use this URL:
+
+<p>
+<pre>
+  https://ifdb.org/viewgame?json&amp;ifid=<i>IFID</i>
+</pre>
+</p>
+
+<p>The output looks like this:</p>
+
+<p>
+<pre>
+{
+  "colophon": {
+    "generator": "ifdb.org/viewgame",
+    "generatorversion": 1,
+    "originated": "<i>Today's date, YYYY-MM-DD</i>"
+  },
+  "identification": {
+    "ifids": [
+      "<i>Treaty of Babel IFIDs</i>"
+    ],
+    "format": "<i>The file format of the game, e.g. zcode or glulx. This key may be absent if we can't identify the game's format</i>"
+  },
+  "bibliographic": {
+    "title": "<i>Title of the game</i>",
+    "author": "<i>Author of the game</i>",
+    "language": "<i>Language in two-letter code format, e.g. en or zh</i>",
+    "firstpublished": "<i>publication date, YYYY-MM-DD</i>",
+    "genre": "<i>Genre, e.g. Fantasy, Horror, Science Fiction</i>",
+    "description": "<i>Description of the game (in HTML format)</i>"
+  },
+  "contacts": [
+    "url": "<i>The official Web Site of the game, if any (this key will be absent if there's no web site)</i>"
+  ],
+  "ifdb": {
+    "tuid": "<i>TUID</i>",
+    "pageversion": <i>The version number of the page</i>,
+    "link": "<i>URL to game's main listing page</i>",
+    "coverart": {
+      "url": "<i>URL to cover art</i>"
+    },
+    "downloads": {
+      "links": [
+        {
+          "url": "<i>URL to the file</i>",
+          "title": "<i>Title of the file</i>",
+          "desc": "<i>Description of the file</i>",
+          "isGame": <i>true if this link points to a playable version of the game, such as a story file or an executable application; false otherwise</i>,
+          "format": "<i>The file's format, from the <a href="/fileformat">File Format</a> page</i>"
+        }
+      ]
+    },
+    "averageRating": <i>Raw "star" rating average</i>,
+    "starRating": <i>Rounded "star" rating average, for display</i>,
+    "ratingCountAvg": <i>Number of ratings in the average (note that reviews can choose to "omit" their ratings from the average)</i>,
+    "ratingCountTot": <i>Total number of ratings</i>
+  }
+}
+</pre>
+</p>
+
+<p>The averageRating element provides the average IFDB member rating
+as a decimal floating-point number, such as "3.575".  This is a simple
+arithmetic average of the ratings for the game entered by IFDB users;
+each user rating is simply an integer from 1 to 5.  The starRating
+element provides the average value rounded to the nearest half-star,
+which is what IFDB usually displays on its own generated pages.  IFDB
+usually uses a graphic image showing the number of stars in the
+average, and it only has an image for each half-star increment, so it
+has to round for this kind of display.  It'd be easy enough for client
+code to do the rounding itself, but the API provides the rounded value
+anyway because this eliminates any guesswork about the exact rounding
+rules for boundary cases, ensuring that a client can always display
+the same rounded value IFDB itself does.
+
+<p>The ratingCountAvg and ratingCountTot elements provide the number
+of ratings that went into the average, and the total number of ratings
+for the game, respectively.  The reason these are stated separately is
+that a user can opt to omit their rating for a given game from the
+game's average.  If a user exercises this option, the rating will be
+recorded but won't be used to compute the average.  This means that
+the ratingCountTot value is always equal to or greater than the
+ratingCountAvg value.
+
+<h2 id="ifiction">iFiction XML API</h2>
+
+In this API, IFDB
 replies with an XML content body containing an extended iFiction
 record.  By extended, we mean that the record contains the standard
 iFiction elements, plus some custom IFDB-specific extensions.
@@ -61,7 +160,6 @@ iFiction elements, plus some custom IFDB-specific extensions.
 <p><pre>
   https://ifdb.org/viewgame?ifiction&amp;ifid=<i>IFID</i>
 </pre>
-
 
 <h2>True iFiction records vs. IFDB data</h2>
 
