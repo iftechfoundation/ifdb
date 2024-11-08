@@ -334,8 +334,7 @@ if (!$api_mode) {
 
     pageHeader($term == "" && $browse ? "Browse $searchTypeName"
                                       : "Search for $searchTypeName",
-               false, false,
-               scriptSrc('/xmlreq.js'));
+               false, false);
 
     $commonInstructions =
         "<p><b>+<i>word</i></b> makes <i>word</i> mandatory - only items

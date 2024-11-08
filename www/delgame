@@ -429,7 +429,7 @@ if ($createFwd)
         mysql_query("unlock tables", $db);
 
         pageHeader("$title - Delete Listing", "fwdgame.fwdid",
-                   false, scriptSrc('/xmlreq.js'));
+                   false);
 
         gameSearchPopupSupportFuncs();
         gameSearchPopupDiv();

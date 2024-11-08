@@ -218,7 +218,7 @@ if ($rss == 'gamenews')
     exit();
 }
 
-pageHeader($pageTitle, false, false, scriptSrc('/xmlreq.js'));
+pageHeader($pageTitle, false, false);
 
 $captchaKey = "showuser.$uid";
 captchaSupportScripts($captchaKey);

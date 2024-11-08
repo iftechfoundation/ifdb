@@ -29,7 +29,7 @@ if (!$showForm)
 //
 
 pageHeader("New User Registration", "newuser.userid", false,
-           scriptSrc('/xmlreq.js') . scriptSrc('/passwords.js'));
+           scriptSrc('/passwords.js'));
 ?>
 
 <h1>New User Registration</h1>
