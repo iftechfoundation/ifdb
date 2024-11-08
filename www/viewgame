@@ -1980,46 +1980,30 @@ $median_minutes=$median_hours_and_minutes['minutes'];
 
 // For the official estimated time for a game, we we want to round to the 
 // nearest 5 minutes when the game is longer than 1 hour.
-$official_estimated_time_in_text="";
+$official_estimated_time_text="";
 if ($median_minutes != 0) {
     if ($median_hours >= 1 ) {
         // If the game is over an hour, round the minutes to the nearest 5 minutes. 
 	$minutes_rounded_to_five = round( $median_minutes / 5 ) * 5;
-        $official_estimated_time_in_text = convertTimeToText(['hours' => $median_hours, 'minutes' => $minutes_rounded_to_five]);
+        $official_estimated_time_text = convertTimeToText(['hours' => $median_hours, 'minutes' => $minutes_rounded_to_five]);
     } else {
         // If the game is under an hour, round the minutes to the nearest whole number.
         $whole_minutes = round($median_minutes);
-        $official_estimated_time_in_text = convertTimeToText(['hours' => $median_hours, 'minutes' => $whole_minutes]);
+        $official_estimated_time_text = convertTimeToText(['hours' => $median_hours, 'minutes' => $whole_minutes]);
     }
 } else {
-    $official_estimated_time=convertTimeToText($median_hours_and_minutes);
+    $official_estimated_time_text=convertTimeToText($median_hours_and_minutes);
 }
 
 
 
-function displayMedian($estimated_hours, $estimated_minutes, $alltimes) {
-    // If there is an estimated play time, display it. Note that this does not
-    // use the convertTimeToText function because in this case, we are displaying
-    // the official estimated time for a game, and so we we want to round to the 
-    // nearest 5 minutes when the game is longer than 1 hour.
+function displayMedianTime($estimated_hours, $estimated_minutes, $alltimes) {
     if (($estimated_hours >= 1) or ($estimated_minutes >= 1)) {
         echo "<details><summary>Estimated play time: ";
-        if ($estimated_hours >= 1) {
-            if ($estimated_hours == 1) {
-                echo $estimated_hours . " hour ";
-            } else if ($estimated_hours > 1) {
-                echo $estimated_hours . " hours ";
-            }
-            if ($estimated_minutes >= 1)
-            echo "and ";
-        }
-        if ($estimated_minutes == 1) {
-            echo $estimated_minutes . " minute ";
-        } else if ($estimated_minutes > 1) {
-            echo $estimated_minutes . " minutes ";
-        }
+        echo "<details><summary>Estimated play time: ";
+        echo $official_estimated_time_text;
         $s = (count($alltimes) === 1) ? "" : "s";
-        echo "(based on " . count($alltimes) . " vote$s)</span></summary><br>";
+        echo " (based on " . count($alltimes) . " vote$s)</span></summary><br>";
         echo "Members voted for the following times for this game:";
         echo "<ul>";
         foreach ($alltimes as $t) {
@@ -2033,7 +2017,7 @@ function displayMedian($estimated_hours, $estimated_minutes, $alltimes) {
 //--------------------Code for Estimated Median Time Ends Here-----------------
 
 if ($ratingCntTot == 0 && $memberReviewCnt == 0) {
-    displayMedian($estimated_hours, $estimated_minutes, $alltimes);
+    displayMedianTime($estimated_hours, $estimated_minutes, $alltimes);
     echo "<img src=\"/img/blank.gif\" class=\"star0\" title=\"No Ratings\">
        No reviews yet";
     if ($embargoCnt == 0)
