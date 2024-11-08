@@ -306,9 +306,6 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse)
         $summaryDesc = "Games";
     }
 
-    // list of exact phrases for &#xxxx; sequences - none so far
-    $exacts = false;
-
     // parse the search
     for ($ofs = 0, $len = strlen($term), $words = array(),
          $specials = array(), $specialsUsed = array() ; ; $ofs++)
@@ -381,10 +378,6 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse)
             if ($quoted && !$s)
                 $w = "\"$w\"";
 
-            // if we have any &#xxxx; sequences, quote the whole string
-            if (preg_match("/&#[0-9a-z]{4};/i", $w, $match))
-                $exacts[] = "'%" . quoteSqlLike($w) . "%'";
-
             // If we have any specials, it adds to the last special's
             // match text.  Otherwise, it adds a word to the full
             // text search list.
@@ -449,24 +442,8 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse)
             $likeExpr .= " or ($likeSubExpr)";
         $likeExpr .= ")";
 
-        // build the full expression
-        $expr = "$matchMode $matchExpr";
-
-        // add the exact matches for &#xxxx; phrases
-        if ($exacts) {
-            $ec = false;
-            foreach (explode(",", $matchCols) as $c) {
-                $ec1 = false;
-                foreach ($exacts as $e)
-                    $ec1[] = "$c like $e";
-                $ec[] = "(" . implode(" and ", $ec1) . ")";
-            }
-            $ec = implode(" or ", $ec);
-            $expr = "($expr and ($ec))";
-        }
-
-        // use it as the start of the WHERE clause
-        $where = $expr;
+        // build the full expression, use it as the start of the WHERE clause
+        $where = "$matchMode $matchExpr";
 
         // it's also the RELEVANCE column in the query
         $relevance = ", $matchExpr as relevance";

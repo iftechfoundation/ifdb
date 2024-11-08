@@ -68,10 +68,6 @@ if ($api_mode && $enum)
         $items = [];
         while ([$g] = mysql_fetch_row($result))
         {
-            // Convert database row from latin1 to UTF-8
-            $g = rss_encode($g);
-            $g = html_entity_decode($g);
-
             // apply any special per-row handling
             switch ($enum)
             {
@@ -990,7 +986,8 @@ if ($api_mode) {
         "list" => "lists",
         "poll" => "polls",
         "comp" => "competitions",
-        "member" => "members"
+        "member" => "members",
+        "tag" => "tags",
     ];
     $group_item_names = [
         'comp' => 'competition',
@@ -1009,14 +1006,6 @@ if ($api_mode) {
     // send the results
     foreach ($rows as $i => $row)
     {
-        // Convert database row from latin1 to UTF-8
-        array_walk($row, function(&$value, $key) {
-            if (is_string($value)) {
-                $value = rss_encode($value);
-                $value = html_entity_decode($value);
-            }
-        });
-
         switch($searchType)
         {
         case "game":
@@ -1115,7 +1104,10 @@ if ($api_mode) {
 
         case "tag":
             $id = $row['tag'];
-            $link = htmlspecialcharx(get_root_url() . "search?searchfor=tag:$id");
+            $item = [
+                'id' => $id,
+                'link' => get_root_url() . "search?searchfor=tag:" . urlencode($id),
+            ];
             break;
 
         default:
@@ -1574,8 +1566,8 @@ else if ($term || $browse)
                 $id = $row['tag'];
 
                 // show the listing
-                echo "<p><h3 class=result><a class='$eagerness' href=\"search?searchfor=tag:$id\">"
-                    . "<b>$id</b></a></h3><br>";
+                echo "<p><h3 class=result><a class='$eagerness' href=\"search?searchfor=tag:".urlencode($id)."\">"
+                    . "<b>".htmlspecialchars($id)."</b></a></h3><br>";
 
                 break;
             }

@@ -197,22 +197,8 @@ if ($rss == 'gamenews')
         $items[] = array($moddate, $item);
 
         // Now add news updates for the game itself.
-        list($ifids, $title, $author, $authorExt,
-             $pubYear, $pubFull, $license,
-             $system, $desc, $rawDesc,
-             $hasart, $genre, $seriesname, $seriesnum,
-             $forgiveness, $bafsid, $version,
-             $language, $languageNameOnly,
-             $website, $links,
-             $ratingcountavg, $ratingcounttot, $ratingavg, $memberReviewCnt,
-             $currentUserRating, $currentUserReview,
-             $editedbyid, $editedbyname, $moddate, $moddate2, $pagevsn,
-             $moddatelatest,
-             $historyView,
-             $dlnotes, $extReviews, $extRevDisplayRank,
-             $ratingHisto, $xrefs, $inrefs) =
-                 getGameInfo($db, $gameid, $curuser, false,
-                             $gameErrMsg, $gameErrCode);
+        $links = getGameInfo($db, $gameid, $curuser, false,
+                        $gameErrMsg, $gameErrCode)[20];
 
         // add the RSS items for this game to the master list
         if (!$gameErrMsg) {

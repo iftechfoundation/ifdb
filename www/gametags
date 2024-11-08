@@ -6,15 +6,37 @@ include_once "login-check.php";
 
 function sendResponse($status, $errmsg, $tagInfo)
 {
+    global $json;
+
     header("HTTP/1.1 $status");
-    header("Content-Type: text/xml");
     header("Expires: Mon, 26 Jul 1997 05:00:00 GMT");
     header("Cache-Control: no-store, no-cache, must-revalidate");
+    if ($json) {
+        header("Content-Type: application/json");
+    } else {
+        header("Content-Type: text/xml");
+        echo "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>";
+    }
 
-    echo "<?xml version=\"1.0\" encoding=\"UTF-8\" ?><response>"
-        . ($errmsg ? "<error>$errmsg</error>" : "")
-        . $tagInfo
-        . "</response>";
+    $responseObj = [];
+    if ($errmsg) {
+        $responseObj['error'] = $errmsg;
+    }
+
+    if ($tagInfo) {
+        if (!$json) {
+            $tagInfo = array_map(fn($tag) => ['tag' => $tag], $tagInfo);
+        }
+        $responseObj['tags'] = $tagInfo;
+    }
+
+    if ($json) {
+        echo json_encode($responseObj);
+    } else {
+        echo serialize_xml([
+            'response' => $responseObj,
+        ]);
+    }
 
     exit();
 }
@@ -26,9 +48,9 @@ if ($db == false)
     sendResponse("500 Internal Server Error", "An error occurred connecting to the database. "
                  . "Please try again later.", false, false);
 
+$json = isset($_REQUEST['json']);
 $id = get_req_data('id');
-$qid = mysql_real_escape_string($id, $db);
-$result = mysql_query("select id from games where id = '$qid'", $db);
+$result = mysqli_execute_query($db, "select id from games where id = ?", [$id]);
 if (mysql_num_rows($result) == 0)
     sendResponse("404 Not Found", 
                  "This tag request refers to a non-existent game.",
@@ -38,58 +60,35 @@ $mine_only = get_req_data('mine_only');
 if ($mine_only) {
     $username = get_req_data("username");
     $password = get_req_data("password");
-    list($userid, $errCode, $errMsg) = doLogin($db, $username, $password);
+    [$userid, $errCode, $errMsg] = doLogin($db, $username, $password);
     if (!$userid) {
-        sendResponse("401 Unauthorized", "Not Saved", "Please specify a valid username and password to login.", false, false);
+        sendResponse("401 Unauthorized", "Please specify a valid username and password to login.");
     }
 }
 
+$tagInfo = [];
 if ($result) {
-
     $mine_only_clause = "";
+    $mine_only_params = [];
     if ($mine_only) {
-        $mine_only_clause = "AND userid = '$userid'";
+        $mine_only_clause = "AND userid = ?";
+        $mine_only_params[] = $userid;
     }
-    $result = mysql_query(
-        "select tag from gametags where gameid = '$qid' $mine_only_clause", $db);
-
-    for ($i = 0, $allTags = array(), $tagList = array(), $cnt = mysql_num_rows($result) ; $i < $cnt ; $i++) {
-        $curTag = mysql_result($result, $i, "tag");
-        $allTags[] = $curTag;
-        $tagList[] = "'" . mysql_real_escape_string($curTag, $db) . "'";
-    }
-
-    if (count($allTags) != 0) {
-        $allTags = implode(",", $allTags);
-        $allTags = '\'' . mysql_real_escape_string($allTags, $db) . '\'';
-        $tagList = implode(",", $tagList);
-    } else {
-        $allTags = "null";
-        $tagList = "";
-    }
-}
-
-
-$tagInfo = "";
-if ($result && $tagList) {
-
-    $result = mysql_query(
+    $result = mysqli_execute_query($db,
         "select
            tag,
-           sum(gameid = '$qid') as tagcnt,
+           cast(sum(gameid = ?) as int) as tagcnt,
            count(distinct gameid) as gamecnt
          from gametags
-         where tag in ($tagList)
-         group by tag
-         having tagcnt != 0", $db);
+         where tag in (select tag from gametags where gameid = ? $mine_only_clause)
+         group by tag", array_merge([$id, $id], $mine_only_params));
 
-    for ($i = 0, $tagInfo, $cnt = mysql_num_rows($result) ;
-         $i < $cnt ; $i++) {
-        list($tag, $tagCnt, $gameCnt) = mysql_fetch_row($result);
-        $tagInfo .= "<tag><name>" . htmlspecialcharx($tag) . "</name>"
-                    . "<tagcnt>$tagCnt</tagcnt>"
-                    . "<gamecnt>$gameCnt</gamecnt>"
-                    . "</tag>";
+    while ([$tag, $tagCnt, $gameCnt] = mysql_fetch_row($result)) {
+        $tagInfo[] = [
+            'name' => $tag,
+            'tagcnt' => $tagCnt,
+            'gamecnt' => $gameCnt,
+        ];
     }
 }
 
@@ -97,6 +96,6 @@ if ($result && $tagList) {
 if ($result) {
     sendResponse("200 OK", false, $tagInfo);
 } else {
-    sendResponse("500 Internal Server Error", "An error occurred updating the database. "
+    sendResponse("500 Internal Server Error", "An error occurred querying the database. "
                  . "Please try again later.", false);
 }

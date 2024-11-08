@@ -113,7 +113,6 @@ function queryNewsRss(&$items, $db, $sourceType, $sourceID, $maxItems,
         $nuname = htmlspecialcharx($nuname);
         $nunameOrig = htmlspecialcharx($nunameOrig);
         $rssdate = date("D, j M Y H:i:s ", strtotime($ncre)) . 'UT';
-        list($rbody, $len, $trunc) = summarizeHtml($body, 210);
         $nbody = htmlspecialcharx(fixDesc($nbody));
 
         $nlink = htmlspecialcharx(
