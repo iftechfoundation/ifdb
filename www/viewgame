@@ -1997,18 +1997,18 @@ if ($median_minutes != 0) {
 
 
 
-function displayMedianTime($estimated_hours, $estimated_minutes, $alltimes) {
-    if (($estimated_hours >= 1) or ($estimated_minutes >= 1)) {
-        echo "<details><summary>Estimated play time: ";
+function displayMedianTime($median_hours, $median_minutes, $alltimes) {
+    if (($median_hours >= 1) or ($median_minutes >= 1)) {
         echo "<details><summary>Estimated play time: ";
         echo $official_estimated_time_text;
         $s = (count($alltimes) === 1) ? "" : "s";
         echo " (based on " . count($alltimes) . " vote$s)</span></summary><br>";
         echo "Members voted for the following times for this game:";
         echo "<ul>";
-        foreach ($alltimes as $t) {
-            $t = convertTimeToText($t);
-            echo "<li>$t</li>";
+        foreach ($alltimes as $timevote) {
+            $hours_and_minutes = convertToHoursAndMinutes($timevote); 
+            $time_vote_text = convertTimeToText($hours_and_minutes);
+            echo "<li>$time_vote_text</li>";
         }
         echo "</ul></details>";
     }
@@ -2017,7 +2017,7 @@ function displayMedianTime($estimated_hours, $estimated_minutes, $alltimes) {
 //--------------------Code for Estimated Median Time Ends Here-----------------
 
 if ($ratingCntTot == 0 && $memberReviewCnt == 0) {
-    displayMedianTime($estimated_hours, $estimated_minutes, $alltimes);
+    displayMedianTime($median_hours, $median_minutes, $alltimes);
     echo "<img src=\"/img/blank.gif\" class=\"star0\" title=\"No Ratings\">
        No reviews yet";
     if ($embargoCnt == 0)
@@ -2027,7 +2027,7 @@ if ($ratingCntTot == 0 && $memberReviewCnt == 0) {
         . "title=\"View all ratings and reviews for this game\">"
         . "$ratingCntTot rating" . ($ratingCntTot != 1 ? "s" : "")
         . "</a><br>";
-    displayMedian($estimated_hours, $estimated_minutes, $alltimes);
+    displayMedianTime($median_hours, $median_minutes, $alltimes);
 } else {
     if (!$should_hide && $ratingAvg != 0) {
         echo showStars($ratingAvg)
@@ -2039,7 +2039,7 @@ if ($ratingCntTot == 0 && $memberReviewCnt == 0) {
 
     echo "</p>";
 
-    displayMedian($estimated_hours, $estimated_minutes, $alltimes);
+    displayMedianTime($median_hours, $median_minutes, $alltimes);
 
     if ($memberReviewCnt != 0) {
         $href = ($memberReviewCnt > $reviewsOnHomePage)
