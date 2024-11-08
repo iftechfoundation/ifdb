@@ -1979,7 +1979,10 @@ if ($median_minutes != 0) {
 }
 
 
-    // If there is an estimated play time, display it
+    // If there is an estimated play time, display it. Note that this does not
+    // use the convertTimeToText function because in this case, we are displaying
+    // the official estimated time for a game, and so we we want to round to the 
+    // nearest 5 minutes when the game is longer than 1 hour.
     if (($estimated_hours >= 1) or ($estimated_minutes >= 1)) {
             echo "<span class=details>";
             echo "<details><summary>Estimated play time: ";
