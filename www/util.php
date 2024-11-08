@@ -477,15 +477,17 @@ function sendImageLdesc($title, $imageID)
 function showStars($num)
 {
     global $ssdarkforce;
-    // show no star image if there's no average
-    if (isEmpty($num))
-        return "";
 
     // round to the nearest half star
     list($roundedNum, $starimg, $startxt) = roundStars($num);
 
     // return the image string
-    $result = "<span role='img' class='nobr' aria-label='$startxt out of 5'>";
+    $result = "<span role='img' class='nobr' ";
+    if ($startxt) {
+        $result .= "aria-label='$startxt out of 5'>";
+    } else {
+        $result .= "aria-role='none'>";
+    }
     for ($i = 1; $i <= $roundedNum; $i++) {
         $result .= "<img height=13 src='/img/star-checked.svg'>";
     }

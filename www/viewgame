@@ -1735,8 +1735,7 @@ if ($curuser) {
 }
 
 if ($ratingCntTot == 0 && $memberReviewCnt == 0) {
-    echo "<img src=\"/img/blank.gif\" class=\"star0\" title=\"No Ratings\">
-       No reviews yet";
+    echo showStars(0) . " No reviews yet";
     if ($embargoCnt == 0)
         echo " - <a href=\"review?id=$id&userid=$curuser\">be the first</a>";
 } else if ($ratingAvg == 0 && $memberReviewCnt == 0) {
