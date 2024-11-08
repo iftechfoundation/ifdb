@@ -1930,24 +1930,23 @@ if ($curuser) {
 
 // Find the median of the numbers in an array
 function findMedian($array_input) {
-    if(is_array($array_input)) {
-        // Sort the entries in the array
-        sort($array_input);
-        // Divide the number of entries by two
-        $total_entries = count($array_input);
-        $half = $total_entries / 2;
-        $int_half = (int) $half;      // Find just the integer part of a number, in case it's not a whole number
+    if (!is_array($array_input)) return false;
+    // Sort the entries in the array
+    sort($array_input);
+    // Divide the number of entries by two
+    $total_entries = count($array_input);
+    $half = $total_entries / 2;
+    $int_half = (int) $half;      // Find just the integer part of a number, in case it's not a whole number
 
-        // Calculate median
-        if ($total_entries % 2 != 0) {            // Dividing by 2 gives a remainder, so the array must have an odd number of entries
-            $median = $array_input[$int_half];	     // Choose the middle entry
-        } else {                                  // The array has an even number of entries, so there will be two middle entries
-            $middle1 = $array_input[$int_half-1];     // Find the first middle entry
-            $middle2 = $array_input[$int_half];      // Find the second middle entry
-            $median = ($middle1 + $middle2) / 2;
-        }
-        return $median;
+    // Calculate median
+    if ($total_entries % 2 != 0) {            // Dividing by 2 gives a remainder, so the array must have an odd number of entries
+        $median = $array_input[$int_half];	     // Choose the middle entry
+    } else {                                  // The array has an even number of entries, so there will be two middle entries
+        $middle1 = $array_input[$int_half-1];     // Find the first middle entry
+        $middle2 = $array_input[$int_half];      // Find the second middle entry
+        $median = ($middle1 + $middle2) / 2;
     }
+    return $median;
 }
 
 // Get all of the estimated play times for this game, and put them in an array
