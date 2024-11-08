@@ -1180,8 +1180,11 @@ if (count($links) == 0 && $dlnotes == "") {
         $iconsrc = ($osicon ? "opsys?geticon=$fmtos" :
                     ($fmticon ? "fileformat?geticon=$fmtid" :
                      false));
-        if ($iconsrc)
+        if ($iconsrc) {
             echo "<a href=\"$url\"><img class=\"fileIcon\" src=\"$iconsrc\"></a>";
+        } else {
+            echo "<div class=\"fileIcon\"></div>";
+        }
 
         echo "<div class='downloaditem'>
               <a href=\"$url\"><b>$linktitle</b></a>$zipstar<br>";
