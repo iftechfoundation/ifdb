@@ -1941,21 +1941,20 @@ function findMedian($array_input) {
 // Get all of the estimated play times for this game, and put them in an array
 $result = mysqli_execute_query($db, "select time_in_minutes from playertimes where gameid = ?", [$id]);
 if (!$result) throw new Exception("Error: " . mysqli_error($db));
-$alltimes= array();
+$alltimes = [];
 while ($row = mysqli_fetch_assoc($result)) {
-    $time=$row['time_in_minutes'];
-    $alltimes[]=$time;
+    $alltimes[] = $row['time_in_minutes'];
 }
 
 // Find the median play time for this game, and separate the hous and minutes
-$mediantime=findMedian($alltimes);
-$median_hours_and_minutes=convertToHoursAndMinutes($mediantime);
-$median_hours=$median_hours_and_minutes['hours'];
-$median_minutes=$median_hours_and_minutes['minutes'];
+$mediantime = findMedian($alltimes);
+$median_hours_and_minutes = convertToHoursAndMinutes($mediantime);
+$median_hours = $median_hours_and_minutes['hours'];
+$median_minutes = $median_hours_and_minutes['minutes'];
 
 // For the official estimated time for a game, we we want to round to the 
 // nearest 5 minutes when the game is longer than 1 hour.
-$official_estimated_time_text="";
+$official_estimated_time_text = "";
 if ($median_minutes != 0) {
     if ($median_hours >= 1 ) {
         // If the game is over an hour, round the minutes to the nearest 5 minutes. 
@@ -1967,7 +1966,7 @@ if ($median_minutes != 0) {
         $official_estimated_time_text = convertTimeToText(['hours' => $median_hours, 'minutes' => $whole_minutes]);
     }
 } else {
-    $official_estimated_time_text=convertTimeToText($median_hours_and_minutes);
+    $official_estimated_time_text = convertTimeToText($median_hours_and_minutes);
 }
 
 
