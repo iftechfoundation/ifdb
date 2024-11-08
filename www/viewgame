@@ -1991,8 +1991,9 @@ if ($median_minutes != 0) {
             }
             if ($estimated_minutes >= 1) {
                 echo $estimated_minutes . " minutes ";
-             }
-            echo "(based on " . count($alltimes) . " votes)</span></summary><br>";
+            }
+            $s = (count($alltimes) === 1) ? "" : "s";
+            echo "(based on " . count($alltimes) . " vote$s)</span></summary><br>";
             echo "Members voted for the following times for this game:";
             echo "<ul>";
             foreach ($alltimes as $t) {
