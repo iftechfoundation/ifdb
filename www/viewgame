@@ -1386,9 +1386,10 @@ function updateUnwishList(id, stat)
         }
     // At this point $mystoredtime should reflect the player's actual stored time for this game
     $my_time_as_text = "";
-    $time_announcement = ""; // The string shown in the How Long Is Ths Game panel
+    $time_announcement = ""; // The string shown in the Estimated Play Time control panel
     if ($mystoredtime >= 1) {
-        $my_time_as_text=convertTimeToText($mystoredtime);
+        $hours_and_minutes = convertToHoursAndMinutes($mystoredtime);
+        $my_time_as_text=convertTimeToText($hours_and_minutes);
         $time_announcement = "Your vote: " . $my_time_as_text;
     }
    
