@@ -39,8 +39,7 @@ if (!$userid)
     send_action_response("Not Saved", "To rate a game, please log in.");
 
 // make sure the game is valid
-$qgame = mysql_real_escape_string($game, $db);
-$result = mysql_query("select id from games where id = '$qgame'", $db);
+$result = mysqli_execute_query($db, "select id from games where id = ?", [$game]);
 if (mysql_num_rows($result) == 0)
     send_action_response("Not Saved", "The specified game was not found.");
 
@@ -48,9 +47,9 @@ if (mysql_num_rows($result) == 0)
 // the rating; otherwise insert a new row with an empty review
 $result = mysql_query("lock tables reviews write", $db);
 if ($result) {
-    $result = mysql_query(
+    $result = mysqli_execute_query($db,
         "select id, review from reviews
-         where gameid='$qgame' and userid='$userid'", $db);
+         where gameid=? and userid=?", [$game, $userid]);
 }
 if ($result && mysql_num_rows($result)) {
     // get the existing review ID
@@ -70,25 +69,26 @@ if ($rating < 0 || $rating > 5) {
 // - if there's an existing review row with no written review, and the new rating is zero, delete it
 // - if there's an existing review, update it
 // - if there's no existing review, insert it
+$ok = false;
 if ($rating == 0 && $rid && !$review) {
     // rating to zero -> delete the review
-    $result = mysql_query("delete from reviews where id='$rid'", $db);
+    $result = mysqli_execute_query($db, "delete from reviews where id=?", [$rid]);
     if (!$result) error_log(mysql_error($db));
-    $ok = "Your rating has been removed.";
+    $ok = true;
 
 } else if ($rid) {
     // there's an existing review - update its rating
-    $result = mysql_query(
-        "update reviews set rating = '$rating' where id='$rid'", $db);
+    $result = mysqli_execute_query($db,
+        "update reviews set rating = ? where id=?", [$rating, $rid]);
     if (!$result) error_log(mysql_error($db));
-    $ok = "Your rating has been updated.";
+    $ok = true;
 
 } else if ($rating != 0) {
     // there's no review there yet for this user, so insert a new one
-    $result = mysql_query(
+    $result = mysqli_execute_query($db,
         "insert into reviews (userid, gameid, createdate, rating)
-         values ('$userid', '$qgame', now(), '$rating')", $db);
-    $ok = "Your rating has been set.";
+         values (?, ?, now(), ?)", [$userid, $game, $rating]);
+    $ok = true;
 } else {
     $result = true;
     $ok = true;

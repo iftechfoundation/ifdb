@@ -21,11 +21,8 @@ if ($db == false)
 $gameid = get_req_data("game");
 $add = (int)get_req_data("add");
 
-// validate & quote the parameters
-$qgameid = mysql_real_escape_string($gameid, $db);
-
 // make sure it's a valid game
-$result = mysql_query("select title from games where id='$qgameid'", $db);
+$result = mysqli_execute_query($db, "select title from games where id=?", [$gameid]);
 if (mysql_num_rows($result) == 0)
     send_action_response("Not Saved", "The specified game doesn't exist in the "
                          . "database.");
@@ -42,22 +39,22 @@ if (!$userid)
     send_action_response("Not Saved", "You must log in to use this feature.");
 
 $progress = "QU107";
-$result = mysql_query(
+$result = mysqli_execute_query($db,
     "select gameid from unwishlists
-     where gameid='$qgameid' and userid='$userid'", $db);
+     where gameid=? and userid=?", [$gameid, $userid]);
 $cnt = mysql_num_rows($result);
 if ($cnt == 0 && $add) {
     // it's not already in the list, so insert it
     $progress = "IN108";
-    $sql = "insert into unwishlists (gameid, userid, date_added)
-             values ('$qgameid', '$userid', now())";
-        $result = mysql_query($sql, $db);
+    $result = mysqli_execute_query($db,
+        "insert into unwishlists (gameid, userid, date_added)
+         values (?, ?, now())", [$gameid, $userid]);
 } else if ($cnt != 0 && !$add) {
     // it was in the unwish list, but they want to remove it, so delete the row
     $progress = "DL109";
-    $sql = "delete from unwishlists
-            where gameid='$qgameid' and userid='$userid'";
-    $result = mysql_query($sql, $db);
+    $result = mysqli_execute_query($db,
+        "delete from unwishlists
+         where gameid=? and userid=?", [$gameid, $userid]);
 }
 
 if ($result) {

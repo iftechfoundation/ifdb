@@ -2018,8 +2018,7 @@ function displayMedianTime($median_hours, $median_minutes, $official_estimated_t
 
 if ($ratingCntTot == 0 && $memberReviewCnt == 0) {
     displayMedianTime($median_hours, $median_minutes, $official_estimated_time_text, $alltimes);
-    echo "<img src=\"/img/blank.gif\" class=\"star0\" title=\"No Ratings\">
-       No reviews yet";
+    echo showStars(0) . " No reviews yet";
     if ($embargoCnt == 0)
         echo " - <a href=\"review?id=$id&userid=$curuser\">be the first</a>";
 } else if ($ratingAvg == 0 && $memberReviewCnt == 0) {
