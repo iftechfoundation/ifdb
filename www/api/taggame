@@ -11,36 +11,35 @@ apiPageHeader("taggame");
 
 <h2>Protocol</h2>
 
-<p>The taggame API is implemented as an http XML web service at
-<tt>https://ifdb.org/taggame?xml</tt>. All parameters are passed as
-POST data with the HTTP request. As typical for HTTP, there's no
+<p>The taggame API is implemented as an http JSON web service at
+<tt>https://ifdb.org/taggame</tt>. All parameters are passed as
+JSON-encoded POST data with the HTTP request. As typical for HTTP, there's no
 session state or context; the entire transaction is carried out as
 the single request.
-    
-<h2>Parameter names and values</h2>
 
-<p><b>username</b>: the IFDB username for the account under which the
-listing will be created.  Ordinary text parameter; required.
+<h2>Example request body</h2>
 
-<p><b>password</b>: the user's IFDB password. Ordinary text parameter;
-required.
-
-<p><b>id</b>: the <a href="https://ifdb.org/help-tuid">TUID</a> for
-the game you want to update. Ordinary text parameter; required.
-
-<p><b>t0</b>: the content of the first tag you want to attach to the
-game. For example, <tt>t0=witchcraft</tt> would attach the "witchcraft"
-tag on the game. Ordinary text parameter; optional.
-
-<p><b>t1</b>, <b>t2</b>, <b>t3</b>: attach additional tags in a single
-request using additional numbered parameters. Ordinary text
-parameters; optional.
+<p>
+<pre>
+{
+    "username": "<i>The IFDB email address of your account; required</i>",
+    "password": "<i>Your IFDB password; required</i>",
+    "id": "<i>the <a href="https://ifdb.org/help-tuid">TUID</a> for
+        the game you want to update; required</i>",
+    "tags": [
+        "one tag",
+        "another tag",
+        "another tag",
+    ],
+}
+</pre>
+</p>
 
 <p><b>The tags you add will remove/replace all tags you've previously
-set.</b> If you submit a request with <tt>t0=example1</tt> and then
-later submit a request with <tt>t0=example2</tt>, the API will
+set.</b> If you submit a request with <tt>["example1"]</tt> and then
+later submit a request with <tt>["example2"]</tt>, the API will
 <i>remove</i> your "example1" tag, replacing it with "example2". If
-you don't pass a <tt>t0</tt> parameter, all of the tags you've set
+you pass an empty array <tt>[]</tt>, all of the tags you've set
 will be removed.
 
 <p>To add a tag without removing any tags, first query for your
@@ -49,35 +48,7 @@ existing tags using the <a href="gametags">gametags API</a>, with the
 
 <h2>Reply format</h2>
 
-<p>The server replies to the request with an XML object describing the
-result.  The response has this tag structure for a successful
-transaction:
+<p>The server replies to the request with an HTTP status code 200 OK on success,
+and a JSON object describing the result in the format of the <a href="gametags">gametags API</a>.
 
-<p><pre>
-&lt;response&gt;
-    &lt;label&gt;Saved&lt;/label&gt;
-    &lt;tag&gt;
-        &lt;name&gt;example&lt;/name&gt;
-        &lt;tagcnt&gt;1&lt;/tagcnt&gt;
-        &lt;gamecnt&gt;1&lt;/gamecnt&gt;
-    &lt;/tag&gt;
-&lt;/response&gt;
-</pre>
-
-<p>The <tt>tagcnt</tt> tag shows how many users have used that tag on the
-currently selected game. (Normally, <tt>tagcnt</tt> will be 1, because
-it's unusual for a player to add a tag when the game already has that
-tag.)
-
-<p>The <tt>gamecnt</tt> tag shows how many games have used that tag.
-
-<p>On error, the reply has this structure:
-
-<p><pre>
-&lt;response&gt;
-    &lt;label&gt;Not Saved&lt;/label&gt;
-    &lt;error&gt;Please specify a valid username and password to login.&lt;/error&gt;
-&lt;/response&gt;
-</pre>
-
-
+<p>On error, the server replies with another status code, and response text with an error message.</p>

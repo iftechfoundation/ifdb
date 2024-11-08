@@ -11,9 +11,10 @@ apiPageHeader("gametags");
 
 <h2>Protocol</h2>
 
-<p>The gametags API is implemented as an http XML web service at
-<tt>https://ifdb.org/gametags</tt>. All parameters are passed as
-POST data with the HTTP request. As typical for HTTP, there's no
+<p>The gametags API is implemented as an http JSON web service at
+<tt>https://ifdb.org/gametags?json</tt>. All parameters are passed as
+<code>application/x-www-form-urlencoded</code> POST data with the HTTP request.
+As typical for HTTP, there's no
 session state or context; the entire transaction is carried out as
 the single request.
 
@@ -40,28 +41,20 @@ result.  The response has this tag structure for a successful
 transaction:
 
 <p><pre>
-&lt;response&gt;
-    &lt;tag&gt;
-        &lt;name&gt;example&lt;/name&gt;
-        &lt;tagcnt&gt;1&lt;/tagcnt&gt;
-        &lt;gamecnt&gt;1&lt;/gamecnt&gt;
-    &lt;/tag&gt;
-&lt;/response&gt;
+{
+  "tags": [
+    {
+      "name": "example",
+      "tagcnt": 1,
+      "gamecnt": 58
+    },
+  ]
+}
 </pre>
 
-<p>The <tt>tagcnt</tt> tag shows how many users have used that tag on the
+<p><tt>tagcnt</tt> shows how many users have used that tag on the
 currently selected game. (Normally, <tt>tagcnt</tt> will be 1, because
 it's unusual for a player to add a tag when the game already has that
 tag.)
 
-<p>The <tt>gamecnt</tt> tag shows how many games have used that tag.
-
-<p>On error, the reply has this structure:
-
-<p><pre>
-&lt;response&gt;
-    &lt;error&gt;Please specify a valid username and password to login.&lt;/error&gt;
-&lt;/response&gt;
-</pre>
-
-
+<p><tt>gamecnt</tt> tag shows how many games have used that tag.
