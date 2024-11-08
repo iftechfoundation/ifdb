@@ -89,9 +89,7 @@ CREATE TABLE playertimes (
   userid VARCHAR(32) NOT NULL,
   time_in_minutes INT(5) unsigned not null,
   PRIMARY KEY (id),
-  KEY `gameid` (`gameid`),
-  KEY `userid` (`userid`),
-  UNIQUE KEY `user_game` (`userid`, `gameid`)
+  UNIQUE KEY `game_user` (`gameid`, `userid`)
 );
 
 -- Sample time values for The Tempest (by Grigg)
