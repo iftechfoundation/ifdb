@@ -1997,7 +1997,7 @@ if ($median_minutes != 0) {
 
 
 
-function displayMedianTime($median_hours, $median_minutes, $alltimes) {
+function displayMedianTime($median_hours, $median_minutes, $official_estimated_time_text, $alltimes) {
     if (($median_hours >= 1) or ($median_minutes >= 1)) {
         echo "<details><summary>Estimated play time: ";
         echo $official_estimated_time_text;
@@ -2017,7 +2017,7 @@ function displayMedianTime($median_hours, $median_minutes, $alltimes) {
 //--------------------Code for Estimated Median Time Ends Here-----------------
 
 if ($ratingCntTot == 0 && $memberReviewCnt == 0) {
-    displayMedianTime($median_hours, $median_minutes, $alltimes);
+    displayMedianTime($median_hours, $median_minutes, $official_estimated_time_text, $alltimes);
     echo "<img src=\"/img/blank.gif\" class=\"star0\" title=\"No Ratings\">
        No reviews yet";
     if ($embargoCnt == 0)
@@ -2027,7 +2027,7 @@ if ($ratingCntTot == 0 && $memberReviewCnt == 0) {
         . "title=\"View all ratings and reviews for this game\">"
         . "$ratingCntTot rating" . ($ratingCntTot != 1 ? "s" : "")
         . "</a><br>";
-    displayMedianTime($median_hours, $median_minutes, $alltimes);
+    displayMedianTime($median_hours, $median_minutes, $official_estimated_time_text, $alltimes);
 } else {
     if (!$should_hide && $ratingAvg != 0) {
         echo showStars($ratingAvg)
@@ -2039,7 +2039,7 @@ if ($ratingCntTot == 0 && $memberReviewCnt == 0) {
 
     echo "</p>";
 
-    displayMedianTime($median_hours, $median_minutes, $alltimes);
+    displayMedianTime($median_hours, $median_minutes, $official_estimated_time_text, $alltimes);
 
     if ($memberReviewCnt != 0) {
         $href = ($memberReviewCnt > $reviewsOnHomePage)
