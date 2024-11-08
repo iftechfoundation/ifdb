@@ -1384,7 +1384,7 @@ function updateUnwishList(id, stat)
         . "<label for='minutes'>Minutes:</label> "
         . "<input type='number' name='minutes' id='minutes' min=0 max=59></p>"
         . "<button id='submitTimeButton' class='fancy-button' type='submit'>Submit Time</button>"
-	    . "</div>";
+        . "</div>";
 
         echo "<div id='removeTimeSection'>"
         . "<span id='yourTime'>" . $time_announcement . "</span><br>"
@@ -1393,9 +1393,9 @@ function updateUnwishList(id, stat)
 
         echo " <span id=\"timeSaveMsg\" class=xmlstatmsg aria-live='polite'></span><br>";
 
-	    echo "<div id='timeSavedSection'>"
+        echo "<div id='timeSavedSection'>"
         . "<p id='timeSubmittedMessage'>Your time has been submitted.</p>"
-	    . "</div>";
+        . "</div>";
 
 
 // -------------------JavaScript for the estimated play time control panel---------------------
@@ -1922,7 +1922,7 @@ function findMedian($array_input) {
 
     // Calculate median
     if ($total_entries % 2 != 0) {            // Dividing by 2 gives a remainder, so the array must have an odd number of entries
-        $median = $array_input[$int_half];	     // Choose the middle entry
+        $median = $array_input[$int_half];         // Choose the middle entry
     } else {                                  // The array has an even number of entries, so there will be two middle entries
         $middle1 = $array_input[$int_half-1];     // Find the first middle entry
         $middle2 = $array_input[$int_half];      // Find the second middle entry
@@ -1952,7 +1952,7 @@ $official_estimated_time_text="";
 if ($median_minutes != 0) {
     if ($median_hours >= 1 ) {
         // If the game is over an hour, round the minutes to the nearest 5 minutes. 
-	$minutes_rounded_to_five = round( $median_minutes / 5 ) * 5;
+        $minutes_rounded_to_five = round( $median_minutes / 5 ) * 5;
         $official_estimated_time_text = convertTimeToText(['hours' => $median_hours, 'minutes' => $minutes_rounded_to_five]);
     } else {
         // If the game is under an hour, round the minutes to the nearest whole number.

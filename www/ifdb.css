@@ -640,8 +640,8 @@ The "downloads" section is for external links.
 }
 
 #externalLinks > div:first-child {
-	display: flex;
-	justify-content: space-between;
+    display: flex;
+    justify-content: space-between;
 }
 
 #externalLinks h3 {
@@ -652,24 +652,24 @@ The "downloads" section is for external links.
 
 .viewgame__playOnline {
     display: inline-block;
-	margin: 0px 0px 0.3em 0px;
-	cursor: pointer;
+    margin: 0px 0px 0.3em 0px;
+    cursor: pointer;
 }
 
 #externalLinks .downloadlist {
-	display: flex;
-	flex-direction: column;
-	list-style: none;
-	padding-left: 0;
-	gap: 1em;
-	margin-top: 1em;
-	margin-bottom: 0;
+    display: flex;
+    flex-direction: column;
+    list-style: none;
+    padding-left: 0;
+    gap: 1em;
+    margin-top: 1em;
+    margin-bottom: 0;
 }
 
 #externalLinks .downloadlist li {
-	display: flex;
-	padding: 2px;
-	gap: 4px;
+    display: flex;
+    padding: 2px;
+    gap: 4px;
 }
 
 #externalLinks.downloads .downloaditem {
@@ -678,9 +678,9 @@ The "downloads" section is for external links.
 }
 
 #externalLinks.fileIcon {
-	width: 40px;
-	height: 40px;
-	border: 0;
+    width: 40px;
+    height: 40px;
+    border: 0;
 }
 
 /*
@@ -2003,8 +2003,8 @@ completely customize the appearance.
 }
 
 .ckbox:focus + .ckboxImg {
-	outline: 1px solid teal;
-	outline-offset: 2px;
+    outline: 1px solid teal;
+    outline-offset: 2px;
 }
 
 .cklabel:hover > span {
