@@ -929,19 +929,9 @@ echo helpWinLink("help-ifid", "IFID");
     }
 ?>
     <div class="readMore">
-    <table class="<?php if (!$downloadsView) echo "downloads"?>" id="externalLinksTable">
-       <tr>
-           <td>
-              <table width="100%" border=0 cellpadding=0 cellspacing=0>
-                 <tr>
-                    <td valign=top>
-                       <h3>External Links</h3>
-                       <?php
-//                           if ($version != "")
-//                               echo "<span class=notes>Version
-//                                     $version</span><br>";
-                       ?>
-                    </td>
+    <section class="<?php if (!$downloadsView) echo "downloads"?>" id="externalLinks">
+        <div>
+              <h3>External Links</h3>
                     <?php
 
 // Check to see if the game is available for download in any form.
@@ -1045,12 +1035,7 @@ foreach ($links as $link)
 }
 if ($foundGame)
 {
-    echo "<td align=right valign=middle class='viewgame__foundGame'>\r\n";
-    global $nonce;
-    echo "<style nonce='$nonce'>\n"
-        . ".viewgame__foundGame { position: relative; }\n"
-        . ".viewgame__playOnline { display: inline-block; margin:0px 0px 0.3em 0px;cursor:pointer; }\n"
-        . "</style>\n";
+    echo "<div class='viewgame__foundGame'>";
 
     $playOnlineButton = "";
     // if we have an HTML playable game, set up a play online link
@@ -1086,11 +1071,10 @@ if ($foundGame)
         echo "$playOnlineButton<br>";
     }
 
-    echo "</td>";
+    echo "</div>";
 }
                     ?>
-                 </tr>
-              </table>
+                 </div>
 
                    <?php
 if (count($links) == 0 && $dlnotes == "") {
@@ -1130,8 +1114,8 @@ if (count($links) == 0 && $dlnotes == "") {
         }
     }
 
-    // display the link table
-    echo "<table class=\"downloadlist\">";
+    // display the link list
+    echo "<ul class=\"downloadlist\">";
     foreach ($links as $i => $link) {
         $url = $link['url'];
         $zipped = (strcasecmp(substr($url, -4), ".zip") == 0);
@@ -1192,15 +1176,15 @@ if (count($links) == 0 && $dlnotes == "") {
         }
 
         // generate the information
-        echo "<tr valign=top><td id='dlIcon$i'>";
+        echo "<li>";
 
         $iconsrc = ($osicon ? "opsys?geticon=$fmtos" :
                     ($fmticon ? "fileformat?geticon=$fmtid" :
                      false));
         if ($iconsrc)
-            echo "<a href=\"$url\"><img width=40 height=40 src=\"$iconsrc\" border=0></a>";
+            echo "<a href=\"$url\"><img class=\"fileIcon\" src=\"$iconsrc\"></a>";
 
-        echo "</td><td><div class='downloaditem' id='dlItem$i'>
+        echo "<div class='downloaditem'>
               <a href=\"$url\"><b>$linktitle</b></a>$zipstar<br>";
 
         $unbox_supported = [17, 22, 23, 41];
@@ -1221,9 +1205,9 @@ if (count($links) == 0 && $dlnotes == "") {
             echo "<span class=dlnotes>$linkdesc<br></span>";
         }
 
-        echo "<span class=fmtnotes>$typedesc$zipnote</span></div></td></tr>";
+        echo "<span class=fmtnotes>$typedesc$zipnote</span></div></li>";
     }
-    echo "</table>";
+    echo "</ul>";
 
     // add a footnote on each compressed format that appeared more than once
     foreach ($zipnotes as $zipnote) {
@@ -1234,9 +1218,7 @@ if (count($links) == 0 && $dlnotes == "") {
     }
 }
          ?>
-           </td>
-       </tr>
-    </table>
+    </section>
     <div class="expand"><button>Read More</button></div>
     </div>
 
@@ -1486,18 +1468,18 @@ if (!isEmpty($genre)) {
                                 if ($playOnlineButton) {
                                     echo "<div class=\"viewgame__externalLinksDiv\"><span class='viewgame__externalLinksAnchor'>$playOnlineButton | </span>"
                                         . "<a href=\"".htmlspecialcharx($website)."\">Web Site</a>"
-                                        . "<span class='viewgame__externalLinksAnchor'> | <a href='#externalLinksTable'>External Links</a></span></div>";
+                                        . "<span class='viewgame__externalLinksAnchor'> | <a href='#externalLinks'>External Links</a></span></div>";
                                 } else {
-                                    echo "<div class=\"viewgame__externalLinksDiv\"><a href=\"".htmlspecialcharx($website)."\">Web Site</a><span class='viewgame__externalLinksAnchor'> | <a href='#externalLinksTable'>External Links</a></span></div>";
+                                    echo "<div class=\"viewgame__externalLinksDiv\"><a href=\"".htmlspecialcharx($website)."\">Web Site</a><span class='viewgame__externalLinksAnchor'> | <a href='#externalLinks'>External Links</a></span></div>";
                                 }
                             } else if (!isEmpty($website)) {
                                 echo "<div><a href=\"".htmlspecialcharx($website)."\">Web Site</a></div>";
                             } else {
                                 if ($playOnlineButton) {
                                     echo "<div class='viewgame__externalLinksAnchor viewgame__externalLinksDiv'>$playOnlineButton | "
-                                        . "<a href='#externalLinksTable'>External Links</a></div>";
+                                        . "<a href='#externalLinks'>External Links</a></div>";
                                 } else {
-                                    echo "<a class='viewgame__externalLinksAnchor viewgame__externalLinksDiv' href='#externalLinksTable'>External Links</a></div>";
+                                    echo "<a class='viewgame__externalLinksAnchor viewgame__externalLinksDiv' href='#externalLinks'>External Links</a></div>";
                                 }
                             }                        }
                      ?>
