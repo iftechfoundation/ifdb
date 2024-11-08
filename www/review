@@ -785,23 +785,29 @@ if (isset($missingFields['reviewbody']))
     echo "<span class=errmsg><i>Please enter your review.</i></span><br>";
 ?>
 
-   <table border=0 cellspacing=0 cellpadding=0>
-      <tr><td><b>3. Enter your review:</b></td>
-         <td align=right>
-            <span class=notes><i><?php
-echo helpWinLink("help-formatting?review", "Formatting Hints");
-echo " - ";
-echo helpWinLink("help-review#spoilertags", "Hiding Spoilers");
-            ?></i></span>
-         </td>
-      </tr>
-      <tr>
-         <td colspan=2>
-            <textarea name="reviewbody" rows=15 cols=75>
-<?php echo htmlspecialcharx($reviewbody) ?></textarea>
-         </td>
-      </tr>
-   </table>
+    <div id='enter-review'>
+        <style nonce="<?=$nonce?>">
+            @media (min-width: 65ch) {
+                #enter-review {
+                    display: flex;
+                    justify-content: space-between;
+                    max-width: 40rem;
+                }
+            }
+            textarea, #summary, #tags {
+                width: 40rem;
+            }
+        </style>
+        <div>
+            <b>3. Enter your review:</b>
+        </div>
+        <div class=notes><i><?php
+            echo helpWinLink("help-formatting?review", "Formatting Hints");
+            echo " - ";
+            echo helpWinLink("help-review#spoilertags", "Hiding Spoilers");
+        ?></i></div>
+    </div>
+    <textarea name="reviewbody" rows=15><?php echo htmlspecialcharx($reviewbody) ?></textarea>
 
    </p>
    <p>
@@ -810,7 +816,7 @@ if (isset($errDetail['tags']))
     echo "<span class=errmsg><i>{$errDetail['tags']}</i></span><br>";
 ?>
      <b>4. Tag your review:</b><br>
-     <input type="text" name="tags" size=80 value="<?php
+     <input type="text" name="tags" id="tags" size=80 value="<?php
         echo htmlspecialcharx($tags) ?>"><br>
      <span class=notes>Optional.
         Tags let you arrange your reviews into collections
