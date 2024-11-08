@@ -26,6 +26,7 @@ function basePageHeader($title, $focusCtl, $extraOnLoad, $extraHead,
 ?>
 <html lang="en">
 <head>
+    <meta charset="utf-8">
     <link rel="apple-touch-icon" sizes="180x180" href="/favicons/apple-touch-icon.png">
     <link rel="icon" type="image/png" sizes="32x32" href="/favicons/favicon-32x32.png">
     <link rel="icon" type="image/png" sizes="16x16" href="/favicons/favicon-16x16.png">
@@ -37,7 +38,6 @@ function basePageHeader($title, $focusCtl, $extraOnLoad, $extraHead,
          title="IFDB Search Plugin"
          href="<?php echo get_root_url() ?>plugins/ifdb-opensearchdesc.xml">
    <script src="<?php echo srcCacheBust('/ifdbutil.js')?>"></script>
-   <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
    <meta name="description" content="IFDB is a game catalog and recommendation engine for Interactive Fiction, also known as Text Adventures. IFDB is a collaborative, wiki-style community project.  Members can contribute game listings, reviews, recommendations, and more.">
    <title><?php echo $title ?></title>
    <?php echoStylesheetLink(); ?>
