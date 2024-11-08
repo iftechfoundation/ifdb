@@ -500,7 +500,6 @@ if ($setID) {
 
             $zorkTUID = "0dbnusxunq7fw5ro";
             $thumbSrc = "viewgame?id=$zorkTUID&cssOverride=$ssid";
-//                      "cssthumb?css=$ssid";
 
             echo "<table class=\"styles__table\"><tr><td>";
 
