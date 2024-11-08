@@ -2,34 +2,12 @@
 
 include_once "session-start.php";
 include_once "util.php";
-include_once "pagetpl.php";
 include_once "login-check.php";
+include_once "dbconnect.php";
 
-function sendResponse($statmsg, $errmsg, $detail)
-{
-    global $xml;
-
-    if ($xml)
-    {
-        header("Content-Type: text/xml");
-        header("Expires: Mon, 26 Jul 1997 05:00:00 GMT");
-        header("Cache-Control: no-store, no-cache, must-revalidate");
-
-        echo "<?xml version=\"1.0\" encoding=\"UTF-8\" ?><response>"
-            . ($statmsg ? "<label>$statmsg</label>" : "")
-            . ($errmsg ? "<error>$errmsg</error>" : "")
-            . "</response>";
-    }
-    else
-    {
-        smallPageHeader("Update Your Time Vote");   // Do we need this?
-        if ($errmsg)
-            echo "<span class=errmsg>$errmsg</span><p>";
-
-        echo $detail;
-        smallPageFooter();
-    }
-
+if ($_SERVER['REQUEST_METHOD'] != 'POST') {
+    http_response_code(405);
+    echo "405 Method Not Allowed";
     exit();
 }
 
@@ -37,53 +15,50 @@ function sendResponse($statmsg, $errmsg, $detail)
 include_once "dbconnect.php";
 $db = dbConnect();
 if ($db == false)
-    sendResponse("Not Saved", "An error occurred connecting to the database. "
-                 . "Please try again later.", false);
+    send_action_response("Not Saved", "An error occurred connecting to the database. "
+                 . "Please try again later.");
 
 // get the request parameters
 $game = get_req_data('game');
 $newtime = get_req_data('newtime');
-$xml = isset($_REQUEST['xml']);
 
 // make sure there's a game
 if ($game == "")
-    sendResponse("Not Saved", "No game was specified.", false);
+    send_action_response("Not Saved", "No game was specified.");
 
 // make sure we process any persistent login state
 $userid = checkPersistentLogin();
-if (!$userid && !$xml && !logged_in(true))
+if (!$userid && !logged_in(true))
     exit();
 
 // make sure we're logged in
 if (!$userid)
-    sendResponse("Not Saved", "To submit a time, please log in.", false);
+    send_action_response("Not Saved", "To submit a time, please log in.");
 
 // make sure the game is valid
-$qgame = mysql_real_escape_string($game, $db);
-$result = mysql_query("select id from games where id = '$qgame'", $db);
+$result = mysqli_execute_query($db, "select id from games where id = ?", [$game]);
 if (mysql_num_rows($result) == 0)
-    sendResponse("Not Saved", "The specified game was not found.", false);
+    send_action_response("Not Saved", "The specified game was not found.");
 
 // if there's an existing time for this user for this game, simply update
 // the time; otherwise add a new row
 
 $result = mysql_query("lock tables playertimes write", $db);
 if ($result) {
-    $result = mysql_query(
+    $result = mysqli_execute_query($db,
         "select id, time_in_minutes from playertimes
-         where gameid='$qgame' and userid='$userid'", $db);
+         where gameid=? and userid=?", [$game, $userid]);
 }
 if ($result && mysql_num_rows($result)) {
     // get the ID of the existing record
-    $rid = mysql_result($result, 0, "id");
-    $oldtime = mysql_result($result, 0, "time_in_minutes");
+    [$rid, $oldtime] = mysql_fetch_row($result);
 } else {
     $rid = false;
     $oldtime = false;
 }
 
 if ($newtime < 0 || $newtime > 12000) {
-    sendResponse("Not Saved", "The time specified is not valid.", false);
+    send_action_response("Not Saved", "The time specified is not valid.");
 }
 
 // set the time:
@@ -91,25 +66,26 @@ if ($newtime < 0 || $newtime > 12000) {
 // - if there's an existing time record, and the new time is zero, delete the record
 // - if there's an existing time, and the new time is not zero, update it
 // - if there's no existing time, insert a new record
+$ok = false;
 if ($newtime == 0 && $rid) {
     // time changed to zero -> delete the record
-    $result = mysql_query("delete from playertimes where id='$rid'", $db);
+    $result = mysqli_execute_query($db, "delete from playertimes where id=?", [$rid]);
     if (!$result) error_log(mysql_error($db));
-    $ok = "Your time vote has been removed.";
+    $ok = true;
 
 } else if ($rid) {
     // there's an existing time record, and the new time is not 0, so update the record
-    $result = mysql_query(
-        "update playertimes set time_in_minutes = '$newtime' where id='$rid'", $db);
+    $result = mysqli_execute_query($db,
+        "update playertimes set time_in_minutes = ? where id=?", [$newtime, $rid]);
     if (!$result) error_log(mysql_error($db));
-    $ok = "Your time has been updated.";
+    $ok = true;
 
 } else if ($newtime != 0) {
     // there's no time there yet for this user, so insert a new one
-    $result = mysql_query(
+    $result = mysqli_execute_query($db,
         "insert into playertimes (gameid, userid, time_in_minutes)
-         values ('$qgame', '$userid', '$newtime')", $db);
-    $ok = "Your time has been saved.";
+         values (?, ?, ?)", [$game, $userid, $newtime]);
+    $ok = true;
 } else {
     $result = true;
     $ok = true;
@@ -120,13 +96,12 @@ mysql_query("unlock tables", $db);
 
 // check the result
 if ($result) {
-    sendResponse("Saved", false, $ok);
+    send_action_response("Saved", false);
 } else if ($ok) {
-    sendResponse("Not Saved", "An error occurred updating the database. "
-                 . "Please try again later.", false);
+    send_action_response("Not Saved", "An error occurred updating the database. "
+                 . "Please try again later.");
 } else {
-    sendResponse("Not Saved", "The request was invalid.", false);
+    send_action_response("Not Saved", "The request was invalid.");
 }
 
-smallPageFooter();
 ?>

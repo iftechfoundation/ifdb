@@ -384,6 +384,11 @@ if (!$errMsg) {
          $dlnotes, $extReviews, $extRevDisplayRank,
          $ratingHisto, $xrefs, $inrefs, $flags) =
              getGameInfo($db, $id, $curuser, $reqVersion, $errMsg, $errCode);
+    $title = htmlspecialchars($title);
+    $license = htmlspecialchars($license);
+    $language = htmlspecialchars($language);
+    $seriesnum = htmlspecialchars($seriesnum);
+    $forgiveness = htmlspecialchars($forgiveness);
 
     $should_hide = ($flags & FLAG_SHOULD_HIDE);
 
@@ -497,55 +502,70 @@ if (!$errMsg && isset($_REQUEST['rss'])) {
     exit();
 }
 
-// check for an iFiction request
-function xmlField($fld, $val)
+$json = isset($_REQUEST['json']);
+if (isset($_REQUEST['ifiction']) || $json)
 {
-    if ($val)
-        echo "<$fld>" . rss_encode(htmlspecialcharx($val)) . "</$fld>";
-}
-function xmlDescField($fld, $val)
-{
-    if ($val)
-        echo "<$fld>" . rss_encode(fixDesc($val, FixDescIfic)) . "</$fld>";
-}
-if (isset($_REQUEST['ifiction']))
-{
-    header("Content-Type: text/xml");
-    header("Expires: Mon, 26 Jul 1997 05:00:00 GMT");
-    header("Cache-Control: no-store, no-cache, must-revalidate");
-
-    echo "<?xml version=\"1.0\" encoding=\"UTF-8\"?>";
+    if (!$json) {
+        header("Content-Type: text/xml");
+        header("Expires: Mon, 26 Jul 1997 05:00:00 GMT");
+        header("Cache-Control: no-store, no-cache, must-revalidate");
+    }
 
     // if an error occurred, show the error
     if ($errMsg) {
-        echo "<viewgame xmlns=\"http://ifdb.org/api/xmlns\">";
-        xmlField("errorCode", $errCode);
-        xmlField("errorMessage", $errMsg);
-        echo "</viewgame>";
+        $error_fields = [
+            'errorCode' => $errCode,
+            'errorMessage' => $errMsg,
+        ];
+        if ($json) {
+            send_json_response($error_fields);
+        } else {
+            echo "<viewgame xmlns=\"http://ifdb.org/api/xmlns\">";
+            echo serialize_xml($error_fields);
+            echo "</viewgame>";
+        }
         exit();
     }
 
-    echo "<ifindex version=\"1.0\" "
-        .    "xmlns=\"http://babel.ifarchive.org/protocol/iFiction/\">"
-        . "<story>"
+    $identification = [];
+    $bibliographic = [];
+    $contacts = [];
+    $ifdb_section = [];
 
-        . "<colophon>"
-        .    "<generator>ifdb.org/viewgame</generator>"
-        .   "<generatorversion>1</generatorversion>"
-        .   "<originated>" . date("Y-m-d", strtotime($moddate2)) . "</originated>"
-        . "</colophon>"
+    $story_obj = [
+        'colophon' => [
+            'generator' => 'ifdb.org/viewgame',
+            'generatorversion' => 1,
+            'originated' => date('Y-m-d', strtotime($moddate2)),
+        ],
+        'identification' => &$identification,
+        'bibliographic' => &$bibliographic,
+        'contacts' => &$contacts,
+    ];
 
-        . "<identification>";
+    if ($json) {
+        $identification['ifids'] = $ifids;
+        if ($bafsid)
+            $identification['bafn'] = $bafsid;
 
-    foreach($ifids as $i)
-        echo xmlField("ifid", $i);
-    xmlField("bafn", $bafsid);
+        $story_obj['ifdb'] = &$ifdb_section;
+    } else {
+        foreach($ifids as $i)
+            $identification[] = ['ifid' => $i];
+        if ($bafsid)
+            $identification[] = ['bafn' => $bafsid];
+
+        $story_obj['ifdb'] = [
+            '_attrs' => ['xmlns' => 'http://ifdb.org/api/xmlns'],
+            '_contents' => &$ifdb_section,
+        ];
+    }
 
     // Figure the format.  This is actually a bit tricky, since we keep
     // different data from babel on this count.  First, try basing this
     // on the development system ID, since many development systems map
     // to specific output formats.
-    $formatMap = array(
+    $formatMap = [
         "TADS 2" => "tads2",
         "TADS 3" => "tads3",
         "Hugo" => "hugo",
@@ -555,7 +575,8 @@ if (isset($_REQUEST['ifiction']))
         "ADRIFT" => "adrift",
         "AdvSys" => "advsys",
         "Level 9" => "level9",
-        "Magnetic Scrolls" => "magscrolls");
+        "Magnetic Scrolls" => "magscrolls"
+    ];
     $format = false;
     if (isset($formatMap[$system])) {
         $format = $formatMap[$system];
@@ -566,7 +587,7 @@ if (isset($_REQUEST['ifiction']))
     // So, if we can find a story file among the downloads, we'll know the
     // babel format.
     if (!$format) {
-        $linkTypeMap = array(
+        $linkTypeMap = [
             "tads2" => "tads2",
             "tads3" => "tads3",
             "zcode" => "zcode",
@@ -579,7 +600,8 @@ if (isset($_REQUEST['ifiction']))
             "agt" => "agt",
             "adrift" => "adrift",
             "advsys" => "advsys",
-            "executable" => "executable");
+            "executable" => "executable"
+        ];
 
         foreach ($links as $l) {
             $xid = $l['fmtexternid'];
@@ -589,47 +611,48 @@ if (isset($_REQUEST['ifiction']))
             }
         }
     }
-    xmlField("format", $format);
 
-    echo "</identification>"
-        . "<bibliographic>";
+    if ($format) {
+        if ($json) {
+            $identification['format'] = $format;
+        } else {
+            $identification[] = ['format' => $format];
+        }
+    }
 
-    xmlField("title", $title);
-    xmlField("author", $author);
+    $bibliographic['title'] = $title;
+    $bibliographic['author'] = $author;
 
     // Pull out the language code from the language string, which
     // we've formatted as something like "English (en-US)".  If there
     // are no parens, we must not have found a name for the language,
     // so the whole language string is the identifier.
     if (preg_match("/\(([-a-z]+)\)$/i", $language, $match))
-        xmlField("language", $match[1]);
-    else
-        xmlField("language", $language);
+        $language = $match[1];
+    if ($language)
+        $bibliographic['language'] = $language;
 
-    xmlField("firstpublished",
-             $pubFull ? date("Y-m-d", strtotime($pubFull)) : $pubYear);
+    $firstpublished = $pubFull ? date("Y-m-d", strtotime($pubFull)) : $pubYear;
+    if ($firstpublished)
+        $bibliographic['firstpublished'] = $firstpublished;
 
-    xmlField("genre", $genre);
-    xmlDescField("description", $rawDesc);
-    xmlField("series", $seriesname);
-    xmlField("seriesnumber", $seriesnum);
-    xmlField("forgiveness", $forgiveness);
+    if ($genre)
+        $bibliographic['genre'] = $genre;
 
-    echo "</bibliographic>"
-        . "<contacts>";
+    $desc = fixDesc($rawDesc, $json ? 0 : FixDescIfic);
+    if ($desc)
+        $bibliographic['description'] = $desc;
 
-    xmlField("url", $website);
+    if ($website)
+        $contacts['url'] = $website;
 
-    echo "</contacts>";
-
-    echo "<ifdb xmlns=\"http://ifdb.org/api/xmlns\">";
-    xmlField("tuid", $id);
-    xmlField("pageversion", $pagevsn);
-    xmlField("link", get_root_url() . "viewgame?id=$id");
+    $ifdb_section['tuid'] = $id;
+    $ifdb_section['pageversion'] = $pagevsn;
+    $ifdb_section['link'] = get_root_url() . "viewgame?id=$id";
     if ($hasart) {
-        echo "<coverart>";
-        xmlField("url", get_root_url() . "coverart?id=$id&version=$pagevsn");
-        echo "</coverart>";
+        $ifdb_section['coverart'] = [
+            'url' => get_root_url() . "coverart?id=$id&version=$pagevsn",
+        ];
     }
     if ($links) {
         // load the translation table for the file formats
@@ -639,41 +662,51 @@ if (isset($_REQUEST['ifiction']))
         while ([$id, $ext] = mysql_fetch_row($result)) {
             $fmtMap[$id] = $ext;
         }
-        echo "<downloads><links>";
+        $links_section = [];
+        $ifdb_section['downloads'] = ['links' => &$links_section];
         foreach ($links as $l) {
-            echo "<link>";
-            xmlField("url", $l['url']);
-            if ($l['title']) xmlField("title", $l['title']);
-            if ($l['desc']) xmlField("desc", $l['desc']);
-            if ($l['isgame']) echo "<isGame/>";
-            if ($l['fmtexternid']) xmlField("format", $l['fmtexternid']);
+            $link_obj = [
+                'url' => $l['url'],
+            ];
+            if ($l['title']) $link_obj['title'] = $l['title'];
+            if ($l['desc']) $link_obj['desc'] = $l['desc'];
+            if ($l['isgame']) $link_obj['isGame'] = true;
+            if ($l['fmtexternid']) $link_obj['format'] = $l['fmtexternid'];
             if (isset($l['osext'])) {
                 if (isset($l['osvsn'])) {
-                    xmlField("os", $l['osext'] . "." . $l['osvsnext']);
+                    $link_obj['os'] = $l['osext'] . "." . $l['osvsnext'];
                 } else {
-                    xmlField("os", $l['osext'] . ".");
+                    $link_obj['os'] = $l['osext'] . ".";
                 }
             }
-            if ($l['compression']) xmlField("compression", $fmtMap[$l['compression']]);
-            if ($l['compressedprimary']) xmlField("compressedPrimary", $l['compressedprimary']);
-            echo "</link>";
+            if ($l['compression']) $link_obj['compression'] = $fmtMap[$l['compression']];
+            if ($l['compressedprimary']) $link_obj['compressedPrimary'] = $l['compressedprimary'];
+
+            if ($json) {
+                $links_section[] = $link_obj;
+            } else {
+                $links_section[] = ['link' => $link_obj];
+            }
         }
-        echo "</links></downloads>";
     }
     if (!$should_hide) {
-        xmlField("averageRating", $ratingAvg);
-        list($stars) = roundStars($ratingAvg);
-        xmlField("starRating", $stars);
-        xmlField("ratingCountAvg", $ratingCntAvg);
-        xmlField("ratingCountTot", $ratingCntTot);
+        $ifdb_section['averageRating'] = $ratingAvg;
+        [$stars] = roundStars($ratingAvg);
+        if ($stars) {
+            $ifdb_section['starRating'] = $stars;
+        }
+        $ifdb_section['ratingCountAvg'] = $ratingCntAvg;
+        $ifdb_section['ratingCountTot'] = $ratingCntTot;
     }
-    echo "</ifdb>";
 
-    // main end tags
-    echo "</story>"
-        . "</ifindex>";
-
-    // done
+    if ($json) {
+        send_json_response($story_obj);
+    } else {
+        echo "<ifindex version=\"1.0\" "
+            .    "xmlns=\"http://babel.ifarchive.org/protocol/iFiction/\">";
+        echo serialize_xml(['story' => $story_obj]);
+        echo '</ifindex>';
+    }
     exit();
 }
 
@@ -965,14 +998,14 @@ foreach ($links as $link)
 
     // if this is the first Parchment-capable link, and it's not compressed,
     // note it so that we can set up a Parchment play link to it
-    if ($link['fmtexternid'] == 'zcode'
-            || $link['fmtexternid'] == 'blorb/zcode'
-            || $link['fmtexternid'] == 'glulx'
-            || $link['fmtexternid'] == 'blorb/glulx'
-            || $link['fmtexternid'] == 'tads2'
-            || $link['fmtexternid'] == 'tads3'
-            || $link['fmtexternid'] == 'hugo'
-        )
+    if (in_array($link['fmtexternid'], [
+        'zcode',
+        'blorb/zcode',
+        'glulx',
+        'blorb/glulx',
+        'tads2',
+        'tads3',
+        'hugo']))
     {
         if (!$link['compression']) {
             $foundPC = true;
@@ -985,12 +1018,12 @@ foreach ($links as $link)
         }
     }
 
-    if ($link['fmtexternid'] == 'adrift'
-            || $link['fmtexternid'] == 'adrift38'
-            || $link['fmtexternid'] == 'adrift39'
-            || $link['fmtexternid'] == 'adrift5'
-            || $link['fmtexternid'] == 'adrift5/blorb'
-        )
+    if (in_array($link['fmtexternid'], [
+        'adrift',
+        'adrift38',
+        'adrift39',
+        'adrift5',
+        'adrift5/blorb']))
     {
         if (!$link['compression']) {
             $foundAdrift = true;
@@ -1435,7 +1468,7 @@ function submitTime() {
         return;
     }
     // Time is valid, as far as we can tell
-    xmlSend("settime?game=<?php echo $id?>&newtime=" + new_time, "timeSaveMsg", swapTimeSections, null);
+    jsonSend("settime?game=<?php echo $id?>&newtime=" + new_time, "timeSaveMsg", swapTimeSections);
 }
 // Attach the submitTime function to the "Submit Time" button.
 document.getElementById("submitTimeButton").addEventListener("click", submitTime);
@@ -1443,7 +1476,7 @@ document.getElementById("submitTimeButton").addEventListener("click", submitTime
 
 // Remove the user's time for this game from the database.
 function removeTime() {
-    xmlSend("settime?game=<?php echo $id?>&newtime=0", "timeSaveMsg", swapTimeSections, null);
+    jsonSend("settime?game=<?php echo $id?>&newtime=0", "timeSaveMsg", swapTimeSections);
 }
 // Attach the removeTime function to the Remove Time button.
 document.getElementById("removeTimeButton").addEventListener("click", removeTime);
@@ -1634,8 +1667,8 @@ if (!isEmpty($seriesname)) {
         echo "Part of ";
     else
         echo "Episode $seriesnum of ";
-    echo "<a href=\"search?searchfor=series:" . urlencodeFromHTML($seriesname)
-        . "\">$seriesname</a><br>";
+    echo "<a href=\"search?searchfor=series:" . urlencode($seriesname)
+        . "\">".htmlspecialchars($seriesname)."</a><br>";
 }
                      ?>
                      <?php if (!isEmpty($pubYear)) echo "$pubYear<br>" ?>
@@ -1643,11 +1676,11 @@ if (!isEmpty($seriesname)) {
 if (!isEmpty($genre)) {
     $genres = explode(",", str_replace("/", ",", $genre));
     echo join(", ", array_map(
-        fn($genre) => "<a href=\"search?searchfor=genre:" . urlencodeFromHTML($genre) . "\">$genre</a>",
+        fn($genre) => "<a href=\"search?searchfor=genre:" . urlencode($genre) . "\">".htmlspecialchars($genre)."</a>",
         $genres)) . "<br>";
 }
                      ?>
-                     <?php if (!isEmpty($system)) echo "<div>$system</div>" ?>
+                     <?php if (!isEmpty($system)) echo "<div>".htmlspecialchars($system)."</div>" ?>
                      <?php
                         $showExternalLinksAnchor = count($links) && ($detailView || $historyView);
                         if (!isEmpty($website) || $showExternalLinksAnchor) {
@@ -2900,13 +2933,6 @@ function dispDeleteTags()
 
 function deleteTag(tag)
 {
-//    alert (tag);
-
-    var c = "id=<?php echo $id ?>";
-    c += "&t=" + encodeURI8859(tag);
-
-    //xmlSend("taggamedelete", "tagStatusSpan", cbSaveTags, c);
-
     for (var j = 0 ; j < memTagList.length ; j++)
     {
         if (memTagList[j].tag == tag)
@@ -2967,44 +2993,35 @@ function saveTags()
 {
     addTags();
     dbTagList = [];
-    var c = "id=<?php echo $id ?>";
-    var i, j, k;
-    for (i = j = k = 0 ; i < memTagList.length ; i++)
+    const tags = [];
+    for (const t of memTagList)
     {
-        var t = memTagList[i];
         if (t.tagcnt != 0)
-            dbTagList[j++] = t;
+            dbTagList.push(t);
         if (t.isMine)
-            c += "&t" + (k++) + "=" + encodeURI8859(t.tag);
+            tags.push(t.tag);
     }
     dispTags();
     closeTags("tagEditor");
-    xmlSend("taggame", "tagStatusSpan", cbSaveTags, c, true);
+    jsonSend("taggame", "tagStatusSpan", cbSaveTags,
+        {"id": "<?php echo $id ?>", "tags": tags}, true);
 }
 
 function saveTagsDelete()
 {
-//    dbTagList = [];
-    var c = "id=<?php echo $id ?>";
-    var i, j, k;
-    for (i  = k = 0 ; i < dbTagList.length ; i++)
-    {
-       var t = dbTagList[i];
-       var found = false;
-
-       for (j = 0; j < memTagList.length ; j++)
-       {
-          if (memTagList[j].tag == t.tag) found = true;
-       }
-
-       if (!found) c += "&t" + (k++) + "=" + encodeURI8859(t.tag);
+    const tags = [];
+    for (const t of dbTagList) {
+        if (memTagList.find((m) => m.tag == t.tag) === undefined) {
+            tags.push(t.tag);
+        }
     }
 
     dbTagList = memTagList;
 
     dispTags();
     closeTags("tagDeletor");
-    xmlSend("taggamedelete", "tagStatusSpan", cbSaveTags, c, true);
+    jsonSend("taggamedelete", "tagStatusSpan", cbSaveTags,
+        {"id": "<?php echo $id ?>", "tags": tags}, true);
 }
 
 
@@ -3014,26 +3031,19 @@ function cbSaveTags(resp)
         alert("There was an error saving tags.");
         return;
     }
-    if (resp.querySelector("error")) {
-        alert(resp.querySelector("error").firstChild.data);
+    if (resp.error) {
+        alert(resp.error);
         return;
     }
-    var tags = resp.getElementsByTagName("tag");
-    for (var i = 0 ; i < tags.length ; ++i)
+    for (const tag of resp.tags)
     {
-        var tag = tags[i];
-        var name = tag.getElementsByTagName("name")[0].firstChild.data;
-        var gamecnt = tag.getElementsByTagName("gamecnt")[0].firstChild.data;
-        var tagcnt = tag.getElementsByTagName("tagcnt")[0].firstChild.data;
-        name = name.toLowerCase();
-
-        for (var j = 0 ; j < memTagList.length ; j++)
+        for (const memTag of memTagList)
         {
-            if (memTagList[j].tag.toLowerCase() == name)
+            if (memTag.tag.toLowerCase() == tag.name.toLowerCase())
             {
-                memTagList[j].gamecnt = parseInt(gamecnt);
-                memTagList[j].tagcnt = parseInt(tagcnt);
-                memTagList[j].isNew = false;
+                memTag.gamecnt = tag.gamecnt;
+                memTag.tagcnt = tag.tagcnt;
+                memTag.isNew = false;
                 break;
             }
         }
@@ -3106,21 +3116,21 @@ dispTags();
                <?php if (!isEmpty($license))
                    echo "License: $license<br>" ?>
                <?php if (!isEmpty($system))
-                   echo "Development System: <a href=\"search?searchfor=system:" . urlencodeFromHTML($system) . "\">$system</a><br>" ?>
+                   echo "Development System: <a href=\"search?searchfor=system:" . urlencode($system) . "\">".htmlspecialchars($system)."</a><br>" ?>
                <?php if (!isEmpty($forgiveness))
                    echo helpWinLink("help-forgiveness", "Forgiveness Rating")
                        . ": $forgiveness<br>" ?>
                <?php
                     if (count($ifids) > 0) {
-                        echo "<div id=\"ifwiki-link\" class=\"displayNone\"><a href=\"https://www.ifwiki.org/\">IF Wiki</a>: <a href=\"https://www.ifwiki.org/index.php?title=IFID:"
+                        echo "<div id=\"ifwiki-link\" class=\"displayNone\"><a href=\"https://www.ifwiki.org/\">IFWiki</a>: <a href=\"https://www.ifwiki.org/index.php?title=IFID:"
                             .htmlspecialcharx($ifids[0])."\">$title</a><br></div>";
                         $jifid = htmlspecialcharx(str_replace("\"", "&#34;", $ifids[0]));
                         if (!$cssOverride) {
                         ?>
-                        <script nonce="<?php global $nonce; echo $nonce; ?>">
-                            fetch("ifwiki-check?ifid=<?php echo $jifid ?>").then(r => { if (r.ok)
+                        <script type="module" nonce="<?php global $nonce; echo $nonce; ?>">
+                            if (await check_ifid_in_ifwiki("<?php echo $jifid ?>")) {
                                 document.getElementById("ifwiki-link").style.display = "initial";
-                            });
+                            }
                         </script>
                         <?php
                         }

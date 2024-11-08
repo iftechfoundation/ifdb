@@ -95,6 +95,14 @@ function serialize_xml($array) {
             $value = $value['_contents'];
         }
 
+        // Booleans are just empty tags
+        if (is_bool($value)) {
+            if ($value) {
+                $parts[] = "<$key$attrs_str/>";
+            }
+            continue;
+        }
+
         $parts[] = "<$key$attrs_str>";
         if (is_array($value)) {
             $parts[] = serialize_xml($value);
@@ -155,19 +163,11 @@ function approx_utf8($str)
 
 // ------------------------------------------------------------------------
 //
-// htmlspecialchars() replacement.  This converts everything that
-// the standard htmlspecialchars() does, *except* that it leaves
-// &#nnnn; sequences intact.  Since we don't store Unicode directly,
-// this provides a rudimentary way of storing these characters.
+// htmlspecialchars() replacement. TODO delete
 //
 function htmlspecialcharx($str)
 {
-    // first do the ampersands
-    $str = preg_replace("/&(?!#[0-9]{1,7};)/", "&amp;", $str);
-
-    // now do the rest of the characters and return the result
-    return str_replace(
-        array('"', '<', '>'), array('&quot;', '&lt;', '&gt;'), $str);
+    return htmlspecialchars($str);
 }
 
 // sometimes we want to display long file names containing underscores
@@ -177,57 +177,13 @@ function zeroWidthSpaceUnderscores($str) {
     return str_replace('/', '&#8203;/', str_replace('_', '&#8203;_', $str));
 }
 
-// extended URL encoding, with UTF8 conversion
-function urlencodex($str)
-{
-    return urlencode(utf8_encode($str));
-}
-
-// URL-encode from a string that's been HTML quoted
-function urlencodeFromHTML($str)
-{
-    return urlencode(utf8_encode(htmlspecialchars_decode($str)));
-}
-
-// --------------------------------------------------------------------------
-// OS detect - this attempts to guess the user's OS based on the browser
-// identification string.  Returns an (OS ID, Version ID) pair.
-//
-function browser_os_detect()
-{
-    // get the browser ID string
-    $b = strtolower($_SERVER['HTTP_USER_AGENT']);
-
-    // get the list of version strings to try
-    $db = dbConnect();
-    $result = mysql_query(
-        "select
-           id, vsnid, operatingsystems.name as name,
-           browserid, seq, displaypriority
-         from operatingsystems
-           left outer join osversions
-           on operatingsystems.id = osversions.osid
-         order by displaypriority desc, name, seq desc", $db);
-
-    // look for the first match
-    for ($i = 0 ; $i < mysql_num_rows($result) ; $i++) {
-        list($osid, $vsnid, $nm, $pat, $seq, $pri) = mysql_fetch_row($result);
-        $pat = str_replace("/", "\\/", $pat);
-        if ($pat != "" && preg_match("/$pat/i", $b))
-            return array($osid, $vsnid);
-    }
-
-    // no match found
-    return false;
-}
-
 // --------------------------------------------------------------------------
 // are we on an iPhone or Android device?
 //
 function is_mobile()
 {
     // get the browser ID string
-    $b = $_SERVER['HTTP_USER_AGENT'];
+    $b = $_SERVER['HTTP_USER_AGENT'] ?? '';
 
     // check for the relevant strings
     return preg_match(
@@ -1162,9 +1118,9 @@ function fixDesc($desc, $specials = 0)
             break;
 
         case '&':
-            // if it's &lt;, &gt;, &#xxxxx;, &quot; or &amp;, leave it;
+            // if it's &lt;, &gt;, &quot; or &amp;, leave it;
             // otherwise convert the & to &amp;
-            $therest = substr($desc, $ofs + 1, 8);
+            $therest = substr($desc, $ofs + 1, 5);
             if (strncasecmp($therest, "lt;", 3) == 0
                 || strncasecmp($therest, "gt;", 3) == 0) {
                 $ofs += 3;
@@ -1172,10 +1128,6 @@ function fixDesc($desc, $specials = 0)
                 $ofs += 4;
             } else if (strncasecmp($desc, "quot;", 5) == 0) {
                 $ofs += 5;
-            } else if (preg_match("/^#[0-9]{1,7};/", $therest, $matches)) {
-                $ofs += strlen($matches[0]);
-            } else if (preg_match("/^#[xX][0-9A-Fa-f]{1,6};/", $therest, $matches)) {
-                $ofs += strlen($matches[0]);
             } else {
                 // not recognized - make it an explicit &amp;
                 $desc = substr_replace($desc, "&amp;", $ofs, 1);
@@ -1393,13 +1345,12 @@ function summarizeHtml($str, $maxlen)
             }
             else if ($c == '&')
             {
-                // if it's &lt;, &gt;, or &amp;, it's an entity
-                $entTxt = substr($str, $ofs + 1, 7);
+                // if it's &lt;, &gt;, &quot; or &amp;, it's an entity
+                $entTxt = substr($str, $ofs + 1, 5);
                 if (strncasecmp($entTxt, "lt;", 3) == 0
                     || strncasecmp($entTxt, "gt;", 3) == 0
                     || strncasecmp($entTxt, "amp;", 4) == 0
-                    || strncasecmp($entTxt, "quot;", 5) == 0
-                    || preg_match("/^#[0-9]{1,7};/", $entTxt)) {
+                    || strncasecmp($entTxt, "quot;", 5) == 0) {
 
                     // it's an entity markup, not an ordinary character
                     $inEnt = true;

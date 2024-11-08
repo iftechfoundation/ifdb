@@ -1,63 +1,29 @@
 <?php
 
 include_once "util.php";
-include_once "pagetpl.php";
 include_once "login-check.php";
+include_once "dbconnect.php";
+include_once "tags.php";
 
-function sendResponse($statmsg, $errmsg, $detail, $tagInfo)
-{
-    global $xml;
-
-    if ($xml)
-    {
-        header("Content-Type: text/xml");
-        header("Expires: Mon, 26 Jul 1997 05:00:00 GMT");
-        header("Cache-Control: no-store, no-cache, must-revalidate");
-
-        echo "<?xml version=\"1.0\" encoding=\"UTF-8\" ?><response>"
-            . ($statmsg ? "<label>$statmsg</label>" : "")
-            . ($errmsg ? "<error>$errmsg</error>" : "")
-            . $tagInfo
-            . "</response>";
-    }
-    else
-    {
-        smallPageHeader("Tag a Game");
-        if ($errmsg)
-            echo "<span class=errmsg>$errmsg</span><p>";
-
-        echo $detail;
-        smallPageFooter();
-    }
-
+if ($_SERVER['REQUEST_METHOD'] != 'POST') {
+    http_response_code(405);
+    echo "405 Method Not Allowed";
     exit();
 }
 
 // connect to the database
-include_once "dbconnect.php";
 $db = dbConnect();
 if ($db == false)
-    sendResponse("Not Saved", "An error occurred connecting to the database. "
-                 . "Please try again later.", false);
+    send_action_response("Not Saved", "An error occurred connecting to the database. "
+                         . "Please try again later.");
 
-// get the request parameters
-$id = get_req_data('id');
-$xml = isset($_REQUEST['xml']);
-for ($i = 0, $tags = array() ; ; $i++) {
-    if (!isset($_REQUEST["t$i"]))
-        break;
+// process the request
+$input_json = json_decode(file_get_contents('php://input'), true);
+$id = $input_json['id'] ?? null;
 
-    // get this tag
-    $tag = get_req_data("t$i");
-
-    // trim it
-    $tag = trim($tag);
-
-    // if it's not an empty string, add it to the list
-    if (strlen($tag))
-        $tags[] = $tag;
-}
-
+if (isEmpty($id))
+    send_action_response(
+        "Not Saved", "No game was specified in the tag request.");
 
 // make sure we process any persistent login state
 $userid = checkPersistentLogin();
@@ -73,89 +39,37 @@ if (!$adminPriv) {
     exit("Only administrators are allowed to delete tags.");
 }
 
-if (isEmpty($id))
-    sendResponse(
-        "Not Saved", "No game was specified in the tag request.", false);
-
-
 // make sure the game is valid
-$qid = mysql_real_escape_string($id, $db);
-$result = mysql_query("select id from games where id = '$qid'", $db);
+$result = mysqli_execute_query($db, "select id from games where id = ?", [$id]);
 if (mysql_num_rows($result) == 0)
-    sendResponse("Not Saved",
-                 "This tag request refers to a non-existent game.",
-                 false);
+    send_action_response("Not Saved",
+                         "This tag request refers to a non-existent game.");
 
-foreach ($tags as $t) {
-    $t = mysql_real_escape_string($t, $db);
-    $result = mysql_query("delete from gametags where gameid = '$qid' and tag ='$t'", $db);
+$tags = [];
 
-    if (!$result)
-        break;
+foreach(($input_json['tags'] ?? []) as $tag) {
+    // trim it
+    $tag = trim($tag);
+
+    // if it's not an empty string, add it to the list
+    if (strlen($tag))
+        $tags[] = $tag;
 }
 
+$questionMarks = implode(',', array_fill(0, count($tags), '?'));
+$result = mysqli_execute_query($db, "delete from gametags where gameid = ? and tag in ($questionMarks)", array_merge([$id], $tags));
 
-
-
-// copy the new full set of tags for the game into the GAMES table
 if ($result) {
-
-    $result = mysql_query(
-        "select tag from gametags where gameid = '$qid'", $db);
-
-    for ($i = 0, $allTags = array(), $tagList = array(), $cnt = mysql_num_rows($result) ; $i < $cnt ; $i++) {
-        $curTag = mysql_result($result, $i, "tag");
-        $allTags[] = $curTag;
-        $tagList[] = "'" . mysql_real_escape_string($curTag, $db) . "'";
-    }
-
-    if (count($allTags) != 0) {
-        $allTags = implode(",", $allTags);
-        $allTags = '\'' . mysql_real_escape_string($allTags, $db) . '\'';
-        $tagList = implode(",", $tagList);
-    } else {
-        $allTags = "null";
-        $tagList = "";
-    }
-
-    $result = mysql_query(
-        "update games set tags = $allTags where id = '$qid'", $db);
-}
-
-
-// query the new counts
-$tagInfo = "";
-if ($result && $tagList) {
-
-    $result = mysql_query(
-        "select
-           tag,
-           sum(gameid = '$qid') as tagcnt,
-           count(distinct gameid) as gamecnt
-         from gametags
-         where tag in ($tagList)
-         group by tag
-         having tagcnt != 0", $db);
-
-    for ($i = 0, $tagInfo, $cnt = mysql_num_rows($result) ;
-         $i < $cnt ; $i++) {
-        list($tag, $tagCnt, $gameCnt) = mysql_fetch_row($result);
-        $tagInfo .= "<tag><name>" . htmlspecialcharx($tag) . "</name>"
-                    . "<tagcnt>$tagCnt</tagcnt>"
-                    . "<gamecnt>$gameCnt</gamecnt>"
-                    . "</tag>";
-    }
+    // copy the new full set of tags for the game into the GAMES table
+    [$result, $tagInfo] = updateGameTagsColumn($id);
 }
 
 // explain what happened
 if ($result) {
-    sendResponse("Saved", false,
-                 "Your tags have been saved.", $tagInfo);
+    send_action_response("Saved", false, ["tags" => $tagInfo]);
 } else {
-    sendResponse("Not Saved", "An error occurred updating the database. "
-                 . "Please try again later.", false, false);
+    send_action_response("Not Saved", "An error occurred updating the database. "
+                         . "Please try again later.");
 }
 
-
-smallPageFooter();
 ?>

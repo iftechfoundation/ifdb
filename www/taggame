@@ -2,34 +2,50 @@
 
 include_once "session-start.php";
 include_once "util.php";
-include_once "pagetpl.php";
 include_once "login-check.php";
+include_once "tags.php";
 
-function sendResponse($status, $statmsg, $errmsg, $detail, $tagInfo)
+function sendResponse($status, $statmsg, $errmsg, $tagInfo = null)
 {
     global $xml;
 
+    $responseObj = [];
+
+    if ($xml) {
+        // Use an indexed array, due to serialize_xml() limitations
+        if ($statmsg) {
+            $responseObj[] = ['label' => $statmsg];
+        }
+        if ($errmsg) {
+            $responseObj[] = ['error' => $errmsg];
+        }
+        if ($tagInfo) {
+            $responseObj[] = ['tags' => array_map(fn($tag) => ['tag' => $tag], $tagInfo)];
+        }
+    } else {
+        if ($statmsg) {
+            $responseObj['label'] = $statmsg;
+        }
+        if ($errmsg) {
+            $responseObj['error'] = $errmsg;
+        }
+        if ($tagInfo != null) {
+            $responseObj['tags'] = $tagInfo;
+        }
+    }
+
     header("HTTP/1.1 $status");
+    header("Expires: Mon, 26 Jul 1997 05:00:00 GMT");
+    header("Cache-Control: no-store, no-cache, must-revalidate");
     if ($xml)
     {
         header("Content-Type: text/xml");
-        header("Expires: Mon, 26 Jul 1997 05:00:00 GMT");
-        header("Cache-Control: no-store, no-cache, must-revalidate");
-
-        echo "<?xml version=\"1.0\" encoding=\"UTF-8\" ?><response>"
-            . ($statmsg ? "<label>$statmsg</label>" : "")
-            . ($errmsg ? "<error>$errmsg</error>" : "")
-            . $tagInfo
-            . "</response>";
-    }
-    else
-    {
-        smallPageHeader("Tag a Game");
-        if ($errmsg)
-            echo "<span class=errmsg>$errmsg</span><p>";
-
-        echo $detail;
-        smallPageFooter();
+        echo "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>";
+        echo serialize_xml([
+            'response' => $responseObj,
+        ]);
+    } else {
+        echo send_json_response($responseObj);
     }
 
     exit();
@@ -40,167 +56,146 @@ include_once "dbconnect.php";
 $db = dbConnect();
 if ($db == false)
     sendResponse("500 Internal Server Error", "Not Saved", "An error occurred connecting to the database. "
-                 . "Please try again later.", false, false);
+                 . "Please try again later.");
 
 // get the request parameters
-$id = get_req_data('id');
 $xml = isset($_REQUEST['xml']);
-for ($i = 0, $tags = array() ; ; $i++) {
-    if (!isset($_REQUEST["t$i"]))
-        break;
+if (!$xml) {
+    if ($_SERVER['REQUEST_METHOD'] != 'POST') {
+        http_response_code(405);
+        echo "405 Method Not Allowed";
+        exit();
+    }
 
-    // get this tag
-    $tag = get_req_data("t$i");
+    $input_json = json_decode(file_get_contents('php://input'), true);
+    if (is_null($input_json)) {
+        http_response_code(400);
+        echo "400 Bad Request";
+        exit();
+    }
+    $id = $input_json['id'] ?? null;
+    $tags = [];
+    foreach(($input_json['tags'] ?? []) as $tag) {
+        // convert smart apostrophes, quotes, etc. to ASCII
+        $tag = approx_utf8($tag);
 
-    // convert smart apostrophes, quotes, etc. to ASCII
-    $tag = approx_utf8($tag);
+        $tag = trim($tag);
 
-    // trim it
-    $tag = trim($tag);
+        if (strlen($tag))
+            $tags[] = $tag;
+    }
+} else {
+    $id = get_req_data('id');
 
-    // if it's not an empty string, add it to the list
-    if (strlen($tag))
-        $tags[] = $tag;
+    for ($i = 0, $tags = array() ; ; $i++) {
+        if (!isset($_REQUEST["t$i"]))
+            break;
+
+        // get this tag
+        $tag = get_req_data("t$i");
+
+        // convert smart apostrophes, quotes, etc. to ASCII
+        $tag = approx_utf8($tag);
+
+        // trim it
+        $tag = trim($tag);
+
+        // if it's not an empty string, add it to the list
+        if (strlen($tag))
+            $tags[] = $tag;
+    }
 }
 
 // make sure we process any persistent login state
 $userid = checkPersistentLogin();
-if (!$userid && $xml) {
-    $username = get_req_data("username");
-    $password = get_req_data("password");
+if (!$userid) {
+    if (!$xml) {
+        $username = $input_json['username'] ?? null;
+        $password = $input_json['password'] ?? null;
+    } else {
+        $username = get_req_data("username");
+        $password = get_req_data("password");
+    }
     [$userid, $errCode, $errMsg] = doLogin($db, $username, $password);
 }
 
 if (!$userid) {
-    if ($xml) {
-        sendResponse("401 Unauthorized", "Not Saved", "Please specify a valid username and password to login.", false, false);
-    } else {
-        sendResponse("401 Unauthorized", "Not Saved", "To tag a game, please log in.", false, false);
-    }
+    sendResponse("401 Unauthorized", "Not Saved", "Please specify a valid username and password to login.");
 }
 
 $result = mysqli_execute_query($db, "select acctstatus, profilestatus, sandbox from users where id=?", [$userid]);
 if (!$result || mysql_num_rows($result) == 0) {
     // you're logged in, but there's no users row?!?
-    sendResponse("500 Internal Server Error", "Not Saved", "This service is currently unavailable. We apologize for the inconvenience. (Diagnostic information: code APS0930)", false, false);
+    sendResponse("500 Internal Server Error", "Not Saved", "This service is currently unavailable. We apologize for the inconvenience. (Diagnostic information: code APS0930)");
 } else {
     [$acctstatus, $profilestatus, $sandbox] = mysql_fetch_row($result);
 }
 
 if ($sandbox == 1) {
     // troll sandbox
-    sendResponse("500 Internal Server Error", "Not Saved", "This service is currently unavailable. We apologize for the inconvenience. (Diagnostic information: code TCE0916)", false, false);
+    sendResponse("500 Internal Server Error", "Not Saved", "This service is currently unavailable. We apologize for the inconvenience. (Diagnostic information: code TCE0916)");
 }
 
 if ($profilestatus == 'R') {
     sendResponse("401 Unauthorized", "Not Saved", "Your new user account is still pending review. "
             . "Editing is not available until the account has "
-            . "been approved.", false, false);
+            . "been approved.");
 }
 
 if ($acctstatus == 'A') {
     // active, allowed
 } else if ($acctstatus == 'D') {
     sendResponse("401 Unauthorized", "Not Saved", "Your user account has not yet been activated. "
-        . "You must complete the activation process before you can use this account for editing.", false, false);
+        . "You must complete the activation process before you can use this account for editing.");
 } else {
-    sendResponse("401 Unauthorized", "Not Saved", "Editing is not available with this account.", false, false);
+    sendResponse("401 Unauthorized", "Not Saved", "Editing is not available with this account.");
 }
 
 if (isEmpty($id))
     sendResponse(
-        "400 Bad Request", "Not Saved", "No game was specified in the tag request.", false, false);
+        "400 Bad Request", "Not Saved", "No game was specified in the tag request.");
 
 // make sure the game is valid
-$qid = mysql_real_escape_string($id, $db);
-$result = mysql_query("select id from games where id = '$qid'", $db);
+$result = mysqli_execute_query($db, "select id from games where id = ?", [$id]);
 if (mysql_num_rows($result) == 0)
     sendResponse("404 Not Found", "Not Saved",
-                 "This tag request refers to a non-existent game.",
-                 false, false);
+                 "This tag request refers to a non-existent game.");
 
 foreach ($tags as $t) {
     $result = mysqli_execute_query($db, "select preferredtag from blockedtagsynonyms where blockedtag=?", [$t]);
     if (mysql_num_rows($result)) {
         [$preferred_tag] = mysqli_fetch_array($result, MYSQLI_NUM);
         sendResponse("400 Bad Request", "Not Saved",
-            "To help keep IFDB's tags tidy, please use the existing tag \"$preferred_tag\" instead of \"$t\".", false, false);
+            "To help keep IFDB's tags tidy, please use the existing tag \"$preferred_tag\" instead of \"$t\".");
     }
 }
 
 
 // delete any old tags set by this user
-mysql_query(
-    "delete from gametags where userid = '$userid' and gameid='$qid'", $db);
+mysqli_execute_query($db,
+    "delete from gametags where userid = ? and gameid = ?", [$userid, $id]);
 
 // insert the new tags
 $result = true;
 foreach ($tags as $t) {
-    $t = mysql_real_escape_string($t, $db);
-    $result = mysql_query(
+    $result = mysqli_execute_query($db,
         "insert into gametags (gameid, userid, tag)
-         values ('$qid', '$userid', '$t')", $db);
+         values (?, ?, ?)", [$id, $userid, $t]);
     if (!$result)
         break;
 }
 
-// copy the new full set of tags for the game into the GAMES table
 if ($result) {
-
-    $result = mysql_query(
-        "select tag from gametags where gameid = '$qid'", $db);
-
-    for ($i = 0, $allTags = array(), $tagList = array(), $cnt = mysql_num_rows($result) ; $i < $cnt ; $i++) {
-        $curTag = mysql_result($result, $i, "tag");
-        $allTags[] = $curTag;
-        $tagList[] = "'" . mysql_real_escape_string($curTag, $db) . "'";
-    }
-
-    if (count($allTags) != 0) {
-        $allTags = implode(",", $allTags);
-        $allTags = '\'' . mysql_real_escape_string($allTags, $db) . '\'';
-        $tagList = implode(",", $tagList);
-    } else {
-        $allTags = "null";
-        $tagList = "";
-    }
-
-    $result = mysql_query(
-        "update games set tags = $allTags where id = '$qid'", $db);
-}
-
-// query the new counts
-$tagInfo = "";
-if ($result && $tagList) {
-
-    $result = mysql_query(
-        "select
-           tag,
-           sum(gameid = '$qid') as tagcnt,
-           count(distinct gameid) as gamecnt
-         from gametags
-         where tag in ($tagList)
-         group by tag
-         having tagcnt != 0", $db);
-
-    for ($i = 0, $tagInfo, $cnt = mysql_num_rows($result) ;
-         $i < $cnt ; $i++) {
-        [$tag, $tagCnt, $gameCnt] = mysql_fetch_row($result);
-        $tagInfo .= "<tag><name>" . htmlspecialcharx($tag) . "</name>"
-                    . "<tagcnt>$tagCnt</tagcnt>"
-                    . "<gamecnt>$gameCnt</gamecnt>"
-                    . "</tag>";
-    }
+    // copy the new full set of tags for the game into the GAMES table
+    [$result, $tagInfo] = updateGameTagsColumn($id);
 }
 
 // explain what happened
 if ($result) {
-    sendResponse("200 OK", "Saved", false,
-                 "Your tags have been saved.", $tagInfo);
+    sendResponse("200 OK", "Saved", false, $tagInfo);
 } else {
     sendResponse("500 Internal Server Error", "Not Saved", "An error occurred updating the database. "
-                 . "Please try again later.", false, false);
+                 . "Please try again later.");
 }
 
-smallPageFooter();
 ?>

@@ -757,9 +757,9 @@ function showNewItemsRSS($db, $showcnt)
                 $stars = " ";
                 for ($i = 0; $i < 5; $i++) {
                     if ($i < $r['rating']) {
-                        $stars .= "&#9733;"; // &starf;
+                        $stars .= "\u{2605}"; // &starf;
                     } else {
-                        $stars .= "&#9734;"; // &star;
+                        $stars .= "\u{2606}"; // &star;
                     }
                 }
                 $title .= $stars;
