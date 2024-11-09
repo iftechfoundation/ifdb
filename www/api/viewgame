@@ -113,17 +113,24 @@ choose whether you want to use the JSON API or the <a href="#ifiction">XML API</
     "averageRating": <i>Raw "star" rating average</i>,
     "starRating": <i>Rounded "star" rating average, for display</i>,
     "ratingCountAvg": <i>Number of ratings in the average (note that reviews can choose to "omit" their ratings from the average)</i>,
-    "ratingCountTot": <i>Total number of ratings</i>
+    "ratingCountTot": <i>Total number of ratings</i>,
+    "tags": [
+      {
+         "name": <i>Text of the tag</i>,
+         "tagcnt": <i>Number of users who have used the tag on the current game</i>,
+         "gamecnt": <i>How many games have used the tag</i>
+      }
+    ]
   }
 }
 </pre>
 </p>
 
-<p>The averageRating element provides the average IFDB member rating
+<p><code>averageRating</code> provides the average IFDB member rating
 as a decimal floating-point number, such as "3.575".  This is a simple
 arithmetic average of the ratings for the game entered by IFDB users;
-each user rating is simply an integer from 1 to 5.  The starRating
-element provides the average value rounded to the nearest half-star,
+each user rating is simply an integer from 1 to 5.  <code>starRating</code>
+provides the average value rounded to the nearest half-star,
 which is what IFDB usually displays on its own generated pages.  IFDB
 usually uses a graphic image showing the number of stars in the
 average, and it only has an image for each half-star increment, so it
@@ -133,7 +140,7 @@ anyway because this eliminates any guesswork about the exact rounding
 rules for boundary cases, ensuring that a client can always display
 the same rounded value IFDB itself does.
 
-<p>The ratingCountAvg and ratingCountTot elements provide the number
+<p><code>ratingCountAvg</code> and <code>ratingCountTot</code> provide the number
 of ratings that went into the average, and the total number of ratings
 for the game, respectively.  The reason these are stated separately is
 that a user can opt to omit their rating for a given game from the
@@ -141,6 +148,13 @@ game's average.  If a user exercises this option, the rating will be
 recorded but won't be used to compute the average.  This means that
 the ratingCountTot value is always equal to or greater than the
 ratingCountAvg value.
+
+<p><code>tagcnt</code> shows how many users have used that tag on the
+currently selected game. (Normally, <code>tagcnt</code> will be 1,
+because it's unusual for a player to add a tag when the game already has that
+tag.) <code>gamecnt</code> shows how many games have used that tag.
+<code>gamecnt</code> is the number that appears in parentheses next to each
+tag on the game listing page.
 
 <h2 id="ifiction">iFiction XML API</h2>
 
@@ -260,6 +274,13 @@ appears at the same XML nesting level as &lt;identification&gt;,
      &lt;starRating&gt;<i>Star rating</i>&lt;/starRating&gt;
      &lt;ratingCountAvg&gt;<i>Number of ratings included in the average</i>&lt;/ratingCountAvg&gt;
      &lt;ratingCountTot&gt;<i>Total number of ratings</i>&lt;/ratingCountTot&gt;
+     &lt;tags&gt;
+       &lt;tag&gt;
+         &lt;name&gt;<i>Text of the tag</i>&lt;/name&gt;
+         &lt;tagcnt&gt;<i>Number of users who have used the tag on the current game</i>&lt;/tagcnt&gt;
+         &lt;gamecnt&gt;<i>How many games have used the tag</i>&lt;/gamecnt&gt;
+       &lt;/tag&gt;
+     &lt;/tags&gt;
    &lt;/ifdb&gt;
 </pre>
 
