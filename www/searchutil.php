@@ -181,8 +181,10 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse)
     else if ($searchType == "tag")
     {
         // special keywords for tag search
-        $specialMap = array(
-            "tag:" => array("tag", 0));
+        $specialMap = [
+            "tuid:" => ["tagtuid", 99],
+            "mine:" => ["mine", 99],
+        ];
 
         $selectList = "gt.tag as tag";
         $tableList = "gametags as gt";
@@ -765,6 +767,20 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse)
 
             case '/hyperlinks/':
                 $expr = "u.profile rlike '<[[:space:]]*a[[:space:]]+href'";
+                break;
+
+            case "tagtuid":
+                $txt = mysql_real_escape_string($txt, $db);
+                $expr = "gt.gameid = '$txt'";
+                break;
+
+            case "mine":
+                // Only use this query when the user is logged in
+                if (!$curuser) {
+                    break;
+                }
+                $op = (preg_match("/^y.*/i", $txt) ? "=" : "!=");
+                $expr = "gt.userid $op '$curuser'";
                 break;
             }
         }

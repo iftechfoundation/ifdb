@@ -732,6 +732,11 @@ else if ($searchType == "tag") {
 
        <?php echo $commonInstructions ?>
 
+       <p><b>mine:<i>yes|no</i></b> searches for (or excludes) tags you've set
+
+       <p><b>tuid:<i>xxx</i></b> searches for tags on a specific game, specified by TUID.
+       (<?= helpWinLink("help-tuid", "What's a TUID?") ?>)
+
     </div>
 
     </div>
