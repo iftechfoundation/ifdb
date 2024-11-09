@@ -123,17 +123,27 @@ if ($debugflag) echo "debug mode enabled...<br>";
             <?php
             // get the latest site news, polls, competitions, and lists, and show a mix
             $itemTypes = NEWITEMS_SITENEWS | NEWITEMS_LISTS | NEWITEMS_POLLS | NEWITEMS_COMPS | NEWITEMS_COMPNEWS;
-            $items = getNewItems($db, 8, $itemTypes, ['days' => 3]);
-            if (!$items) getNewItems($db, 0, $itemTypes);
-            showNewItems($db, 0, 0, $items, [
+            $items = getNewItems($db, 8, $itemTypes, [
                'sitenews_limit' => 1,
                'lists_limit' => 2,
                'polls_limit' => 2,
                'comps_limit' => 2,
-               'allowHiddenBanner' => false,
-               'showDescriptions' => false,
-               'enableImages' => false,
+               'days' => 3
             ]);
+            if ($items) {
+               showNewItems($db, 0, 8, $items, [
+                  'allowHiddenBanner' => false,
+                  'showDescriptions' => false,
+                  'enableImages' => false,
+               ]);
+            } else {
+               $items = getNewItems($db, 1, $itemTypes);
+               showNewItems($db, 0, 0, $items, [
+                  'allowHiddenBanner' => false,
+                  'showDescriptions' => false,
+                  'enableImages' => false,
+               ]);
+            }
             ?>
             </div>
          </div>
