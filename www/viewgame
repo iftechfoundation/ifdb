@@ -735,7 +735,7 @@ if (isset($_REQUEST['ifiction']) || $json)
 }
 
 // start the page
-$extraHead = "";
+$extraHead = scriptSrc('/viewgame.js');
 if ($should_hide) {
     $extraHead .= "<meta name=\"robots\" content=\"noindex\">";
 }
@@ -2612,19 +2612,9 @@ if ($embargoCnt > 0)
             <span class=details>
                <b>Your tags:</b>
                <span id="myTagList"></span> -
-               <a href="needjs"><script type="text/javascript" nonce="<?php global $nonce; echo $nonce; ?>">
-                  document.currentScript.parentElement.addEventListener('click', function (event) {
-                    event.preventDefault();
-                    editTags();
-                  })
-                </script>Edit</a>
+               <a href="needjs" id="myTagList_edit">Edit</a>
             <?php if ($adminPriv) { ?>
-               <a href="needjs"><script type="text/javascript" nonce="<?php global $nonce; echo $nonce; ?>">
-                  document.currentScript.parentElement.addEventListener('click', function (event) {
-                    event.preventDefault();
-                    deleteTags();
-                  })
-                </script>Delete</a>
+               <a href="needjs" id="myTagList_delete">Delete</a>
             <?php } ?>
 
                <span class="xmlstatmsg"
@@ -2645,16 +2635,11 @@ if ($embargoCnt > 0)
                     <b>Edit Tags</b>
                  </div>
                  <div class='viewgame__cancel'>
-                    <a href="needjs"><script type="text/javascript" nonce="<?php global $nonce; echo $nonce; ?>">
-                        document.currentScript.parentElement.addEventListener('click', function (event) {
-                            event.preventDefault();
-                            closeTags();
-                        })
-                    </script>Cancel<img src="img/blank.gif"
+                    <a href="needjs">Cancel<img src="img/blank.gif"
                           class="popup-close-button"></a>
                  </div>
               </div>
-              <form name="tagForm" class="edittagsform">
+              <form name="tagForm" class="edittagsform" data-tag-button="add">
                  <script type="text/javascript" nonce="<?php global $nonce; echo $nonce; ?>">
                   document.currentScript.parentElement.addEventListener('submit', function (event) {
                     event.preventDefault();
@@ -2679,22 +2664,10 @@ if ($embargoCnt > 0)
                  <button class="fancy-button"
                     id="viewgame-add-tags-button"
                     name="addTags">Add</button>
-                    <script type="text/javascript" nonce="<?php global $nonce; echo $nonce; ?>">
-                        document.getElementById('viewgame-add-tags-button').addEventListener('click', function (event) {
-                            event.preventDefault();
-                            addTags();
-                        })
-                    </script>
                 <br>
                  <button src="img/blank.gif" class="fancy-button"
                     id="viewgame-save-tags-button"
                     name="saveTags">Save Changes</button>
-                    <script type="text/javascript" nonce="<?php global $nonce; echo $nonce; ?>">
-                        document.getElementById('viewgame-save-tags-button').addEventListener('click', function (event) {
-                            event.preventDefault();
-                            saveTags();
-                        })
-                    </script>
               </form>
            </div>
         </div>
@@ -2706,34 +2679,16 @@ if ($embargoCnt > 0)
               <b>Delete Tags</b>
            </div>
            <div class='viewgame__cancel'>
-              <a href="needjs"><script type="text/javascript" nonce="<?php global $nonce; echo $nonce; ?>">
-                  document.currentScript.parentElement.addEventListener('click', function (event) {
-                    event.preventDefault();
-                    closeTags('tagDeletor');
-                  })
-                </script>Cancel<img src="img/blank.gif"
-                    class="popup-close-button"></a>
+              <a href="needjs"></a>
            </div>
         </div>
-        <form name="tagForm">
-           <script type="text/javascript" nonce="<?php global $nonce; echo $nonce; ?>">
-                document.currentScript.parentElement.addEventListener('submit', function (event) {
-                    event.preventDefault();
-                    addTags();
-                })
-            </script>
+        <form name="tagForm" data-tag-button="add">
            <span class=details></span>
            <table id="deleteTagTable" border=0 class=tags>
            </table>
            <button class="fancy-button"
               id="viewgame-save-tags-button-delete"
               name="saveTags">Save Changes</button>
-              <script type="text/javascript" nonce="<?php global $nonce; echo $nonce; ?>">
-                document.getElementById('viewgame-save-tags-button-delete').addEventListener('click', function (event) {
-                    event.preventDefault();
-                    saveTagsDelete();
-                })
-            </script>
         </form>
      </div>
   </div>
@@ -2762,10 +2717,14 @@ var dbTagList = [
             $tag = jsSpecialChars($tag);
             echo ($i > 0 ? "," : "")
                 . "{tag: \"$tag\", tagcnt: $tagcnt, "
-                . "gamecnt: $gamecnt, isMine: $isMine, isNew: false}";
+                . "gamecnt: $gamecnt, isMine: $isMine}";
         }
 ?>
 ];
+
+let tagTable = new TagTable("<?php echo $id ?>", dbTagList);
+tagTable.addEventListeners(<?php echo $adminPriv ?>);
+tagTable.dispTags();
 //-->
 </script>
         <?php
