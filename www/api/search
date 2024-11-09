@@ -105,31 +105,13 @@ matching the search terms.)
 <p>The contents of the item tags vary according to the object type.  The
 following sections describe the results for the different object types.
 
-<p>Most of the item replies include a "TUID" value ("tads.org Unique
-Identifier").  This the internal ID for the object assigned by IFDB
+<p>Most of the item replies include a "<?=helpWinLink("help-tuid", "TUID")?>" value.
+This the internal ID for the object assigned by IFDB
 when the object's IFDB listing was originally created.  A TUID
 uniquely identifies the object on IFDB, and it never changes for a
 given object, so it will always identify the same object as long as
 the listing exists on IFDB.  The TUID can be used in various IFDB URLs
-to access pages related to the object.  A TUID has no significance
-outside of IFDB, and has no internal structure; it's just a string of
-16 random letters and numbers.  This format was chosen because (a) it
-reliably yields gibberish strings without word breaks, which makes it
-an excellent key for a generic Web text search, (b) it's
-<i>effectively</i> a sort of UUID, since the range is so large
-(there are about 8 trillion trillion possible combinations) that
-collisions with similarly formatted ID keys in other databases will
-essentially never happen, and (c) it doesn't <i>look</i> like a
-standard UUID, which might have been somewhat confusing given that the
-Babel spec uses standard UUIDs for IFIDs.
-
-<p>(It might seem strange that IFDB doesn't just use Babel IFIDs as
-primary identifiers, but there are good reasons: (a) Babel only
-applies IFIDs to games, whereas IFDB needs primary identifiers for
-other kinds of entities, such as recommended lists, user profiles, and
-polls; and (b) a single game can have multiple Babel IFIDs, so even
-for games there'd still be a need in the database structure for a
-single unique identifier per game.)
+to access pages related to the object.
 
 <h3>Games</h3>
 
@@ -367,31 +349,13 @@ matching the search terms.)
 <p>The contents of the item tags vary according to the object type.  The
 following sections describe the results for the different object types.
 
-<p>Most of the item replies include a "TUID" value ("tads.org Unique
-Identifier").  This the internal ID for the object assigned by IFDB
+<p>Most of the item replies include a "<?=helpWinLink("help-tuid", "TUID")?>" value.
+This the internal ID for the object assigned by IFDB
 when the object's IFDB listing was originally created.  A TUID
 uniquely identifies the object on IFDB, and it never changes for a
 given object, so it will always identify the same object as long as
 the listing exists on IFDB.  The TUID can be used in various IFDB URLs
-to access pages related to the object.  A TUID has no significance
-outside of IFDB, and has no internal structure; it's just a string of
-16 random letters and numbers.  This format was chosen because (a) it
-reliably yields gibberish strings without word breaks, which makes it
-an excellent key for a generic Web text search, (b) it's
-<i>effectively</i> a sort of UUID, since the range is so large
-(there are about 8 trillion trillion possible combinations) that
-collisions with similarly formatted ID keys in other databases will
-essentially never happen, and (c) it doesn't <i>look</i> like a
-standard UUID, which might have been somewhat confusing given that the
-Babel spec uses standard UUIDs for IFIDs
-
-<p>(It might seem strange that IFDB doesn't just use Babel IFIDs as
-primary identifiers, but there are good reasons: (a) Babel only
-applies IFIDs to games, whereas IFDB needs primary identifiers for
-other kinds of entities, such as recommended lists, user profiles, and
-polls; and (b) a single game can have multiple Babel IFIDs, so even
-for games there'd still be a need in the database structure for a
-single unique identifier per game.)
+to access pages related to the object.
 
 <h3>Games</h3>
 
