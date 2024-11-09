@@ -11,7 +11,7 @@ apiPageHeader("gametags");
 
 <p>If you need to search for your own tags specifically, use the <a href="search">search API</a>, like this:</p>
 
-<p><code>https://ifdb.org/search&json&tag&searchfor=tuid:<i>xxx</i>+mine:yes</code></p>
+<p><code>https://ifdb.org/search?json&tag&searchfor=tuid:<i>xxx</i>+mine:yes</code></p>
 
 <p>(Be sure to authenticate when searching for your own tags!)</p>
 
