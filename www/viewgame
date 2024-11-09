@@ -717,9 +717,7 @@ if (isset($_REQUEST['ifiction']) || $json)
         ];
     }
 
-    if (count($tagInfo)) {
-        $ifdb_section['tags'] = $tagInfo;
-    }
+    $ifdb_section['tags'] = $tagInfo;
 
     if ($json) {
         send_json_response($story_obj);
