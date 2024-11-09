@@ -7,7 +7,7 @@ apiPageHeader("search");
 
 ?>
 
-The IFDB search API provides programmatic access to IFDB's full-text
+<p>The IFDB search API provides programmatic access to IFDB's full-text
 and structured-data search capabilities.  The API replicates the
 functionality of IFDB's main Search Web interface.
 
