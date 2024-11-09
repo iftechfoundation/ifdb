@@ -699,6 +699,28 @@ if (isset($_REQUEST['ifiction']) || $json)
         $ifdb_section['ratingCountTot'] = $ratingCntTot;
     }
 
+    $result = mysqli_execute_query($db,
+        "select
+           tag,
+           cast(sum(gameid = ?) as int) as tagcnt,
+           count(distinct gameid) as gamecnt
+         from gametags
+         where tag in (select tag from gametags where gameid = ?)
+         group by tag", [$ifdb_section['tuid'], $ifdb_section['tuid']]);
+
+    $tagInfo = [];
+    while ([$tag, $tagCnt, $gameCnt] = mysql_fetch_row($result)) {
+        $tagInfo[] = [
+            'name' => $tag,
+            'tagcnt' => $tagCnt,
+            'gamecnt' => $gameCnt,
+        ];
+    }
+
+    if (count($tagInfo)) {
+        $ifdb_section['tags'] = $tagInfo;
+    }
+
     if ($json) {
         send_json_response($story_obj);
     } else {
