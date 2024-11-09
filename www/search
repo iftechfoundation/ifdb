@@ -21,6 +21,39 @@ foreach (['xml', 'json'] as $api_param) {
     }
 }
 
+if ($api_mode && !isset($_SESSION['logged_in_as']) && isset($_SERVER['PHP_AUTH_USER'])) {
+    $username = $_SERVER['PHP_AUTH_USER'];
+    $password = $_SERVER['PHP_AUTH_PW'] ?? null;
+    [$userid, $errCode, $errMsg] = doLogin($db, $username, $password);
+
+    if ($errCode) {
+        // start the API reply
+        if ($api_mode == 'json') {
+            header("Content-type: application/json");
+        } else if ($api_mode == 'xml') {
+            header("Content-type: text/xml");
+        }
+        header("Expires: Mon, 26 Jul 1997 05:00:00 GMT");
+        header("Cache-Control: no-store, no-cache, must-revalidate");
+
+        if ($api_mode == 'xml') {
+            echo "<?xml version=\"1.0\" encoding=\"UTF-8\"?>";
+        }
+
+        $error_answer = [
+            'error'=> $errMsg,
+        ];
+
+        if ($api_mode == 'json') {
+            echo json_encode($error_answer);
+        } else if ($api_mode == 'xml') {
+            echo serialize_xml(['searchReply' => $error_answer]);
+        }
+        exit();
+
+    }
+}
+
 // get the request parameters
 $term = get_req_data('searchfor');
 $bTerm = get_req_data('searchbar');
