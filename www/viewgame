@@ -1371,41 +1371,39 @@ function updateUnwishList(id, stat)
    
 
 //-----------------------Estimated play time control panel begins----------------------------
-
-        echo "<div class=indented>";
-        echo "<div id='timeVoteControls' class='viewgame__playedSection'>"  // There's an event listener attached to "timeVoteControls"
-        . "<span id=\"timeVoteControlsCaption\"><b>Estimated play time:</b></span>";
-
-        echo "<div id='submitTimeSection'>"
-        . "<span id='howLong'>Vote on how long it takes to finish this game.</span><br>"
-        . "<details><summary>Tips</summary>"
-        . "<ul>"
-        . "<li>Vote only if you've played the game.</li>"
-        . "<li>Vote on how long it would take to get to one final ending without hints or a walkthrough.</li>"
-        . "<li>Time spent away from the game doesn't count.</li>"
-        . "<li>Times don't need to be exact. Good-faith estimates are fine.</li>"
-        . "</ul></details>"
-        . "<p><label for='hours'>Hours:</label> "
-        . "<input type='number' name='hours' id='hours' min=0 max=200> "
-        . "<label for='minutes'>Minutes:</label> "
-        . "<input type='number' name='minutes' id='minutes' min=0 max=59></p>"
-        . "<button id='submitTimeButton' class='fancy-button' type='submit'>Submit Time</button>"
-        . "</div>";
-
-        echo "<div id='removeTimeSection'>"
-        . "<span id='yourTime'>" . $time_announcement . "</span><br>"
-        . "<button id='removeTimeButton' class='fancy-button'>Remove Time</button>"
-        . "</div>";
-
-        echo " <span id=\"timeSaveMsg\" class=xmlstatmsg aria-live='polite'></span><br>";
-
-        echo "<div id='timeSavedSection'>"
-        . "<p id='timeSubmittedMessage'>Your time has been submitted.</p>"
-        . "</div>";
-
-
-// -------------------JavaScript for the estimated play time control panel---------------------
 ?>
+
+<div class=indented>
+<div id='timeVoteControls' class='viewgame__playedSection'><?php // There's an event listener attached to "timeVoteControls" ?>
+<span id="timeVoteControlsCaption"><b>Estimated play time:</b></span>
+
+<div id='submitTimeSection'>
+<span id='howLong'>Vote on how long it takes to finish this game.</span><br>
+<details><summary>Tips</summary>
+<ul>
+<li>Vote only if you've played the game.</li>
+<li>Vote on how long it would take to get to one final ending without hints or a walkthrough.</li>
+<li>Time spent away from the game doesn't count.</li>
+<li>Times don't need to be exact. Good-faith estimates are fine.</li>
+</ul></details>
+<p><label for='hours'>Hours:</label>
+<input type='number' name='hours' id='hours' min=0 max=200>
+<label for='minutes'>Minutes:</label>
+<input type='number' name='minutes' id='minutes' min=0 max=59></p>
+<button id='submitTimeButton' class='fancy-button' type='submit'>Submit Time</button>
+</div>
+
+<div id='removeTimeSection'>
+<span id='yourTime'><?php echo $time_announcement?></span><br>
+<button id='removeTimeButton' class='fancy-button'>Remove Time</button>
+</div>
+
+<span id="timeSaveMsg" class=xmlstatmsg aria-live='polite'></span><br>
+
+<div id='timeSavedSection'>
+<p id='timeSubmittedMessage'>Your time has been submitted.</p>
+</div>
+
 
 <script nonce="<?php global $nonce; echo $nonce; ?>">
 
@@ -1535,10 +1533,10 @@ prepareTimeControls();
 
 
 
-//----------------------End of JavaScript for Estimated Play Time Control Panel-----------------------
 </script>
 
 <?php
+//-----------------------Estimated play time control panel ends------------------------------
 
 
 } else {
