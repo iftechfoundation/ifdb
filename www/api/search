@@ -281,6 +281,7 @@ can get a thumbnail just as for game cover art images, by appending
   "tags": [
     {
       "id": "<i>The text of the tag</i>",
+      "numGames": <i>Number of games tagged with this tag</i>,
       "link": "<i>A link to search results for that tag</i>"
     }
   ]
@@ -510,6 +511,7 @@ URL.
 <pre>
   &lt;tag&gt;
     &lt;id&gt;<i>The text of the tag</i>&lt;/tuid&gt;
+    &lt;numGames&gt;<i>Number of games tagged with this tag</i>&lt;/tuid&gt;
     &lt;link&gt;<i>A link to search results for that tag</i>&lt;/link&gt;
   &lt;/tag&gt;
 </pre>

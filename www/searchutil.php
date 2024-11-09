@@ -186,7 +186,7 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse)
             "mine:" => ["mine", 99],
         ];
 
-        $selectList = "gt.tag as tag";
+        $selectList = "gt.tag as tag, count(distinct gt.gameid) as gamecnt";
         $tableList = "gametags as gt";
         $groupBy = "group by gt.tag";
         $baseOrderBy = "gt.tag";
