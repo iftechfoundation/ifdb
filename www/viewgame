@@ -717,8 +717,10 @@ if (isset($_REQUEST['ifiction']) || $json)
         ];
     }
 
-    if (count($tagInfo)) {
+    if ($json) {
         $ifdb_section['tags'] = $tagInfo;
+    } else {
+        $ifdb_section['tags'] = array_map(function ($tag) { return ['tag' => $tag]; }, $tagInfo);
     }
 
     if ($json) {
