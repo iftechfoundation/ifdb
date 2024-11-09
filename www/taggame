@@ -62,16 +62,12 @@ if ($db == false)
 $xml = isset($_REQUEST['xml']);
 if (!$xml) {
     if ($_SERVER['REQUEST_METHOD'] != 'POST') {
-        http_response_code(405);
-        echo "405 Method Not Allowed";
-        exit();
+        sendResponse("405 Method Not Allowed", "Not Saved", "This API requires you to use HTTP method POST");
     }
 
     $input_json = json_decode(file_get_contents('php://input'), true);
     if (is_null($input_json)) {
-        http_response_code(400);
-        echo "400 Bad Request";
-        exit();
+        sendResponse("400 Bad Request", "Not Saved", "The submitted POST body was not valid JSON.");
     }
     $id = $input_json['id'] ?? null;
     $tags = [];
