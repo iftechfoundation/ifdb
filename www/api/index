@@ -103,11 +103,11 @@ the iFiction XML format.  This allows client programs, such as IF
 browsers or "jukeboxes", to take advantage of IFDB's structured data
 about most of the IF games in circulation.
 
-<p><a href="gametags"><b>gametags</b></a>: View the current list of
-tags associated with an IFDB listing.
-
 <p><a href="taggame"><b>taggame</b></a>: Edit tags on an IFDB
 listing.
+
+<p><a href="gametags"><b>gametags</b></a>: (Deprecated) View the current list of
+tags associated with an IFDB listing.
 
 <h2>JSON is preferred for most APIs</h2>
 
