@@ -1383,8 +1383,8 @@ function updateUnwishList(id, stat)
         . "<li>Vote only if you've played the game.</li>"
         . "<li>Vote on how long it would take to get to one final ending without hints or a walkthrough.</li>"
         . "<li>Time spent away from the game doesn't count.</li>"
-        . "<li>Times don't need to be exact. Good-faith estimates are fine."
-        . "<ul></details>"
+        . "<li>Times don't need to be exact. Good-faith estimates are fine.</li>"
+        . "</ul></details>"
         . "<p><label for='hours'>Hours:</label> "
         . "<input type='number' name='hours' id='hours' min=0 max=200> "
         . "<label for='minutes'>Minutes:</label> "
@@ -1976,7 +1976,7 @@ function displayMedianTime($median_hours, $median_minutes, $official_estimated_t
     echo "<details><summary>Estimated play time: ";
     echo $official_estimated_time_text;
     $s = (count($alltimes) === 1) ? "" : "s";
-    echo " (based on " . count($alltimes) . " vote$s)</span></summary><br>";
+    echo " (based on " . count($alltimes) . " vote$s)</summary><br>";
     echo "Members voted for the following times for this game:";
     echo "<ul>";
     foreach ($alltimes as $timevote) {
@@ -2008,8 +2008,6 @@ if ($ratingCntTot == 0 && $memberReviewCnt == 0) {
             . "$ratingCntAvg rating" . ($ratingCntAvg != 1 ? "s" : "")
             . "</a>)<br>";
     }
-
-    echo "</p>";
 
     displayMedianTime($median_hours, $median_minutes, $official_estimated_time_text, $alltimes);
 
