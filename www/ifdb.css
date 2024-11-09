@@ -1764,6 +1764,7 @@ Combo Box hidden list
 .combobox-list {
     display: none;
     position: absolute;
+    z-index: 20; /* Above star-rating */
 }
 
 :root {
