@@ -18,6 +18,12 @@ Parameters are encoded into a URL query string, and the URL is sent to
 IFDB as an http GET request.  The server replies with an JSON content
 body that contains the search results.
 
+<p>Optionally, you can also sign in with your IFDB email address
+and password using HTTP Basic Authentication, using the
+<code>Authorization: Basic ...</code> header. This will allow you
+to perform searches "as yourself", e.g. searching for games you've
+played with <code>played:yes</code>.
+
 <p>The root of the URL is <tt>https://ifdb.org/search?json</tt>.
 
 <p>The search term and object type are added to the root URL as query
