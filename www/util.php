@@ -2594,13 +2594,6 @@ function close_user_acct($db, $uid, $stat, &$progress)
             "delete from stylepics where userid = '$quid'", $db);
     }
 
-    // delete club memberships
-    if ($result) {
-        $progress = "deleting user's club memberships";
-        $result = mysql_query(
-            "delete from clubmembers where userid = '$quid'", $db);
-    }
-
     // note the database error
     if (!$result)
         $progress .= " (db error: " . htmlspecialcharx(mysql_error($db)) . ")";

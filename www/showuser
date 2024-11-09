@@ -261,7 +261,6 @@ if ($errMsg) {
         . "h1 { margin-bottom:0.1em; }\n"
         . ".showuser__rss { margin-top:1.5ex; }\n"
         . ".showuser__commentCtl { margin-top:1.5ex; }\n"
-        . ".showuser__clubJoin { margin-left:2em; }\n"
         . "</style>\n";
 
 
@@ -756,49 +755,6 @@ if ($errMsg) {
         echo "</div>";
     }
 
-    // --------------- Club Memberships --------------------
-
-    // if we're logged in, we can view memberships of clubs we belong to
-    $orMyClub = $joinMyClubs = "";
-    if ($curuser) {
-        $joinMyClubs = "left outer join clubmembers as mcur "
-                       .  "on mcur.clubid = m.clubid "
-                       .  "and mcur.userid = '$curuser'";
-        $orMyClub = "or mcur.clubid is not null";
-    }
-
-    // query clubs
-    $result = mysql_query(
-        "select
-           c.clubid, c.name,
-           date_format(m.joindate, '%M %e, %Y')
-         from
-           clubmembers as m
-           join clubs as c on c.clubid = m.clubid
-           $joinMyClubs
-         where
-           m.userid = '$quid'
-           and (c.members_public = 'Y' $orMyClub)
-         order by
-           lower(c.name)", $db);
-    echo mysql_error($db);
-
-    // if we found anything, show the club memberships section
-    if (($rowcnt = mysql_num_rows($result)) > 0)
-    {
-        echo "<h2>$username's Club Memberships</h2><div class=indented>";
-
-        for ($i = 0 ; $i < $rowcnt ; $i++)
-        {
-            list($clubid, $clubname, $joindate) = mysql_fetch_row($result);
-            $clubname = htmlspecialcharx($clubname);
-            echo "<a href=\"club?id=$clubid\">$clubname</a>"
-                . " <span class='details showuser__clubJoin'><i>"
-                . "joined $joindate</i></span><br>";
-        }
-
-        echo "</div>";
-    }
 }
 
 // ------------------------------------------------------------------------
