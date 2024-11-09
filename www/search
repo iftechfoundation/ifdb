@@ -1141,8 +1141,10 @@ if ($api_mode) {
 
         case "tag":
             $id = $row['tag'];
+            $gamecnt = $row['gamecnt'];
             $item = [
                 'id' => $id,
+                'numGames' => $gamecnt,
                 'link' => get_root_url() . "search?searchfor=tag:" . urlencode($id),
             ];
             break;
@@ -1601,10 +1603,12 @@ else if ($term || $browse)
             case "tag":
                 // get the row data
                 $id = $row['tag'];
+                $gamecnt = $row['gamecnt'];
+                $s = $gamecnt == 1 ? "" : "s";
 
                 // show the listing
-                echo "<p><h3 class=result><a class='$eagerness' href=\"search?searchfor=tag:".urlencode($id)."\">"
-                    . "<b>".htmlspecialchars($id)."</b></a></h3><br>";
+                echo "<div><a class='$eagerness' href=\"search?searchfor=tag:".urlencode($id)."\">"
+                    . "<b>".htmlspecialchars($id)."</b></a></h3> ($gamecnt game$s)</div>";
 
                 break;
             }
