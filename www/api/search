@@ -266,6 +266,20 @@ will yield an image file, currently of type JPEG, PNG, or GIF.  You
 can get a thumbnail just as for game cover art images, by appending
 <tt>&amp;thumbnail=WxH</tt> to the URL.
 
+<h3>Tags</h3>
+
+<p>
+<pre>
+{
+  "tags": [
+    {
+      "id": "<i>The text of the tag</i>",
+      "link": "<i>A link to search results for that tag</i>"
+    }
+  ]
+}
+</pre>
+</p>
 
 <h2>Legacy XML format</h2>
 
@@ -322,6 +336,7 @@ table.typemap td {
    <tr> <td>Poll</td> <td>&lt;polls&gt;</td> <td>&lt;poll&gt;</td> </tr>
    <tr> <td>Competition/Awards</td> <td>&lt;comps&gt;</td> <td>&lt;comp&gt;</td> </tr>
    <tr> <td>Member</td> <td>&lt;members&gt;</td> <td>&lt;member&gt;</td> </tr>
+   <tr> <td>Tag</td> <td>&lt;tags&gt;</td> <td>&lt;tag&gt;</td> </tr>
 </table>
 
 <p>For example, for a Poll search yielding three results, the
@@ -482,6 +497,15 @@ will be a URL to the image; this will yield an image file, currently
 of type JPEG, PNG, or GIF.  You can get a thumbnail just as for game
 cover art images, by appending <tt>&amp;thumbnail=WxH</tt> to the
 URL.
+
+<h3>Tags</h3>
+
+<pre>
+  &lt;tag&gt;
+    &lt;id&gt;<i>The text of the tag</i>&lt;/tuid&gt;
+    &lt;link&gt;<i>A link to search results for that tag</i>&lt;/link&gt;
+  &lt;/tag&gt;
+</pre>
 
 <?php
 
