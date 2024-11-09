@@ -246,12 +246,13 @@ the <a href="viewgame">viewgame API</a>.
 {
   "members": [
     {
-    "tuid": "<i>TUID</i>",
-    "name": "<i>Display name</i>",
-    "link": "<i>URL to member's public profile page</i>",
-    "location": "<i>Location, set in the user's profile</i>",
-    "badge": "<i>"Top N Reviewer" badge, if any</i>",
-    "pictureLink": "<i>Link to the user's profile photo (this key will be absent if the user has no profile picture)</i>"
+      "tuid": "<i>TUID</i>",
+      "name": "<i>Display name</i>",
+      "link": "<i>URL to member's public profile page</i>",
+      "location": "<i>Location, set in the user's profile</i>",
+      "badge": "<i>"Top N Reviewer" badge, if any</i>",
+      "pictureLink": "<i>Link to the user's profile photo (this key will be absent if the user has no profile picture)</i>"
+    }
   ]
 }
 </pre>
