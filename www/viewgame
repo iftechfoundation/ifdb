@@ -1457,7 +1457,7 @@ function submitTime() {
         document.getElementById("timeSaveMsg").innerHTML="For hours, please enter a number from 0 to 200.";
         return;
     }
-    if (new_minutes >= 59) {
+    if (new_minutes > 59) {
         document.getElementById("timeSaveMsg").innerHTML="For minutes, please enter a number from 0 to 59.";
         return;
     }
