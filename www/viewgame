@@ -1984,11 +1984,9 @@ if ($mediantime > 60) {
 
 // Separate into hours and minutes
 $median_hours_and_minutes = convertToHoursAndMinutes($rounded_median_time);
-$median_hours = $median_hours_and_minutes['hours'];
-$median_minutes = $median_hours_and_minutes['minutes'];
 
 // Turn into text for display
-$official_estimated_time_text = convertTimeToText(['hours' => $median_hours, 'minutes' => $median_minutes]);
+$official_estimated_time_text = convertTimeToText($median_hours_and_minutes);
 
 function displayMedianTime($rounded_median_time, $official_estimated_time_text, $alltimes) {
     if ($rounded_median_time < 1) return;
