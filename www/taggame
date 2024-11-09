@@ -106,8 +106,8 @@ if (!$xml) {
 $userid = checkPersistentLogin();
 if (!$userid) {
     if (!$xml) {
-        $username = $input_json['username'] ?? null;
-        $password = $input_json['password'] ?? null;
+        $username = $input_json['username'] ?? $_SERVER['PHP_AUTH_USER'] ?? null;
+        $password = $input_json['password'] ?? $_SERVER['PHP_AUTH_PW'] ?? null;
     } else {
         $username = get_req_data("username");
         $password = get_req_data("password");
