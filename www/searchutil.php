@@ -911,10 +911,12 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse)
         break;
 
     case "tag":
-        $sortList = array(
-            'name' => array('gt.tag,', 'Sort by Tag Name'),
-            'rand' => array('rand(),', 'Random Order'));
-        $defSortBy = 'name';
+        $sortList = [
+            'games' => ['gamecnt desc,', 'Most Games First'],
+            'name' => ['gt.tag,', 'Sort by Tag Name'],
+            'rand' => ['rand(),', 'Random Order']
+        ];
+        $defSortBy = 'games';
         break;
 
     default:
