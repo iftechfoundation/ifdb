@@ -103,9 +103,7 @@ function pageHeader($title, $focusCtl = false, $extraOnLoad = false,
                 <a id="topbar-browse" href="/search?browse">Browse</a>
                 <form class= "searchbar-wrapper" method="get" action="/search" name="search">
                         <input id="topbar-searchbar" type="text" name="searchbar" placeholder="Search for games...">
-                        <button class="" id="topbar-search-go-button" aria-label="Search">
-                            <img src="/img/search_small.svg" alt="">
-                        </button>
+                        <button id="topbar-search-go-button" aria-label="Search"></button>
                 </form>
             </div>
             <div class="nav-right">
