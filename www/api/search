@@ -15,10 +15,10 @@ functionality of IFDB's main Search Web interface.
 
 <p>The search API is implemented as a simple http XML service.
 Parameters are encoded into a URL query string, and the URL is sent to
-IFDB as an http GET request.  The server replies with an XML content
+IFDB as an http GET request.  The server replies with an JSON content
 body that contains the search results.
 
-<p>The root of the URL is <tt>https://ifdb.org/search?xml</tt>.
+<p>The root of the URL is <tt>https://ifdb.org/search?json</tt>.
 
 <p>The search term and object type are added to the root URL as query
 parameters, using standard URL encoding.  That is, each parameter is
@@ -41,6 +41,7 @@ operators on one type of object; this must be one of the following:
    <li><b>poll</b> - search for a poll
    <li><b>comp</b> - search for a competition/award event
    <li><b>member</b> - search the member directory
+   <li><b>tag</b> - search the list of tags
 </ul>
 
 <p>The object type parameter requires no value, so simply tack it onto
@@ -66,10 +67,229 @@ soon as they're available in the UI.
 
 <p>To search for a game listing for <tt>Deep Space Drifter</tt>:
 
-<p><pre>https://ifdb.org/search?xml&amp;game&amp;searchfor=Deep+Space+Drifter
+<p><pre>https://ifdb.org/search?json&amp;game&amp;searchfor=Deep+Space+Drifter
 </pre>
 
 <h2>Reply</h2>
+
+The response is a JSON object, like this:
+
+<p><pre>
+{
+  "games": [
+    {
+      "tuid": "k82q3libhff6ks8l",
+      "title": "Deep Space Drifter",
+      "link": "https://ifdb.org/viewgame?id=k82q3libhff6ks8l",
+      "author": "Michael J. Roberts and Steve McAdams",
+      "devsys": "TADS 2",
+      "published": {
+        "machine": "1990",
+        "printable": "1990"
+      },
+      "averageRating": 2.428571428,
+      "numRatings": 7,
+      "starRating": 2.5,
+      "starSort": 2.16074024927881,
+      "coverArtLink": "https://ifdb.org/coverart?id=k82q3libhff6ks8l&version=4"
+    }
+  ]
+}
+</pre></p>
+
+<p>A search that yields no results will simply return an empty "group"
+tag.  (A search with zero results isn't an error; it's a search that
+successfully determined that there were no items in the database
+matching the search terms.)
+
+<p>The contents of the item tags vary according to the object type.  The
+following sections describe the results for the different object types.
+
+<p>Most of the item replies include a "<?=helpWinLink("help-tuid", "TUID")?>" value.
+This the internal ID for the object assigned by IFDB
+when the object's IFDB listing was originally created.  A TUID
+uniquely identifies the object on IFDB, and it never changes for a
+given object, so it will always identify the same object as long as
+the listing exists on IFDB.  The TUID can be used in various IFDB URLs
+to access pages related to the object.
+
+<h3>Games</h3>
+
+<p>
+<pre>
+{
+  "games": [
+    {
+      "tuid": "<i>TUID</i>",
+      "title": "<i>Title of the game</i>",
+      "link": "<i>URL to game's main listing page</i>",
+      "author": "<i>Author(s)</i>",
+      "devsys": "<i>Development system used to create this game</i>",
+      "published": {
+        "machine": "<i>Publication date in YYYY or YYYY-MM-DD format</i>",
+        "printable": "<i>Publication date in English format</i>"
+      },
+      "averageRating": <i>Raw "star" rating average</i>,
+      "numRatings": <i>Number of ratings in the average (note that reviews can choose to "omit" their ratings from the average)</i>,
+      "starRating": <i>Rounded "star" rating average</i>,
+      "starSort": <i>Star rating for sorting; see below</i>,
+      "coverArtLink": "<i>URL to cover art (this key will be absent if there's no cover art)</i>"
+    }
+  ]
+}
+</pre>
+</p>
+
+<p>The "star" rating average is given in three forms.  The "raw" average
+is the arithmetic average of the ratings, as a decimal floating point
+value (e.g., "3.3333").  The "rounded" average is the average value
+rounded to the nearest half-star (e.g., "3.5").  IFDB itself generally
+displays the rounded value, since it uses a graphical image with
+half-star resolution.
+
+<p>We determine the games with the highest ratings using
+<a href="https://www.evanmiller.org/ranking-items-with-star-ratings.html">Evan
+Miller's formula</a>, which we call "starSort." We used to sort by average
+rating, but this would tend to rank games with just one perfect 5-star rating
+above games with dozens of 5-star ratings and a few 4-star ratings.
+Evan Miller's formula sorts by our confidence in the game, by adding five
+"fake" ratings to the average (one 1-star, one 2-star, one 3-star, one 4-star,
+and one 5-star rating) and subtracting the standard deviation from the result.
+
+<p>coverArtLink, if present, will contain a URL to the cover art
+image.  This URL will yield an image file (currently, this can be a
+JPEG, PNG, or GIF file) containing the full-sized image.  You can get
+a "thumbnail" - i.e., the image at a reduced size - by appending
+<tt>&amp;thumbnail=WxH</tt> to the URL, where W is the desired width
+in pixels, and H is the desired height.  The thumbnailer maintains the
+original image's aspect ratio by treating the request size as a
+bounding rectangle, and reducing the display size as needed to fit
+this bounding box.
+
+<p>The publication date is provided in two separate formats for the
+client's convenience.  The "machine" version is a standard numeric
+YYYY-MM-DD format, such as "2009-09-14" for September 14, 2009, or
+simply the four-digit year if the full date isn't available.  The
+"printable" version is the equivalent date with the full month name
+spelled out in English, such as "September 14, 2009", or again just
+the four-digit year if that's all that's available.  These will be
+present as empty tags if the publication date isn't in the database.
+
+<p>More detail is available for each game in the search results, using
+the <a href="viewgame">viewgame API</a>.
+</p>
+
+<h3>Lists</h3>
+
+<p>
+<pre>
+{
+  "lists": [
+    {
+      "tuid": "<i>TUID</i>",
+      "title": "<i>Title of the list</i>",
+      "link": "<i>URL to list's main display page</i>",
+      "desc": "<i>List's description (in HTML format)</i>",
+      "creatorID": "<i>Member TUID of list's author</i>",
+      "creatorName": "<i>Name of list's author</i>",
+      "numItems": <i>Number of games in the list</i>
+    }
+  ]
+}
+</pre>
+</p>
+
+<h3>Polls</h3>
+
+<p>
+<pre>
+{
+  "polls": [
+    {
+      "tuid": "<i>TUID</i>",
+      "title": "<i>Title of the poll</i>",
+      "link": "<i>URL to poll's main display page</i>",
+      "desc": "Poll description (in HTML format)",
+      "creatorID": "<i>Member TUID of poll's author</i>",
+      "creatorName": "<i>Name of poll's author</i>",
+      "numGames": <i>Number of distinct games with votes</i>,
+      "numVotes": <i>Number of votes</i>
+    },
+  ]
+}
+</pre>
+</p>
+
+<h3>Competitions/Awards</h3>
+
+<p>
+<pre>
+{
+  "competitions": [
+    {
+      "tuid": "<i>TUID</i>",
+      "title": "<i>Title of the competition</i>",
+      "link": "<i>URL to competition's main display page</i>",
+      "desc": "<i>Description (in HTML format)</i>",
+      "numGames": <i>Number of games listed</i>,
+      "numDivisions": <i>Number of divisions</i>
+    }
+  ]
+}
+</pre>
+</p>
+
+<h3>Members</h3>
+
+<p>
+<pre>
+{
+  "members": [
+    {
+      "tuid": "<i>TUID</i>",
+      "name": "<i>Display name</i>",
+      "link": "<i>URL to member's public profile page</i>",
+      "location": "<i>Location, set in the user's profile</i>",
+      "badge": "<i>"Top N Reviewer" badge, if any</i>",
+      "pictureLink": "<i>Link to the user's profile photo (this key will be absent if the user has no profile picture)</i>"
+    }
+  ]
+}
+</pre>
+</p>
+
+<p>The location is usually a city or country name; the exact format is
+unpredictable because it's simply whatever the user entered in her
+profile.
+
+<p>If present, the pictureLink value will be a URL to the image; this
+will yield an image file, currently of type JPEG, PNG, or GIF.  You
+can get a thumbnail just as for game cover art images, by appending
+<tt>&amp;thumbnail=WxH</tt> to the URL.
+
+<h3>Tags</h3>
+
+<p>
+<pre>
+{
+  "tags": [
+    {
+      "id": "<i>The text of the tag</i>",
+      "link": "<i>A link to search results for that tag</i>"
+    }
+  ]
+}
+</pre>
+</p>
+
+<h2>Legacy XML format</h2>
+
+You can also use our legacy XML-based search.
+
+<p>To search for a game listing for <tt>Deep Space Drifter</tt> in XML:
+
+<p><pre>https://ifdb.org/search?xml&amp;game&amp;searchfor=Deep+Space+Drifter
+</pre>
 
 <p>The reply is an XML file with this enclosing structure:
 
@@ -95,7 +315,6 @@ results.
 
 <p>
 <style nonce="<?php global $nonce; echo $nonce; ?>" type="text/css">
-<!--
 table.typemap {
     border: 1px solid #808080;
     border-collapse: collapse;
@@ -109,7 +328,6 @@ table.typemap td {
     padding: 0 1em 0 1em;
     text-align: left;
 }
-//-->
 </style>
 <table class="typemap" cellspacing=0 cellpadding=0>
    <tr> <th>Type</th> <th>Group Tag</th> <th>Item Tag</th> </tr>
@@ -119,6 +337,7 @@ table.typemap td {
    <tr> <td>Poll</td> <td>&lt;polls&gt;</td> <td>&lt;poll&gt;</td> </tr>
    <tr> <td>Competition/Awards</td> <td>&lt;comps&gt;</td> <td>&lt;comp&gt;</td> </tr>
    <tr> <td>Member</td> <td>&lt;members&gt;</td> <td>&lt;member&gt;</td> </tr>
+   <tr> <td>Tag</td> <td>&lt;tags&gt;</td> <td>&lt;tag&gt;</td> </tr>
 </table>
 
 <p>For example, for a Poll search yielding three results, the
@@ -146,31 +365,13 @@ matching the search terms.)
 <p>The contents of the item tags vary according to the object type.  The
 following sections describe the results for the different object types.
 
-<p>Most of the item replies include a "TUID" value ("tads.org Unique
-Identifier").  This the internal ID for the object assigned by IFDB
+<p>Most of the item replies include a "<?=helpWinLink("help-tuid", "TUID")?>" value.
+This the internal ID for the object assigned by IFDB
 when the object's IFDB listing was originally created.  A TUID
 uniquely identifies the object on IFDB, and it never changes for a
 given object, so it will always identify the same object as long as
 the listing exists on IFDB.  The TUID can be used in various IFDB URLs
-to access pages related to the object.  A TUID has no significance
-outside of IFDB, and has no internal structure; it's just a string of
-16 random letters and numbers.  This format was chosen because (a) it
-reliably yields gibberish strings without word breaks, which makes it
-an excellent key for a generic Web text search, (b) it's
-<i>effectively</i> a sort of UUID, since the range is so large
-(there are about 8 trillion trillion possible combinations) that
-collisions with similarly formatted ID keys in other databases will
-essentially never happen, and (c) it doesn't <i>look</i> like a
-standard UUID, which might have been somewhat confusing given that the
-Babel spec uses standard UUIDs for IFIDs
-
-<p>(It might seem strange that IFDB doesn't just use Babel IFIDs as
-primary identifiers, but there are good reasons: (a) Babel only
-applies IFIDs to games, whereas IFDB needs primary identifiers for
-other kinds of entities, such as recommended lists, user profiles, and
-polls; and (b) a single game can have multiple Babel IFIDs, so even
-for games there'd still be a need in the database structure for a
-single unique identifier per game.)
+to access pages related to the object.
 
 <h3>Games</h3>
 
@@ -297,6 +498,15 @@ will be a URL to the image; this will yield an image file, currently
 of type JPEG, PNG, or GIF.  You can get a thumbnail just as for game
 cover art images, by appending <tt>&amp;thumbnail=WxH</tt> to the
 URL.
+
+<h3>Tags</h3>
+
+<pre>
+  &lt;tag&gt;
+    &lt;id&gt;<i>The text of the tag</i>&lt;/tuid&gt;
+    &lt;link&gt;<i>A link to search results for that tag</i>&lt;/link&gt;
+  &lt;/tag&gt;
+</pre>
 
 <?php
 
