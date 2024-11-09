@@ -1,0 +1,70 @@
+<?php
+include_once "util.php";
+
+function sendResponse($status, $errmsg, $tagInfo = null)
+{
+    header("HTTP/1.1 $status");
+    header("Expires: Mon, 26 Jul 1997 05:00:00 GMT");
+    header("Cache-Control: no-store, no-cache, must-revalidate");
+    header("Content-Type: application/json");
+
+    $responseObj = [];
+    if ($errmsg) {
+        $responseObj['error'] = $errmsg;
+    } else {
+        $responseObj['tags'] = $tagInfo;
+    }
+
+    echo json_encode($responseObj);
+
+    exit();
+}
+
+$db = dbConnect();
+if ($db == false)
+    sendResponse("500 Internal Server Error", "An error occurred connecting to the database. "
+                 . "Please try again later.", false, false);
+
+$username=$_SERVER['PHP_AUTH_USER'] ?? null;
+$password=$_SERVER['PHP_AUTH_PW'] ?? null;
+
+[$userid, $errCode, $errMsg] = doLogin($db, $username, $password);
+if (!$userid) {
+    header("WWW-Authenticate: Basic realm=ifdb");
+    sendResponse("401 Unauthorized", "Please provide a valid username and password via HTTP basic authentication to login.");
+}
+
+$id = get_req_data('id');
+$result = mysqli_execute_query($db, "select id from games where id = ?", [$id]);
+if (mysql_num_rows($result) == 0)
+    sendResponse("404 Not Found", 
+                 "This tag request refers to a non-existent game.",
+                 false, false);
+
+$tagInfo = [];
+if ($result) {
+    $result = mysqli_execute_query($db,
+        "select
+           tag,
+           cast(sum(gameid = ?) as int) as tagcnt,
+           count(distinct gameid) as gamecnt
+         from gametags
+         where tag in (select tag from gametags where gameid = ? AND userid = ?)
+         group by tag", [$id, $id, $userid]);
+
+    while ([$tag, $tagCnt, $gameCnt] = mysql_fetch_row($result)) {
+        $tagInfo[] = [
+            'name' => $tag,
+            'tagcnt' => $tagCnt,
+            'gamecnt' => $gameCnt,
+        ];
+    }
+}
+
+// explain what happened
+if ($result) {
+    sendResponse("200 OK", false, $tagInfo);
+} else {
+    sendResponse("500 Internal Server Error", "An error occurred querying the database. "
+                 . "Please try again later.", false);
+}
