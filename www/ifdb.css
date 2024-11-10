@@ -230,6 +230,11 @@ div.topctl table tr td {
     border-radius: 0 1em 1em 0;
     background-color: #FFFFFF;
     padding: 0.1em;
+    height: 21px;
+    width: 21px;
+    background-image: url('/img/search_small.svg');
+    background-repeat: no-repeat;
+    background-position: center;
 }
 
 .searchbar-wrapper > button:hover, button:focus {

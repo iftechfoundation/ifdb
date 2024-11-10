@@ -501,8 +501,8 @@ else if ($term || $browse) {
     if (!$browse) {
     ?>
 
-    <form name="advsearch" method="get" action="search">
-       <input type="text" name="searchfor" id="searchfor" size=70
+    <form name="advsearch" method="get" action="search" role="search">
+       <input type="search" name="searchfor" id="searchfor" size=70
               value="<?php echo htmlspecialcharx($term) ?>">
        <input type="submit" name="searchgo"
              value="<?php echo $searchButton ?>">
@@ -518,12 +518,12 @@ else if ($searchType == "list") {
 
     ?>
 
-    <form name="advsearch" method="get" action="search">
+    <form name="advsearch" method="get" action="search" role="search">
        <!-- <h2>Search Recommended Lists</h2> -->
        <table cellspacing=0 cellpadding=0 border=0>
           <tr>
              <td>
-                <input type="text" name="searchfor" id="searchfor" size=70
+                <input type="search" name="searchfor" id="searchfor" size=70
                       value="<?php echo htmlspecialcharx($tTerm) ?>">
                 <input type="submit" name="searchgo" value="Search Lists">
              </td>
