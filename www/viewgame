@@ -1388,8 +1388,7 @@ function updateUnwishList(id, stat)
     $my_time_as_text = "";
     $time_announcement = ""; // The string shown in the Estimated Play Time control panel
     if ($mystoredtime >= 1) {
-        $hours_and_minutes = convertToHoursAndMinutes($mystoredtime);
-        $my_time_as_text=convertTimeToText($hours_and_minutes);
+        $my_time_as_text=convertTimeToText($mystoredtime);
         $time_announcement = "Your vote: " . $my_time_as_text;
     }
    
@@ -1986,17 +1985,15 @@ if ($mediantime > 60) {
 function displayMedianTime($rounded_median_time, $alltimes) {
     if ($rounded_median_time < 1) return;
     // Turn the total minutes into hours and minutes, and then text
-    $median_hours_and_minutes = convertToHoursAndMinutes($rounded_median_time);
-    $official_estimated_time_text = convertTimeToText($median_hours_and_minutes);
+    $official_estimated_time_text = convertTimeToText($rounded_median_time);
     echo "<details><summary>Estimated play time: ";
     echo $official_estimated_time_text;
     $s = (count($alltimes) === 1) ? "" : "s";
     echo " (based on " . count($alltimes) . " vote$s)</summary><br>";
     echo "Members voted for the following times for this game:";
     echo "<ul>";
-    foreach ($alltimes as $timevote) {
-        $hours_and_minutes = convertToHoursAndMinutes($timevote);
-        $time_vote_text = convertTimeToText($hours_and_minutes);
+    foreach ($alltimes as $t) {
+        $time_vote_text = convertTimeToText($t);
         echo "<li>$time_vote_text</li>";
     }
     echo "</ul></details>";
