@@ -2836,20 +2836,14 @@ function collapsedAuthors($authors) {
 }
 
 
-// Convert total minutes of play time to an array of hours and minutes
- function convertToHoursAndMinutes($total_minutes) {
- 	$hours = floor($total_minutes/60);
- 	$remaining_minutes = $total_minutes - ($hours * 60);
- 	return (['hours' => $hours, 'minutes' => $remaining_minutes]);
- }
- 
- 
-// Using an array of hours and minutes, make a string to display the time,
-// adding the words "hours" and "minutes" as needed
-function convertTimeToText($hours_and_minutes_array) {
+// Convert total minutes of play time into hours and minutes,
+// and then into text for display
+function convertTimeToText($total_minutes) {
+    // Convert total minutes of play time into hours and minutes
+ 	$h = floor($total_minutes/60);   
+ 	$m = $total_minutes - ($h * 60);
+    // Make a string to display the time
     $text="";
-    $h=$hours_and_minutes_array['hours'];
-    $m=$hours_and_minutes_array['minutes'];
     if ($h >= 1) {
         $text = $h . " ";
         if ($h == 1) {
@@ -2870,7 +2864,6 @@ function convertTimeToText($hours_and_minutes_array) {
         }
     }
     return $text;
-
 }
 
 // ----------------------------------------------------------------------------
