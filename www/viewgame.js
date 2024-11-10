@@ -1,16 +1,5 @@
 'use strict';
 
-function trim(str) {
-    return str.replace(/^\s+|\s+$/g, '');
-}
-
-function tagSorter(a, b)
-{
-    a = a.tag.toLowerCase();
-    b = b.tag.toLowerCase();
-    return (a > b ? 1 : a < b ? -1 : 0);
-}
-
 class TagTable {
     constructor(gameid, tagList) {
         this.gameid = gameid;
@@ -43,16 +32,16 @@ class TagTable {
 
     doTagCkBox(id, stat)
     {
-        var i = parseInt(id.substr(5));
-        this.memTagList[i].tagcnt += (stat ? 1 : -1);
-        this.memTagList[i].gamecnt += (this.memTagList[i].isNew ? (stat ? 1 : -1) : 0);
-        this.memTagList[i].isMine = stat ? 1 : 0;
-        var ce = document.getElementById("tagCnt" + i);
-        var ct = this.memTagList[i].tagcnt;
-        ce.innerHTML = (this.memTagList[i].isNew || ct < 2  ? "" :
-                        "(x" + this.memTagList[i].tagcnt + ")");
-        ce.title = ct + " member" + (ct > 1 ? "s have" : " has")
-                   + " tagged this game with \"" + this.memTagList[i].tag + "\"";
+        const i = Number(id.substr(5));
+        const t = this.memTagList[i];
+        t.tagcnt += (stat ? 1 : -1);
+        t.gamecnt += (t.isNew ? (stat ? 1 : -1) : 0);
+        t.isMine = stat ? 1 : 0;
+        const ce = document.getElementById("tagCnt" + i);
+        const tagcnt = t.tagcnt;
+        ce.innerHTML = (t.isNew || tagcnt < 2  ? "" :
+                        "(x" + t.tagcnt + ")");
+        ce.title = `${tagcnt} member${tagcnt > 1 ? "s have" : " has"} tagged this game with "${t.tag}"`;
     }
 
 
@@ -60,17 +49,11 @@ class TagTable {
     {
         var tbl = document.getElementById(tableID);
         tbl.innerHTML = "";
-        var row = null, rownum = 0;
-        for (var i = 0 ; i < lst.length ; i++) {
-            var t = encodeHTML(lst[i].tag);
-            var u = encodeURI8859(lst[i].tag);
-            var ct = lst[i].tagcnt;
-            var cg = lst[i].gamecnt;
-            var m = lst[i].isMine;
-            var n = lst[i].isNew;
+        for (const [i, tag] of Object.entries(lst)) {
+            var t = encodeHTML(tag.tag);
             var cell = document.createElement("div");
             tbl.appendChild(cell);
-            var s;
+            let s;
             const ck = "tagCk" + i;
             if (editor) {
                 const deleteCls = deleteTags ? ' ckdelete' : '';
@@ -79,28 +62,24 @@ class TagTable {
                     + `<span>${t}</span></label>&nbsp;<span class=details id="tagCnt${i}">`;
             }
             else
-                s = "<span class=details title=\"Search for games tagged with "
-                    + t.replace(/"/g, "&#34;")
-                    + "\"><a href=\"search?searchfor=tag:"
-                    + u + "\">"
-                    + t + "</a>&nbsp;";
+                s = `<span class=details title="Search for games tagged with ${t}">`
+                    + `<a href=\"search?searchfor=tag:${encodeURIComponent(tag.tag)}">${t}</a>&nbsp;`;
 
-            if (!n)
+            if (!tag.isNew)
             {
                 if (editor)
                 {
-                    s += "<span title=\"" + ct + " member"
-                         + (ct > 1 ? "s have" : " has")
-                         + " tagged this game with &#34;" + t
-                         + "&#34;\">"
-                         + (ct > 1 ? "(x" + ct + ")" : "")
+                    s += `<span title="${tag.tagcnt} member`
+                         + (tag.tagcnt > 1 ? "s have" : " has")
+                         + ` tagged this game with &#34;${t}&#34;">`
+                         + (tag.tagcnt > 1 ? "(x" + tag.tagcnt + ")" : "")
                          + "</span></span>";
                 }
                 else
                 {
-                    s += "<span title=\"" + cg + " game"
-                         + (cg > 1 ? "s have" : " has") + " this tag\">(" + cg
-                         + ")</span></span>";
+                    s += `<span title="${tag.gamecnt} game`
+                         + (tag.gamecnt > 1 ? "s have" : " has")
+                         + ` this tag">(${tag.gamecnt})</span></span>`;
                 }
             }
             cell.innerHTML = s;
@@ -118,7 +97,7 @@ class TagTable {
             });
 
             if (editor)
-                ckboxGetObj(ck).checked = m;
+                ckboxGetObj(ck).checked = tag.isMine;
         }
         if (editor && lst.length == 0) {
             tbl.insertRow(0).insertCell(0).innerHTML =
@@ -139,8 +118,7 @@ class TagTable {
         this.dispTagTable("tagTable", this.dbTagList, false, false);
 
         var s = "";
-        for (var i = 0 ; i < this.dbTagList.length ; i++) {
-            var t = this.dbTagList[i];
+        for (const t of this.dbTagList) {
             if (t.isMine) {
                 if (s != "")
                     s += ", ";
@@ -168,11 +146,11 @@ class TagTable {
 
     deleteTag(tag)
     {
-        for (var j = 0 ; j < this.memTagList.length ; j++)
+        for (const [i, t] in Object.entries(this.memTagList))
         {
-            if (this.memTagList[j].tag == tag)
+            if (t.tag == tag)
             {
-                var index = j;
+                var index = i;
                 break;
             }
         }
@@ -287,11 +265,11 @@ class TagTable {
     addTags()
     {
         var fld = document.getElementById("myTagFld");
-        if (trim(fld.value) == "")
+        if (!fld.value.trim())
             return;
         for (let s of fld.value.split(","))
         {
-            s = trim(s);
+            s = s.trim();
             if (s == "")
                 continue;
             var j;
@@ -309,7 +287,8 @@ class TagTable {
             if (j == this.memTagList.length)
                 this.memTagList[j] = {tag: s, tagcnt: 1, gamecnt: 1, isMine: 1, isNew: true};
         }
-        this.memTagList.sort(tagSorter);
+        this.memTagList.sort(
+            ({tag: a}, {tag: b}) => a.toLowerCase().localeCompare(b.toLowerCase()));
         this.dispEditTags();
         fld.value = "";
         fld.focus();
