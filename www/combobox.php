@@ -158,18 +158,7 @@ function showComboMenu(idEdit, setWidth, idFocus)
     oEdit = document.getElementById(idEdit);
     var fldVal = oEdit.value;
     oSel = document.getElementById(idSel);
-    nTop = oEdit.offsetTop + oEdit.offsetHeight;
-    nLeft = oEdit.offsetLeft;
     nWidth = oEdit.offsetWidth;
-    while (oEdit.offsetParent != document.body
-           && oEdit.offsetParent.style.position != "absolute")
-    {
-        oEdit = oEdit.offsetParent;
-        nTop += oEdit.offsetTop;
-        nLeft += oEdit.offsetLeft;
-    }
-    oMenu.style.left = nLeft + "px";
-    oMenu.style.top = nTop + "px";
     if (setWidth)
     {
         oMenu.style.width = (nWidth + 18) + "px";
