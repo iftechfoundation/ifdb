@@ -188,6 +188,7 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse)
 
         $selectList = "gt.tag as tag, count(distinct gt.gameid) as gamecnt";
         $tableList = "gametags as gt";
+        $baseWhere = "";
         $groupBy = "group by gt.tag";
         $baseOrderBy = "gt.tag";
         $matchCols = "gt.tag";
