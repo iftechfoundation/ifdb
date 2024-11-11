@@ -1701,27 +1701,6 @@ a.fancy-button:visited:not([href=needjs]) {
 }
 
 /*
-Button images.  These are identified in the HTML by a CLASS and an ID.
-For ease of upward compatibility, we address them here by CLASS; but a
-custom style sheet can use ID instead if it wants to address individual
-buttons.
-
-Note that you MUST specify the pixel width and height of each button
-with an image to match the actual size of the image you're using.  CSS
-doesn't have a way to do that indirectly by reading the size from the
-image file, unfortunately.
-*/
-.go-button {
-    background: url("/img/go-button.gif");
-    width: 16px;
-    height: 16px;
-    border: none;
-    vertical-align: middle;
-    margin-right: 1em;
-    padding: 0;
-}
-
-/*
 Buttons for the "grid" forms - these are the subforms that show
 multi-row data, such as the list of download links on the Edit Game
 form.  The "grid-move-blank" button is a blank placeholder button
@@ -2401,9 +2380,6 @@ span.sfl-save-autodesc {
         background: #444;
     }
 
-    input.go-button {
-        background: url("/dark-images/go-button-midnight.gif") no-repeat center center;
-    }
     img.grid-move-up {
         background: url('/img/dark-images/moveup-midnight.gif') no-repeat center center;
     }

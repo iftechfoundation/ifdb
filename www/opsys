@@ -796,9 +796,7 @@ var vsnVals = [
                 }
 
                 echo "</select> "
-                    . "<input type=image src=\"/img/blank.gif\" "
-                    . "class=\"go-button\" id=\"opsys-add-dla\" "
-                    . "name=\"addDla\"></form>";
+                    . "<button>Go</button></form>";
             }
         }
 

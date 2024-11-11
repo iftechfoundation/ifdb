@@ -800,9 +800,7 @@ if ($geticon) {
                 . "Add a new Download Adviser entry: ";
             showOSPopup($db, "dla", "",
                         OSPOP_GENERIC_VSNS | OSPOP_DEFOS_OPTION);
-            echo " <input type=image src=\"/img/blank.gif\" "
-                . "class=\"go-button\" id=\"fileformat-add-dla\" "
-                . "name=\"goAddDLA\"><br><br>"
+            echo " <button>Go</button><br><br>"
                 . "<i>Note: when an OS has multiple versions, you only need "
                 . "to define instructions for the earliest compatible "
                 . "version. Later OS versions \"inherit\" the instructions "

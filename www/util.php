@@ -672,8 +672,7 @@ function showSortingControls($formName, $dropName, $sortMap, $curSortBy,
     echo "</select>";
 
     // add the GO button
-    echo " <button src=\"/img/blank.gif\"
-            class=\"go-button\" id=\"sort-go-button-$idSerial\"></button>";
+    echo " <button id=\"sort-go-button-$idSerial\">Go</button>";
 
     // consume the serial number
     $idSerial += 1;
