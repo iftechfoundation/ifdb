@@ -22,11 +22,11 @@ The IFDB web app is a LAMP app (Linux, Apache, MySQL, PHP). The development envi
 
 Changes to the web site should update immediately but changes to the database require a few more steps.
 
-Make all database schema and content changes in `./sql/patch-schema.sql`. After saving your changes, type the following three commands while in this directory:
+Make all database schema and content changes in `./sql/incoming-schema-changes.sql`. After saving your changes, type the following three commands:
 
 ```
-docker compose down
 ./prepare_dev_environment.sh
+docker compose down
 docker compose up --build
 ```
 
