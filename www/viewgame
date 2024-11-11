@@ -735,7 +735,7 @@ if (isset($_REQUEST['ifiction']) || $json)
 }
 
 // start the page
-$extraHead = scriptSrc('/viewgame.js');
+$extraHead = scriptSrc('/viewgame.js', true);
 if ($should_hide) {
     $extraHead .= "<meta name=\"robots\" content=\"noindex\">";
 }
@@ -2693,8 +2693,9 @@ if ($embargoCnt > 0)
      </div>
   </div>
 
-<script type="text/javascript" nonce="<?php global $nonce; echo $nonce; ?>">
-<!--
+<script type="module" nonce="<?php global $nonce; echo $nonce; ?>">
+import {initTagTable} from './viewgame.js';
+
 var dbTagList = [
 <?php
         $isMine = ($curuser
@@ -2722,9 +2723,7 @@ var dbTagList = [
 ?>
 ];
 
-let tagTable = new TagTable("<?php echo $id ?>", dbTagList);
-tagTable.addEventListeners(<?php echo $adminPriv ?>);
-tagTable.dispTags();
+initTagTable("<?php echo $id ?>", dbTagList, <?php echo $adminPriv ?>);
 //-->
 </script>
         <?php
