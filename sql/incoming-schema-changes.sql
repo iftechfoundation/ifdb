@@ -127,3 +127,7 @@ values ('bu6mmul5vxci5vqc', 'kaw2cas7dyiq2tmg', 1);
 insert into playertimes (gameid, userid, time_in_minutes)
 values ('bu6mmul5vxci5vqc', 'pwamtkqtbeyc8eyn', 6);
 
+
+
+-- View to show the median play times of each game
+CREATE OR REPLACE VIEW gametimes AS SELECT DISTINCT gameid, ( median(time_in_minutes) OVER (PARTITION BY gameid) ) as median_time_in_minutes FROM playertimes;
