@@ -217,6 +217,8 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse)
             "ifid:" => array("/ifid/", 99),
             "tuid:" => array("/tuid/", 99),
             "downloadable:" => array("/downloadable/", 99),
+            "minutes:" => array("rounded_median_time_in_minutes", 99),
+            "hours:" => array("rounded_median_time_in_minutes/60", 99),
             "played:" => array("played", 99),
             "willplay:" => array("willplay", 99),
             "wontplay:" => array("wontplay", 99),
@@ -567,6 +569,52 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse)
                                   . "and compgames.compid = '$txt'";
                 }
                 break;
+
+            case 'rounded_median_time_in_minutes':
+                // we need to join the gametimes mv table for this query    
+                if (!isset($extraJoins[$col])) {
+                    $extraJoins[$col] = true;
+                    $tableList .= " inner join gametimes_mv "
+                                  . "on games.id = gametimes_mv.gameid";
+                }
+
+                // numeric range match
+                if ($txt == "")
+                    $expr = "$col is null";
+                else if (preg_match("/^([0-9.]+)-([0-9.]+)$/", $txt, $m))
+                    $expr = "$col >= '{$m[1]}' AND $col <= '{$m[2]}'";
+                else if (preg_match("/^([0-9.]+)[+-]$/", $txt, $m))
+                    $expr = "$col >= '{$m[1]}'";
+                else if (preg_match("/^-([0-9.]+)$/", $txt, $m))
+                    $expr = "$col <= '{$m[1]}'";
+                else if (preg_match("/^[0-9.]+$/", $txt))
+                    $expr = "$col = '$txt'";
+                else
+                    $expr = "$col = '" . mysql_real_escape_string($txt, $db) . "'";
+                break;  
+
+            case 'rounded_median_time_in_minutes/60':
+                // we need to join the gametimes mv table for this query    
+                if (!isset($extraJoins[$col])) {
+                    $extraJoins[$col] = true;
+                    $tableList .= " inner join gametimes_mv "
+                                  . "on games.id = gametimes_mv.gameid";
+                }
+
+                // numeric range match
+                if ($txt == "")
+                    $expr = "$col is null";
+                else if (preg_match("/^([0-9.]+)-([0-9.]+)$/", $txt, $m))
+                    $expr = "$col >= '{$m[1]}' AND $col <= '{$m[2]}'";
+                else if (preg_match("/^([0-9.]+)[+-]$/", $txt, $m))
+                    $expr = "$col >= '{$m[1]}'";
+                else if (preg_match("/^-([0-9.]+)$/", $txt, $m))
+                    $expr = "$col <= '{$m[1]}'";
+                else if (preg_match("/^[0-9.]+$/", $txt))
+                    $expr = "$col = '$txt'";
+                else
+                    $expr = "$col = '" . mysql_real_escape_string($txt, $db) . "'";
+                break;  
 
             case 'played':
                 // Only use this query when the user is logged in
