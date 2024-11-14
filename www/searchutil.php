@@ -602,6 +602,9 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse)
                                   . "on games.id = gametimes_mv.gameid";
                 }
 
+                // Add estimated play time to the select list so we can display it in results
+                $selectList .= ", rounded_median_time_in_minutes";
+
                 // numeric range match
                 // zero limit
                 if ($txt == "") {
