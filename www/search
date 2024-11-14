@@ -911,23 +911,17 @@ else {  // ...default is searching games
           at least one story file or application download link.
 
        <p><b>playtime:<i>minimum-maximum</i></b> lists games with an estimated 
-          play time in the given range. Use <b>h</b> for hours and <b>m</b> 
-          for minutes. Hours may include decimals (for example, <b>3.5h</b>).
-          For example, <b>playtime:2h15m-3h</b> shows games with an estimated play 
-          time of anywhere from 2 hours and 15 minutes to 3 hours. To give only a 
-          minimum time, include the hyphen after it. <b>playtime:1.5h-</b> lists games 
-          with an estimated play time of at least 1 and a half hours. To give only a 
-          maximum time, include the hyphen before it. <b>hours:-45m</b> lists games 
-          with an estimated play time of 45 minutes or less. <b>playtime:1h</b> 
-          searches for games with an estimated play time of 1 hour.
+          play time in the given range. After each number, use <b>h</b> for hours 
+          or <b>m</b> for minutes. For example, <b>playtime:2h15m-3h</b> shows games 
+          with an estimated play time of anywhere from 2 hours and 15 minutes to 3 
+          hours. Hours may include decimals (for example, <b>3.5h</b>). 
+          <b>playtime:1.5h-</b> lists games with an estimated play time of at least 1 
+          and a half hours. <b>hours:-45m</b> lists games with an estimated play time 
+          of 45 minutes or less. <b>playtime:1h</b> searches for games with an 
+          estimated play time of 1 hour. <b>playtime:</b> with no text after it searches 
+          for games with no estimated play time.
 
-       <p><b>hours:<i>minimum-maximum</i></b> lists games with an estimated 
-          play time in the given range. For example, <b>hours:0.5-2</b> 
-          shows games with an estimated playing time of anywhere from half an 
-          hour to 2 hours. <b>hours:4</b> lists only games with an estimated play time 
-          of 4 hours. <b>hours:6.5-</b> lists games with an estimated 
-          play time of at least 6 and a half hours. <b>hours:-8</b> lists games 
-          with an estimated play time of 8 hours or less.
+
 
        <p><b>bafs:<i>id</i></b> searches for the game with the given
           Baf's Guide ID.
