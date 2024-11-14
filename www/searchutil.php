@@ -571,28 +571,6 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse)
                 break;
 
             case 'rounded_median_time_in_minutes':
-                // we need to join the gametimes mv table for this query    
-                if (!isset($extraJoins[$col])) {
-                    $extraJoins[$col] = true;
-                    $tableList .= " left outer join gametimes_mv "
-                                  . "on games.id = gametimes_mv.gameid";
-                }
-
-                // numeric range match
-                if ($txt == "")
-                    $expr = "$col is null";
-                else if (preg_match("/^([0-9.]+)-([0-9.]+)$/", $txt, $m))
-                    $expr = "$col >= '{$m[1]}' AND $col <= '{$m[2]}'";
-                else if (preg_match("/^([0-9.]+)[+-]$/", $txt, $m))
-                    $expr = "$col >= '{$m[1]}'";
-                else if (preg_match("/^-([0-9.]+)$/", $txt, $m))
-                    $expr = "$col <= '{$m[1]}'";
-                else if (preg_match("/^[0-9.]+$/", $txt))
-                    $expr = "$col = '$txt'";
-                else
-                    $expr = "$col = '" . mysql_real_escape_string($txt, $db) . "'";
-                break;  
-
             case 'rounded_median_time_in_minutes/60':
                 // we need to join the gametimes mv table for this query    
                 if (!isset($extraJoins[$col])) {
