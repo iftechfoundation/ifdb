@@ -18,6 +18,31 @@ function unNegate($w)
     return $w;
 }
 
+// Convert a string in the format "1h45m" to the total number of minutes.
+// If the string is empty or doesn't match the patterns, return "".
+function convertTimeStringToMinutes($h_m_string) {
+    $time_in_minutes = "";
+    
+    if (preg_match("/^([0-9.]+)h([0-9]+)m$/", $h_m_string, $matches)) {
+         // String includes both hours and minutes.
+         $time_in_minutes = ($matches[1] * 60) + $matches[2];
+         
+     } else if (preg_match("/^([0-9.]+)h$/", $h_m_string, $matches)) {
+         // String includes only hours.
+         $time_in_minutes = $matches[1] * 60;
+            
+     } else if (preg_match("/^([0-9]+)m$/", $h_m_string, $matches)) {
+         // String includes only minutes.
+         $time_in_minutes = $matches[1];
+            
+     } else if (preg_match("/^([0-9]+)$/", $h_m_string, $matches)) {
+         // No units were given, so we'll assume minutes.
+         $time_in_minutes = $matches[1];
+     };
+     return $time_in_minutes;
+}
+
+
 function doSearch($db, $term, $searchType, $sortby, $limit, $browse)
 {
     // we need the current user for some types of queries
@@ -217,6 +242,7 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse)
             "ifid:" => array("/ifid/", 99),
             "tuid:" => array("/tuid/", 99),
             "downloadable:" => array("/downloadable/", 99),
+            "playtime:" => array("rounded_median_time_in_minutes", 99),
             "played:" => array("played", 99),
             "willplay:" => array("willplay", 99),
             "wontplay:" => array("wontplay", 99),
@@ -565,6 +591,58 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse)
                     $tableList .= " inner join compgames "
                                   . "on compgames.gameid = games.id "
                                   . "and compgames.compid = '$txt'";
+                }
+                break;
+
+            case 'rounded_median_time_in_minutes':
+                // we need to join the gametimes mv table for this query    
+                if (!isset($extraJoins[$col])) {
+                    $extraJoins[$col] = true;
+                    $tableList .= " left outer join gametimes_mv "
+                                  . "on games.id = gametimes_mv.gameid";
+                }
+
+                // numeric range match
+                // zero limit
+                if ($txt == "") {
+                    $expr = "$col is null";
+                    break;
+                };
+
+                // Break $txt at the hyphen to find out what times were entered    
+                $array_of_times = explode('-', $txt);
+                if (count($array_of_times) == 2) {
+                    // There's a hyphen dividing $txt into two parts, so we're 
+                    // looking for a minimum time and a maximum time.
+                    $minimum = convertTimeStringToMinutes($array_of_times[0]);
+ //                 echo "MINIMUM is $minimum. ";
+                    $maximum = convertTimeStringToMinutes($array_of_times[1]);
+//                  echo "MAX is $maximum. ";
+                    if ($minimum != "" && $maximum != "") {
+                        // There's both a minimum number and a maximum number.
+                        $expr = "$col >= '{$minimum}' AND $col <= '{$maximum}'";
+                    } else if ($minimum != "" && $maximum == "") {
+                        // There's only a minimum.
+                        $expr = "$col >= '{$minimum}'";
+                    } else if ($minimum == "" && $maximum != "") {
+                        // There's only a maximum.
+                        $expr = "$col <= '{$maximum}'";
+                    } else {
+                        // Neither minimum nor maximum time is valid, so ignore the whole thing.
+                        $expr = "";
+                    }
+                } else if (count($array_of_times) == 1) {
+                    // No hyphen was entered, so it's an exact time.
+                    $exact_time = convertTimeStringToMinutes($txt);
+                    if ($exact_time != "") {
+                        $expr = "$col = '$exact_time'";
+                    } else {
+                        // The time didn't convert to a valid pattern, so ignore the whole thing
+                        $expr = "";
+                    }
+                } else {
+                    // We've got multiple hyphens, so ignore the whole thing. 
+                    $expr = "";
                 }
                 break;
 

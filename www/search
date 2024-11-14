@@ -910,6 +910,19 @@ else {  // ...default is searching games
           are/are not downloadable.  A downloadable game is one that has
           at least one story file or application download link.
 
+       <p><b>playtime:<i>minimum-maximum</i></b> lists games with an estimated 
+          play time in the given range. After each number, use <b>h</b> for hours 
+          or <b>m</b> for minutes. For example, <b>playtime:2h15m-3h</b> shows games 
+          with an estimated play time of anywhere from 2 hours and 15 minutes to 3 
+          hours. Hours may include decimals (for example, <b>3.5h</b>). 
+          <b>playtime:1.5h-</b> lists games with an estimated play time of at least 1 
+          and a half hours. <b>playtime:-45m</b> lists games with an estimated play time 
+          of 45 minutes or less. <b>playtime:1h</b> searches for games with an 
+          estimated play time of 1 hour. <b>playtime:</b> with no text after it searches 
+          for games with no estimated play time.
+
+
+
        <p><b>bafs:<i>id</i></b> searches for the game with the given
           Baf's Guide ID.
        (<?php
