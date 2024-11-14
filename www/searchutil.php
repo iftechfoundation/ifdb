@@ -628,8 +628,9 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse)
                         // There's only a maximum.
                         $expr = "$col <= '{$maximum}'";
                     } else {
-                        Neither minimum nor maximum time is valid, so ignore the whole thing.
+                        // Neither minimum nor maximum time is valid, so ignore the whole thing.
                         $expr = "";
+                    }
                 } else if (count($array_of_times) == 1) {
                     // No hyphen was entered, so it's an exact time.
                     $exact_time = convertTimeStringToMinutes($txt);
