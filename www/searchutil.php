@@ -570,6 +570,7 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse)
                 }
                 break;
 
+            // The minutes and hours searches are very similar; fall through
             case 'rounded_median_time_in_minutes':
             case 'rounded_median_time_in_minutes/60':
                 // we need to join the gametimes mv table for this query    
