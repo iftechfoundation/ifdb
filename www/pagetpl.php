@@ -121,11 +121,11 @@ function pageHeader($title, $focusCtl = false, $extraOnLoad = false,
             </div>
         </nav>
     <?php if ($isLoggedIn) : ?>
-        <button type="button" id="mobile-menu-toggle-button" class="menu-toggle-button hidden" aria-label="Menu">
+        <div id="mobile-menu-toggle-button" class="hidden"><button type="button" class="menu-toggle-button" aria-label="Menu">
             <img src="/img/menu.svg" alt="" class="mobile-hidden">
             <img src="/img/close.svg" alt="">
             <span>Menu</span>
-        </button>
+        </button></div>
     <?php endif ?>
     </div>
 </div>

@@ -50,22 +50,17 @@ if ($errFlagged != false) {
 
 <p>
 <form method=post action="lostpass" name="lostpass" id="lostpass">
-
-   <table border=0>
-      <tr>
-         <td>
-            Email address:
-         <td>
-            <input type="text" name="userid" id="userid" size=30
+    <div><label for="userid">Email address</label></div>
+    <div>
+        <input type="email" name="userid" id="userid" size=30
                   value="<?php echo get_req_data('userid')?>">
-   </table>
-
-   <br><br>
-   <?php
-       captchaSupportScripts($capKey);
-       captchaSubForm($capKey, $capErrMsg, false);
-       captchaFinish($capKey);
-   ?>
+    </div>
+    <br><br>
+    <?php
+        captchaSupportScripts($capKey);
+        captchaSubForm($capKey, $capErrMsg, false);
+        captchaFinish($capKey);
+    ?>
 
    <br><br>
    <input type=submit value="Submit">

@@ -184,33 +184,23 @@ else
     echo "<b>You must sign in to access this feature.</b><br>";
    ?>
 
-   <table border=0>
-      <tr>
-         <td>
-            Email:
-         </td>
-         <td>
-            <input type="text" name="userid" id="userid" size=20
-                   value="<?php echo $username ?>" tabindex=0>
-         </td>
-      <tr>
-         <td>
-            Password:
-         </td>
-         <td>
-            <input type="password" name="password" id="password" size=20>
-         </td>
-      </tr>
-   </table>
-
-   <label><input type="checkbox" name="persist" id="persist" value=1
-      <?php if ($persist) echo "checked"?>>
-      <label for="persist">Remember me (requires cookies)</label></label>
-
+   <div><label for="userid"><b>Email</b></label></div>
+   <div><input type="email" name="userid" id="userid" size=30
+                   value="<?php echo $username ?>" tabindex=0></div>
    <br>
+   <div><label for="password"><b>Password</b></label></div>
+   <div><input type="password" name="password" id="password" size=30></div>
+   <br>
+
+   <input type="checkbox" name="persist" id="persist" value=1
+      <?php if ($persist) echo "checked"?>>
+      <label for="persist">Remember me on this computer (your browser
+         must accept "cookies")</label>
+
+   <br><br>
    <input type=submit value="Submit">
    <input type=hidden name="dest" id="dest" value="<?php
-       echo htmlspecialcharx($dest) ?>">
+      echo htmlspecialcharx($dest) ?>">
 </form>
 
 <?php
@@ -244,39 +234,24 @@ if ($errFlagged != false)
       .login__links { padding-bottom: 1em; }
    </style>
 
-   <table border=0>
-      <tr>
-         <td>&nbsp;</td>
-         <td  class="login__links">
-            <span class=details>
-               <a href="newuser">New user</a> |
-               <a href="lostpass">Lost password</a> |
-               <a href="lostact"">Lost activation email</a>
-            </span>
-         </td>
-      <tr>
-         <td>
-            Email address:
-         </td>
-         <td>
-            <input type="text" name="userid" id="userid" size=30
-                   value="<?php echo $username ?>" tabindex=0>
-         </td>
-      </tr>
+   <div class="details login__links">
+      <a href="newuser">New user</a> |
+      <a href="lostpass">Lost password</a> |
+      <a href="lostact"">Lost activation email</a>
+   </div>
 
-      <tr>
-         <td>
-            Password:
-         <td>
-            <input type="password" name="password" id="password" size=30>
-         </td>
-      </tr>
-   </table>
+   <div><label for="userid"><b>Email</b></label></div>
+   <div><input type="email" name="userid" id="userid" size=30
+                   value="<?php echo $username ?>" tabindex=0></div>
+   <br>
+   <div><label for="password"><b>Password</b></label></div>
+   <div><input type="password" name="password" id="password" size=30></div>
+   <br>
 
-   <br><label><input type="checkbox" name="persist" id="persist" value=1
+   <input type="checkbox" name="persist" id="persist" value=1
       <?php if ($persist) echo "checked"?>>
       <label for="persist">Remember me on this computer (your browser
-         must accept "cookies")</label></label>
+         must accept "cookies")</label>
 
    <br><br>
    <input type=submit value="Submit">
