@@ -916,7 +916,7 @@ else {  // ...default is searching games
           with an estimated play time of anywhere from 2 hours and 15 minutes to 3 
           hours. Hours may include decimals (for example, <b>3.5h</b>). 
           <b>playtime:1.5h-</b> lists games with an estimated play time of at least 1 
-          and a half hours. <b>hours:-45m</b> lists games with an estimated play time 
+          and a half hours. <b>playtime:-45m</b> lists games with an estimated play time 
           of 45 minutes or less. <b>playtime:1h</b> searches for games with an 
           estimated play time of 1 hour. <b>playtime:</b> with no text after it searches 
           for games with no estimated play time.
