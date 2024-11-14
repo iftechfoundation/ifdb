@@ -165,7 +165,8 @@ CREATE VIEW `gametimes` AS
 CREATE TABLE gametimes_mv (
   gameid VARCHAR(32) NOT NULL,
   rounded_median_time_in_minutes INT(5) unsigned not null,
-  PRIMARY KEY (gameid)
+  PRIMARY KEY (gameid),
+  KEY (rounded_median_time_in_minutes)
 );
 
 
