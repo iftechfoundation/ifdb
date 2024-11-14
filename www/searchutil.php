@@ -635,7 +635,7 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse)
                     // No hyphen was entered, so it's an exact time.
                     $exact_time = convertTimeStringToMinutes($txt);
                     if ($exact_time != "") {
-                        $expr = "$col == '$exact_time'";
+                        $expr = "$col == '{$exact_time}'";
                     } else {
                         // The time didn't convert to a valid pattern, so ignore the whole thing
                         $expr = "";
