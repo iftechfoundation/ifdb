@@ -574,7 +574,7 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse)
                 // we need to join the gametimes mv table for this query    
                 if (!isset($extraJoins[$col])) {
                     $extraJoins[$col] = true;
-                    $tableList .= " inner join gametimes_mv "
+                    $tableList .= " left outer join gametimes_mv "
                                   . "on games.id = gametimes_mv.gameid";
                 }
 
@@ -597,7 +597,7 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse)
                 // we need to join the gametimes mv table for this query    
                 if (!isset($extraJoins[$col])) {
                     $extraJoins[$col] = true;
-                    $tableList .= " inner join gametimes_mv "
+                    $tableList .= " left outer join gametimes_mv "
                                   . "on games.id = gametimes_mv.gameid";
                 }
 
