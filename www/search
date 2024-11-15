@@ -1499,7 +1499,8 @@ else if ($term || $browse)
                         echo " ($year)";
 
                     echo "$xlink<br>$tagDisp$stars$ratingExtra";
-                    
+
+                    // Show estimated play time if available
                     if ($playtime != "")
                         echo "<br><span class=details>$playtime</span>";
                 }
