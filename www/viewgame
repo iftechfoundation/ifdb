@@ -2003,7 +2003,7 @@ function displayMedianTime($rounded_median_time, $alltimes) {
 
 if ($ratingCntTot == 0 && $memberReviewCnt == 0) {
     displayMedianTime($rounded_median_time, $alltimes);
-    echo showStars(0) . " No reviews yet";
+    echo showStars(0, true) . " No reviews yet";
     if ($embargoCnt == 0)
         echo " - <a href=\"review?id=$id&userid=$curuser\">be the first</a>";
 } else if ($ratingAvg == 0 && $memberReviewCnt == 0) {

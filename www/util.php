@@ -468,9 +468,13 @@ function sendImageLdesc($title, $imageID)
 // --------------------------------------------------------------------------
 // get a string for showing a rating star image
 //
-function showStars($num)
+function showStars($num, $allowEmpty = false)
 {
     global $ssdarkforce;
+
+    if (!$allowEmpty && isEmpty($num)) {
+        return "";
+    }
 
     // round to the nearest half star
     list($roundedNum, $starimg, $startxt) = roundStars($num);
