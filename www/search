@@ -1404,13 +1404,12 @@ else if ($term || $browse)
                              . "</span>";
                 }
 
-                // Show the estimated play time if we included it in our search
+                // Show the estimated play time if available
                 $playtime = "";
-                if (isset($specialsUsed['playtime:'])) {
-                    if ($row['rounded_median_time_in_minutes']) {
-                        $playtime = "Estimated play time: " . convertTimeToText($row['rounded_median_time_in_minutes']);
-                    }
+                if ($row['rounded_median_time_in_minutes']) {
+                    $playtime = "Estimated play time: " . convertTimeToText($row['rounded_median_time_in_minutes']);
                 }
+                
                 // show the matching tags only if we were searching for them
                 $tagDisp = "";
                 if (isset($specialsUsed['tag:'])) {
