@@ -1404,6 +1404,12 @@ else if ($term || $browse)
                              . "</span>";
                 }
 
+                // Show the estimated play time if available
+                $playtime = "";
+                if ($row['rounded_median_time_in_minutes']) {
+                    $playtime = "Estimated play time: " . convertTimeToText($row['rounded_median_time_in_minutes']);
+                }
+                
                 // show the matching tags only if we were searching for them
                 $tagDisp = "";
                 if (isset($specialsUsed['tag:'])) {
@@ -1479,6 +1485,10 @@ else if ($term || $browse)
                     // add the extra detail
                     echo "$xtra</td></tr></table>";
 
+                    // Show estimated play time if available
+                    if ($playtime != "")
+                        echo "<span class=details>$playtime</span>";
+
                 } else {
                     // display with no art
                     echo "<h3 class=result><a class='$eagerness' href=\"viewgame?id=$id\">"
@@ -1489,9 +1499,13 @@ else if ($term || $browse)
                         echo " ($year)";
 
                     echo "$xlink<br>$tagDisp$stars$ratingExtra";
+
+                    // Show estimated play time if available
+                    if ($playtime != "")
+                        echo "<br><span class=details>$playtime</span>";
                 }
                 break;
-
+            
             case "list":
                 // get the row data
                 $id = $row['id'];
