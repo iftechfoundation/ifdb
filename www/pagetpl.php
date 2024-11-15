@@ -15,7 +15,7 @@ function srcCacheBust($filename)
 function scriptSrc($filename, $isModule = false)
 {
     $type_module = $isModule ? ' type="module"' : '';
-    return "<script$isModule src=\"" . srcCacheBust($filename) . "\"></script>";
+    return "<script$type_module src=\"" . srcCacheBust($filename) . "\"></script>";
 }
 
 function basePageHeader($title, $focusCtl, $extraOnLoad, $extraHead,
