@@ -1371,6 +1371,15 @@ else if ($term || $browse)
             }
         }
 
+        if ($searchType === "tag") {
+            global $nonce;
+            echo "<style nonce='$nonce'>\n"
+                . ".search__tags { display: grid; grid-template-columns: repeat(auto-fill, 20ch); }\n"
+                . "</style>\n"
+                . "<div class='search__tags'>\n";
+
+        }
+
         for ($i = 0 ; $i < count($rows) ; $i++) {
             // retrieve the row
             $row = $rows[$i];
@@ -1635,10 +1644,14 @@ else if ($term || $browse)
 
                 // show the listing
                 echo "<div><a class='$eagerness' href=\"search?searchfor=tag:".urlencode($id)."\">"
-                    . "<b>".htmlspecialchars($id)."</b></a></h3> ($gamecnt game$s)</div>";
+                    . htmlspecialchars($id)."</a></h3> ($gamecnt game$s)</div>";
 
                 break;
             }
+        }
+
+        if ($searchType == "tag") {
+            echo "</div>"; // search__tags
         }
 
         // add the page controls again at the bottom, if applicable
