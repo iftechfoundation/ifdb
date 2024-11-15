@@ -2160,7 +2160,7 @@ span.sfl-save-autodesc {
     padding: 0;
 }
 
-#tagEditor .viewgame__header, #tagDeletor .viewgame__header {
+#tagEditor .viewgame__tagEditorHeader, #tagDeletor .viewgame__tagEditorHeader {
     background: #b0d8e8;
 }
 
