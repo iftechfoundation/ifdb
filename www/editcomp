@@ -1042,7 +1042,7 @@ if ($show == "divform") {
 else if ($show == "form") {
 
     // showing the form - set up the form page
-    pageHeader($pageTitle, "editcomp.title",
+    pageHeader($pageTitle, false,
                "initGrids();\ndocument.body.addEventListener('mousedown', function (event) { checkClosePopup(event, true); });",
                scriptSrc('/gridform.js'),
                false);

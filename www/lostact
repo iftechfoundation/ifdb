@@ -26,7 +26,7 @@ if (!$showForm)
 //
 // Main form display
 //
-pageHeader("Missing Activation Email", "lostact.userid", false);
+pageHeader("Missing Activation Email", false, false);
 
 ?>
 
