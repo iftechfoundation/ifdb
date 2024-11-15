@@ -2673,25 +2673,26 @@ if ($embargoCnt > 0)
         </div>
 
 <div class="viewgame__tagEditorContainer">
-     <div id="tagDeletor">
-        <div class='viewgame__tagEditorHeader'>
-           <div>
-              <b>Delete Tags</b>
-           </div>
-           <div class='viewgame__cancel'>
-              <a href="needjs"></a>
-           </div>
+  <div id="tagDeletor">
+     <div class='viewgame__tagEditorHeader'>
+        <div>
+           <b>Delete Tags</b>
         </div>
-        <form name="tagForm" data-tag-button="add">
-           <span class=details></span>
-           <table id="deleteTagTable" border=0 class=tags>
-           </table>
-           <button class="fancy-button"
-              id="viewgame-save-tags-button-delete"
-              name="saveTags">Save Changes</button>
-        </form>
+        <div class='viewgame__cancel'>
+           <a href="needjs">Cancel<img src="img/blank.gif"
+                 class="popup-close-button"></a>
+        </div>
      </div>
+     <form name="tagForm" data-tag-button="add">
+        <span class=details></span>
+        <table id="deleteTagTable" border=0 class=tags>
+        </table>
+        <button class="fancy-button"
+           id="viewgame-save-tags-button-delete"
+           name="saveTags">Save Changes</button>
+     </form>
   </div>
+</div>
 
 <script type="module" nonce="<?php global $nonce; echo $nonce; ?>">
 import {initTagTable} from './viewgame.js';

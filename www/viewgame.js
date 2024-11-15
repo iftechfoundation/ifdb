@@ -15,7 +15,7 @@ export function initTagTable(gameId, tagList, isAdmin) {
 function addEventListeners(isAdmin) {
     const buttons = [
         ['#myTagList_edit', () => {editTags();}],
-        ['.viewgame__tagEditorContainer .viewgame__cancel a', () => {closeTags();}],
+        ['#tagEditor .viewgame__cancel a', () => {closeTags('tagEditor');}],
         ['form[data-tag-button="add"]', () => {addTags();}, 'submit'],
         ['#viewgame-add-tags-button', () => {addTags();}],
         ['#viewgame-save-tags-button', () => {saveTags();}],
@@ -151,7 +151,7 @@ function dispDeleteTags()
 
 function deleteTag(tag)
 {
-    for (const [i, t] in Object.entries(memTagList))
+    for (const [i, t] of Object.entries(memTagList))
     {
         if (t.tag == tag)
         {
@@ -160,7 +160,7 @@ function deleteTag(tag)
         }
     }
 
-    memTagList.splice (index, 1);
+    memTagList.splice(index, 1);
     dispDeleteTags();
 }
 
@@ -197,7 +197,7 @@ function deleteTags()
 }
 
 
-function closeTags(id="tagEditor")
+function closeTags(id)
 {
     document.getElementById(id).style.display = "none";
 }
