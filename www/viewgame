@@ -278,10 +278,13 @@ function showMemberReviewsHeader($showHisto)
             . " based on $ratingCntAvg ratings<br>"
             . "Number of Reviews Written by IFDB Members: $memberReviewCnt<br></span>";
     }
-    echo "<span class=details><a href=\"review?id=$id&userid=$curuser\">"
-        . ($currentUserReview ? "Revise your review" : ($oneReviewView ? "" : "Write a review"))
-        . "</a>"
-        . "</span>";
+
+    if ($currentUserReview || !$oneReviewView) {
+        echo "<span class=details><a href=\"review?id=$id&userid=$curuser\">"
+            . ($currentUserReview ? "Revise your review" : "Write a review")
+            . "</a>"
+            . "</span>";
+    }
 
     // finish the histogram table if applicable
     if ($showHisto) {
