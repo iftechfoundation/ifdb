@@ -618,9 +618,7 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse)
                     // There's a hyphen dividing $txt into two parts, so we're 
                     // looking for a minimum time and a maximum time.
                     $minimum = convertTimeStringToMinutes($array_of_times[0]);
- //                 echo "MINIMUM is $minimum. ";
                     $maximum = convertTimeStringToMinutes($array_of_times[1]);
-//                  echo "MAX is $maximum. ";
                     if ($minimum != "" && $maximum != "") {
                         // There's both a minimum number and a maximum number.
                         $expr = "$col >= '{$minimum}' AND $col <= '{$maximum}'";
