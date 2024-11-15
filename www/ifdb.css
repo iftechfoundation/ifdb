@@ -84,6 +84,11 @@ body {
     margin: 0px 0px 1.5em 0px;
 }
 
+:root {
+    /* The width of the main sections of a page, without any sidebars. */
+    --paragraph-width: 60ch;
+}
+
 /*
 The style for <form> areas - this is the style used for areas of the
 page where there are data entry fields, buttons, and so on.  We use
@@ -531,12 +536,25 @@ td.coverart {
     padding-left: 1em;
 }
 
-#viewgame__header, #viewgame__header tbody,
-#viewgame__header tr, #viewgame__header td {
-    display:block;
+.viewgame__mainSummary {
+    margin: 0;
+    padding: 0;
+    order: -1;
+    display: flow-root;
 }
 
-#viewgame__header td.coverart {
+@media (max-width: 60rem) {
+    #viewgame-body {
+        display: flex;
+        flex-direction: column;
+    }
+}
+
+#viewgame__header {
+    max-width: var(--paragraph-width);
+}
+
+#viewgame__header .coverart {
     float: right;
 }
 
@@ -1043,7 +1061,7 @@ p.nosp {
 }
 
 p, ul, ol {
-    max-width: 60ch;
+    max-width: var(--paragraph-width);
 }
 
 /*

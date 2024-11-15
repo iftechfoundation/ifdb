@@ -929,15 +929,6 @@ echo helpWinLink("help-ifid", "IFID");
     }
 
 ?>
-<style nonce="<?php global $nonce; echo $nonce; ?>">
-    .viewgame__mainSummary { margin: 0; padding: 0; order: -1; display: flow-root; }
-    @media (max-width: 60rem) {
-        #viewgame-body {
-            display: flex;
-            flex-direction: column;
-        }
-    }
-</style>
 <div id='viewgame-body'>
 <?php
     // ------------------------ DOWNLOADS -------------------------------
@@ -1256,7 +1247,6 @@ if (count($links) == 0 && $dlnotes == "") {
    if (!$downloadsView) {
    ?>
 
-   <p>
    <table class=gamerightbar>
       <tr>
          <td>
@@ -1590,28 +1580,27 @@ prepareTimeControls();
             }
         ?>
          <p>
-         <table id="viewgame__header" cellspacing=0 cellpadding=0 border=0>
-            <tr valign=top>
+         <section id="viewgame__header" cellspacing=0 cellpadding=0 border=0>
                <?php
 if ($hasart) {
     $arthref = "{$_SERVER['PHP_SELF']}?coverart&id=$id";
     if (isset($_REQUEST['version']))
         $arthref .= "&version=" . $_REQUEST['version'];
                ?>
-               <td class=coverart>
+           <div class=coverart>
 
-                  <a href="<?php echo $arthref ?>&ldesc">
-                     <?php echo coverArtThumbnail($id, 175, isset($_REQUEST['version']) ? $_REQUEST['version'] : $pagevsn); ?>
-                  </a>
-               </td>
+              <a href="<?php echo $arthref ?>&ldesc">
+                 <?php echo coverArtThumbnail($id, 175, isset($_REQUEST['version']) ? $_REQUEST['version'] : $pagevsn); ?>
+              </a>
+           </div>
                <?php
 } // if ($hasart)
                ?>
 
-               <td>
-                  <h1><?php echo $title ?></h1>
+           <div>
+              <h1><?php echo $title ?></h1>
 
-                  <b>by <?php
+              <b>by <?php
 
 // build the list of authors - hyperlink each one in the list to a
 // search for that author's name (using the "author:" search modifier)
@@ -1678,7 +1667,7 @@ if (!isEmpty($genre)) {
         $genres)) . "<br>";
 }
                      ?>
-                     <?php if (!isEmpty($system)) echo "<div>".htmlspecialchars($system)."</div>" ?>
+                     <?php if (!isEmpty($system)) echo htmlspecialchars($system)."<br>" ?>
                      <?php
                         $showExternalLinksAnchor = count($links) && ($detailView || $historyView);
                         if (!isEmpty($website) || $showExternalLinksAnchor) {
@@ -1701,10 +1690,9 @@ if (!isEmpty($genre)) {
                                 }
                             }                        }
                      ?>
-                  </span>
-               </td>
-            </tr>
-         </table>
+              </span>
+           </div>
+         </section>
 
          <?php
 
@@ -2578,7 +2566,7 @@ if ($embargoCnt > 0)
             #myTagList { margin-right: 1ex; }
             #tagStatusSpan { margin-left: 1ex; }
             .viewgame__tagEditorContainer { position:relative;height:0px; }
-            .viewgame__header {
+            .viewgame__tagEditorHeader {
                 position:relative;
                 padding:2px;
                 font-size:80%;
@@ -2652,7 +2640,7 @@ if ($embargoCnt > 0)
 
         <div class="viewgame__tagEditorContainer">
            <div id="tagEditor">
-              <div class='viewgame__header'>
+              <div class='viewgame__tagEditorHeader'>
                  <div>
                     <b>Edit Tags</b>
                  </div>
@@ -2713,7 +2701,7 @@ if ($embargoCnt > 0)
 
 <div class="viewgame__tagEditorContainer">
      <div id="tagDeletor">
-        <div class='viewgame__header'>
+        <div class='viewgame__tagEditorHeader'>
            <div>
               <b>Delete Tags</b>
            </div>
