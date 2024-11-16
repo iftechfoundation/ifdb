@@ -86,6 +86,7 @@ CREATE TABLE playertimes (
   gameid VARCHAR(32) NOT NULL,
   userid VARCHAR(32) NOT NULL,
   time_in_minutes INT(5) unsigned not null,
+  time_note VARCHAR(200),
   PRIMARY KEY (id),
   UNIQUE KEY `game_user` (`gameid`, `userid`)
 );
@@ -94,8 +95,8 @@ CREATE TABLE playertimes (
 insert into playertimes (gameid, userid, time_in_minutes)
 values ('59g5czw7izz7aoip', 'kaw2cas7dyiq2tmg', 63);
 
-insert into playertimes (gameid, userid, time_in_minutes)
-values ('59g5czw7izz7aoip', '0000000000000000', 128);
+insert into playertimes (gameid, userid, time_in_minutes, time_note)
+values ('59g5czw7izz7aoip', '0000000000000000', 128, 'Used a few hints');
 
 insert into playertimes (gameid, userid, time_in_minutes)
 values ('59g5czw7izz7aoip', '0000000000000001', 55);
@@ -117,15 +118,15 @@ values ('n93jonigjmva9e3g', '0000000000000001', 134);
 insert into playertimes (gameid, userid, time_in_minutes)
 values ('n93jonigjmva9e3g', '0000000000000000', 204);
 
-insert into playertimes (gameid, userid, time_in_minutes)
-values ('n93jonigjmva9e3g', 'pwamtkqtbeyc8eyn', 116);
+insert into playertimes (gameid, userid, time_in_minutes, time_note)
+values ('n93jonigjmva9e3g', 'pwamtkqtbeyc8eyn', 116, 'Solved in story mode.');
 
 -- Sample time values for Four Seconds (by Reigstad)
 insert into playertimes (gameid, userid, time_in_minutes)
 values ('bu6mmul5vxci5vqc', 'kaw2cas7dyiq2tmg', 1);
 
-insert into playertimes (gameid, userid, time_in_minutes)
-values ('bu6mmul5vxci5vqc', 'pwamtkqtbeyc8eyn', 6);
+insert into playertimes (gameid, userid, time_in_minutes, time_note)
+values ('bu6mmul5vxci5vqc', 'pwamtkqtbeyc8eyn', 6, 'without hints');
 
 
 
