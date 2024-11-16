@@ -1364,25 +1364,21 @@ function updateUnwishList(id, stat)
 //------------------PHP for the estimated play time control panel---------------------------------
 
 
-    // Check the database to see if the user has a "time_in_minutes" vote stored for this game.
-    // If one exists, return the stored time in minutes. If not, return 0.
+    // Check the database to see if the user has a time vote stored for this game.
+    // If one exists, get the stored time in minutes (and the time note, if present).
     $mystoredtime=0;
     $mystoredtimenote="";
-
     $result = mysqli_execute_query($db, "select time_in_minutes, time_note from playertimes where gameid = ? and userid = ?", [$id, $curuser]);
     if (!$result) throw new Exception("Error: " . mysqli_error($db));
-        while ($row = mysqli_fetch_assoc($result)) {     
-            // There should only be one row, at most
-            $mystoredtime = $row['time_in_minutes']; 
-            $mystoredtimenote = $row['time_note'];
-        }
+    [$mystoredtime, $mystoredtimenote] = mysql_fetch_row($result);
+
     // At this point $mystoredtime should reflect the player's actual stored time for this game
     $my_time_as_text = "";
     $time_announcement = ""; // The string shown in the Estimated Play Time control panel
     if ($mystoredtime >= 1) {
-        $my_time_as_text=convertTimeToText($mystoredtime);
+        $my_time_as_text = convertTimeToText($mystoredtime);
         $time_announcement = "Your vote: " . $my_time_as_text;
-        if ($mystoredtimenote != "") {
+        if ($mystoredtimenote) {
             $time_announcement .= "—\"$mystoredtimenote\"";
         }
     }
@@ -1465,7 +1461,7 @@ function submitTime() {
     }
     // Time is valid, as far as we can tell
     var time_note = document.getElementById('timeNote').value;
-    jsonSend("settime?game=<?php echo $id?>&newtime=" + new_time + "&note=" + time_note, "timeSaveMsg", swapTimeSections);
+    jsonSend("settime?game=<?php echo $id?>&newtime=${new_time}&note=${encodeURIComponent(time_note}), "timeSaveMsg", swapTimeSections);
 }
 // Attach the submitTime function to the "Submit Time" button.
 document.getElementById("submitTimeButton").addEventListener("click", submitTime);
@@ -1995,7 +1991,7 @@ function displayMedianTime($rounded_median_time, $times_with_notes, $adminPriv) 
     echo "<ul>";
     foreach ($times_with_notes as $t) {
         $time_in_text = convertTimeToText($t[time_in_minutes]);
-        $note = $t[time_note];
+        $note = htmlspecialchars($t[time_note]);
         $voter = $t[userid];
         $list_item = "<strong>$time_in_text</strong>";
         if ($note != "") {
