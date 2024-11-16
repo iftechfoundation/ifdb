@@ -99,6 +99,8 @@ choose whether you want to use the JSON API or the <a href="#ifiction">XML API</
     "coverart": {
       "url": "<i>URL to cover art</i>"
     },
+    "playTimeInMinutes": <i>Estimated play time in minutes</i>
+
     "downloads": {
       "links": [
         {
