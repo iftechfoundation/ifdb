@@ -1398,7 +1398,7 @@ function updateUnwishList(id, stat)
 <li>Vote only if you've played the game.</li>
 <li>Vote on how long it takes to get to one final ending without relying extensively on a walkthrough.</li>
 <li>Time spent away from the game doesn't count.</li>
-<li>To help others gauge how long a game might take, you can note if your time includes using hints.</li>
+<li>To help players gauge how long a game with puzzles might take, you can note if your time is with or without hints.</li>
 <li>Times don't need to be exact. Good-faith estimates are fine.</li>
 </ul></details>
 <p><label for='hours'>Hours:</label>
