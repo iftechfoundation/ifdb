@@ -1367,12 +1367,14 @@ function updateUnwishList(id, stat)
     // Check the database to see if the user has a "time_in_minutes" vote stored for this game.
     // If one exists, return the stored time in minutes. If not, return 0.
     $mystoredtime=0;
+    $mystoredtimenote="";
 
-    $result = mysqli_execute_query($db, "select time_in_minutes from playertimes where gameid = ? and userid = ?", [$id, $curuser]);
+    $result = mysqli_execute_query($db, "select time_in_minutes, time_note from playertimes where gameid = ? and userid = ?", [$id, $curuser]);
     if (!$result) throw new Exception("Error: " . mysqli_error($db));
         while ($row = mysqli_fetch_assoc($result)) {     
             // There should only be one row, at most
             $mystoredtime = $row['time_in_minutes']; 
+            $mystoredtimenote = $row['time_note'];
         }
     // At this point $mystoredtime should reflect the player's actual stored time for this game
     $my_time_as_text = "";
@@ -1380,6 +1382,9 @@ function updateUnwishList(id, stat)
     if ($mystoredtime >= 1) {
         $my_time_as_text=convertTimeToText($mystoredtime);
         $time_announcement = "Your vote: " . $my_time_as_text;
+        if ($mystoredtimenote != "") {
+            $time_announcement .= "—\"$mystoredtimenote\"";
+        }
     }
    
 
@@ -1395,14 +1400,17 @@ function updateUnwishList(id, stat)
 <details><summary>Tips</summary>
 <ul>
 <li>Vote only if you've played the game.</li>
-<li>Vote on how long it would take to get to one final ending without hints or a walkthrough.</li>
+<li>Vote on how long it takes to get to one final ending without relying extensively on a walkthrough.</li>
 <li>Time spent away from the game doesn't count.</li>
+<li>To help others gauge how long a game might take, you can note if your time includes using hints.</li>
 <li>Times don't need to be exact. Good-faith estimates are fine.</li>
 </ul></details>
 <p><label for='hours'>Hours:</label>
 <input type='number' name='hours' id='hours' min=0 max=200>
 <label for='minutes'>Minutes:</label>
 <input type='number' name='minutes' id='minutes' min=0 max=59></p>
+<p><label for='timeNote'>Note:</label>
+<input type='text' name='timeNote' id='timeNote' maxlength='200' size='26'></p>
 <button id='submitTimeButton' class='fancy-button' type='submit'>Submit Time</button>
 </div>
 
@@ -1456,7 +1464,8 @@ function submitTime() {
         return;
     }
     // Time is valid, as far as we can tell
-    jsonSend("settime?game=<?php echo $id?>&newtime=" + new_time, "timeSaveMsg", swapTimeSections);
+    var time_note = document.getElementById('timeNote').value;
+    jsonSend("settime?game=<?php echo $id?>&newtime=" + new_time + "&note=" + time_note, "timeSaveMsg", swapTimeSections);
 }
 // Attach the submitTime function to the "Submit Time" button.
 document.getElementById("submitTimeButton").addEventListener("click", submitTime);
@@ -1947,12 +1956,16 @@ function findMedian($array_input) {
     return $median;
 }
 
-// Get all of the estimated play times for this game, and put them in an array
-$result = mysqli_execute_query($db, "select time_in_minutes from playertimes where gameid = ?", [$id]);
+// Get all of the estimated play times for this game, along with time notes and userids.
+// Put the times in one array so we can calculate the median. Put the times, notes, and 
+/// userids in a second array for display. (Userids are displayed only in admin mode.)
+$result = mysqli_execute_query($db, "select time_in_minutes, time_note, userid from playertimes where gameid = ?", [$id]);
 if (!$result) throw new Exception("Error: " . mysqli_error($db));
-$alltimes = [];
+$alltimes = [];            // Array for just the times, so we can find the median
+$times_with_notes = [];    // Array for times, time notes, and userids
 while ($row = mysqli_fetch_assoc($result)) {
-    $alltimes[] = $row['time_in_minutes'];
+    $alltimes[] = $row['time_in_minutes'];  //
+    $times_with_notes[] = $row;
 }
 
 // Find the median play time (in minutes) for this game
@@ -1970,19 +1983,28 @@ if ($mediantime > 60) {
 }
 
 
-function displayMedianTime($rounded_median_time, $alltimes) {
+function displayMedianTime($rounded_median_time, $times_with_notes, $adminPriv) {
     if ($rounded_median_time < 1) return;
     // Turn the total minutes into hours and minutes, and then text
     $official_estimated_time_text = convertTimeToText($rounded_median_time);
     echo "<details><summary>Estimated play time: ";
     echo $official_estimated_time_text;
-    $s = (count($alltimes) === 1) ? "" : "s";
-    echo " (based on " . count($alltimes) . " vote$s)</summary><br>";
+    $s = (count($times_with_notes) === 1) ? "" : "s";
+    echo " (based on " . count($times_with_notes) . " vote$s)</summary><br>";
     echo "Members voted for the following times for this game:";
     echo "<ul>";
-    foreach ($alltimes as $t) {
-        $time_vote_text = convertTimeToText($t);
-        echo "<li>$time_vote_text</li>";
+    foreach ($times_with_notes as $t) {
+        $time_in_text = convertTimeToText($t[time_in_minutes]);
+        $note = $t[time_note];
+        $voter = $t[userid];
+        $list_item = "<strong>$time_in_text</strong>";
+        if ($note != "") {
+            $list_item .= "—\"$note\"";      // If the voter added a note, display it
+        }
+        if ($adminPriv)  {
+            $list_item .= " (userid: $voter)";  // Some users keep their "played games" lists private. Don't display userid except in admin mode.
+        }
+        echo "<li>$list_item</li>";
     }
     echo "</ul></details>";
 }
@@ -1990,7 +2012,7 @@ function displayMedianTime($rounded_median_time, $alltimes) {
 //--------------------End of PHP Functions for displaying median time-----------------
 
 if ($ratingCntTot == 0 && $memberReviewCnt == 0) {
-    displayMedianTime($rounded_median_time, $alltimes);
+    displayMedianTime($rounded_median_time, $times_with_notes, $adminPriv);
     echo showStars(0, true) . " No reviews yet";
     if ($embargoCnt == 0)
         echo " - <a href=\"review?id=$id&userid=$curuser\">be the first</a>";
@@ -1999,7 +2021,7 @@ if ($ratingCntTot == 0 && $memberReviewCnt == 0) {
         . "title=\"View all ratings and reviews for this game\">"
         . "$ratingCntTot rating" . ($ratingCntTot != 1 ? "s" : "")
         . "</a><br>";
-    displayMedianTime($rounded_median_time, $alltimes);
+    displayMedianTime($rounded_median_time, $times_with_notes, $adminPriv);
 } else {
     if (!$should_hide && $ratingAvg != 0) {
         echo showStars($ratingAvg)
@@ -2009,7 +2031,7 @@ if ($ratingCntTot == 0 && $memberReviewCnt == 0) {
             . "</a>)<br>";
     }
 
-    displayMedianTime($rounded_median_time, $alltimes);
+    displayMedianTime($rounded_median_time, $times_with_notes, $adminPriv);
 
     if ($memberReviewCnt != 0) {
         $href = ($memberReviewCnt > $reviewsOnHomePage)
