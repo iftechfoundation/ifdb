@@ -1088,6 +1088,10 @@ if ($api_mode) {
                 $item['coverArtLink'] =
                     get_root_url() . "coverart?id=$id&version={$row['pagevsn']}";
             }
+            // Include estimated play time if available
+            if ($row['rounded_median_time_in_minutes']) {
+                $item['playTimeInMinutes'] = $row['rounded_median_time_in_minutes'];
+            }
 
             break;
 
