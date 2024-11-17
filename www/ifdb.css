@@ -601,6 +601,13 @@ The "downloadfloat" division is for the Download box on a game's
 main listing page.  This is a floating box on the right side of
 the page.
 */
+
+.downloadfloat {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
 @media (min-width: 60rem) {
     div.downloadfloat {
         float: right;

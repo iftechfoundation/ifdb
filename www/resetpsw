@@ -114,7 +114,7 @@ function verify() {
         }
 
         // all is well - start the page
-        pageHeader("Password Reset", "resetpsw.userid");
+        pageHeader("Password Reset");
 ?>
 
 <h1>Password Changed</h1>

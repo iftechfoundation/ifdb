@@ -423,7 +423,7 @@ if ($geticon) {
     if ($editPriv && isset($_REQUEST['editvsn'])) {
     // -------------------------  EDIT VERSION -------------------------------
 
-        pageHeader("Edit OS/Interpreter Version", "editvsn.browserid");
+        pageHeader("Edit OS/Interpreter Version", false);
 
         if ($saveErrMsg)
             echo "<p><span class=errmsg>$saveErrMsg</span><p>";
@@ -489,7 +489,7 @@ if ($geticon) {
     // ------------------------- EDIT OS ENTRY -------------------------------
 
         // we can edit it - show the editing form
-        pageHeader("Edit OS/Interpreter", "editos.osname",
+        pageHeader("Edit OS/Interpreter", false,
                    "gfGenForm('vsnGridModel');",
                    scriptSrc('/gridform.js'));
 

@@ -12,9 +12,10 @@ function srcCacheBust($filename)
     return "$filename?t=$mtime";
 }
 
-function scriptSrc($filename)
+function scriptSrc($filename, $isModule = false)
 {
-    return "<script src=\"" . srcCacheBust($filename) . "\"></script>";
+    $type_module = $isModule ? ' type="module"' : '';
+    return "<script$type_module src=\"" . srcCacheBust($filename) . "\"></script>";
 }
 
 function basePageHeader($title, $focusCtl, $extraOnLoad, $extraHead,

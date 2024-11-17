@@ -35,7 +35,7 @@ if (!check_editing_privileges($db))
 // if we're doing an Edit/Search, show a search box
 if (isset($_REQUEST['search']))
 {
-    pageHeader("Edit a Game Listing", "editSearchForm.searchFor");
+    pageHeader("Edit a Game Listing", false);
     echo "<h1>Edit a Game Listing</h1>";
 
     $searchFor = get_req_data("searchFor");
@@ -512,7 +512,7 @@ if ($errMsg) {
     // if we decided to show the form, proceed
     if ($showform) {
         // start the page
-        pageHeader($pagetitle, "editgame.title",
+        pageHeader($pagetitle, false,
                    "gfGenForm('linkModel');gfGenForm('reviewModel');"
                    . "gfGenForm('xrefModel');"
                    . "\ndocument.body.addEventListener('mousedown', function (event) { checkClosePopup(event, true); });",

@@ -723,7 +723,7 @@ for ($i = 0 ; $i < count($listItems) ; $i++) {
     $listItems[$i] = $item;
 }
 
-pageHeader($pagetitle, $errMsg ? false : "editlist.title",
+pageHeader($pagetitle, false,
            "gfGenForm('listModel');",
            scriptSrc('/gridform.js'));
 echo "<h1>$pagetitle</h1>";

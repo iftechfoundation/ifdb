@@ -139,7 +139,8 @@ to access pages related to the object.
       "numRatings": <i>Number of ratings in the average (note that reviews can choose to "omit" their ratings from the average)</i>,
       "starRating": <i>Rounded "star" rating average</i>,
       "starSort": <i>Star rating for sorting; see below</i>,
-      "coverArtLink": "<i>URL to cover art (this key will be absent if there's no cover art)</i>"
+      "coverArtLink": "<i>URL to cover art (this key will be absent if there's no cover art)</i>",
+      "playTimeInMinutes": "<i>Estimated play time in minutes. This key will be absent if there's no estimated play time.</i>"
     }
   ]
 }
@@ -180,6 +181,11 @@ simply the four-digit year if the full date isn't available.  The
 spelled out in English, such as "September 14, 2009", or again just
 the four-digit year if that's all that's available.  These will be
 present as empty tags if the publication date isn't in the database.
+
+<p>The estimated play time, given in minutes, is based on times 
+submitted by IFDB members for a given game. The estimated play time 
+is the median time rounded to the nearest minute (for games an hour 
+or less) or rounded to the nearest 5 minutes (for games over an hour).
 
 <p>More detail is available for each game in the search results, using
 the <a href="viewgame">viewgame API</a>.

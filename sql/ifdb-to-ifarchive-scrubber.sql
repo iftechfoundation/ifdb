@@ -148,3 +148,12 @@ drop view userscoreitems;
 drop view visreviews;
 
 drop table userScores_mv;
+
+alter table playertimes drop key game_user;
+alter table playertimes drop column userid;
+
+drop view gametimes;
+drop table gametimes_mv;
+drop trigger playertime_insert;
+drop trigger playertime_update;
+drop trigger playertime_delete;
