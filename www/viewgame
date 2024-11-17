@@ -462,7 +462,6 @@ $selectMemberRatings = getReviewQueryByGame(
 
 // --------------------Finding the median play time--------------------------
 
-
 // Find the median of the numbers in an array
 function findMedian($array_input) {
     if (!is_array($array_input)) return false;
@@ -487,7 +486,7 @@ function findMedian($array_input) {
 
 // Get all of the estimated play times for this game, along with time notes and userids.
 // Put the times in one array so we can calculate the median. Put the times, notes, and 
-/// userids in a second array for display. (Userids are displayed only in admin mode.)
+// userids in a second array for display. (Userids are displayed only in admin mode.)
 $result = mysqli_execute_query($db, "select time_in_minutes, time_note, userid from playertimes where gameid = ?", [$id]);
 if (!$result) throw new Exception("Error: " . mysqli_error($db));
 $alltimes = [];            // Array for just the times, so we can find the median
@@ -1429,7 +1428,6 @@ function updateUnwishList(id, stat)
  
 //------------------PHP for the estimated play time control panel---------------------------------
 
-
     // Check the database to see if the user has a time vote stored for this game.
     // If one exists, get the stored time in minutes (and the time note, if present).
     $mystoredtime=0;
@@ -1449,7 +1447,6 @@ function updateUnwishList(id, stat)
         }
     }
    
-
 //-----------------------Estimated play time control panel begins----------------------------
 ?>
 
@@ -1492,7 +1489,7 @@ function updateUnwishList(id, stat)
 
 // When the user clicks the "Submit Time" button, get the input 
 // from the hours and minutes fields, validate it, convert it to 
-// minutes only, and save it to the database. 
+// minutes only, and save it to the database (with the note, if present).
 function submitTime() {
     if (document.getElementById('ckBoxckPlayed').checked==false) {
          document.getElementById("timeSaveMsg").innerHTML="Error: This game isn't on your list of played games.";
@@ -1614,7 +1611,6 @@ function prepareTimeControls() {
     }
 }
 prepareTimeControls();
-
 
 
 </script>
