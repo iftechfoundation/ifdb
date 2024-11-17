@@ -493,7 +493,7 @@ if (!$result) throw new Exception("Error: " . mysqli_error($db));
 $alltimes = [];            // Array for just the times, so we can find the median
 $times_with_notes = [];    // Array for times, time notes, and userids
 while ($row = mysqli_fetch_assoc($result)) {
-    $alltimes[] = $row['time_in_minutes'];  //
+    $alltimes[] = $row['time_in_minutes'];
     $times_with_notes[] = $row;
 }
 
@@ -1503,7 +1503,7 @@ function submitTime() {
     if (new_hours == "") {    // If the hours field was blank, interpret it as 0
         new_hours = 0;
     }
-    if (new_minutes == "") {  //If the minutes field was blank, interpret it as 0
+    if (new_minutes == "") {  // If the minutes field was blank, interpret it as 0
         new_minutes = 0;
     }
     var hours_are_digits = isOnlyDigits(new_hours); 
@@ -2014,7 +2014,7 @@ function displayMedianTime($rounded_median_time, $times_with_notes, $adminPriv) 
         $voter = $t[userid];
         $list_item = "<strong>$time_in_text</strong>";
         if ($note != "") {
-            $list_item .= "—\"$note\"";      // If the voter added a note, display it
+            $list_item .= "—\"$note\"";         // If the voter added a note, display it
         }
         if ($adminPriv)  {
             $list_item .= " (userid: $voter)";  // Some users keep their "played games" lists private. Don't display userid except in admin mode.
