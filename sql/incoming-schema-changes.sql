@@ -136,7 +136,7 @@ values ('bu6mmul5vxci5vqc', 'pwamtkqtbeyc8eyn', 6);
 DELIMITER $$
 
 CREATE FUNCTION roundMedianTime(
-    exact_median_in_minutes INT(5)
+    exact_median_in_minutes DECIMAL(6, 1)
 )
 RETURNS INT(5)
 DETERMINISTIC
