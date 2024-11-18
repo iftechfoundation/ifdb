@@ -2013,7 +2013,7 @@ function displayMedianTime($rounded_median_time, $times_with_notes) {
         if ($note != "") {
             $list_item .= ": \"$note\"";         // If the voter added a note, display it
         }
-        $list_item .= '—<a href="showuser?id=' . $voter_id_number . '>' . $voter_name . '</a>';
+        $list_item .= '—<a href="showuser?id=' . $voter_id_number . '">' . $voter_name . '</a>';
         
         echo "<li>$list_item</li>";
     }
