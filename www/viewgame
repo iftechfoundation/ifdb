@@ -1524,7 +1524,7 @@ function submitTime() {
     }
     // Time is valid, as far as we can tell
     var time_note = document.getElementById('timeNote').value;
-    jsonSend("settime?game=<?php echo $id?>&newtime=${new_time}&note=${encodeURIComponent(time_note}), "timeSaveMsg", swapTimeSections);
+    jsonSend(`settime?game=<?= $id?>&newtime=${new_time}&note=${encodeURIComponent(time_note)}`, "timeSaveMsg", swapTimeSections);
 }
 // Attach the submitTime function to the "Submit Time" button.
 document.getElementById("submitTimeButton").addEventListener("click", submitTime);
