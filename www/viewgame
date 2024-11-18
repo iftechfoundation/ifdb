@@ -487,10 +487,10 @@ function findMedian($array_input) {
 // Get all of the estimated play times for this game, along with time notes and userids.
 // Put the times in one array so we can calculate the median. Put the times, notes, and 
 // userids in a second array for display. (Userids are displayed only in admin mode.)
-$result = mysqli_execute_query($db, "select time_in_minutes, time_note, userid from playertimes where gameid = ?", [$id]);
+$result = mysqli_execute_query($db, "select playertimes.time_in_minutes, playertimes.time_note, playertimes.userid, users.name from playertimes inner join users on playertimes.userid = users.id where gameid = ?", [$id]);
 if (!$result) throw new Exception("Error: " . mysqli_error($db));
 $alltimes = [];            // Array for just the times, so we can find the median
-$times_with_notes = [];    // Array for times, time notes, and userids
+$times_with_notes = [];    // Array for times, time notes, voter names, and userids
 while ($row = mysqli_fetch_assoc($result)) {
     $alltimes[] = $row['time_in_minutes'];
     $times_with_notes[] = $row;
@@ -1994,7 +1994,7 @@ if ($curuser) {
 
 
 
-function displayMedianTime($rounded_median_time, $times_with_notes, $adminPriv) {
+function displayMedianTime($rounded_median_time, $times_with_notes) {
     if ($rounded_median_time < 1) return;
     // Turn the total minutes into hours and minutes, and then text
     $official_estimated_time_text = convertTimeToText($rounded_median_time);
@@ -2007,14 +2007,14 @@ function displayMedianTime($rounded_median_time, $times_with_notes, $adminPriv) 
     foreach ($times_with_notes as $t) {
         $time_in_text = convertTimeToText($t[time_in_minutes]);
         $note = htmlspecialchars($t[time_note]);
-        $voter = $t[userid];
+        $voter_id_number = $t[userid];
+        $voter_name = $t[name];
         $list_item = "<strong>$time_in_text</strong>";
         if ($note != "") {
-            $list_item .= "—\"$note\"";         // If the voter added a note, display it
+            $list_item .= ": \"$note\"";         // If the voter added a note, display it
         }
-        if ($adminPriv)  {
-            $list_item .= " (userid: $voter)";  // Some users keep their "played games" lists private. Don't display userid except in admin mode.
-        }
+        $list_item .= '—<a href="showuser?id=' . $voter_id_number . '>' . $voter_name . '</a>';
+        
         echo "<li>$list_item</li>";
     }
     echo "</ul></details>";
@@ -2023,7 +2023,7 @@ function displayMedianTime($rounded_median_time, $times_with_notes, $adminPriv) 
 //--------------------End of PHP Functions for displaying median time-----------------
 
 if ($ratingCntTot == 0 && $memberReviewCnt == 0) {
-    displayMedianTime($rounded_median_time, $times_with_notes, $adminPriv);
+    displayMedianTime($rounded_median_time, $times_with_notes);
     echo showStars(0, true) . " No reviews yet";
     if ($embargoCnt == 0)
         echo " - <a href=\"review?id=$id&userid=$curuser\">be the first</a>";
@@ -2032,7 +2032,7 @@ if ($ratingCntTot == 0 && $memberReviewCnt == 0) {
         . "title=\"View all ratings and reviews for this game\">"
         . "$ratingCntTot rating" . ($ratingCntTot != 1 ? "s" : "")
         . "</a><br>";
-    displayMedianTime($rounded_median_time, $times_with_notes, $adminPriv);
+    displayMedianTime($rounded_median_time, $times_with_notes);
 } else {
     if (!$should_hide && $ratingAvg != 0) {
         echo showStars($ratingAvg)
@@ -2042,7 +2042,7 @@ if ($ratingCntTot == 0 && $memberReviewCnt == 0) {
             . "</a>)<br>";
     }
 
-    displayMedianTime($rounded_median_time, $times_with_notes, $adminPriv);
+    displayMedianTime($rounded_median_time, $times_with_notes);
 
     if ($memberReviewCnt != 0) {
         $href = ($memberReviewCnt > $reviewsOnHomePage)
