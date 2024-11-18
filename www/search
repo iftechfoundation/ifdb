@@ -1380,7 +1380,7 @@ else if ($term || $browse)
         if ($searchType === "tag") {
             global $nonce;
             echo "<style nonce='$nonce'>\n"
-                . ".search__tags { display: grid; grid-template-columns: repeat(auto-fill, 20ch); }\n"
+                . ".search__tags { display: grid; grid-template-columns: repeat(auto-fill, 35ch); font-size: 85%; }\n"
                 . "</style>\n"
                 . "<div class='search__tags'>\n";
 
