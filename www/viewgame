@@ -1398,6 +1398,7 @@ function updateUnwishList(id, stat)
 <li>Vote on how long it would take to get to one final ending without hints or a walkthrough.</li>
 <li>Time spent away from the game doesn't count.</li>
 <li>Times don't need to be exact. Good-faith estimates are fine.</li>
+<li>When you vote, this game will automatically be added to your list of played games.</li>
 </ul></details>
 <p><label for='hours'>Hours:</label>
 <input type='number' name='hours' id='hours' min=0 max=200>
@@ -1424,10 +1425,6 @@ function updateUnwishList(id, stat)
 // from the hours and minutes fields, validate it, convert it to 
 // minutes only, and save it to the database. 
 function submitTime() {
-    if (document.getElementById('ckBoxckPlayed').checked==false) {
-         document.getElementById("timeSaveMsg").innerHTML="Error: This game isn't on your list of played games.";
-         return;
-    }
     var new_hours = document.getElementById('hours').value;
     var new_minutes = document.getElementById('minutes').value;
     if (new_hours == "") {    // If the hours field was blank, interpret it as 0
@@ -1455,7 +1452,13 @@ function submitTime() {
         document.getElementById("timeSaveMsg").innerHTML="The total time must be at least one minute.";
         return;
     }
-    // Time is valid, as far as we can tell
+    // Time is valid, as far as we can tell.
+    // If the game isn't already on the user's list of played games, add it.
+    if (document.getElementById('ckBoxckPlayed').checked==false) {
+        document.getElementById('ckBoxckPlayed').checked=true;
+        updatePlayed();
+    }
+    // Submit the time.
     jsonSend("settime?game=<?php echo $id?>&newtime=" + new_time, "timeSaveMsg", swapTimeSections);
 }
 // Attach the submitTime function to the "Submit Time" button.
