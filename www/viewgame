@@ -273,17 +273,17 @@ function showMemberReviewsHeader($showHisto)
         }
 
         echo "</table></td><td class=\"viewgame__histogramEnd\" valign=top>";
-        echo "<span class=details>Average Rating: "
+        echo "<div class=details>Average Rating: "
             . showStars($ratingAvg)
             . " based on $ratingCntAvg ratings<br>"
-            . "Number of Reviews Written by IFDB Members: $memberReviewCnt<br></span>";
+            . "Number of Reviews Written by IFDB Members: $memberReviewCnt<br></div>";
     }
 
     if ($currentUserReview || !$oneReviewView) {
-        echo "<span class=details><a href=\"review?id=$id&userid=$curuser\">"
+        echo "<div class=details><a href=\"review?id=$id&userid=$curuser\">"
             . ($currentUserReview ? "Revise your review" : "Write a review")
             . "</a>"
-            . "</span>";
+            . "</div>";
     }
 
     // finish the histogram table if applicable
@@ -1706,7 +1706,7 @@ foreach ($authorList as $i => $au) {
     $conj = ($i + 2 == count($authorList) ? ($i == 0 ? " and " : ", and ") : ", ");
 }
                   ?></b><br><br>
-                  <span class=details>
+                  <div class=details>
                      <?php
 if (!isEmpty($seriesname)) {
     if (isEmpty($seriesnum))
@@ -1749,7 +1749,7 @@ if (!isEmpty($genre)) {
                                 }
                             }                        }
                      ?>
-              </span>
+              </div>
            </div>
          </section>
 
@@ -2351,8 +2351,8 @@ if ($embargoCnt > 0)
 
             // show the link to the full list of reviews, if there are more
             if ($rowcnt > $reviewsOnHomePage) {
-                echo "<span class=details><a href=\"viewgame?id=$id&reviews\">
-                      See All $memberReviewCnt Member Reviews</a></span><br>";
+                echo "<div class=details><a href=\"viewgame?id=$id&reviews\">
+                      See All $memberReviewCnt Member Reviews</a></div><br>";
             }
 
             // end the indented division
