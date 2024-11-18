@@ -116,7 +116,7 @@ if ($debugflag) echo "debug mode enabled...<br>";
                   <span class=headlineRss>
                      <a href="allnew">All Updates</a> |
                      <a href="news">Site News</a>
-                     <span class='mobile-hidden'> | <a href="allnew-rss"><img src="img/blank.gif" class="rss-icon" alt="">RSS Feed</a></span>
+                     <span class='mobile-hidden'> | <a class="rss-icon" href="allnew-rss">RSS Feed</a></span>
                   </span>
             </div>
             <div>

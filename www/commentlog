@@ -208,8 +208,7 @@ if ($rss) {
     echo "<h1>$title</h1>"
         . "<p>This is a history of $expl."
         . "<p><span class=details>View $links - "
-        . "<a href=\"commentlog?user=$userid&mode=$mode&rss\">"
-        . "<img src=\"/img/blank.gif\" class=\"rss-icon\">"
+        . "<a class=\"rss-icon\" href=\"commentlog?user=$userid&mode=$mode&rss\">"
         . "RSS Feed of this list</a></span>";
 
     // figure where we are in the list
