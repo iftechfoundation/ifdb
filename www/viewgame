@@ -1989,14 +1989,14 @@ if ($curuser) {
 
 
 
-function displayMedianTime($rounded_median_time, $times_with_notes) {
+function displayMedianTime($rounded_median_time, $alltimes) {
     if ($rounded_median_time < 1) return;
     // Turn the total minutes into hours and minutes, and then text
     $official_estimated_time_text = convertTimeToText($rounded_median_time);
     echo "<details><summary>Estimated play time: ";
     echo $official_estimated_time_text;
-    $s = (count($times_with_notes) === 1) ? "" : "s";
-    echo " (based on " . count($times_with_notes) . " vote$s)</summary><br>";
+    $s = (count($alltimes) === 1) ? "" : "s";
+    echo " (based on " . count($alltimes) . " vote$s)</summary><br>";
     echo "Members voted for the following times for this game:";
     echo "<ul>";
     foreach ($alltimes as $t) {
@@ -2020,7 +2020,7 @@ function displayMedianTime($rounded_median_time, $times_with_notes) {
 //--------------------End of PHP Functions for displaying median time-----------------
 
 if ($ratingCntTot == 0 && $memberReviewCnt == 0) {
-    displayMedianTime($rounded_median_time, $times_with_notes);
+    displayMedianTime($rounded_median_time, $alltimes);
     echo showStars(0, true) . " No reviews yet";
     if ($embargoCnt == 0)
         echo " - <a href=\"review?id=$id&userid=$curuser\">be the first</a>";
@@ -2029,7 +2029,7 @@ if ($ratingCntTot == 0 && $memberReviewCnt == 0) {
         . "title=\"View all ratings and reviews for this game\">"
         . "$ratingCntTot rating" . ($ratingCntTot != 1 ? "s" : "")
         . "</a><br>";
-    displayMedianTime($rounded_median_time, $times_with_notes);
+    displayMedianTime($rounded_median_time, $alltimes);
 } else {
     if (!$should_hide && $ratingAvg != 0) {
         echo showStars($ratingAvg)
@@ -2039,7 +2039,7 @@ if ($ratingCntTot == 0 && $memberReviewCnt == 0) {
             . "</a>)<br>";
     }
 
-    displayMedianTime($rounded_median_time, $times_with_notes);
+    displayMedianTime($rounded_median_time, $alltimes);
 
     if ($memberReviewCnt != 0) {
         $href = ($memberReviewCnt > $reviewsOnHomePage)
