@@ -486,7 +486,7 @@ function findMedian($array_input) {
 
 
 // Get all of the estimated play times for this game, and put them in an array
-$result = mysqli_execute_query($db, "select playertimes.id as player_time_id, time_in_minutes, userid, name from playertimes inner join users on playertimes.userid = users.id where gameid = ?", [$id]);
+$result = mysqli_execute_query($db, "select playertimes.id as player_time_id, time_in_minutes, time_note, userid, name from playertimes inner join users on playertimes.userid = users.id where gameid = ?", [$id]);
 if (!$result) throw new Exception("Error: " . mysqli_error($db));
 $alltimes = mysqli_fetch_all($result, MYSQLI_ASSOC);
 
@@ -1464,7 +1464,7 @@ function updateUnwishList(id, stat)
 <label for='minutes'>Minutes:</label>
 <input type='number' name='minutes' id='minutes' min=0 max=59></p>
 <p><label for='timeNote'>Time Note:</label>
-<input type='text' name='timeNote' id='timeNote' maxlength='150' size='21' placeholder='Without hints.'></p>
+<input type='text' name='timeNote' id='timeNote' maxlength='150' size='21' placeholder='No hints.'></p>
 <button id='submitTimeButton' class='fancy-button' type='submit'>Submit Time</button>
 </div>
 
