@@ -708,7 +708,7 @@ The "downloads" section is for external links.
 }
 
 #externalLinks .fileIcon {
-    width: 40px;
+    min-width: 40px;
     border: 0;
 }
 
@@ -756,7 +756,7 @@ span.zipstar {
 listing.  This is used on game listing pages in the Download box.
 */
 span.fmtnotes {
-    display: inline-block;
+    display: block;
     font-size: 85%;
     line-height: 1.25em;
     color: #606060;

@@ -273,17 +273,17 @@ function showMemberReviewsHeader($showHisto)
         }
 
         echo "</table></td><td class=\"viewgame__histogramEnd\" valign=top>";
-        echo "<span class=details>Average Rating: "
+        echo "<div class=details>Average Rating: "
             . showStars($ratingAvg)
             . " based on $ratingCntAvg ratings<br>"
-            . "Number of Reviews Written by IFDB Members: $memberReviewCnt<br></span>";
+            . "Number of Reviews Written by IFDB Members: $memberReviewCnt<br></div>";
     }
 
     if ($currentUserReview || !$oneReviewView) {
-        echo "<span class=details><a href=\"review?id=$id&userid=$curuser\">"
+        echo "<div class=details><a href=\"review?id=$id&userid=$curuser\">"
             . ($currentUserReview ? "Revise your review" : "Write a review")
             . "</a>"
-            . "</span>";
+            . "</div>";
     }
 
     // finish the histogram table if applicable
@@ -484,20 +484,14 @@ function findMedian($array_input) {
     return $median;
 }
 
-// Get all of the estimated play times for this game, along with time notes and userids.
-// Put the times in one array so we can calculate the median. Put the times, notes, and 
-// userids in a second array for display. (Userids are displayed only in admin mode.)
-$result = mysqli_execute_query($db, "select playertimes.time_in_minutes, playertimes.time_note, playertimes.userid, users.name from playertimes inner join users on playertimes.userid = users.id where gameid = ?", [$id]);
+
+// Get all of the estimated play times for this game, and put them in an array
+$result = mysqli_execute_query($db, "select playertimes.id as player_time_id, time_in_minutes, userid, name from playertimes inner join users on playertimes.userid = users.id where gameid = ?", [$id]);
 if (!$result) throw new Exception("Error: " . mysqli_error($db));
-$alltimes = [];            // Array for just the times, so we can find the median
-$times_with_notes = [];    // Array for times, time notes, voter names, and userids
-while ($row = mysqli_fetch_assoc($result)) {
-    $alltimes[] = $row['time_in_minutes'];
-    $times_with_notes[] = $row;
-}
+$alltimes = mysqli_fetch_all($result, MYSQLI_ASSOC);
 
 // Find the median play time (in minutes) for this game
-$mediantime = findMedian($alltimes);
+$mediantime = findMedian(array_map(fn($row) => $row['time_in_minutes'], $alltimes));
 
 // When we display the official estimated time for a game, we want to round to the 
 // nearest 5 minutes when the game is longer than 1 hour.
@@ -1463,6 +1457,7 @@ function updateUnwishList(id, stat)
 <li>Time spent away from the game doesn't count.</li>
 <li>To help players gauge how long a game with puzzles might take, you can note if your time is with or without hints.</li>
 <li>Times don't need to be exact. Good-faith estimates are fine.</li>
+<li>Your vote will be publicly attributed to you.</li>
 </ul></details>
 <p><label for='hours'>Hours:</label>
 <input type='number' name='hours' id='hours' min=0 max=200>
@@ -1714,7 +1709,7 @@ foreach ($authorList as $i => $au) {
     $conj = ($i + 2 == count($authorList) ? ($i == 0 ? " and " : ", and ") : ", ");
 }
                   ?></b><br><br>
-                  <span class=details>
+                  <div class=details>
                      <?php
 if (!isEmpty($seriesname)) {
     if (isEmpty($seriesnum))
@@ -1757,7 +1752,7 @@ if (!isEmpty($genre)) {
                                 }
                             }                        }
                      ?>
-              </span>
+              </div>
            </div>
          </section>
 
@@ -2004,18 +1999,20 @@ function displayMedianTime($rounded_median_time, $times_with_notes) {
     echo " (based on " . count($times_with_notes) . " vote$s)</summary><br>";
     echo "Members voted for the following times for this game:";
     echo "<ul>";
-    foreach ($times_with_notes as $t) {
-        $time_in_text = convertTimeToText($t[time_in_minutes]);
+    foreach ($alltimes as $t) {
+        $time_vote_text = convertTimeToText($t['time_in_minutes']);
         $note = htmlspecialchars($t[time_note]);
-        $voter_id_number = $t[userid];
-        $voter_name = $t[name];
-        $list_item = "<strong>$time_in_text</strong>";
-        if ($note != "") {
-            $list_item .= ": \"$note\"";         // If the voter added a note, display it
+        if ($t['player_time_id'] > 388) {
+            // For new time votes, add the note (if present) and link to the user's profile
+            if ($note != "") {
+                $time_vote_text .= ": \"$note\"";
+            }
+            $time_vote_text .= " — <a href='showuser?id={$t['userid']}'>{$t['name']}</a>"
+        } else {
+            // Old time votes are attributed to "Anonymous"
+            $time_vote_text .= " — Anonymous <a href='https://ifdb.org/news?item=152'>until December 19</a>";
         }
-        $list_item .= '—<a href="showuser?id=' . $voter_id_number . '">' . $voter_name . '</a>';
-        
-        echo "<li>$list_item</li>";
+        echo "<li>$time_vote_text</li>";
     }
     echo "</ul></details>";
 }
@@ -2370,8 +2367,8 @@ if ($embargoCnt > 0)
 
             // show the link to the full list of reviews, if there are more
             if ($rowcnt > $reviewsOnHomePage) {
-                echo "<span class=details><a href=\"viewgame?id=$id&reviews\">
-                      See All $memberReviewCnt Member Reviews</a></span><br>";
+                echo "<div class=details><a href=\"viewgame?id=$id&reviews\">
+                      See All $memberReviewCnt Member Reviews</a></div><br>";
             }
 
             // end the indented division

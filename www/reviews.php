@@ -334,9 +334,9 @@ function showReview($db, $gameid, $rec, $specialNames, $optionFlags = 0)
     } else {
         // this is an ordinary review - start with the helpfulness votes
         if ($helpful != 0 || $unhelpful != 0) {
-            echo "<div class=smallhead><span class=details>$helpful of
+            echo "<div class=smallhead><div class=details>$helpful of
                   $totalvotes people found the following review helpful:
-                 ".($adminReviewVotes ? "<a href=\"/adminops?reviewvotes&reviewid=$reviewid\">Admin: Who?</a>" : "")."</span></div>";
+                 ".($adminReviewVotes ? "<a href=\"/adminops?reviewvotes&reviewid=$reviewid\">Admin: Who?</a>" : "")."</div></div>";
         }
     }
 
@@ -371,14 +371,14 @@ function showReview($db, $gameid, $rec, $specialNames, $optionFlags = 0)
     } else {
         // not special - show the headline and author
         echo " <b>$summary</b><span class=details>, $moddate</span><br>"
-            . "<div class=smallhead><span class=details>"
+            . "<div class=smallhead><div class=details>"
             .   "by <a href=\"showuser?id=$userid\">$username</a>"
             . (!isEmpty($location) ? " ($location)" : "")
-            . "</span><br>";
+            . "</div>";
     }
 
     if ($tags && count($tags)) {
-        echo "<span class=details>Related reviews: ";
+        echo "<div class=details>Related reviews: ";
         $sep = "";
         foreach ($tags as $t) {
             $tu = urlencode($t);
@@ -386,7 +386,7 @@ function showReview($db, $gameid, $rec, $specialNames, $optionFlags = 0)
             echo "$sep<a href=\"allreviews?id=$userid&tag=$tu\">$td</a>";
             $sep = ", ";
         }
-        echo "</span>";
+        echo "</div>";
 
         if ($isSpecial)
             echo "<br>";
