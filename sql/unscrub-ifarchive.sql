@@ -961,3 +961,97 @@ call refresh_gameRatingsSandbox0_mv(NEW.gameid);
 CREATE TRIGGER reviews_delete
 AFTER DELETE ON reviews FOR EACH ROW
 call refresh_gameRatingsSandbox0_mv(OLD.gameid);
+
+-- The roundMedianTime function takes the exact median time in minutes
+-- and rounds it. If the time is over an hour, round to the nearest 5 minutes.
+-- Otherwise, round to the nearest minute.
+
+DELIMITER $$
+
+CREATE FUNCTION roundMedianTime(
+    exact_median_in_minutes DECIMAL(5)
+)
+RETURNS INT(5)
+DETERMINISTIC
+BEGIN
+    DECLARE rounded_median_in_minutes INT(5);
+    IF exact_median_in_minutes > 60 THEN
+        SET rounded_median_in_minutes = (round(exact_median_in_minutes/5))*5;
+    ELSE
+        SET rounded_median_in_minutes = round(exact_median_in_minutes);
+    END IF;
+    RETURN (rounded_median_in_minutes);
+END $$
+
+DELIMITER ;
+
+
+-- View to calculate the estimated play time (the rounded median time) of each game
+CREATE VIEW `gametimes` AS 
+    SELECT 
+        DISTINCT gameid, 
+        roundMedianTime( median(time_in_minutes) OVER (PARTITION BY gameid) )  as `rounded_median_time_in_minutes`
+    FROM playertimes;
+
+
+-- Create a materialized view to store the data from the gametimes view
+CREATE TABLE gametimes_mv (
+  gameid VARCHAR(32) NOT NULL,
+  rounded_median_time_in_minutes INT(5) unsigned not null,
+  PRIMARY KEY (gameid),
+  KEY (rounded_median_time_in_minutes)
+);
+
+
+
+-- Populate the gametimes_mv materialized view from the gametimes view
+lock tables gametimes_mv write, gametimes read;
+truncate table gametimes_mv;
+insert into gametimes_mv select * from gametimes;
+unlock tables;
+
+
+-- Procedure to update one row of the gametimes_mv materialized view
+DROP PROCEDURE IF EXISTS refresh_gametimes_mv;
+DELIMITER $$
+
+CREATE PROCEDURE refresh_gametimes_mv (
+    IN new_gameid varchar(32)
+)
+BEGIN
+select *
+from gametimes
+where gameid = new_gameid
+into @gameid,
+    @rounded_median_time_in_minutes;
+if @gameid is null then
+    delete from gametimes_mv where gameid = new_gameid;
+else
+insert into gametimes_mv
+values (
+        @gameid,
+        @rounded_median_time_in_minutes
+    ) on duplicate key
+update gameid = @gameid,
+    rounded_median_time_in_minutes = @rounded_median_time_in_minutes;
+END IF;
+END;
+$$
+
+DELIMITER ;
+
+
+-- Create triggers so that when an individual player time in the playertimes table is
+-- updated, the rounded median time for that game (in the gametimes_mv materialized view)
+-- will also be updated.
+CREATE TRIGGER playertime_insert
+AFTER INSERT ON playertimes FOR EACH ROW
+call refresh_gametimes_mv(NEW.gameid);
+
+CREATE TRIGGER playertime_update
+AFTER UPDATE ON playertimes FOR EACH ROW
+call refresh_gametimes_mv(NEW.gameid);
+
+CREATE TRIGGER playertime_delete
+AFTER DELETE ON playertimes FOR EACH ROW
+call refresh_gametimes_mv(OLD.gameid);
