@@ -1464,7 +1464,7 @@ function updateUnwishList(id, stat)
 <label for='minutes'>Minutes:</label>
 <input type='number' name='minutes' id='minutes' min=0 max=59></p>
 <p><label for='timeNote'>Time Note:</label>
-<input type='text' name='timeNote' id='timeNote' maxlength='200' size='21' placeholder='No hints.'></p>
+<input type='text' name='timeNote' id='timeNote' maxlength='150' size='21' placeholder='No hints.'></p>
 <button id='submitTimeButton' class='fancy-button' type='submit'>Submit Time</button>
 </div>
 
