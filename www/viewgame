@@ -484,15 +484,12 @@ function findMedian($array_input) {
 }
 
 // Get all of the estimated play times for this game, and put them in an array
-$result = mysqli_execute_query($db, "select time_in_minutes from playertimes where gameid = ?", [$id]);
+$result = mysqli_execute_query($db, "select playertimes.id as player_time_id, time_in_minutes, userid, name from playertimes inner join users on playertimes.userid = users.id where gameid = ?", [$id]);
 if (!$result) throw new Exception("Error: " . mysqli_error($db));
-$alltimes = [];
-while ($row = mysqli_fetch_assoc($result)) {
-    $alltimes[] = $row['time_in_minutes'];
-}
+$alltimes = mysqli_fetch_all($result, MYSQLI_ASSOC);
 
 // Find the median play time (in minutes) for this game
-$mediantime = findMedian($alltimes);
+$mediantime = findMedian(array_map(fn($row) => $row['time_in_minutes'], $alltimes));
 
 // When we display the official estimated time for a game, we want to round to the 
 // nearest 5 minutes when the game is longer than 1 hour.
@@ -1995,8 +1992,12 @@ function displayMedianTime($rounded_median_time, $alltimes) {
     echo "Members voted for the following times for this game:";
     echo "<ul>";
     foreach ($alltimes as $t) {
-        $time_vote_text = convertTimeToText($t);
-        echo "<li>$time_vote_text</li>";
+        $time_vote_text = convertTimeToText($t['time_in_minutes']);
+        if ($t['player_time_id'] > 4) {
+            echo "<li>$time_vote_text — <a href='showuser?id={$t['userid']}'>{$t['name']}</a></li>";
+        } else {
+            echo "<li>$time_vote_text — Anonymous</li>";
+        }
     }
     echo "</ul></details>";
 }
