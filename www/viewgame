@@ -1997,7 +1997,7 @@ function displayMedianTime($rounded_median_time, $alltimes) {
         if ($t['player_time_id'] > 388) {
             echo "<li>$time_vote_text — <a href='showuser?id={$t['userid']}'>{$t['name']}</a></li>";
         } else {
-            echo "<li>$time_vote_text — Anonymous</li>";
+            echo "<li>$time_vote_text — Anonymous <a href='https://ifdb.org/news?item=152'>until December 19</a></li>";
         }
     }
     echo "</ul></details>";
