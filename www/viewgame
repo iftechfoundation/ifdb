@@ -1398,7 +1398,6 @@ function updateUnwishList(id, stat)
 <li>Vote on how long it would take to get to one final ending without hints or a walkthrough.</li>
 <li>Time spent away from the game doesn't count.</li>
 <li>Times don't need to be exact. Good-faith estimates are fine.</li>
-<li>When you vote, this game will automatically be added to your list of played games.</li>
 </ul></details>
 <p><label for='hours'>Hours:</label>
 <input type='number' name='hours' id='hours' min=0 max=200>
@@ -1454,8 +1453,9 @@ function submitTime() {
     }
     // Time is valid, as far as we can tell.
     // If the game isn't already on the user's list of played games, add it.
-    if (document.getElementById('ckBoxckPlayed').checked==false) {
-        document.getElementById('ckBoxckPlayed').checked=true;
+    var played_it_checkbox = document.getElementById('ckBoxckPlayed');
+    if !played_it_checkbox.checked) {
+        played_it_checkbox.checked = true;
         updatePlayed();
     }
     // Submit the time.
