@@ -2405,9 +2405,14 @@ span.sfl-save-autodesc {
         border-color: #7098a8;
     }
 
-    #tagEditor .viewgame__header,
-    #tagDeletor .viewgame__header {
+    #tagEditor .viewgame__tagEditorHeader,
+    #tagDeletor .viewgame__tagEditorHeader {
         background: #7098a8;
+        color: #000040;
+    }
+
+    .viewgame__tagEditorHeader a {
+        color: #0000c0;
     }
 
     .restricted {
