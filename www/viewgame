@@ -1093,12 +1093,12 @@ foreach ($links as $link)
                 // luckily, play.cgi does a 302 redirect to play.adrift.co with the canonical game URL
                 $adriftUrl = "https://www.adrift.co/cgi/play.cgi?" . $matches[1];
             } else {
-                $adriftUrl = "http://play.adrift.co/?game=" . urlencode($link['url']);
+                $adriftUrl = "https://play.adrift.co/?game=" . urlencode($link['url']);
             }
             break;
         } else if ($unboxUrl) {
             $foundAdrift = true;
-            $adriftUrl = "http://play.adrift.co/?game=" . urlencode($unboxUrl);
+            $adriftUrl = "https://play.adrift.co/?game=" . urlencode($unboxUrl);
             break;
         }
     }
