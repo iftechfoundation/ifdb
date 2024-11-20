@@ -2411,6 +2411,10 @@ span.sfl-save-autodesc {
         color: #000040;
     }
 
+    .viewgame__tagEditorHeader a {
+        color: #0000c0;
+    }
+
     .restricted {
         background: #444;
     }
