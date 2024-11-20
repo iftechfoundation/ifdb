@@ -1481,10 +1481,6 @@ function updateUnwishList(id, stat)
 // from the hours and minutes fields, validate it, convert it to 
 // minutes only, and save it to the database. 
 function submitTime() {
-    if (document.getElementById('ckBoxckPlayed').checked==false) {
-         document.getElementById("timeSaveMsg").innerHTML="Error: This game isn't on your list of played games.";
-         return;
-    }
     var new_hours = document.getElementById('hours').value;
     var new_minutes = document.getElementById('minutes').value;
     if (new_hours == "") {    // If the hours field was blank, interpret it as 0
@@ -1512,7 +1508,14 @@ function submitTime() {
         document.getElementById("timeSaveMsg").innerHTML="The total time must be at least one minute.";
         return;
     }
-    // Time is valid, as far as we can tell
+    // Time is valid, as far as we can tell.
+    // If the game isn't already on the user's list of played games, add it.
+    var played_it_checkbox = document.getElementById('ckBoxckPlayed');
+    if (!played_it_checkbox.checked) {
+        played_it_checkbox.checked = true;
+        updatePlayed();
+    }
+    // Submit the time.
     jsonSend("settime?game=<?php echo $id?>&newtime=" + new_time, "timeSaveMsg", swapTimeSections);
 }
 // Attach the submitTime function to the "Submit Time" button.
