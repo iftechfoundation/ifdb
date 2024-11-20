@@ -1454,7 +1454,7 @@ function submitTime() {
     // Time is valid, as far as we can tell.
     // If the game isn't already on the user's list of played games, add it.
     var played_it_checkbox = document.getElementById('ckBoxckPlayed');
-    if !played_it_checkbox.checked) {
+    if (!played_it_checkbox.checked) {
         played_it_checkbox.checked = true;
         updatePlayed();
     }
