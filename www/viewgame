@@ -1521,7 +1521,7 @@ function submitTime() {
         updatePlayed();
     }
     // Submit the time.
-    jsonSend("settime?game=<?php echo $id?>&newtime=" + new_time, "timeSaveMsg", swapTimeSections);
+    jsonSend(`settime?game=<?= $id?>&newtime=${new_time}&note=${encodeURIComponent(time_note)}`, "timeSaveMsg", swapTimeSections);
 }
 // Attach the submitTime function to the "Submit Time" button.
 document.getElementById("submitTimeButton").addEventListener("click", submitTime);
