@@ -298,6 +298,15 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse)
         $summaryDesc = "Games";
     }
 
+    // If the user has a custom game search filter, add it to the end
+    $gameSearchFilter = "";
+    if ($curuser) {
+        $result = mysqli_execute_query($db, "select game_search_filter from users where id = ?", [$curuser]);
+        //if (!$result) throw new Exception("Error: " . mysqli_error($db));
+        [$gameSearchFilter] = mysql_fetch_row($result);
+    }
+    $term .= " $gameSearchFilter";
+
     // parse the search
     for ($ofs = 0, $len = strlen($term), $words = array(),
          $specials = array(), $specialsUsed = array() ; ; $ofs++)
