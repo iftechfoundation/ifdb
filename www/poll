@@ -1341,7 +1341,7 @@ function expandVote(id)
                 // if we've reached the last row, we're done
                 if ($i >= $cnt) {
                     // end the table
-                    echo "</td></tr></table></div>";
+                    echo "</table></div>";
 
                     // terminate the loop
                     break;
@@ -1451,7 +1451,7 @@ function expandVote(id)
                 . "<a href=\"poll?id=$id&editPoll\">Modify</a> | "
                 . "<a href=\"poll?id=$id&delPoll\">Delete</a></p>";
         } else {
-            echo "<p><hr class=dots></p><p><i>Poll created on $created</i></p>";
+            echo "<hr class=dots><p><i>Poll created on $created</i></p>";
         }
     }
 
