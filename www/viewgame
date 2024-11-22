@@ -1488,7 +1488,7 @@ function updateUnwishList(id, stat)
 function submitTime() {
     var new_hours = document.getElementById('hours').value;
     var new_minutes = document.getElementById('minutes').value;
-    var time_note = document.getElementById('timeNote').value;
+    var time_note = document.getElementById('timeNote').value.trim();
     if (new_hours == "") {    // If the hours field was blank, interpret it as 0
         new_hours = 0;
     }
