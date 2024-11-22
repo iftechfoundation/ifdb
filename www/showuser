@@ -579,36 +579,41 @@ if ($errMsg) {
                 . "See all ratings by this member</a></span>";
         }
     } else {
-        $result = mysql_query(
+        $result = mysqli_execute_query($db,
             "select
                games.id, games.title, games.author,
                reviews.id, reviews.rating, reviews.summary,
-               reviews.review, date_format(reviews.moddate, '%M %e, %Y')
+               reviews.review,
+               date_format(reviews.createdate, '%M %e, %Y'),
+               date_format(reviews.moddate, '%M %e, %Y')
              from
                games, reviews
              where
-               reviews.userid = '$quid'
+               reviews.userid = ?
                and reviews.review is not null
                and games.id = reviews.gameid
                and ifnull(now() >= reviews.embargodate, 1)
-             order by reviews.moddate desc", $db);
+             order by reviews.createdate desc limit 6", [$uid]);
 
         for ($i = 0 ; $i < 5 && $i < mysql_num_rows($result) ; $i++) {
             // retrieve the result
-            list($gameid, $title, $author, $revid, $rating,
-                 $summary, $review, $moddate) = mysql_fetch_row($result);
+            [$gameid, $title, $author, $revid, $rating,
+             $summary, $review, $createdate, $moddate] = mysql_fetch_row($result);
 
             // fix up fields for display
             $title = htmlspecialcharx($title);
             $author = htmlspecialcharx($author);
             $author = collapsedAuthors($author);
             $summary = htmlspecialcharx($summary);
-            list($review, $revlen, $revtrunc) = summarizeHtml($review, 140);
+            [$review, $revlen, $revtrunc] = summarizeHtml($review, 140);
             $review = fixDesc($review);
+            if ($moddate && $createdate != $moddate) {
+                $createdate .= " (edited: $moddate)";
+            }
 
             // show the summary
             echo "<a href=\"viewgame?id=$gameid\">$title</a>, by $author"
-                . " &nbsp; <span class=details><i>$moddate</i></span><br>"
+                . " &nbsp; <span class=details><i>$createdate</i></span><br>"
                 . "<div class=indented><span class=details>"
                 . ($rating ? showStars($rating) . " " : "")
                 . ($revlen ? "<i>\"$review\"</i>" : "");
@@ -622,8 +627,7 @@ if ($errMsg) {
 
         if (mysql_num_rows($result) > 5) {
             echo "<p><span class=details><a href=\"allreviews?id=$uid\">"
-                . "See all " . mysql_num_rows($result)
-                . " reviews by $username</a></span>";
+                . "See all $revcnt reviews by $username</a></span>";
 
             echo "<br><span class=details>"
                 . "<a href=\"allreviews?id=$uid&ratings=yes\">"
