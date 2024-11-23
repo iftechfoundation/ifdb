@@ -1677,18 +1677,6 @@ else if ($term || $browse)
 if (!$api_mode) {
 ?>
 </div>
-<script type="text/javascript" nonce="<?php global $nonce; echo $nonce; ?>">
-<!--
-function newSearch(typ)
-{
-    var t = document.getElementById("searchfor").value;
-    var h = "search?tterm=" + encodeURI8859(t) + "<?php echo $urlXL ?>";
-    if (typ != "")
-        h += "&" + typ;
-    location.replace(h);
-}
-//-->
-</script>
 <?php
 
 // end the page
