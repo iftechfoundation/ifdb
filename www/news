@@ -45,27 +45,21 @@ if (isset($_REQUEST['rss'])) {
 <?php
 
     // send the items
-    $rowcnt = mysql_num_rows($result);
-    for ($i = 0 ; $i < $rowcnt ; $i++) {
-        // fetch the row
-        list($itemid, $title, $ldesc, $pub) = mysql_fetch_row($result);
-
-        // format the items for RSS
-        $title = rss_encode(htmlspecialcharx($title));
-        $ldesc = rss_encode(htmlspecialcharx($ldesc));
-        $pub = date("D, j M Y H:i:s ", strtotime($pub)) . 'UT';
+    while ($row = mysql_fetch_row($result)) {
+        [$itemid, $title, $ldesc, $pub] = $row;
 
         $link = get_root_url() . "news?item=$itemid";
-        $link = rss_encode(htmlspecialcharx($link));
 
         // send the item
-        echo "<item>\r\n"
-            . "<title>$title</title>\r\n"
-            . "<description>$ldesc</description>\r\n"
-            . "<link>$link</link>\r\n"
-            . "<pubDate>$pub</pubDate>\r\n"
-            . "<guid>$link</guid>\r\n"
-            . "</item>\r\n";
+        echo serialize_xml([
+            'item' => [
+                'title' => $title,
+                'description' => $ldesc,
+                'link' => $link,
+                'pubDate' => date("r", strtotime($pub)),
+                'guid' => $link,
+            ]
+        ]);
     }
 
     // close out the channel
@@ -77,7 +71,6 @@ if (isset($_REQUEST['rss'])) {
 
 // check for a single-item query
 $item = get_req_data('item');
-$qItem = mysql_real_escape_string($item, $db);
 
 // get the requested page number
 $pg = get_req_data('pg');
@@ -108,16 +101,18 @@ $lastOnPage = $firstOnPage + $perPage - 1;
 // set up for a single-item or page query
 if ($item) {
     // single item - query on the item ID, and don't bother with a range
-    $where = "where itemid = '$qItem'";
+    $where = "where itemid = ?";
     $limit = "";
+    $params = [$item];
 } else {
     // page view - query all items, and limit to the page range
     $where = "";
     $limit = "limit $firstOnPage, $perPage";
+    $params = null;
 }
 
 // query the news list
-$result = mysql_query(
+$result = mysqli_execute_query($db,
     "select sql_calc_found_rows
        itemid, title, ldesc, date_format(posted, '%e %M %Y')
      from
@@ -125,14 +120,14 @@ $result = mysql_query(
      $where
      order by
        posted desc
-     $limit", $db);
+     $limit", $params);
 
 $rowcnt = mysql_num_rows($result);
 if ($rowcnt < $perPage)
     $lastOnPage = $firstOnPage + $rowcnt - 1;
 
 $result2 = mysql_query("select found_rows()", $db);
-list($totcnt) = mysql_fetch_row($result2);
+[$totcnt] = mysql_fetch_row($result2);
 
 $lastPage = (int)floor(($totcnt + $perPage - 1)/$perPage);
 
@@ -140,24 +135,32 @@ $lastPage = (int)floor(($totcnt + $perPage - 1)/$perPage);
 if ($item) {
     // item query - no page controls are needed
     $pageCtl = "";
-    $pageCtlBreak = "";
 } else {
-    $pageCtl = "<span class=details>"
+    $pageCtl = "<nav class=details>"
                . makePageControl(
                    "news?", $pg, $lastPage,
                    $firstOnPage, $lastOnPage, $totcnt, true, false, false)
-               . "</span>";
-    $pageCtlBreak = "<br><br>";
+               . "</nav>";
+    $pageCtlBreak = "<br>";
+}
+
+// Check admin privileges
+if ($item && $userid) {
+    $user_result = mysqli_execute_query($db,
+        "select `privileges` from users where id=?", [$userid]);
+    [$userprivs] = mysql_fetch_row($user_result);
+    $adminPriv = (strpos($userprivs, "A") !== false);
+} else {
+    $adminPriv = false;
 }
 
 // show the items
 $lastDate = '';
 echo "$pageCtl$pageCtlBreak";
-for ($i = 0 ; $i < $rowcnt ; $i++) {
-    // fetch the next row
-    list($itemid, $title, $ldesc, $posted) =
-        mysql_fetch_row($result);
+while ($row = mysql_fetch_row($result)) {
+    [$itemid, $title, $ldesc, $posted] = $row;
 
+    echo '<article>';
     // display the next date heading, if this is a new item
     if ($posted != $lastDate) {
         echo "<h2>$posted</h2>";
@@ -167,19 +170,14 @@ for ($i = 0 ; $i < $rowcnt ; $i++) {
     // display the item
     echo "<p><b>$title</b>: $ldesc";
 
-    if ($item && $userid) {
-        $user_result = mysql_query(
-            "select `privileges` from users where id='$userid'", $db);
-        $userprivs = mysql_result($user_result, 0, "privileges");
-        $adminPriv = (strpos($userprivs, "A") !== false);
-    }
     if ($adminPriv) {
         echo "<p><a href='/adminops?editnews&item=".htmlspecialcharx($item)."'>Admin: Edit news item</a></p>";
         echo "<p><a href='/adminops?deletenews&item=".htmlspecialcharx($item)."'>Admin: Delete news item</a></p>";
     }
+    echo '</article>';
 }
 
-echo "$pageCtlBreak$pageCtl<br>";
+echo "$pageCtl";
 
 pageFooter();
 
