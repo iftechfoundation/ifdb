@@ -1509,9 +1509,17 @@ hr.dots {
 }
 
 /*
-The "grid" table class is used for tables showing images along the
+The "grid" class is used for tables and flexboxes showing images along the
 right and associated text alongside to the right.
 */
+article.grid {
+    display: flex;
+    gap: 1em;
+}
+article.grid > div:first-child {
+    min-width: 80px;
+}
+
 table.grid tr td {
     vertical-align: top;
     padding-right: 1em;

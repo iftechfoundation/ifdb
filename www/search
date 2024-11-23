@@ -1476,49 +1476,31 @@ else if ($term || $browse)
 
                 // show the item
                 echo "<p>";
+                echo "<article class=grid><div>";
                 if ($art) {
-                    // display with art
-                    echo "<table class=grid border=0 cellspacing=0 cellpadding=0>"
-                        . "<tr><td>"
-                        . "<a class='$eagerness' href=\"viewgame?id=$id\">"
-                        . coverArtThumbnail($id, 80, $pagevsn)
-                        . "</a></td><td>"
-                        . "<h3 class=result><a href=\"viewgame?id=$id\">"
-                        . "<b>$title</b></a></h3>$xlink<br>"
-                        . "by $author<br>";
-
-                    if ($year)
-                        echo "<span class=details>$year</span>";
-
-                    // build the tags, average rating, and rating details;
-                    // if we have anything to show, and we also showed a
-                    // year, add a newline between the two
-                    $xtra = "$tagDisp$stars$ratingExtra";
-                    if ($year)
-                        $xtra = "<br>$xtra";
-
-                    // add the extra detail
-                    echo "$xtra</td></tr></table>";
-
-                    // Show estimated play time if available
-                    if ($playtime != "")
-                        echo "<span class=details>$playtime</span>";
-
-                } else {
-                    // display with no art
-                    echo "<h3 class=result><a class='$eagerness' href=\"viewgame?id=$id\">"
-                        . "<b>$title</b></a></h3>"
-                        . ", by $author";
-
-                    if ($year)
-                        echo " ($year)";
-
-                    echo "$xlink<br>$tagDisp$stars$ratingExtra";
-
-                    // Show estimated play time if available
-                    if ($playtime != "")
-                        echo "<br><span class=details>$playtime</span>";
+                    echo "<a class='$eagerness' href=\"viewgame?id=$id\">"
+                        . coverArtThumbnail($id, 80, $pagevsn) . "</a>";
                 }
+                echo "</div><div><h3 class=result><a href=\"viewgame?id=$id\">"
+                    . "<b>$title</b></a></h3>$xlink<br>"
+                    . "by $author<br>";
+
+                if ($year)
+                    echo "<span class=details>$year</span>";
+
+                // build the tags, average rating, and rating details;
+                // if we have anything to show, and we also showed a
+                // year, add a newline between the two
+                $xtra = "$tagDisp$stars$ratingExtra";
+                if ($year)
+                    $xtra = "<br>$xtra";
+
+                // add the extra detail
+                echo "$xtra</div></article>";
+
+                // Show estimated play time if available
+                if ($playtime != "")
+                    echo "<span class=details>$playtime</span>";
                 break;
             
             case "list":
