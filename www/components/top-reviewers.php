@@ -8,7 +8,7 @@
       . ".top-reviewers__reviewer { padding: 0 1.5ex 0 1ex; }\n"
       . "</style>\n";
 
-   $rlst = getTopReviewers($db, 4);
+   $rlst = getTopReviewers($db, 10);
    $n = 1;
    foreach ($rlst as $r) {
       list($ruid, $runame, $rscore) = $r;
