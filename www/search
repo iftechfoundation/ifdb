@@ -399,7 +399,7 @@ function helpListLink($title, $id, $tableWid, $params)
 
 function helpExtLink($title, $url)
 {
-    echo "<div class=\"searchHelpList\" id=\"helpList.$id\">"
+    echo "<div class=\"searchHelpList\">"
         . "<a href=\"$url\" class=\"silent\">"
         . "<img border=0 src=\"/img/blank.gif\" class=\"listarrow\">$title</a>"
         . "</div>";
