@@ -29,7 +29,7 @@ echo "<style nonce='$nonce'>\n"
 
 echo "<div class=\"tipgroup\">
          <aside class=\"tipbox\">
-             <h1>Quick Stats</h1>";
+         <h1>Quick Stats</h1>";
 
 // get the user's current score
 [$score, $rank, $rankName] = userScore($uid);
@@ -52,16 +52,12 @@ if (!$foundAuthorCredits) {
         . "</aside>";
 }
 
-
-
-echo "</div><div>
-    <table width=\"100%\" cellpadding=0 cellspacing=0>
-    <tr valign=top><td id='personal__main'>";
+echo "</div><main>";
 
 function headline($text)
 {
-    echo "<div class=\"headline\">$text</div>"
-        . "<div class=headlineBody>";
+    echo "<section>";
+    echo "<h1>$text</h1>";
 }
 
 
@@ -92,7 +88,7 @@ if (mysql_num_rows($result) > 0) {
         . helpWinLink("help-gameprofilelink", "How do I edit this list?")
         . "</span>";
 
-    echo "</div>";
+    echo "</section>";
 
 }
 
@@ -110,9 +106,9 @@ $result = mysqli_execute_query($db, "select count(*) as c from reviews
 $ratingOnlyCnt = mysql_result($result, 0, "c");
 
 if ($fullReviewCnt == 0) {
-    echo "<span class=notes><i>You haven't written any reviews yet. To
+    echo "<p><span class=notes><i>You haven't written any reviews yet. To
        review a game, go to the game's home page, then click </i>Review
-       It<i>.</i></span><p> ";
+       It<i>.</i></span></p>";
 } else {
     $result = mysqli_execute_query($db,
         "select reviews.id, games.id, title, author,
@@ -150,7 +146,7 @@ if ($ratingOnlyCnt != 0) {
        <br><a href=\"allreviews?id=$uid&ratings=only\">See the list</a>";
 }
 
-echo "</div>";
+echo "</section>";
 
 
 // ---------------------------- COMMENTS ------------------------------
@@ -165,9 +161,9 @@ list($comments, $commentCnt) = queryComments(
     $db, "subscribed", $quid, "limit 0, 10", false, false);
 
 if ($commentCnt == 0) {
-    echo "<span class=notes><i>You have no comments yet (either "
+    echo "<p><span class=notes><i>You have no comments yet (either "
         . "comments that you posted, or comments by others on your "
-        . "reviews).</i></span><p>"
+        . "reviews).</i></span></p>"
         . helpWinLink("help-discussions", "Explain this") . "<p>";
 } else {
 
@@ -191,7 +187,7 @@ if ($commentCnt == 0) {
     echo "<p><a href=\"commentlog\">See all discussion updates</a> - "
         . helpWinLink("help-discussions", "Explain this") . "<br>";
 }
-echo "</div>";
+echo "</section>";
 
 
 // ---------------------------- LISTS ------------------------------
@@ -203,8 +199,8 @@ $result = mysqli_execute_query($db, "select count(*) as c from reclists
 $listCnt = mysql_result($result, 0, "c");
 
 if ($listCnt == 0) {
-    echo "<span class=notes><i>You haven't created any
-        Recommended Lists yet.</i></span><p>";
+    echo "<p><span class=notes><i>You haven't created any
+        Recommended Lists yet.</i></span></p>";
 } else {
     $result = mysqli_execute_query($db, "select id, title from reclists
         where userid = ?
@@ -224,7 +220,7 @@ if ($listCnt == 0) {
 }
 echo "<a href=\"editlist?id=new\">Create a new list</a><br>";
 
-echo "</div>";
+echo "</section>";
 
 
 // ---------------------------- POLLS ------------------------------
@@ -240,9 +236,9 @@ $result = mysqli_execute_query($db, "select count(*) as c from polls
 $pollCnt = mysql_result($result, 0, "c");
 
 if ($pollCnt == 0) {
-    echo "<span class=notes><i>You haven't created any Polls yet.</i></span> "
+    echo "<p><span class=notes><i>You haven't created any Polls yet.</i></span> "
         . "<span class=details>(" . helpWinLink("help-polls", "What's a Poll?")
-        . ")</span><p>";
+        . ")</span></p>";
 } else {
     $result = mysqli_execute_query($db,
         "select
@@ -277,13 +273,14 @@ if ($pollCnt == 0) {
 }
 echo "<a href=\"poll?id=new\">Create a new poll</a><br>";
 
-echo "</div>";
+echo "</section>";
 
 
 // ---------------------- GAME I'VE PLAYED ---------------------------
 
 headline("Your Play Lists");
 
+echo "<h3>Play List</h3>";
 $maxgames = 5;
 $result = mysqli_execute_query($db,
     "select id, title, author
@@ -293,15 +290,15 @@ $result = mysqli_execute_query($db,
     limit 0, " . ($maxgames + 1), [$uid]);
 
 if (mysql_num_rows($result) == 0) {
-    echo "<span class=notes>
+    echo "<p><span class=notes>
           <i>You haven't marked any games as played yet. To add a game
           this list, visit the game's overview page, and check the box
-          marked \"I've played it.\"</i></span>";
+          marked \"I've played it.\"</i></span></p>";
 } else {
-    echo "<span class=notes>
+    echo "<p><span class=notes>
           <i>To add or remove a game, visit the game's overview page,
           and check or uncheck the box marked \"I've played it.\"
-          </i></span><p>";
+          </i></span></p>";
 
     for ($i = 0 ; $i < $maxgames && $i < mysql_num_rows($result) ; $i++) {
         list($gameid, $title, $author) = mysql_fetch_row($result);
@@ -324,11 +321,11 @@ $result = mysqli_execute_query($db,
      order by wishlists.date_added desc
      limit 0, " . ($maxgames + 1), [$uid]);
 
-echo "<span class=notes><i>
+echo "<p><span class=notes><i>
      Your Wish List lets you keep track of games you'd like to
      play (or replay) in the future. To add a game to the list, visit
      the game's overview page, and check the box marked \"It's on my
-     wish list.\"</i></span><p>";
+     wish list.\"</i></span></p>";
 
 for ($i = 0 ; $i < $maxgames && $i < mysql_num_rows($result) ; $i++) {
     list($gameid, $title, $author) = mysql_fetch_row($result);
@@ -351,13 +348,13 @@ $result = mysqli_execute_query($db,
      order by unwishlists.date_added desc
      limit 0, " . ($maxgames + 1), [$uid]);
 
-echo "<span class=notes><i>
+echo "<p><span class=notes><i>
      Your \"Not Interested\" List lets you mark games that
      you've looked at and decided you're not interested in playing.
      The recommendation engine will omit these games when showing
      suggestions.  To add a game to the list, visit the game's
      overview page, and check the box marked
-     \"I'm not interested.\"</i></span><p>";
+     \"I'm not interested.\"</i></span></p>";
 
 for ($i = 0 ; $i < $maxgames && $i < mysql_num_rows($result) ; $i++) {
     list($gameid, $title, $author) = mysql_fetch_row($result);
@@ -372,7 +369,7 @@ if (mysql_num_rows($result) > $maxgames)
     echo "<p><a href=\"playlist?id=$uid&type=unwishlist\">"
         . "View your entire \"Not Interested\" list</a>";
 
-echo "</div>";
+echo "</section>";
 
 // ---------------------- GAME LISTINGS EDITED ---------------------------
 
@@ -410,8 +407,8 @@ for ($games = array(), $i = 0 ; $i < mysql_num_rows($result) ; $i++)
     $games[] = mysql_fetch_array($result, MYSQL_ASSOC);
 
 if (count($games) == 0) {
-    echo "<span class=notes><i>You haven't added or edited any game
-       listings in the IFDB catalog.</i></span>";
+    echo "<p><span class=notes><i>You haven't added or edited any game
+       listings in the IFDB catalog.</i></span></p>";
 } else {
     foreach ($games as $g) {
         echo "<a href=\"viewgame?id={$g['id']}\"><i>"
@@ -426,7 +423,7 @@ if (count($games) == 0) {
         . "See all of your catalog updates</a><br>";
 }
 
-echo "</div>";
+echo "</section>";
 
 
 
@@ -438,15 +435,9 @@ echo "<a href=\"showuser?id=$uid\">View your public profile</a><br>"
    . "<a href=\"editprofile\">Edit your profile</a><br>"
    . "<a href=\"userfilter?list\">View/edit your user filters</a><br>";
 
-echo "</div>";
+echo "</section>";
+echo "</main>";
 
-
-// -------------------- done with the main column -------------------
-echo "</td>";
-
-// ------------------------------------------------------------------------
-// finish the main table
-echo "</td></tr></table></div>";
 
 pageFooter();
 
