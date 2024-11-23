@@ -1275,58 +1275,58 @@ else if ($term || $browse)
         // if this is a game search, show the tip boxes
         if ($searchType == "game") {
             echo "<div class=tipgroup>"
-                . "<div class=tipbox>"
+                . "<aside class=tipbox>"
                 . "<h1><a href=\"search\">Search tips</a></h1>"
                 . "Learn more about search syntax."
-                . "</div>"
-                . "<div class=tipbox>"
+                . "</aside>"
+                . "<aside class=tipbox>"
                 . "<h1><a href=\"editgame?id=new\">Add a game listing</a></h1>"
                 . "You can help improve IFDB by adding a game to our database."
-                . "</div>";
+                . "</aside>";
 
             if ($pg == 1 && !$pgAll)
-                echo  "<div class=tipbox><h1>Bookmark this search</h1>"
+                echo  "<aside class=tipbox><h1>Bookmark this search</h1>"
                     . "If you think you might want to repeat this search "
                     . "in the future, you can save the search parameters "
                     . "simply by bookmarking this page (adding it to "
                     . "your \"favorites\") in your browser."
-                    . "</div>";
+                    . "</aside>";
 
             echo "</div>";
         }
 
         // if this is a list search, show the list tip box
             if ($searchType == "list") {
-                echo "<div class=tipbox>"
+                echo "<aside class=tipbox>"
                     . "<h1><a href=\"editlist?id=new\">Create a recommended list</a></h1>"
                     . "You can use lists to recommend games you like to other people."
-                    . "</div>";
+                    . "</aside>";
         }
 
         // if this is a poll search, show the poll tip box
         if ($searchType == "poll") {
-            echo "<div class=tipbox>"
+            echo "<aside class=tipbox>"
                 . "<h1><a href=\"poll?id=new\">Create a poll</a></h1>"
                 . "If you're looking for a specific kind of IF, you can "
                 . "create a poll to ask other people for recommendations."
-                . "</div>";
+                . "</aside>";
         }
 
         // if this is a comp search, show the comp tip box
         if ($searchType == "comp") {
-            echo "<div class=tipbox>"
+            echo "<aside class=tipbox>"
                 . "<h1><a href=\"editcomp?id=new\">Add a competition page</a></h1>"
                 . "If a competition isn't in our database yet, you can "
                 . "add a new competition page."
-                . "</div>";
+                . "</aside>";
         }
 
         // if this is a tag search, show the tag tip box
         if ($searchType == "tag") {
-            echo "<div class=tipbox>"
+            echo "<aside class=tipbox>"
                 . "<h1>View all the game tags</h1>"
                 . "You can <a href=\"showtags\">see all the tags in a table</a> or in a <a href=\"showtags?cloud=1\">tag cloud</a>."
-                . "</div>";
+                . "</aside>";
         }
 
         // show the sorting controls

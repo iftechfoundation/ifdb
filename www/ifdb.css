@@ -1004,7 +1004,7 @@ in floating boxes on the right of the page.
 div.tipgroup {
     float: right;
 }
-div.tipbox {
+aside.tipbox {
     float: right;
     border: 1px solid gray;
     width: 35ex;
@@ -1015,10 +1015,10 @@ div.tipbox {
     color: #505050;
     line-height: 1.2em;
 }
-div.tipgroup div.tipbox {
+div.tipgroup aside.tipbox {
     float: none;
 }
-div.tipbox h1 {
+aside.tipbox h1 {
     font-weight: bold;
     font-size: 100%;
     margin-bottom: 0.5ex;
@@ -1367,7 +1367,7 @@ span.headlineRss {
         display: none;
     }
 
-    div.tipbox {
+    aside.tipbox {
         display: none;
     }
 
@@ -2326,7 +2326,7 @@ span.sfl-save-autodesc {
         color: #FFFFFF;
         border: 1.5px solid #696991;
     }
-    div.tipbox {
+    aside.tipbox {
         background: #101030;
         border: 1px solid #323245;
         color: #ffffff;
