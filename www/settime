@@ -1,4 +1,5 @@
 <?php
+// The code in this file is for saving or deleting a time vote in the database.
 
 include_once "session-start.php";
 include_once "util.php";
@@ -21,6 +22,7 @@ if ($db == false)
 // get the request parameters
 $game = get_req_data('game');
 $newtime = get_req_data('newtime');
+$timenote = get_req_data('note');
 
 // make sure there's a game
 if ($game == "")
@@ -76,15 +78,15 @@ if ($newtime == 0 && $rid) {
 } else if ($rid) {
     // there's an existing time record, and the new time is not 0, so update the record
     $result = mysqli_execute_query($db,
-        "update playertimes set time_in_minutes = ? where id=?", [$newtime, $rid]);
+        "update playertimes set time_in_minutes = ?, time_note = ? where id=?", [$newtime, $timenote, $rid]);
     if (!$result) error_log(mysql_error($db));
     $ok = true;
 
 } else if ($newtime != 0) {
     // there's no time there yet for this user, so insert a new one
     $result = mysqli_execute_query($db,
-        "insert into playertimes (gameid, userid, time_in_minutes)
-         values (?, ?, ?)", [$game, $userid, $newtime]);
+        "insert into playertimes (gameid, userid, time_in_minutes, time_note)
+         values (?, ?, ?, ?)", [$game, $userid, $newtime, $timenote]);
     $ok = true;
 } else {
     $result = true;
