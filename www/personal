@@ -15,8 +15,8 @@ $db = dbConnect();
 $uid = $_SESSION['logged_in_as'];
 $quid = mysql_real_escape_string($uid, $db);
 
-$result = mysql_query(
-    "select name, caughtupdate from users where id='$quid'", $db);
+$result = mysqli_execute_query($db,
+    "select name, caughtupdate from users where id=?", [$uid]);
 list($username, $caughtUpDate) = mysql_fetch_row($result);
 
 pageHeader("$username's IFDB Activity");
@@ -69,12 +69,12 @@ function headline($text)
 // ----------------------- AUTHORING CREDITS -------------------------
 
 $foundAuthorCredits = false;
-$result = mysql_query(
+$result = mysqli_execute_query($db,
     "select games.id as id, title
      from gameprofilelinks
        join games on games.id = gameprofilelinks.gameid
-     where userid='$quid'
-     order by games.sort_title", $db);
+     where userid=?
+     order by games.sort_title", [$uid]);
 
 if (mysql_num_rows($result) > 0) {
 
@@ -101,12 +101,12 @@ if (mysql_num_rows($result) > 0) {
 headline("Your Reviews");
 
 $maxreviews = 10;
-$result = mysql_query("select count(*) as c from reviews
-    where userid = '$quid' and review is not null", $db);
+$result = mysqli_execute_query($db, "select count(*) as c from reviews
+    where userid = ? and review is not null", [$uid]);
 $fullReviewCnt = mysql_result($result, 0, "c");
 
-$result = mysql_query("select count(*) as c from reviews
-    where userid = '$quid' and review is null", $db);
+$result = mysqli_execute_query($db, "select count(*) as c from reviews
+    where userid = ? and review is null", [$uid]);
 $ratingOnlyCnt = mysql_result($result, 0, "c");
 
 if ($fullReviewCnt == 0) {
@@ -114,15 +114,15 @@ if ($fullReviewCnt == 0) {
        review a game, go to the game's home page, then click </i>Review
        It<i>.</i></span><p> ";
 } else {
-    $result = mysql_query(
+    $result = mysqli_execute_query($db,
         "select reviews.id, games.id, title, author,
            if (reviews.embargodate > now(),
              date_format(reviews.embargodate, '%M %e, %Y'), null)
         from reviews, games
-        where userid = '$quid' and games.id = reviews.gameid
+        where userid = ? and games.id = reviews.gameid
           and review is not null
         order by greatest(createdate, ifnull(embargodate, cast(0 as datetime))) desc, createdate desc
-        limit 0, $maxreviews", $db);
+        limit 0, $maxreviews", [$uid]);
 
     for ($i = 0 ; $i < mysql_num_rows($result) ; $i++) {
         [$reviewid, $gameid, $title, $author, $embargoDate] =
@@ -198,18 +198,18 @@ echo "</div>";
 headline("Your Recommended Lists");
 
 $maxlists = 10;
-$result = mysql_query("select count(*) as c from reclists
-    where userid = '$quid'", $db);
+$result = mysqli_execute_query($db, "select count(*) as c from reclists
+    where userid = ?", [$uid]);
 $listCnt = mysql_result($result, 0, "c");
 
 if ($listCnt == 0) {
     echo "<span class=notes><i>You haven't created any
         Recommended Lists yet.</i></span><p>";
 } else {
-    $result = mysql_query("select id, title from reclists
-        where userid = '$quid'
+    $result = mysqli_execute_query($db, "select id, title from reclists
+        where userid = ?
         order by moddate desc
-        limit 0, $maxlists", $db);
+        limit 0, $maxlists", [$uid]);
 
     for ($i = 0 ; $i < mysql_num_rows($result) ; $i++) {
         list($listid, $title) = mysql_fetch_row($result);
@@ -235,8 +235,8 @@ echo "<style nonce='$nonce'>\n"
     . "</style>\n";
 
 $maxpolls = 10;
-$result = mysql_query("select count(*) as c from polls
-    where userid = '$quid'", $db);
+$result = mysqli_execute_query($db, "select count(*) as c from polls
+    where userid = ?", [$uid]);
 $pollCnt = mysql_result($result, 0, "c");
 
 if ($pollCnt == 0) {
@@ -244,20 +244,20 @@ if ($pollCnt == 0) {
         . "<span class=details>(" . helpWinLink("help-polls", "What's a Poll?")
         . ")</span><p>";
 } else {
-    $result = mysql_query(
+    $result = mysqli_execute_query($db,
         "select
            p.pollid, p.title, count(v.gameid), count(distinct v.gameid)
          from
            polls as p
            left outer join pollvotes as v on v.pollid = p.pollid
          where
-           p.userid = '$quid'
+           p.userid = ?
          group by
            p.pollid
          order by
            p.created desc
          limit
-           0, $maxpolls", $db);
+           0, $maxpolls", [$uid]);
 
     for ($i = 0 ; $i < mysql_num_rows($result) ; $i++) {
         list($pollid, $title, $votecnt, $gamecnt) = mysql_fetch_row($result);
@@ -285,12 +285,12 @@ echo "</div>";
 headline("Your Play Lists");
 
 $maxgames = 5;
-$result = mysql_query(
+$result = mysqli_execute_query($db,
     "select id, title, author
     from games, playedgames
-    where games.id = playedgames.gameid and playedgames.userid='$quid'
+    where games.id = playedgames.gameid and playedgames.userid = ?
     order by playedgames.date_added desc
-    limit 0, " . ($maxgames + 1), $db);
+    limit 0, " . ($maxgames + 1), [$uid]);
 
 if (mysql_num_rows($result) == 0) {
     echo "<span class=notes>
@@ -317,12 +317,12 @@ if (mysql_num_rows($result) == 0) {
 }
 
 echo "<h3>Wish List</h3>";
-$result = mysql_query(
+$result = mysqli_execute_query($db,
     "select id, title, author
      from games, wishlists
-     where games.id = wishlists.gameid and wishlists.userid='$quid'
+     where games.id = wishlists.gameid and wishlists.userid = ?
      order by wishlists.date_added desc
-     limit 0, " . ($maxgames + 1), $db);
+     limit 0, " . ($maxgames + 1), [$uid]);
 
 echo "<span class=notes><i>
      Your Wish List lets you keep track of games you'd like to
@@ -344,12 +344,12 @@ if (mysql_num_rows($result) > $maxgames)
         . "View your entire wish list</a>";
 
 echo "<h3>\"Not Interested\" List</h3>";
-$result = mysql_query(
+$result = mysqli_execute_query($db,
     "select id, title, author
      from games, unwishlists
-     where games.id = unwishlists.gameid and unwishlists.userid='$quid'
+     where games.id = unwishlists.gameid and unwishlists.userid = ?
      order by unwishlists.date_added desc
-     limit 0, " . ($maxgames + 1), $db);
+     limit 0, " . ($maxgames + 1), [$uid]);
 
 echo "<span class=notes><i>
      Your \"Not Interested\" List lets you mark games that
@@ -379,7 +379,7 @@ echo "</div>";
 headline("Your Catalog Contributions");
 
 $maxgames = 5;
-mysql_query(
+mysqli_execute_query($db,
     "create temporary table my_edits as
      select
        games.id as id,
@@ -391,12 +391,12 @@ mysql_query(
        games, games_history
      where
        games_history.id = games.id
-       and games_history.editedby = '$quid'
+       and games_history.editedby = ?
      group by
        games.id
      union
      select id, title, author, cast(moddate as datetime), pagevsn
-       from games where editedby = '$quid'", $db);
+       from games where editedby = ?", [$uid, $uid]);
 
 $result = mysql_query(
     "select id, title, author, max(pagevsn) as pagevsn,
