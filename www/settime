@@ -84,10 +84,9 @@ if ($newtime == 0 && $rid) {
 
 } else if ($newtime != 0) {
     // there's no time there yet for this user, so insert a new one
-    $createdate = date("Y-m-d");
     $result = mysqli_execute_query($db,
-        "insert into playertimes (gameid, userid, time_in_minutes, time_note, createdate)
-         values (?, ?, ?, ?, ?)", [$game, $userid, $newtime, $timenote, $createdate]);
+        "insert into playertimes (gameid, userid, time_in_minutes, time_note)
+         values (?, ?, ?, ?)", [$game, $userid, $newtime, $timenote]);
     $ok = true;
 } else {
     $result = true;
