@@ -22,7 +22,7 @@ if ($db == false)
 // get the request parameters
 $game = get_req_data('game');
 $newtime = get_req_data('newtime');
-$timenote = get_req_data('note');
+$timenote = trim(get_req_data('note'));
 
 // make sure there's a game
 if ($game == "")
