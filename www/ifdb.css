@@ -1484,18 +1484,6 @@ div.cpanelHeadingTop {
 
 
 /*
-The "boxhead" style is used for the headline within "rightbar"
-boxes.
-*/
-tr.boxhead {
-    margin: 0 0 0 0;
-    padding: 0 0 0 0;
-}
-tr.boxhead td {
-    text-align: left;
-}
-
-/*
 The "dots" is used for horizontal rules that separate sections
 on a page.
 */

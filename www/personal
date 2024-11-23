@@ -25,7 +25,36 @@ echo "<style nonce='$nonce'>\n"
     . "#personal__main { padding-right: 1em; }\n"
     . "</style>\n";
 
-echo "<div>
+// ----------------------- statistics box ---------------------------
+
+echo "<div class=\"tipgroup\">
+         <aside class=\"tipbox\">
+             <h1>Quick Stats</h1>";
+
+// get the user's current score
+[$score, $rank, $rankName] = userScore($uid);
+
+if ($rankName)
+    echo "You're a <b>$rankName</b>!<br>";
+
+echo "Number of reviews written: $fullReviewCnt<br>Your "
+   . helpWinLink("help-ff", "<i>Frequent Fiction</i> Points")
+   . ": $score"
+   . "</aside>";
+
+// ----------------------- authorship help box ---------------------------
+if (!$foundAuthorCredits) {
+    echo "<aside class=\"tipbox\">
+                   <h1>Are you an IF author?</h1>
+                    If you're the author of any of the games listed in IFDB,
+                    you can link them to your profile. "
+        . helpWinLink("help-gameprofilelink", "Learn more...")
+        . "</aside>";
+}
+
+
+
+echo "</div><div>
     <table width=\"100%\" cellpadding=0 cellspacing=0>
     <tr valign=top><td id='personal__main'>";
 
@@ -414,46 +443,6 @@ echo "</div>";
 
 // -------------------- done with the main column -------------------
 echo "</td>";
-
-// ----------------------- statistics box ---------------------------
-
-echo "<td align=right valign=top>
-         <table class=rightbar cellpadding=0 cellspacing=0>
-             <tr class=boxhead>
-                <td>
-                   <h3>Quick Stats</h3>
-                </td>
-             </tr>
-             <tr>
-                <td>";
-
-// get the user's current score
-list($score, $rank, $rankName) = userScore($uid);
-
-if ($rankName)
-    echo "You're a <b>$rankName</b>!<br>";
-
-echo "Number of reviews written: $fullReviewCnt<br>Your "
-   . helpWinLink("help-ff", "<i>Frequent Fiction</i> Points")
-   . ": $score<br>"
-   . "</td></tr></table>";
-
-// ----------------------- authorship help box ---------------------------
-if (!$foundAuthorCredits) {
-    echo "<p><table class=rightbar cellpadding=0 cellspacing=0>
-             <tr class=boxhead>
-                <td>
-                   <h3>Are you an IF author?</h3>
-                </td>
-             </tr>
-             <tr>
-                <td>
-                    If you're the author of any of the games listed in IFDB,
-                    you can link them to your profile. "
-        . helpWinLink("help-gameprofilelink", "Learn more...")
-        . "</td></tr></table>";
-}
-
 
 // ------------------------------------------------------------------------
 // finish the main table
