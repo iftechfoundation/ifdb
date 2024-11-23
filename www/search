@@ -304,7 +304,7 @@ if ($term || $browse) {
 
     // run the search
     list($rows, $rowcnt, $sortList, $errMsg, $summaryDesc, $badges,
-         $specials, $specialsUsed, $orderBy) =
+         $specials, $specialsUsed, $orderBy, $filtered) =
         doSearch($db, $term, $searchType, $sortby, $limit, $browse);
 
     // adjust our page limits to include the whole result set if desired
@@ -1260,6 +1260,11 @@ else if ($term || $browse)
             $otherBrowse .= "</div>";
         }
 
+        $filterLabel="";
+        if ($filtered == true) {
+            $filterLabel = "Default filter • ";
+        }
+       
         if ($pgAll)
             $range = "$rowcnt Result" . ($rowcnt == 1 ? "" : "s");
         else
@@ -1270,7 +1275,7 @@ else if ($term || $browse)
             . "<div class=\"browseBar\"><span>"
             . ($term != "" ? "Results for <b>" . htmlspecialcharx($term) . "</b>" : "")
             . $otherBrowse
-            . "</span><div class=\"browseSummary\">$range</div></div>";
+            . "</span><div class=\"browseSummary\">$filterLabel$range</div></div>";
 
         // if this is a game search, show the tip boxes
         if ($searchType == "game") {
