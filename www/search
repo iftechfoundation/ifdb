@@ -1091,7 +1091,7 @@ if ($api_mode) {
                 $item['coverArtLink'] =
                     get_root_url() . "coverart?id=$id&version={$row['pagevsn']}";
             }
-            if ($row['rounded_median_time_in_minutes']) {
+            if (isset($row['rounded_median_time_in_minutes'])) {
                 $item['playTimeInMinutes'] = $row['rounded_median_time_in_minutes'];
             }
 
@@ -1421,7 +1421,7 @@ else if ($term || $browse)
 
                 // Show the estimated play time if available
                 $playtime = "";
-                if ($row['rounded_median_time_in_minutes']) {
+                if (isset($row['rounded_median_time_in_minutes'])) {
                     $playtime = "Estimated play time: " . convertTimeToText($row['rounded_median_time_in_minutes']);
                 }
                 
