@@ -73,6 +73,9 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse)
     // assume no badge info
     $badges = false;
 
+    // So far, we're not applying a custom search filter
+    $filtered = false;
+    
     // set up the parameters for the type of search we're performing
     if ($searchType == "list")
     {
@@ -299,13 +302,16 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse)
     }
 
     // If the user has a custom game search filter, add it to the end
-    $gameSearchFilter = "";
+
     if ($curuser) {
         $result = mysqli_execute_query($db, "select game_search_filter from users where id = ?", [$curuser]);
         //if (!$result) throw new Exception("Error: " . mysqli_error($db));
-        [$gameSearchFilter] = mysql_fetch_row($result);
-    }
-    $term .= " $gameSearchFilter";
+        $gameSearchFilter = mysql_fetch_row($result);
+        if ($gameSearchFilter) {
+            $filtered = true;
+            $term .= " $gameSearchFilter";
+        }
+    }    
 
     // parse the search
     for ($ofs = 0, $len = strlen($term), $words = array(),
@@ -1165,7 +1171,7 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse)
 
     // return the results
     return array($rows, $rowcnt, $sortList, $errMsg, $summaryDesc,
-                 $badges, $specials, $specialsUsed, $orderBy);
+                 $badges, $specials, $specialsUsed, $orderBy, $filtered);
 }
 
 ?>
