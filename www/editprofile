@@ -931,19 +931,19 @@ captchaSupportScripts($captchaKey);
 
 </div>
 
-<h2>5. Game Search Filtering</h2>
+<h2>5. Default Filter for Games</h2>
 
 <div class=indented>
-<p><span class=details>To include a filter in all your game searches, you can 
-   create a filter using IFDB's special search prefixes, and save it here. For 
-   instance, if you want your game searches to exclude games in a certain 
-   genre and games that have certain tags, you can enter
+<p><span class=details>To apply a filter to games on the search page and 
+   on the browse page, you can create a default filter using IFDB's special search 
+   prefixes, and save it here. For instance, if you want to exclude games in 
+   a certain genre and games that have certain tags, you can enter
    <br><b>-genre:example1 -tag:example2 -tag:example3</b><br>
    replacing "example1" with the name of a genre, and replacing "example2" 
-   and "example3" with names of tags. While you are logged in, your filter 
-   will automatically be added to the end of your game search queries. (Note that
-   games on IFDB are not always tagged or categorized, so filters will not have 
-   perfect results.)
+   and "example3" with names of tags. While you are logged in, your default filter 
+   will automatically be added to the end of your game search queries, and will
+   also be used to filter games on the browse page. (Note that games on IFDB 
+   are not always tagged or categorized, so filters won't be completely reliable.)
 </span>
 <p><label for='game_search_filter'>Filter for game searches:</label>
 <input type='text' name='game_search_filter' id='game_search_filter' maxlength=100 value="<?php echo htmlspecialcharx($game_search_filter) ?>"></span>
