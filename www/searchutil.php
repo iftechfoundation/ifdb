@@ -306,7 +306,7 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse)
     if ($curuser) {
         $result = mysqli_execute_query($db, "select game_search_filter from users where id = ?", [$curuser]);
         //if (!$result) throw new Exception("Error: " . mysqli_error($db));
-        $gameSearchFilter = mysql_fetch_row($result);
+        [$gameSearchFilter] = mysql_fetch_row($result);
         if ($gameSearchFilter) {
             $filtered = true;
             $term .= " $gameSearchFilter";
