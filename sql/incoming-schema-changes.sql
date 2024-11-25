@@ -87,7 +87,7 @@ CREATE TABLE playertimes (
   userid VARCHAR(32) NOT NULL,
   time_in_minutes INT(5) unsigned not null,
   time_note VARCHAR(150),
-  createdate DATE DEFAULT (CURRENT_DATE),
+  createdate DATETIME DEFAULT now(),
   PRIMARY KEY (id),
   UNIQUE KEY `game_user` (`gameid`, `userid`)
 );
