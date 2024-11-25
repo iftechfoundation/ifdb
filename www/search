@@ -1262,7 +1262,7 @@ else if ($term || $browse)
 
         $filterLabel="";
         if ($filtered == true) {
-            $filterLabel = "Default filter • ";
+            $filterLabel = "Filtered results: ";
         }
        
         if ($pgAll)
