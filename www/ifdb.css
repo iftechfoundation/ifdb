@@ -776,13 +776,10 @@ span.xmlstatmsg {
 }
 
 /*
-We use the "details" span in various places where we display additional
+We use the "details" class in various places where we display additional
 details about a listing or other item.
 */
-span.details {
-    font-size: 85%;
-}
-div.details {
+.details {
     font-size: 85%;
 }
 
