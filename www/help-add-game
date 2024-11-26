@@ -7,26 +7,24 @@ helpPageHeader("Guidelines for New Game Listings");
 
 <h1>Guidelines for New Game Listings</h1>
 
-<p>
+<ul class="doublespace">
 <li>IFDB is for <b>interactive fiction</b>, which is roughly
 defined as "adventure" type games that are mostly or entirely text-based.
 Games with graphical content are allowed as long as they have a
 significant text component.
 
-<p>
 <li><b>Don't</b> list non-IF games, such as entirely graphical
 adventures, RPGs, shooters, etc.
 
-<p>
 <li><b>Commercial IF</b> is acceptable, whether classic or new.
 You can add a commercial game of your own, but please read
 our <a href="help-edit-game">guidelines</a> about what goes
 in your listing.
 
-<p>
 <li><b>Don't</b> add separate listings for different versions of
 a game.  Any given game should have only <b>one</b> listing that covers
 <b>all</b> of its release versions.
+</ul>
 
 
 <?php
