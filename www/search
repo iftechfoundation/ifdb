@@ -1663,6 +1663,11 @@ else if ($term || $browse)
         // add the page controls again at the bottom, if applicable
         if ($pg != 1 || $rowcnt > $perPage)
             echo "<div class='search__pageCtl'>$pageCtl</div>";
+
+        // Announce that the results are filtered, if applicable
+        if ($filtered == true) {
+            echo "<div>These results have been filtered. To search again without the filter, <a href>click here</a>.</div>";
+        }
     }
 
 
