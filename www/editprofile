@@ -939,11 +939,11 @@ captchaSupportScripts($captchaKey);
    search prefixes. For instance, to hide games in a certain language, 
    games in a certain genre, and games with a certain tag, you can type
    <br><b>-language:example -genre:example -tag:example</b><br>
-   (replacing the word "example" with the name of the language, genre, or 
-   tag). While you are logged in, your saved filter will automatically be 
-   used on the search page when you search games (the filter will be added 
-   to the end of your search terms) and on the browse page when you browse 
-   games. At the bottom of the page, there will be an option to search or 
+   (replacing "example" with the name of the language, genre, or tag). 
+   While you are logged in, your saved filter will automatically be 
+   used when you do a game search (the filter will be added to the end of 
+   your search terms), and when you browse games on the browse page. At the 
+   bottom of the page of results, there will be an option to search or 
    browse without the filter. (Note: Filter results are not reliable, so 
    please don't depend on them to ensure kid-friendly content.)
 </span>
