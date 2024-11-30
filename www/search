@@ -1667,7 +1667,7 @@ else if ($term || $browse)
 
         // Announce that the results are filtered, if applicable
         if ($filtered == true) {
-            echo "<div>These results have been filtered. To search again without the filter, <a href>click here</a>.</div>";
+            echo '<div>These results have been filtered. To search again without the filter, <a href="search?searchfor=' . $term . '&filter=0">click here</a>.</div>';
         }
     }
 
