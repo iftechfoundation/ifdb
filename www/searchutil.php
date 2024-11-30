@@ -43,7 +43,7 @@ function convertTimeStringToMinutes($h_m_string) {
 }
 
 
-function doSearch($db, $term, $searchType, $sortby, $limit, $browse)
+function doSearch($db, $term, $searchType, $sortby, $limit, $browse, $applyFilter)
 {
     // we need the current user for some types of queries
     checkPersistentLogin();
@@ -301,13 +301,14 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse)
         $summaryDesc = "Games";
     }
 
-    // If the user has a custom game search filter, add it to the end
-
-    if ($curuser) {
+    // Handle custom search filters
+    if ($curuser && $applyFilter != 0) {
+        // We're logged in, and haven't been told to override a custom search filter, so check for one
         $result = mysqli_execute_query($db, "select game_search_filter from users where id = ?", [$curuser]);
         //if (!$result) throw new Exception("Error: " . mysqli_error($db));
         [$gameSearchFilter] = mysql_fetch_row($result);
         if ($gameSearchFilter) {
+            // We've found a filter, so add it to the end of the search term
             $filtered = true;
             $term .= " $gameSearchFilter";
         }
