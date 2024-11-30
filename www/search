@@ -1259,12 +1259,7 @@ else if ($term || $browse)
             }
             $otherBrowse .= "</div>";
         }
-
-        $filterLabel="";
-        if ($filtered == true) {
-            $filterLabel = "Filtered results: ";
-        }
-       
+     
         if ($pgAll)
             $range = "$rowcnt Result" . ($rowcnt == 1 ? "" : "s");
         else
@@ -1275,7 +1270,7 @@ else if ($term || $browse)
             . "<div class=\"browseBar\"><span>"
             . ($term != "" ? "Results for <b>" . htmlspecialcharx($term) . "</b>" : "")
             . $otherBrowse
-            . "</span><div class=\"browseSummary\">$filterLabel$range</div></div>";
+            . "</span><div class=\"browseSummary\">$range</div></div>";
 
         // if this is a game search, show the tip boxes
         if ($searchType == "game") {
