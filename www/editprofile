@@ -934,9 +934,9 @@ captchaSupportScripts($captchaKey);
 <h2>5. Game Filtering</h2>
 
 <div class=indented>
-<p><span class=details>To limit what kinds of games appear on the search 
-   page and on the browse page, you can create a filter using IFDB's 
-   search prefixes. For instance, to hide games in a certain language, 
+<p><span class=details>To limit what kinds of games appear on the <a href="/search">search 
+   page</a> and on the /<a href="/search?browse">browse page</a>, you can create a filter using IFDB's 
+   <a href=/search">search prefixes</a>. For instance, to hide games in a certain language, 
    games in a certain genre, and games with a certain tag, you can type
    <br><b>-language:example -genre:example -tag:example</b><br>
    (replacing "example" with the name of the language, genre, or tag). 
