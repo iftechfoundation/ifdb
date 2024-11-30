@@ -58,6 +58,7 @@ if ($api_mode && !isset($_SESSION['logged_in_as']) && isset($_SERVER['PHP_AUTH_U
 $term = get_req_data('searchfor');
 $bTerm = get_req_data('searchbar');
 $extraLink = get_req_data('xlink');
+$applyFilter = get_req_data('filter');
 
 if ($term == "" && $bTerm != "")
     $term = $bTerm;
@@ -305,7 +306,7 @@ if ($term || $browse) {
     // run the search
     list($rows, $rowcnt, $sortList, $errMsg, $summaryDesc, $badges,
          $specials, $specialsUsed, $orderBy, $filtered) =
-        doSearch($db, $term, $searchType, $sortby, $limit, $browse);
+        doSearch($db, $term, $searchType, $sortby, $limit, $browse, $applyFilter);
 
     // adjust our page limits to include the whole result set if desired
     if ($pgAll) {
