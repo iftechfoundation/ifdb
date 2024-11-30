@@ -63,7 +63,8 @@ function getReviewQuery($db, $where)
         "select sql_calc_found_rows
            reviews.id as reviewid, rating, summary, review,
            moddate, date_format(moddate, '%M %e, %Y') as moddatefmt,
-           createdate, date_format(createdate, '%M %e, %Y') as createdatefmt,
+           greatest(createdate, ifnull(embargodate, cast(0 as datetime))) as createdate,
+           date_format(createdate, '%M %e, %Y') as createdatefmt,
            users.id as userid, users.name as username,
            users.location as location, special,
            sum(reviewvotes.vote = 'Y' and ifnull(rvu.sandbox, 0) in $sandbox) as helpful,
@@ -272,8 +273,15 @@ function showReview($db, $gameid, $rec, $specialNames, $optionFlags = 0)
     $review = fixDesc($rec['review'], FixDescSpoiler);
     $createdate = $rec['createdatefmt'];
     $moddate = $rec['moddatefmt'];
+    $lastupdateFootnote = null;
     if ($moddate && $createdate != $moddate) {
-        $createdate .= " (edited: $moddate)";
+        // Rating-only review
+        if ($review == "") {
+            $createdate .= " (last edited on $moddate)";
+        } else {
+            $lastupdateFootnote = "This review was last edited on $moddate";
+            $createdate .= "<span title=\"$lastupdateFootnote\">*</span>";
+        }
     }
     $specialName = isset($rec['specialname']) ? $rec['specialname'] : false;
     $specialID = $rec['special'];
@@ -416,6 +424,9 @@ function showReview($db, $gameid, $rec, $specialNames, $optionFlags = 0)
             .'<div class="expand"><button>Read More</button></div></div>';
     } else {
         echo "<div class=\"review__body\" ><p>$review</p></div>";
+    }
+    if ($lastupdateFootnote) {
+        echo "<small><i>* $lastupdateFootnote</i></small>";
     }
 
     // set up the comment controls, if applicable
