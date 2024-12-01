@@ -56,6 +56,7 @@ $emailcloaked = (get_req_data('emailcloaked') != 0);
 $gender = get_req_data('gender');
 $offsite = get_req_data('offsite');
 $accessibility = (get_req_data('accessibility') ? 1 : 0);
+$game_search_filter = get_req_data('game_search_filter');
 
 if (strlen($gender) != 1 || strpos("MF", $gender) === false)
     $gender = "";
@@ -72,7 +73,7 @@ function showHiddenFields()
     global $email, $email2, $pubemail, $dname, $loc, $profile, $pic,
         $defaultOS, $mirror, $noExes,
         $playlistPub, $wishlistPub, $unwishlistPub, $gender,
-        $emailcaptcha, $emailcloaked;
+        $emailcaptcha, $emailcloaked, $game_search_filter;
 
     echo "<input type=hidden name=email value=\""
           . htmlspecialcharx($email) . "\">"
@@ -103,6 +104,7 @@ function showHiddenFields()
         . "<input type=hidden name=gender value=\"$gender\">"
         . "<input type=hidden name=offsite value=\"$offsite\">"
         . "<input type=hidden name=accessibility value=\"$accessibility\">"
+        . "<input type=hidden name=game_search_filter value=\"$game_search_filter\">"
         . "<input type=hidden name=mirror value=\""
         . htmlspecialcharx($mirror) . "\">"
         . "<input type=hidden name=defaultos value=\""
@@ -135,7 +137,7 @@ function init()
         $unwishlistPub, $oldUnwishlistPub, $gender, $oldGender,
         $emailcaptcha, $oldEmailcaptcha, $emailcloaked, $oldEmailcloaked,
         $mirror, $oldMirror, $actcode, $oldPicName, $offsite, $oldOffsite,
-        $accessibility, $oldAccessibility;
+        $accessibility, $oldAccessibility, $game_search_filter, $old_game_search_filter;
 
     // connect to the database
     if ($db == false) {
@@ -155,7 +157,7 @@ function init()
            acctstatus, activationcode,
            concat(defaultos, '.', ifnull(defaultosvsn,'')) as defaultos,
            noexedownloads, publiclists, gender, emailflags,
-           offsite_display, accessibility
+           offsite_display, accessibility, game_search_filter
         from
            users
         where
@@ -193,6 +195,7 @@ function init()
     $oldEmailcloaked = (($emailflags & EMAIL_CLOAKED) ? 1 : 0);
     $oldOffsite = mysql_result($result, 0, "offsite_display");
     $oldAccessibility = mysql_result($result, 0, "accessibility");
+    $old_game_search_filter = mysql_result($result, 0, "game_search_filter");
 
     // if we're not posting, populate the form with the current values
     // from the database
@@ -215,6 +218,7 @@ function init()
         $mirror = $oldMirror;
         $offsite = $oldOffsite;
         $accessibility = $oldAccessibility;
+        $game_search_filter = $old_game_search_filter;
     }
 
     // if the current cover art setting refers to an uploaded image
@@ -237,8 +241,8 @@ function saveChanges()
         $unwishlistPub, $oldUnwishlistPub,
         $gender, $oldGender, $emailcaptcha, $oldEmailcaptcha,
         $emailcloaked, $oldEmailcloaked, $mirror, $oldMirror, $actcode,
-        $offsite, $oldOffsite, $accessibility, $oldAccessibility,
-        $captchaKey, $captchaOK, $captchaErr;
+        $offsite, $oldOffsite, $accessibility, $oldAccessibility, $game_search_filter,
+        $old_game_search_filter, $captchaKey, $captchaOK, $captchaErr;
 
     // no new picture yet
     $imgID = false;
@@ -260,7 +264,8 @@ function saveChanges()
         || $gender != $oldGender
         || $mirror != $oldMirror
         || $offsite != $oldOffsite
-        || $accessibility != $oldAccessibility)
+        || $accessibility != $oldAccessibility
+        || $game_search_filter != $old_game_search_filter)
     {
         // if we're changing the email address, we'll need to reactivate
         if (strcmp($email, $oldemail) != 0) {
@@ -309,6 +314,7 @@ function saveChanges()
         $qpubemail = mysql_real_escape_string($pubemail, $db);
         $qloc = mysql_real_escape_string($loc, $db);
         $qprofile = mysql_real_escape_string($profile, $db);
+        $qgamesearchfilter = mysql_real_escape_string($game_search_filter, $db);
 
         // make sure the location doesn't contain a url
         if (preg_match("/http:/i", $loc)) {
@@ -570,7 +576,8 @@ complete the re-activation process.</b>
                    noexedownloads = '$qNoExes', publiclists = '$qPublicLists',
                    gender = '$qGender', emailflags = '$emailflags',
                    offsite_display = '$qOffsite',
-                   accessibility = '$qAccessibility'
+                   accessibility = '$qAccessibility',
+                   game_search_filter = '$qgamesearchfilter'
                    $setPic
                 where id = '$usernum'", $db) == false) {
             $errFlagged = "An error occurred updating the database. You might
@@ -923,6 +930,32 @@ captchaSupportScripts($captchaKey);
 <p><a href="userfilter?list" target="_blank">View/Edit my filter list</a>
 
 </div>
+
+<h2>5. Game Filtering</h2>
+
+<div class=indented>
+<p><span class=details>To limit what kinds of games appear on the 
+   <a href="/search" target="_blank">search page</a> and on the 
+   <a href="/search?browse" target="_blank">browse page</a>, you can 
+   create a filter using IFDB's 
+   <a href="/search" target="_blank">search prefixes</a>. 
+   For instance, to hide games in a certain language, games in a 
+   certain genre, and games with a certain tag, you can type
+   <br><b>-language:example -genre:example -tag:example</b><br>
+   (replacing "example" with the name of the language, genre, or tag). 
+   While you are logged in, your saved filter will automatically be 
+   be added to the end of your search terms when you search for games.
+   The filter will also be applied when you browse games on the browse 
+   page. At the bottom of the page of results, there will be an option 
+   to search again without the filter. (Note: Game information on IFDB 
+   is incomplete and can have mistakes. A filter is not a reliable way 
+   to make sure that games are kid-friendly.)
+</span>
+<p><label for='game_search_filter'>Game filter:</label>
+<input type='text' name='game_search_filter' id='game_search_filter' maxlength=150 size=40 value="<?php echo htmlspecialcharx($game_search_filter) ?>"></span>
+
+</div>
+
 
 <br><br>
 <input type=submit value="Save Changes" name="save">
