@@ -82,7 +82,7 @@ ALTER TABLE `wishlists` CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode
 -- Add column for game search filter to the users table
 --
 
-ALTER TABLE `users` ADD COLUMN `game_search_filter` VARCHAR(100) DEFAULT '';
+ALTER TABLE `users` ADD COLUMN `game_search_filter` VARCHAR(150) DEFAULT '';
 
 
 
