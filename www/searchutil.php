@@ -303,12 +303,12 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse, $override_g
 
     // Handle custom search filters
     if ($curuser && $override_game_filter != 1) {
-        // We're logged in, and haven't been told to override a custom search filter, so check for one
+        // We're logged in, and haven't been told to override a custom game filter, so check for one
         $result = mysqli_execute_query($db, "select game_search_filter from users where id = ?", [$curuser]);
-        //if (!$result) throw new Exception("Error: " . mysqli_error($db));
+        if (!$result) throw new Exception("Error: " . mysqli_error($db));
         [$gameSearchFilter] = mysql_fetch_row($result);
         if ($gameSearchFilter) {
-            // We've found a filter, so add it to the end of the search term
+            // We've found a custom game filter, so add it to the end of the search term
             $games_filtered = true;
             $term .= " $gameSearchFilter";
         }
