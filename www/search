@@ -58,7 +58,7 @@ if ($api_mode && !isset($_SESSION['logged_in_as']) && isset($_SERVER['PHP_AUTH_U
 $term = get_req_data('searchfor');
 $bTerm = get_req_data('searchbar');
 $extraLink = get_req_data('xlink');
-$overrideFilter = get_req_data('nofilter');
+$override_game_filter = get_req_data('nofilter');
 
 if ($term == "" && $bTerm != "")
     $term = $bTerm;
@@ -305,8 +305,8 @@ if ($term || $browse) {
 
     // run the search
     list($rows, $rowcnt, $sortList, $errMsg, $summaryDesc, $badges,
-         $specials, $specialsUsed, $orderBy, $filtered) =
-        doSearch($db, $term, $searchType, $sortby, $limit, $browse, $overrideFilter);
+         $specials, $specialsUsed, $orderBy, $games_filtered) =
+        doSearch($db, $term, $searchType, $sortby, $limit, $browse, $override_game_filter);
 
     // adjust our page limits to include the whole result set if desired
     if ($pgAll) {
@@ -1665,9 +1665,9 @@ else if ($term || $browse)
         if ($pg != 1 || $rowcnt > $perPage)
             echo "<div class='search__pageCtl'>$pageCtl</div>";
 
-        // Announce that the results are filtered, if applicable
-        if ($filtered == true) {
-            echo '<div>These results have been filtered. To search again without the filter, <a href="search?searchfor=' . $term . '&nofilter=1">click here</a>.</div>';
+        // Announce that the game results are filtered, if applicable
+        if ($games_filtered == true) {
+            echo '<div class="details"><i>These results have been filtered. To search again without the filter, <a href="search?searchfor=' . $term . '&nofilter=1">click here</a>.</i></div>';
         }
     }
 
