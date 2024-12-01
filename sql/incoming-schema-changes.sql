@@ -75,6 +75,13 @@ ALTER TABLE `users` CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 ALTER TABLE `userScores_mv` CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 ALTER TABLE `wishlists` CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
+--
+-- Add column for game search filter to the users table
+--
+
+ALTER TABLE `users` ADD COLUMN `game_search_filter` VARCHAR(150) DEFAULT '';
+
+
 
 --
 -- Table structure for table `playertimes`
