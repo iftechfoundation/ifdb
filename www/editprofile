@@ -944,15 +944,15 @@ captchaSupportScripts($captchaKey);
    <br><b>-language:example -genre:example -tag:example</b><br>
    (replacing "example" with the name of the language, genre, or tag). 
    While you are logged in, your saved filter will automatically be 
-   used when searching games (the filter will be added to the end of 
-   your search terms), and when browsing games on the browse page. 
-   At the bottom of the page of results, there will be an option to 
-   search again without the filter. (Note: Filter results may be 
-   inaccurate, and cannot be relied on to make sure that games are 
-   appropriate for kids.)
+   be added at the end of your search terms when you search for games.
+   The filter will also be applied when you browse games on the browse 
+   page. At the bottom of the page of results, there will be an option 
+   to search again without the filter. (Note: Game information on IFDB 
+   is incomplete and can have mistakes. A filter is not a reliable way 
+   to make sure that games are kid-friendly.)
 </span>
-<p><label for='game_search_filter'>Default filter:</label>
-<input type='text' name='game_search_filter' id='game_search_filter' maxlength=100 value="<?php echo htmlspecialcharx($game_search_filter) ?>"></span>
+<p><label for='game_search_filter'>Game filter:</label>
+<input type='text' name='game_search_filter' id='game_search_filter' maxlength=150 size=40 value="<?php echo htmlspecialcharx($game_search_filter) ?>"></span>
 
 </div>
 
