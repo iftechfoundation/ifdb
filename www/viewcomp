@@ -363,8 +363,8 @@ function decodeProfiles($t)
 // show the page
 echo "<h1>$title</h1>"
    . "$desc"
-   . "<p><span class=details><a href=\"viewcomp?id=$compID&rss\">"
-   .   "<img src='img/blank.gif' class='rss-icon'>News &amp; updates (RSS)</a>"
+   . "<p><span class=details><a class=\"rss-icon\" href=\"viewcomp?id=$compID&rss\">"
+   .   "News &amp; updates (RSS)</a>"
    . "</span>"
    . "<h2>Details</h2>"
    . "<div class=\"hangindentedMore notes\">";

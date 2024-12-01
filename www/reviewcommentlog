@@ -231,8 +231,8 @@ if ($rss) {
     echo "<h1>$title</h1>"
         . "<p>This is a history of $expl."
         . "<p><span class=details>View $links - "
-        . "<a href=\"reviewcommentlog?user=$userid&mode=$mode&rss\">"
-        . "<img src=\"/img/blank.gif\" class=\"rss-icon\">RSS Feed</a></span>";
+        . "<a class=\"rss-icon\" href=\"reviewcommentlog?user=$userid&mode=$mode&rss\">"
+        . "RSS Feed</a></span>";
 
     // figure where we are in the list
     $lastPage = (int)floor(($rowcnt + $perPage - 1)/$perPage);

@@ -3147,12 +3147,12 @@ if (count($inrefs) != 0 && !$historyView) {
 ?>
 
 <h2>RSS Feeds</h2>
-<a href="viewgame?id=<?php echo $id ?>&reviews&rss">
-    <img src="img/blank.gif" class="rss-icon">New member reviews</a>
-<br><a href="viewgame?id=<?php echo $id ?>&downloads&rss">
-    <img src="img/blank.gif" class="rss-icon">Updates to external links</a>
-<br><a href="viewgame?id=<?php echo $id ?>&news&rss">
-    <img src="img/blank.gif" class="rss-icon">All updates to this page</a>
+<a class="rss-icon" href="viewgame?id=<?php echo $id ?>&reviews&rss">
+    New member reviews</a>
+<br><a class="rss-icon" href="viewgame?id=<?php echo $id ?>&downloads&rss">
+    Updates to external links</a>
+<br><a class="rss-icon" href="viewgame?id=<?php echo $id ?>&news&rss">
+    All updates to this page</a>
 
 <?php
 

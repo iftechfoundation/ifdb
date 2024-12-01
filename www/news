@@ -90,8 +90,8 @@ echo "<h1>New Features on IFDB</h1>"
 if ($item)
     echo "<a href=\"news\">More site news</a> - ";
 
-echo  "<a href=\"news?rss\">"
-   . "<img src=\"img/blank.gif\" class=\"rss-icon\">RSS Feed</a></a></span><p>";
+echo  "<a href=\"news?rss\" class=\"rss-icon\">"
+   . "RSS Feed</a></span><p>";
 
 // set up pagination
 $perPage = 15;

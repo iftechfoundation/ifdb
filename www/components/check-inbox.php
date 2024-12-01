@@ -17,8 +17,8 @@ if ($quid) {
 
         echo "<div class='headline check-inbox__headline'>"
             . "<span class=headlineRss>"
-            . "<a href=\"commentlog?user=$quid&mode=inbox&rss\">"
-            . "<img src=\"img/blank.gif\" class=\"rss-icon\">Your Inbox (RSS)</a>"
+            . "<a class=\"rss-icon\" href=\"commentlog?user=$quid&mode=inbox&rss\">"
+            . "Your Inbox (RSS)</a>"
             . "</span>"
             . "Your Discussions</div>";
 
