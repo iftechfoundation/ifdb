@@ -1228,7 +1228,7 @@ else if ($term || $browse)
         echo "<i>No results were found.</i>";
 
         if ($games_filtered == true) {
-            echo '<p class="details"><i>A filter was applied to your search. To search again without the filter, <a href="search?searchfor=' . $term . '&nofilter=1">click here</a>.</i></p>';
+            echo '<p><i>A filter was applied to your search. <a href="search?searchfor=' . $term . '&nofilter=1">Click</a> to search again without the filter.</i></p>';
         }
 
         if ($searchType == "game") {
