@@ -87,7 +87,7 @@ if ($listtype == "reviewideas") {
     $listTable = "playedgames";
     $listName = "play list";
     $title = trim(htmlspecialcharx("$usernamePoss Played Games"));
-    $listCols = ", playertimes.time_in_minutes, playertimes.id as time_id";
+    $listCols = ", playertimes.time_in_minutes";
     $privcode = "P";
     $listJoin = "join playedgames"
                 .  " on playedgames.gameid = games.id"
@@ -242,15 +242,8 @@ if ($errMsg) {
             $pagevsn = $rec['pagevsn'];
             $onPlayList = ($listtype == "reviewideas" && $rec['onPlayList']);
             $user_time = "";
-            if ($rec['time_in_minutes'] && $rec['time_id']) {
-                if ($rec['time_id'] > 388) {      
-                    // If the time is public
-                    $user_time = convertTimeToText($rec['time_in_minutes']);
-                } else if ($uid == $curuser) {
-                    // If the time is anonymous, and belongs to the current user
-                    $user_time = convertTimeToText($rec['time_in_minutes']);
-                    $user_time .= " (anonymous <a href='https://ifdb.org/news?item=152'>until December 19</a>)";
-                }
+            if ($rec['time_in_minutes']) {
+                $user_time = convertTimeToText($rec['time_in_minutes']);
             }
 
             if ($hasart)
