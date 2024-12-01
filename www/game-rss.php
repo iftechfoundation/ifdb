@@ -42,7 +42,7 @@ function getGameRssItems($db, $id, $feedType, $gameTitle, $links, $extFeed)
 
         // query the reviews
         $result = mysql_query(
-            "$selectMemberReviews order by moddate desc", $db);
+            "$selectMemberReviews order by createdate desc", $db);
 
         // build the item
         for ($i = 0 ; $i < mysql_num_rows($result) ; $i++) {
@@ -55,7 +55,7 @@ function getGameRssItems($db, $id, $feedType, $gameTitle, $links, $extFeed)
             $rid = $r['reviewid'];
             $rlink = htmlspecialcharx(
                 get_root_url() . "viewgame?id=$id&review=$rid");
-            $rdate = date("D, j M Y H:i:s ", strtotime($r['moddate'])) . 'UT';
+            $rdate = date("D, j M Y H:i:s ", strtotime($r['createdate'])) . 'UT';
             list($rdesc, $len, $trunc) = summarizeHtml($r['review'], 210);
             $rdesc = htmlspecialcharx(fixDesc($rdesc));
             $rauth = htmlspecialcharx($r['username']);
@@ -83,7 +83,7 @@ function getGameRssItems($db, $id, $feedType, $gameTitle, $links, $extFeed)
                     . "</item>";
 
             // add it to the master list
-            $items[] = array($r['moddate'], $item);
+            $items[] = [$r['createdate'], $item];
         }
     }
 

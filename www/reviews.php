@@ -63,6 +63,8 @@ function getReviewQuery($db, $where)
         "select sql_calc_found_rows
            reviews.id as reviewid, rating, summary, review,
            moddate, date_format(moddate, '%M %e, %Y') as moddatefmt,
+           greatest(createdate, ifnull(embargodate, cast(0 as datetime))) as createdate,
+           date_format(createdate, '%M %e, %Y') as createdatefmt,
            users.id as userid, users.name as username,
            users.location as location, special,
            sum(reviewvotes.vote = 'Y' and ifnull(rvu.sandbox, 0) in $sandbox) as helpful,
@@ -269,7 +271,18 @@ function showReview($db, $gameid, $rec, $specialNames, $optionFlags = 0)
     $rating = $rec['rating'];
     $summary = htmlspecialcharx($rec['summary']);
     $review = fixDesc($rec['review'], FixDescSpoiler);
+    $createdate = $rec['createdatefmt'];
     $moddate = $rec['moddatefmt'];
+    $lastupdateFootnote = null;
+    if ($moddate && $createdate != $moddate) {
+        // Rating-only review
+        if ($review == "") {
+            $createdate .= " (last edited on $moddate)";
+        } else {
+            $lastupdateFootnote = "This review was last edited on $moddate";
+            $createdate .= "<span title=\"$lastupdateFootnote\">*</span>";
+        }
+    }
     $specialName = isset($rec['specialname']) ? $rec['specialname'] : false;
     $specialID = $rec['special'];
     $userid = $rec['userid'];
@@ -313,7 +326,7 @@ function showReview($db, $gameid, $rec, $specialNames, $optionFlags = 0)
         echo "<p>" . showStars($rating)
             . " - <a href=\"showuser?id=$userid\">$username</a>"
             . (!isEmpty($location) ? " ($location)" : "")
-            . ", $moddate<p>";
+            . "<span class=details>, $createdate</span><p>";
         return;
     }
 
@@ -370,7 +383,7 @@ function showReview($db, $gameid, $rec, $specialNames, $optionFlags = 0)
 
     } else {
         // not special - show the headline and author
-        echo " <b>$summary</b><span class=details>, $moddate</span><br>"
+        echo " <b>$summary</b><span class=details>, $createdate</span><br>"
             . "<div class=smallhead><div class=details>"
             .   "by <a href=\"showuser?id=$userid\">$username</a>"
             . (!isEmpty($location) ? " ($location)" : "")
@@ -411,6 +424,9 @@ function showReview($db, $gameid, $rec, $specialNames, $optionFlags = 0)
             .'<div class="expand"><button>Read More</button></div></div>';
     } else {
         echo "<div class=\"review__body\" ><p>$review</p></div>";
+    }
+    if ($lastupdateFootnote) {
+        echo "<small><i>* $lastupdateFootnote</i></small>";
     }
 
     // set up the comment controls, if applicable
