@@ -1447,6 +1447,7 @@ function updateUnwishList(id, stat)
 <div class=indented>
 <div id='timeVoteControls' class='viewgame__playedSection'><?php // There's an event listener attached to "timeVoteControls" ?>
 <span id="timeVoteControlsCaption"><b>Estimated play time:</b></span>
+<noscript><i>To use this feature, please enable JavaScript in your browser.</i></noscript>
 
 <div id='submitTimeSection'>
 <span id='howLong'>Vote on how long it takes to finish this game.</span><br>
