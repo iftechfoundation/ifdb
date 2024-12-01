@@ -315,7 +315,7 @@ if ($term || $browse) {
     }
 
     // if there's exactly one row, jump directly to the result page
-    if ($rowcnt == 1 && !$browse && !$api_mode) {
+    if ($rowcnt == 1 && !$browse && !$api_mode && $games_filtered == false) {
         $redir = false;
         switch ($searchType) {
         case "game":
@@ -1671,7 +1671,7 @@ else if ($term || $browse)
 
         // Announce that the game results are filtered, if applicable
         if ($games_filtered == true) {
-            echo "<div class='search__pageCtl'>These results have been filtered. <a href='search?searchfor=' . $term . '&nofilter=1'>Click</a>To search again without the filter.</div>';
+            echo "<div class='details'>These results have been filtered. <a href='search?searchfor=" . $term . "&nofilter=1'>Click</a> to search again without the filter.</div>";
         }
     }
 
