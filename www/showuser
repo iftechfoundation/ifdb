@@ -583,8 +583,9 @@ if ($errMsg) {
                games.id, games.title, games.author,
                reviews.id, reviews.rating, reviews.summary,
                reviews.review,
-               date_format(reviews.createdate, '%M %e, %Y'),
-               date_format(reviews.moddate, '%M %e, %Y')
+               date_format(greatest(reviews.createdate, ifnull(embargodate, cast(0 as datetime))), '%M %e, %Y'),
+               date_format(greatest(reviews.moddate, ifnull(embargodate, cast(0 as datetime))), '%M %e, %Y'),
+               greatest(reviews.createdate, ifnull(embargodate, cast(0 as datetime))) as publicationdate
              from
                games, reviews
              where
@@ -592,7 +593,7 @@ if ($errMsg) {
                and reviews.review is not null
                and games.id = reviews.gameid
                and ifnull(now() >= reviews.embargodate, 1)
-             order by reviews.createdate desc limit 6", [$uid]);
+             order by publicationdate desc, createdate desc limit 6", [$uid]);
 
         for ($i = 0 ; $i < 5 && $i < mysql_num_rows($result) ; $i++) {
             // retrieve the result

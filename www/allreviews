@@ -41,8 +41,8 @@ $pg = get_req_data('pg');
 $sortReq = get_req_data('sortby');
 
 $sortList = array(
-    'new' => array('createdate desc', 'Newest First'),
-    'old' => array('createdate', 'Oldest First'),
+    'new' => array('publicationdate desc, createdate desc', 'Newest First'),
+    'old' => array('publicationdate, createdate', 'Oldest First'),
     'hlp' => array('netHelpful desc', 'Most Helpful First'),
     'unh' => array('netHelpful', 'Least Helpful First'),
     'hi' => array('rating desc', 'Highest Ratings First'),
@@ -195,12 +195,14 @@ if ($errMsg) {
            reviews.rating as rating,
            reviews.summary as summary,
            reviews.review as review,
-           reviews.createdate as createdate,
+           date_format(reviews.createdate, '%M %e, %Y') as createdatefmt,
+           greatest(createdate, ifnull(embargodate, cast(0 as datetime))) as publicationdate,
            if (reviews.embargodate > now(),
              date_format(reviews.embargodate, '%M %e, %Y'),
              null) as embargodate,
            reviews.special as special,
-           date_format(reviews.createdate, '%M %e, %Y') as createdatefmt,
+           date_format(greatest(createdate, ifnull(embargodate, cast(0 as datetime))), '%M %e, %Y') as publicationdatefmt,
+           date_format(greatest(reviews.moddate, ifnull(embargodate, cast(0 as datetime))), '%M %e, %Y') as moddatefmt,
            sum(reviewvotes.vote = 'Y' and ifnull(rvu.sandbox, 0) in $sandbox) as helpful,
            sum(reviewvotes.vote = 'N' and ifnull(rvu.sandbox, 0) in $sandbox) as unhelpful,
            ifnull(sum(reviewvotes.vote = 'Y'), 0)
@@ -284,7 +286,7 @@ if ($errMsg) {
             if ($rec['embargodate'])
                 echo "$headlineDiv<span class=details>"
                     . "<i>This review is hidden until "
-                    . "{$rec['embargodate']}.</i></span></div>";
+                    . "{$rec['embargodate']}. It was originally created on {$rec['createdatefmt']}.</i></span></div>";
 
             echo "<div class=indented>";
 

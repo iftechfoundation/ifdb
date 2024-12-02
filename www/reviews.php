@@ -62,9 +62,9 @@ function getReviewQuery($db, $where)
     return
         "select sql_calc_found_rows
            reviews.id as reviewid, rating, summary, review,
-           moddate, date_format(moddate, '%M %e, %Y') as moddatefmt,
-           greatest(createdate, ifnull(embargodate, cast(0 as datetime))) as createdate,
-           date_format(createdate, '%M %e, %Y') as createdatefmt,
+           date_format(greatest(moddate, ifnull(embargodate, cast(0 as datetime))), '%M %e, %Y') as moddatefmt,
+           greatest(createdate, ifnull(embargodate, cast(0 as datetime))) as publicationdate,
+           date_format(greatest(createdate, ifnull(embargodate, cast(0 as datetime))), '%M %e, %Y') as publicationdatefmt,
            users.id as userid, users.name as username,
            users.location as location, special,
            sum(reviewvotes.vote = 'Y' and ifnull(rvu.sandbox, 0) in $sandbox) as helpful,
@@ -271,16 +271,16 @@ function showReview($db, $gameid, $rec, $specialNames, $optionFlags = 0)
     $rating = $rec['rating'];
     $summary = htmlspecialcharx($rec['summary']);
     $review = fixDesc($rec['review'], FixDescSpoiler);
-    $createdate = $rec['createdatefmt'];
+    $publicationdate = $rec['publicationdatefmt'];
     $moddate = $rec['moddatefmt'];
     $lastupdateFootnote = null;
-    if ($moddate && $createdate != $moddate) {
+    if ($moddate && $publicationdate != $moddate) {
         // Rating-only review
         if ($review == "") {
-            $createdate .= " (last edited on $moddate)";
+            $publicationdate .= " (last edited on $moddate)";
         } else {
             $lastupdateFootnote = "This review was last edited on $moddate";
-            $createdate .= "<span title=\"$lastupdateFootnote\">*</span>";
+            $publicationdate .= "<span title=\"$lastupdateFootnote\">*</span>";
         }
     }
     $specialName = isset($rec['specialname']) ? $rec['specialname'] : false;
@@ -326,7 +326,7 @@ function showReview($db, $gameid, $rec, $specialNames, $optionFlags = 0)
         echo "<p>" . showStars($rating)
             . " - <a href=\"showuser?id=$userid\">$username</a>"
             . (!isEmpty($location) ? " ($location)" : "")
-            . "<span class=details>, $createdate</span><p>";
+            . "<span class=details>, $publicationdate</span><p>";
         return;
     }
 
@@ -383,7 +383,7 @@ function showReview($db, $gameid, $rec, $specialNames, $optionFlags = 0)
 
     } else {
         // not special - show the headline and author
-        echo " <b>$summary</b><span class=details>, $createdate</span><br>"
+        echo " <b>$summary</b><span class=details>, $publicationdate</span><br>"
             . "<div class=smallhead><div class=details>"
             .   "by <a href=\"showuser?id=$userid\">$username</a>"
             . (!isEmpty($location) ? " ($location)" : "")
