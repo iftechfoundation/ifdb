@@ -593,7 +593,7 @@ if ($errMsg) {
                and reviews.review is not null
                and games.id = reviews.gameid
                and ifnull(now() >= reviews.embargodate, 1)
-             order by publicationdate desc, createdate desc limit 6", [$uid]);
+             order by publicationdate desc, reviews.createdate desc limit 6", [$uid]);
 
         for ($i = 0 ; $i < 5 && $i < mysql_num_rows($result) ; $i++) {
             // retrieve the result

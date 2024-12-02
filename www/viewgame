@@ -2341,7 +2341,7 @@ if ($embargoCnt > 0)
         $result = mysql_query(
             $selectMemberReviews
             . " order by $orderByUserFilter, "
-            . " netHelpful desc, publicationdate desc, createdate desc", $db);
+            . " netHelpful desc, publicationdate desc, reviews.createdate desc", $db);
 
         $rowcnt = mysql_num_rows($result);
         if ($rowcnt > 0) {
