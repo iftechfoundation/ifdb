@@ -44,8 +44,7 @@ for ($idx = 0 ; $idx <= 7; $idx++)
             . "<b>$nhead</b> "
             . "<span class=notes><i>$ncre</i></span> "
             . "<a href=\"newslog?newsid=$nid\">Details</a>"
-            . "</span></div>"
-            . "</div>";
+            . "</span></div>";
     }
     else if ($pick == 'C')
     {
