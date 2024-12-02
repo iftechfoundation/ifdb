@@ -210,7 +210,8 @@ if ($errMsg) {
               as netHelpful,
            games.sort_title as sort_title,
            games.sort_author as sort_author,
-           group_concat(distinct reviewflags.flagtype separator '') as flags
+           group_concat(distinct reviewflags.flagtype separator '') as flags,
+           reviews.RFlags as RFlags
          from games
            join reviews
            left outer join reviewvotes
