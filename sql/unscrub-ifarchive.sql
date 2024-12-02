@@ -26,7 +26,7 @@ ALTER TABLE `users`
     ADD COLUMN `email` varchar(255) NOT NULL DEFAULT '',
     ADD COLUMN `emailflags` tinyint(2) NOT NULL DEFAULT '3',
     ADD COLUMN `profilestatus` varchar(1) DEFAULT NULL,
-    ADD COLUMN `password` varchar(40) CHARACTER SET latin1 COLLATE latin1_bin NOT NULL DEFAULT '',
+    ADD COLUMN `password` varchar(40) NOT NULL DEFAULT '',
     ADD COLUMN `pswsalt` varchar(32) NOT NULL DEFAULT '',
     ADD COLUMN `activationcode` varchar(40) DEFAULT NULL,
     ADD COLUMN `acctstatus` char(1) NOT NULL DEFAULT 'A',
@@ -756,7 +756,7 @@ select `reviews`.`userid` AS `userid`,
             ifnull(
               sum(
                 (
-                  `reviewvotes`.`vote` = _latin1 'Y'
+                  `reviewvotes`.`vote` = 'Y'
                   and ifnull(`users`.`sandbox`, 0) = 0
                 )
               ),
@@ -764,7 +764,7 @@ select `reviews`.`userid` AS `userid`,
             ) - ifnull(
               sum(
                 (
-                  `reviewvotes`.`vote` = _latin1 'N'
+                  `reviewvotes`.`vote` = 'N'
                   and ifnull(`users`.`sandbox`, 0) = 0
                 )
               ),
@@ -855,7 +855,7 @@ create table userScores_mv (
     KEY `score` (`score`),
     KEY `rankingScore` (`rankingScore`),
     KEY `reviewCount` (`reviewCount`)
-) ENGINE = MyISAM DEFAULT CHARSET = latin1 COLLATE = latin1_german2_ci;
+) ENGINE = MyISAM DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
 
 lock tables userScores_mv write, userScores read;
 truncate table userScores_mv;
@@ -884,7 +884,7 @@ create table gameRatingsSandbox0_mv (
   KEY `avgRating` (`avgRating`),
   KEY `stdDevRating` (`stdDevRating`),
   KEY `starsort` (`starsort`)
-) ENGINE = MyISAM DEFAULT CHARSET = latin1 COLLATE = latin1_german2_ci;
+) ENGINE = MyISAM DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
 
 lock tables gameRatingsSandbox0_mv write, gameRatingsSandbox0 read;
 truncate table gameRatingsSandbox0_mv;
