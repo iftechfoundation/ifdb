@@ -3,13 +3,9 @@
 
 $recs = array();
 $maxpicks = 12;
-$overloaded = true;
 
-// if our recommendation list is empty, pick some random 4- and 5-star
-// games as recommendations
-if (count($recs) == 0) {
 
-    if ($debugflag) echo "falling back on default method<br>";
+// Pick some random 4- and 5-star games as recommendations
 
     // if we're logged in, don't pick games we've already rated
     $exclJoin = "";
@@ -56,9 +52,8 @@ if (count($recs) == 0) {
     for ($recs = array(), $i = 0 ; $i < mysql_num_rows($result) ; $i++)
         $recs[] = mysql_fetch_array($result, MYSQL_ASSOC);
 
-    // the source is just generic top-rated games
-    $recsrc = 'generic';
-}
+   
+
 
 function sortBySortorder($a, $b)
 {
@@ -73,14 +68,10 @@ if (count($recs) >= 2) {
         $recs[$i]['sortorder'] = rand();
     usort($recs, "sortBySortorder");
 
-    // stash the recommendations back in the session
-    $_SESSION['ifdb_recommendations'] = $recs;
-    $_SESSION['ifdb_recommendations_source'] = $recsrc;
-
     // start the section
     echo "<div class='headline' id='ifdb-recommends'><h1 class='unset'>IFDB Recommends</h1>"
-      .($overloaded ? "<span class='headlineRss'><a href='/search?searchbar=played%3Ano+willplay%3Ano+wontplay%3Ano+reviewed%3Ano+rated%3Ano'>More recommendations</a></span>" : "")
-      ."</div><div>";
+      . "<span class='headlineRss'><a href='/search?searchbar=played%3Ano+willplay%3Ano+wontplay%3Ano+reviewed%3Ano+rated%3Ano'>More recommendations</a></span>"
+      . "</div><div>";
     global $nonce;
     echo "<style nonce='$nonce'>\n"
         . ".ifdb-recommends__artLink { margin-right: 1em; }\n"
@@ -121,16 +112,7 @@ if (count($recs) >= 2) {
 
     // explain the source
     echo "<p><span class=details><i>";
-    if ($recsrc == 'generic' && !$overloaded) {
-        echo "These are a few randomly-selected games with high
-             average member ratings.  If you ";
-        if (!$loggedIn)
-            echo "<a href=\"login\">log in</a> and ";
-        echo "rate a few games yourself, IFDB can offer customized
-              recommendations (".helpWinLink("help-crossrec", "explain").").";
-    } else {
-        echo helpWinLink("help-crossrec", "Why did IFDB recommend these?");
-    }
+    echo helpWinLink("help-crossrec", "Why did IFDB recommend these?");
     echo "</i></span></div>";
 }
 // ---------------------------- end IFDB Recommends ------------------------
