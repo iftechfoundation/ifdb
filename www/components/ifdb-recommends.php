@@ -14,6 +14,7 @@ $recs = array();
 $maxpicks = 12;
 $term = "";
 if ($loggedIn) {
+    // If the user is logged in, don't recommend games the user already knows about
     $term = "played:no willplay:no wontplay:no reviewed:no rated:no";
 }
 $searchType = "game";
