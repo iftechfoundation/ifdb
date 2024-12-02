@@ -7,50 +7,50 @@ $maxpicks = 12;
 
 // Pick some random 4- and 5-star games as recommendations
 
-    // if we're logged in, don't pick games we've already rated
-    $exclJoin = "";
-    $exclWhere = "";
-    if ($loggedIn) {
-        $exclJoin = "left outer join reviews as r2"
-                    . " on games.id = r2.gameid and r2.userid = '$quid' "
-                    . "left outer join playedgames as pg"
-                    . " on games.id = pg.gameid and pg.userid = '$quid' "
-                    . "left outer join wishlists as wl"
-                    . " on games.id = wl.gameid and wl.userid = '$quid' "
-                    . "left outer join unwishlists as uw"
-                    . " on games.id = uw.gameid and uw.userid = '$quid' ";
-        $exclWhere = "and r2.userid is null "
-                     . " and pg.userid is null"
-                     . " and wl.userid is null"
-                     . " and uw.userid is null";
-    }
-    $gameRatingsView = getGameRatingsView($db);
+// if we're logged in, don't pick games we've already rated
+$exclJoin = "";
+$exclWhere = "";
+if ($loggedIn) {
+    $exclJoin = "left outer join reviews as r2"
+                . " on games.id = r2.gameid and r2.userid = '$quid' "
+                . "left outer join playedgames as pg"
+                . " on games.id = pg.gameid and pg.userid = '$quid' "
+                . "left outer join wishlists as wl"
+                . " on games.id = wl.gameid and wl.userid = '$quid' "
+                . "left outer join unwishlists as uw"
+                . " on games.id = uw.gameid and uw.userid = '$quid' ";
+    $exclWhere = "and r2.userid is null "
+                . " and pg.userid is null"
+                . " and wl.userid is null"
+                . " and uw.userid is null";
+}
+$gameRatingsView = getGameRatingsView($db);
 
-    // pick the top-rated games
-    $result = mysql_query(
-        "select
-           games.id as gameid,
-           games.title as title,
-           games.author as author,
-           games.`desc` as `desc`,
-           (games.coverart is not null) as hasart,
-           games.pagevsn,
-           starsort
-         from
-           games
-           join $gameRatingsView on games.id = gameid
-           $exclJoin
-         where
-           not (games.flags & " . FLAG_SHOULD_HIDE . ")
-           $exclWhere
-         order by
-           starsort desc
-         limit
-           0, $maxpicks", $db);
+// pick the top-rated games
+$result = mysql_query(
+    "select
+       games.id as gameid,
+       games.title as title,
+       games.author as author,
+       games.`desc` as `desc`,
+       (games.coverart is not null) as hasart,
+       games.pagevsn,
+       starsort
+     from
+       games
+       join $gameRatingsView on games.id = gameid
+       $exclJoin
+     where
+       not (games.flags & " . FLAG_SHOULD_HIDE . ")
+       $exclWhere
+     order by
+       starsort desc
+     limit
+       0, $maxpicks", $db);
 
-    // fetch the results
-    for ($recs = array(), $i = 0 ; $i < mysql_num_rows($result) ; $i++)
-        $recs[] = mysql_fetch_array($result, MYSQL_ASSOC);
+// fetch the results
+for ($recs = array(), $i = 0 ; $i < mysql_num_rows($result) ; $i++)
+    $recs[] = mysql_fetch_array($result, MYSQL_ASSOC);
 
    
 
