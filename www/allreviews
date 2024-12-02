@@ -41,8 +41,8 @@ $pg = get_req_data('pg');
 $sortReq = get_req_data('sortby');
 
 $sortList = array(
-    'new' => array('moddate desc', 'Newest First'),
-    'old' => array('moddate', 'Oldest First'),
+    'new' => array('createdate desc', 'Newest First'),
+    'old' => array('createdate', 'Oldest First'),
     'hlp' => array('netHelpful desc', 'Most Helpful First'),
     'unh' => array('netHelpful', 'Least Helpful First'),
     'hi' => array('rating desc', 'Highest Ratings First'),
@@ -195,12 +195,12 @@ if ($errMsg) {
            reviews.rating as rating,
            reviews.summary as summary,
            reviews.review as review,
-           reviews.moddate as moddate,
+           reviews.createdate as createdate,
            if (reviews.embargodate > now(),
              date_format(reviews.embargodate, '%M %e, %Y'),
              null) as embargodate,
            reviews.special as special,
-           date_format(reviews.moddate, '%M %e, %Y') as moddatefmt,
+           date_format(reviews.createdate, '%M %e, %Y') as createdatefmt,
            sum(reviewvotes.vote = 'Y' and ifnull(rvu.sandbox, 0) in $sandbox) as helpful,
            sum(reviewvotes.vote = 'N' and ifnull(rvu.sandbox, 0) in $sandbox) as unhelpful,
            ifnull(sum(reviewvotes.vote = 'Y'), 0)

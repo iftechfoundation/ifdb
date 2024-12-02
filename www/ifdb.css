@@ -43,10 +43,8 @@ with your own, you must:
    b. Add an IMG definition for the class or ID of the image you wish
       to replace, like so:
 
-      img.rss-icon {
+      a.rss-icon {
           background: url("images/my-rss-icon.gif");
-          width: 22px;
-          height: 22px;
       }
 
 Note that you must specify the height and width of the image in pixels.
@@ -1928,12 +1926,9 @@ img.topbarcurarrow {
 /*
 Various icon images, used on the home page and elsewhere.
 */
-img.rss-icon {
-    background: url("/img/rss16.gif") no-repeat center center;
-    width: 16px;
-    height: 16px;
-    border: none;
-    vertical-align: middle;
+a.rss-icon {
+    background: url("/img/rss.svg") left 80%/1em no-repeat;
+    padding-left: 1.2em;
 }
 img.empty-button-icon {
     width: 24px;

@@ -342,8 +342,8 @@ if (isset($_REQUEST['newPollGo'])) {
             . "<p>If you'd like to use your browser's RSS feature "
             . "to receive updates when votes come in, here's the "
             . "subscription link:<br>"
-            . "<a href=\"$url&rss\">"
-            . "<img src=\"img/blank.gif\" class=\"rss-icon\">RSS Feed</a></p>";
+            . "<a class=\"rss-icon\" href=\"$url&rss\">"
+            . "RSS Feed</a></p>";
 
         pageFooter();
         exit();
@@ -1119,12 +1119,10 @@ function expandVote(id)
         // describe the poll
         echo "<h1>$title - an IFDB Poll</h1>"
             . "by <a href=\"showuser?id=$authid\">$authname</a>"
-            . "<br><a href=\"poll?id=$id&rss\">"
-            . "<img border=0 src=\"/img/blank.gif\" class=\"rss-icon\"></a> "
-            . "<span class=details><a href=\"poll?id=$id&rss\">"
-            . "RSS Feed</a></span>"
+            . "<br><div class=details><a class=\"rss-icon\" href=\"poll?id=$id&rss\">"
+            . "RSS Feed</a></div>"
             . "<p>" . fixDesc($desc)
-            . "<p><span class=details>$commentCtl</span><p>"
+            . "<p><div class=details>$commentCtl</div><p>"
             . (
                 ($anonymous && $adminPriv && !isset($_REQUEST['unlock']))
                 ? "<p><a href='poll?id=$id&unlock=1'>Admin: View all votes</a></p>"

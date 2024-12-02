@@ -87,17 +87,16 @@ if ($fullReviewCnt == 0) {
 } else {
     $result = mysql_query(
         "select reviews.id, games.id, title, author,
-           date_format(reviews.moddate, '%M %e, %Y'),
            if (reviews.embargodate > now(),
              date_format(reviews.embargodate, '%M %e, %Y'), null)
         from reviews, games
         where userid = '$quid' and games.id = reviews.gameid
           and review is not null
-        order by reviews.moddate desc
+        order by reviews.createdate desc
         limit 0, $maxreviews", $db);
 
     for ($i = 0 ; $i < mysql_num_rows($result) ; $i++) {
-        list($reviewid, $gameid, $title, $author, $date, $embargoDate) =
+        [$reviewid, $gameid, $title, $author, $embargoDate] =
             mysql_fetch_row($result);
         $title = htmlspecialcharx($title);
         $author = htmlspecialcharx($author);
