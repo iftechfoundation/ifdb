@@ -297,6 +297,8 @@ if ($errMsg) {
                 . "&source=$sourceID&delete\">Delete</a>";
         }
 
+        echo " | <a href=\"newslog?newsid=$nid\">Direct link</a>";
+
         echo "</div></div>";
 
     } else {
@@ -389,6 +391,8 @@ if ($errMsg) {
                     . " | <a href=\"editnews?newsid=$nid&type=$sourceType"
                     . "&source=$sourceID&delete\">Delete</a>";
             }
+
+            echo " | <a href=\"newslog?newsid=$nid\">Direct link</a>";
 
             echo "</div></div>";
         }

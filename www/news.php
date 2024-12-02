@@ -61,7 +61,8 @@ function newsSummary($db, $sourceType, $sourceID, $maxItems,
                 . "<a href=\"newslog?newsid=$newsid&history\">History</a> | "
                 . "<a href=\"editnews?newsid=$newsid$src\">"
                 . "Edit</a> | "
-                . "<a href=\"editnews?newsid=$newsid$src&delete\">Delete</a>"
+                . "<a href=\"editnews?newsid=$newsid$src&delete\">Delete</a> | "
+                . "<a href=\"newslog?newsid=$newsid\">Direct link</a>"
                 . "</span>"
                 . "</details>";
         }
