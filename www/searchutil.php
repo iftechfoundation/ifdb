@@ -257,6 +257,7 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse)
         $selectList = "distinct games.id as id,
                        games.title as title,
                        games.author as author,
+                       games.desc as description,
                        games.tags as tags,
                        games.moddate as moddate,
                        games.system as devsys,
