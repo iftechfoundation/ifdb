@@ -1,64 +1,33 @@
 <?php
 // ----------------------------- IFDB Recommends ----------------------
 
-$recs = array();
-$maxpicks = 12;
+include_once "searchutil.php";
 
-
-// Pick some random 4- and 5-star games as recommendations
-
-// if we're logged in, don't pick games we've already rated
-$exclJoin = "";
-$exclWhere = "";
-if ($loggedIn) {
-    $exclJoin = "left outer join reviews as r2"
-                . " on games.id = r2.gameid and r2.userid = '$quid' "
-                . "left outer join playedgames as pg"
-                . " on games.id = pg.gameid and pg.userid = '$quid' "
-                . "left outer join wishlists as wl"
-                . " on games.id = wl.gameid and wl.userid = '$quid' "
-                . "left outer join unwishlists as uw"
-                . " on games.id = uw.gameid and uw.userid = '$quid' ";
-    $exclWhere = "and r2.userid is null "
-                . " and pg.userid is null"
-                . " and wl.userid is null"
-                . " and uw.userid is null";
-}
-$gameRatingsView = getGameRatingsView($db);
-
-// pick the top-rated games
-$result = mysql_query(
-    "select
-       games.id as gameid,
-       games.title as title,
-       games.author as author,
-       games.`desc` as `desc`,
-       (games.coverart is not null) as hasart,
-       games.pagevsn,
-       starsort
-     from
-       games
-       join $gameRatingsView on games.id = gameid
-       $exclJoin
-     where
-       not (games.flags & " . FLAG_SHOULD_HIDE . ")
-       $exclWhere
-     order by
-       starsort desc
-     limit
-       0, $maxpicks", $db);
-
-// fetch the results
-for ($recs = array(), $i = 0 ; $i < mysql_num_rows($result) ; $i++)
-    $recs[] = mysql_fetch_array($result, MYSQL_ASSOC);
-
-   
-
-
+// This is used to randomly shuffle the recommendations
 function sortBySortorder($a, $b)
 {
     return $a['sortorder'] - $b['sortorder'];
 }
+
+
+$recs = array();
+$term = "";
+if ($loggedIn) {
+    // If the user is logged in, don't recommend games the user already knows about
+    $term = "played:no willplay:no wontplay:no reviewed:no rated:no";
+}
+$searchType = "game";
+$sortby = "ratu";  // Sort the highly rated games to the top of the results.
+$maxpicks = 12;    // Get the first twelve results. (We want extras so we're not always displaying the same games.) 
+$limit = "limit 0, $maxpicks";
+$browse = 0;
+
+
+// run the search for highly-rated games
+list($recs, $rowcnt, $sortList, $errMsg, $summaryDesc, $badges,
+    $specials, $specialsUsed, $orderBy) =
+    doSearch($db, $term, $searchType, $sortby, $limit, $browse);
+
 
 // show some recommendations
 if (count($recs) >= 2) {
@@ -77,22 +46,21 @@ if (count($recs) >= 2) {
         . ".ifdb-recommends__artLink { margin-right: 1em; }\n"
         . "</style>\n";
 
-
-    // show the first three entries
+    // show the first five entries
     for ($i = 0 ; $i < count($recs) && $i < 5 ; $i++) {
 
         // get the fields from the game record
         $r = $recs[$i];
-        $gameid = $r['gameid'];
+        $gameid = $r['id'];
         $title = htmlspecialcharx($r['title']);
         $author = htmlspecialcharx($r['author']);
         $author = collapsedAuthors($author);
         $hasart = $r['hasart'];
         $pagevsn = $r['pagevsn'];
-        list($summary, $len, $trunc) = summarizeHtml($r['desc'], 140);
+        list($summary, $len, $trunc) = summarizeHtml($r['description'], 140);
         $summary = fixDesc($summary);
 
-         // display it
+        // display the game information
         echo "<p>";
         if ($hasart)
             echo "<table border=0 cellspacing=0 cellpadding=0>"
