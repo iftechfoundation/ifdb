@@ -260,7 +260,6 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse, $override_g
         $selectList = "distinct games.id as id,
                        games.title as title,
                        games.author as author,
-                       games.desc as description,
                        games.tags as tags,
                        games.moddate as moddate,
                        games.system as devsys,
@@ -300,20 +299,21 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse, $override_g
         $matchCols = "title, author, `desc`, tags";
         $likeCol = "title";
         $summaryDesc = "Games";
-    }
+    
 
-    // Handle custom search filters
-    if ($curuser && $override_game_filter != 1) {
-        // We're logged in, and haven't been told to override a custom game filter, so check for one
-        $result = mysqli_execute_query($db, "select game_search_filter from users where id = ?", [$curuser]);
-        if (!$result) throw new Exception("Error: " . mysqli_error($db));
-        [$gameSearchFilter] = mysql_fetch_row($result);
-        if ($gameSearchFilter) {
-            // We've found a custom game filter, so add it to the end of the search term
-            $games_filtered = true;
-            $term .= " $gameSearchFilter";
+        // Handle custom search filters
+        if ($curuser && $override_game_filter != 1) {
+            // We're logged in, and haven't been told to override a custom game filter, so check for one
+            $result = mysqli_execute_query($db, "select game_search_filter from users where id = ?", [$curuser]);
+            if (!$result) throw new Exception("Error: " . mysqli_error($db));
+            [$gameSearchFilter] = mysql_fetch_row($result);
+            if ($gameSearchFilter) {
+                // We've found a custom game filter, so add it to the end of the search term
+                $games_filtered = true;
+                $term .= " $gameSearchFilter";
+            }
         }
-    }    
+    } 
 
     // parse the search
     for ($ofs = 0, $len = strlen($term), $words = array(),
