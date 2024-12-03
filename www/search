@@ -222,18 +222,7 @@ $qterm = mysql_real_escape_string($term, $db);
 $hrefTerm = ($term ? $term : $tTerm);
 $hrefTerm = urlencode($hrefTerm);
 
-// get the search type
-const SEARCH_TYPES = ['list', 'poll', 'member', 'comp', 'tag'];
-$searchType = 'game';
-$searchButton = "Search Games";
-foreach (SEARCH_TYPES as $st) {
-    if (isset($_REQUEST[$st])) {
-        $searchType = $st;
-        break;
-    }
-}
-
-$browseTabs = [
+const SEARCH_TYPES = [
     "game"    => "Games",
     "list"    => "Lists",
     "poll"    => "Polls",
@@ -243,12 +232,13 @@ $browseTabs = [
 ];
 
 
-/* Games is the default search type */
-$searchType = "game";
+// get the search type
+// Games is the default
+$searchType = 'game';
 $searchButton = "Search Games";
 $hiddenTypeField = "";
 
-foreach ($browseTabs as $browseParam => $browseName) {
+foreach (SEARCH_TYPES as $browseParam => $browseName) {
     if (!isset($_REQUEST[$browseParam]))
         continue;
     $searchType = $browseParam;
@@ -409,7 +399,7 @@ function helpListLink($title, $id, $tableWid, $params)
 
 function helpExtLink($title, $url)
 {
-    echo "<div class=\"searchHelpList\" id=\"helpList.$id\">"
+    echo "<div class=\"searchHelpList\">"
         . "<a href=\"$url\" class=\"silent\">"
         . "<img border=0 src=\"/img/blank.gif\" class=\"listarrow\">$title</a>"
         . "</div>";
@@ -425,7 +415,7 @@ if (!$browse && !$api_mode) {
                  . "<div class=\"browseTabs\">";
 
     $tabClass = "browseTab firstBrowseTab";
-    foreach ($browseTabs as $key => $label)
+    foreach (SEARCH_TYPES as $key => $label)
     {
         if ($key == $searchType)
             $otherTabs .= "<span class=\"$tabClass activeBrowseTab\">"
@@ -494,14 +484,8 @@ function populateHelpList(id, div, tableWid, params, json)
     <?php
 }
 
-if ($api_mode) {
-
-    // no UI in XML mode - this is an API request
-
-}
-else if ($term || $browse) {
-
-    if (!$browse) {
+function showSearchBox() {
+    global $term, $searchButton, $hiddenTypeField, $hiddenXL;
     ?>
 
     <form name="advsearch" method="get" action="search" role="search">
@@ -515,28 +499,23 @@ else if ($term || $browse) {
     </form>
 
     <?php
+}
+
+if ($api_mode) {
+
+    // no UI in XML mode - this is an API request
+
+}
+else if ($term || $browse) {
+
+    if (!$browse) {
+        showSearchBox();
     }
 }
 else if ($searchType == "list") {
 
+    showSearchBox();
     ?>
-
-    <form name="advsearch" method="get" action="search" role="search">
-       <!-- <h2>Search Recommended Lists</h2> -->
-       <table cellspacing=0 cellpadding=0 border=0>
-          <tr>
-             <td>
-                <input type="search" name="searchfor" id="searchfor" size=70
-                      value="<?php echo htmlspecialcharx($tTerm) ?>">
-                <input type="submit" name="searchgo" value="Search Lists">
-             </td>
-          </tr>
-          <tr>
-             <td></td>
-          </tr>
-       </table>
-       <input type="hidden" name="list" value="1">
-    </form>
 
     <h3>Search Tips</h3>
 
@@ -566,24 +545,8 @@ else if ($searchType == "list") {
 }
 else if ($searchType == "poll") {
 
+    showSearchBox();
     ?>
-
-    <form name="advsearch" method="get" action="search">
-       <!-- <h2>Search Polls</h2> -->
-       <table cellspacing=0 cellpadding=0 border=0>
-          <tr>
-             <td>
-                <input type="text" name="searchfor" id="searchfor" size=70
-                      value="<?php echo htmlspecialcharx($tTerm) ?>">
-                <input type="submit" name="searchgo" value="Search Polls">
-             </td>
-          </tr>
-          <tr>
-             <td></td>
-          </tr>
-       </table>
-       <input type="hidden" name="poll" value="1">
-    </form>
 
     <h3>Search Tips</h3>
 
@@ -613,24 +576,8 @@ else if ($searchType == "poll") {
 }
 else if ($searchType == "comp") {
 
+    showSearchBox();
     ?>
-
-    <form name="advsearch" method="get" action="search">
-       <!-- <h2>Search Competitions</h2> -->
-       <table cellpadding=0 cellspacing=0>
-          <tr>
-             <td>
-                <input type="text" name="searchfor" id="searchfor" size=70
-                      value="<?php echo htmlspecialcharx($tTerm) ?>">
-                <input type="submit" name="searchgo" value="Search Competitions">
-             </td>
-          </tr>
-          <tr>
-             <td></td>
-          </tr>
-       </table>
-       <input type="hidden" name="comp" value="1">
-    </form>
 
     <h3>Search Tips</h3>
 
@@ -684,24 +631,8 @@ else if ($searchType == "comp") {
 }
 else if ($searchType == "member") {
 
+    showSearchBox();
     ?>
-
-    <form name="advsearch" method="get" action="search">
-       <!-- <h2>Search Member Directory</h2> -->
-       <table cellpadding=0 cellspacing=0>
-          <tr>
-             <td>
-                <input type="text" name="searchfor" id="searchfor" size=70
-                      value="<?php echo htmlspecialcharx($tTerm) ?>">
-                <input type="submit" name="searchgo" value="Search Members">
-             </td>
-          </tr>
-          <tr>
-             <td></td>
-          </tr>
-       </table>
-       <input type="hidden" name="member" value="1">
-    </form>
 
     <h3>Search Tips</h3>
 
@@ -735,24 +666,8 @@ else if ($searchType == "member") {
 }
 else if ($searchType == "tag") {
 
+    showSearchBox();
     ?>
-
-    <form name="advsearch" method="get" action="search">
-       <!-- <h2>Search Member Directory</h2> -->
-       <table cellpadding=0 cellspacing=0>
-          <tr>
-             <td>
-                <input type="text" name="searchfor" id="searchfor" size=70
-                      value="<?php echo htmlspecialcharx($tTerm) ?>">
-                <input type="submit" name="searchgo" value="Search Tags">
-             </td>
-          </tr>
-          <tr>
-             <td></td>
-          </tr>
-       </table>
-       <input type="hidden" name="tag" value="1">
-    </form>
 
     <h3>Search Tips</h3>
 
@@ -782,214 +697,206 @@ else if ($searchType == "tag") {
 }
 else {  // ...default is searching games
 
+    showSearchBox();
     ?>
 
-    <form name="advsearch" method="get" action="search">
-       <!-- <h2>Search for Games</h2> -->
-       <input type="text" name="searchfor" id="searchfor" size=70
-              value="<?php echo htmlspecialcharx($tTerm) ?>">
-       <input type="submit" name="searchgo" value="Search Games">
-       <?php echo $hiddenXL ?>
-       <br>
-       <h3>Search Tips</h3>
+    <h3>Search Tips</h3>
 
-       <div class=searchnotes>
+    <div class=searchnotes>
 
-       <p>If you're getting too many irrelevant results, try searching
-       for a complete phrase in quotes rather than individual words:
-       <b>"deep space drifter"</b> rather than <b>deep space
-       drifter</b>.
+    <p>If you're getting too many irrelevant results, try searching
+    for a complete phrase in quotes rather than individual words:
+    <b>"deep space drifter"</b> rather than <b>deep space
+    drifter</b>.
 
-       <p>By default, IFDB searches each game's title, author, and
-       description for the words you enter, and shows all of the games
-       that match at least one of your search terms.  You can customize
-       the search with the special modifiers below.
-       Note that modifiers with ":" parameters
-       have to go <i>last</i>, after regular search words.
+    <p>By default, IFDB searches each game's title, author, and
+    description for the words you enter, and shows all of the games
+    that match at least one of your search terms.  You can customize
+    the search with the special modifiers below.
+    Note that modifiers with ":" parameters
+    have to go <i>last</i>, after regular search words.
 
-       <div class=indented>
+    <div class=indented>
 
-       <?php echo $commonInstructions ?>
+    <?php echo $commonInstructions ?>
 
-       <p><b>author:<i>name</i></b> lists games by the named author or
-          authors.
+    <p><b>author:<i>name</i></b> lists games by the named author or
+       authors.
 
-       <p><b>tag:<i>tag name</i></b> searches for games containing
-          the given tag text. (<?php
-             echo helpWinLink("help-tags", "What's a tag?"); ?>)
-             <?php helpExtLink("Go to the IFDB tag list", "showtags"); ?>
+    <p><b>tag:<i>tag name</i></b> searches for games containing
+       the given tag text. (<?php
+          echo helpWinLink("help-tags", "What's a tag?"); ?>)
+          <?php helpExtLink("Go to the IFDB tag list", "showtags"); ?>
 
-       <p><b>series:<i>name</i></b> lists only games with the given
-          series name.
-          <?php helpListLink(
-              "Show all series names appearing in game listings",
-              "series", 2, "series:@@"); ?>
+    <p><b>series:<i>name</i></b> lists only games with the given
+       series name.
+       <?php helpListLink(
+           "Show all series names appearing in game listings",
+           "series", 2, "series:@@"); ?>
 
-       <p><b>genre:<i>genre name</i></b> only shows games with the given genre.
-          If a game's listing has multiple genres, it will match as long
-          as <i>genre name</i> is found within the listing. For example,
-          <b>genre:western</b> will match a game listed with genre
-          "Science Fiction/Western/Romance."
-          <?php helpListLink(
-              "Show all genres used in game listings",
-              "genre", 5, "genre:@@"); ?>
+    <p><b>genre:<i>genre name</i></b> only shows games with the given genre.
+       If a game's listing has multiple genres, it will match as long
+       as <i>genre name</i> is found within the listing. For example,
+       <b>genre:western</b> will match a game listed with genre
+       "Science Fiction/Western/Romance."
+       <?php helpListLink(
+           "Show all genres used in game listings",
+           "genre", 5, "genre:@@"); ?>
 
-       <p><b>rating:<i>low-high</i></b> lists games with average ratings
-          in the given range (inclusive). For example, <b>rating:2.5-3.5</b>
-          lists games rated from 2&frac12; to 3&frac12; stars.  Leave out
-          an endpoint for an open-ended search:
-          <b>rating:3-</b> lists games with ratings 3 stars and above;
-          <b>rating:-2</b> lists games rated 2 stars and below.
+    <p><b>rating:<i>low-high</i></b> lists games with average ratings
+       in the given range (inclusive). For example, <b>rating:2.5-3.5</b>
+       lists games rated from 2&frac12; to 3&frac12; stars.  Leave out
+       an endpoint for an open-ended search:
+       <b>rating:3-</b> lists games with ratings 3 stars and above;
+       <b>rating:-2</b> lists games rated 2 stars and below.
 
-       <p><b>#ratings:<i>low-high</i></b> lists games with a total number
-          of ratings in the given range.  For example, <b>#ratings:3-</b>
-          lists games with three or more ratings.
+    <p><b>#ratings:<i>low-high</i></b> lists games with a total number
+       of ratings in the given range.  For example, <b>#ratings:3-</b>
+       lists games with three or more ratings.
 
-       <p><b>ratingdev:<i>low-high</i></b> lists games with a ratings
-          standard deviation in the given range. (If you use this option,
-          the standard deviation for each rating will be shown in parentheses
-          after the star rating, and you'll have the option to order the
-          results by it.)
+    <p><b>ratingdev:<i>low-high</i></b> lists games with a ratings
+       standard deviation in the given range. (If you use this option,
+       the standard deviation for each rating will be shown in parentheses
+       after the star rating, and you'll have the option to order the
+       results by it.)
 
-       <p><b>#reviews:<i>low-high</i></b> lists games with a total number
-          of member reviews in the given range.  (This doesn't count
-          editorial reviews.)
+    <p><b>#reviews:<i>low-high</i></b> lists games with a total number
+       of member reviews in the given range.  (This doesn't count
+       editorial reviews.)
 
-       <p><b>forgiveness:<i>rating</i></b> only shows games with the given
-          "forgiveness" rating (on the Zarfian scale: Merciful, Polite,
-          Tough, Nasty, Cruel - <?php
-             echo helpWinLink("help-forgiveness", "more information");
-          ?>).
-          <?php helpListLink(
-              "Show all forgivness ratings used in game listings",
-              "forgiveness", 5, "forgiveness:@@"); ?>
+    <p><b>forgiveness:<i>rating</i></b> only shows games with the given
+       "forgiveness" rating (on the Zarfian scale: Merciful, Polite,
+       Tough, Nasty, Cruel - <?php
+          echo helpWinLink("help-forgiveness", "more information");
+       ?>).
+       <?php helpListLink(
+           "Show all forgivness ratings used in game listings",
+           "forgiveness", 5, "forgiveness:@@"); ?>
 
-       <p><b>published:<i>year-year</i></b> only shows games with publication
-          dates in the given range.  For example,
-          <b>published:1990-2000</b> shows games published from 1990
-          to 2000.  <b>published:1990</b> lists only games published
-          in 1990.  <b>published:1990-</b> lists games published in 1990
-          or later, and <b>published:-2000</b> lists games published in
-          2000 or earlier. You can also search for games published within
-          the last few days. <b>published:30d-</b> searches for games published
-          within the last 30 days. <b>published:90d-30d</b> searches for games
-          published within the last 90 days, but more than 30 days ago.
+    <p><b>published:<i>year-year</i></b> only shows games with publication
+       dates in the given range.  For example,
+       <b>published:1990-2000</b> shows games published from 1990
+       to 2000.  <b>published:1990</b> lists only games published
+       in 1990.  <b>published:1990-</b> lists games published in 1990
+       or later, and <b>published:-2000</b> lists games published in
+       2000 or earlier. You can also search for games published within
+       the last few days. <b>published:30d-</b> searches for games published
+       within the last 30 days. <b>published:90d-30d</b> searches for games
+       published within the last 90 days, but more than 30 days ago.
 
-       <p><b>added:<i>year-year</i></b> only shows games with
-          listings added to the database on dates in the given range.
-          For example, <b>added:2007-2020</b> shows games added
-          from 2007 to 2020. <b>added:2007</b> shows games added
-          in 2007. <b>added:2007-</b> shows games added in 2007
-          or later, and <b>added:-2020</b> shows games added in
-          2020 or earlier. You can also search for games added within
-          the last few days. <b>added:30d-</b> searches for games added
-          within the last 30 days. <b>added:90d-30d</b> searches for games
-          added within the last 90 days, but more than 30 days ago.
+    <p><b>added:<i>year-year</i></b> only shows games with
+       listings added to the database on dates in the given range.
+       For example, <b>added:2007-2020</b> shows games added
+       from 2007 to 2020. <b>added:2007</b> shows games added
+       in 2007. <b>added:2007-</b> shows games added in 2007
+       or later, and <b>added:-2020</b> shows games added in
+       2020 or earlier. You can also search for games added within
+       the last few days. <b>added:30d-</b> searches for games added
+       within the last 30 days. <b>added:90d-30d</b> searches for games
+       added within the last 90 days, but more than 30 days ago.
 
-       <p><b>language:<i>code</i></b> lists games written in the given
-          spoken language.  You can use the English name of the language,
-          or a two- or three-letter
-          <a href="http://en.wikipedia.org/wiki/List_of_ISO_639-1_codes">ISO-639</a>
-          code ("en" for English, "fr" for French, etc).
-          <?php helpListLink("Show all language codes used in game listings",
-              "language", 5, "language:@@"); ?>
+    <p><b>language:<i>code</i></b> lists games written in the given
+       spoken language.  You can use the English name of the language,
+       or a two- or three-letter
+       <a href="http://en.wikipedia.org/wiki/List_of_ISO_639-1_codes">ISO-639</a>
+       code ("en" for English, "fr" for French, etc).
+       <?php helpListLink("Show all language codes used in game listings",
+           "language", 5, "language:@@"); ?>
 
-       <p><b>system:<i>name</i></b> lists only games written with the
-          given authoring system (TADS, Inform, Hugo, etc).
-          <?php helpListLink(
-              "Show all authoring systems used in game listings",
-              "system", 4, "system:@@"); ?>
+    <p><b>system:<i>name</i></b> lists only games written with the
+       given authoring system (TADS, Inform, Hugo, etc).
+       <?php helpListLink(
+           "Show all authoring systems used in game listings",
+           "system", 4, "system:@@"); ?>
 
-       <p><b>format:<i>name</i></b> lists only games with downloadable
-          files available for the given format.  To search for multiple
-          system versions, use * as a wildcard: <b>format:tads *</b> searches
-          for all TADS versions.  Use an operating system name to search
-          for native executables for that system.
-          <?php helpListLink(
-              "Show all file formats with available downloads",
-              "format", 6, "format:@@"); ?>
+    <p><b>format:<i>name</i></b> lists only games with downloadable
+       files available for the given format.  To search for multiple
+       system versions, use * as a wildcard: <b>format:tads *</b> searches
+       for all TADS versions.  Use an operating system name to search
+       for native executables for that system.
+       <?php helpListLink(
+           "Show all file formats with available downloads",
+           "format", 6, "format:@@"); ?>
 
-       <p><b>downloadable:<i>yes</i>|<i>no</i></b> lists games that
-          are/are not downloadable.  A downloadable game is one that has
-          at least one story file or application download link.
+    <p><b>downloadable:<i>yes</i>|<i>no</i></b> lists games that
+       are/are not downloadable.  A downloadable game is one that has
+       at least one story file or application download link.
 
-       <p><b>playtime:<i>minimum-maximum</i></b> lists games with an estimated 
-          play time in the given range. After each number, use <b>h</b> for hours 
-          or <b>m</b> for minutes. For example, <b>playtime:2h15m-3h</b> shows games 
-          with an estimated play time of anywhere from 2 hours and 15 minutes to 3 
-          hours. Hours may include decimals (for example, <b>3.5h</b>). 
-          <b>playtime:1.5h-</b> lists games with an estimated play time of at least 1 
-          and a half hours. <b>playtime:-45m</b> lists games with an estimated play time 
-          of 45 minutes or less. <b>playtime:1h</b> searches for games with an 
-          estimated play time of 1 hour. <b>playtime:</b> with no text after it searches 
-          for games with no estimated play time.
+    <p><b>playtime:<i>minimum-maximum</i></b> lists games with an estimated
+       play time in the given range. After each number, use <b>h</b> for hours
+       or <b>m</b> for minutes. For example, <b>playtime:2h15m-3h</b> shows games
+       with an estimated play time of anywhere from 2 hours and 15 minutes to 3
+       hours. Hours may include decimals (for example, <b>3.5h</b>).
+       <b>playtime:1.5h-</b> lists games with an estimated play time of at least 1
+       and a half hours. <b>playtime:-45m</b> lists games with an estimated play time
+       of 45 minutes or less. <b>playtime:1h</b> searches for games with an
+       estimated play time of 1 hour. <b>playtime:</b> with no text after it searches
+       for games with no estimated play time.
 
 
 
-       <p><b>bafs:<i>id</i></b> searches for the game with the given
-          Baf's Guide ID.
-       (<?php
-          echo helpWinLink("help-bafs", "What's a Baf's Guide ID?");
-       ?>)
+    <p><b>bafs:<i>id</i></b> searches for the game with the given
+       Baf's Guide ID.
+    (<?php
+       echo helpWinLink("help-bafs", "What's a Baf's Guide ID?");
+    ?>)
 
-       <p><b>ifid:<i>xxx</i></b> searches for a game with the given IFID.
-       (<?php
-          echo helpWinLink("help-ifid", "What's an IFID?");
-       ?>)
+    <p><b>ifid:<i>xxx</i></b> searches for a game with the given IFID.
+    (<?php
+       echo helpWinLink("help-ifid", "What's an IFID?");
+    ?>)
 
-       <p><b>tuid:<i>xxx</i></b> searches for a game with the given TUID.
-       (<?php
-          echo helpWinLink("help-tuid", "What's a TUID?");
-       ?>)
+    <p><b>tuid:<i>xxx</i></b> searches for a game with the given TUID.
+    (<?php
+       echo helpWinLink("help-tuid", "What's a TUID?");
+    ?>)
 
-        <p><b>authorid:<i>id</i></b> lists games by the author with
-            the given id.
+     <p><b>authorid:<i>id</i></b> lists games by the author with
+         the given id.
 
-        <p><b>competitionid:<i>id</i></b> lists games in a competition with
-            the given id.
+     <p><b>competitionid:<i>id</i></b> lists games in a competition with
+         the given id.
 
-       <p><b>played:<i>yes</i>|<i>no</i></b> lists games that
-            you have/haven't put on your played list (i.e. "I've played it").
-            Only works if you are logged in with a user account.
+    <p><b>played:<i>yes</i>|<i>no</i></b> lists games that
+         you have/haven't put on your played list (i.e. "I've played it").
+         Only works if you are logged in with a user account.
 
-       <p><b>willplay:<i>yes</i>|<i>no</i></b> lists games that
-            you have/haven't put on your "will play" list (i.e. "It's on my wish list").
-            Only works if you are logged in with a user account.
+    <p><b>willplay:<i>yes</i>|<i>no</i></b> lists games that
+         you have/haven't put on your "will play" list (i.e. "It's on my wish list").
+         Only works if you are logged in with a user account.
 
-       <p><b>wontplay:<i>yes</i>|<i>no</i></b> lists games that
-            you have/haven't put on your "won't play" list (i.e. "I'm not interested").
-            Only works if you are logged in with a user account.
+    <p><b>wontplay:<i>yes</i>|<i>no</i></b> lists games that
+         you have/haven't put on your "won't play" list (i.e. "I'm not interested").
+         Only works if you are logged in with a user account.
 
-        <p><b>reviewed:<i>yes</i>|<i>no</i></b> lists games that
-            you have/haven't reviewed (with a written review).
-            Only works if you are logged in with a user account.
+     <p><b>reviewed:<i>yes</i>|<i>no</i></b> lists games that
+         you have/haven't reviewed (with a written review).
+         Only works if you are logged in with a user account.
 
-       <p><b>rated:<i>yes</i>|<i>no</i></b> lists games that
-            you have/haven't rated (with a star rating).
-            Only works if you are logged in with a user account.
+    <p><b>rated:<i>yes</i>|<i>no</i></b> lists games that
+         you have/haven't rated (with a star rating).
+         Only works if you are logged in with a user account.
 
-       </div>
+    </div>
 
-       <?php echo $commonPostInstructions ?>
+    <?php echo $commonPostInstructions ?>
 
-       <p>To search for listings that <i>lack</i> information on genre,
-       publication date, language, development system, Baf's Guide entry,
-       or IFID, enter the modifier with nothing after the colon.
-       For example, to search for games that don't have publication
-       date or language settings, enter <b>published: language:</b>.
+    <p>To search for listings that <i>lack</i> information on genre,
+    publication date, language, development system, Baf's Guide entry,
+    or IFID, enter the modifier with nothing after the colon.
+    For example, to search for games that don't have publication
+    date or language settings, enter <b>published: language:</b>.
 
 
-       <p>You can combine these modifiers to create more specific searches.
-       For example, "outer space genre:science fiction published:-1990"
-       searches for games in the "science fiction" genre published in
-       1990 or earlier, with at least one of the words "outer" and
-       "space" somewhere in their title, author, or description.
-       Be sure to put all modifiers with ":" parameters <i>after</i>
-       any regular search words.
+    <p>You can combine these modifiers to create more specific searches.
+    For example, "outer space genre:science fiction published:-1990"
+    searches for games in the "science fiction" genre published in
+    1990 or earlier, with at least one of the words "outer" and
+    "space" somewhere in their title, author, or description.
+    Be sure to put all modifiers with ":" parameters <i>after</i>
+    any regular search words.
 
-       </div>
-
-    </form>
+    </div>
 
     <?php
 }
@@ -1245,7 +1152,7 @@ else if ($term || $browse)
         {
             $otherBrowse = "<div class=\"browseTabs\">";
             $tabClass = "browseTab firstBrowseTab";
-            foreach ($browseTabs as $key => $label)
+            foreach (SEARCH_TYPES as $key => $label)
             {
                 if ($key == $searchType)
                     $otherBrowse .= "<span class=\"$tabClass activeBrowseTab\">"
@@ -1275,58 +1182,58 @@ else if ($term || $browse)
         // if this is a game search, show the tip boxes
         if ($searchType == "game") {
             echo "<div class=tipgroup>"
-                . "<div class=tipbox>"
+                . "<aside class=tipbox>"
                 . "<h1><a href=\"search\">Search tips</a></h1>"
                 . "Learn more about search syntax."
-                . "</div>"
-                . "<div class=tipbox>"
+                . "</aside>"
+                . "<aside class=tipbox>"
                 . "<h1><a href=\"editgame?id=new\">Add a game listing</a></h1>"
                 . "You can help improve IFDB by adding a game to our database."
-                . "</div>";
+                . "</aside>";
 
             if ($pg == 1 && !$pgAll)
-                echo  "<div class=tipbox><h1>Bookmark this search</h1>"
+                echo  "<aside class=tipbox><h1>Bookmark this search</h1>"
                     . "If you think you might want to repeat this search "
                     . "in the future, you can save the search parameters "
                     . "simply by bookmarking this page (adding it to "
                     . "your \"favorites\") in your browser."
-                    . "</div>";
+                    . "</aside>";
 
             echo "</div>";
         }
 
         // if this is a list search, show the list tip box
             if ($searchType == "list") {
-                echo "<div class=tipbox>"
+                echo "<aside class=tipbox>"
                     . "<h1><a href=\"editlist?id=new\">Create a recommended list</a></h1>"
                     . "You can use lists to recommend games you like to other people."
-                    . "</div>";
+                    . "</aside>";
         }
 
         // if this is a poll search, show the poll tip box
         if ($searchType == "poll") {
-            echo "<div class=tipbox>"
+            echo "<aside class=tipbox>"
                 . "<h1><a href=\"poll?id=new\">Create a poll</a></h1>"
                 . "If you're looking for a specific kind of IF, you can "
                 . "create a poll to ask other people for recommendations."
-                . "</div>";
+                . "</aside>";
         }
 
         // if this is a comp search, show the comp tip box
         if ($searchType == "comp") {
-            echo "<div class=tipbox>"
+            echo "<aside class=tipbox>"
                 . "<h1><a href=\"editcomp?id=new\">Add a competition page</a></h1>"
                 . "If a competition isn't in our database yet, you can "
                 . "add a new competition page."
-                . "</div>";
+                . "</aside>";
         }
 
         // if this is a tag search, show the tag tip box
         if ($searchType == "tag") {
-            echo "<div class=tipbox>"
+            echo "<aside class=tipbox>"
                 . "<h1>View all the game tags</h1>"
                 . "You can <a href=\"showtags\">see all the tags in a table</a> or in a <a href=\"showtags?cloud=1\">tag cloud</a>."
-                . "</div>";
+                . "</aside>";
         }
 
         // show the sorting controls
@@ -1669,36 +1576,14 @@ else if ($term || $browse)
     // add another search box at the bottom
     ?>
     <hr class='dots search__dots'>
-    <form name="advsearch2" method="get" action="search">
-       <center>
-          <input type="text" name="searchfor" id="searchfor2" size=50
-              value="<?php echo htmlspecialcharx($term) ?>">
-          <input type="submit" name="searchgo" id="searchgo2"
-                value="<?php echo $searchButton ?>">
-          <?php echo $hiddenTypeField ?>
-          <?php echo $hiddenXL ?>
-       </center>
-    </form>
-
     <?php
+    showSearchBox();
 
 }
 
 if (!$api_mode) {
 ?>
 </div>
-<script type="text/javascript" nonce="<?php global $nonce; echo $nonce; ?>">
-<!--
-function newSearch(typ)
-{
-    var t = document.getElementById("searchfor").value;
-    var h = "search?tterm=" + encodeURI8859(t) + "<?php echo $urlXL ?>";
-    if (typ != "")
-        h += "&" + typ;
-    location.replace(h);
-}
-//-->
-</script>
 <?php
 
 // end the page
