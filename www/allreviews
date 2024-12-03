@@ -41,8 +41,8 @@ $pg = get_req_data('pg');
 $sortReq = get_req_data('sortby');
 
 $sortList = array(
-    'new' => array('publicationdate desc, createdate desc', 'Newest First'),
-    'old' => array('publicationdate, createdate', 'Oldest First'),
+    'new' => array('publicationdate desc, reviews.createdate desc', 'Newest First'),
+    'old' => array('publicationdate, reviews.createdate', 'Oldest First'),
     'hlp' => array('netHelpful desc', 'Most Helpful First'),
     'unh' => array('netHelpful', 'Least Helpful First'),
     'hi' => array('rating desc', 'Highest Ratings First'),
@@ -196,12 +196,12 @@ if ($errMsg) {
            reviews.summary as summary,
            reviews.review as review,
            date_format(reviews.createdate, '%M %e, %Y') as createdatefmt,
-           greatest(createdate, ifnull(embargodate, cast(0 as datetime))) as publicationdate,
+           greatest(reviews.createdate, ifnull(embargodate, cast(0 as datetime))) as publicationdate,
            if (reviews.embargodate > now(),
              date_format(reviews.embargodate, '%M %e, %Y'),
              null) as embargodate,
            reviews.special as special,
-           date_format(greatest(createdate, ifnull(embargodate, cast(0 as datetime))), '%M %e, %Y') as publicationdatefmt,
+           date_format(greatest(reviews.createdate, ifnull(embargodate, cast(0 as datetime))), '%M %e, %Y') as publicationdatefmt,
            date_format(greatest(reviews.moddate, ifnull(embargodate, cast(0 as datetime))), '%M %e, %Y') as moddatefmt,
            sum(reviewvotes.vote = 'Y' and ifnull(rvu.sandbox, 0) in $sandbox) as helpful,
            sum(reviewvotes.vote = 'N' and ifnull(rvu.sandbox, 0) in $sandbox) as unhelpful,

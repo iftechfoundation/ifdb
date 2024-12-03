@@ -62,9 +62,9 @@ function getReviewQuery($db, $where)
     return
         "select sql_calc_found_rows
            reviews.id as reviewid, rating, summary, review,
-           date_format(greatest(moddate, ifnull(embargodate, cast(0 as datetime))), '%M %e, %Y') as moddatefmt,
-           greatest(createdate, ifnull(embargodate, cast(0 as datetime))) as publicationdate,
-           date_format(greatest(createdate, ifnull(embargodate, cast(0 as datetime))), '%M %e, %Y') as publicationdatefmt,
+           date_format(greatest(reviews.moddate, ifnull(embargodate, cast(0 as datetime))), '%M %e, %Y') as moddatefmt,
+           greatest(reviews.createdate, ifnull(embargodate, cast(0 as datetime))) as publicationdate,
+           date_format(greatest(reviews.createdate, ifnull(embargodate, cast(0 as datetime))), '%M %e, %Y') as publicationdatefmt,
            users.id as userid, users.name as username,
            users.location as location, special,
            sum(reviewvotes.vote = 'Y' and ifnull(rvu.sandbox, 0) in $sandbox) as helpful,
