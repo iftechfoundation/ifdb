@@ -11,19 +11,19 @@ function sortBySortorder($a, $b)
 
 
 $recs = array();
-$maxpicks = 12;
 $term = "";
 if ($loggedIn) {
     // If the user is logged in, don't recommend games the user already knows about
     $term = "played:no willplay:no wontplay:no reviewed:no rated:no";
 }
 $searchType = "game";
-$sortby = "ratu";
+$sortby = "ratu";  // Sort the highly rated games to the top of the results.
+$maxpicks = 12;    // Get the first twelve results. (We want extras so we're not always displaying the same games.) 
 $limit = "limit 0, $maxpicks";
 $browse = 0;
 
 
-// run the search
+// run the search for highly-rated games
 list($recs, $rowcnt, $sortList, $errMsg, $summaryDesc, $badges,
     $specials, $specialsUsed, $orderBy) =
     doSearch($db, $term, $searchType, $sortby, $limit, $browse);
@@ -60,7 +60,7 @@ if (count($recs) >= 2) {
         list($summary, $len, $trunc) = summarizeHtml($r['description'], 140);
         $summary = fixDesc($summary);
 
-        // display it
+        // display the game information
         echo "<p>";
         if ($hasart)
             echo "<table border=0 cellspacing=0 cellpadding=0>"
