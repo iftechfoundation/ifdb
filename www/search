@@ -1403,11 +1403,13 @@ else if ($term || $browse)
                     $xtra = "<br>$xtra";
 
                 // add the extra detail
-                echo "$xtra</div></article>";
+                echo $xtra;
 
                 // Show estimated play time if available
                 if ($playtime != "")
-                    echo "<span class=details>$playtime</span>";
+                    echo "<div class=details>$playtime</div>";
+
+                echo "</div></article>";
                 break;
             
             case "list":
