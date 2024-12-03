@@ -46,7 +46,6 @@ if (count($recs) >= 2) {
         . ".ifdb-recommends__artLink { margin-right: 1em; }\n"
         . "</style>\n";
 
-
     // show the first five entries
     for ($i = 0 ; $i < count($recs) && $i < 5 ; $i++) {
 
