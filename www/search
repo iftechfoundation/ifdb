@@ -1135,13 +1135,13 @@ else if ($term || $browse)
         echo "<i>No results were found.</i>";
 
         if ($games_filtered) {
-            echo '<p><i>A filter was applied';
+            echo '<p><i>Game results were filtered at your request. ';
             if (!$browse) {
-                echo ' to your search. <a href="search?searchfor=' . $term . '&nofilter=1">Click</a> to search again ';
+                echo '<a href="search?searchfor=' . $term . '&nofilter=1">Search again</a>';
             } else if ($browse) {
-                echo '. <a href="search?browse&nofilter=1">Click</a> to browse ';
+                echo '<a href="search?browse&nofilter=1">Browse</a>';
             }
-            echo 'without the filter.</i></p>';
+            echo ' without the filter.</i></p>';
         }
 
         if ($searchType == "game") {
@@ -1568,13 +1568,13 @@ else if ($term || $browse)
 
         // Announce that the game results are filtered, if applicable
         if ($games_filtered) {
-            echo "<div class='details'>These results have been filtered. ";
+            echo "<div class='details'>Games results were filtered at your request. ";
             if (!$browse) {
-                echo '<a href="search?searchfor=' . $term . '&nofilter=1">Click</a> to search again ';
+                echo '<a href="search?searchfor=' . $term . '&nofilter=1">Search again</a>';
             } else if ($browse) {
-                echo '<a href="search?browse&nofilter=1">Click</a> to browse ';
+                echo '<a href="search?browse&nofilter=1">Browse</a>';
             }
-            echo "without the filter.</div>";
+            echo " without the filter.</div>";
         }
     }
 
