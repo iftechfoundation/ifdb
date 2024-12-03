@@ -261,6 +261,7 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse, $override_g
                        games.title as title,
                        games.author as author,
                        games.tags as tags,
+                       games.desc as description,
                        games.moddate as moddate,
                        games.system as devsys,
                        if (time(games.published) = '00:00:00',
