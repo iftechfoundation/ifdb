@@ -633,7 +633,7 @@ function showNewItemList($db, $first, $last, $items, $options)
             $nuidOrig = $n['origUserID'];
             $nunameOrig = htmlspecialcharx($n['origUserName']);
             $nhead = htmlspecialcharx($n['headline']);
-            list($nbody, $len, $trunc) = summarizeHtml($n['body'], 210);
+            [$nbody, $len, $trunc] = summarizeHtml($n['body'], 210);
             $nbody = fixDesc($nbody);
 
             switch ($n['sourceType'])
@@ -672,8 +672,8 @@ function showNewItemList($db, $first, $last, $items, $options)
                 . "News on <a href=\"$href\">$gtitle</a>: "
                 . "<b>$nhead</b> "
                 . "<span class=notes><i>$ncre</i></span><br>"
-                . "<div class=indented><span class=details>$nbody - "
-                . "<a href=\"newslog?newsid=$nid\">Details</a>"
+                . "<div class=indented><span class=details>"
+                . ($trunc ? "$nbody - <a href=\"newslog?newsid=$nid\">Details</a>" : "$nbody")
                 . "</span></div>"
                 . "</div>";
         }

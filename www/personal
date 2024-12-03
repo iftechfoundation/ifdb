@@ -92,7 +92,7 @@ if ($fullReviewCnt == 0) {
         from reviews, games
         where userid = '$quid' and games.id = reviews.gameid
           and review is not null
-        order by reviews.createdate desc
+        order by greatest(createdate, ifnull(embargodate, cast(0 as datetime))) desc, createdate desc
         limit 0, $maxreviews", $db);
 
     for ($i = 0 ; $i < mysql_num_rows($result) ; $i++) {
