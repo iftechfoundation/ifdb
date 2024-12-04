@@ -305,7 +305,7 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse, $override_g
         // Handle custom game filters
         if ($curuser && $override_game_filter != 1) {
             // We're logged in, and haven't been told to override a custom game filter, so check for one
-            $result = mysqli_execute_query($db, "select game_search_filter from users where id = ?", [$curuser]);
+            $result = mysqli_execute_query($db, "select game_filter from users where id = ?", [$curuser]);
             if (!$result) throw new Exception("Error: " . mysqli_error($db));
             [$gameFilter] = mysql_fetch_row($result);
             if ($gameFilter) {

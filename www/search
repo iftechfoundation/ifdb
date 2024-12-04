@@ -1135,7 +1135,7 @@ else if ($term || $browse)
         echo "<i>No results were found.</i>";
 
         if ($games_were_filtered) {
-            echo '<p><i>You have configured your account to filter game results by default. You can ';
+            echo '<p><i>You have set up your account to filter game results by default. You can ';
             if (!$browse) {
                 echo '<a href="search?searchfor=' . $term . '&nogamefilter=1">search again</a>';
             } else if ($browse) {
@@ -1568,13 +1568,13 @@ else if ($term || $browse)
 
         // Announce that the game results are filtered, if applicable
         if ($games_were_filtered) {
-            echo '<br><div class="details">You have configured your account to filter game results by default. You can ';
+            echo '<p class="details">You have set up your account to filter game results by default. You can ';
             if (!$browse) {
-                echo '<a href="search?searchfor=' . $term . '&nogamefilter=1">search again.</a>';
+                echo '<a href="search?searchfor=' . $term . '&nogamefilter=1">search again</a>';
             } else if ($browse) {
                 echo 'also <a href="search?browse&nogamefilter=1">browse</a>';
             }
-            echo ' without the filter</div>';
+            echo ' without the filter.</p>';
         }
     }
 
