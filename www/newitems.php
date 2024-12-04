@@ -1,5 +1,7 @@
 <?php
 
+include_once "searchutil.php";
+
 define("NEWITEMS_SITENEWS", 0x0001);
 define("NEWITEMS_GAMES", 0x0002);
 define("NEWITEMS_LISTS", 0x0004);
@@ -82,22 +84,19 @@ function getNewItems($db, $limit, $itemTypes = NEWITEMS_ALLITEMS, $options = [])
     }
 
     if ($itemTypes & NEWITEMS_GAMES) {
+        $term = "";
+        if ($days) $term = "added:" . $days . "d-";
+        $searchType = "game";
+        $sortby = "lnew";
         $games_limit = $options['games_limit'] ?? $limit;
-        if ($days) $dayWhere = "created > date_sub(now(), interval $days day)";
+        $limit_clause = "limit 0, $games_limit";
+        $browse = 0;        
         // query the recent games
-        $result = mysql_query(
-            "select id, title, author, `desc`, created as d,
-               date_format(created, '%M %e, %Y') as fmtdate,
-               system, pagevsn,
-               (coverart is not null) as hasart
-             from games
-             where $dayWhere
-             order by created desc
-             limit $games_limit", $db);
-        $gamecnt = mysql_num_rows($result);
-        for ($i = 0 ; $i < $gamecnt ; $i++) {
-            $row = mysql_fetch_array($result, MYSQL_ASSOC);
-            $items[] = array('G', $row['d'], $row);
+        list($rows, $rowcnt, $sortList, $errMsg, $summaryDesc, $badges,
+         $specials, $specialsUsed, $orderBy) =
+         doSearch($db, $term, $searchType, $sortby, $limit_clause, $browse);
+        foreach ($rows as $row) {
+            $items[] = array('G', $row['createdate'], $row);
         }
     }
 
