@@ -655,6 +655,20 @@ the page.
 }
 
 /*
+The time vote controls in the "Have you played this game?" box
+on the viewgame page 
+*/
+#submitTimeSection {
+    display: none;
+}
+#removeTimeSection {
+    display: none;
+}
+#timeSavedSection {
+    display: none;
+}
+
+/*
 The "downloads" section is for external links.
 */
 #externalLinks {
