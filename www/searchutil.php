@@ -42,6 +42,16 @@ function convertTimeStringToMinutes($h_m_string) {
      return $time_in_minutes;
 }
 
+// Construct a message telling the user that the game results were filtered
+function writeGamesFilteredAnnouncement($browse, $term) {
+    $games_filtered_announcement = 'Results have been filtered because your account has a game filter in place. You can ';
+    if (!$browse) {
+        $games_filtered_announcement .= '<a href="search?searchfor=' . $term . '&nogamefilter=1">search again without the filter</a>.';
+    } else if ($browse) {
+        $games_filtered_announcement .= 'also <a href="search?browse&nogamefilter=1">browse without the filter</a>.';
+    }
+    return $games_filtered_announcement;
+}
 
 function doSearch($db, $term, $searchType, $sortby, $limit, $browse, $override_game_filter = 0)
 {

@@ -1135,13 +1135,8 @@ else if ($term || $browse)
         echo "<i>No results were found.</i>";
 
         if ($games_were_filtered) {
-            echo '<p><i>Results have been filtered because your account has a game filter in place. You can ';
-            if (!$browse) {
-                echo '<a href="search?searchfor=' . $term . '&nogamefilter=1">search again without the filter</a>';
-            } else if ($browse) {
-                echo 'also <a href="search?browse&nogamefilter=1">browse without the filter</a>';
-            }
-            echo '.</i></p>';
+            $games_filtered_announcement = writeGamesFilteredAnnouncement($browse, $term);
+            echo '<p><i>' . $games_filtered_announcement . '</i></p>';
         }
 
         if ($searchType == "game") {
@@ -1568,13 +1563,8 @@ else if ($term || $browse)
 
         // Announce that the game results are filtered, if applicable
         if ($games_were_filtered) {
-            echo '<p class="details">Results have been filtered because your account has a game filter in place. You can ';
-            if (!$browse) {
-                echo '<a href="search?searchfor=' . $term . '&nogamefilter=1">search again without the filter</a>';
-            } else if ($browse) {
-                echo 'also <a href="search?browse&nogamefilter=1">browse without the filter</a>';
-            }
-            echo '.</p>';
+            $games_filtered_announcement = writeGamesFilteredAnnouncement($browse, $term);
+            echo '<p class="details">' . $games_filtered_announcement . '</p>';
         }
     }
 
