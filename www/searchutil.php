@@ -453,7 +453,7 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse)
         $txt = $s[1];
         $forHaving = count($desc) >= 3 && $desc[2];
         $expr = "1";
-        $negate = (strpos($s[2], '-') !== false);
+        $negate = ($s[2] === '-');
 
         // build the appropriate expression, based on the descriptor type
         switch ($typ) {
