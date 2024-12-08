@@ -17,7 +17,7 @@ if ($pg < 1)
     $pg = 1;
 
 $showFlagged = isset($_GET['showFlagged']) && $_GET['showFlagged'];
-
+$override_game_filter = get_req_data('nogamefilter');
 
 // calculate where that puts us in the results
 $firstOnPage = ($pg - 1) * PER_PAGE;
@@ -32,8 +32,12 @@ if ($showFlagged) $params['showFlagged'] = 1;
 if ($reviews) $params['reviews'] = "";
 
 // set up the page controls
+$game_filter_parameter = "";
+if ($override_game_filter) {
+    $game_filter_parameter = "&nogamefilter=1";
+}
 $pageCtl = "<span class=details>"
-           . makePageControl("allnew?" . http_build_query($params), $pg, $pg + ($tot > PER_PAGE ? 1 : 0),
+           . makePageControl("allnew?" . http_build_query($params) . $game_filter_parameter, $pg, $pg + ($tot > PER_PAGE ? 1 : 0),
                              $firstOnPage, $lastOnPage, -1,
                              false, false, false)
            . "</span>";
