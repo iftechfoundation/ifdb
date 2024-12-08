@@ -1122,7 +1122,8 @@ else if ($term || $browse)
                                  . ($searchType == "poll" ? "&poll" : "")
                                  . ($searchType == "member" ? "&member" : "")
                                  . ($searchType == "comp" ? "&comp" : "")
-                                 . ($searchType == "tag" ? "&tag" : ""),
+                                 . ($searchType == "tag" ? "&tag" : "")
+                                 . ($override_game_filter ? "&nogamefilter=1" : ""),                                 
                                  $pg, $lastPage, $firstOnPage, $lastOnPage,
                                  $rowcnt, true,
                                  $rowcnt < $showAllMaxRows, $pgAll)
