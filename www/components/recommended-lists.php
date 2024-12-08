@@ -8,7 +8,7 @@
 <?php
 
 // get the latest lists
-$items = getNewItems($db, 10, NEWITEMS_LISTS);
+list($items, $game_filter_was_applied) = getNewItems($db, 10, NEWITEMS_LISTS);
 
 // show the items
 
