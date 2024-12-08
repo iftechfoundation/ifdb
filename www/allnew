@@ -18,12 +18,13 @@ if ($pg < 1)
 
 $showFlagged = isset($_GET['showFlagged']) && $_GET['showFlagged'];
 
+
 // calculate where that puts us in the results
 $firstOnPage = ($pg - 1) * PER_PAGE;
 $lastOnPage = $firstOnPage + PER_PAGE - 1;
 
 // query the items
-$items = getNewItems($db, $lastOnPage + 1, $type);
+list($items, $game_filter_was_applied) = getNewItems($db, $lastOnPage + 1, $type, $override_game_filter);
 $tot = count($items);
 
 $params = [];
@@ -52,6 +53,11 @@ showNewItems($db, $firstOnPage, $lastOnPage, $items, ['showFlagged' => $showFlag
 // show the page controls again at the bottom
 echo "<p><hr class=dots><p>$pageCtl<br>\n";
 echo "</div>"; // prerender-moderate
+
+if ($game_filter_was_applied) {
+    $games_filtered_announcement = writeGamesFilteredAnnouncement("all_new_reviews", null, null);
+    echo "<p class='details'>" . $games_filtered_announcement . "<p>";
+}
 
 // end the page
 pageFooter();
