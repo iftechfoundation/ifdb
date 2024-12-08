@@ -7,3 +7,7 @@ alter table reviewvotes
     add column `createdate` datetime NOT NULL DEFAULT current_timestamp(),
     add PRIMARY KEY (`reviewvoteid`)
 ;
+
+-- Add column for game search filter to the users table
+
+ALTER TABLE `users` ADD COLUMN `game_filter` VARCHAR(150) DEFAULT '';
