@@ -9,7 +9,7 @@
 <?php
 
 // get the latest competitions and competition news
-$items = getNewItems($db, 7, NEWITEMS_COMPS | NEWITEMS_COMPNEWS);
+list($items, $game_filter_was_applied) = getNewItems($db, 7, NEWITEMS_COMPS | NEWITEMS_COMPNEWS);
 
 for ($idx = 0 ; $idx <= 7; $idx++)
 {
