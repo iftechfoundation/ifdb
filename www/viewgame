@@ -2743,8 +2743,8 @@ var dbTagList = [
                count(distinct gameid) as gamecnt,
                $isMine as isMine
              from gametags
+             where tag in (select tag from gametags where gameid = '$qid')
              group by tag
-             having tagcnt != 0
              order by tag", $db);
         $cnt = mysql_num_rows($result);
 
