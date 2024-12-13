@@ -222,9 +222,12 @@ div.topctl table tr td {
 
 .searchbar-wrapper > input {
     border: none;
+    padding-top: 0;
     padding-left: 0.5em;
+    padding-bottom: 0;
     border-radius: 1em 0 0 1em;
     width: 100%;
+    background: #fff;
 }
 
 .searchbar-wrapper > button {
@@ -2201,6 +2204,10 @@ span.sfl-save-autodesc {
     }
     .searchbar-wrapper { 
         border: 1.5px solid #696991;
+    }
+
+    .searchbar-wrapper > input {
+        background: #000;
     }
     #topbar-search-go-button {
         filter: invert(1);
