@@ -136,9 +136,9 @@ function initReviewVote()
 
 function sendReviewVote(reviewID, vote)
 {
-    displayReviewVote(reviewID, vote);
-    jsonSend("reviewvote?id=" + reviewID + "&vote=" + vote,
-             "voteMsg_" + reviewID);
+    jsonSend(`reviewvote?id=${reviewID}&vote=${vote}`,
+             `voteMsg_${reviewID}`,
+             () => displayReviewVote(reviewID, vote));
 }
 function displayReviewVote(reviewID, vote)
 {
@@ -500,21 +500,24 @@ function showReview($db, $gameid, $rec, $specialNames, $optionFlags = 0)
         }
         global $nonce;
 
-        echo "<div class=smallfoot><span class=details>"
-            . "Was this review helpful to you? &nbsp; "
-            . "<a href=\"needjs\">"
-            . addEventListener('click', "sendReviewVote('$reviewid', 'Y'); return false;")
-            . "Yes</a> &nbsp; "
-            . "<a href=\"needjs\">"
-            . addEventListener('click', "sendReviewVote('$reviewid', 'N'); return false;")
-            . "No</a> &nbsp; "
-            . "<span id=\"voteRemove_$reviewid\"><a href=\"needjs\">"
-            . addEventListener('click', "sendReviewVote('$reviewid', 'R'); return false;")
-            . "Remove vote</a> &nbsp; </span>";
+        echo "<div class=smallfoot><span class=details>";
 
-            if (check_admin_privileges($db, $curuser)) {
-                echo "<a href=\"review?id=$gameid&userid=$userid\">Edit</a>&nbsp; ";
-            }
+        if ($curuser) {
+            echo "Was this review helpful to you? &nbsp; "
+                . "<a href=\"needjs\">"
+                . addEventListener('click', "sendReviewVote('$reviewid', 'Y'); return false;")
+                . "Yes</a> &nbsp; "
+                . "<a href=\"needjs\">"
+                . addEventListener('click', "sendReviewVote('$reviewid', 'N'); return false;")
+                . "No</a> &nbsp; "
+                . "<span id=\"voteRemove_$reviewid\"><a href=\"needjs\">"
+                . addEventListener('click', "sendReviewVote('$reviewid', 'R'); return false;")
+                . "Remove vote</a> &nbsp; </span>";
+
+                if (check_admin_privileges($db, $curuser)) {
+                    echo "<a href=\"review?id=$gameid&userid=$userid\">Edit</a>&nbsp; ";
+                }
+        }
 
 
         echo  "<div class='reviews__moreOptions'>"
