@@ -117,12 +117,12 @@ function pageHeader($title, $focusCtl = false, $extraOnLoad = false,
                     <li class="<?= ($pagescript === 'commentlog') ? 'page-active':''; ?>"><a id="topbar-inbox" href="/commentlog?mode=inbox">Inbox
                     <?php
                     // check the inbox so we can display the number of new messages
-                    $db = dbConnect();
-                    $uid = checkPersistentLogin();
-                    $quid = mysql_real_escape_string($uid, $db);
                     $inboxCnt = 0;
-                    if ($quid) {
-                        list($inbox, $inboxCnt) =
+                    $uid = checkPersistentLogin();
+                    if ($uid) {
+                        $db = dbConnect();
+                        $quid = mysql_real_escape_string($uid, $db);
+                        [$inbox, $inboxCnt] =
                         queryComments($db, "inbox", $quid, "limit 0, 1", $caughtUpDate, false);
                     }
                     if ($inboxCnt) { 
