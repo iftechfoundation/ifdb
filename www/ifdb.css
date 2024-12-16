@@ -2178,6 +2178,20 @@ span.sfl-save-autodesc {
     background: #b0d8e8;
 }
 
+#topbar-inbox .notification {
+    min-width: 1.6em;
+    height: 1.6em;
+    border-radius: 0.8em;
+    background-color: red;
+
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 0.8em;
+    color: white;
+    vertical-align: top;
+}
+
 @media (prefers-color-scheme: dark) {
     :root {
         --unchecked-image: url("/img/dark-images/star-unchecked.svg");

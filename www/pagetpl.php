@@ -125,7 +125,7 @@ function pageHeader($title, $focusCtl = false, $extraOnLoad = false,
                     [$inbox, $inboxCnt] =
                         queryComments($db, "inbox", $quid, "limit 0, 1", $caughtUpDate, false);
                     if ($inboxCnt) { 
-                        echo " (" . $inboxCnt . ")";
+                        echo " <span class='notification'>" . $inboxCnt . "</span>";
                     }
                     ?>
                     </a></li>
