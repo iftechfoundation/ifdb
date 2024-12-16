@@ -22,12 +22,12 @@ function getReviewQuery($db, $where)
     // check for a logged-in user
     $curuser = checkPersistentLogin();
 
-    // If we're logged in, set up the review query modifiers for plonking
+    // If we're logged in, set up the review query modifiers for muting
     // and promotions and demotions.
-    $notPlonked = '1';
+    $notMuted = '1';
     $joinUserFilter = '';
     if ($curuser) {
-        $notPlonked = "(ifnull(userfilters.filtertype, '*') <> 'K')";
+        $notMuted = "(ifnull(userfilters.filtertype, '*') <> 'K')";
         $joinUserFilter = "left outer join userfilters "
                           . "on userfilters.targetuserid = reviews.userid "
                           . "and userfilters.userid = '$curuser'";
@@ -85,7 +85,7 @@ function getReviewQuery($db, $where)
          where
            ($where)
            and ifnull(now() >= reviews.embargodate, 1)
-           and $notPlonked
+           and $notMuted
            and ifnull(users.sandbox, 0) in $sandbox
          group by
            reviews.id";
@@ -539,9 +539,9 @@ function showReview($db, $gameid, $rec, $specialNames, $optionFlags = 0)
             . "(this will only be visible to you)\"><nobr>"
             . "Demote this user</nobr></a>"
             . "</td></tr>"
-            . "<tr><td><a href=\"userfilter?user=$userid&action=plonk\" "
+            . "<tr><td><a href=\"userfilter?user=$userid&action=mute\" "
             . "title=\"Never show me this user's "
-            . "reviews at all\"><nobr>Plonk this user</nobr></a>"
+            . "reviews at all\"><nobr>Mute this user</nobr></a>"
             . "</td></tr>"
             . "<tr><td><a href=\"reviewflag?review=$reviewid&type=spoilers\" "
             . "title=\"Warn other users that this review "

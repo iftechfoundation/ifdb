@@ -3,7 +3,7 @@
 include_once "util.php";
 include_once "login-persist.php";
 
-function queryComments($db, $mode, $quid, $limit, $caughtUpDate, $keepPlonked)
+function queryComments($db, $mode, $quid, $limit, $caughtUpDate, $keepMuted)
 {
     // get the logged-in user
     checkPersistentLogin();
@@ -27,15 +27,15 @@ function queryComments($db, $mode, $quid, $limit, $caughtUpDate, $keepPlonked)
               . "or l.userid = '$quid' "
               . "or p.userid = '$quid')";
 
-    // if we're logged in, we can check for plonking
-    $plonkedCol = "0";
+    // if we're logged in, we can check for muting
+    $mutedCol = "0";
     if ($curuser) {
-        $plonkedCol = "(select count(*) from userfilters as uf "
+        $mutedCol = "(select count(*) from userfilters as uf "
                       . "where uf.userid = '$curuser' "
                       .   "and uf.targetuserid = c.userid "
                       .   "and uf.filtertype = 'K')";
     }
-    $andNotPlonked = ($keepPlonked ? "" : "and $plonkedCol = 0");
+    $andNotMuted = ($keepMuted ? "" : "and $mutedCol = 0");
 
     // Include only reviews from our sandbox or sandbox 0 (all users)
     $inSandbox = "uc.sandbox = 0";
@@ -87,7 +87,7 @@ function queryComments($db, $mode, $quid, $limit, $caughtUpDate, $keepPlonked)
            l.title, l.userid, lu.name,
            p.title, p.userid, pu.name,
 
-           $plonkedCol
+           $mutedCol
 
          from
            ucomments as c
@@ -114,7 +114,7 @@ function queryComments($db, $mode, $quid, $limit, $caughtUpDate, $keepPlonked)
            (c.private is null $orOwner)
            and ($modeWhere)
            $andNew
-           $andNotPlonked
+           $andNotMuted
            and ($inSandbox)
          $modeGroup
          $modeHaving
@@ -142,7 +142,7 @@ function queryComments($db, $mode, $quid, $limit, $caughtUpDate, $keepPlonked)
              $uuid, $uuname,
              $ltitle, $luid, $luname,
              $ptitle, $puid, $puname,
-             $plonked) = $row;
+             $muted) = $row;
 
         // html-ify some of the items
         $cuname = htmlspecialcharx($cuname);
@@ -208,10 +208,10 @@ function showCommentPage($db, $itemAuthor, $srcID, $srcCode,
     $curuser = $_SESSION['logged_in_as'];
     $orOwner = ($curuser ? "or '$curuser' in (c.userid, c.private)" : "");
 
-    // if we're logged in, we can check for plonking
-    $plonkedCol = "0";
+    // if we're logged in, we can check for muting
+    $mutedCol = "0";
     if ($curuser) {
-        $plonkedCol = "(select count(*) from userfilters as uf "
+        $mutedCol = "(select count(*) from userfilters as uf "
                       . "where uf.userid = '$curuser' "
                       .   "and uf.targetuserid = c.userid "
                       .   "and uf.filtertype = 'K')";
@@ -236,7 +236,7 @@ function showCommentPage($db, $itemAuthor, $srcID, $srcCode,
            date_format(c.created, '%M %e, %Y'),
            date_format(c.modified, '%M %e, %Y'),
            c.private,
-           $plonkedCol
+           $mutedCol
          from
            ucomments as c
            join users as uc on uc.id = c.userid
@@ -370,7 +370,7 @@ function showCommentList($db,$commentPage, $itemAuthor, $cidx, $coutlst)
         showComment($db, $commentPage, $itemAuthor, $cidx, $coutlst, $i);
 }
 
-$plonkedCommentNum = 0;
+$mutedCommentNum = 0;
 function showComment($db,$commentPage, $itemAuthor, $cidx, $coutlst, $i)
 {
     // get the logged-in user
@@ -380,7 +380,7 @@ function showComment($db,$commentPage, $itemAuthor, $cidx, $coutlst, $i)
     // unpack the item
     $crec = $cidx[$coutlst[$i]];
     list($cid, $cpar, $ctxt, $cuserid, $cusername,
-         $ccreated, $cmodified, $cprivate, $plonked) = $crec;
+         $ccreated, $cmodified, $cprivate, $muted) = $crec;
 
     // quote the items
     $ctxt = fixDesc($ctxt, FixDescSpoiler);
@@ -404,10 +404,10 @@ function showComment($db,$commentPage, $itemAuthor, $cidx, $coutlst, $i)
         $ctls .= " | <a href=\"$commentPage&delete=$cid\">Delete</a>";
     }
 
-    // add the Plonk control if applicable
-    if ($curuser && $curuser != $cuserid && !$plonked) {
-        $ctls .= " | <a href=\"userfilter?user=$cuserid&action=plonk\">"
-                 . "Plonk User</a>";
+    // add the Mute control if applicable
+    if ($curuser && $curuser != $cuserid && !$muted) {
+        $ctls .= " | <a href=\"userfilter?user=$cuserid&action=mute\">"
+                 . "Mute User</a>";
     }
 
     // figure the class - first, last, or middle
@@ -420,11 +420,11 @@ function showComment($db,$commentPage, $itemAuthor, $cidx, $coutlst, $i)
     // start the comment section
     echo "<div class=$divClass>";
 
-    // if it's plonked, wrap it in a click-through hider
-    if ($plonked) {
-        echo "<span class=details><i>You've plonked this comment's author</i>"
+    // if it's muted, wrap it in a click-through hider
+    if ($muted) {
+        echo "<span class=details><i>You've muted this comment's author</i>"
             . " - <span><a href=\"needjs\">"
-            . addEventListener("click", "revealPlonkedAuthor(this, '$cuserid', '"
+            . addEventListener("click", "revealMutedAuthor(this, '$cuserid', '"
                 . str_replace(array('"', '\''),
                             array("'+String.fromCharCode(34)+'", "\\'"),
                             $cusername)
@@ -433,25 +433,25 @@ function showComment($db,$commentPage, $itemAuthor, $cidx, $coutlst, $i)
             . "<span class='displayNone'>"
             . " | <a href=\"needjs\">"
             . addEventListener(
-                "click", "revealPlonkedComment(this);return false;"
+                "click", "revealMutedComment(this);return false;"
             )
             . "Reveal comment</a>"
             . "</span>"
             . "</span>"
             . "<div class='displayNone'>";
 
-        global $plonkedCommentNum;
-        if ($plonkedCommentNum++ == 0) {
+        global $mutedCommentNum;
+        if ($mutedCommentNum++ == 0) {
             ?>
 <script type="text/javascript" nonce="<?php global $nonce; echo $nonce; ?>">
-function revealPlonkedAuthor(ele, uid, uname)
+function revealMutedAuthor(ele, uid, uname)
 {
     ele = ele.parentNode;
     ele.innerHTML = "<a href=\"showuser?id=" + uid + "\">"
                     + uname + "</a>";
     ele.nextSibling.style.display = "inline";
 }
-function revealPlonkedComment(ele)
+function revealMutedComment(ele)
 {
     ele = ele.parentNode.parentNode;
     ele.style.display = "none";
@@ -472,8 +472,8 @@ function revealPlonkedComment(ele)
         . " - $ctls</span><br>"
         . "$ctxt";
 
-    // end the plonk hider div, if present
-    if ($plonked)
+    // end the mute hider div, if present
+    if ($muted)
         echo "</div>";
 
     // end the command section

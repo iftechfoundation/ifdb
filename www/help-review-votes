@@ -29,13 +29,13 @@ Demote her, her reviews will move to the end of the list.
  <a href="userfilter?list">user filter
 editor</a>.)
 
-<p><a name="plonk"><b>Plonk this user:</b></a>
+<p><a name="mute"><b>Mute this user:</b></a>
 This is the nuclear option, for someone you
 find so annoying that you never again want to see anything they write.
-If you plonk a user, <b>all</b> of her reviews will be omitted when
+If you mute a user, <b>all</b> of her reviews will be omitted when
 you view game pages throughout IFDB.  This only affects you - it won't
 actually delete the user's reviews or hide them when other members
-view the same game pages.  (You can change your mind and un-plonk
+view the same game pages.  (You can change your mind and un-mute
 someone later via the <a href="userfilter?list">user filter editor</a>.)
 
 <p><b>Flag spoilers:</b> Mark this review as containing

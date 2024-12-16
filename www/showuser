@@ -38,8 +38,8 @@ if ($uid == "")
 $quid = mysql_real_escape_string($uid, $db);
 $errMsg = false;
 
-// check for plonking
-$plonked = false;
+// check for muting
+$muted = false;
 if ($curuser) {
     $result = mysql_query(
         "select 1
@@ -48,17 +48,17 @@ if ($curuser) {
            userid = '$curuser'
            and targetuserid = '$quid'
            and filtertype = 'K'", $db);
-    $plonked = (mysql_num_rows($result) > 0);
-    if ($plonked)
+    $muted = (mysql_num_rows($result) > 0);
+    if ($muted)
     {
-        // check for a plonk override
-        $plonkOverride = isset($_REQUEST['plonkOverride']);
-        if (!$plonkOverride) {
-            $errMsg = "You've plonked this member, which means that you've "
+        // check for a mute override
+        $muteOverride = isset($_REQUEST['muteOverride']);
+        if (!$muteOverride) {
+            $errMsg = "You've muted this member, which means that you've "
                       . "asked for IFDB to hide all of this user's reviews, "
                       . "comments, and other information. If you'd like to "
                       . "view this profile anyway, <a href=\"showuser?"
-                      . "id=$uid&plonkOverride\">click here</a>.";
+                      . "id=$uid&muteOverride\">click here</a>.";
         }
     }
 }

@@ -49,7 +49,7 @@ $result = mysql_query(
     "select filtertype from userfilters
      where userid = '$curuser' and targetuserid = '$qTargetUser'", $db);
 list($oldFilter) = mysql_fetch_row($result);
-$filterNames = array('P' => "promote", 'D' => "demote", 'K' => "plonk");
+$filterNames = array('P' => "promote", 'D' => "demote", 'K' => "mute");
 $oldFilterName = ($oldFilter ? $filterNames[$oldFilter] : false);
 
 $userl = "<a href=\"showuser?id=$targetUser\">$targetUserName</a>";
@@ -92,12 +92,12 @@ if ($showList) {
             . "<p>Note that this is a personal customization that only "
             . "affects you (and only when you're logged in).  It won't "
             . "affect the order of reviews that other users see.";
-} else if ($action == 'plonk') {
-    $title = "$targetUserName - Plonk User";
+} else if ($action == 'mute') {
+    $title = "$targetUserName - Mute User";
     $newFilter = 'K';
-    $newFilterName = 'plonk';
-    $newFiltered = "plonked";
-    $expl = "Plonking $userl means that you'll <b>never</b> see $his "
+    $newFilterName = 'mute';
+    $newFiltered = "muted";
+    $expl = "Muting $userl means that you'll <b>never</b> see $his "
             . "reviews again, for this game or any other game.  They'll "
             . "be completely hidden from your view - IFDB won't even "
             . "mention that they exist.  This is the nuclear option, "
@@ -234,7 +234,7 @@ if ($showList) {
             .    "first when you view game pages"
             .  "<li>Demote members you don't find helpful, so their "
             .    "reviews go to the end of the list"
-            .  "<li>\"Plonk\" members who especially annoy you, hiding "
+            .  "<li>\"Mute\" members who especially annoy you, hiding "
             .    "their reviews from you entirely"
             . "</ul>"
             . "<p>Your filter list is currently empty.  You can add a "
@@ -246,7 +246,7 @@ if ($showList) {
 
         $typeMap = array('P' => 'Promoted',
                          'D' => 'Demoted',
-                         'K' => 'Plonked');
+                         'K' => 'Muted');
         for ($i = 0 ; $i < $rowcnt ; $i++) {
             list($fuid, $funame, $ftype) = mysql_fetch_row($result);
             $funame = htmlspecialcharx($funame);
@@ -262,8 +262,8 @@ if ($showList) {
                 echo "<a href=\"userfilter?user=$fuid&action=demote$from\""
                     . ">Demote</a> &nbsp; ";
             if ($ftype != 'K')
-                echo "<a href=\"userfilter?user=$fuid&action=plonk$from\""
-                    . ">Plonk</a> &nbsp; ";
+                echo "<a href=\"userfilter?user=$fuid&action=mute$from\""
+                    . ">Mute</a> &nbsp; ";
 
             echo "<a href=\"userfilter?user=$fuid&action=remove$from\""
                 . ">Remove filter</a></span></div>";

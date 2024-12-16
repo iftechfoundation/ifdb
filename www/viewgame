@@ -3282,7 +3282,7 @@ if (count($inrefs) != 0 && !$historyView) {
             "$query order by $orderBy, moddate desc $limit", $db);
 
         // get the query total - it might differ from the overall total
-        // due to plonking or other filters
+        // due to muting or other filters
         $realtotcnt = ($ratingsView ? $ratingCntTot : $memberReviewCnt);
         $result2 = mysql_query("select found_rows()", $db);
         list($totcnt) = mysql_fetch_row($result2);

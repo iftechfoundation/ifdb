@@ -28,10 +28,10 @@ function getNewItems($db, $limit, $itemTypes = NEWITEMS_ALLITEMS, $options = [])
     checkPersistentLogin();
     $curuser = $_SESSION['logged_in_as'] ?? null;
 
-    // filter out plonked users, if applicable
-    $andNotPlonked = "";
+    // filter out muted users, if applicable
+    $andNotMuted = "";
     if ($curuser) {
-        $andNotPlonked = "and (select count(*) from userfilters "
+        $andNotMuted = "and (select count(*) from userfilters "
                          . "where userid = '$curuser' "
                          . "and targetuserid = #USERID# "
                          . "and filtertype = 'K') = 0";
@@ -104,8 +104,8 @@ function getNewItems($db, $limit, $itemTypes = NEWITEMS_ALLITEMS, $options = [])
     if ($itemTypes & NEWITEMS_LISTS) {
         $lists_limit = $options['lists_limit'] ?? $limit;
         if ($days) $dayWhere = "reclists.createdate > date_sub(now(), interval $days day)";
-        // query the recent recommended lists (minus plonked users)
-        $anp = str_replace('#USERID#', 'reclists.userid', $andNotPlonked);
+        // query the recent recommended lists (minus muted users)
+        $anm = str_replace('#USERID#', 'reclists.userid', $andNotMuted);
         $result = mysql_query(
             "select
                reclists.id as id, reclists.title as title,
@@ -121,7 +121,7 @@ function getNewItems($db, $limit, $itemTypes = NEWITEMS_ALLITEMS, $options = [])
              where
                users.sandbox in $sandbox
                and $dayWhere
-               $anp
+               $anm
              group by reclists.id
              order by reclists.createdate desc
              limit $lists_limit", $db);
@@ -135,8 +135,8 @@ function getNewItems($db, $limit, $itemTypes = NEWITEMS_ALLITEMS, $options = [])
     if ($itemTypes & NEWITEMS_POLLS) {
         $polls_limit = $options['polls_limit'] ?? $limit;
         if ($days) $dayWhere = "p.created > date_sub(now(), interval $days day)";
-        // query the recent polls (minus plonked users)
-        $anp = str_replace('#USERID#', 'p.userid', $andNotPlonked);
+        // query the recent polls (minus muted users)
+        $anm = str_replace('#USERID#', 'p.userid', $andNotMuted);
         $result = mysql_query(
             "select
                p.pollid as pollid, p.title as title, p.`desc` as `desc`,
@@ -152,7 +152,7 @@ function getNewItems($db, $limit, $itemTypes = NEWITEMS_ALLITEMS, $options = [])
              where
                u.sandbox in $sandbox
                and $dayWhere
-               $anp
+               $anm
              group by
                p.pollid
              order by
@@ -168,8 +168,8 @@ function getNewItems($db, $limit, $itemTypes = NEWITEMS_ALLITEMS, $options = [])
     if ($itemTypes & NEWITEMS_REVIEWS) {
         $reviews_limit = $options['reviews_limit'] ?? $limit;
         if ($days) $dayWhere = "greatest(reviews.createdate, ifnull(reviews.embargodate, '0000-00-00')) > date_sub(now(), interval $days day)";
-        // query the recent reviews (minus plonks)
-        $anp = str_replace('#USERID#', 'reviews.userid', $andNotPlonked);
+        // query the recent reviews (minus mutes)
+        $anm = str_replace('#USERID#', 'reviews.userid', $andNotMuted);
         $result = mysql_query(
             "select
                reviews.id as id, gameid, summary, review, rating, special,
@@ -197,7 +197,7 @@ function getNewItems($db, $limit, $itemTypes = NEWITEMS_ALLITEMS, $options = [])
                and ifnull(specialreviewers.code, '') <> 'external'
                and users.sandbox in $sandbox
                and $dayWhere
-               $anp
+               $anm
              order by d desc, id desc
              limit $reviews_limit", $db);
         $revcnt = mysql_num_rows($result);
@@ -282,10 +282,10 @@ function queryNewNews(&$items, $db, $limit, $sourceType,
     checkPersistentLogin();
     $curuser = $_SESSION['logged_in_as'] ?? null;
 
-    // filter out plonked users, if applicable
-    $andNotPlonked = "";
+    // filter out muted users, if applicable
+    $andNotMuted = "";
     if ($curuser) {
-        $andNotPlonked = "and (select count(*) from userfilters "
+        $andNotMuted = "and (select count(*) from userfilters "
                          . "where userid = '$curuser' "
                          . "and targetuserid = n.userid "
                          . "and filtertype = 'K') = 0";
@@ -333,7 +333,7 @@ function queryNewNews(&$items, $db, $limit, $sourceType,
            and nsuper.newsid is null
            and uorig.sandbox in $sandbox
            and $dayWhere
-           $andNotPlonked
+           $andNotMuted
          order by
            n.created desc
          limit $limit", $db);
