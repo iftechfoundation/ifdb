@@ -3,6 +3,7 @@
 include_once "csp-nonce.php";
 include_once "util.php";
 include_once "login-persist.php";
+include_once "commentutil.php";
 
 header("Speculation-Rules: \"/speculation-rules\"");
 
@@ -113,7 +114,22 @@ function pageHeader($title, $focusCtl = false, $extraOnLoad = false,
                     <li class="<?= ($pagescript === 'showuser') ? 'page-active':''; ?>"><a id="topbar-profile" href="/showuser">Profile</a></li>
                     <li class="<?= ($pagescript === 'editprofile') ? 'page-active':''; ?>"><a id="topbar-edit" href="/editprofile">Settings</a></li>
                     <li class="<?= ($pagescript === 'personal') ? 'page-active':''; ?>"><a id="topbar-personal" href="/personal">My Activity</a></li>
-                    <li class="<?= ($pagescript === 'commentlog') ? 'page-active':''; ?>"><a id="topbar-inbox" href="/commentlog?mode=inbox">Inbox</a></li>
+                    <li class="<?= ($pagescript === 'commentlog') ? 'page-active':''; ?>"><a id="topbar-inbox" href="/commentlog?mode=inbox">Inbox
+                    <?php
+                    // check the inbox so we can display the number of new messages
+                    $db = dbConnect();
+                    $result = mysqli_execute_query($db,
+                    "select caughtupdate from users where id=?", [$curuser]);
+                    $caughtUpDate = mysql_result($result, 0, "caughtupdate");
+                    $quid = mysql_real_escape_string($curuser, $db);
+                    global $inbox, $inboxCnt;
+                    [$inbox, $inboxCnt] =
+                        queryComments($db, "inbox", $quid, "limit 0, 1", $caughtUpDate, false);
+                    if ($inboxCnt) { 
+                        echo " <span class='notification'>" . $inboxCnt . "</span>";
+                    }
+                    ?>
+                    </a></li>
                     <li><a id="topbar-logout" class="login-link no-prerender" href="/logout">Log Out</a></li>
                 <?php else : ?>
                     <li><a id="topbar-login" class="login-link" href="/login?dest=home">Log In</a></li>
