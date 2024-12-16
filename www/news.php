@@ -147,10 +147,10 @@ function queryNews($db, $sourceType, $sourceID, $includeDeletions,
     checkPersistentLogin();
     $curuser = $_SESSION['logged_in_as'] ?? null;
 
-    // filter out plonked users, if applicable
-    $andNotPlonked = "";
+    // filter out muted users, if applicable
+    $andNotMuted = "";
     if ($curuser) {
-        $andNotPlonked = "and (select count(*) from userfilters "
+        $andNotMuted = "and (select count(*) from userfilters "
                          . "where userid = '$curuser' "
                          . "and targetuserid = n.userid "
                          . "and filtertype = 'K') = 0";
@@ -210,7 +210,7 @@ function queryNews($db, $sourceType, $sourceID, $includeDeletions,
            n.source = '$sourceType' and n.sourceid = '$sourceID'
            and n.status in $statusList
            and nsuper.newsid is null
-           $andNotPlonked
+           $andNotMuted
            and u.sandbox in $sandbox
          order by
            n.created desc

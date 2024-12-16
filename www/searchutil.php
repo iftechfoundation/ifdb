@@ -49,10 +49,10 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse)
     checkPersistentLogin();
     $curuser = mysql_real_escape_string($_SESSION['logged_in_as'] ?? '', $db);
 
-    // set up the plonk filter
-    $andNotPlonked = "";
+    // set up the mute filter
+    $andNotMuted = "";
     if ($curuser) {
-        $andNotPlonked = " and (select count(*) from userfilters "
+        $andNotMuted = " and (select count(*) from userfilters "
                          . "where userid = '$curuser' "
                          . "and targetuserid = #USERID# "
                          . "and filtertype = 'K') = 0";
@@ -107,7 +107,7 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse)
         $baseWhere = "and reclists.userid = users.id "
                      . "and users.sandbox in ($sandbox) "
                      . str_replace('#USERID#', 'reclists.userid',
-                                   $andNotPlonked);
+                                   $andNotMuted);
         $groupBy = "group by reclistitems.listid";
         $baseOrderBy = "title";
         $matchCols = "title, keywords";
@@ -136,7 +136,7 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse)
                       left outer join pollvotes as v on v.pollid = p.pollid
                       join users as u on u.id = p.userid";
         $baseWhere = "and u.sandbox in $sandbox "
-                     . str_replace('#USERID#', 'p.userid', $andNotPlonked);
+                     . str_replace('#USERID#', 'p.userid', $andNotMuted);
         $groupBy = "group by p.pollid";
         $baseOrderBy = "title";
         $matchCols = "title, keywords";
@@ -162,7 +162,7 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse)
         $baseWhere = "and u.acctstatus = 'A' "
                      . "and u.sandbox in $sandbox "
                      . "and (ifnull(u.profilestatus, ' ') != 'R' $orCurUser)"
-                     . str_replace('#USERID#', 'u.id', $andNotPlonked);
+                     . str_replace('#USERID#', 'u.id', $andNotMuted);
         $groupBy = "";
         $baseOrderBy = "name";
         $matchCols = "name, profile";

@@ -2,12 +2,12 @@
 //
 // allreviews - show all reviews by a given user.
 
-// Note that we ignore the user filters (promoted, demoted, plonked) here,
+// Note that we ignore the user filters (promoted, demoted, muted) here,
 // because those are meant to sort and filter reviews by user.   Since all
 // of the reviews we show here are by a single user, there's no need to
 // sort relative to other users; and since the only purpose of this page
 // is to show a given users's reviews, it doesn't make any sense to pay
-// attention to plonking here.
+// attention to muting here.
 
 include_once "session-start.php";
 
