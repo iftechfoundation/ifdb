@@ -3,6 +3,12 @@
 include_once "util.php";
 include_once "login-persist.php";
 
+// Use globals for the inbox and the number of inbox messages 
+// so that once we call queryComments(), we can use the results 
+// in both pagetpl.php and check-inbox.php
+$inbox = [];
+$inboxCnt = 0;
+
 function queryComments($db, $mode, $quid, $limit, $caughtUpDate, $keepPlonked)
 {
     // get the logged-in user
