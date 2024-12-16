@@ -117,14 +117,13 @@ function pageHeader($title, $focusCtl = false, $extraOnLoad = false,
                     <li class="<?= ($pagescript === 'commentlog') ? 'page-active':''; ?>"><a id="topbar-inbox" href="/commentlog?mode=inbox">Inbox
                     <?php
                     // check the inbox so we can display the number of new messages
-                    $inboxCnt = 0;
-                    $uid = checkPersistentLogin();
-                    if ($uid) {
-                        $db = dbConnect();
-                        $quid = mysql_real_escape_string($uid, $db);
-                        [$inbox, $inboxCnt] =
+                    $db = dbConnect();
+                    $result = mysqli_execute_query($db,
+                    "select caughtupdate from users where id=?", [$curuser]);
+                    $caughtUpDate = mysql_result($result, 0, "caughtupdate");
+                    $quid = mysql_real_escape_string($curuser, $db);
+                    [$inbox, $inboxCnt] =
                         queryComments($db, "inbox", $quid, "limit 0, 1", $caughtUpDate, false);
-                    }
                     if ($inboxCnt) { 
                         echo " (" . $inboxCnt . ")";
                     }
