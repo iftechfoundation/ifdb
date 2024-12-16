@@ -122,6 +122,7 @@ function pageHeader($title, $focusCtl = false, $extraOnLoad = false,
                     "select caughtupdate from users where id=?", [$curuser]);
                     $caughtUpDate = mysql_result($result, 0, "caughtupdate");
                     $quid = mysql_real_escape_string($curuser, $db);
+                    global $inbox, $inboxCnt;
                     [$inbox, $inboxCnt] =
                         queryComments($db, "inbox", $quid, "limit 0, 1", $caughtUpDate, false);
                     if ($inboxCnt) { 
