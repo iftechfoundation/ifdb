@@ -572,13 +572,14 @@ foreach ($links as $link)
         'tads3',
         'hugo']))
     {
+        $parchment = "https://iplayif.com/?story=";
         if (!$link['compression']) {
             $foundPC = true;
-            $pcUrl = urlencode(urlToMirror($link['url']));
+            $pcUrl = $parchment . urlencode(urlToMirror($link['url']));
             break;
         } else if ($unboxUrl) {
             $foundPC = true;
-            $pcUrl = urlencode($unboxUrl);
+            $pcUrl = $parchment . urlencode($unboxUrl);
             break;
         }
     }
@@ -823,8 +824,7 @@ if (isset($_REQUEST['ifiction']) || $json)
         if ($foundHtml && $htmlUrl) {
             $playOnlineMainURL = $htmlUrl;
         } else if ($foundPC && $pcUrl) {
-            $parchment = "https://iplayif.com/?story=";
-            $playOnlineMainURL = $parchment . $pcUrl;
+            $playOnlineMainURL = $pcUrl;
         } else if ($foundAdrift && $adriftUrl) {
             $playOnlineMainURL = $adriftUrl;
         }
@@ -1149,9 +1149,8 @@ if ($foundGame)
 
     // if we have a Parchment-capable game, set up a play-with-Parchment link
     if ($foundPC && $pcUrl) {
-        $parchment = "https://iplayif.com/?story=";
         $ptarget = (is_kindle() ? "" : "target=\"_blank\"");
-        $playOnlineButton = "<a href=\"$parchment$pcUrl\" $ptarget "
+        $playOnlineButton = "<a href=\"$pcUrl\" $ptarget "
             . "title=\"Play this game right now in your browser, using "
             . "the Parchment interpreter. No installation is required.\" "
             . "class=\"fancy-button viewgame__playOnline\">Play Online"
