@@ -2767,32 +2767,28 @@ if ($embargoCnt > 0)
 <script type="module" nonce="<?php global $nonce; echo $nonce; ?>">
 import {initTagTable} from './viewgame.js';
 
-var dbTagList = [
-<?php
-        $isMine = ($curuser
-                   ? "sum(userid = '$curuser' and gameid = '$qid')"
-                   : "0");
-        $result = mysql_query(
+var dbTagList = <?php
+        if ($curuser) {
+            $isMine = "cast(sum(userid = ? and gameid = ?) as int)";
+            $isMineParams = [$curuser, $id];
+        } else {
+            $isMine = "0";
+            $isMineParams = [];
+        }
+        $result = mysqli_execute_query($db,
             "select
                tag,
-               sum(gameid = '$qid') as tagcnt,
+               cast(sum(gameid = ?) as int) as tagcnt,
                count(distinct gameid) as gamecnt,
                $isMine as isMine
              from gametags
-             where tag in (select tag from gametags where gameid = '$qid')
+             where tag in (select tag from gametags where gameid = ?)
              group by tag
-             order by tag", $db);
-        $cnt = mysql_num_rows($result);
+             order by tag", [$id, ...$isMineParams, $id]);
 
-        for ($i = 0 ; $i < $cnt ; $i++) {
-            list($tag, $tagcnt, $gamecnt, $isMine) = mysql_fetch_row($result);
-            $tag = jsSpecialChars($tag);
-            echo ($i > 0 ? "," : "")
-                . "{tag: \"$tag\", tagcnt: $tagcnt, "
-                . "gamecnt: $gamecnt, isMine: $isMine}";
-        }
+        echo json_encode(mysqli_fetch_all($result, MYSQLI_ASSOC));
 ?>
-];
+;
 
 initTagTable("<?php echo $id ?>", dbTagList, <?php echo $adminPriv ?>);
 //-->
