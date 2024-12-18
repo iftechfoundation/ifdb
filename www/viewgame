@@ -859,8 +859,8 @@ if (isset($_REQUEST['ifiction']) || $json)
             $link_obj = [
                 'url' => $l['url'],
             ];
-            [$isGame, $onlineInterpreterType, $playOnlineURL] = constructPlayOnlineURL($link);
-            if ($isGame && $playOnlineURL) $link_obj['playOnlineUrl'] = $playOnlineURL;
+            [$isGameLink, $onlineInterpreterType, $playOnlineURL] = constructPlayOnlineURL($l);
+            if ($isGameLink && $playOnlineURL) $link_obj['playOnlineUrl'] = $playOnlineURL;
             if ($l['title']) $link_obj['title'] = $l['title'];
             if ($l['desc']) $link_obj['desc'] = $l['desc'];
             if ($l['isgame']) $link_obj['isGame'] = true;
