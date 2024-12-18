@@ -905,8 +905,8 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse)
                 'auth' => array('sort_author,', 'Sort by Author'),
                 'pnew' => array('published desc,', 'Latest Publication First'),
                 'pold' => array('sort_pub,', 'Earliest Publication First'),
-                'short' => array('rounded_median_time_in_minutes,', 'Shortest Play Time First'),
-                'long'  => array('rounded_median_time_in_minutes desc,', 'Longest Play Time First'),
+                'long'  => array('rounded_median_time_in_minutes desc, starsort desc,', 'Longest First'),
+                'short' => array('-rounded_median_time_in_minutes desc, starsort desc,', 'Shortest First'),
                 'rand' => array('rand(),', 'Random Order'));
             $defSortBy = 'ratu';
         } else {
@@ -927,8 +927,8 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse)
                                 'Rating Deviation - Low to High'),
                 'new' => array('published desc,', 'Latest Publication First'),
                 'old' => array('sort_pub,', 'Earliest Publication First'),
-                'short' => array('rounded_median_time_in_minutes,', 'Shortest Play Time First'),
-                'long'  => array('rounded_median_time_in_minutes desc,', 'Longest Play Time First'),
+                'long'  => array('rounded_median_time_in_minutes desc, starsort desc,', 'Longest First'),
+                'short' => array('-rounded_median_time_in_minutes desc, starsort desc,', 'Shortest First'),
                 'rand' => array('rand(),', 'Random Order'));
             if (count($words)) {
                 $defSortBy = 'rel';
