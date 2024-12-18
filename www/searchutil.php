@@ -1040,8 +1040,8 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse)
                       . "on userScores_mv.userid = u.id";
     }
 
-    // Is we're sorting by estimated play time, make sure we select that and 
-    // join to the gametimes materialized view
+    // If we're sorting by estimated play time, make sure we select the play time and 
+    // join the gametimes materialized view
     if ($searchType == "game" && ($sortby == "short" || $sortby == "long")) {
 
         if (!isset($specialsUsed['playtime:'])) {
