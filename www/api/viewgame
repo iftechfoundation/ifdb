@@ -100,11 +100,12 @@ choose whether you want to use the JSON API or the <a href="#ifiction">XML API</
       "url": "<i>URL to cover art</i>"
     },
     "playTimeInMinutes": <i>Estimated play time in minutes</i>
-
+    "primaryPlayOnlineUrl": "<i>The URL used in the main "Play online" button for the game (this key will be absent if there's no play online URL)</i>
     "downloads": {
       "links": [
         {
           "url": "<i>URL to the file</i>",
+          "playOnlineUrl" : <i>The "play online" version of a given URL (this key will be absent if there's no play online version)</i>
           "title": "<i>Title of the file</i>",
           "desc": "<i>Description of the file</i>",
           "isGame": <i>true if this link points to a playable version of the game, such as a story file or an executable application; false otherwise</i>,
@@ -272,6 +273,9 @@ appears at the same XML nesting level as &lt;identification&gt;,
      &lt;coverart&gt;
        &lt;url&gt;<i>URL to cover art image</i>&lt;/url&gt;
      &lt;/coverart&gt;
+     &lt;playTimeInMinutes&gt;<i>Estimated play time in minutes</i>&lt;/playTimeInMinutes&gt;
+     &lt;primaryPlayOnlineUrl&gt;<i>The main "Play Online" URL for this game (the same one used for IFDB's "Play online" button)</i>&lt;/primaryPlayOnlineUrl&gt;
+     &lt;PlayOnlineUrl&gt;<i>The "play online" version of any game URL, not just the primary one</i>&lt;/playTimeInMinutes&gt;playOnlineUrl
      &lt;averageRating&gt;<i>Average user rating</i>&lt;/averageRating&gt;
      &lt;starRating&gt;<i>Star rating</i>&lt;/starRating&gt;
      &lt;ratingCountAvg&gt;<i>Number of ratings included in the average</i>&lt;/ratingCountAvg&gt;
