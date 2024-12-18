@@ -506,17 +506,17 @@ if ($mediantime > 60) {
 
 //----------------End finding median play time------------------
 
-//----------------Begin finding download links-------------------
+//----------------Begin Play Online link stuff-------------------
 
-// Check to see if the game is available for download in any form.
-// PC == "parchment capable" - a format that we can play with Parchment.
-// HEX = Hugo file playable online with textadventures.online/play/?story=XXX
-$foundGame = $foundHtml = $foundPC = $foundHex = $htmlUrl = $pcUrl = $foundAdrift = $adriftUrl = $hexUrl = false;
-foreach ($links as $link)
-{
+// Create a play online URL for a link from $links
+function constructPlayOnlineURL($link) {
+    $isGameLink = false;
+    $onlineInterpreterType = ""; // Options: "HTML", "Parchment", "ADRIFT". There was a HEX option, but it didn't seem like it was being used.
+    $playOnlineURL = "";
+ 
     // if it's a game, note that we found a game link
     if ($link['isgame'])
-        $foundGame = true;
+        $isGameLink = true;
 
     $unboxUrl = false;
     if ($link['compression'] && $link['compressedprimary']) {
@@ -544,21 +544,22 @@ foreach ($links as $link)
     if ($link['fmtexternid'] == 'hypertextgame')
     {
         if (!$link['compression']) {
-            $foundHtml = true;
-            $htmlUrl = $link['url'];
-            break;
+            $onlineInterpreterType = "HTML";
+            $playOnlineURL = $link['url'];
+            return [$isGameLink, $onlineInterpreterType, $playOnlineURL];
         } else if ($unboxUrl) {
-            $foundHtml = true;
-            $htmlUrl = $unboxUrl;
-            break;
+            $onlineInterpreterType = "HTML";
+            $playOnlineURL = $unboxUrl;
+            return [$isGameLink, $onlineInterpreterType, $playOnlineURL];
         }
     }
 
     if (stripos($link['title'], "Play Online") !== false)
     {
-        $foundGame = $foundHtml = true;
-        $htmlUrl = $link['url'];
-        break;
+        $isGameLink = true;
+        $onlineInterpreterType = "HTML";
+        $playOnlineURL = $link['url'];
+        return [$isGameLink, $onlineInterpreterType, $playOnlineURL];
     }
 
     // if this is the first Parchment-capable link, and it's not compressed,
@@ -572,15 +573,15 @@ foreach ($links as $link)
         'tads3',
         'hugo']))
     {
-        $parchment = "https://iplayif.com/?story=";
+        $parchment_prefix = "https://iplayif.com/?story=";
         if (!$link['compression']) {
-            $foundPC = true;
-            $pcUrl = $parchment . urlencode(urlToMirror($link['url']));
-            break;
+            $onlineInterpreterType = "Parchment";
+            $playOnlineURL = $parchment_prefix . urlencode(urlToMirror($link['url']));
+            return [$isGameLink, $onlineInterpreterType, $playOnlineURL];
         } else if ($unboxUrl) {
-            $foundPC = true;
-            $pcUrl = $parchment . urlencode($unboxUrl);
-            break;
+            $onlineInterpreterType = "Parchment";
+            $playOnlineURL = $parchment_prefix . urlencode($unboxUrl);
+            return [$isGameLink, $onlineInterpreterType, $playOnlineURL];
         }
     }
 
@@ -592,24 +593,41 @@ foreach ($links as $link)
         'adrift5/blorb']))
     {
         if (!$link['compression']) {
-            $foundAdrift = true;
+            $onlineInterpreterType = "ADRIFT";
             if (preg_match('!^https?://www.adrift.co/cgi/download.cgi\?(\d+)!', $link['url'], $matches)) {
                 // download.cgi does a 302 redirect to the real download URL, which play.adrift.co can't cope with
                 // luckily, play.cgi does a 302 redirect to play.adrift.co with the canonical game URL
-                $adriftUrl = "https://www.adrift.co/cgi/play.cgi?" . $matches[1];
+                $playOnlineURL = "https://www.adrift.co/cgi/play.cgi?" . $matches[1];
             } else {
-                $adriftUrl = "https://play.adrift.co/?game=" . urlencode($link['url']);
+                $playOnlineURL = "https://play.adrift.co/?game=" . urlencode($link['url']);
             }
-            break;
+            return [$isGameLink, $onlineInterpreterType, $playOnlineURL];
         } else if ($unboxUrl) {
-            $foundAdrift = true;
-            $adriftUrl = "https://play.adrift.co/?game=" . urlencode($unboxUrl);
+            $onlineInterpreterType = "ADRIFT";
+            $playOnlineURL = "https://play.adrift.co/?game=" . urlencode($unboxUrl);
+            return [$isGameLink, $onlineInterpreterType, $playOnlineURL];
+        }
+    }
+    return [$isGameLink, $onlineInterpreterType, $playOnlineURL];
+}
+
+// Get a URL for the main Play Online button
+$foundGame = false;
+$playOnlineInterpreterType = "";
+$primaryPlayOnlineURL = "";
+foreach ($links as $link) {
+    [$isGameLink, $onlineInterpreterType, $playOnlineURL] = constructPlayOnlineURL($link);
+    if ($isGameLink) {
+        $foundGame = true;
+        if ($onlineInterpreterType && $playOnlineURL) {
+            $playOnlineInterpreterType = $onlineInterpreterType;
+            $primaryPlayOnlineURL = $playOnlineURL;
             break;
         }
     }
-}
+ }   
 
-//----------------End finding download links-----------------------
+//----------------End play online link stuff-----------------------
 
 // User filter ordering - if we're logged in, sort by any user filter
 // (promotions and demotions) in effect.
@@ -819,24 +837,14 @@ if (isset($_REQUEST['ifiction']) || $json)
      }
 
     // Include the same URL that we use for the big "Play Online" button
-    if ($foundGame) {
-        $playOnlineMainURL = "";
-        if ($foundHtml && $htmlUrl) {
-            $playOnlineMainURL = $htmlUrl;
-        } else if ($foundPC && $pcUrl) {
-            $playOnlineMainURL = $pcUrl;
-        } else if ($foundAdrift && $adriftUrl) {
-            $playOnlineMainURL = $adriftUrl;
-        }
-        if ($playOnlineMainURL) {
-            if ($json) {
-                $ifdb_section['playOnlineMainURL'] = $playOnlineMainURL;
-            } else {
-                $ifdb_section[] = ['playOnlineMainURL' => $playOnlineMainURL];
-            }
+    if ($primaryPlayOnlineURL) {
+        if ($json) {
+            $ifdb_section['primaryPlayOnlineUrl'] = $primaryPlayOnlineURL;
+        } else {
+            $ifdb_section[] = ['primaryPlayOnlineUrl' => $primaryPlayOnlineURL];
         }
     }
-
+        
     if ($links) {
         // load the translation table for the file formats
         $result = mysqli_execute_query($db,
@@ -851,6 +859,8 @@ if (isset($_REQUEST['ifiction']) || $json)
             $link_obj = [
                 'url' => $l['url'],
             ];
+            [$isGame, $onlineInterpreterType, $playOnlineURL] = constructPlayOnlineURL($link);
+            if ($isGame && $playOnlineURL) $link_obj['playOnlineUrl'] = $playOnlineURL;
             if ($l['title']) $link_obj['title'] = $l['title'];
             if ($l['desc']) $link_obj['desc'] = $l['desc'];
             if ($l['isgame']) $link_obj['isGame'] = true;
@@ -1137,10 +1147,11 @@ if ($foundGame)
     echo "<div class='viewgame__foundGame'>";
 
     $playOnlineButton = "";
+
     // if we have an HTML playable game, set up a play online link
-    if ($foundHtml && $htmlUrl) {
+    if ($playOnlineInterpreterType == "HTML" && $primaryPlayOnlineURL) {
         $ptarget = (is_kindle() ? "" : "target=\"_blank\"");
-        $playOnlineButton = "<a href=\"$htmlUrl\" $ptarget "
+        $playOnlineButton = "<a href=\"$primaryPlayOnlineURL\" $ptarget "
             . "title=\"Play this game right now in your browser. No "
             . "installation is required.\" class=\"fancy-button viewgame__playOnline\">Play Online"
             . "</a>";
@@ -1148,9 +1159,9 @@ if ($foundGame)
     }
 
     // if we have a Parchment-capable game, set up a play-with-Parchment link
-    if ($foundPC && $pcUrl) {
+    if ($playOnlineInterpreterType == "Parchment" && $primaryPlayOnlineURL) {
         $ptarget = (is_kindle() ? "" : "target=\"_blank\"");
-        $playOnlineButton = "<a href=\"$pcUrl\" $ptarget "
+        $playOnlineButton = "<a href=\"$primaryPlayOnlineURL\" $ptarget "
             . "title=\"Play this game right now in your browser, using "
             . "the Parchment interpreter. No installation is required.\" "
             . "class=\"fancy-button viewgame__playOnline\">Play Online"
@@ -1159,9 +1170,9 @@ if ($foundGame)
     }
 
     // if we have an ADRIFT game, set up a play-online link
-    if ($foundAdrift && $adriftUrl) {
+    if ($playOnlineInterpreterType == "ADRIFT" && $primaryPlayOnlineURL) {
         $atarget = (is_kindle() ? "" : "target=\"_blank\"");
-        $playOnlineButton = "<a href=\"{$adriftUrl}\" $atarget "
+        $playOnlineButton = "<a href=\"{$primaryPlayOnlineURL}\" $atarget "
             . "title=\"Play this game right now in your browser. No "
             . "installation is required.\""
             . "class=\"fancy-button viewgame__playOnline\">Play Online"
