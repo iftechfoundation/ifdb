@@ -149,9 +149,6 @@ drop view visreviews;
 
 drop table userScores_mv;
 
--- during transition deanonymizing time votes https://github.com/iftechfoundation/ifdb/issues/1158
-delete from playertimes where id < 389;
-
 drop view gametimes;
 drop table gametimes_mv;
 drop trigger playertime_insert;
