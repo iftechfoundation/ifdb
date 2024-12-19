@@ -905,6 +905,8 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse)
                 'auth' => array('sort_author,', 'Sort by Author'),
                 'pnew' => array('published desc,', 'Latest Publication First'),
                 'pold' => array('sort_pub,', 'Earliest Publication First'),
+                'long'  => array('rounded_median_time_in_minutes desc, starsort desc,', 'Longest First'),
+                'short' => array('-rounded_median_time_in_minutes desc, starsort desc,', 'Shortest First'),
                 'rand' => array('rand(),', 'Random Order'));
             $defSortBy = 'ratu';
         } else {
@@ -925,6 +927,8 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse)
                                 'Rating Deviation - Low to High'),
                 'new' => array('published desc,', 'Latest Publication First'),
                 'old' => array('sort_pub,', 'Earliest Publication First'),
+                'long'  => array('rounded_median_time_in_minutes desc, starsort desc,', 'Longest First'),
+                'short' => array('-rounded_median_time_in_minutes desc, starsort desc,', 'Shortest First'),
                 'rand' => array('rand(),', 'Random Order'));
             if (count($words)) {
                 $defSortBy = 'rel';
@@ -1035,6 +1039,17 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse)
         $tableList .= " left outer join userScores_mv "
                       . "on userScores_mv.userid = u.id";
     }
+
+    // If we're sorting by estimated play time, make sure we select the play time and 
+    // join the gametimes materialized view
+    if ($searchType == "game" && ($sortby == "short" || $sortby == "long")) {
+
+        if (!isset($specialsUsed['playtime:'])) {
+            $selectList .= ", rounded_median_time_in_minutes";
+            $tableList .= " left outer join gametimes_mv on games.id = gametimes_mv.gameid";
+        }
+    }
+    
 
     // Build tags join
     $tagsJoin = "";
@@ -1150,7 +1165,7 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse)
                   . "An error occurred searching the database.</span><p>";
 
 // DEBUG
-//        if (get_req_data('debug') == 'SEARCH')
+//      if (get_req_data('debug') == 'SEARCH')
 //            $errMsg = "<p><span class=errmsg>Database error:</span><p>" . mysql_error($db)
 //                      . "</p>Query:<p>" . htmlspecialcharx($sql) . "</p>";
     }
