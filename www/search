@@ -1342,6 +1342,9 @@ else if ($term || $browse)
                     $tagsMatched = array();
                     foreach ($specials as $s) {
                         if ($s[0][0] == "tags") {
+                            // Don't try to match negated terms
+                            if ($s[2] === '-')
+                                continue;
                             foreach ($tags as $t) {
                                 if (strpos(strtolower($t),
                                            strtolower($s[1])) !== false) {
