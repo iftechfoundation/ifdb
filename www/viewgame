@@ -1318,14 +1318,15 @@ if (count($links) == 0 && $dlnotes == "") {
             echo "<span class=dlnotes>$linkdesc<br></span>";
         }
 
-        // Don't show "Play Online" mini link for HTML links; that's what the link itself does
-        // ... unless the HTML is zipped, in which case we *do* need a Play Online link
         $playOnlineMiniLink = "";
-        if ($playOnlineURL && ($onlineInterpreterType !== "HTML" || $compPri)) {
-            if ($typedesc || $zipnote) {
-                $playOnlineMiniLink = " You can also <a href='$playOnlineURL'>play online</a>.";
+        if ($playOnlineURL) {
+            if ($onlineInterpreterType === "HTML" && !$compPri) {
+                // Don't show "Play Online" mini link for HTML links; that's what the link itself does
+                // ... unless the HTML is zipped, in which case we *do* need a Play Online link
+            } else if ($zipnote || !$typedesc || $onlineInterpreterType === "HTML") {
+                $playOnlineMiniLink = " <a href='$playOnlineURL'>Play Online</a>";
             } else {
-                $playOnlineMiniLink = "<a href='$playOnlineURL'>Play Online</a>";
+                $playOnlineMiniLink = " You can also <a href='$playOnlineURL'>play online</a>.";
             }
         }
  
