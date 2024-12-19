@@ -1325,7 +1325,7 @@ if (count($links) == 0 && $dlnotes == "") {
             if ($typedesc || $zipnote) {
                 $playOnlineMiniLink = " You can also <a href='$playOnlineURL'>play online</a>.";
             } else {
-            $playOnlineMiniLink = "<a href='$playOnlineURL'>Play Online</a>";
+                $playOnlineMiniLink = "<a href='$playOnlineURL'>Play Online</a>";
             }
         }
  
