@@ -87,7 +87,14 @@ if ($listtype == "reviewideas") {
     $listTable = "playedgames";
     $listName = "play list";
     $title = trim(htmlspecialcharx("$usernamePoss Played Games"));
+    $listCols = ", playertimes.time_in_minutes";
     $privcode = "P";
+    $listJoin = "join playedgames"
+                .  " on playedgames.gameid = games.id"
+                .  " and playedgames.userid = '$quid'"
+                .  " left join playertimes"
+                .  " on playedgames.gameid = playertimes.gameid"
+                .  " and playertimes.userid = '$quid'"; 
 }
 
 if ($listTable && !$listJoin) {
@@ -234,6 +241,10 @@ if ($errMsg) {
             $hasart = $rec['hasart'];
             $pagevsn = $rec['pagevsn'];
             $onPlayList = ($listtype == "reviewideas" && $rec['onPlayList']);
+            $user_time = "";
+            if ($rec['time_in_minutes']) {
+                $user_time = convertTimeToText($rec['time_in_minutes']);
+            }
 
             if ($hasart)
                 echo "<p><table border=0 cellspacing=0 cellpadding=0>"
@@ -267,6 +278,10 @@ if ($errMsg) {
                 echo "<span class=details>Average member rating: "
                     . showStars($rating) . " ($numratings rating"
                     . ($numratings == 1 ? "" : "s") . ")</span><br>";
+            }
+
+            if ($user_time) {
+                echo "<span class=details>$usernamePoss time: $user_time</span><br>";
             }
 
             if ($hasart)
