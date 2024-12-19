@@ -1312,20 +1312,26 @@ if (count($links) == 0 && $dlnotes == "") {
                 . "<b>$compPri</b></span><br>";
         }
 
-        // Don't show "Play Online" mini link for HTML links; that's what the link itself does
-        //   ... unless the HTML is zipped, in which case we *do* need a Play Online link
-        if ($playOnlineURL && ($onlineInterpreterType !== "HTML" || $compPri)) {
-            echo "<div class='details'><a href='$playOnlineURL'>Play Online</a></div>";
-        }
-
         if ($linkdesc) {
             $linkdesc = preg_replace(
                 "/([a-z0-9][\/.])([a-z0-9])/i", "$1$zwsp$2", $linkdesc);
             echo "<span class=dlnotes>$linkdesc<br></span>";
         }
 
-        if ($typedesc || $zipnote) {
-            echo "<span class=fmtnotes>$typedesc$zipnote</span>";
+        $playOnlineMiniLink = "";
+        if ($playOnlineURL) {
+            if ($onlineInterpreterType === "HTML" && !$compPri) {
+                // Don't show "Play Online" mini link for HTML links; that's what the link itself does
+                // ... unless the HTML is zipped, in which case we *do* need a Play Online link
+            } else if ($zipnote || !$typedesc || $onlineInterpreterType === "HTML") {
+                $playOnlineMiniLink = " <a href='$playOnlineURL'>Play Online</a>";
+            } else {
+                $playOnlineMiniLink = " You can also <a href='$playOnlineURL'>play online</a>.";
+            }
+        }
+ 
+        if ($typedesc || $zipnote || $playOnlineMiniLink) {
+            echo "<span class=fmtnotes>$typedesc$zipnote$playOnlineMiniLink</span>";
         }
         echo "</div></li>";
     }
