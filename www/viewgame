@@ -1248,6 +1248,7 @@ if (count($links) == 0 && $dlnotes == "") {
         $osname = isset($link['osname']) ? $link['osname'] : "";
         $osvsnname = isset($link['osvsnname']) ? $link['osvsnname'] : "";
         $osicon = isset($link['osicon']) ? $link['osicon'] : "";
+        [$isGameLink, $onlineInterpreterType, $playOnlineURL] = constructPlayOnlineURL($link);
 
         // if it's an executable format, qualify the format name with
         // the OS name, since an executable is native to a particular OS
@@ -1309,6 +1310,12 @@ if (count($links) == 0 && $dlnotes == "") {
             echo "<span class=dlzipmain><img src=\"/img/blank.gif\" "
                 . "class=\"zip-contents-arrow\">Contains "
                 . "<b>$compPri</b></span><br>";
+        }
+
+        // Don't show "Play Online" mini link for HTML links; that's what the link itself does
+        //   ... unless the HTML is zipped, in which case we *do* need a Play Online link
+        if ($playOnlineURL && ($onlineInterpreterType !== "HTML" || $compPri)) {
+            echo "<div class='details'><a href='$playOnlineURL'>Play Online</a></div>";
         }
 
         if ($linkdesc) {
