@@ -2070,8 +2070,6 @@ function displayMedianTime($rounded_median_time, $alltimes) {
         $time_vote_text = "<strong>" . convertTimeToText($t['time_in_minutes']) . "</strong>";
         $note = htmlspecialchars($t['time_note']);
         // For new time votes, add the note (if present) and link to the user's profile
-***
-        // For new time votes, add the note (if present) and link to the user's profile
         if ($note != "") {
             $time_vote_text .= ": \"$note\"";
         }
