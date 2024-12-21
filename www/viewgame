@@ -1259,10 +1259,6 @@ if (count($links) == 0 && $dlnotes == "") {
         if ($fmtos != $fmtosvsn && $fmtosvsn != "")
             $typename .= " ($osvsnname and later)";
 
-        // build the full type description
-        $typedesc = (($fmtdesc && $typename) ? "$typename: $fmtdesc" :
-                     ($fmtdesc ? $fmtdesc : $typename));
-
         // if there's no title, use the base name from the URL as the title
         if ($linktitle == "") {
             $prsurl = parse_url($url);
@@ -1311,18 +1307,42 @@ if (count($links) == 0 && $dlnotes == "") {
                 . "class=\"zip-contents-arrow\">Contains "
                 . "<b>$compPri</b></span><br>";
         }
-
-        // Don't show "Play Online" mini link for HTML links; that's what the link itself does
-        //   ... unless the HTML is zipped, in which case we *do* need a Play Online link
-        if ($playOnlineURL && ($onlineInterpreterType !== "HTML" || $compPri)) {
-            echo "<div class='details'><a href='$playOnlineURL'>Play Online</a></div>";
-        }
-
+       
         if ($linkdesc) {
             $linkdesc = preg_replace(
                 "/([a-z0-9][\/.])([a-z0-9])/i", "$1$zwsp$2", $linkdesc);
             echo "<span class=dlnotes>$linkdesc<br></span>";
         }
+
+        // Don't show "Play Online" mini link for HTML links; that's what the link itself does
+        //   ... unless the HTML is zipped, in which case we *do* need a Play Online link
+        $playOnlineMiniLink = "";
+        if ($playOnlineURL && ($onlineInterpreterType !== "HTML" || $compPri)) {
+            $playOnlineMiniLink = "<div class='details'><a href='$playOnlineURL'>Play Online</a></div>";
+            echo $playOnlineMiniLink;
+        }
+
+        // If we're linking to a game that needs an interpreter, expand the format 
+        // description to include instructions for downloading and running it.
+        if ($fmtclass == "G" && $fmtexternID != "tads3web" && $fmtexternID != "hypertextgame") {
+            $format_instructions = "";
+            if ($playOnlineMiniLink) {
+                // These instructions are following a "play online" mini link, so we can begin with "Or"
+                $format_instructions = "Or " ;
+            } else {
+                $format_instructions = "To play, you can ";
+            }
+            $format_instructions .= '<a href=\"$url\">download ' . $linktitle . '</a>';
+            if ($zipnote || $zipstar) {
+                $format_instructions .= ", unzip it,";
+            }
+            $format_instructions .= " and run the game in " . $fmtdesc . ".";
+            $fmtdesc = $format_instructions;
+        }
+
+        // build the full type description
+        $typedesc = (($fmtdesc && $typename) ? "$typename: $fmtdesc" :
+                     ($fmtdesc ? $fmtdesc : $typename));
 
         if ($typedesc || $zipnote) {
             echo "<span class=fmtnotes>$typedesc$zipnote</span>";
