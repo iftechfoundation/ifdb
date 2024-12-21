@@ -797,10 +797,10 @@ function updateFormatUI(byUser)
         priNA.style.display = "none";
     }
 
-    var noButton = "According to the settings above, this link will <b>not</b> include a \"Play On-line\" button, because ";
+    var noButton = "According to the settings above, this link will <b>not</b> include a \"Play Online\" link, because ";
 
     if (/Play Online/i.test(document.getElementById("linktitle").value)) {
-        playOnlineExplanation.innerHTML = "According to the settings above, this link will include a \"Play On-line\" button.";
+        playOnlineExplanation.innerHTML = "According to the settings above, this link will include a \"Play Online\" link.";
     } else if (!selIsg.checked) {
         playOnlineExplanation.innerHTML = noButton + 'the "playable game file" option is not checked.';
     } else if (!selFmtG.value) {
@@ -815,7 +815,7 @@ function updateFormatUI(byUser)
     } else if (selCmp.value === '17' && !priFld.value) {
         playOnlineExplanation.innerHTML = noButton + 'the "Main File" is blank.';
     } else {
-        playOnlineExplanation.innerHTML = "According to the settings above, this link will include a \"Play On-line\" button.";
+        playOnlineExplanation.innerHTML = "According to the settings above, this link will include a \"Play Online\" link.";
     }
 
     if (byUser && fmt && fmt.externid == "tads3web")
@@ -1447,11 +1447,11 @@ foreach ($linkfmts as $lf) {
                </tr>
                <tr valign=top>
                   <td align=right>
-                     <b><nobr>"Play On-line" button:</nobr></b>
+                     <b><nobr>"Play Online" link:</nobr></b>
                   </td>
                   <td>
                      <span id="playOnlineExplanation">
-                        According to the settings above, this link will <b>not</b> include a "Play On-line" button, because the "playable game file" option is not checked.
+                        According to the settings above, this link will <b>not</b> include a "Play Online" link, because the "playable game file" option is not checked.
                      </span>
                   </td>
                </tr>
