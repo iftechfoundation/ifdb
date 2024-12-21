@@ -1324,7 +1324,7 @@ if (count($links) == 0 && $dlnotes == "") {
 
         // If we're linking to a game that needs an interpreter, expand the format 
         // description to include instructions for downloading and running it.
-        if ($fmtclass == "G" && $fmtexternID != "tads3web" && $fmtexternID != "hypertextgame") {
+        if ($fmtclass == "G" && $fmtexternid != "tads3web" && $fmtexternid != "hypertextgame") {
             $format_instructions = "";
             if ($playOnlineMiniLink) {
                 // These instructions are following a "play online" mini link, so we can begin with "Or"
