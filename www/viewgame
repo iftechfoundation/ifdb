@@ -1332,7 +1332,7 @@ if (count($links) == 0 && $dlnotes == "") {
             } else {
                 $format_instructions = "To play, you can ";
             }
-            $format_instructions .= 'download <a href=\"$url\">' . $linktitle . '</a>';
+            $format_instructions .= "download <a href=\"$url\">$linktitle</a>";
             if ($zipnote || $zipstar) {
                 $format_instructions .= ", unzip it,";
             }
