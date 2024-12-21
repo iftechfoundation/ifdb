@@ -653,8 +653,11 @@ if ($geticon) {
                     ?></textarea>
                     <br>
                     <span class=details>
-                       This is displayed in the Download box when a file
-                       of this type is listed.
+                       This is displayed in the External Links box when a file
+                       of this type is listed. Note that the descriptions
+                       for most game formats are only partial descriptions.
+                       When these are displayed in External Links box, 
+                       instructions are added to them.
                     </span>
                  </td>
               </tr>
@@ -731,9 +734,13 @@ if ($geticon) {
         echo "<h1>" . htmlspecialcharx($pgtitle) . "</h1>"
             . "<b>External ID:</b> " . htmlspecialcharx($externid) . "<br>"
             . "<b>Format Name:</b> " . htmlspecialcharx($fmtname) . "<br>"
-            . "<b>Extensions:</b> " . htmlspecialcharx($fmtext) . "<br>"
-            . "<b>Description:</b> " . $fmtdesc . "<br>"
-            . "<b>Web Site:</b> " . $fmtwebsite . "<br>"
+            . "<b>Extensions:</b> " . htmlspecialcharx($fmtext) . "<br>";
+        if ($fmtclass == "G" && $fmtexternID != "tads3web" && $fmtexternID != "hypertextgame") {
+            echo "<b>Description:</b> Requires " . $fmtdesc . ".<br>";
+        } else {
+            echo "<b>Description:</b> " . $fmtdesc . "<br>";
+        }
+        echo  "<b>Web Site:</b> " . $fmtwebsite . "<br>"
             . ($fmtclass != ""
                ? "<b>Type:</b> {$fmtclassMap[$fmtclass]}<br>"
                : "")
@@ -833,7 +840,7 @@ if ($geticon) {
 
     $result = mysql_query(
         "select id, externid, fmtname, `desc`, extension,
-           (icon is not null) as icon
+           (icon is not null) as icon, fmtclass
          from filetypes order by fmtname", $db);
     $cnt = mysql_num_rows($result);
     for ($i = 0 ; $i < $cnt ; $i++) {
@@ -843,6 +850,7 @@ if ($geticon) {
         $name = htmlspecialcharx(mysql_result($result, $i, "fmtname"));
         $desc = mysql_result($result, $i, "desc");
         $icon = mysql_result($result, $i, "icon");
+        $formatclass = mysql_result($result, $i, "fmtclass");
 
         echo "<tr><td>";
         if ($icon)
@@ -852,9 +860,12 @@ if ($geticon) {
         echo "</td><td class='fileformat__cell'>"
             . "<a href=\"fileformat?id=$id\">$name</a><br>"
             . "External ID: $extid<br>"
-            . "Extension(s): $exts<br>"
-            . "Description: $desc<br>";
-
+            . "Extension(s): $exts<br>";
+        if ($formatclass == "G" && $extid != "tads3web" && $extid != "hypertextgame") {
+            echo "Description: Requires " . $desc . ".<br>";
+        } else {
+            echo "Description: $desc<br>";
+        }
         echo "</td></tr>";
     }
 
