@@ -279,3 +279,50 @@ async function check_ifid_in_ifwiki(ifid) {
     } catch (e) {}
     return false;
 }
+
+async function setTemporaryViewTransitionNames(entries, vtPromise) {
+    for (const [$el, name] of entries) {
+        if ($el) $el.style.viewTransitionName = name;
+    }
+
+    await vtPromise;
+
+    for (const [$el, name] of entries) {
+        if ($el) $el.style.viewTransitionName = '';
+    }
+}
+
+window.addEventListener('pageswap', async (e) => {
+    if (e.viewTransition) {
+        const targetUrl = new URL(e.activation.entry.url);
+
+        // Navigating to a game details page
+        if (targetUrl.pathname === '/viewgame') {
+            const id = targetUrl.searchParams.get('id');
+
+            // Set view-transition-name values on the clicked row
+            // Clean up after the page got replaced
+            setTemporaryViewTransitionNames([
+                [document.querySelector(`#coverart-${id}`), 'coverart'],
+            ], e.viewTransition.finished);
+        }
+    }
+});
+
+window.addEventListener('pagereveal', async (e) => {
+    if (e.viewTransition && window.navigation) {
+        const fromURL = new URL(navigation.activation.from.url);
+        const currentURL = new URL(navigation.activation.entry.url);
+
+        // Navigating from a profile page back to the homepage
+        if (fromURL.pathname === '/viewgame') {
+            const id = fromURL.searchParams.get('id');
+
+            // Set view-transition-name values on the elements in the list
+            // Clean up after the snapshots have been taken
+            setTemporaryViewTransitionNames([
+                [document.querySelector(`#coverart-${id}`), 'coverart'],
+            ], e.viewTransition.ready);
+        }
+    }
+});

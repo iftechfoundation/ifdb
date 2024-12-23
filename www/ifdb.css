@@ -60,6 +60,16 @@ html {
     scroll-behavior: smooth;
 }
 
+@view-transition {
+    navigation: auto;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    @view-transition {
+        navigation: none;
+    }
+}
+
 *, *:before, *:after {
   box-sizing: inherit;
 }
