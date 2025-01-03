@@ -17,7 +17,10 @@ $db = dbConnect();
 $curuser = checkPersistentLogin();
 
 
-//------------------ VARIABLES FOR EVALUATING GAME TAGS--------------------------
+//------------------ VARIABLES FOR EVALUATING GAME GENRES AND TAGS--------------------------
+
+$points_for_matched_genre = 5;  // Each matched genre is worth this many points
+$bonus_points_for_multiple_matched_genres = 10; // If more than one genre is matched, add this many bonus points
 
 $frequency_buckets = 4;  // Tag frequency/uniqueness will be divided into this many categories     
 
@@ -353,8 +356,6 @@ if ($errMsg) {
     if (!$result) throw new Exception("Error: " . mysqli_error($db));
 
     $game_matches = [];
-    $points_for_matched_genre = 5;
-
     while ([$found_gameid, $found_title, $found_author, $found_genres_string, $found_tags_string] 
         = mysql_fetch_row($result) ) {
 //      echo "<br><br>CHECKING GAME: $found_title";
@@ -405,8 +406,8 @@ if ($errMsg) {
             }
 //          echo "<br> # of common genres: " . count($matched_genres_array);
             if ( count($matched_genres_array) >= 2) {
-                // If more than one genre is matched, add an extra 10 points to the score
-                $match_score = $match_score + 10;
+                // If more than one genre is matched, add extra points to the score
+                $match_score = $match_score + $bonus_points_for_multiple_matched_genres;
             }
 //          echo "<br><br>Matched Genres Array is " . json_encode($matched_genres_array) . "<br>";
         } // End of 'if ($genre != "")'
