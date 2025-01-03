@@ -177,7 +177,11 @@ if ($errMsg) {
     echo $errMsg;
 } else {
     echo "<br>";
-    echo "<h1>Games with genres or tags in common with <i>$title</i></h1>";
+    echo "<h1>Games with similarities to <i>$title</i>";
+    if ( strlen($author) < 45 ) {
+        echo " by $author";
+    }
+    echo "</h1>";
     echo "<p>This is an experimental feature.</p>";
     echo "<p>To try this feature with a different game, you can go to any game's page";
     echo " and then change the URL to say <strong>similargames</strong> instead of <strong>viewgame</strong>.";
@@ -504,8 +508,10 @@ if ($errMsg) {
         echo '<p><strong>GAME #' . $match_number . ':</strong> ';
         echo '<a href="https://ifdb.org/viewgame?id=' . $match['gameid'] . '">';
         echo $match['title'];
-        echo '</a> by ';
-        echo $match['author'];
+        echo '</a>';
+        if ( strlen($match['author']) < 45 ) {
+            echo " by " . $match['author'];
+        }
         echo "<li>Similarity score: " . $match['score'] . "</li>";
         if ( isset($match['matched_genres']) ) {
             echo "<li>Matched genres: " . $match['matched_genres'] . "</li>";
