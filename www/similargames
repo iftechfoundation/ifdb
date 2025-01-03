@@ -183,8 +183,9 @@ if ($errMsg) {
     }
     echo "</h1>";
     echo "<p>This is an experimental feature.</p>";
-    echo "<p>To try this comparison feature with a different game, you can go to any game's page";
-    echo " and then change the URL to say <strong>similargames</strong> instead of <strong>viewgame</strong>.";
+    echo "<p>To try this comparison feature with a different game, "
+       . "you can go to any game's page and then change the URL to say "
+       . "<strong>similargames</strong> instead of <strong>viewgame</strong>.</p>";
     echo "<details><summary><i>Evaluation and scoring details (for testing)</i></summary>";
     echo "<p>Tag frequency is divided into $frequency_buckets buckets.</p>";
     echo "<p>The game <i>$title</i> has the following tags:</p><br>";
