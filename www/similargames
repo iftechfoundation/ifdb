@@ -20,7 +20,8 @@ $curuser = checkPersistentLogin();
 //------------------ VARIABLES FOR EVALUATING GAME GENRES AND TAGS--------------------------
 
 $points_for_matched_genre = 5;  // Each matched genre is worth this many points
-$bonus_points_for_multiple_matched_genres = 10; // If more than one genre is matched, add this many bonus points
+$bonus_points_for_multiple_matched_genres = 5; // If more than one genre is matched, add this many bonus points
+$points_for_matched_series = 15;
 
 $frequency_buckets = 4;  // Tag frequency/uniqueness will be divided into this many categories     
 
@@ -177,7 +178,7 @@ if ($errMsg) {
     echo $errMsg;
 } else {
     echo "<br>";
-    echo "<h1>Games with similarities to <i>$title</i>";
+    echo "<h1>Comparing games to <i>$title</i>";
     if ( strlen($author) < 45 ) {
         echo " by $author";
     }
@@ -354,7 +355,8 @@ if ($errMsg) {
             games.title,
             games.author,
             games.genre,
-            games.tags
+            games.tags,
+            games.seriesname
         from games
         $where_clause;");
 //    limit 10000;");
@@ -364,7 +366,7 @@ if ($errMsg) {
     $total_results = 0;
     $game_matches = [];
     while ([$found_gameid, $found_title, $found_author, $found_genres_string, 
-        $found_tags_string] = mysql_fetch_row($result) ) {
+        $found_tags_string, $found_series] = mysql_fetch_row($result) ) {
         $total_results = $total_results + 1;
 
 //      echo "<br><br>CHECKING GAME: $found_title";
@@ -397,6 +399,13 @@ if ($errMsg) {
         // Check to see how the original game compares with the found game
         $match_score = 0;
 
+        // Check for a series match
+        $matched_series = "";
+        if ($seriesname == $found_series) {
+            $matched_series = $found_series;
+            $match_score = $match_score + $points_for_matched_series;
+        }
+
         // Check for genre matches. More matched genres means more points.
         $matched_genres_array = [];
         if ($genre != "") {
@@ -424,8 +433,8 @@ if ($errMsg) {
         //    }
 
 
-        // Check for tags in the found game that match the original game's tags. Increase the game's similarity score 
-        // based on the uniqueness of the matching tag.
+        // Check for tags in the found game that match the original game's tags. Increase the 
+        // similarity score based on how unique of the matching tag.
         $matched_tags_array = [];
         $unmatched_tags_array = [];
         foreach ($original_game_tags_array as $original_tag => $uniqueness_points) {
@@ -433,7 +442,12 @@ if ($errMsg) {
                 if ( strcasecmp($original_tag, $found_tag) == 0 ) {
 //                  echo "<br>Matched tag: $original_tag = $found_tag";
                     $matched_tags_array[] = $found_tag;
+//                    if ($found_tag == "kid-friendly") {
+//                       // We could weight the "kid-friendly" tag more highly:
+//                       $match_score = $match_score + 7;
+//                    } else {
                     $match_score = $match_score + $uniqueness_points;
+//                    }
 //                  echo "<br><br>MATCH SCORE IS NOW $match_score";
                     break;
                 } 
@@ -462,7 +476,7 @@ if ($errMsg) {
         //}    
 //        
 
-        if ($match_score >= 1) {
+        if ($match_score >= 5) {
             // This game is similar in some way to the original game, 
             // so gather its info and add it to the list of game matches   
             $matched_game = [];
@@ -470,6 +484,10 @@ if ($errMsg) {
             $matched_game["gameid"] = $found_gameid;
             $matched_game["title"] = $found_title;
             $matched_game["author"] = $found_author;
+
+            if ($matched_series != "") {
+                $matched_game["matched_series"] = $matched_series;
+            }
 
             // Put matching genres into a string with commas.
             $matched_genres_string = "";
@@ -522,8 +540,13 @@ if ($errMsg) {
             echo " by " . $match['author'];
         }
         echo "<li>Similarity score: " . $match['score'] . "</li>";
+
         if ( isset($match['matched_genres']) ) {
             echo "<li>Matched genres: " . $match['matched_genres'] . "</li>";
+        }
+
+        if ( isset($match['matched_series']) ) {
+            echo "<li>Matched series: " . $match['matched_series'] . "</li>";
         }
 
         if ( isset($match['matched_tags']) ) {
