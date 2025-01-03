@@ -64,7 +64,7 @@ function getID() {
 // initialize - this fetches the database record for the original game
 function init()
 {
-    global $db, $id, $qid, $errMsg, $errCode;
+    global $db, $curuser, $id, $qid, $errMsg, $errCode;
 
     // make sure we're connected
     if ($db == false) {
@@ -76,7 +76,7 @@ function init()
         return;
     }
 
-    if ($curuser === false) {
+    if ($curuser == false) { // should this be two equals signs or 3?
         if (!$errMsg) {
             $errMsg = "You must be logged in to use this feature.";
             // Do I need an error code, too?
@@ -183,15 +183,15 @@ if ($errMsg) {
     }
     echo "</h1>";
     echo "<p>This is an experimental feature.</p>";
-    echo "<p>To try this feature with a different game, you can go to any game's page";
+    echo "<p>To try this comparison feature with a different game, you can go to any game's page";
     echo " and then change the URL to say <strong>similargames</strong> instead of <strong>viewgame</strong>.";
     echo "<details><summary><i>Evaluation and scoring details (for testing)</i></summary>";
     echo "<p>Tag frequency is divided into $frequency_buckets buckets.</p>";
     echo "<p>The game <i>$title</i> has the following tags:</p><br>";
 
- //-----------------------------EVALUATING TAGS FOR ORIGINAL GAME---------------
- 
- 
+
+ //----------------------EVALUATING TAGS OF THE ORIGINAL GAME------------------
+  
     // Get tags for the original game
     $original_game_tags_array = [];
     $result = mysqli_execute_query($db,
@@ -324,7 +324,6 @@ if ($errMsg) {
 
     foreach ($honorary_genres as $honorary_genre) {
         if (count($original_game_genres_array) == 0) {
-//            echo "count in CGGA: " . count($original_game_genres_array);
             $where_clause .= " AND (";
         } else {
             $where_clause .= " OR";
@@ -338,8 +337,9 @@ if ($errMsg) {
 
 
     // For testing purposes
-    echo "<p>Where clause:<br>$where_clause</p></br>";
+    echo "<p>Where clause:<br>$where_clause</p>";
     echo "</details>";
+    echo "<br><hr>";
 
 
     // Uncomment to avoid filtering game results by genre:
@@ -348,7 +348,8 @@ if ($errMsg) {
 
     // Fetch games that might be similar to the original game
     $result = mysqli_execute_query($db,
-        "select distinct games.id as gameid,
+        "select
+            distinct games.id as gameid,
             games.title,
             games.author,
             games.genre,
@@ -359,11 +360,14 @@ if ($errMsg) {
 
     if (!$result) throw new Exception("Error: " . mysqli_error($db));
 
+    $total_results = 0;
     $game_matches = [];
-    while ([$found_gameid, $found_title, $found_author, $found_genres_string, $found_tags_string] 
-        = mysql_fetch_row($result) ) {
+    while ([$found_gameid, $found_title, $found_author, $found_genres_string, 
+        $found_tags_string] = mysql_fetch_row($result) ) {
+        $total_results = $total_results + 1;
+
 //      echo "<br><br>CHECKING GAME: $found_title";
-    
+        
         // Get the genres for the game we've just found
         $untrimmmed_found_genres_array = [];
         $found_genres_array = [];
@@ -382,7 +386,7 @@ if ($errMsg) {
             // Remove any duplicate genres (I'm not actually sure this is necessary)
             $found_genres_array = array_unique($found_genres_array);
         }
-    
+
         // Get the tags for the game we've just found
         $found_tags_array = [];
         if ($found_tags_string != "") {
@@ -493,13 +497,17 @@ if ($errMsg) {
         } // This is the end of "if ($match_score >= 1)"
     } // This is the end of "while ([$found_gameid,..."
 
-
+    echo "<br><i>$title</i> was compared to $total_results games.";
+   
 
     // Sort the similar games for display, with higher match scores first
     usort($game_matches, 'sortByScore');
 
     // Display the list of similar games
-    echo "<hr>";
+    if ($genre == "") {
+        echo "<p>Warning: This game does not have a genre listed in the database. This may lead";
+        echo " to unexpected comparison results.</p>";
+    }
     echo "<p>The following games have genres or tags in common with <i>$title</i>:</p>";
     $displayed_matches = 0;
     $max_matches = 10;
@@ -516,20 +524,20 @@ if ($errMsg) {
         if ( isset($match['matched_genres']) ) {
             echo "<li>Matched genres: " . $match['matched_genres'] . "</li>";
         }
+
         if ( isset($match['matched_tags']) ) {
             echo "<li>Matched tags: " . $match['matched_tags'] . "</li>";
         }
 
         if ( isset($match['unmatched_tags']) ) {
-        echo "<li>Tags unique to <i>" . $match['title'] . "</i>: "
-        . $match['unmatched_tags'] . "</li>";
+            echo "<li>Tags unique to <i>" . $match['title'] . "</i>: "
+            . $match['unmatched_tags'] . "</li>";
         }
         echo "</p><br>";
         $displayed_matches = $displayed_matches + 1;
         if ($displayed_matches == $max_matches) {
             break;
         }
-
     }
 
 }  // End of if (!errMsg)
