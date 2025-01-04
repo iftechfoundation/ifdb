@@ -383,7 +383,9 @@ function showReview($db, $gameid, $rec, $specialNames, $optionFlags = 0)
 
     } else {
         // not special - show the headline and author
-        echo " <b>$summary</b><span class=details>, $publicationdate</span><br>"
+        echo " <b>$summary</b><span class=details>, "
+            . "<a class=\"silent\" href=\"viewgame?id=$gameid&review=$reviewid\" "
+            . "title=\"Direct link to this review\">$publicationdate</a></span><br>"
             . "<div class=smallhead><div class=details>"
             .   "by <a href=\"showuser?id=$userid\">$username</a>"
             . (!isEmpty($location) ? " ($location)" : "")
