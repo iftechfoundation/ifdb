@@ -1,20 +1,14 @@
 <?php
 
-include_once "session-start.php";
-
 // make sure we process any persistent login state
 include_once "login-persist.php";
+$db = dbConnect();
 $curuser = checkPersistentLogin();
 
 include_once "pagetpl.php";
-include_once "util.php";
 
-include_once "game-rss.php";
 include_once "gameinfo.php";
 
-
-$db = dbConnect();
-$curuser = checkPersistentLogin();
 
 
 //------------------ VARIABLES FOR EVALUATING GAME GENRES AND TAGS--------------------------
@@ -113,13 +107,22 @@ function init()
 //-------------END OF FUNCTIONS------------------------------------------------------
 
 
-// check the user for ADMIN privileges and sandbox setting [Do we actually need to do anything with the sandbox? This is from viewgame]
+// check the user for ADMIN privileges and sandbox setting
+// [Do we actually need to do anything with the sandbox? This is from viewgame]
 $userprivs = $adminPriv = false;
-$mysandbox = 0;
+//$mysandbox = 0;
+//if ($curuser) {
+//    $result = mysqli_execute_query($db,
+//        "select `privileges`, `sandbox` from users where id=?", [$curuser]);
+//    list($userprivs, $mysandbox) = mysql_fetch_row($result);
+//    $adminPriv = (strpos($userprivs, "A") !== false);
+//}
+
+// check the user for ADMIN privileges [I'm not sure if we need this either, but might be useful?]
 if ($curuser) {
     $result = mysqli_execute_query($db,
-        "select `privileges`, `sandbox` from users where id=?", [$curuser]);
-    list($userprivs, $mysandbox) = mysql_fetch_row($result);
+        "select `privileges` from users where id=?", [$curuser]);
+    $userprivs = mysql_fetch_row($result);
     $adminPriv = (strpos($userprivs, "A") !== false);
 }
 
@@ -128,12 +131,12 @@ $errCode = false;
 
 
 // I don't know what this is for (it's from the viewgame page)
+// Do we need it??
 if (isset($_REQUEST['cssOverride']))     
     $cssOverride = get_req_data('cssOverride');
 
 // connect to the database
-include_once "dbconnect.php";
-$db = dbConnect();
+//$db = dbConnect(); // Didn't we already do this earlier?
 
 init();
 
@@ -198,8 +201,7 @@ if ($errMsg) {
        . "you can go to any game's page and then change the URL to say "
        . "<strong>similargames</strong> instead of <strong>viewgame</strong>.</p>";
     echo "<details><summary><i>Evaluation and scoring details (for testing)</i></summary>";
-    echo "<p>Tags are divided into $frequency_buckets frequency buckets.</p>";
-    echo "<p>Each tag is worth 1 to $frequency_buckets points based on uniqueness.</p>";
+    echo "<p>Tags are divided into $frequency_buckets frequency/uniqueness buckets.</p>";
     echo "<p>Each matched genre is worth $points_for_matched_genre points.</p>";
     echo "<p>If two or more genres match, there's also a one-time bonus of ";
     echo "$points_for_multiple_matched_genres points.<p>";
@@ -417,9 +419,11 @@ if ($errMsg) {
 
         // Check for a series match
         $matched_series = "";
-        if ($seriesname == $found_series) {
+        if ($seriesname != "" && $seriesname == $found_series) {
             $matched_series = $found_series;
+//            echo "<br><br>Matched series. Match score was $match_score.";
             $match_score = $match_score + $points_for_matched_series;
+//            echo "<br>Match score is now $match_score.";
         }
 
         // Check for genre matches. More matched genres means more points.
@@ -433,7 +437,9 @@ if ($errMsg) {
 //                      echo "THIS GENRE IS A MATCH<br>";
                         // Does this next line actually work?
                         $matched_genres_array[] = $found_genre;
+//                        echo "<br>Before matching this genre, match score was $match_score.";
                         $match_score = $match_score + $points_for_matched_genre;
+//                        echo "<br>Match score is now $match_score";
                         break;
                     }
                 }   
