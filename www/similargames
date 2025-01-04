@@ -19,21 +19,31 @@ $curuser = checkPersistentLogin();
 
 //------------------ VARIABLES FOR EVALUATING GAME GENRES AND TAGS--------------------------
 
-$points_for_matched_genre = 5;  // Each matched genre is worth this many points
-$bonus_points_for_multiple_matched_genres = 5; // If more than one genre is matched, add this many bonus points
+// Each matched genre is worth this many points
+$points_for_matched_genre = 5; 
+
+// If two or more genres match, also add this many bonus points (once)
+$points_for_multiple_matched_genres = 5; 
+
+// For a matching series, add this many points
 $points_for_matched_series = 15;
 
-$frequency_buckets = 4;  // Tag frequency/uniqueness will be divided into this many categories     
+// Tag frequency/uniqueness will be divided into this many categories.
+// If there are e.g. 4 buckets, then tags can be worth 1, 2, 3, or 4
+// points based on how frequently they appear on IFDB.
+$frequency_buckets = 4;     
 
 // Tags to ignore for matching purposes because they're not very helpful
-$tags_to_ignore = ["walkthrough", "cover art", "Adrift", "Twine", "Harlowe", "Adventuron", "Z-code", 
-                   "Glulx", "Winner of a comp", "translation available", "Miss Congeniality Winner", 
-                   "Free IF Playoffs", "Let's Play", "game doesn't exist", "XYZZY response"];
+$tags_to_ignore = ["walkthrough", "cover art", "Adrift", "Twine", "Harlowe", 
+    "Adventuron", "Z-code", "Glulx", "Winner of a comp", "translation available",
+    "Miss Congeniality Winner", "Free IF Playoffs", "Let's Play", 
+    "game doesn't exist", "XYZZY response"];
 
-// If a tag includes any of these strings, ignore it for matching purposes
-$tag_strings_to_ignore = ["Inform", "TADS", "IFComp", "IF Comp", "Comp", "Spring Thing", "Interactive Fiction Top 50", 
-    "transcript", "source", "Xyzzy Awards", "Best Game", "ParserComp ", 
-    "Text Adventure Literacy Jam ", "Jay Is Games"];
+// If a tag includes any of these strings, ignore the tag for matching purposes
+$tag_strings_to_ignore = ["Inform", "TADS", "IFComp", "IF Comp", "Comp", 
+    "Spring Thing", "Interactive Fiction Top 50", "transcript", "source", 
+    "Xyzzy Awards", "Best Game", "ParserComp ", "Text Adventure Literacy Jam ", 
+    "Jay Is Games"];
 
 
 
@@ -103,7 +113,7 @@ function init()
 //-------------END OF FUNCTIONS------------------------------------------------------
 
 
-// check the user for ADMIN privileges and sandbox setting
+// check the user for ADMIN privileges and sandbox setting [Do we actually need to do anything with the sandbox? This is from viewgame]
 $userprivs = $adminPriv = false;
 $mysandbox = 0;
 if ($curuser) {
@@ -188,8 +198,14 @@ if ($errMsg) {
        . "you can go to any game's page and then change the URL to say "
        . "<strong>similargames</strong> instead of <strong>viewgame</strong>.</p>";
     echo "<details><summary><i>Evaluation and scoring details (for testing)</i></summary>";
-    echo "<p>Tag frequency is divided into $frequency_buckets buckets.</p>";
-    echo "<p>The game <i>$title</i> has the following tags:</p><br>";
+    echo "<p>Tags are divided into $frequency_buckets frequency buckets.</p>";
+    echo "<p>Each tag is worth 1 to $frequency_buckets points based on uniqueness.</p>";
+    echo "<p>Each matched genre is worth $points_for_matched_genre points.</p>";
+    echo "<p>If two or more genres match, there's also a one-time bonus of ";
+    echo "$points_for_multiple_matched_genres points.<p>";
+    echo "<p>Is the games belong to the same series, that's worth ";
+    echo "$points_for_matched_series points.</p>";
+    echo "<br><p>The game <i>$title</i> has the following tags:</p><br>";
 
 
  //----------------------EVALUATING TAGS OF THE ORIGINAL GAME------------------
@@ -424,8 +440,9 @@ if ($errMsg) {
             }
 //          echo "<br> # of common genres: " . count($matched_genres_array);
             if ( count($matched_genres_array) >= 2) {
-                // If more than one genre is matched, add extra points to the score
-                $match_score = $match_score + $bonus_points_for_multiple_matched_genres;
+                // If more than one genre is matched, add extra points to 
+                // the score--just once. This is on top of the per-genre points.
+                $match_score = $match_score + $points_for_multiple_matched_genres;
             }
 //          echo "<br><br>Matched Genres Array is " . json_encode($matched_genres_array) . "<br>";
         } // End of 'if ($genre != "")'
@@ -454,7 +471,7 @@ if ($errMsg) {
             }
         }
 
-//        This also doesn't work
+//        This doesn't work
 //        echo "<br>Checking for unmatched tags:<br>";
 //        foreach ($found_tags_array as $found_tag) {
 //           if (in_array($found_tag, $matched_tags_array)) {
@@ -464,17 +481,17 @@ if ($errMsg) {
 //           $unmatched_tags_array[] = $found_tag;
 //        }
 
-        // This doesn't work
-        //echo "<br>Checking for unmatched tags:<br>";
-        //foreach ($found_tags_array as $found_tag) {
-        //    if ( isset($matched_tags_array[$found_tag]) ) {
-        //        echo "<tag> found tag $found_tag in matched tags";
-        //        break;
-        //    }
-        //    echo "<br>Unmatched tag: $found_tag";
-        //    $unmatched_tags_array[] = $found_tag;
-        //}    
-//        
+//        // This also doesn't work
+//        echo "<br>Checking for unmatched tags:<br>";
+//        foreach ($found_tags_array as $found_tag) {
+//            if ( isset($matched_tags_array[$found_tag]) ) {
+//                echo "<tag> found tag $found_tag in matched tags";
+//                break;
+//            }
+//            echo "<br>Unmatched tag: $found_tag";
+//            $unmatched_tags_array[] = $found_tag;
+//        }    
+        
 
         if ($match_score >= 5) {
             // This game is similar in some way to the original game, 
