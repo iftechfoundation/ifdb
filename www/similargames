@@ -2,8 +2,8 @@
 
 // make sure we process any persistent login state
 include_once "login-persist.php";
-$db = dbConnect();
-$curuser = checkPersistentLogin();
+$db = dbConnect(); // Is this the right place for this?
+$curuser = checkPersistentLogin(); // Is this the right place for this?
 
 include_once "pagetpl.php";
 
@@ -107,24 +107,20 @@ function init()
 //-------------END OF FUNCTIONS------------------------------------------------------
 
 
-// check the user for ADMIN privileges and sandbox setting
-// [Do we actually need to do anything with the sandbox? This is from viewgame]
-$userprivs = $adminPriv = false;
-//$mysandbox = 0;
+
+
+
+// check the user for ADMIN privileges
+// (This is from viewgame. Do we need it? I took out the sandbox 
+// stuff already. Maybe we could eventually make the tag calculations 
+// visible only to admin?)
+//$userprivs = $adminPriv = false;
 //if ($curuser) {
 //    $result = mysqli_execute_query($db,
-//        "select `privileges`, `sandbox` from users where id=?", [$curuser]);
-//    list($userprivs, $mysandbox) = mysql_fetch_row($result);
+//        "select `privileges` from users where id=?", [$curuser]);
+//    $userprivs = mysql_fetch_row($result);
 //    $adminPriv = (strpos($userprivs, "A") !== false);
 //}
-
-// check the user for ADMIN privileges [I'm not sure if we need this either, but might be useful?]
-if ($curuser) {
-    $result = mysqli_execute_query($db,
-        "select `privileges` from users where id=?", [$curuser]);
-    $userprivs = mysql_fetch_row($result);
-    $adminPriv = (strpos($userprivs, "A") !== false);
-}
 
 $errMsg = false;
 $errCode = false;
@@ -132,8 +128,8 @@ $errCode = false;
 
 // I don't know what this is for (it's from the viewgame page)
 // Do we need it??
-if (isset($_REQUEST['cssOverride']))     
-    $cssOverride = get_req_data('cssOverride');
+//if (isset($_REQUEST['cssOverride']))     
+//    $cssOverride = get_req_data('cssOverride');
 
 // connect to the database
 //$db = dbConnect(); // Didn't we already do this earlier?
@@ -181,7 +177,7 @@ if (!$errMsg) {
 //}
 
 
-
+// I don't know what this does
 pageHeader("Games with genres and tags in common with $title", false, false,
            $extraHead, true);
 
@@ -200,13 +196,17 @@ if ($errMsg) {
     echo "<p>To try this comparison feature with a different game, "
        . "you can go to any game's page and then change the URL to say "
        . "<strong>similargames</strong> instead of <strong>viewgame</strong>.</p>";
+
+    // Display the relevant varables in the details tags for reference   
     echo "<details><summary><i>Evaluation and scoring details (for testing)</i></summary>";
-    echo "<p>Tags are divided into $frequency_buckets frequency/uniqueness buckets.</p>";
+
     echo "<p>Each matched genre is worth $points_for_matched_genre points.</p>";
     echo "<p>If two or more genres match, there's also a one-time bonus of ";
     echo "$points_for_multiple_matched_genres points.<p>";
     echo "<p>Is the games belong to the same series, that's worth ";
     echo "$points_for_matched_series points.</p>";
+    echo "<p>Tags are divided into $frequency_buckets frequency/uniqueness buckets.</p>";
+
     echo "<br><p>The game <i>$title</i> has the following tags:</p><br>";
 
 
@@ -215,22 +215,23 @@ if ($errMsg) {
     // Get tags for the original game
     $original_game_tags_array = [];
     $result = mysqli_execute_query($db,
-//  "select distinct tag from gametags where gameid = ?", [$id]);
-    "SELECT tag, COUNT(DISTINCT gameid) AS tag_frequency
+    "SELECT
+        tag, 
+        COUNT(DISTINCT gameid) AS tag_frequency
      FROM gametags
      WHERE tag IN
-         (SELECT DISTINCT tag FROM gametags WHERE gameid = ?)
+        (SELECT DISTINCT tag FROM gametags WHERE gameid = ?)
      GROUP BY tag
      ORDER BY tag_frequency DESC", [$id]);
 
-    $tag_frequency_divisor = 0;  // It's uncalculated now, but once calculated, we'll divide each tag count by this number
+    // It's uncalculated now, but once calculated, we'll divide each tag count by this number
+    $tag_frequency_divisor = 0;
 
 
     // Process each of the original game's tags
     while ([$original_tag, $original_tag_frequency] = mysql_fetch_row($result)) {
         $exclude_current_tag = false;
-        echo "<p>";
-        echo '<strong>TAG:</strong> "' . $original_tag . '"';
+        echo '<p><strong>TAG:</strong> "' . $original_tag . '"';
         echo "<li>Frequency in database: $original_tag_frequency</li>";
 
         // Check to see if the current tag exactly matches any tags on our 
@@ -248,7 +249,8 @@ if ($errMsg) {
         if ($exclude_current_tag == false) {
             foreach ($tag_strings_to_ignore as $tag_string) {
                 if (strpos($original_tag, $tag_string) !== false) {
-//              if ( str_contains($lowercase_tag, $string_to_ignore) ) { This doesn't work until PHP 8     
+                // This doesn't work until PHP 8:         
+                // if ( str_contains($lowercase_tag, $string_to_ignore) ) { 
                     $exclude_current_tag = true;
                     break;
                 }
@@ -259,19 +261,23 @@ if ($errMsg) {
         // If we're still not ignoring the current tag, calculate its value and add it
         // to the list of tags to compare to other games
         if ($exclude_current_tag == false) {
-            // Since the tag frequencies have been sorted in descending order, the first 
-            // non-zero value should be the highest frequency of any pf this game's tags.
-            // Assuming we want to put the frequency in 4 buckets (though this number can 
-            // be changed), we divide the highest frequency by 3 to find our divisor. 
-            // Then we'll divide each tag frequency by this divisor and round so that we'll 
-            // end up with a relative frequency (from 0 to 4) for each tag. We'll use that to 
+            // Since the tag frequencies have been sorted in descending order,
+            // the first non-zero value should be the highest frequency of any 
+            // of this game's tags. Suppose we want to put tag frequencies in 
+            // 4 buckets (this number can be changed). We divide the highest 
+            // tag frequency by 3 to find our divisor. Then we divide each tag 
+            // frequency by this divisor and round so that we'll end up with a 
+            // relative frequency (0, 1, 2, or 3) for each tag. We'll use that to 
             // calculate a "uniqueness score" for that tag on a scale of 1 to 4.
             if ($tag_frequency_divisor == 0) {
                 $tag_frequency_divisor = round( ($original_tag_frequency/ ($frequency_buckets - 1)), 2);
                 echo "<li>Dividing tag frequency by $tag_frequency_divisor</li>";
-            }        
+            }
+
             $relative_tag_frequency = round($original_tag_frequency / $tag_frequency_divisor);
-            echo "<li>Relative tag frequency (on a scale of 0 to " . ($frequency_buckets - 1) . "): $relative_tag_frequency</li>";
+            echo "<li>Relative tag frequency (on a scale of 0 to ";
+            echo ($frequency_buckets - 1) . "): $relative_tag_frequency</li>";
+
             $uniqueness_points = (-$relative_tag_frequency + $frequency_buckets);
             echo "<li>Uniqueness points: $uniqueness_points</li>";
             $original_game_tags_array[$original_tag] = $uniqueness_points;
@@ -306,8 +312,9 @@ if ($errMsg) {
     }
 
 
-    // Depending on the original game's tags, we may want to add some more possible genres 
-    // to the WHERE clause so that we can compare with those games, too
+    // Depending on the original game's tags, we may want to add 
+    // some more possible genres to the WHERE clause so that we 
+    // can compare with those games, too
     $tag_to_genre_correspondence = ["wordplay" => "Wordplay",
                                 "mythology" => "Mythological",
                                 "science fiction" => "Science Fiction",
@@ -355,16 +362,15 @@ if ($errMsg) {
         $where_clause .= " )";
     }
 
-
     // For testing purposes
     echo "<p>Where clause:<br>$where_clause</p>";
+
     echo "</details>";
     echo "<br><hr>";
 
-
-    // Uncomment to avoid filtering game results by genre:
+    // Uncomment to avoid filtering game results by genre
+    // (Proceed with caution)
     // $where_clause =""; 
-
 
     // Fetch games that might be similar to the original game
     $result = mysqli_execute_query($db,
@@ -457,7 +463,7 @@ if ($errMsg) {
 
 
         // Check for tags in the found game that match the original game's tags. Increase the 
-        // similarity score based on how unique of the matching tag.
+        // similarity score based on how unique the matching tag is.
         $matched_tags_array = [];
         $unmatched_tags_array = [];
         foreach ($original_game_tags_array as $original_tag => $uniqueness_points) {
@@ -499,9 +505,10 @@ if ($errMsg) {
 //        }    
         
 
-        if ($match_score >= 5) {
-            // This game is similar in some way to the original game, 
-            // so gather its info and add it to the list of game matches   
+        if ($match_score >= 1) { 
+            // This game meets a minimum threshold of similarity to 
+            // the original game, so gather the found game's info 
+            // and add it to the list of game matches   
             $matched_game = [];
             $matched_game["score"] = $match_score;
             $matched_game["gameid"] = $found_gameid;
@@ -539,8 +546,12 @@ if ($errMsg) {
         } // This is the end of "if ($match_score >= 1)"
     } // This is the end of "while ([$found_gameid,..."
 
-    echo "<br><i>$title</i> was compared to $total_results games.";
-   
+    echo "<p><i>$title</i> was compared to $total_results games.";
+    if ($total_results < 100) {
+        echo " If this number seems small, that could mean the game's";
+        echo " listed genre (\"$genre\") is not common on IFDB.";
+    }
+    echo "</p>";
 
     // Sort the similar games for display, with higher match scores first
     usort($game_matches, 'sortByScore');
@@ -550,7 +561,12 @@ if ($errMsg) {
         echo "<p>Warning: This game does not have a genre listed in the database. This may lead";
         echo " to unexpected comparison results.</p>";
     }
-    echo "<p>The following games have genres or tags in common with <i>$title</i>:</p>";
+    
+    if ($game_matches) {
+        echo "<p>The following games have genres or tags in common with <i>$title</i>:</p>";
+    } else {
+        echo "<p>No games to compare.</p>";
+    }
     $displayed_matches = 0;
     $max_matches = 10;
     foreach ($game_matches as $match) {
