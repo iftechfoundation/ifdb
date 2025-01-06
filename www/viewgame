@@ -1719,6 +1719,11 @@ if ($hasart) {
            <div class=coverart>
 
               <a href="<?php echo $arthref ?>&ldesc">
+                 <style nonce="<?php global $nonce; echo $nonce; ?>">
+                    #coverart-<?= $id ?> {
+                        view-transition-name: coverart;
+                    }
+                 </style>
                  <?php echo coverArtThumbnail($id, 175, isset($_REQUEST['version']) ? $_REQUEST['version'] : $pagevsn); ?>
               </a>
            </div>
