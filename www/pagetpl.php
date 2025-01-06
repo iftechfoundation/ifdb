@@ -126,7 +126,7 @@ function pageHeader($title, $focusCtl = false, $extraOnLoad = false,
                     [$inbox, $inboxCnt] =
                         queryComments($db, "inbox", $quid, "limit 0, 1", $caughtUpDate, false);
                     if ($inboxCnt) { 
-                        echo " <span class='notification'>" . $inboxCnt . "</span>";
+                        echo " <span class='inbox-notification'>" . $inboxCnt . "</span>";
                     }
                     ?>
                     </a></li>
@@ -142,6 +142,7 @@ function pageHeader($title, $focusCtl = false, $extraOnLoad = false,
             <img src="/img/menu.svg" alt="" class="mobile-hidden">
             <img src="/img/close.svg" alt="">
             <span>Menu</span>
+            <?php if ($inboxCnt) echo "<span class='inbox-notification'>" . $inboxCnt . "</span>"; ?>
         </button></div>
     <?php endif ?>
     </div>
