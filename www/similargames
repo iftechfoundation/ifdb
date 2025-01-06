@@ -203,7 +203,7 @@ if ($errMsg) {
     echo "<p>Each matched genre is worth $points_for_matched_genre points.</p>";
     echo "<p>If two or more genres match, there's also a one-time bonus of ";
     echo "$points_for_multiple_matched_genres points.<p>";
-    echo "<p>Is the games belong to the same series, that's worth ";
+    echo "<p>If the games belong to the same series, that's worth ";
     echo "$points_for_matched_series points.</p>";
     echo "<p>Tags are divided into $frequency_buckets frequency/uniqueness buckets.</p>";
 
