@@ -43,7 +43,21 @@ function convertTimeStringToMinutes($h_m_string) {
 }
 
 
-function doSearch($db, $term, $searchType, $sortby, $limit, $browse)
+// Construct a message telling the user that the game results were filtered
+function writeGamesFilteredAnnouncement($page, $sort_order, $search_term) {
+    $games_filtered_announcement = 'Your account is set up to use a game filter by default, and that filter was applied on this page. You can ';
+    if ($page == "search_games") {
+        $games_filtered_announcement .= '<a href="search?sortby=' . $sort_order . '&searchfor=' . $search_term . '&nogamefilter=1">search again without the filter</a>.';
+    } else if ($page == "browse_games") {
+        $games_filtered_announcement .= 'also <a href="search?browse&sortby=' . $sort_order . '&nogamefilter=1">browse without the filter</a>.';
+    } else if ($page == "all_new_reviews") {
+        $games_filtered_announcement .= 'also <a href="allnew?reviews&nogamefilter=1">browse without the filter</a>.';
+    }
+    return $games_filtered_announcement;
+}
+
+
+function doSearch($db, $term, $searchType, $sortby, $limit, $browse, $override_game_filter = 0)
 {
     // we need the current user for some types of queries
     checkPersistentLogin();
@@ -73,6 +87,9 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse)
     // assume no badge info
     $badges = false;
 
+    // So far, we haven't applied a custom game filter
+    $games_were_filtered = false;
+    
     // set up the parameters for the type of search we're performing
     if ($searchType == "list")
     {
@@ -298,7 +315,21 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse)
         $matchCols = "title, author, `desc`, tags";
         $likeCol = "title";
         $summaryDesc = "Games";
-    }
+    
+
+        // Handle custom game filters
+        if ($curuser && $override_game_filter != 1) {
+            // We're logged in, and haven't been told to override a custom game filter, so check for one
+            $result = mysqli_execute_query($db, "select game_filter from users where id = ?", [$curuser]);
+            if (!$result) throw new Exception("Error: " . mysqli_error($db));
+            [$gameFilter] = mysql_fetch_row($result);
+            if ($gameFilter) {
+                // We've found a custom game filter, so add it to the end of the search term
+                $games_were_filtered = true;
+                $term .= " $gameFilter";
+            }
+        }
+    } 
 
     // parse the search
     for ($ofs = 0, $len = strlen($term), $words = array(),
@@ -1173,7 +1204,7 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse)
 
     // return the results
     return array($rows, $rowcnt, $sortList, $errMsg, $summaryDesc,
-                 $badges, $specials, $specialsUsed, $orderBy);
+                 $badges, $specials, $specialsUsed, $orderBy, $games_were_filtered);
 }
 
 ?>

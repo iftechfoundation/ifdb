@@ -22,7 +22,7 @@ define("NEWITEMS_ALLITEMS",
     | NEWITEMS_COMPNEWS
 );
 
-function getNewItems($db, $limit, $itemTypes = NEWITEMS_ALLITEMS, $options = [])
+function getNewItems($db, $limit, $itemTypes = NEWITEMS_ALLITEMS, $options = [], $override_game_filter = 0)
 {
     $days = $options['days'] ?? null;
 
@@ -39,6 +39,11 @@ function getNewItems($db, $limit, $itemTypes = NEWITEMS_ALLITEMS, $options = [])
                          . "and filtertype = 'K') = 0";
     }
 
+    $override_game_filter = get_req_data('nogamefilter');
+
+    // So far, we have not applied a custom game filter
+    $game_filter_was_applied = 0;
+    
     // Include only reviews from our sandbox or sandbox 0 (all users)
     $sandbox = "(0)";
     if ($curuser)
@@ -166,6 +171,36 @@ function getNewItems($db, $limit, $itemTypes = NEWITEMS_ALLITEMS, $options = [])
 
     if ($itemTypes & NEWITEMS_REVIEWS) {
         $reviews_limit = $options['reviews_limit'] ?? $limit;
+        $reviews_limit_clause = "";
+        // deal with custom game filters
+        $game_filter = "";
+        $gameids_after_filtering = [];
+        if ($curuser && $override_game_filter != 1) {
+            $result = mysqli_execute_query($db, "select game_filter from users where id = ?", [$curuser]);
+            if (!$result) throw new Exception("Error: " . mysqli_error($db));
+            [$game_filter] = mysql_fetch_row($result);
+            if ($game_filter != "") {
+                // Find games that have at least one review, and use the custom game filter to filter them
+                $term = "#reviews:1-";
+                $searchType = "game";
+                $sortby = "lnew";
+                $limit = null;
+                $browse = 0;
+                list($game_rows_after_filtering, $rowcnt, $sortList, $errMsg, $summaryDesc, $badges, $specials, $specialsUsed, $orderBy) =
+                    doSearch($db, $term, $searchType, $sortby, $limit, $browse);
+                // Note the gameids of games that we might want to display reviews for
+                foreach ($game_rows_after_filtering as $game_row) {
+                    $gameids_after_filtering[] = $game_row['id'];
+                }
+                $game_filter_was_applied = 1;
+            }
+        }
+        if (!$game_filter_was_applied) {
+            // We're not applying a game filter, so we don't need extra reviews. (We only need extras if some of them might get filtered out.)
+            // That means we can use a limit clause for reviews.
+            $reviews_limit_clause = "limit $reviews_limit";
+        }
+        // prepare to query reviews
         if ($days) $dayWhere = "greatest(reviews.createdate, ifnull(reviews.embargodate, '0000-00-00')) > date_sub(now(), interval $days day)";
         // query the recent reviews (minus mutes)
         $anm = str_replace('#USERID#', 'reviews.userid', $andNotMuted);
@@ -198,11 +233,25 @@ function getNewItems($db, $limit, $itemTypes = NEWITEMS_ALLITEMS, $options = [])
                and $dayWhere
                $anm
              order by d desc, id desc
-             limit $reviews_limit", $db);
+             $reviews_limit_clause", $db);
         $revcnt = mysql_num_rows($result);
-        for ($i = 0 ; $i < $revcnt ; $i++) {
-            $row = mysql_fetch_array($result, MYSQL_ASSOC);
-            $items[] = array('R', $row['d'], $row);
+        if ($game_filter != "") {
+            for ($i = 0 ; $i < $revcnt ; $i++) {
+                $row = mysql_fetch_array($result, MYSQL_ASSOC);
+                // Only add the review to $items if it matches a gameid
+                // in $gameids_after_filtering
+                if (in_array($row['gameid'], $gameids_after_filtering)) {    
+                    $items[] = array('R', $row['d'], $row);
+                    if ( count($items) == $reviews_limit ) {
+                        break;
+                    }
+                }
+            }
+        } else {
+            for ($i = 0 ; $i < $revcnt ; $i++) {
+                $row = mysql_fetch_array($result, MYSQL_ASSOC);     
+                $items[] = array('R', $row['d'], $row);
+            }
         }
     }
 
@@ -251,7 +300,7 @@ function getNewItems($db, $limit, $itemTypes = NEWITEMS_ALLITEMS, $options = [])
     usort($items, "sortNewItemsByDate");
 
     // return the item list
-    return $items;
+    return array($items, $game_filter_was_applied);
 }
 
 // sorting callback: sort from newest to oldest
@@ -350,7 +399,7 @@ function showNewItems($db, $first, $last, $items, $options = [])
     $itemTypes = $options['itemTypes'] ?? NEWITEMS_ALLITEMS;
     // if the caller didn't provide the new item lists, query them
     if (!$items)
-        $items = getNewItems($db, $last, $itemTypes, $options);
+        list($items, $game_filter_was_applied) = getNewItems($db, $last, $itemTypes, $options);
 
     // show them
     showNewItemList($db, $first, $last, $items, $options);
@@ -717,7 +766,7 @@ function showNewItemList($db, $first, $last, $items, $options)
 function showNewItemsRSS($db, $showcnt)
 {
     // query the new items
-    $items = getNewItems($db, $showcnt - 1);
+    list($items, $game_filter_was_applied) = getNewItems($db, $showcnt - 1);
     $totcnt = count($items);
 
     $lastBuildDate = false;

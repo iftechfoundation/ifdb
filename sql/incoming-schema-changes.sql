@@ -8,6 +8,9 @@ alter table reviewvotes
     add PRIMARY KEY (`reviewvoteid`)
 ;
 
+-- Add column for game search filter to the users table
+
+ALTER TABLE `users` ADD COLUMN `game_filter` VARCHAR(150) DEFAULT '';
 
 
 UPDATE filetypes
