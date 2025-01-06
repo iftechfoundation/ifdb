@@ -572,7 +572,7 @@ if ($errMsg) {
     foreach ($game_matches as $match) {
         $match_number = $displayed_matches + 1;
         echo '<p><strong>GAME #' . $match_number . ':</strong> ';
-        echo '<a href="https://ifdb.org/viewgame?id=' . $match['gameid'] . '">';
+        echo '<a href="/viewgame?id=' . $match['gameid'] . '">';
         echo $match['title'];
         echo '</a>';
         if ( strlen($match['author']) < 45 ) {
