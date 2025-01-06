@@ -238,8 +238,9 @@ async function jsonSend(url, statusSpanID, cbFunc, content, silentMode)
 
     let jsonResponse = null;
     let msgspan = null;
+    let response;
     try {
-        const response = await fetch(url, options);
+        response = await fetch(url, options);
         jsonResponse = await response.json();
         msgspan = (statusSpanID
                 ? document.getElementById(statusSpanID)
@@ -265,7 +266,7 @@ async function jsonSend(url, statusSpanID, cbFunc, content, silentMode)
                    + "(" + response.status + ") "
                    + "Please try again later.");
     }
-    if (cbFunc) {
+    if (cbFunc && response?.ok) {
         cbFunc(jsonResponse);
     }
 }

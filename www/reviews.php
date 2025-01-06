@@ -136,9 +136,9 @@ function initReviewVote()
 
 function sendReviewVote(reviewID, vote)
 {
-    displayReviewVote(reviewID, vote);
-    jsonSend("reviewvote?id=" + reviewID + "&vote=" + vote,
-             "voteMsg_" + reviewID);
+    jsonSend(`reviewvote?id=${reviewID}&vote=${vote}`,
+             `voteMsg_${reviewID}`,
+             () => displayReviewVote(reviewID, vote));
 }
 function displayReviewVote(reviewID, vote)
 {
@@ -383,7 +383,9 @@ function showReview($db, $gameid, $rec, $specialNames, $optionFlags = 0)
 
     } else {
         // not special - show the headline and author
-        echo " <b>$summary</b><span class=details>, $publicationdate</span><br>"
+        echo " <b>$summary</b><span class=details>, "
+            . "<a class=\"silent\" href=\"viewgame?id=$gameid&review=$reviewid\" "
+            . "title=\"Direct link to this review\">$publicationdate</a></span><br>"
             . "<div class=smallhead><div class=details>"
             .   "by <a href=\"showuser?id=$userid\">$username</a>"
             . (!isEmpty($location) ? " ($location)" : "")
@@ -500,78 +502,84 @@ function showReview($db, $gameid, $rec, $specialNames, $optionFlags = 0)
         }
         global $nonce;
 
-        echo "<div class=smallfoot><span class=details>"
-            . "Was this review helpful to you? &nbsp; "
-            . "<a href=\"needjs\">"
-            . addEventListener('click', "sendReviewVote('$reviewid', 'Y'); return false;")
-            . "Yes</a> &nbsp; "
-            . "<a href=\"needjs\">"
-            . addEventListener('click', "sendReviewVote('$reviewid', 'N'); return false;")
-            . "No</a> &nbsp; "
-            . "<span id=\"voteRemove_$reviewid\"><a href=\"needjs\">"
-            . addEventListener('click', "sendReviewVote('$reviewid', 'R'); return false;")
-            . "Remove vote</a> &nbsp; </span>";
+        echo "<div class=smallfoot><span class=details>";
 
-            if (check_admin_privileges($db, $curuser)) {
-                echo "<a href=\"review?id=$gameid&userid=$userid\">Edit</a>&nbsp; ";
-            }
+        if (!$curuser) {
+            echo "You can <a href=\"login?dest=viewgame%3Fid%3D$gameid%26review%3D$reviewid\">log in</a> "
+               . "to rate this review, mute this user, or add a comment.";
+        } else {
+            echo "Was this review helpful to you? &nbsp; "
+                . "<a href=\"needjs\">"
+                . addEventListener('click', "sendReviewVote('$reviewid', 'Y'); return false;")
+                . "Yes</a> &nbsp; "
+                . "<a href=\"needjs\">"
+                . addEventListener('click', "sendReviewVote('$reviewid', 'N'); return false;")
+                . "No</a> &nbsp; "
+                . "<span id=\"voteRemove_$reviewid\"><a href=\"needjs\">"
+                . addEventListener('click', "sendReviewVote('$reviewid', 'R'); return false;")
+                . "Remove vote</a> &nbsp; </span>";
 
+                if (check_admin_privileges($db, $curuser)) {
+                    echo "<a href=\"review?id=$gameid&userid=$userid\">Edit</a>&nbsp; ";
+                }
 
-        echo  "<div class='reviews__moreOptions'>"
-            . "<a href=\"#\" id=\"voteMenuLink_$reviewid\">"
-            . addEventListener('click', "popVoteMenu('$reviewid'); return false;")
-            . "More Options<img src=\"/img/blank.gif\" "
-            . "class=\"popup-menu-arrow\"></a>"
+            echo  "<div class='reviews__moreOptions'>"
+                . "<a href=\"#\" id=\"voteMenuLink_$reviewid\">"
+                . addEventListener('click', "popVoteMenu('$reviewid'); return false;")
+                . "More Options<img src=\"/img/blank.gif\" "
+                . "class=\"popup-menu-arrow\"></a>"
 
-            . "<div id=\"voteMenu_$reviewid\" class='reviews__voteMenu'>"
-            . addEventListener('click', "closePopupMenu(null);")
-            . addEventListener('keypress', "return popupMenuKey(event,'$reviewid');")
-            . "<br>"
-            . "<div class=\"popupMenu\">"
-            . "<table border=0 cellspacing=0 cellpadding=0>"
-            . "<tr><td><a href=\"userfilter?user=$userid&action=promote\" "
-            . "title=\"Show me this user's reviews first "
-            . "(this will only be visible to you)\"><nobr>"
-            . "Promote this user</nobr></a>"
-            . "</td></tr>"
-            . "<tr><td><a href=\"userfilter?user=$userid&action=demote\" "
-            . "title=\"Show me this user's reviews last "
-            . "(this will only be visible to you)\"><nobr>"
-            . "Demote this user</nobr></a>"
-            . "</td></tr>"
-            . "<tr><td><a href=\"userfilter?user=$userid&action=mute\" "
-            . "title=\"Never show me this user's "
-            . "reviews at all\"><nobr>Mute this user</nobr></a>"
-            . "</td></tr>"
-            . "<tr><td><a href=\"reviewflag?review=$reviewid&type=spoilers\" "
-            . "title=\"Warn other users that this review "
-            . "contains unmarked spoilers\"><nobr>Flag spoilers</nobr></a>"
-            . "</td></tr>"
-            . "<tr><td><a href=\"reviewflag?review=$reviewid&type=inappropriate\" "
-            . "title=\"Notify moderators that this review violates "
-            . "the community guidelines\"><nobr>Flag as inappropriate</nobr></a>"
-            . "</td></tr>"
-            . "<tr><td><a href=\"viewgame?id=$gameid&review=$reviewid\" "
-            . "title=\"Direct link to this review\"><nobr>Direct link</nobr></a>"
-            . "</td></tr>"
-            . "<tr class='reviews__separator'><td></td></tr>"
-            . "<tr><td><a href=\"userfilter?list\">"
-            . "<nobr>View my user filters</nobr></a>"
-            . "</td></tr>"
-            . "<tr><td>" . helpWinLink("help-review-votes", "<nobr>Explain these options</nobr>")
-            . "</td></tr>"
-            . "</table>"
-            . "</div>"
-            . "</div>"
-            . "</div>"
+                . "<div id=\"voteMenu_$reviewid\" class='reviews__voteMenu'>"
+                . addEventListener('click', "closePopupMenu(null);")
+                . addEventListener('keypress', "return popupMenuKey(event,'$reviewid');")
+                . "<br>"
+                . "<div class=\"popupMenu\">"
+                . "<table border=0 cellspacing=0 cellpadding=0>"
+                . "<tr><td><a href=\"userfilter?user=$userid&action=promote\" "
+                . "title=\"Show me this user's reviews first "
+                . "(this will only be visible to you)\"><nobr>"
+                . "Promote this user</nobr></a>"
+                . "</td></tr>"
+                . "<tr><td><a href=\"userfilter?user=$userid&action=demote\" "
+                . "title=\"Show me this user's reviews last "
+                . "(this will only be visible to you)\"><nobr>"
+                . "Demote this user</nobr></a>"
+                . "</td></tr>"
+                . "<tr><td><a href=\"userfilter?user=$userid&action=mute\" "
+                . "title=\"Never show me this user's "
+                . "reviews at all\"><nobr>Mute this user</nobr></a>"
+                . "</td></tr>"
+                . "<tr><td><a href=\"reviewflag?review=$reviewid&type=spoilers\" "
+                . "title=\"Warn other users that this review "
+                . "contains unmarked spoilers\"><nobr>Flag spoilers</nobr></a>"
+                . "</td></tr>"
+                . "<tr><td><a href=\"reviewflag?review=$reviewid&type=inappropriate\" "
+                . "title=\"Notify moderators that this review violates "
+                . "the community guidelines\"><nobr>Flag as inappropriate</nobr></a>"
+                . "</td></tr>"
+                . "<tr><td><a href=\"viewgame?id=$gameid&review=$reviewid\" "
+                . "title=\"Direct link to this review\"><nobr>Direct link</nobr></a>"
+                . "</td></tr>"
+                . "<tr class='reviews__separator'><td></td></tr>"
+                . "<tr><td><a href=\"userfilter?list\">"
+                . "<nobr>View my user filters</nobr></a>"
+                . "</td></tr>"
+                . "<tr><td>" . helpWinLink("help-review-votes", "<nobr>Explain these options</nobr>")
+                . "</td></tr>"
+                . "</table>"
+                . "</div>"
+                . "</div>"
+                . "</div>"
 
-            . "&nbsp;$barCommentCtls"
-            . "&nbsp;<span id=\"voteMsg_$reviewid\" class=\"xmlstatmsg\">"
-            . "</span><span id=\"voteStat_$reviewid\"></span>"
-            . "</span></div>"
-            . "<script type=\"text/javascript\" nonce=\"$nonce\">\r\n<!--\r\n"
-            . "displayReviewVote('$reviewid', $oldvote);"
-            . "\r\n//-->\r\n</script>\r\n";
+                . "&nbsp;$barCommentCtls"
+                . "&nbsp;<span id=\"voteMsg_$reviewid\" class=\"xmlstatmsg\">"
+                . "</span><span id=\"voteStat_$reviewid\"></span>"
+                . "<script type=\"text/javascript\" nonce=\"$nonce\">\r\n<!--\r\n"
+                . "displayReviewVote('$reviewid', $oldvote);"
+                . "\r\n//-->\r\n</script>\r\n";
+        }
+
+        echo "</span></div>";
 
     } else if ($specialCode == 'author' || $specialCode == 'ifdb') {
         echo "<div class=smallfoot><span class=details>$commentCtls"
