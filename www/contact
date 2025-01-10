@@ -2,13 +2,10 @@
 include_once "session-start.php";
 include_once "pagetpl.php";
 include_once "util.php";
-include_once "captcha.php";
 
 varPageHeader("Contacting Us", false, get_req_data('helpwin'),
               false);
 
-$capkey = "contact";
-captchaSupportScripts($capkey);
 ?>
 
 <h1>Contacting Us</h1>
