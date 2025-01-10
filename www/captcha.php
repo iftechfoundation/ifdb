@@ -163,7 +163,7 @@ function captchaMaskEmail($email, $maskMsg)
 function captchaSupportScripts($sessionKey, $okcb = false)
 {
 ?>
-   <script src='https://www.google.com/recaptcha/api.js' nonce="<?php global $nonce; echo $nonce; ?>"></script>
+   <script async src='https://www.google.com/recaptcha/api.js' nonce="<?php global $nonce; echo $nonce; ?>"></script>
 <script type="text/javascript" nonce="<?php global $nonce; echo $nonce; ?>">
 <!--
 var RecaptchaOptions = {
