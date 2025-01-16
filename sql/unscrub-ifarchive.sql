@@ -446,7 +446,7 @@ from (
               )
               and `ifdb`.`reviews`.`special` is null
 -- testing on Rendition
-              and games.id = 'uamh4vrhqkcfdsu'
+--              and games.id = 'uamh4vrhqkcfdsu'
             group by `ifdb`.`reviews`.`rating`,
               `ifdb`.`games`.`id`,
               ifnull(`ifdb`.`reviews`.`RFlags`, 0) & 2,
