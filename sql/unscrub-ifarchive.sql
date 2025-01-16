@@ -420,7 +420,13 @@ from (
               when `grouped`.`hasReview` then `grouped`.`count`
               else 0
             end
-          ) AS `numMemberReviews`
+          ) AS `numMemberReviews`,
+          max(
+            case
+              when `grouped`.`hasReview` then `grouped`.`lastReviewDate`
+              else null
+            end
+          ) AS `lastReviewDate`
         from (
             select count(`ifdb`.`reviews`.`id`) AS `count`,
               `ifdb`.`reviews`.`rating` AS `rating`,
