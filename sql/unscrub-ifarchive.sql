@@ -426,7 +426,8 @@ from (
               `ifdb`.`reviews`.`rating` AS `rating`,
               `ifdb`.`games`.`id` AS `gameid`,
               ifnull(`ifdb`.`reviews`.`RFlags`, 0) & 2 AS `omitted`,
-              `ifdb`.`reviews`.`review` is not null AS `hasReview`
+              `ifdb`.`reviews`.`review` is not null AS `hasReview`,
+              max(ifnull(embargodate, createdate)) AS `lastReviewDate`
             from (
                 `ifdb`.`games`
                 left outer join `ifdb`.`reviews` on (`ifdb`.`games`.`id` = `ifdb`.`reviews`.`gameid`)
