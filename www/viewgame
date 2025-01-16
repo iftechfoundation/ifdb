@@ -3310,8 +3310,8 @@ if (count($inrefs) != 0 && !$historyView) {
 
         // sorting option mapping - "sortby" <select> list to ORDER BY clause
         $orderByMap = array(
-            'new' => array('moddate desc', 'Newest First'),
-            'old' => array('moddate', 'Oldest First'),
+            'new' => array('publicationdate desc', 'Newest First'),
+            'old' => array('publicationdate', 'Oldest First'),
             'hlp' => array('netHelpful desc', 'Most Helpful First'),
             'unh' => array('netHelpful', 'Least Helpful First'),
             'hi' => array('rating desc', 'Highest Ratings First'),
@@ -3320,7 +3320,7 @@ if (count($inrefs) != 0 && !$historyView) {
         // build the query that gives us the right sorting order
         $sortReq = get_req_data('sortby');
         $orderBy = isset($orderByMap[$sortReq])
-                   ? $orderByMap[$sortReq][0] : "moddate desc";
+                   ? $orderByMap[$sortReq][0] : "publicationdate desc";
 
         // if it's a helpfulness query, apply the user filter ordering
         if ($sortReq == 'hlp')
