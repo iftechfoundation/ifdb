@@ -186,7 +186,7 @@ function getNewItems($db, $limit, $itemTypes = NEWITEMS_ALLITEMS, $options = [],
                 // Find games that have at least one review, and use the custom game filter to filter them
                 $term = "#reviews:1-";
                 $searchType = "game";
-                $sortby = "lnew";
+                $sortby = "recently_reviewed";
                 $limit = null;
                 $browse = 0;
                 list($game_rows_after_filtering, $rowcnt, $sortList, $errMsg, $summaryDesc, $badges, $specials, $specialsUsed, $orderBy) =

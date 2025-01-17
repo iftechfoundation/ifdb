@@ -293,6 +293,7 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse, $override_g
                        stdDevRating as ratingdev,
                        numRatingsTotal,
                        numMemberReviews,
+                       lastReviewDate,
                        starsort,
                        games.sort_title as sort_title,
                        games.sort_author as sort_author,
@@ -956,6 +957,7 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse, $override_g
                                 'Rating Deviation - Low to High'),
                 'new' => array('published desc,', 'Latest Publication First'),
                 'old' => array('sort_pub,', 'Earliest Publication First'),
+                'recently_reviewed' => array('lastReviewDate desc,', 'Recently Reviewed First'),
                 'rand' => array('rand(),', 'Random Order'));
             if (count($words)) {
                 $defSortBy = 'rel';
