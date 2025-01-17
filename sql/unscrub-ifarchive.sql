@@ -423,7 +423,7 @@ from (
           ) AS `numMemberReviews`,
           max(
             case
-              when `grouped`.`hasReview` then `grouped`.`lastReviewDate`
+              when `grouped`.`hasReview` then `grouped`.`lastRatingDate`
               else null
             end
           ) AS `lastReviewDate`
@@ -433,7 +433,7 @@ from (
               `ifdb`.`games`.`id` AS `gameid`,
               ifnull(`ifdb`.`reviews`.`RFlags`, 0) & 2 AS `omitted`,
               `ifdb`.`reviews`.`review` is not null AS `hasReview`,
-              max(ifnull(embargodate, createdate)) AS `lastReviewDate`
+              max(ifnull(embargodate, createdate)) AS `lastRatingDate`
             from (
                 `ifdb`.`games`
                 left outer join `ifdb`.`reviews` on (`ifdb`.`games`.`id` = `ifdb`.`reviews`.`gameid`)
