@@ -311,6 +311,7 @@ select `averaged`.`gameid` AS `gameid`,
   `averaged`.`numRatingsInAvg` AS `numRatingsInAvg`,
   `averaged`.`numRatingsTotal` AS `numRatingsTotal`,
   `averaged`.`numMemberReviews` AS `numMemberReviews`,
+  `averaged`.`lastReviewDate` AS `lastReviewDate`,
   `averaged`.`avgRating` AS `avgRating`,
   pow(
     (
@@ -358,6 +359,7 @@ from (
       `rating_counts`.`numRatingsInAvg` AS `numRatingsInAvg`,
       `rating_counts`.`numRatingsTotal` AS `numRatingsTotal`,
       `rating_counts`.`numMemberReviews` AS `numMemberReviews`,
+      `rating_counts`.`lastReviewDate` AS `lastReviewDate`,
 (
         `rating_counts`.`rated1`
         + `rating_counts`.`rated2` * 2
@@ -882,6 +884,7 @@ create table gameRatingsSandbox0_mv (
   `numRatingsInAvg` int unsigned,
   `numRatingsTotal` int unsigned,
   `numMemberReviews` int unsigned,
+  `lastReviewDate` tinyint NOT NULL;
   `avgRating` double,
   `stdDevRating` double,
   `starsort` double,
