@@ -895,7 +895,8 @@ create table gameRatingsSandbox0_mv (
   KEY `numMemberReviews` (`numMemberReviews`),
   KEY `avgRating` (`avgRating`),
   KEY `stdDevRating` (`stdDevRating`),
-  KEY `starsort` (`starsort`)
+  KEY `starsort` (`starsort`),
+  KEY `lastReviewDate` (`lastReviewDate`)
 ) ENGINE = MyISAM DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
 
 lock tables gameRatingsSandbox0_mv write, gameRatingsSandbox0 read;
