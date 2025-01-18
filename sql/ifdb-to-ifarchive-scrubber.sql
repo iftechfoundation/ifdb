@@ -18,9 +18,6 @@ drop table reviewflags;
 drop table userfilters;
 drop table stylepics;
 
-delete from users
-  where acctstatus != 'A';
-
 update users
   set picture = concat('https://ifdb.org/showuser?pic&id=', id)
   where picture is not null;
@@ -154,3 +151,7 @@ drop table gametimes_mv;
 drop trigger playertime_insert;
 drop trigger playertime_update;
 drop trigger playertime_delete;
+
+-- delete users with acctstatus D (pending activation) R (pending review) B (banned)
+delete from users where acctstatus != 'A';
+-- we delete users last so we can delete any sandboxed content before deleting the user
