@@ -1267,7 +1267,7 @@ else if ($term || $browse)
         echo "</div>";
 
         $showFlagged = isset($_GET['showFlagged']) && $_GET['showFlagged'];
-        if (!$showFlagged && $searchType == "game") {
+        if (!$showFlagged && $searchType == "game" && (!$browse || $pg != 1)) {
             for ($i = 0 ; $i < count($rows) ; $i++) {
                 $row = $rows[$i];
                 $flags = $row['flags'];
