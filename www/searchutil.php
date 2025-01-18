@@ -268,6 +268,8 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse, $override_g
             "license:" => array("license", 0),
             "competitionid:" => array("competitionid", 99),
             "format:" => array("/gameformat/", 99),
+            // "lastreview:" is not documented for users. It's used in newitems.php
+            // to fetch new reviews when a custom game filter is applied.
             "lastreview:" => array("lastReviewDate", 4));
 
 
