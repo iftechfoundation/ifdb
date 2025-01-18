@@ -187,11 +187,10 @@ function getNewItems($db, $limit, $itemTypes = NEWITEMS_ALLITEMS, $options = [],
                 // sort recently reviewed games to the top,
                 // and retrieve the number of results we need.
                 // Custom game filter gets applied in doSearch. 
-                $term = "lastReviewDate:90d-";
+                $term = "lastreview:365d-";
                 $searchType = "game";
                 $sortby = "recently_reviewed";
-//                $limit = "limit 100";
-                $limit = "limit $review_limit";
+                $limit = "limit $reviews_limit";
                 $browse = 0;
                 list($game_rows_after_filtering, $rowcnt, $sortList, $errMsg, $summaryDesc, $badges, $specials, $specialsUsed, $orderBy) =
                     doSearch($db, $term, $searchType, $sortby, $limit, $browse);
