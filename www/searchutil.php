@@ -63,10 +63,10 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse, $override_g
     checkPersistentLogin();
     $curuser = mysql_real_escape_string($_SESSION['logged_in_as'] ?? '', $db);
 
-    // set up the plonk filter
-    $andNotPlonked = "";
+    // set up the mute filter
+    $andNotMuted = "";
     if ($curuser) {
-        $andNotPlonked = " and (select count(*) from userfilters "
+        $andNotMuted = " and (select count(*) from userfilters "
                          . "where userid = '$curuser' "
                          . "and targetuserid = #USERID# "
                          . "and filtertype = 'K') = 0";
@@ -124,7 +124,7 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse, $override_g
         $baseWhere = "and reclists.userid = users.id "
                      . "and users.sandbox in ($sandbox) "
                      . str_replace('#USERID#', 'reclists.userid',
-                                   $andNotPlonked);
+                                   $andNotMuted);
         $groupBy = "group by reclistitems.listid";
         $baseOrderBy = "title";
         $matchCols = "title, keywords";
@@ -153,7 +153,7 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse, $override_g
                       left outer join pollvotes as v on v.pollid = p.pollid
                       join users as u on u.id = p.userid";
         $baseWhere = "and u.sandbox in $sandbox "
-                     . str_replace('#USERID#', 'p.userid', $andNotPlonked);
+                     . str_replace('#USERID#', 'p.userid', $andNotMuted);
         $groupBy = "group by p.pollid";
         $baseOrderBy = "title";
         $matchCols = "title, keywords";
@@ -179,7 +179,7 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse, $override_g
         $baseWhere = "and u.acctstatus = 'A' "
                      . "and u.sandbox in $sandbox "
                      . "and (ifnull(u.profilestatus, ' ') != 'R' $orCurUser)"
-                     . str_replace('#USERID#', 'u.id', $andNotPlonked);
+                     . str_replace('#USERID#', 'u.id', $andNotMuted);
         $groupBy = "";
         $baseOrderBy = "name";
         $matchCols = "name, profile";
@@ -489,7 +489,7 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse, $override_g
         $txt = $s[1];
         $forHaving = count($desc) >= 3 && $desc[2];
         $expr = "1";
-        $negate = (strpos($s[2], '-') !== false);
+        $negate = ($s[2] === '-');
 
         // build the appropriate expression, based on the descriptor type
         switch ($typ) {
@@ -941,6 +941,8 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse, $override_g
                 'auth' => array('sort_author,', 'Sort by Author'),
                 'pnew' => array('published desc,', 'Latest Publication First'),
                 'pold' => array('sort_pub,', 'Earliest Publication First'),
+                'long'  => array('rounded_median_time_in_minutes desc, starsort desc,', 'Longest First'),
+                'short' => array('-rounded_median_time_in_minutes desc, starsort desc,', 'Shortest First'),
                 'rand' => array('rand(),', 'Random Order'));
             $defSortBy = 'ratu';
         } else {
@@ -961,6 +963,8 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse, $override_g
                                 'Rating Deviation - Low to High'),
                 'new' => array('published desc,', 'Latest Publication First'),
                 'old' => array('sort_pub,', 'Earliest Publication First'),
+                'long'  => array('rounded_median_time_in_minutes desc, starsort desc,', 'Longest First'),
+                'short' => array('-rounded_median_time_in_minutes desc, starsort desc,', 'Shortest First'),
                 'recently_reviewed' => array('lastReviewDate desc,', 'Recently Reviewed First'),
                 'rand' => array('rand(),', 'Random Order'));
             if (count($words)) {
@@ -1073,6 +1077,17 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse, $override_g
                       . "on userScores_mv.userid = u.id";
     }
 
+    // If we're sorting by estimated play time, make sure we select the play time and 
+    // join the gametimes materialized view
+    if ($searchType == "game" && ($sortby == "short" || $sortby == "long")) {
+
+        if (!isset($specialsUsed['playtime:'])) {
+            $selectList .= ", rounded_median_time_in_minutes";
+            $tableList .= " left outer join gametimes_mv on games.id = gametimes_mv.gameid";
+        }
+    }
+    
+
     // Build tags join
     $tagsJoin = "";
     if ($tagsToMatch) {
@@ -1134,8 +1149,15 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse, $override_g
         $orderBy = substr($orderBy, 0, -1);
     }
 
+    $sql_calc_found_rows = "sql_calc_found_rows";
+    if ($searchType === "game" && $where === "1") {
+        // `sql_calc_found_rows` forces the query to ignore the `limit` clause in order to count all possible results.
+        // But when browsing for all games, we can do a fast `count(*)` query instead
+        $sql_calc_found_rows = "";
+    }
+
     // build the SELECT statement
-    $sql = "select sql_calc_found_rows
+    $sql = "select $sql_calc_found_rows
               $selectList
               $relevance
             from
@@ -1177,8 +1199,16 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse, $override_g
 //        }
 
         // get the total size of the result set
-        $result = mysql_query("select found_rows()", $db);
-        list($rowcnt) = mysql_fetch_row($result);
+        if ($sql_calc_found_rows) {
+            $result = mysql_query("select found_rows()", $db);
+            [$rowcnt] = mysql_fetch_row($result);
+        } else if ($searchType === "game" && $where === "1") {
+            if ($logging_level) error_log("select count(*) from games");
+            $result = mysql_query("select count(*) from games", $db);
+            [$rowcnt] = mysql_fetch_row($result);
+        } else {
+            $rowcnt = length($rows);
+        }
 
     } else {
         $rows = array();
@@ -1187,7 +1217,7 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse, $override_g
                   . "An error occurred searching the database.</span><p>";
 
 // DEBUG
-//        if (get_req_data('debug') == 'SEARCH')
+//      if (get_req_data('debug') == 'SEARCH')
 //            $errMsg = "<p><span class=errmsg>Database error:</span><p>" . mysql_error($db)
 //                      . "</p>Query:<p>" . htmlspecialcharx($sql) . "</p>";
     }

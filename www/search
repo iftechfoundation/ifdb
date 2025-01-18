@@ -1280,7 +1280,7 @@ else if ($term || $browse)
         echo "</div>";
 
         $showFlagged = isset($_GET['showFlagged']) && $_GET['showFlagged'];
-        if (!$showFlagged && $searchType == "game") {
+        if (!$showFlagged && $searchType == "game" && (!$browse || $pg != 1)) {
             for ($i = 0 ; $i < count($rows) ; $i++) {
                 $row = $rows[$i];
                 $flags = $row['flags'];
@@ -1355,6 +1355,9 @@ else if ($term || $browse)
                     $tagsMatched = array();
                     foreach ($specials as $s) {
                         if ($s[0][0] == "tags") {
+                            // Don't try to match negated terms
+                            if ($s[2] === '-')
+                                continue;
                             foreach ($tags as $t) {
                                 if (strpos(strtolower($t),
                                            strtolower($s[1])) !== false) {

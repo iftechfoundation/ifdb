@@ -1,0 +1,612 @@
+<?php
+
+// make sure we process any persistent login state
+include_once "login-persist.php";
+$db = dbConnect(); // Is this the right place for this?
+$curuser = checkPersistentLogin(); // Is this the right place for this?
+
+include_once "pagetpl.php";
+
+include_once "gameinfo.php";
+
+
+
+//------------------ VARIABLES FOR EVALUATING GAME GENRES AND TAGS--------------------------
+
+// Each matched genre is worth this many points
+$points_for_matched_genre = 5; 
+
+// If two or more genres match, also add this many bonus points (once)
+$points_for_multiple_matched_genres = 5; 
+
+// For a matching series, add this many points
+$points_for_matched_series = 15;
+
+// Tag frequency/uniqueness will be divided into this many categories.
+// If there are e.g. 4 buckets, then tags can be worth 1, 2, 3, or 4
+// points based on how frequently they appear on IFDB.
+$frequency_buckets = 4;     
+
+// Tags to ignore for matching purposes because they're not very helpful
+$tags_to_ignore = ["walkthrough", "cover art", "Adrift", "Twine", "Harlowe", 
+    "Adventuron", "Z-code", "Glulx", "Winner of a comp", "translation available",
+    "Miss Congeniality Winner", "Free IF Playoffs", "Let's Play", 
+    "game doesn't exist", "XYZZY response"];
+
+// If a tag includes any of these strings, ignore the tag for matching purposes
+$tag_strings_to_ignore = ["Inform", "TADS", "IFComp", "IF Comp", "Comp", 
+    "Spring Thing", "Interactive Fiction Top 50", "transcript", "source", 
+    "Xyzzy Awards", "Best Game", "ParserComp ", "Text Adventure Literacy Jam ", 
+    "Jay Is Games"];
+
+
+
+//-------------------------------FUNCTIONS----------------------------------------
+
+// Sort game matches by their similarity to the original game, 
+// with the highest similarity score first
+function sortByScore($a, $b) {
+    return $b['score'] - $a['score'];
+}
+
+
+// get the game's TUID ID, given via ?id=xxx
+function getID() {
+    global $db, $errMsg, $errCode;
+
+    $id = false;
+    if (isset($_REQUEST['id'])) {
+        // get the TUID
+        $id = $_REQUEST['id'];
+    }
+
+    // return the ID we found
+    return $id;
+}
+
+    
+ 
+// initialize - this fetches the database record for the original game
+function init()
+{
+    global $db, $curuser, $id, $qid, $errMsg, $errCode;
+
+    // make sure we're connected
+    if ($db == false) {
+        $errMsg = "An error occurred connecting to the game database. Please
+          try refreshing the page. If the error persists,
+          <a href=\"/contact\">contact us</a> to let us know about
+          the problem.";
+        $errCode = "dbError";
+        return;
+    }
+
+    if ($curuser == false) { // should this be two equals signs or 3?
+        if (!$errMsg) {
+            $errMsg = "You must be logged in to use this feature.";
+            // Do I need an error code, too?
+        }
+        return;
+    }
+    // check the game ID
+    $id = getID();
+    if (!$id) {
+        if (!$errMsg) {
+            $errMsg = "No game was specified in the request. Please enter the URL in the format<br><br>";
+            $errMsg .= "<strong>https://ifdb.org/similargames?id=ju778uv5xaswnlpl</strong><br><br>";
+            $errMsg .= "Tip: Go to any game's page, and then change the URL to say <strong>similargames</strong> instead of <strong>viewgame</strong>";
+            $errCode = "badRequest";
+        }
+        return;
+    }
+
+    // get the quoted ID
+    $qid = mysql_real_escape_string($id, $db);
+}
+
+//-------------END OF FUNCTIONS------------------------------------------------------
+
+
+
+
+
+// check the user for ADMIN privileges
+// (This is from viewgame. Do we need it? I took out the sandbox 
+// stuff already. Maybe we could eventually make the tag calculations 
+// visible only to admin?)
+//$userprivs = $adminPriv = false;
+//if ($curuser) {
+//    $result = mysqli_execute_query($db,
+//        "select `privileges` from users where id=?", [$curuser]);
+//    $userprivs = mysql_fetch_row($result);
+//    $adminPriv = (strpos($userprivs, "A") !== false);
+//}
+
+$errMsg = false;
+$errCode = false;
+
+
+// I don't know what this is for (it's from the viewgame page)
+// Do we need it??
+//if (isset($_REQUEST['cssOverride']))     
+//    $cssOverride = get_req_data('cssOverride');
+
+// connect to the database
+//$db = dbConnect(); // Didn't we already do this earlier?
+
+init();
+
+// load the game information
+//$reqVersion = $_REQUEST['version'] ?? null;
+if (!$errMsg) {
+    list($ifids, $title, $author, $authorExt,
+         $pubYear, $pubFull, $license,
+         $system, $desc, $rawDesc,
+         $hasart, $genre, $seriesname, $seriesnum,
+         $forgiveness, $bafsid, $version,
+         $language, $languageNameOnly,
+         $website, $links,
+         $ratingCntAvg, $ratingCntTot, $ratingAvg, $memberReviewCnt,
+         $currentUserRating, $currentUserReview,
+         $editedbyid, $editedbyname, $moddate, $moddate2, $pagevsn,
+         $moddatelatest,
+         $historyView,
+         $dlnotes, $extReviews, $extRevDisplayRank,
+         $ratingHisto, $xrefs, $inrefs, $flags) =
+             getGameInfo($db, $id, $curuser, $reqVersion, $errMsg, $errCode);
+    $title = htmlspecialchars($title);
+    $license = htmlspecialchars($license);
+    $language = htmlspecialchars($language);
+    $seriesnum = htmlspecialchars($seriesnum);
+    $forgiveness = htmlspecialchars($forgiveness);
+
+    $should_hide = ($flags & FLAG_SHOULD_HIDE);
+
+}
+
+// Do we need this? What's it for? (from viewgame)
+//if ($errCode == "notFound") {
+//    checkRedirect($id);
+//    header("HTTP/1.1 404 Not Found");
+//} else if ($errCode == "versionNotFound") {
+//    header("HTTP/1.1 404 Not Found");
+//} else if ($errCode == "dbError") {
+//    header("HTTP/1.1 500 Internal Server Error");
+//} else if ($errCode == "badRequest") {
+//    header("HTTP/1.1 400 Bad Request");
+//}
+
+
+// I don't know what this does
+pageHeader("Games with genres and tags in common with $title", false, false,
+           $extraHead, true);
+
+     
+
+if ($errMsg) {         
+    echo $errMsg;
+} else {
+    echo "<br>";
+    echo "<h1>Comparing games to <i>$title</i>";
+    if ( strlen($author) < 45 ) {
+        echo " by $author";
+    }
+    echo "</h1>";
+    echo "<p>This is an experimental feature.</p>";
+    echo "<p>To try this comparison feature with a different game, "
+       . "you can go to any game's page and then change the URL to say "
+       . "<strong>similargames</strong> instead of <strong>viewgame</strong>.</p>";
+
+    // Display the relevant varables in the details tags for reference   
+    echo "<details><summary><i>Evaluation and scoring details (for testing)</i></summary>";
+
+    echo "<p>Each matched genre is worth $points_for_matched_genre points.</p>";
+    echo "<p>If two or more genres match, there's also a one-time bonus of ";
+    echo "$points_for_multiple_matched_genres points.<p>";
+    echo "<p>If the games belong to the same series, that's worth ";
+    echo "$points_for_matched_series points.</p>";
+    echo "<p>Tags are divided into $frequency_buckets frequency/uniqueness buckets.</p>";
+
+    echo "<br><p>The game <i>$title</i> has the following tags:</p><br>";
+
+
+ //----------------------EVALUATING TAGS OF THE ORIGINAL GAME------------------
+  
+    // Get tags for the original game
+    $original_game_tags_array = [];
+    $result = mysqli_execute_query($db,
+    "SELECT
+        tag, 
+        COUNT(DISTINCT gameid) AS tag_frequency
+     FROM gametags
+     WHERE tag IN
+        (SELECT DISTINCT tag FROM gametags WHERE gameid = ?)
+     GROUP BY tag
+     ORDER BY tag_frequency DESC", [$id]);
+
+    // It's uncalculated now, but once calculated, we'll divide each tag count by this number
+    $tag_frequency_divisor = 0;
+
+
+    // Process each of the original game's tags
+    while ([$original_tag, $original_tag_frequency] = mysql_fetch_row($result)) {
+        $exclude_current_tag = false;
+        echo '<p><strong>TAG:</strong> "' . $original_tag . '"';
+        echo "<li>Frequency in database: $original_tag_frequency</li>";
+
+        // Check to see if the current tag exactly matches any tags on our 
+        // "ignore" list
+        foreach ($tags_to_ignore as $ignored_tag) {
+            if ( strcasecmp($original_tag, $ignored_tag ) == 0) {
+                // This tag is on the "ignore" list, so exclude it
+                $exclude_current_tag = true;
+                break;
+            }
+        }
+
+        // If we haven't excluded the tag yet, check to see if it
+        // includes any strings that mean this tag should be ignored
+        if ($exclude_current_tag == false) {
+            foreach ($tag_strings_to_ignore as $tag_string) {
+                if (strpos($original_tag, $tag_string) !== false) {
+                // This doesn't work until PHP 8:         
+                // if ( str_contains($lowercase_tag, $string_to_ignore) ) { 
+                    $exclude_current_tag = true;
+                    break;
+                }
+            } 
+        }
+
+
+        // If we're still not ignoring the current tag, calculate its value and add it
+        // to the list of tags to compare to other games
+        if ($exclude_current_tag == false) {
+            // Since the tag frequencies have been sorted in descending order,
+            // the first non-zero value should be the highest frequency of any 
+            // of this game's tags. Suppose we want to put tag frequencies in 
+            // 4 buckets (this number can be changed). We divide the highest 
+            // tag frequency by 3 to find our divisor. Then we divide each tag 
+            // frequency by this divisor and round so that we'll end up with a 
+            // relative frequency (0, 1, 2, or 3) for each tag. We'll use that to 
+            // calculate a "uniqueness score" for that tag on a scale of 1 to 4.
+            if ($tag_frequency_divisor == 0) {
+                $tag_frequency_divisor = round( ($original_tag_frequency/ ($frequency_buckets - 1)), 2);
+                echo "<li>Dividing tag frequency by $tag_frequency_divisor</li>";
+            }
+
+            $relative_tag_frequency = round($original_tag_frequency / $tag_frequency_divisor);
+            echo "<li>Relative tag frequency (on a scale of 0 to ";
+            echo ($frequency_buckets - 1) . "): $relative_tag_frequency</li>";
+
+            $uniqueness_points = (-$relative_tag_frequency + $frequency_buckets);
+            echo "<li>Uniqueness points: $uniqueness_points</li>";
+            $original_game_tags_array[$original_tag] = $uniqueness_points;
+//          print_r($original_game_tags_array);
+        } else {
+            echo '<br>Ignoring tag "' . $original_tag . '"<br>';
+        }
+    echo "</p><br>";
+    }  // Finished processing tags on original game 
+
+
+
+    // Process genres of original game.
+    // The genre string can have multiple genres separated by commas 
+    // or slashes. If there's a genre string, split it into the 
+    // individual genres.
+    $untrimmmed_original_game_genres_array = [];
+    $original_game_genres_array = [];
+
+    if ($genre != "") {
+        if (strpos($genre, ",") !== false) {
+            // The string contains commas, so split on those
+            $untrimmed_original_game_genres_array = explode(",", $genre);
+        } else if (strpos($genre, "/") !== false) {
+            // The string contains slashes, so split on those
+            $untrimmed_original_game_genres_array = explode("/", $genre);
+        } else {
+            $untrimmed_original_game_genres_array[] = $genre;
+        }
+        // Trim any whitespace
+        $original_game_genres_array = array_map('trim', $untrimmed_original_game_genres_array);
+    }
+
+
+    // Depending on the original game's tags, we may want to add 
+    // some more possible genres to the WHERE clause so that we 
+    // can compare with those games, too
+    $tag_to_genre_correspondence = ["wordplay" => "Wordplay",
+                                "mythology" => "Mythological",
+                                "science fiction" => "Science Fiction",
+                                "fantasy" => "Fantasy"];
+    // "humor" => "Comedy",
+    //"comedy" => "Humor",
+    $honorary_genres = [];
+
+    // Look through the tags on the original game
+    foreach ($original_game_tags_array as $original_tag => $uniqueness_points) {
+        // See if any of the original game's tags justify including more genres in our game results
+        foreach ($tag_to_genre_correspondence as $corresponding_tag => $corresponding_genre) {
+            if ( strcasecmp($original_tag, $corresponding_tag) == 0 ) {
+                // A tag on the original game matches a tag in our tag-to-genre list.
+                // (I thought about trying to avoid redundant where clauses, but didn't figure out how.
+                // I guess that would go here. It would need to be case insensitive.)
+                $honorary_genres[] = $corresponding_genre;
+            }
+        }
+    }
+
+    // We only want to fetch games with relevant genres, so write the
+    // WHERE clause
+
+    $where_clause = "WHERE (NOT games.id='$id')";
+    foreach ($original_game_genres_array as $index => $original_genre) {
+        if ($index == 0) {
+            $where_clause .= " AND (";
+        } else {
+            $where_clause .= " OR";
+        }
+        $where_clause .= " (genre LIKE '%" . $original_genre . "%')";
+    }
+
+    foreach ($honorary_genres as $honorary_genre) {
+        if (count($original_game_genres_array) == 0) {
+            $where_clause .= " AND (";
+        } else {
+            $where_clause .= " OR";
+        }
+        $where_clause .= " (genre LIKE '%" . $corresponding_genre . "%')";
+    }
+
+    if ( count($original_game_genres_array) > 0 || count($honorary_genres) > 0 ) {
+        $where_clause .= " )";
+    }
+
+    // For testing purposes
+    echo "<p>Where clause:<br>$where_clause</p>";
+
+    echo "</details>";
+    echo "<br><hr>";
+
+    // Uncomment to avoid filtering game results by genre
+    // (Proceed with caution)
+    // $where_clause =""; 
+
+    // Fetch games that might be similar to the original game
+    $result = mysqli_execute_query($db,
+        "select
+            distinct games.id as gameid,
+            games.title,
+            games.author,
+            games.genre,
+            games.tags,
+            games.seriesname
+        from games
+        $where_clause;");
+//    limit 10000;");
+
+    if (!$result) throw new Exception("Error: " . mysqli_error($db));
+
+    $total_results = 0;
+    $game_matches = [];
+    while ([$found_gameid, $found_title, $found_author, $found_genres_string, 
+        $found_tags_string, $found_series] = mysql_fetch_row($result) ) {
+        $total_results = $total_results + 1;
+
+//      echo "<br><br>CHECKING GAME: $found_title";
+        
+        // Get the genres for the game we've just found
+        $untrimmmed_found_genres_array = [];
+        $found_genres_array = [];
+        if ($found_genres_string != "") {
+            // The game we just found has a genre string. If it has commas or slashes, split 
+            // on those to get the individual genres.
+            if (strpos($found_genres_string, ",") !== false) {
+                $untrimmed_found_genres_array = explode(",", $found_genres_string);
+            } else if (strpos($found_genres_string, "/") !== false) {
+                $untrimmed_found_genres_array = explode("/", $found_genres_string);
+            } else {
+                $untrimmed_found_genres_array = array($found_genres_string);
+            }
+            // Trim any whitespace around the genres
+            $found_genres_array = array_map('trim', $untrimmed_found_genres_array);
+            // Remove any duplicate genres (I'm not actually sure this is necessary)
+            $found_genres_array = array_unique($found_genres_array);
+        }
+
+        // Get the tags for the game we've just found
+        $found_tags_array = [];
+        if ($found_tags_string != "") {
+            $found_tags_array = explode (",", $found_tags_string);
+        }
+
+        // Check to see how the original game compares with the found game
+        $match_score = 0;
+
+        // Check for a series match
+        $matched_series = "";
+        if ($seriesname != "" && $seriesname == $found_series) {
+            $matched_series = $found_series;
+//            echo "<br><br>Matched series. Match score was $match_score.";
+            $match_score = $match_score + $points_for_matched_series;
+//            echo "<br>Match score is now $match_score.";
+        }
+
+        // Check for genre matches. More matched genres means more points.
+        $matched_genres_array = [];
+        if ($genre != "") {
+            foreach ($original_game_genres_array as $original_genre) {
+//              echo "<br> * Compare original genre ($original_genre)...";
+                foreach ($found_genres_array as $found_genre) {
+//                  echo "...to found genre ($found_genre) ";
+                    if ( strcasecmp($original_genre, $found_genre) == 0 ) {
+//                      echo "THIS GENRE IS A MATCH<br>";
+                        // Does this next line actually work?
+                        $matched_genres_array[] = $found_genre;
+//                        echo "<br>Before matching this genre, match score was $match_score.";
+                        $match_score = $match_score + $points_for_matched_genre;
+//                        echo "<br>Match score is now $match_score";
+                        break;
+                    }
+                }   
+            }
+//          echo "<br> # of common genres: " . count($matched_genres_array);
+            if ( count($matched_genres_array) >= 2) {
+                // If more than one genre is matched, add extra points to 
+                // the score--just once. This is on top of the per-genre points.
+                $match_score = $match_score + $points_for_multiple_matched_genres;
+            }
+//          echo "<br><br>Matched Genres Array is " . json_encode($matched_genres_array) . "<br>";
+        } // End of 'if ($genre != "")'
+
+        //    }
+
+
+        // Check for tags in the found game that match the original game's tags. Increase the 
+        // similarity score based on how unique the matching tag is.
+        $matched_tags_array = [];
+        $unmatched_tags_array = [];
+        foreach ($original_game_tags_array as $original_tag => $uniqueness_points) {
+            foreach ($found_tags_array as $found_tag) {
+                if ( strcasecmp($original_tag, $found_tag) == 0 ) {
+//                  echo "<br>Matched tag: $original_tag = $found_tag";
+                    $matched_tags_array[] = $found_tag;
+//                    if ($found_tag == "kid-friendly") {
+//                       // We could weight the "kid-friendly" tag more highly:
+//                       $match_score = $match_score + 7;
+//                    } else {
+                    $match_score = $match_score + $uniqueness_points;
+//                    }
+//                  echo "<br><br>MATCH SCORE IS NOW $match_score";
+                    break;
+                } 
+            }
+        }
+
+//        This doesn't work
+//        echo "<br>Checking for unmatched tags:<br>";
+//        foreach ($found_tags_array as $found_tag) {
+//           if (in_array($found_tag, $matched_tags_array)) {
+//               break;
+//           }
+//           echo "<br>Unmatched tag: $found_tag (sadly this matching is case-insensitive)";
+//           $unmatched_tags_array[] = $found_tag;
+//        }
+
+//        // This also doesn't work
+//        echo "<br>Checking for unmatched tags:<br>";
+//        foreach ($found_tags_array as $found_tag) {
+//            if ( isset($matched_tags_array[$found_tag]) ) {
+//                echo "<tag> found tag $found_tag in matched tags";
+//                break;
+//            }
+//            echo "<br>Unmatched tag: $found_tag";
+//            $unmatched_tags_array[] = $found_tag;
+//        }    
+        
+
+        if ($match_score >= 1) { 
+            // This game meets a minimum threshold of similarity to 
+            // the original game, so gather the found game's info 
+            // and add it to the list of game matches   
+            $matched_game = [];
+            $matched_game["score"] = $match_score;
+            $matched_game["gameid"] = $found_gameid;
+            $matched_game["title"] = $found_title;
+            $matched_game["author"] = $found_author;
+
+            if ($matched_series != "") {
+                $matched_game["matched_series"] = $matched_series;
+            }
+
+            // Put matching genres into a string with commas.
+            $matched_genres_string = "";
+            $matched_genres_string = implode(", ", $matched_genres_array);
+//          echo "<br>Matched genres string is $matched_genres_string <br>";
+            if ($matched_genres_string != "") {
+                $matched_game["matched_genres"] = $matched_genres_string;
+            }
+
+            // Put matching tags into a string with commas.
+            $matched_tags_string = implode(", ", $matched_tags_array);
+            if ($matched_tags_string != "") {
+                $matched_game["matched_tags"] = $matched_tags_string;
+            }
+
+            // Put the found game's unmatched tags into a string with commas.
+            $unmatched_tags_array = array_unique($unmatched_tags_array);
+            $unmatched_tags_string = implode(", ", $unmatched_tags_array);
+            if ($unmatched_tags_string != "") {
+                $matched_game["unmatched_tags"] = $unmatched_tags_string;
+            }
+
+            // Now that we've added all the relevant info for this game, 
+            // put this game with the other matched games.
+            $game_matches[] = $matched_game;
+        } // This is the end of "if ($match_score >= 1)"
+    } // This is the end of "while ([$found_gameid,..."
+
+    echo "<p><i>$title</i> was compared to $total_results games.";
+    if ($total_results < 100) {
+        echo " If this number seems small, that could mean the game's";
+        echo " listed genre (\"$genre\") is not common on IFDB.";
+    }
+    echo "</p>";
+
+    // Sort the similar games for display, with higher match scores first
+    usort($game_matches, 'sortByScore');
+
+    // Display the list of similar games
+    if ($genre == "") {
+        echo "<p>Warning: This game does not have a genre listed in the database. This may lead";
+        echo " to unexpected comparison results.</p>";
+    }
+    
+    if ($game_matches) {
+        echo "<p>The following games have genres or tags in common with <i>$title</i>:</p>";
+    } else {
+        echo "<p>No games to compare.</p>";
+    }
+    $displayed_matches = 0;
+    $max_matches = 10;
+    foreach ($game_matches as $match) {
+        $match_number = $displayed_matches + 1;
+        echo '<p><strong>GAME #' . $match_number . ':</strong> ';
+        echo '<a href="/viewgame?id=' . $match['gameid'] . '">';
+        echo $match['title'];
+        echo '</a>';
+        if ( strlen($match['author']) < 45 ) {
+            echo " by " . $match['author'];
+        }
+        echo "<li>Similarity score: " . $match['score'] . "</li>";
+
+        if ( isset($match['matched_genres']) ) {
+            echo "<li>Matched genres: " . $match['matched_genres'] . "</li>";
+        }
+
+        if ( isset($match['matched_series']) ) {
+            echo "<li>Matched series: " . $match['matched_series'] . "</li>";
+        }
+
+        if ( isset($match['matched_tags']) ) {
+            echo "<li>Matched tags: " . $match['matched_tags'] . "</li>";
+        }
+
+        if ( isset($match['unmatched_tags']) ) {
+            echo "<li>Tags unique to <i>" . $match['title'] . "</i>: "
+            . $match['unmatched_tags'] . "</li>";
+        }
+        echo "</p><br>";
+        $displayed_matches = $displayed_matches + 1;
+        if ($displayed_matches == $max_matches) {
+            break;
+        }
+    }
+
+}  // End of if (!errMsg)
+
+
+
+pageFooter();
+
+?>

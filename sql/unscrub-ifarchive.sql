@@ -438,15 +438,19 @@ from (
               max(ifnull(embargodate, createdate)) AS `lastRatingOrReviewDate`
             from (
                 `ifdb`.`games`
-                left outer join `ifdb`.`reviews` on (`ifdb`.`games`.`id` = `ifdb`.`reviews`.`gameid`)
-                left outer join `ifdb`.`users` on(`ifdb`.`reviews`.`userid` = `ifdb`.`users`.`id`)
+                left outer join `ifdb`.`reviews` on (
+                  `ifdb`.`games`.`id` = `ifdb`.`reviews`.`gameid`
+                  and ifnull(
+                    current_timestamp() > `ifdb`.`reviews`.`embargodate`,
+                    1
+                  )
+                  and `ifdb`.`reviews`.`special` is null
+                )
+                left outer join `ifdb`.`users` on (
+                  `ifdb`.`reviews`.`userid` = `ifdb`.`users`.`id`
+                  and ifnull(`ifdb`.`users`.`Sandbox`, 0) = 0
+                )
               )
-            where ifnull(`ifdb`.`users`.`Sandbox`, 0) = 0
-              and ifnull(
-                current_timestamp() > `ifdb`.`reviews`.`embargodate`,
-                1
-              )
-              and `ifdb`.`reviews`.`special` is null
             group by `ifdb`.`reviews`.`rating`,
               `ifdb`.`games`.`id`,
               ifnull(`ifdb`.`reviews`.`RFlags`, 0) & 2,
@@ -605,15 +609,18 @@ from (
               `ifdb`.`reviews`.`review` is not null AS `hasReview`
             from (
                 `ifdb`.`games`
-                left outer join `ifdb`.`reviews` on (`ifdb`.`games`.`id` = `ifdb`.`reviews`.`gameid`)
-                left outer join `ifdb`.`users` on(`ifdb`.`reviews`.`userid` = `ifdb`.`users`.`id`)
+                left outer join `ifdb`.`reviews` on (
+                  `ifdb`.`games`.`id` = `ifdb`.`reviews`.`gameid`
+                  and ifnull(
+                    current_timestamp() > `ifdb`.`reviews`.`embargodate`,
+                    1
+                  )
+                  and `ifdb`.`reviews`.`special` is null
+                )
+                left outer join `ifdb`.`users` on (
+                  `ifdb`.`reviews`.`userid` = `ifdb`.`users`.`id`
+                )
               )
-            where ifnull(`ifdb`.`users`.`Sandbox`, 0) in (0, 1)
-              and ifnull(
-                current_timestamp() > `ifdb`.`reviews`.`embargodate`,
-                1
-              )
-              and `ifdb`.`reviews`.`special` is null
             group by `ifdb`.`reviews`.`rating`,
               `ifdb`.`games`.`id`,
               ifnull(`ifdb`.`reviews`.`RFlags`, 0) & 2,

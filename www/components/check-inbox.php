@@ -3,11 +3,11 @@
 
 // check the inbox
 if ($quid) {
-    list($inbox, $inboxCnt) =
-        queryComments($db, "inbox", $quid, "limit 0, 1", $caughtUpDate, false);
     if (!$newCaughtUp || $srow[4] > $newCaughtUp)
         $newCaughtUp = $srow[4];
 
+    // $inboxCnt is returned by the queryComments function, which is
+    // defined in commentutil.php and called in pagetpl.php
     if ($inboxCnt) {
 
         global $nonce;

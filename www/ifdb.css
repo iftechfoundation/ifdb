@@ -222,9 +222,12 @@ div.topctl table tr td {
 
 .searchbar-wrapper > input {
     border: none;
+    padding-top: 0;
     padding-left: 0.5em;
+    padding-bottom: 0;
     border-radius: 1em 0 0 1em;
     width: 100%;
+    background: #fff;
 }
 
 .searchbar-wrapper > button {
@@ -1538,7 +1541,9 @@ ul.doublespace li {
 
 div.scroll-links {
     position: sticky;
-    text-wrap: balance;
+    /* ideally, we'd use text-wrap: balance, but it seems to be buggy in Safari 18.2
+    https://github.com/iftechfoundation/ifdb/issues/1208 */
+    text-wrap: pretty;
     top: 0;
     margin: 0 -0.5em 1em -0.5em;
     display: flex;
@@ -2173,6 +2178,24 @@ span.sfl-save-autodesc {
     background: #b0d8e8;
 }
 
+.inbox-notification {
+    min-width: 1.6em;
+    height: 1.6em;
+    border-radius: 0.8em;
+    background-color: red;
+
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 0.8em;
+    color: white;
+    vertical-align: top;
+}
+
+#mobile-menu-toggle-button .inbox-notification {
+    margin-left: 1ch;
+}
+
 @media (prefers-color-scheme: dark) {
     :root {
         --unchecked-image: url("/img/dark-images/star-unchecked.svg");
@@ -2199,6 +2222,10 @@ span.sfl-save-autodesc {
     }
     .searchbar-wrapper { 
         border: 1.5px solid #696991;
+    }
+
+    .searchbar-wrapper > input {
+        background: #000;
     }
     #topbar-search-go-button {
         filter: invert(1);
@@ -2432,6 +2459,9 @@ span.sfl-save-autodesc {
     }
     tr.evenRow {
         background: #202020;
+    }
+    #mobile-menu-toggle-button .inbox-notification {
+        filter: invert(1);
     }
     img.invert {
         filter: invert(1);

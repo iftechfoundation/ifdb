@@ -10,6 +10,15 @@ if ($curuser) {
     [$sandbox] = mysql_fetch_row($result);
 }
 
+// filter out muted users, if applicable
+$andNotMuted = "";
+if ($curuser) {
+    $andNotMuted = "and (select count(*) from userfilters "
+                        . "where userid = '$curuser' "
+                        . "and targetuserid = p.userid "
+                        . "and filtertype = 'K') = 0";
+}
+
 // set up the base query for polls
 $baseQuery = "select
                 p.pollid, p.title, p.userid, u.name
@@ -19,6 +28,7 @@ $baseQuery = "select
                 join users as u on u.id = p.userid
               where
                 sandbox in (0, ?)
+                $andNotMuted
               group by
                 p.pollid";
 

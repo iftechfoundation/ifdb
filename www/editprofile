@@ -922,9 +922,9 @@ captchaSupportScripts($captchaKey);
    you can "promote" that user, which makes IFDB show you that user's
    reviews first when you view game listings.  If you dislike someone's
    reviews, you can "demote" her to show her reviews last.  If you
-   <i>really</i> dislike someone, you can "plonk" him, which prevents
+   <i>really</i> dislike someone, you can "mute" him, which prevents
    you from seeing his reviews at all.</span>
-<p><span class=details>To promote, demote, or plonk someone, use the
+<p><span class=details>To promote, demote, or mute someone, use the
    controls shown below each review.</span>
 
 <p><a href="userfilter?list" target="_blank">View/Edit my filter list</a>

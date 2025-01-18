@@ -16,10 +16,6 @@ $userid = $_SESSION['logged_in_as'];
 
 pageHeader("IF Archive File Upload", false, false);
 
-include_once "captcha.php";
-$capkey = "archive-upload";
-captchaSupportScripts($capkey);
-
 $db = dbConnect();
 $result = mysql_query(
     "select name, email from users where id = '$userid'", $db);
@@ -315,12 +311,7 @@ setArchivePath("<?php echo $fmt ?>", "fmt");
 </script>
 
 
-Comments or questions? <?php
-   echo captchaMaskEmail("submissions@ifarchive.org",
-                         "Click here for IF Archive contact information");
-   captchaFinish($capkey);
-   captchaAjaxForm($capkey);
-?>
+Comments or questions? Email <a href="mailto:submit@ifarchive.org">submit@ifarchive.org</a>.
 
 <?php
 pageFooter();

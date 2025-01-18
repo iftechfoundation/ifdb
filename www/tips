@@ -40,7 +40,11 @@ in your web browser. No downloads required!
 <p>Here are some ways to use IFDB to find recommendations for games
 to play:
 
-<p><b>1. Start with a "Recommended List."</b> One of IFDB's key
+<p><b>1. Browse the <a href="/search?browse">top-rated games</a>.</b>
+You can't go wrong with the games that IFDB members have rated
+highly!
+
+<p><b>2. Start with a "Recommended List."</b> One of IFDB's key
 features is the Recommended List.  Any member can create a list of
 favorite games in any category.  There's no pre-set list of
 categories, so members can get as creative as they like.  If you're
@@ -54,14 +58,15 @@ than just one member's favorites.
 <a href="search?list&browse&sortby=new">Browse lists</a> -
 <a href="search?poll&browse&sortby=new">Browse polls</a>.
 
-<p><b>2. Start with a reviewer you trust.</b> Spend a little while
+<p><b>3. Start with a reviewer you trust.</b> Spend a little while
 browsing through games, and read some of the member reviews.  You'll
 probably find some reviewers who seem to have similar taste to your
 own.  When you see a review you like, you can click on the reviewer's
 name to see all of their other reviews.  Take a look at which games
 they rate most highly - chances are that you'll like them, too.
+<a href="/search?browse&member">Browse reviewers by score</a>
 
-<p><b>3. Start with a game you really like.</b> If you have a favorite
+<p><b>4. Start with a game you really like.</b> If you have a favorite
 game, look at its listing.  There are a couple of useful connections
 you can explore from here.  The listing will point out some
 Recommended Lists that feature the game - these lists can be great
@@ -70,7 +75,7 @@ reviews: people who give the game high marks might have similar taste
 to yours, so you can see what other games they like by viewing their
 other reviews.
 
-<p><b>4. Create a poll.</b> If you still can't find what you're
+<p><b>5. Create a poll.</b> If you still can't find what you're
 looking for, you can directly ask for help from other members by <a
 href="poll?id=new">creating a poll</a>.  When you create a poll, you
 describe what sort of game you're interested in; then, other members
