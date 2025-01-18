@@ -2178,7 +2178,7 @@ span.sfl-save-autodesc {
     background: #b0d8e8;
 }
 
-#topbar-inbox .notification {
+.inbox-notification {
     min-width: 1.6em;
     height: 1.6em;
     border-radius: 0.8em;
@@ -2190,6 +2190,10 @@ span.sfl-save-autodesc {
     font-size: 0.8em;
     color: white;
     vertical-align: top;
+}
+
+#mobile-menu-toggle-button .inbox-notification {
+    margin-left: 1ch;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -2455,6 +2459,9 @@ span.sfl-save-autodesc {
     }
     tr.evenRow {
         background: #202020;
+    }
+    #mobile-menu-toggle-button .inbox-notification {
+        filter: invert(1);
     }
     img.invert {
         filter: invert(1);
