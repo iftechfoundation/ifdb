@@ -267,7 +267,8 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse, $override_g
             "rated:" => array("rated", 99),
             "license:" => array("license", 0),
             "competitionid:" => array("competitionid", 99),
-            "format:" => array("/gameformat/", 99));
+            "format:" => array("/gameformat/", 99),
+            "lastreview:" => array("lastReviewDate", 4));
 
 
         // SELECT parameters for game queries
