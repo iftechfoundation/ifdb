@@ -183,14 +183,15 @@ function getNewItems($db, $limit, $itemTypes = NEWITEMS_ALLITEMS, $options = [],
             if (!$result) throw new Exception("Error: " . mysqli_error($db));
             [$game_filter] = mysql_fetch_row($result);
             if ($game_filter != "") {
-                // Find games that have at least one review,  
+                // Find games that have been reviewed in the last 90 days,  
                 // sort recently reviewed games to the top,
-                // and retrieve the first 100 filtered game results.
+                // and retrieve the number of results we need.
                 // Custom game filter gets applied in doSearch. 
-                $term = "#reviews:1-";
+                $term = "lastReviewDate:90d-";
                 $searchType = "game";
                 $sortby = "recently_reviewed";
-                $limit = "limit 100";
+//                $limit = "limit 100";
+                $limit = "limit $review_limit";
                 $browse = 0;
                 list($game_rows_after_filtering, $rowcnt, $sortList, $errMsg, $summaryDesc, $badges, $specials, $specialsUsed, $orderBy) =
                     doSearch($db, $term, $searchType, $sortby, $limit, $browse);
