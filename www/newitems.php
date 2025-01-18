@@ -183,7 +183,10 @@ function getNewItems($db, $limit, $itemTypes = NEWITEMS_ALLITEMS, $options = [],
             if (!$result) throw new Exception("Error: " . mysqli_error($db));
             [$game_filter] = mysql_fetch_row($result);
             if ($game_filter != "") {
-                // Find games that have at least one review, and use the custom game filter to filter them
+                // Find games that have at least one review,  
+                // sort recently reviewed games to the top,
+                // and retrieve the first 100 filtered game results.
+                // Custom game filter gets applied in doSearch. 
                 $term = "#reviews:1-";
                 $searchType = "game";
                 $sortby = "recently_reviewed";
@@ -199,8 +202,9 @@ function getNewItems($db, $limit, $itemTypes = NEWITEMS_ALLITEMS, $options = [],
             }
         }
         if (!$game_filter_was_applied) {
-            // We're not applying a game filter, so we don't need extra reviews. (We only need extras if some of them might get filtered out.)
-            // That means we can use a limit clause for reviews.
+            // We're not applying a game filter, so we don't need extra reviews. 
+            // (We only need extras if some of them might get filtered out.)
+            // We can limit results to the exact number we want to display.
             $reviews_limit_clause = "limit $reviews_limit";
         }
         // prepare to query reviews
