@@ -882,7 +882,7 @@ create table gameRatingsSandbox0_mv (
   `numRatingsInAvg` int unsigned,
   `numRatingsTotal` int unsigned,
   `numMemberReviews` int unsigned,
-  `lastReviewDate` tinyint NOT NULL,
+  `lastReviewDate` datetime NOT NULL,
   `avgRating` double,
   `stdDevRating` double,
   `starsort` double,
