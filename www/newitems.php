@@ -190,7 +190,7 @@ function getNewItems($db, $limit, $itemTypes = NEWITEMS_ALLITEMS, $options = [],
                 $term = "#reviews:1-";
                 $searchType = "game";
                 $sortby = "recently_reviewed";
-                $limit = 100;
+                $limit = "limit 100";
                 $browse = 0;
                 list($game_rows_after_filtering, $rowcnt, $sortList, $errMsg, $summaryDesc, $badges, $specials, $specialsUsed, $orderBy) =
                     doSearch($db, $term, $searchType, $sortby, $limit, $browse);
