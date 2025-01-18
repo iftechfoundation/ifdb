@@ -89,7 +89,7 @@ function getNewItems($db, $limit, $itemTypes = NEWITEMS_ALLITEMS, $options = [])
         $searchType = "game";
         $sortby = "lnew";
         $games_limit = $options['games_limit'] ?? $limit;
-        $limit_clause = "limit 0, $games_limit";
+        $limit_clause = "limit $games_limit";
         $browse = 0;        
         // query the recent games
         list($rows, $rowcnt, $sortList, $errMsg, $summaryDesc, $badges,
