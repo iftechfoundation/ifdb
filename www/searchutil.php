@@ -1112,8 +1112,15 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse)
         $orderBy = substr($orderBy, 0, -1);
     }
 
+    $sql_calc_found_rows = "sql_calc_found_rows";
+    if ($searchType === "game" && $where === "1") {
+        // `sql_calc_found_rows` forces the query to ignore the `limit` clause in order to count all possible results.
+        // But when browsing for all games, we can do a fast `count(*)` query instead
+        $sql_calc_found_rows = "";
+    }
+
     // build the SELECT statement
-    $sql = "select sql_calc_found_rows
+    $sql = "select $sql_calc_found_rows
               $selectList
               $relevance
             from
@@ -1155,8 +1162,16 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse)
 //        }
 
         // get the total size of the result set
-        $result = mysql_query("select found_rows()", $db);
-        list($rowcnt) = mysql_fetch_row($result);
+        if ($sql_calc_found_rows) {
+            $result = mysql_query("select found_rows()", $db);
+            [$rowcnt] = mysql_fetch_row($result);
+        } else if ($searchType === "game" && $where === "1") {
+            if ($logging_level) error_log("select count(*) from games");
+            $result = mysql_query("select count(*) from games", $db);
+            [$rowcnt] = mysql_fetch_row($result);
+        } else {
+            $rowcnt = length($rows);
+        }
 
     } else {
         $rows = array();
