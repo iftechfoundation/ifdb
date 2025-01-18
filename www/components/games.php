@@ -69,7 +69,7 @@ for ($idx = 0 ; $idx <= 5; $idx++)
             . "</i></b></a>, by "
             . htmlspecialcharx($g['author']);
 
-        if ($g['system']) echo " <div class=details>{$g['system']}</div>";
+        if ($g['devsys']) echo " <div class=details>{$g['devsys']}</div>";
 
         echo "</div>";
     }
