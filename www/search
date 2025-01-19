@@ -292,11 +292,16 @@ if ($pg == 'all') {
 
 // if we have a search term, find it
 if ($term || $browse) {
+    
+    // We want a count of all possible results, regardless of 
+    // limit clause, so we can display that number
+    $count_all_possible_rows = true;
 
     // run the search
     list($rows, $rowcnt, $sortList, $errMsg, $summaryDesc, $badges,
          $specials, $specialsUsed, $orderBy, $games_were_filtered) =
-        doSearch($db, $term, $searchType, $sortby, $limit, $browse, $override_game_filter);
+        doSearch($db, $term, $searchType, $sortby, $limit, $browse, 
+                 $count_all_possible_rows, $override_game_filter);
 
     // adjust our page limits to include the whole result set if desired
     if ($pgAll) {
