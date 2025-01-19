@@ -1150,19 +1150,16 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse, $count_all_
     }
 
     $sql_calc_found_rows = "sql_calc_found_rows";
-    if ($searchType === "game" && !$term) {
-        // `sql_calc_found_rows` forces the query to ignore the `limit` clause in order to count all possible results.
-        // But when browsing for all games, we can do a fast `count(*)` query instead
-        $sql_calc_found_rows = "";
-    }
-    if (!$count_all_possible_rows) {
-        // `sql_calc_found_rows` forces the query to ignore the `limit` clause 
-        // in order to count all possible results, which means a slower full
-        // table scan. If the total number of rows is not needed, we can skip
-        // `sql_calc_found_rows` to speed up the query.
-        $sql_calc_found_rows = "";
-    }
+    if (($searchType === "game" && !$term) || !$count_all_possible_rows) {
+        // `sql_calc_found_rows` forces the query to ignore the `limit` clause in order to
+        // count all possible results, which means a full table scan, which can be slow. 
+        // But if we're browsing all games, we can skip `sql_calc_found_rows` and do a fast 
+        // `count(*)` query instead. If we're searching but we don't need the number of 
+        // possible rows, we can skip the counting altogether.
 
+        $sql_calc_found_rows = "";
+    }
+   
 
     // build the SELECT statement
     $sql = "select $sql_calc_found_rows
