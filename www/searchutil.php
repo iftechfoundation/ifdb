@@ -1165,7 +1165,7 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse)
         if ($sql_calc_found_rows) {
             $result = mysql_query("select found_rows()", $db);
             [$rowcnt] = mysql_fetch_row($result);
-        } else if ($searchType === "game" && $where === "1") {
+        } else if ($searchType === "game" && !$term) {
             if ($logging_level) error_log("select count(*) from games");
             $result = mysql_query("select count(*) from games", $db);
             [$rowcnt] = mysql_fetch_row($result);
