@@ -1215,7 +1215,7 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse, $count_all_
             $result = mysql_query("select count(*) from games", $db);
             [$rowcnt] = mysql_fetch_row($result);
         } else {
-            $rowcnt = length($rows);
+            $rowcnt = count($rows);
         }
 
     } else {
