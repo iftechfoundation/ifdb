@@ -21,13 +21,14 @@ $sortby = "ratu";  // Sort the highly rated games to the top of the results.
 $maxpicks = 12;    // Get the first twelve results. (We want extras so we're not always displaying the same games.) 
 $limit = "limit 0, $maxpicks";
 $browse = 0;
+$count_all_possible_rows = false;
 $override_game_filter = 0;
 
 
 // run the search for highly-rated games
 list($recs, $rowcnt, $sortList, $errMsg, $summaryDesc, $badges,
     $specials, $specialsUsed, $orderBy, $games_were_filtered) =
-    doSearch($db, $term, $searchType, $sortby, $limit, $browse, $override_game_filter);
+    doSearch($db, $term, $searchType, $sortby, $limit, $browse, $count_all_possible_rows, $override_game_filter);
 
 
 // show some recommendations
