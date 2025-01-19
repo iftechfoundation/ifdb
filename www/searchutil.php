@@ -1113,7 +1113,7 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse)
     }
 
     $sql_calc_found_rows = "sql_calc_found_rows";
-    if ($searchType === "game" && $where === "1") {
+    if ($searchType === "game" && !$term) {
         // `sql_calc_found_rows` forces the query to ignore the `limit` clause in order to count all possible results.
         // But when browsing for all games, we can do a fast `count(*)` query instead
         $sql_calc_found_rows = "";
