@@ -1150,7 +1150,7 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse, $count_all_
     }
 
     $sql_calc_found_rows = "sql_calc_found_rows";
-    if ($searchType === "game" && $where === "1") {
+    if ($searchType === "game" && !$term) {
         // `sql_calc_found_rows` forces the query to ignore the `limit` clause in order to count all possible results.
         // But when browsing for all games, we can do a fast `count(*)` query instead
         $sql_calc_found_rows = "";
@@ -1210,7 +1210,7 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse, $count_all_
         if ($sql_calc_found_rows) {
             $result = mysql_query("select found_rows()", $db);
             [$rowcnt] = mysql_fetch_row($result);
-        } else if ($searchType === "game" && $where === "1") {
+        } else if ($searchType === "game" && !$term) {
             if ($logging_level) error_log("select count(*) from games");
             $result = mysql_query("select count(*) from games", $db);
             [$rowcnt] = mysql_fetch_row($result);
