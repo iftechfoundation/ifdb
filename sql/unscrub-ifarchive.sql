@@ -436,10 +436,7 @@ from (
                     1
                   )
                   and `ifdb`.`reviews`.`special` is null
-                )
-                left outer join `ifdb`.`users` on (
-                  `ifdb`.`reviews`.`userid` = `ifdb`.`users`.`id`
-                  and ifnull(`ifdb`.`users`.`Sandbox`, 0) = 0
+                  and `ifdb`.`reviews`.`userid` not in (select `ifdb`.`users`.`id` from `ifdb`.`users` where `ifdb`.`users`.`Sandbox` = 1)
                 )
               )
             group by `ifdb`.`reviews`.`rating`,
@@ -607,9 +604,6 @@ from (
                     1
                   )
                   and `ifdb`.`reviews`.`special` is null
-                )
-                left outer join `ifdb`.`users` on (
-                  `ifdb`.`reviews`.`userid` = `ifdb`.`users`.`id`
                 )
               )
             group by `ifdb`.`reviews`.`rating`,
