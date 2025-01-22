@@ -20,7 +20,7 @@ $searchType = "game";
 $sortby = "ratu";  // Sort the highly rated games to the top of the results.
 $maxpicks = 12;    // Get the first twelve results. (We want extras so we're not always displaying the same games.) 
 $limit = "limit 0, $maxpicks";
-$browse = 0;
+$browse = 1;
 $count_all_possible_rows = false;
 $override_game_filter = 0;
 
