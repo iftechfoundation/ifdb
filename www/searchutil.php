@@ -653,17 +653,9 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse, $count_all_
                 if (!$curuser) {
                     break;
                 }
-                // need to join the playedgames table to do this query
-                if (!isset($extraJoins[$col])) {
-                    $extraJoins[$col] = true;
-                    $tableList .= " left join playedgames as pg "
-                                    . "on games.id = pg.gameid "
-                                    . "and pg.userid = '$curuser'";
-                }
 
-                // we need yes=not-null/no=null game ids
-                $op = (preg_match("/^y.*/i", $txt) ? "is not" : "is");
-                $expr = "pg.gameid $op null";
+                $not = (preg_match("/^y.*/i", $txt) ? "" : "not");
+                $expr = "gameid $not in (select gameid from playedgames where userid = '$curuser')";
                 break;
 
             case 'willplay':
@@ -671,17 +663,9 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse, $count_all_
                 if (!$curuser) {
                     break;
                 }
-                // need to join the wishlists table to do this query
-                if (!isset($extraJoins[$col])) {
-                    $extraJoins[$col] = true;
-                    $tableList .= " left join wishlists as wl "
-                                  . "on games.id = wl.gameid "
-                                  . "and wl.userid = '$curuser'";
-                }
 
-                // we need yes=not-null/no=null game ids
-                $op = (preg_match("/^y.*/i", $txt) ? "is not" : "is");
-                $expr = "wl.gameid $op null";
+                $not = (preg_match("/^y.*/i", $txt) ? "" : "not");
+                $expr = "gameid $not in (select gameid from wishlists where userid = '$curuser')";
                 break;
 
             case 'wontplay':
@@ -689,36 +673,20 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse, $count_all_
                 if (!$curuser) {
                     break;
                 }
-                // need to join the unwishlists table to do this query
-                if (!isset($extraJoins[$col])) {
-                    $extraJoins[$col] = true;
-                    $tableList .= " left join unwishlists as ul "
-                                  . "on games.id = ul.gameid "
-                                  . "and ul.userid = '$curuser'";
-                }
 
-                // we need yes=not-null/no=null game ids
-                $op = (preg_match("/^y.*/i", $txt) ? "is not" : "is");
-                $expr = "ul.gameid $op null";
+                $not = (preg_match("/^y.*/i", $txt) ? "" : "not");
+                $expr = "gameid $not in (select gameid from unwishlists where userid = '$curuser')";
                 break;
+
 
             case 'reviewed':
                 // Only use this query when the user is logged in
                 if (!$curuser) {
                     break;
                 }
-                // need to join the reviews table to do this query
-                if (!isset($extraJoins[$col])) {
-                    $extraJoins[$col] = true;
-                    $tableList .= " left join reviews as reviewed "
-                                  . "on games.id = reviewed.gameid "
-                                  . "and reviewed.review is not null "
-                                  . "and reviewed.userid = '$curuser'";
-                }
 
-                // we need yes=not-null/no=null game ids
-                $op = (preg_match("/^y.*/i", $txt) ? "is not" : "is");
-                $expr = "reviewed.gameid $op null";
+                $not = (preg_match("/^y.*/i", $txt) ? "" : "not");
+                $expr = "gameid $not in (select gameid from reviews where review is not null and userid = '$curuser')";
                 break;
 
             case 'rated':
@@ -726,18 +694,9 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse, $count_all_
                 if (!$curuser) {
                     break;
                 }
-                // need to join the reviews table to do this query
-                if (!isset($extraJoins[$col])) {
-                    $extraJoins[$col] = true;
-                    $tableList .= " left join reviews as rated "
-                                  . "on games.id = rated.gameid "
-                                  . "and rated.rating is not null "
-                                  . "and rated.userid = '$curuser'";
-                }
 
-                // we need yes=not-null/no=null game ids
-                $op = (preg_match("/^y.*/i", $txt) ? "is not" : "is");
-                $expr = "rated.gameid $op null";
+                $not = (preg_match("/^y.*/i", $txt) ? "" : "not");
+                $expr = "gameid $not in (select gameid from reviews where rating is not null and userid = '$curuser')";
                 break;
 
             case 'author':
