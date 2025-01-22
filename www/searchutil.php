@@ -251,7 +251,7 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse, $count_all_
             "rating:" => array("avgRating", 1, true),
             "#reviews:" => array("numMemberReviews",1, true),
             "ratingdev:" => array("stdDevRating", 1, true),
-            "#ratings:" => array("numRatingsTotal", 1, true),
+            "#ratings:" => array("numRatingsInAvg", 1, true),
             "forgiveness:" => array("forgiveness", 0),
             "language:" => array("language", 99),
             "author:" => array("author", 99),
