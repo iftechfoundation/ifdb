@@ -57,7 +57,7 @@ function writeGamesFilteredAnnouncement($page, $sort_order, $search_term) {
 }
 
 
-function doSearch($db, $term, $searchType, $sortby, $limit, $browse, $override_game_filter = 0)
+function doSearch($db, $term, $searchType, $sortby, $limit, $browse, $count_all_possible_rows = false, $override_game_filter = 0)
 {
     // we need the current user for some types of queries
     checkPersistentLogin();
@@ -251,7 +251,7 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse, $override_g
             "rating:" => array("avgRating", 1, true),
             "#reviews:" => array("numMemberReviews",1, true),
             "ratingdev:" => array("stdDevRating", 1, true),
-            "#ratings:" => array("numRatingsTotal", 1, true),
+            "#ratings:" => array("numRatingsInAvg", 1, true),
             "forgiveness:" => array("forgiveness", 0),
             "language:" => array("language", 99),
             "author:" => array("author", 99),
@@ -280,6 +280,7 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse, $override_g
                        games.author as author,
                        games.desc as description,
                        games.tags as tags,
+                       games.created as createdate,
                        games.moddate as moddate,
                        games.system as devsys,
                        if (time(games.published) = '00:00:00',
@@ -689,17 +690,9 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse, $override_g
                 if (!$curuser) {
                     break;
                 }
-                // need to join the playedgames table to do this query
-                if (!isset($extraJoins[$col])) {
-                    $extraJoins[$col] = true;
-                    $tableList .= " left join playedgames as pg "
-                                    . "on games.id = pg.gameid "
-                                    . "and pg.userid = '$curuser'";
-                }
 
-                // we need yes=not-null/no=null game ids
-                $op = (preg_match("/^y.*/i", $txt) ? "is not" : "is");
-                $expr = "pg.gameid $op null";
+                $not = (preg_match("/^y.*/i", $txt) ? "" : "not");
+                $expr = "gameid $not in (select gameid from playedgames where userid = '$curuser')";
                 break;
 
             case 'willplay':
@@ -707,17 +700,9 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse, $override_g
                 if (!$curuser) {
                     break;
                 }
-                // need to join the wishlists table to do this query
-                if (!isset($extraJoins[$col])) {
-                    $extraJoins[$col] = true;
-                    $tableList .= " left join wishlists as wl "
-                                  . "on games.id = wl.gameid "
-                                  . "and wl.userid = '$curuser'";
-                }
 
-                // we need yes=not-null/no=null game ids
-                $op = (preg_match("/^y.*/i", $txt) ? "is not" : "is");
-                $expr = "wl.gameid $op null";
+                $not = (preg_match("/^y.*/i", $txt) ? "" : "not");
+                $expr = "gameid $not in (select gameid from wishlists where userid = '$curuser')";
                 break;
 
             case 'wontplay':
@@ -725,36 +710,20 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse, $override_g
                 if (!$curuser) {
                     break;
                 }
-                // need to join the unwishlists table to do this query
-                if (!isset($extraJoins[$col])) {
-                    $extraJoins[$col] = true;
-                    $tableList .= " left join unwishlists as ul "
-                                  . "on games.id = ul.gameid "
-                                  . "and ul.userid = '$curuser'";
-                }
 
-                // we need yes=not-null/no=null game ids
-                $op = (preg_match("/^y.*/i", $txt) ? "is not" : "is");
-                $expr = "ul.gameid $op null";
+                $not = (preg_match("/^y.*/i", $txt) ? "" : "not");
+                $expr = "gameid $not in (select gameid from unwishlists where userid = '$curuser')";
                 break;
+
 
             case 'reviewed':
                 // Only use this query when the user is logged in
                 if (!$curuser) {
                     break;
                 }
-                // need to join the reviews table to do this query
-                if (!isset($extraJoins[$col])) {
-                    $extraJoins[$col] = true;
-                    $tableList .= " left join reviews as reviewed "
-                                  . "on games.id = reviewed.gameid "
-                                  . "and reviewed.review is not null "
-                                  . "and reviewed.userid = '$curuser'";
-                }
 
-                // we need yes=not-null/no=null game ids
-                $op = (preg_match("/^y.*/i", $txt) ? "is not" : "is");
-                $expr = "reviewed.gameid $op null";
+                $not = (preg_match("/^y.*/i", $txt) ? "" : "not");
+                $expr = "gameid $not in (select gameid from reviews where review is not null and userid = '$curuser')";
                 break;
 
             case 'rated':
@@ -762,18 +731,9 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse, $override_g
                 if (!$curuser) {
                     break;
                 }
-                // need to join the reviews table to do this query
-                if (!isset($extraJoins[$col])) {
-                    $extraJoins[$col] = true;
-                    $tableList .= " left join reviews as rated "
-                                  . "on games.id = rated.gameid "
-                                  . "and rated.rating is not null "
-                                  . "and rated.userid = '$curuser'";
-                }
 
-                // we need yes=not-null/no=null game ids
-                $op = (preg_match("/^y.*/i", $txt) ? "is not" : "is");
-                $expr = "rated.gameid $op null";
+                $not = (preg_match("/^y.*/i", $txt) ? "" : "not");
+                $expr = "gameid $not in (select gameid from reviews where rating is not null and userid = '$curuser')";
                 break;
 
             case 'author':
@@ -1150,11 +1110,24 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse, $override_g
     }
 
     $sql_calc_found_rows = "sql_calc_found_rows";
-    if ($searchType === "game" && $where === "1") {
-        // `sql_calc_found_rows` forces the query to ignore the `limit` clause in order to count all possible results.
-        // But when browsing for all games, we can do a fast `count(*)` query instead
+
+    if (($searchType === "game" && !$term) || !$count_all_possible_rows) {
+        // `sql_calc_found_rows` forces the query to ignore the `limit` clause in order to
+        // count all possible results, which means a full table scan, which can be slow. 
+        // But if we're browsing all games, we can skip `sql_calc_found_rows` and do a fast 
+        // `count(*)` query instead. If we're searching but we don't need the number of 
+        // possible rows, we can skip the counting altogether.
+
         $sql_calc_found_rows = "";
     }
+    if (!$count_all_possible_rows) {
+        // `sql_calc_found_rows` forces the query to ignore the `limit` clause 
+        // in order to count all possible results, which means a slower full
+        // table scan. If the total number of rows is not needed, we can skip
+        // `sql_calc_found_rows` to speed up the query.
+        $sql_calc_found_rows = "";
+    }
+
 
     // build the SELECT statement
     $sql = "select $sql_calc_found_rows
@@ -1202,12 +1175,12 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse, $override_g
         if ($sql_calc_found_rows) {
             $result = mysql_query("select found_rows()", $db);
             [$rowcnt] = mysql_fetch_row($result);
-        } else if ($searchType === "game" && $where === "1") {
+        } else if ($searchType === "game" && !$term) {
             if ($logging_level) error_log("select count(*) from games");
             $result = mysql_query("select count(*) from games", $db);
             [$rowcnt] = mysql_fetch_row($result);
         } else {
-            $rowcnt = length($rows);
+            $rowcnt = count($rows);
         }
 
     } else {

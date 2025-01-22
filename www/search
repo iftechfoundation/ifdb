@@ -292,11 +292,16 @@ if ($pg == 'all') {
 
 // if we have a search term, find it
 if ($term || $browse) {
+    
+    // We want a count of all possible results, regardless of 
+    // limit clause, so we can display that number
+    $count_all_possible_rows = true;
 
     // run the search
     list($rows, $rowcnt, $sortList, $errMsg, $summaryDesc, $badges,
          $specials, $specialsUsed, $orderBy, $games_were_filtered) =
-        doSearch($db, $term, $searchType, $sortby, $limit, $browse, $override_game_filter);
+        doSearch($db, $term, $searchType, $sortby, $limit, $browse, 
+                 $count_all_possible_rows, $override_game_filter);
 
     // adjust our page limits to include the whole result set if desired
     if ($pgAll) {
@@ -1281,6 +1286,13 @@ else if ($term || $browse)
 
         $showFlagged = isset($_GET['showFlagged']) && $_GET['showFlagged'];
         if (!$showFlagged && $searchType == "game" && (!$browse || $pg != 1)) {
+            // This is for the "buried game" feature, where we restrict links to a game when we detect widespread voter manipulation ("brigading")
+            // These games are hidden by default in search results, with a warning banner, "Some results were hidden. Click here to see all results".
+
+            // Note that we don't show this warning banner on the first page of "Browse Games".
+            // The goal of the "bury game" feature is to silently not recommend games, but having the banner at the top of the first page
+            // of the "Browse Games" page draws too much attention to the banner and to buried games.
+
             for ($i = 0 ; $i < count($rows) ; $i++) {
                 $row = $rows[$i];
                 $flags = $row['flags'];
