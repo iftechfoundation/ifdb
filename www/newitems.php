@@ -247,7 +247,7 @@ function getNewItems($db, $limit, $itemTypes = NEWITEMS_ALLITEMS, $options = [],
              order by d desc, id desc
              $reviews_limit_clause", $db);
         $revcnt = mysql_num_rows($result);
-        if ($game_filter != "") {
+        if ($game_filter_was_applied) {
             for ($i = 0 ; $i < $revcnt ; $i++) {
                 $row = mysql_fetch_array($result, MYSQL_ASSOC);
                 // Only add the review to $items if it matches a gameid
