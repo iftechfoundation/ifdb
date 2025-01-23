@@ -934,22 +934,22 @@ captchaSupportScripts($captchaKey);
 <h2>5. Game Filtering</h2>
 
 <div class=indented>
-<p><span class=details>To limit what kinds of games appear on the 
-   <a href="/search" target="_blank">search page</a> and on the 
-   <a href="/search?browse" target="_blank">browse page</a>, you can 
-   create a filter using IFDB's 
-   <a href="/search" target="_blank">search prefixes</a>. 
-   For instance, to hide games in a certain language, games in a 
+<p><span class=details>To see certain kinds of games less often, 
+   you can create a filter using IFDB's 
+   <a href="/search" target="_blank">search prefixes</a>. For 
+   instance, to hide games in a certain language, games in a 
    certain genre, and games with a certain tag, you can type
    <br><b>-language:example -genre:example -tag:example</b><br>
-   (replacing "example" with the name of the language, genre, or tag). 
-   While you are logged in, your saved filter will automatically be 
-   be added to the end of your search terms when you search for games.
-   The filter will also be applied when you browse games on the browse 
-   page. At the bottom of the page of results, there will be an option 
-   to search again without the filter. (Note: Game information on IFDB 
-   is incomplete and can have mistakes. A filter is not a reliable way 
-   to make sure that games are kid-friendly.)
+   (replacing "example" with the name of the language, genre, or 
+   tag).</span></p>
+<p><span class=details>While you are logged in, your saved filter 
+   will be applied on certain pages: the home page, the browse page, 
+   and the search page (where the filter will automatically be added 
+   to your search terms). The search and browse pages will have 
+   an option to temporarily turn off the filter.</span></p>
+<p><span class=details>Game information on IFDB is incomplete 
+   and can have mistakes, so a filter is not a reliable 
+   way to make sure that games are kid-friendly.
 </span>
 <p><label for='game_filter'>Game filter:</label>
 <input type='text' name='game_filter' id='game_filter' maxlength=150 size=40 value="<?php echo htmlspecialcharx($game_filter) ?>"></span>
