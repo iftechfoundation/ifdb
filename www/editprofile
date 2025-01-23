@@ -939,14 +939,14 @@ captchaSupportScripts($captchaKey);
    <a href="/search" target="_blank">search prefixes</a>. For 
    instance, to hide games in a certain language, games in a 
    certain genre, and games with a certain tag, you can type
-   <br><b>-language:example -genre:example -tag:example</b><br>
+   <br><br><b>-language:example -genre:example -tag:example</b><br><br>
    (replacing "example" with the name of the language, genre, or 
-   tag).</span></p>
-<p><span class=details>While you are logged in, your saved filter 
-   will be applied on certain pages: the home page, the browse page, 
-   and the search page (where the filter will automatically be added 
-   to your search terms). The search and browse pages will have 
-   an option to temporarily turn off the filter.</span></p>
+   tag). While you are logged in, your saved filter 
+   will be used to hide games, but only on certain pages: the home page, 
+   the "New Reviews on IFDB" page, and the search/browse page 
+   (where the filter will automatically be added to the end of your 
+   search terms). The "New Reviews on IFDB" page and the search/browse 
+   page will show an option to temporarily turn off the filter.</span></p>
 <p><span class=details>Game information on IFDB is incomplete 
    and can have mistakes, so a filter is not a reliable 
    way to make sure that games are kid-friendly.
