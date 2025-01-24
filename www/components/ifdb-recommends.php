@@ -38,9 +38,8 @@ if (count($recs) >= 2) {
     usort($recs, "sortBySortorder");
 
     // start the section
-    echo "<div class='headline' id='ifdb-recommends'><h1 class='unset'>IFDB Recommends</h1>"
-      . "<span class='headlineRss'><a href='/search?searchbar=played%3Ano+willplay%3Ano+wontplay%3Ano+reviewed%3Ano+rated%3Ano'>More recommendations</a></span>"
-      . "</div><div>";
+    echo "<div class='headline' id='ifdb-recommends'><h1 class='unset'>IFDB Recommends</h1></div>";
+    echo "<div>";
     global $nonce;
     echo "<style nonce='$nonce'>\n"
         . ".ifdb-recommends__artLink { margin-right: 1em; }\n"
@@ -78,10 +77,19 @@ if (count($recs) >= 2) {
             echo "</td></tr></table>";
     }
 
+    echo "<p><span class=details>";
+    // Link to more game recommendations. If the user is
+    // logged in, exclude games the user already knows about.
+    if ($loggedIn) {
+        echo "<a href='/search?searchbar=played%3Ano+willplay%3Ano+wontplay%3Ano+reviewed%3Ano+rated%3Ano&sortby=ratu'>";
+    } else {
+        echo "<a href='/search?browse=1&sortby=ratu'>";
+    }
+    echo "More recommendations</a> | ";
+    
     // explain the source
-    echo "<p><span class=details><i>";
     echo helpWinLink("help-crossrec", "Why did IFDB recommend these?");
-    echo "</i></span></div>";
+    echo "</span></div>";
 }
 // ---------------------------- end IFDB Recommends ------------------------
          ?>
