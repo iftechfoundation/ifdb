@@ -293,13 +293,11 @@ function generateTUID($db, $tableCol, $maxtries)
     // try up to $maxtries times
     for ($tries = 0, $result = 1 ; $result && $tries < $maxtries ; $tries++)
     {
+        $tuid = "";
         // generate a random ID
-        $tuid = base_convert(strval(rand(0, 46655)), 10, 36)
-                . base_convert(strval(rand(0, 46655)), 10, 36)
-                . base_convert(strval(rand(0, 46655)), 10, 36)
-                . base_convert(strval(rand(0, 46655)), 10, 36)
-                . base_convert(strval(rand(0, 46655)), 10, 36)
-                . base_convert(strval(rand(0, 35)), 10, 36);
+        for ($i = 0; $i < 16; $i++) {
+            $tuid .= base_convert(strval(rand(0, 35)), 10, 36);
+        }
 
         if (!$tableCol)
             return $tuid;

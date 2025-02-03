@@ -130,3 +130,10 @@ UPDATE filetypes
 SET `desc` = 'an <a href="https://www.ifwiki.org/ADRIFT_interpreters">ADRIFT version 5 interpreter</a>'
 WHERE fmtname = 'ADRIFT 5/Blorb';
 
+CREATE TRIGGER games_insert
+AFTER INSERT ON games FOR EACH ROW
+call refresh_gameRatingsSandbox0_mv(NEW.id);
+
+CREATE TRIGGER games_delete
+AFTER DELETE ON games FOR EACH ROW
+call refresh_gameRatingsSandbox0_mv(OLD.id);
