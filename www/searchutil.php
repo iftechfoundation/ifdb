@@ -259,6 +259,7 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse, $count_all_
                        games.author as author,
                        games.desc as description,
                        games.tags as tags,
+                       games.created as createdate,
                        games.moddate as moddate,
                        games.system as devsys,
                        if (time(games.published) = '00:00:00',
