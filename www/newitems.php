@@ -171,47 +171,17 @@ function getNewItems($db, $limit, $itemTypes = NEWITEMS_ALLITEMS, $options = [],
 
     if ($itemTypes & NEWITEMS_REVIEWS) {
         $reviews_limit = $options['reviews_limit'] ?? $limit;
-        $reviews_limit_clause = "";
-        // deal with custom game filters
-        $game_filter = "";
-        $gameids_after_filtering = [];
-        if ($curuser && $override_game_filter != 1) {
-            $result = mysqli_execute_query($db, "select game_filter from users where id = ?", [$curuser]);
-            if (!$result) throw new Exception("Error: " . mysqli_error($db));
-            [$game_filter] = mysql_fetch_row($result);
-            if ($game_filter != "") {
-                // If we'll need only a small number of reviews (to show 
-                // on the home page, for example, vs. the allnew page), 
-                // find games that have been reviewed in the past 365 days.
-                // (This condition is to avoid a slow full table scan.) 
-                // Sort the most recently reviewed games to the top,
-                // and fetch the correct number of games (at most, we'll 
-                // need the same number of games as the number of reviews 
-                // we're ultimately looking for). The custom game filter 
-                // gets applied in doSearch.
-                $term = "";
-                if ($reviews_limit < 20) {
-                    $term = "lastreview:365d-";
-                }                
-                $searchType = "game";
-                $sortby = "recently_reviewed";
-                $games_limit_clause = "limit $reviews_limit";
-                $browse = 0;
-                list($game_rows_after_filtering, $rowcnt, $sortList, $errMsg, $summaryDesc, $badges, $specials, $specialsUsed, $orderBy) =
-                    doSearch($db, $term, $searchType, $sortby, $games_limit_clause, $browse);
-                // Note the gameids of games that we might want to display reviews for
-                foreach ($game_rows_after_filtering as $game_row) {
-                    $gameids_after_filtering[] = $game_row['id'];
-                }
-                $game_filter_was_applied = 1;
-            }
+        $term = "";
+        $searchType = "game";
+        $sortby = "recently_reviewed";
+        $games_limit_clause = "limit $reviews_limit";
+        $browse = 0;
+        [$game_rows_after_filtering] = doSearch($db, $term, $searchType, $sortby, $games_limit_clause, $browse);
+        // Note the gameids of games that we might want to display reviews for
+        foreach ($game_rows_after_filtering as $game_row) {
+            $gameids_after_filtering[] = "'" . $game_row['id'] . "'";
         }
-        if (!$game_filter_was_applied) {
-            // We're not applying a game filter, so we don't need extra reviews. 
-            // (We only need extras if some of them might get filtered out.)
-            // We can limit results to the exact number we want to display.
-            $reviews_limit_clause = "limit $reviews_limit";
-        }
+        $reviews_limit_clause = "limit $reviews_limit";
         // prepare to query reviews
         if ($days) $dayWhere = "greatest(reviews.createdate, ifnull(reviews.embargodate, '0000-00-00')) > date_sub(now(), interval $days day)";
         // query the recent reviews (minus mutes)
@@ -232,12 +202,11 @@ function getNewItems($db, $limit, $itemTypes = NEWITEMS_ALLITEMS, $options = [],
                games.flags
              from
                reviews
-               join games
-               join users
+               join games on games.id = reviews.gameid
+               join users on users.id = reviews.userid
                left outer join specialreviewers on specialreviewers.id = special
              where
-               games.id = reviews.gameid
-               and users.id = reviews.userid
+               gameid in (".join(",", $gameids_after_filtering).")
                and reviews.review is not null
                and ifnull(now() >= reviews.embargodate, 1)
                and ifnull(specialreviewers.code, '') <> 'external'
@@ -247,23 +216,9 @@ function getNewItems($db, $limit, $itemTypes = NEWITEMS_ALLITEMS, $options = [],
              order by d desc, id desc
              $reviews_limit_clause", $db);
         $revcnt = mysql_num_rows($result);
-        if ($game_filter_was_applied) {
-            for ($i = 0 ; $i < $revcnt ; $i++) {
-                $row = mysql_fetch_array($result, MYSQL_ASSOC);
-                // Only add the review to $items if it matches a gameid
-                // in $gameids_after_filtering
-                if (in_array($row['gameid'], $gameids_after_filtering)) {    
-                    $items[] = array('R', $row['d'], $row);
-                    if ( count($items) == $reviews_limit ) {
-                        break;
-                    }
-                }
-            }
-        } else {
-            for ($i = 0 ; $i < $revcnt ; $i++) {
-                $row = mysql_fetch_array($result, MYSQL_ASSOC);     
-                $items[] = array('R', $row['d'], $row);
-            }
+        for ($i = 0 ; $i < $revcnt ; $i++) {
+            $row = mysql_fetch_array($result, MYSQL_ASSOC);
+            $items[] = array('R', $row['d'], $row);
         }
     }
 
