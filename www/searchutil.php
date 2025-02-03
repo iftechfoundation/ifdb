@@ -1111,7 +1111,7 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse, $count_all_
     $bindParameters = array_merge($tagsToMatch, $tagsToNegate);
 
     // run the query
-    $result = mysqli_execute_query($db, $sql, $bindParameters);
+    $result = mysql_execute_query($db, $sql, $bindParameters);
     if (!$result) error_log(mysql_error($db));
 //    echo "<p>$sql<p>" . mysql_error($db) . "<p>";  // DIAGNOSTICS
 

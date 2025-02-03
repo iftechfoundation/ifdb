@@ -97,6 +97,26 @@ function mysql_query($query, $db) {
         return $result;
     }
 }
+function mysql_execute_query($db, $query, $params = null) {
+    $logging_level = 0;
+    if ($logging_level == 0) {
+        return mysqli_execute_query($db, $query, $params);
+    } else if ($logging_level == 1) {
+        $result = mysqli_execute_query($db, $query, $params);
+        if (!$result) {
+            error_log($_SERVER['REQUEST_URI']. " " . $query);
+            error_log($_SERVER['REQUEST_URI']. " " . mysql_error($db));
+        }
+        return $result;
+    } else {
+        global $query_i;
+        $start = microtime(true);
+        $result = mysqli_execute_query($db, $query, $params);
+        $elapsed = microtime(true) - $start;
+        error_log($_SERVER['REQUEST_URI']. " " . $query_i++ . " ($elapsed): " . $query . "\n\n[".json_encode($params)."]");
+        return $result;
+    }
+}
 function mysql_num_rows($result) { return $result ? mysqli_num_rows($result) : 0; }
 function mysql_fetch_array($result, $match_type = MYSQLI_BOTH) { return mysqli_fetch_array($result, $match_type); }
 function mysql_fetch_row($result) { return mysqli_fetch_row($result); }
