@@ -308,15 +308,8 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse, $count_all_
         $baseWhere = "";
         $groupBy = "";
         $baseOrderBy = "";
-        if ($browse && ($sortby == "" || $sortby == "ratu" || $sortby == "ratd" || $sortby == "rcu")) {
-            // when sorting by highest/lowest/most ratings, we can optimize by
-            // fetching the top N from the gameRatingsView
-            $tableList = "games
-                          join ".getGameRatingsView($db)." on games.id = gameid";
-        } else {
-            $tableList = "games
-                          left join ".getGameRatingsView($db)." on games.id = gameid";
-        }
+        $tableList = "games
+                      join ".getGameRatingsView($db)." on games.id = gameid";
         $matchCols = "title, author, `desc`, tags";
         $likeCol = "title";
         $summaryDesc = "Games";
