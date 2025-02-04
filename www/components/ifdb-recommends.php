@@ -39,9 +39,8 @@ if (count($recs) >= 2) {
     usort($recs, "sortBySortorder");
 
     // start the section
-    echo "<div class='headline' id='ifdb-recommends'><h1 class='unset'>IFDB Recommends</h1>"
-      . "<span class='headlineRss'><a href='/search?searchbar=played%3Ano+willplay%3Ano+wontplay%3Ano+reviewed%3Ano+rated%3Ano'>More recommendations</a></span>"
-      . "</div><div>";
+    echo "<div class='headline' id='ifdb-recommends'><h1 class='unset'>IFDB Recommends</h1></div>";
+    echo "<div>";
     global $nonce;
     echo "<style nonce='$nonce'>\n"
         . ".ifdb-recommends__artLink { margin-right: 1em; }\n"
@@ -78,11 +77,11 @@ if (count($recs) >= 2) {
         if ($hasart)
             echo "</td></tr></table>";
     }
-
-    // explain the source
-    echo "<p><span class=details><i>";
+    // link to more recommendations and explain the source
+    echo "<p><span class=details>";
+    echo "<a href='/search?searchbar=played%3Ano+willplay%3Ano+wontplay%3Ano+reviewed%3Ano+rated%3Ano&sortby=ratu'>More recommendations</a> | ";
     echo helpWinLink("help-crossrec", "Why did IFDB recommend these?");
-    echo "</i></span></div>";
+    echo "</span></div>";
 }
 // ---------------------------- end IFDB Recommends ------------------------
          ?>
