@@ -176,7 +176,9 @@ function getNewItems($db, $limit, $itemTypes = NEWITEMS_ALLITEMS, $options = [],
         $sortby = "recently_reviewed";
         $games_limit_clause = "limit $reviews_limit";
         $browse = 0;
-        [$game_rows_after_filtering] = doSearch($db, $term, $searchType, $sortby, $games_limit_clause, $browse);
+        list($game_rows_after_filtering, $rowcnt, $sortList, $errMsg, $summaryDesc, 
+            $badges, $specials, $specialsUsed, $orderBy, $game_filter_was_applied) 
+            = doSearch($db, $term, $searchType, $sortby, $games_limit_clause, $browse);
         // Note the gameids of games that we might want to display reviews for
         foreach ($game_rows_after_filtering as $game_row) {
             $gameids_after_filtering[] = "'" . $game_row['id'] . "'";
