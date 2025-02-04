@@ -176,6 +176,8 @@ function getNewItems($db, $limit, $itemTypes = NEWITEMS_ALLITEMS, $options = [],
         $sortby = "recently_reviewed";
         $games_limit_clause = "limit $reviews_limit";
         $browse = 0;
+        // If the user has a custom game filter and has not overridden it, that 
+        // filter will automatically be applied within the doSearch function.
         list($game_rows_after_filtering, $rowcnt, $sortList, $errMsg, $summaryDesc, 
             $badges, $specials, $specialsUsed, $orderBy, $game_filter_was_applied) 
             = doSearch($db, $term, $searchType, $sortby, $games_limit_clause, $browse);
