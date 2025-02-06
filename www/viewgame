@@ -1124,7 +1124,7 @@ echo helpWinLink("help-ifid", "IFID");
 ?>
 <div id='viewgame-body'>
 <?php
-    // ------------------------ DOWNLOADS -------------------------------
+    // ------------------------ EXTERNAL LINKS -------------------------------
     if ($detailView || $historyView || $downloadsView) {
 
     if ($downloadsView) {
@@ -1140,15 +1140,19 @@ echo helpWinLink("help-ifid", "IFID");
         <?php include "viewgame-components/external-links.php"?>
 
    <?php
-   // ------------ end of the download table -----------------
+   // ------------ end of the external links table -----------------
+
+   //---------------"HAVE YOU PLAYED THIS GAME?" SIDEBAR -----------
    if (!$downloadsView) {
    ?>
-   
+
         <?php include "viewgame-components/have-you-played.php"?>
 
 </div>
 <?php
     } // if (!$downloadsView)
+
+    //-----------end of the "Have you played this game?" sidebar ----------
 
     } // if ($detailView || $historyView)
 
@@ -2102,18 +2106,21 @@ if ($embargoCnt > 0)
 
         // --------------- end News section ----------------
 
-    //--------------------------- TAGS SECTION -----------------------------
+        //--------------------------- TAGS SECTION -----------------------------
 
         include "viewgame-components/tags.php";
 
+        //------------------------- end of the tags section-------------------------------
+
     } // if ($detailView)
 
+    //---------------------------GAME DETAILS SECTION-----------------------
     // show the Game Details if we're in Detail or History view modes
+
     if ($detailView || $historyView) {
         include "viewgame-components/game-details.php";
 
-
-    // ---------- end Game Detail section ------------
+    // ---------------- end Game Details section ------------
 
     } // if ($detailView)
 
