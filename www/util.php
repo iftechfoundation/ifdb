@@ -2836,9 +2836,11 @@ function collapsedAuthors($authors) {
     return $str;
 }
 
-
+// ----------------------------------------------------------------------------
+//
 // Convert total minutes of play time into hours and minutes,
 // and then into text for display
+//
 function convertTimeToText($total_minutes) {
     // Convert total minutes of play time into hours and minutes
  	$h = floor($total_minutes/60);   
@@ -2846,7 +2848,7 @@ function convertTimeToText($total_minutes) {
     // Make a string to display the time
     $text="";
     if ($h >= 1) {
-        $text = $h . " ";
+        $text = "$h ";
         if ($h == 1) {
             $text .= "hour";
         } else {
@@ -2857,11 +2859,11 @@ function convertTimeToText($total_minutes) {
         }
     }
     if ($m >= 1) {
-        $text .= $m . " ";
+        $text .= "$m ";
         if ($m == 1) {
-            $text .= " minute";
+            $text .= "minute";
         } else {
-            $text .= " minutes";
+            $text .= "minutes";
         }
     }
     return $text;
