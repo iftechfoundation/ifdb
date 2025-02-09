@@ -320,3 +320,4 @@ prepareTimeControls();
          </td>
       </tr>
    </table>
+</div>

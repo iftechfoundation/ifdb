@@ -902,7 +902,6 @@ echo helpWinLink("help-ifid", "IFID");
 
         <?php include "viewgame-components/have-you-played.php"?>
 
-</div>
 <?php
     } // if (!$downloadsView)
 
