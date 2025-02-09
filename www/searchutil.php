@@ -656,7 +656,7 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse, $count_all_
                 }
 
                 $not = (preg_match("/^y.*/i", $txt) ? "" : "not");
-                $expr = "gameid $not in (select gameid from playedgames where userid = '$curuser')";
+                $expr = "games.id $not in (select gameid from playedgames where userid = '$curuser')";
                 break;
 
             case 'willplay':
@@ -666,7 +666,7 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse, $count_all_
                 }
 
                 $not = (preg_match("/^y.*/i", $txt) ? "" : "not");
-                $expr = "gameid $not in (select gameid from wishlists where userid = '$curuser')";
+                $expr = "games.id $not in (select gameid from wishlists where userid = '$curuser')";
                 break;
 
             case 'wontplay':
@@ -676,7 +676,7 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse, $count_all_
                 }
 
                 $not = (preg_match("/^y.*/i", $txt) ? "" : "not");
-                $expr = "gameid $not in (select gameid from unwishlists where userid = '$curuser')";
+                $expr = "games.id $not in (select gameid from unwishlists where userid = '$curuser')";
                 break;
 
 
@@ -687,7 +687,7 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse, $count_all_
                 }
 
                 $not = (preg_match("/^y.*/i", $txt) ? "" : "not");
-                $expr = "gameid $not in (select gameid from reviews where review is not null and userid = '$curuser')";
+                $expr = "games.id $not in (select gameid from reviews where review is not null and userid = '$curuser')";
                 break;
 
             case 'rated':
@@ -697,7 +697,7 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse, $count_all_
                 }
 
                 $not = (preg_match("/^y.*/i", $txt) ? "" : "not");
-                $expr = "gameid $not in (select gameid from reviews where rating is not null and userid = '$curuser')";
+                $expr = "games.id $not in (select gameid from reviews where rating is not null and userid = '$curuser')";
                 break;
 
             case 'author':
