@@ -58,6 +58,7 @@ if ($api_mode && !isset($_SESSION['logged_in_as']) && isset($_SERVER['PHP_AUTH_U
 $term = get_req_data('searchfor');
 $bTerm = get_req_data('searchbar');
 $extraLink = get_req_data('xlink');
+$override_game_filter = get_req_data('nogamefilter');
 
 if ($term == "" && $bTerm != "")
     $term = $bTerm;
@@ -298,9 +299,9 @@ if ($term || $browse) {
 
     // run the search
     list($rows, $rowcnt, $sortList, $errMsg, $summaryDesc, $badges,
-         $specials, $specialsUsed, $orderBy) =
+         $specials, $specialsUsed, $orderBy, $games_were_filtered) =
         doSearch($db, $term, $searchType, $sortby, $limit, $browse, 
-                 $count_all_possible_rows);
+                 $count_all_possible_rows, $override_game_filter);
 
     // adjust our page limits to include the whole result set if desired
     if ($pgAll) {
@@ -309,7 +310,7 @@ if ($term || $browse) {
     }
 
     // if there's exactly one row, jump directly to the result page
-    if ($rowcnt == 1 && !$browse && !$api_mode) {
+    if ($rowcnt == 1 && !$browse && !$api_mode && !$games_were_filtered) {
         $redir = false;
         switch ($searchType) {
         case "game":
@@ -1003,7 +1004,7 @@ if ($api_mode) {
                 $item['coverArtLink'] =
                     get_root_url() . "coverart?id=$id&version={$row['pagevsn']}";
             }
-            if (isset($row['rounded_median_time_in_minutes'])) {
+            if ($row['rounded_median_time_in_minutes']) {
                 $item['playTimeInMinutes'] = $row['rounded_median_time_in_minutes'];
             }
 
@@ -1126,7 +1127,8 @@ else if ($term || $browse)
                                  . ($searchType == "poll" ? "&poll" : "")
                                  . ($searchType == "member" ? "&member" : "")
                                  . ($searchType == "comp" ? "&comp" : "")
-                                 . ($searchType == "tag" ? "&tag" : ""),
+                                 . ($searchType == "tag" ? "&tag" : "")
+                                 . ($override_game_filter ? "&nogamefilter=1" : ""),                                 
                                  $pg, $lastPage, $firstOnPage, $lastOnPage,
                                  $rowcnt, true,
                                  $rowcnt < $showAllMaxRows, $pgAll)
@@ -1137,6 +1139,17 @@ else if ($term || $browse)
     if ($rowcnt == 0) {
 
         echo "<i>No results were found.</i>";
+
+        if ($games_were_filtered) {
+            $page = "";
+            if ($browse) {
+                $page = "browse_games";
+            } else {
+                $page = "search_games";
+            }
+            $games_filtered_announcement = writeGamesFilteredAnnouncement($page, $sortby, $term);
+            echo '<p><i>' . $games_filtered_announcement . '</i></p>';
+        }
 
         if ($searchType == "game") {
             echo "<div class=inlinetip>"
@@ -1569,6 +1582,18 @@ else if ($term || $browse)
         // add the page controls again at the bottom, if applicable
         if ($pg != 1 || $rowcnt > $perPage)
             echo "<div class='search__pageCtl'>$pageCtl</div>";
+
+        // Announce that the game results are filtered, if applicable
+        if ($games_were_filtered) {
+            $page = "";
+            if ($browse) {
+                $page = "browse_games";
+            } else {
+                $page = "search_games";
+            }
+            $games_filtered_announcement = writeGamesFilteredAnnouncement($page, $sortby, $term);
+            echo '<p class="details">' . $games_filtered_announcement . '</p>';
+        }
     }
 
 

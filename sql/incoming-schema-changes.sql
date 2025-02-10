@@ -9,6 +9,16 @@ alter table reviewvotes
 ;
 
 
+-- Add column for game search filter to the users table
+
+ALTER TABLE `users` ADD COLUMN `game_filter` VARCHAR(150) DEFAULT '';
+
+
+
+
+
+
+
 
 UPDATE filetypes
 SET `desc` = 'a <a href="https://www.ifwiki.org/Hugo_interpreters">Hugo interpreter</a>'
