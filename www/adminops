@@ -133,7 +133,7 @@ if (isset($_REQUEST['recentactivity'])) {
 
     // Display recent ratings and reviews    
     echo "<h2 id='recent-ratings'>Recent ratings and reviews:</h2>";
-    if ($result) {
+    if (mysqli_num_rows($result)) {
         $rows = mysqli_fetch_all($result, MYSQLI_ASSOC);
         $date_heading = "";
         foreach ($rows as $r) {
@@ -184,7 +184,7 @@ if (isset($_REQUEST['recentactivity'])) {
     // Find recent review helpfulness votes
     $result = mysqli_execute_query($db, 
     'SELECT reviewvotes.createdate AS votedatetime,
-        DATE_FORMAT(reviewvotes.create, "%M %e, %Y") AS votedate,
+        DATE_FORMAT(reviewvotes.createdate, "%M %e, %Y") AS votedate,
         reviewvotes.userid as voterid,
         reviewvotes.vote,
         reviewvotes.reviewid,
@@ -197,12 +197,12 @@ if (isset($_REQUEST['recentactivity'])) {
     LEFT JOIN users
         ON reviews.userid = users.id
     WHERE (reviewvotes.createdate) > DATE_SUB(NOW(), INTERVAL ? DAY)
-    ORDER BY reviewvotes.createdate DESC', [$recent_days]);
+    ORDER BY reviewvotes.createdate DESC LIMIT 100', [$recent_days]);
 
 
     // Display recent review helpfulness votes    
     echo '<h2 id="recent-review-votes">Recent votes on review helpfulness:</h2>';
-    if ($result) {
+    if (mysqli_num_rows($result)) {
         $rows = mysqli_fetch_all($result, MYSQLI_ASSOC);
         $date_heading = "";
         foreach ($rows as $r) {
@@ -221,7 +221,7 @@ if (isset($_REQUEST['recentactivity'])) {
                 echo "<ul>";
             }
             echo "<li>User <a href='/showuser?id={$voter_id}'>$voter_id</a> ";
-            echo 'voted "$vote" on a ';
+            echo 'voted "' . $vote . '" on a ';
             echo "<a href='/viewgame?id={$game_id}&review={$review_id}'>review</a> ";
             echo "by $reviewer_name.</li><br>";
         }
@@ -252,7 +252,7 @@ if (isset($_REQUEST['recentactivity'])) {
 
     // Display recent page edits
     echo "<h2 id='recent-edits'>Recent page edits:</h2>";
-    if ($result) {
+    if (mysqli_num_rows($result)) {
         $rows = mysqli_fetch_all($result, MYSQLI_ASSOC);
         $date_heading = "";
         foreach ($rows as $r) {
@@ -302,7 +302,7 @@ if (isset($_REQUEST['recentactivity'])) {
 
     // Display recent tagging activity
     echo "<h2 id='recent-tags'>Recent tags:</h2>";
-    if ($result) {
+    if (mysqli_num_rows($result)) {
         $rows = mysqli_fetch_all($result, MYSQLI_ASSOC);
         $date_heading = "";
         foreach ($rows as $r) {
@@ -359,7 +359,7 @@ if (isset($_REQUEST['recentactivity'])) {
 
     // Display recent poll votes
     echo "<h2 id='recent-poll-votes'>Recent poll votes:</h2>";
-    if ($result) {
+    if (mysqli_num_rows($result)) {
         $rows = mysqli_fetch_all($result, MYSQLI_ASSOC);
         $date_heading = "";
         foreach ($rows as $r) {
