@@ -133,7 +133,7 @@ if (isset($_REQUEST['recentactivity'])) {
 
     // Display recent ratings and reviews    
     echo "<h2 id='recent-ratings'>Recent ratings and reviews:</h2>";
-    if (mysqli_num_rows($result)) {
+    if (mysqli_num_rows($result) > 0) {
         $rows = mysqli_fetch_all($result, MYSQLI_ASSOC);
         $date_heading = "";
         foreach ($rows as $r) {
@@ -157,6 +157,10 @@ if (isset($_REQUEST['recentactivity'])) {
             $game_id = $r['gameid'];
             $game_title = shortenString($r['gametitle']);
             $game_author = shortenString($r['gameauthor']);
+
+            // If the current rating/review has a different 
+            // date than the last rating/review we printed, 
+            // display a heading showing the new date 
             if ($review_date != $date_heading) {
                 if ($date_heading != "") {
                     echo "</ul>";
@@ -165,6 +169,7 @@ if (isset($_REQUEST['recentactivity'])) {
                 echo "<h3>$date_heading</h3>";
                 echo "<ul>";
             }
+            // Print a little report about this rating/review
             echo "<li><a href='/showuser?id=$reviewer_id'>$reviewer_name</a> ";
             if ($action == "added") {
                 echo "added ";
@@ -202,7 +207,7 @@ if (isset($_REQUEST['recentactivity'])) {
 
     // Display recent review helpfulness votes    
     echo '<h2 id="recent-review-votes">Recent votes on review helpfulness:</h2>';
-    if (mysqli_num_rows($result)) {
+    if (mysqli_num_rows($result) > 0) {
         $rows = mysqli_fetch_all($result, MYSQLI_ASSOC);
         $date_heading = "";
         foreach ($rows as $r) {
@@ -212,6 +217,10 @@ if (isset($_REQUEST['recentactivity'])) {
             $review_id = $r['reviewid'];
             $reviewer_id = $r['reviewerid'];
             $reviewer_name = shortenString($r['reviewername']);
+            
+            // If the current vote has a different 
+            // date than the last vote we printed, 
+            // display a heading showing the new date
             if ($vote_date != $date_heading) {
                 if ($date_heading != "") {
                     echo "</ul>";
@@ -220,6 +229,7 @@ if (isset($_REQUEST['recentactivity'])) {
                 echo "<h3>$date_heading</h3>";
                 echo "<ul>";
             }
+            // Print a little report about this review vote
             echo "<li>User <a href='/showuser?id={$voter_id}'>$voter_id</a> ";
             echo 'voted "' . $vote . '" on a ';
             echo "<a href='/viewgame?id={$game_id}&review={$review_id}'>review</a> ";
@@ -252,7 +262,7 @@ if (isset($_REQUEST['recentactivity'])) {
 
     // Display recent page edits
     echo "<h2 id='recent-edits'>Recent page edits:</h2>";
-    if (mysqli_num_rows($result)) {
+    if (mysqli_num_rows($result) > 0) {
         $rows = mysqli_fetch_all($result, MYSQLI_ASSOC);
         $date_heading = "";
         foreach ($rows as $r) {
@@ -263,6 +273,9 @@ if (isset($_REQUEST['recentactivity'])) {
             $game_title = shortenString($r['gametitle']);
             $game_author = shortenString($r['gameauthor']);
 
+            // If this page edit has a different date
+            // than the last page edit we printed, 
+            // display a heading showing the new date
             if ($edit_date != $date_heading) {
                 if ($date_heading != "") {
                     echo "</ul>";
@@ -271,6 +284,7 @@ if (isset($_REQUEST['recentactivity'])) {
                 echo "<h3>$date_heading</h3>";
                 echo "<ul>";
             }
+            // Print a little report about this page edit
             echo "<li><a href='/showuser?id=$editor_id'>$editor_name</a> ";
             echo "edited the page for ";
             echo "<i><a href='/viewgame?id={$game_id}'>$game_title</a></i> ";
@@ -302,7 +316,7 @@ if (isset($_REQUEST['recentactivity'])) {
 
     // Display recent tagging activity
     echo "<h2 id='recent-tags'>Recent tags:</h2>";
-    if (mysqli_num_rows($result)) {
+    if (mysqli_num_rows($result) > 0) {
         $rows = mysqli_fetch_all($result, MYSQLI_ASSOC);
         $date_heading = "";
         foreach ($rows as $r) {
@@ -313,6 +327,9 @@ if (isset($_REQUEST['recentactivity'])) {
             $game_title = shortenString($r['gametitle']);
             $game_author = shortenString($r['gameauthor']);
 
+            // If this tagging action has a different date
+            // than the last tagging action we printed, 
+            // display a heading showing the new date
             if ($tag_date != $date_heading) {
                 if ($date_heading != "") {
                     echo "</ul>";
@@ -321,6 +338,7 @@ if (isset($_REQUEST['recentactivity'])) {
                 echo "<h3>$date_heading</h3>";
                 echo "<ul>";
             }
+            // Print a little report about this tagging action
             echo "<li>User <a href='/showuser?id=$tagger_id'>$tagger_id</a> ";
             echo 'added the tag "' . $tag . '" to ';
             echo "<i><a href='/viewgame?id={$game_id}'>$game_title</a></i> ";
@@ -359,7 +377,7 @@ if (isset($_REQUEST['recentactivity'])) {
 
     // Display recent poll votes
     echo "<h2 id='recent-poll-votes'>Recent poll votes:</h2>";
-    if (mysqli_num_rows($result)) {
+    if (mysqli_num_rows($result) > 0) {
         $rows = mysqli_fetch_all($result, MYSQLI_ASSOC);
         $date_heading = "";
         foreach ($rows as $r) {
@@ -373,6 +391,10 @@ if (isset($_REQUEST['recentactivity'])) {
             $game_author = shortenString($r['gameauthor']);
             $poll_id = $r['pollid'];
             $poll_title = shortenString($r['polltitle']);
+
+            // If this poll vote has a different date
+            // than the last poll vote we printed, 
+            // display a heading showing the new date
             if ($vote_date != $date_heading) {
                 if ($date_heading != "") {
                     echo "</ul>";
@@ -381,6 +403,7 @@ if (isset($_REQUEST['recentactivity'])) {
                 echo "<h3>$date_heading</h3>";
                 echo "<ul>";
             }
+            // Print a little report about this poll vote
             echo "<li><a href='/showuser?id=$voter_id'>$voter_name</a> voted for ";
             echo "<i><a href='/viewgame?id={$game_id}'>$game_title</a></i> by $game_author ";
             echo "in the poll <a href='/poll?id={$poll_id}'>$poll_title</a>.";
