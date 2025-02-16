@@ -91,40 +91,45 @@ function shortenString($long_string) {
 
 
 if (isset($_REQUEST['recentactivity'])) {
-    pageHeader("Recent activity by all users");
-    $days = 79; // how many days of recent activity to display
+    $recent_days = 79; // how many days of recent activity to display
+
+    pageHeader("Recent activity by all users");    
     echo '<h1 id="recent-activity">Recent activity by all users</h1>';
-    echo '<p><a href="#recent-ratings">Ratings and reviews</a> | ';
+
+    // Horizontal menu to jump to different types of activity
+    echo '<p>';
+    echo '<a href="#recent-ratings">Ratings and reviews</a> | ';
     echo '<a href="#recent-review-votes">Review votes</a> | ';
     echo '<a href="#recent-edits">Page edits</a> | ';
     echo '<a href="#recent-tags">Tags</a> | ';
     echo '<a href="#recent-poll-votes">Poll votes</a>';
-    echo "</p><hr>";
+    echo '</p><hr>';
 
 
     // Find recent ratings and reviews
     $result = mysqli_execute_query($db, 
         'SELECT reviews.moddate AS reviewdatetime,
-                CASE WHEN reviews.createdate = reviews.moddate
-                     THEN "added"
-                     ELSE "edited"
-                     END AS action,
-                DATE_FORMAT(reviews.moddate, "%M %e, %Y") AS reviewdate,
-                reviews.userid AS reviewerid,
-                reviews.gameid,
-                reviews.rating,
-                reviews.review,
-                reviews.id as reviewid,
-                games.title AS gametitle,
-                games.author AS gameauthor,
-                users.name AS reviewername
+            CASE WHEN reviews.createdate = reviews.moddate
+                THEN "added"
+                ELSE "edited"
+                END AS action,
+            DATE_FORMAT(reviews.moddate, "%M %e, %Y") AS reviewdate,
+            reviews.userid AS reviewerid,
+            reviews.gameid,
+            reviews.rating,
+            reviews.review,
+            reviews.id AS reviewid,
+            games.title AS gametitle,
+            games.author AS gameauthor,
+            users.name AS reviewername
         FROM reviews 
         LEFT JOIN games
-        ON reviews.gameid = games.id
+            ON reviews.gameid = games.id
         LEFT JOIN users
-        ON reviews.userid = users.id
+            ON reviews.userid = users.id
         WHERE (reviews.moddate) > DATE_SUB(NOW(), INTERVAL ? DAY)
-        ORDER BY reviews.moddate DESC', [$days]);
+        ORDER BY reviews.moddate DESC', [$recent_days]);
+
 
     // Display recent ratings and reviews    
     echo "<h2 id='recent-ratings'>Recent ratings and reviews:</h2>";
@@ -171,9 +176,9 @@ if (isset($_REQUEST['recentactivity'])) {
         }
         echo "</ul>";
     } else {
-        echo "<p>No ratings or reviews found from the past $days days.</p>";
+        echo "<p>No ratings or reviews in the past $recent_days days.</p>";
     }
-    echo '<a href="#recent-activity">Return to top</a><hr>';
+    echo '<p><a href="#recent-activity">Return to top</a></p><hr>';
 
 
     // Find recent review helpfulness votes
@@ -192,11 +197,11 @@ if (isset($_REQUEST['recentactivity'])) {
     LEFT JOIN users
         ON reviews.userid = users.id
     WHERE (reviewvotes.createdate) > DATE_SUB(NOW(), INTERVAL ? DAY)
-    ORDER BY reviewvotes.createdate DESC', [$days]);
+    ORDER BY reviewvotes.createdate DESC', [$recent_days]);
 
 
     // Display recent review helpfulness votes    
-    echo '<h2 id="recent-review-votes">Recent review helpfulness votes:</h2>';
+    echo '<h2 id="recent-review-votes">Recent votes on review helpfulness:</h2>';
     if ($result) {
         $rows = mysqli_fetch_all($result, MYSQLI_ASSOC);
         $date_heading = "";
@@ -216,15 +221,15 @@ if (isset($_REQUEST['recentactivity'])) {
                 echo "<ul>";
             }
             echo "<li>User <a href='/showuser?id={$voter_id}'>$voter_id</a> ";
-            echo "voted $vote on a ";
+            echo 'voted "$vote" on a ';
             echo "<a href='/viewgame?id={$game_id}&review={$review_id}'>review</a> ";
             echo "by $reviewer_name.</li><br>";
         }
         echo "</ul>";
     } else {
-        echo "<p>No review helpfulness votes found from the past $days days.</p>";
+        echo "<p>No votes on review helpfulness in the past $recent_days days.</p>";
     }
-    echo '<a href="#recent-activity">Return to top</a><hr>';
+    echo '<p><a href="#recent-activity">Return to top</a></p><hr>';
 
 
     // Find recent page edits
@@ -242,8 +247,7 @@ if (isset($_REQUEST['recentactivity'])) {
     LEFT JOIN users
         ON games_history.editedby = users.id
     WHERE (games_history.moddate) > DATE_SUB(NOW(), INTERVAL ? DAY)
-    ORDER BY games_history.moddate DESC
-    LIMIT 100', [$days]);
+    ORDER BY games_history.moddate DESC', [$recent_days]);
 
 
     // Display recent page edits
@@ -274,14 +278,15 @@ if (isset($_REQUEST['recentactivity'])) {
         }
         echo "</ul>";
     } else {
-        echo "<p>No page edits found from the past $days days.</p>";
+        echo "<p>No page edits in the past $recent_days days.</p>";
     }
-    echo '<a href="#recent-activity">Return to top</a><hr>';
+    echo '<p><a href="#recent-activity">Return to top</a></p><hr>';
 
 
     // Find recent tagging activity
     $result = mysqli_execute_query($db, 
-    'SELECT gametags.moddate AS tagdatetime,
+    'SELECT
+        gametags.moddate AS tagdatetime,
         DATE_FORMAT(gametags.moddate, "%M %e, %Y") AS tagdate,
         gametags.gameid,
         gametags.userid as taggerid,
@@ -292,7 +297,7 @@ if (isset($_REQUEST['recentactivity'])) {
       LEFT JOIN games
           ON gametags.gameid = games.id
       WHERE (gametags.moddate) > DATE_SUB(NOW(), INTERVAL ? DAY)
-      ORDER BY gametags.moddate DESC', [$days]);
+      ORDER BY gametags.moddate DESC', [$recent_days]);
 
 
     // Display recent tagging activity
@@ -323,24 +328,25 @@ if (isset($_REQUEST['recentactivity'])) {
         }
         echo "</ul>";
     } else {
-        echo "<p>No tagging found from the past $days days.</p>";
+        echo "<p>No tagging activity in the past $recent_days days.</p>";
     }
-    echo '<a href="#recent-activity">Return to top</a><hr>';
+    echo '<p><a href="#recent-activity">Return to top</a></p><hr>';
 
 
     // Find recent poll votes
     $result = mysqli_execute_query($db, 
-        'SELECT pollvotes.votedate AS votedatetime,
-                DATE_FORMAT(pollvotes.votedate, "%M %e, %Y") AS votedate,
-                pollvotes.userid as voterid,
-                pollvotes.gameid,
-                pollvotes.quickquote,
-                pollvotes.notes,
-                pollvotes.pollid,
-                games.title AS gametitle,
-                games.author AS gameauthor,
-                users.name AS votername,
-                polls.title AS polltitle
+        'SELECT
+            pollvotes.votedate AS votedatetime,
+            DATE_FORMAT(pollvotes.votedate, "%M %e, %Y") AS votedate,
+            pollvotes.userid as voterid,
+            pollvotes.gameid,
+            pollvotes.quickquote,
+            pollvotes.notes,
+            pollvotes.pollid,
+            games.title AS gametitle,
+            games.author AS gameauthor,
+            users.name AS votername,
+            polls.title AS polltitle
         FROM pollvotes
         LEFT JOIN games
             ON pollvotes.gameid = games.id
@@ -349,7 +355,7 @@ if (isset($_REQUEST['recentactivity'])) {
         LEFT JOIN polls
             on pollvotes.pollid = polls.pollid
         WHERE (pollvotes.votedate) > DATE_SUB(NOW(), INTERVAL ? DAY)
-        ORDER BY pollvotes.votedate DESC', [$days]);
+        ORDER BY pollvotes.votedate DESC', [$recent_days]);
 
     // Display recent poll votes
     echo "<h2 id='recent-poll-votes'>Recent poll votes:</h2>";
@@ -377,8 +383,9 @@ if (isset($_REQUEST['recentactivity'])) {
             }
             echo "<li><a href='/showuser?id=$voter_id'>$voter_name</a> voted for ";
             echo "<i><a href='/viewgame?id={$game_id}'>$game_title</a></i> by $game_author ";
+            echo "in the poll <a href='/poll?id={$poll_id}'>$poll_title</a>.";
             if ($quick_quote || $notes) {
-                echo 'with the comment "' ;
+                echo ' Comment: "' ;
                 if ($quick_quote) {
                     echo $quick_quote;
                     if ($notes) {
@@ -389,14 +396,17 @@ if (isset($_REQUEST['recentactivity'])) {
                 }
                 echo '" ';
             }
-            echo "in the poll <a href='/poll?id={$poll_id}'>$poll_title</a>.</li><br>";  
+            echo "</li><br>";  
         }
         echo "</ul>";
     } else {
-        echo "<p>No poll votes found from the past $days days.</p>";
+        echo "<p>No poll votes in the past $recent_days days.</p>";
     }
-    echo '<a href="#recent-activity">Return to top</a><hr>';
-
+    echo '<p><a href="#recent-activity">Return to top</a></p>';
+    echo '<hr>';
+    echo '<p><a href="/adminops">Return to the System Maintenance Panel</a></p>';
+    pageFooter();
+    exit();
 } // if (isset($_REQUEST['recentactivity']))
              
 //----------------- end of recent activity -------------
