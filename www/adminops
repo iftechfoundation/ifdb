@@ -124,7 +124,7 @@ if (isset($_REQUEST['recentactivity'])) {
         LEFT JOIN users
         ON reviews.userid = users.id
         WHERE (reviews.moddate) > DATE_SUB(NOW(), INTERVAL ? DAY)
-        ORDER BY reviews.moddate', [$days]);
+        ORDER BY reviews.moddate DESC', [$days]);
 
     // Display recent ratings and reviews    
     echo "<h2 id='recent-ratings'>Recent ratings and reviews:</h2>";
@@ -192,7 +192,7 @@ if (isset($_REQUEST['recentactivity'])) {
     LEFT JOIN users
         ON reviews.userid = users.id
     WHERE (reviewvotes.createdate) > DATE_SUB(NOW(), INTERVAL ? DAY)
-    ORDER BY reviewvotes.createdate', [$days]);
+    ORDER BY reviewvotes.createdate DESC', [$days]);
 
 
     // Display recent review helpfulness votes    
@@ -242,7 +242,7 @@ if (isset($_REQUEST['recentactivity'])) {
     LEFT JOIN users
         ON games_history.editedby = users.id
     WHERE (games_history.moddate) > DATE_SUB(NOW(), INTERVAL ? DAY)
-    ORDER BY games_history.moddate
+    ORDER BY games_history.moddate DESC
     LIMIT 100', [$days]);
 
 
@@ -292,7 +292,7 @@ if (isset($_REQUEST['recentactivity'])) {
       LEFT JOIN games
           ON gametags.gameid = games.id
       WHERE (gametags.moddate) > DATE_SUB(NOW(), INTERVAL ? DAY)
-      ORDER BY gametags.moddate', [$days]);
+      ORDER BY gametags.moddate DESC', [$days]);
 
 
     // Display recent tagging activity
@@ -339,14 +339,17 @@ if (isset($_REQUEST['recentactivity'])) {
                 pollvotes.pollid,
                 games.title AS gametitle,
                 games.author AS gameauthor,
-                users.name AS votername
+                users.name AS votername,
+                polls.title AS polltitle
         FROM pollvotes
         LEFT JOIN games
             ON pollvotes.gameid = games.id
         LEFT JOIN users
             ON pollvotes.userid = users.id
+        LEFT JOIN polls
+            on pollvotes.pollid = polls.pollid
         WHERE (pollvotes.votedate) > DATE_SUB(NOW(), INTERVAL ? DAY)
-        ORDER BY pollvotes.votedate', [$days]);
+        ORDER BY pollvotes.votedate DESC', [$days]);
 
     // Display recent poll votes
     echo "<h2 id='recent-poll-votes'>Recent poll votes:</h2>";
@@ -363,6 +366,7 @@ if (isset($_REQUEST['recentactivity'])) {
             $game_title = shortenString($r['gametitle']);
             $game_author = shortenString($r['gameauthor']);
             $poll_id = $r['pollid'];
+            $poll_title = shortenString($r['polltitle']);
             if ($vote_date != $date_heading) {
                 if ($date_heading != "") {
                     echo "</ul>";
@@ -385,7 +389,7 @@ if (isset($_REQUEST['recentactivity'])) {
                 }
                 echo '" ';
             }
-            echo "in poll <a href='/poll?id={$poll_id}'>$poll_id</a>.</li><br>";  
+            echo "in the poll <a href='/poll?id={$poll_id}'>$poll_title</a>.</li><br>";  
         }
         echo "</ul>";
     } else {
