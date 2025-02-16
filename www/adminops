@@ -108,7 +108,8 @@ if (isset($_REQUEST['recentactivity'])) {
 
     // Find recent ratings and reviews
     $result = mysqli_execute_query($db, 
-        'SELECT reviews.moddate AS reviewdatetime,
+        'SELECT
+            reviews.moddate AS reviewdatetime,
             CASE WHEN reviews.createdate = reviews.moddate
                 THEN "added"
                 ELSE "edited"
@@ -188,21 +189,22 @@ if (isset($_REQUEST['recentactivity'])) {
 
     // Find recent review helpfulness votes
     $result = mysqli_execute_query($db, 
-    'SELECT reviewvotes.createdate AS votedatetime,
-        DATE_FORMAT(reviewvotes.createdate, "%M %e, %Y") AS votedate,
-        reviewvotes.userid as voterid,
-        reviewvotes.vote,
-        reviewvotes.reviewid,
-        reviews.gameid,
-        reviews.userid as reviewerid,
-        users.name AS reviewername
-    FROM reviewvotes
-    LEFT JOIN reviews
-        ON reviewvotes.reviewid = reviews.id
-    LEFT JOIN users
-        ON reviews.userid = users.id
-    WHERE (reviewvotes.createdate) > DATE_SUB(NOW(), INTERVAL ? DAY)
-    ORDER BY reviewvotes.createdate DESC LIMIT 100', [$recent_days]);
+        'SELECT
+            reviewvotes.createdate AS votedatetime,
+            DATE_FORMAT(reviewvotes.createdate, "%M %e, %Y") AS votedate,
+            reviewvotes.userid as voterid,
+            reviewvotes.vote,
+            reviewvotes.reviewid,
+            reviews.gameid,
+            reviews.userid as reviewerid,
+            users.name AS reviewername
+        FROM reviewvotes
+        LEFT JOIN reviews
+            ON reviewvotes.reviewid = reviews.id
+        LEFT JOIN users
+            ON reviews.userid = users.id
+        WHERE (reviewvotes.createdate) > DATE_SUB(NOW(), INTERVAL ? DAY)
+        ORDER BY reviewvotes.createdate DESC LIMIT 100', [$recent_days]);
 
 
     // Display recent review helpfulness votes    
@@ -244,20 +246,21 @@ if (isset($_REQUEST['recentactivity'])) {
 
     // Find recent page edits
     $result = mysqli_execute_query($db, 
-    'SELECT games_history.moddate AS editdatetime,
-        DATE_FORMAT(games_history.moddate, "%M %e, %Y") AS editdate,
-        games_history.id as gameid,
-        games_history.editedby as editorid,
-        games.title AS gametitle,
-        games.author AS gameauthor,
-        users.name AS editorname
-    FROM games_history
-    LEFT JOIN games
-        ON games_history.id = games.id
-    LEFT JOIN users
-        ON games_history.editedby = users.id
-    WHERE (games_history.moddate) > DATE_SUB(NOW(), INTERVAL ? DAY)
-    ORDER BY games_history.moddate DESC', [$recent_days]);
+        'SELECT
+            games_history.moddate AS editdatetime,
+            DATE_FORMAT(games_history.moddate, "%M %e, %Y") AS editdate,
+            games_history.id as gameid,
+            games_history.editedby as editorid,
+            games.title AS gametitle,
+            games.author AS gameauthor,
+            users.name AS editorname
+        FROM games_history
+        LEFT JOIN games
+            ON games_history.id = games.id
+        LEFT JOIN users
+            ON games_history.editedby = users.id
+        WHERE (games_history.moddate) > DATE_SUB(NOW(), INTERVAL ? DAY)
+        ORDER BY games_history.moddate DESC', [$recent_days]);
 
 
     // Display recent page edits
@@ -299,19 +302,19 @@ if (isset($_REQUEST['recentactivity'])) {
 
     // Find recent tagging activity
     $result = mysqli_execute_query($db, 
-    'SELECT
-        gametags.moddate AS tagdatetime,
-        DATE_FORMAT(gametags.moddate, "%M %e, %Y") AS tagdate,
-        gametags.gameid,
-        gametags.userid as taggerid,
-        gametags.tag,
-        games.title AS gametitle,
-        games.author AS gameauthor
-      FROM gametags
-      LEFT JOIN games
-          ON gametags.gameid = games.id
-      WHERE (gametags.moddate) > DATE_SUB(NOW(), INTERVAL ? DAY)
-      ORDER BY gametags.moddate DESC', [$recent_days]);
+        'SELECT
+            gametags.moddate AS tagdatetime,
+            DATE_FORMAT(gametags.moddate, "%M %e, %Y") AS tagdate,
+            gametags.gameid,
+            gametags.userid as taggerid,
+            gametags.tag,
+            games.title AS gametitle,
+            games.author AS gameauthor
+        FROM gametags
+        LEFT JOIN games
+            ON gametags.gameid = games.id
+        WHERE (gametags.moddate) > DATE_SUB(NOW(), INTERVAL ? DAY)
+        ORDER BY gametags.moddate DESC', [$recent_days]);
 
 
     // Display recent tagging activity
