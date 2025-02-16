@@ -360,7 +360,7 @@ if (isset($_REQUEST['recentactivity'])) {
             $vote_date = $r['votedate'];
             $voter_id = $r['voterid'];
             $voter_name = $r['votername'];
-            $quickquote = $r['quickquote'];
+            $quick_quote = $r['quickquote'];
             $notes = $r['notes'];
             $game_id = $r['gameid'];
             $game_title = shortenString($r['gametitle']);
