@@ -91,7 +91,7 @@ function shortenString($long_string) {
 
 
 if (isset($_REQUEST['recentactivity'])) {
-    $recent_days = 79; // how many days of recent activity to display
+    $recent_days = 3; // how many days of recent activity to display
 
     pageHeader("Recent activity by all users");    
     echo '<h1 id="recent-activity">Recent activity by all users</h1>';
@@ -215,8 +215,14 @@ if (isset($_REQUEST['recentactivity'])) {
         foreach ($rows as $r) {
             $vote_date = $r['votedate'];
             $voter_id = $r['voterid'];
-            $vote = $r['vote'];
+            $vote = "";
+            if ($r['vote'] == "Y") {
+                $vote = "Yes";
+            } else if ($r['vote'] == "N") {
+                $vote = "No";
+            };
             $review_id = $r['reviewid'];
+            $game_id = $r['gameid'];
             $reviewer_id = $r['reviewerid'];
             $reviewer_name = shortenString($r['reviewername']);
             
