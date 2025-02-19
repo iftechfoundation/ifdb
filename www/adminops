@@ -367,7 +367,11 @@ if (isset($_REQUEST['recentactivity'])) {
             games.title AS gametitle,
             games.author AS gameauthor,
             users.name AS votername,
-            polls.title AS polltitle
+            polls.title AS polltitle,
+            CASE WHEN polls.flags = 1
+                THEN true
+                ELSE false
+                END AS voteisanonymous
         FROM pollvotes
         LEFT JOIN games
             ON pollvotes.gameid = games.id
@@ -394,6 +398,7 @@ if (isset($_REQUEST['recentactivity'])) {
             $game_author = shortenString($r['gameauthor']);
             $poll_id = $r['pollid'];
             $poll_title = shortenString($r['polltitle']);
+            $vote_is_anonymous = ($r['voteisanonymous']);
 
             // If this poll vote has a different date
             // than the last poll vote we printed, 
@@ -407,7 +412,13 @@ if (isset($_REQUEST['recentactivity'])) {
                 echo "<ul>";
             }
             // Print a little report about this poll vote
-            echo "<li><a href='/showuser?id=$voter_id'>$voter_name</a> voted for ";
+            echo "<li>";
+            if (!$vote_is_anonymous) {
+                echo "<a href='/showuser?id=$voter_id'>$voter_name</a>";
+            } else if ($vote_is_anonymous) {
+                echo "User <a href='/showuser?id=$voter_id'>$voter_id</a>";
+            }    
+            echo " voted for ";
             echo "<i><a href='/viewgame?id={$game_id}'>$game_title</a></i> by $game_author ";
             echo "in the poll <a href='/poll?id={$poll_id}'>$poll_title</a>.";
             if ($quick_quote || $notes) {
