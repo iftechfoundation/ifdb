@@ -91,11 +91,18 @@ function shortenString($long_string) {
 
 
 if (isset($_REQUEST['recentactivity'])) {
-    $recent_days = 3; // how many days of recent activity to display
-
+    // Find how many days of recent activity to display.
+    // If it's not specified, default to 3 days.
+    $recent_days = (int)get_req_data('days');
+    if ($recent_days == 0) {
+        $recent_days = 3;
+    }
     pageHeader("Recent activity by all users");    
     echo '<h1 id="recent-activity">Recent activity by all users</h1>';
-
+    echo "<p>Showing activity from the past $recent_days days. Show ";
+    echo '<a href="/adminops?recentactivity&days=3">3 days</a> / ';
+    echo '<a href="/adminops?recentactivity&days=5">5 days</a> / ';
+    echo '<a href="/adminops?recentactivity&days=7">7 days</a>.</p>';
     // Horizontal menu to jump to different types of activity
     echo '<p>';
     echo '<a href="#recent-ratings">Ratings and reviews</a> | ';
@@ -2981,7 +2988,7 @@ function cleanutf8($str)
 <a href="adminops?cleanpix">Delete orphaned images</a><br>
 <a href="adminops?users&sortby=new">User list</a><br>
 <a href="adminops?finduser">User search</a><br>
-<a href="adminops?recentactivity">Recent activity by all users</a><br>
+<a href="adminops?recentactivity&days=3">Recent activity by all users</a><br>
 <a href="adminops?adminemail">Send admin email</a><br>
 <a href="adminops?burygame">Bury game</a><br>
 <a href="adminops?bulkaddtag">Bulk add tags</a><br>
