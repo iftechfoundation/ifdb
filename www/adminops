@@ -99,10 +99,7 @@ if (isset($_REQUEST['recentactivity'])) {
     }
     pageHeader("Recent activity by all users");    
     echo '<h1 id="recent-activity">Recent activity by all users</h1>';
-    echo "<p>Showing activity from the past $recent_days days. Show ";
-    echo '<a href="/adminops?recentactivity&days=3">3 days</a> / ';
-    echo '<a href="/adminops?recentactivity&days=5">5 days</a> / ';
-    echo '<a href="/adminops?recentactivity&days=7">7 days</a>.</p>';
+    echo "<p>Showing activity from the past $recent_days days. For a different number of days, please edit the URL.</p>";
     // Horizontal menu to jump to different types of activity
     echo '<p>';
     echo '<a href="#recent-ratings">Ratings and reviews</a> | ';
@@ -2988,7 +2985,7 @@ function cleanutf8($str)
 <a href="adminops?cleanpix">Delete orphaned images</a><br>
 <a href="adminops?users&sortby=new">User list</a><br>
 <a href="adminops?finduser">User search</a><br>
-<a href="adminops?recentactivity&days=3">Recent activity by all users</a><br>
+<a href="adminops?recentactivity&days=3">Recent activity</a><br>
 <a href="adminops?adminemail">Send admin email</a><br>
 <a href="adminops?burygame">Bury game</a><br>
 <a href="adminops?bulkaddtag">Bulk add tags</a><br>
