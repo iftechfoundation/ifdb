@@ -79,29 +79,6 @@ delete from polls, pollvotes, pollcomments
 
 delete from pollvotes where userid in (select id from users where sandbox = 1);
 
-alter table users
-  drop column email,
-  drop column emailflags,
-  drop column profilestatus,
-  drop column password,
-  drop column pswsalt,
-  drop column activationcode,
-  drop column acctstatus,
-  drop column privileges,
-  drop column defaultos,
-  drop column defaultosvsn,
-  drop column noexedownloads,
-  drop column mirrorid,
-  drop column stylesheetid,
-  drop column offsite_display,
-  drop column accessibility,
-  drop column caughtupdate,
-  drop column remarks,
-  drop column tosversion,
-  drop column lastlogin,
-  drop column sandbox
-;
-
 delete from reviews
   where now() < embargodate;
 
@@ -154,4 +131,27 @@ drop trigger playertime_delete;
 
 -- delete users with acctstatus D (pending activation) R (pending review) B (banned)
 delete from users where acctstatus != 'A';
+
+alter table users
+  drop column email,
+  drop column emailflags,
+  drop column profilestatus,
+  drop column password,
+  drop column pswsalt,
+  drop column activationcode,
+  drop column acctstatus,
+  drop column privileges,
+  drop column defaultos,
+  drop column defaultosvsn,
+  drop column noexedownloads,
+  drop column mirrorid,
+  drop column stylesheetid,
+  drop column offsite_display,
+  drop column accessibility,
+  drop column caughtupdate,
+  drop column remarks,
+  drop column tosversion,
+  drop column lastlogin,
+  drop column sandbox
+;
 -- we delete users last so we can delete any sandboxed content before deleting the user
