@@ -3,3 +3,4 @@ www/local-credentials.php
 **/ifdb-archive.zip
 **/ifdb-archive-*.zip
 initdb
+www/vendor
