@@ -3,6 +3,7 @@
 include_once "util.php";
 include_once "pagetpl.php";
 include_once "dbconnect.php";
+require_once 'vendor/autoload.php';
 
 $json = $_GET['json'] ?? false;
 $refresh = $_GET['refresh'] ?? false;
@@ -87,9 +88,21 @@ $db = dbConnect();
 
 $output = [];
 foreach($tuids as $tuid => $path) {
-    $result = mysqli_execute_query($db, "select url from gamelinks where gameid = ? and url like ?", [$tuid, "%$path"]);
-    $row = mysqli_fetch_row($result);
-    if (!$row) {
+    // normalize the path using URL normalizer. First we make it an absolute URL, normalize it, then we strip the absolute part off
+    $ifarchive_host = "https://ifarchive.org/";
+    $path = substr((new URL\Normalizer($ifarchive_host . $path))->normalize(), strlen($ifarchive_host));
+    $result = mysqli_execute_query($db, "select url from gamelinks where gameid = ?", [$tuid]);
+    $found = false;
+    foreach ($result->fetch_all(MYSQLI_NUM) as [$url]) {
+        $url = (new URL\Normalizer($url))->normalize();
+        // check whether the $url ends with $path
+        if (substr_compare($url, $path, -strlen($path)) === 0) {
+            $found = true;
+            break;
+        }
+    }
+
+    if (!$found) {
         [$title] = mysqli_fetch_row(mysqli_execute_query($db, "select title from games where id = ?", [$tuid]));
         $output[]= [
             "tuid" => $tuid,
