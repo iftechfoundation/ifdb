@@ -221,7 +221,7 @@ if ($rss == 'gamenews')
 pageHeader($pageTitle, false, false);
 
 $captchaKey = "showuser.$uid";
-captchaSupportScripts($captchaKey);
+if (!$errMsg) captchaSupportScripts($captchaKey);
 
 // check to see if this profile is pending review - show limited information
 // if so
@@ -765,7 +765,7 @@ if ($errMsg) {
 // if we're in administrative mode, aggregate the
 // various approval/ban links, and a search for the email address
 //
-if ($admin)
+if ($admin && !$errMsg)
 {
     // admin details
     $adminUrl = "adminops?user=$uid";
