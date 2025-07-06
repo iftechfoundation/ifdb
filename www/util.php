@@ -238,8 +238,10 @@ function get_req_data($id)
     // get the raw value from the posted data
     $val = (isset($_POST[$id]) && $_POST[$id]) ? $_POST[$id] :
            (isset($_REQUEST[$id]) ? $_REQUEST[$id] : "");
-    //Convert to lowercase
-    $val = strtolower($val);    
+   
+    // convert to lowercase
+    $val = mb_strtolower($val, 'UTF-8');
+   
     // return the result    
     return $val;
 }
