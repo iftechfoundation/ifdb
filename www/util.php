@@ -239,7 +239,7 @@ function get_req_data($id)
     $val = (isset($_POST[$id]) && $_POST[$id]) ? $_POST[$id] :
            (isset($_REQUEST[$id]) ? $_REQUEST[$id] : "");
     //Convert to lowercase
-    $val = $val.toLowerCase();    
+    $val = strtolower($val);    
     // return the result    
     return $val;
 }
