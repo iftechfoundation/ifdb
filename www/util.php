@@ -238,8 +238,9 @@ function get_req_data($id)
     // get the raw value from the posted data
     $val = (isset($_POST[$id]) && $_POST[$id]) ? $_POST[$id] :
            (isset($_REQUEST[$id]) ? $_REQUEST[$id] : "");
-
-    // return the result
+    //Convert to lowercase
+    $val = $val.toLowerCase();    
+    // return the result    
     return $val;
 }
 
