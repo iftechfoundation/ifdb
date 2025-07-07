@@ -341,7 +341,7 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse, $count_all_
         }
 
         // pull out this word
-        $w = substr($term, $start, $ofs - $start);
+        $w = mb_strtolower(substr($term, $start, $ofs - $start));
 
         // if it's unquoted, check for special prefixes
         if (!$quoted
