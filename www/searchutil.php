@@ -346,7 +346,7 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse, $count_all_
         // if it's unquoted, check for special prefixes
         if (!$quoted
             && preg_match("/^(-?)([#a-z]+:)/i", $w, $match)
-            && isset($specialMap[$m = $match[2]]))
+            && isset($specialMap[$m = mb_strtolower($match[2])]))
         {
             // set up the new special entry - this is an array with
             // element [0] giving the special descriptor, [1] giving
