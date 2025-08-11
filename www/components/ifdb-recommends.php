@@ -29,6 +29,10 @@ list($recs, $rowcnt, $sortList, $errMsg, $summaryDesc, $badges,
     $specials, $specialsUsed, $orderBy) =
     doSearch($db, $term, $searchType, $sortby, $limit, $browse, $count_all_possible_rows);
 
+$recs = array_values(array_filter($recs, function($r) {
+    $buried = $r['flags'] & FLAG_SHOULD_HIDE;
+    return !$buried;
+}));
 
 // show some recommendations
 if (count($recs) >= 2) {
