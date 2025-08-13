@@ -1815,7 +1815,7 @@ if (!isEmpty($genre)) {
                                     echo "<div class='viewgame__externalLinksAnchor viewgame__externalLinksDiv'>$playOnlineButton | "
                                         . "<a href='#externalLinks'>External Links</a></div>";
                                 } else {
-                                    echo "<a class='viewgame__externalLinksAnchor viewgame__externalLinksDiv' href='#externalLinks'>External Links</a></div>";
+                                    echo "<a class='viewgame__externalLinksAnchor viewgame__externalLinksDiv' href='#externalLinks'>External Links</a>";
                                 }
                             }                        }
                      ?>
