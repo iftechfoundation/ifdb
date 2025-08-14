@@ -124,6 +124,10 @@ if (isset($_REQUEST['recentactivity'])) {
             reviews.rating,
             reviews.review,
             reviews.id AS reviewid,
+            CASE WHEN reviews.special = 4
+                THEN "external "
+                ELSE ""
+                END AS externalreview,
             games.title AS gametitle,
             games.author AS gameauthor,
             users.name AS reviewername
@@ -145,6 +149,7 @@ if (isset($_REQUEST['recentactivity'])) {
             $review_date = $r['reviewdate'];
             $reviewer_id = $r['reviewerid'];
             $reviewer_name = $r['reviewername'];
+            $external_review = $r['externalreview'];
             $action = $r['action'];
             $rating = "";
             if ($r['rating']) {
@@ -175,13 +180,17 @@ if (isset($_REQUEST['recentactivity'])) {
                 echo "<ul>";
             }
             // Print a little report about this rating/review
-            echo "<li><a href='/showuser?id=$reviewer_id'>$reviewer_name</a> ";
+            if ($reviewer_name) {
+                echo "<li><a href='/showuser?id=$reviewer_id'>$reviewer_name</a> ";
+            } else {
+                echo "<li>Someone ";    // External reviews won't have a reviewer name or a regular reviewer id
+            }
             if ($action == "added") {
                 echo "added ";
             } else if ($action == "edited") {
                 echo "edited a rating or review, now ";
             }
-            echo "a {$rating}-star <a href='/viewgame?id={$game_id}&review={$review_id}'>$rating_or_review</a> ";
+            echo "a {$rating}-star <a href='/viewgame?id={$game_id}&review={$review_id}'>{$external_review}{$rating_or_review}</a> ";
             echo "of <i><a href='/viewgame?id={$game_id}'>$game_title</a></i> by $game_author.</li><br>";
         }
         echo "</ul>";
