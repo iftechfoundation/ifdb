@@ -1,4 +1,4 @@
-<h2><a name=\"tags\"></a>Tags</h2><div class=indented>
+<h2><a name="tags"></a>Tags</h2><div class=indented>
 
 
 <style nonce="<?php global $nonce; echo $nonce; ?>">
