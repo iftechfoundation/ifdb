@@ -1,23 +1,5 @@
 <?php
 
-function initStarControls()
-{
-    // Standard version - use the animated javascript star control,
-    // with automatic mouse rollover highlighting.
-    ?>
-    <script type="text/javascript" nonce="<?php global $nonce; echo $nonce; ?>">
-        function setStarCtlValue(id, value) {
-            if (value) {
-                document.getElementById(`${id}__rating${value}`).checked = true;
-            } else {
-                var checked = [...document.querySelectorAll(`#${id} input[type=radio]`)].filter(i => i.checked)[0];
-                if (checked) checked.checked = false;
-            }
-        }
-    </script>
-    <?php
-}
-
 function showStarCtl($id, $init, $clickFunc)
 {
     
