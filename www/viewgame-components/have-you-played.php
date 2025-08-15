@@ -1,7 +1,7 @@
 <table class=gamerightbar>
-      <tr>
-         <td>
-            <h3>Have you played this game?</h3>
+   <tr>
+      <td>
+         <h3>Have you played this game?</h3>
             <?php
 if ($curuser) {
     $result = mysqli_execute_query($db, "select userid from playedgames
@@ -316,8 +316,7 @@ prepareTimeControls();
         . "<a href=\"login?dest=viewgame?id=$id\">log in</a>.";
 }
 
-            ?>
-         </td>
-      </tr>
-   </table>
-</div>
+?>
+      </td>
+   </tr>
+</table>

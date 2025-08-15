@@ -892,6 +892,9 @@ echo helpWinLink("help-ifid", "IFID");
     <div class="readMore">
     <section class="<?php if (!$downloadsView) echo "downloads"?>" id="externalLinks">
         <?php include "viewgame-components/external-links.php"?>
+    </section>
+    <div class="expand"><button>Read More</button></div>
+    </div>
 
    <?php
    // ------------ end of the external links table -----------------
@@ -906,7 +909,9 @@ echo helpWinLink("help-ifid", "IFID");
     } // if (!$downloadsView)
 
     //-----------end of the "Have you played this game?" sidebar ----------
-
+?>
+    </div>
+<?php
     } // if ($detailView || $historyView)
 
 //------------------------- MAIN SUMMARY -------------------------

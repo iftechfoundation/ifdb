@@ -221,6 +221,3 @@ if (count($links) == 0 && $dlnotes == "") {
     }
 }
          ?>
-    </section>
-    <div class="expand"><button>Read More</button></div>
-    </div>
