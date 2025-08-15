@@ -752,7 +752,6 @@ if (isset($missingFields['rating']))
 
    <b>1. Rate this game on a scale of 1 to 5 stars (5 is best):</b>
    <?php
-        initStarControls();
         echo showStarCtl("ratingStars", $rating, "");
    ?>
 

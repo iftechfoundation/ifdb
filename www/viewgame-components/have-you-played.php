@@ -61,7 +61,6 @@ function updateUnwishList(id, stat)
         list($myCrossRecs) = mysql_fetch_row($result);
     }
 
-    initStarControls();
     global $nonce;
 
     echo "<div class=indented>"

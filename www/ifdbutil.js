@@ -280,3 +280,12 @@ async function check_ifid_in_ifwiki(ifid) {
     } catch (e) {}
     return false;
 }
+
+function setStarCtlValue(id, value) {
+    if (value) {
+        document.getElementById(`${id}__rating${value}`).checked = true;
+    } else {
+        const checked = [...document.querySelectorAll(`#${id} input[type=radio]`)].filter(i => i.checked)[0];
+        if (checked) checked.checked = false;
+    }
+}
