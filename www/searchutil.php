@@ -254,7 +254,7 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse, $count_all_
 
 
         // SELECT parameters for game queries
-        $selectList = "distinct games.id as id,
+        $selectList = "games.id as id,
                        games.title as title,
                        games.author as author,
                        games.desc as description,
@@ -583,9 +583,8 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse, $count_all_
                 if (!isset($extraJoins[$col])) {
                     $extraJoins[$col] = true;
                     $txt = mysql_real_escape_string($txt, $db);
-                    $tableList .= " inner join compgames "
-                                  . "on compgames.gameid = games.id "
-                                  . "and compgames.compid = '$txt'";
+                    $tableList .= " inner join (select distinct gameid from compgames where compid = '$txt') as compgames "
+                                  . "on compgames.gameid = games.id";
                 }
                 break;
 
