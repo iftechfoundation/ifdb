@@ -9,7 +9,7 @@ helpPageHeader("Formatting Hints");
 
 <h1>Formatting Hints</h1>
 
-<p>You can use some limited HTML-style formatting code in this field:
+<p>You can use some limited HTML-style formatting code in this field. If you check the "Convert Markdown formatting" checkbox, then Markdown syntax will also be parsed where noted:
 
 <?php if ($review || $comment) { ?>
 
@@ -23,15 +23,18 @@ reader clicks a button saying they want to see it.
 <?php } ?>
 
 <p><b>&lt;B&gt; ... &lt;/B&gt;</b> - the text between the &lt;B&gt; and
-   &lt;/B&gt; is shown in <b>boldface</b>.
+   &lt;/B&gt; is shown in <b>boldface</b>. <i>Markdown</i>: you can use two ** on either side of the text like **this**.
 
 <p><b>&lt;I&gt; ... &lt;/I&gt;</b> - the text between the &lt;I&gt; and
    &lt;/I&gt; is shown in <i>italics</i>.
+   <i>Markdown</i>: you can use a single * or _ on either side of the text like *this* or _this_.
 
 <p><b>&lt;BR&gt;</b> - line break: ends the current line and starts a new
    one, with no extra space between the lines.
+   <i>Markdown</i>: Entering a line break via the Enter or Return key creates a paragraph break no matter what.
 
 <p><b>&lt;P&gt;</b> - paragraph break: shows a blank line between the paragraphs.
+<i>Markdown</i>: you can just enter a line break by pressing the Enter or Return key on your keyboard.
 
 <p><b>&lt;BR/&gt;</b> - paragraph break (this is provided so that you can
    copy text from an <a href="https://babel.ifarchive.org">iFiction</a>
@@ -46,7 +49,9 @@ this out by hand, you can use our
 <p><b>&lt;A HREF="<i>url</i>"&gt; ... &lt;/A&gt;</b> - hyperlink the
 text between the &lt;A&gt; and &lt;/A&gt; to any Web site.  (For
 safety reasons, Javascript isn't allowed.  The URL must start with
-<tt>http://</tt>, <tt>ftp://</tt>, or <tt>news:</tt>.)
+<tt>http://</tt>, <tt>ftp://</tt>, or <tt>news:</tt>.) <i>Markdown<i>: you can enter a bare link
+   like <i>https://google.com</i> and it will automatically link,
+or add description text like this: [link description](https://google.com)
 
 <p><b>&amp;lt;</b> - a less-than sign (&lt;)
 
@@ -54,7 +59,7 @@ safety reasons, Javascript isn't allowed.  The URL must start with
 
 <p><b>&amp;amp;</b> - an ampersand (&amp;)
 
-<p>If you use any of the line or paragraph break codes, then any
+<p>If you use any of the line or paragraph break codes <i>without markdown</i>, then any
 newlines in your text will be ignored - we'll assume that you wanted
 to control the line formatting entirely with the HTML-style codes.
 On the other hand, if you <b>don't</b> use any break codes at all,
