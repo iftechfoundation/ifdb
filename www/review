@@ -5,12 +5,15 @@ include_once "util.php";
 include_once "dbconnect.php";
 include_once "starctl.php";
 include_once "searchutil.php";
-
+include_once "Parsedown.php";
 // we have to be logged in to enter/edit a review
 include_once "session-start.php";
 include_once "login-check.php";
 if (!logged_in())
     exit();
+
+// The markdown parser library
+$parsedown = new Parsedown();
 
 // connect to the database
 $db = dbConnect();
@@ -295,12 +298,19 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_REQUEST['delete'])) {
     $isOldReview = get_req_data("isOld");
     $rating = get_req_data("rating");
     $summary = get_req_data("summary");
-    $reviewbody = get_req_data("reviewbody");
+    $isMarkdown = isset($_POST['isMarkdown']);
+    if ($isMarkdown == true) {
+        $reviewbody = $parsedown->text(get_req_data("reviewbody"));
+        $oldVersion = $parsedown->text(get_req_data("oldVersion"));
+    }
+    else {
+        $reviewbody = get_req_data("reviewbody");
+        $oldVersion = get_req_data("oldVersion");  
+    }
     $special = get_req_data("special");
     $embargoDate = get_req_data("embargoDate");
     $tags = get_req_data("tags");
     $omitAvg = get_req_data("omitAvg");
-    $oldVersion = get_req_data("oldVersion");
     addHiddenItems();
 
     pageFooter();
@@ -384,7 +394,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $isOldReview = get_req_data("isOld");
     $rating = get_req_data("rating");
     $summary = get_req_data("summary");
-    $reviewbody = get_req_data("reviewbody");
+    $isMarkdown = isset($_POST['isMarkdown']);
+    if ($isMarkdown == true) {
+        $reviewbody = $parsedown->text(get_req_data("reviewbody"));
+    }
+    else {
+        $reviewbody = get_req_data("reviewbody");
+    }
     $special = get_req_data("special");
     $embargoDate = get_req_data("embargoDate");
     $tags = get_req_data("tags");
@@ -785,7 +801,6 @@ else if (isset($errDetail['summary']))
 if (isset($missingFields['reviewbody']))
     echo "<span class=errmsg><i>Please enter your review.</i></span><br>";
 ?>
-
     <div id='enter-review'>
         <style nonce="<?=$nonce?>">
             @media (min-width: 65ch) {
@@ -809,7 +824,6 @@ if (isset($missingFields['reviewbody']))
         ?></i></div>
     </div>
     <textarea name="reviewbody" rows=15><?php echo htmlspecialcharx($reviewbody) ?></textarea>
-
    </p>
    <p>
 <?php
@@ -897,6 +911,14 @@ if (isset($errDetail['embargoDate']))
 
          <br><span class=notes>Checking this box will add a note to this
             effect when your review is displayed.</span>
+
+        <br><br>
+        
+        <label><input name="isMarkdown" type="checkbox" value="<?php echo $isMarkdown ?>">
+        Convert markdown formatting to HTML</label>
+        <br><span class=notes>If you check this box,
+            the formatting of the entire review text will be parsed as markdown
+            and converted to HTML. Existing HTML tags are preserved.</span>
 
       </div>
    </p>
