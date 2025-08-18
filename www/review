@@ -5,7 +5,7 @@ include_once "util.php";
 include_once "dbconnect.php";
 include_once "starctl.php";
 include_once "searchutil.php";
-include_once "Parsedown.php";
+require_once 'vendor/autoload.php';
 // we have to be logged in to enter/edit a review
 include_once "session-start.php";
 include_once "login-check.php";

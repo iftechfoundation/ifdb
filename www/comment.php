@@ -5,7 +5,7 @@ include_once "session-start.php";
 include_once "login-check.php";
 include_once "captcha.php";
 include_once "akismet.php";
-include_once "Parsedown.php";
+require_once 'vendor/autoload.php';
 
 if (!logged_in())
     exit();
