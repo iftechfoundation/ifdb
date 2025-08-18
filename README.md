@@ -38,8 +38,18 @@ Our PHP dependencies are checked into `composer.json` and `composer.lock`. To up
 
 ```
 docker-php-composer.sh update
-docker-php-composer.sh install whatever/dependency
+docker-php-composer.sh require whatever/dependency
 ```
+
+Then, stop your server and restart your dev environment with these commands:
+
+```
+./prepare_dev_environment.sh
+docker compose down
+docker compose up --build
+```
+
+Once your dependency is installed, you'll consume the dependency by adding a `require_once 'vendor/autoload.php';` line to your code.
 
 ## Known Issues with the Development Environment
 
