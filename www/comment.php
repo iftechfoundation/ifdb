@@ -5,9 +5,13 @@ include_once "session-start.php";
 include_once "login-check.php";
 include_once "captcha.php";
 include_once "akismet.php";
+include_once "Parsedown.php";
 
 if (!logged_in())
     exit();
+
+// The markdown parser library
+$parsedown = new Parsedown();
 
 $curuser = $_SESSION['logged_in_as'];
 
@@ -43,7 +47,13 @@ $srcID = get_req_data($srcParamName);
 $commentID = get_req_data('edit');
 $deleteID = get_req_data('delete');
 $parentID = get_req_data('replyto');
-$commentText = get_req_data('text');
+$isMarkdown = isset($_POST['isMarkdown']);
+if ($isMarkdown) {
+    $commentText = $parsedown->text(get_req_data('text'));
+}
+else {
+    $commentText = get_req_data('text');
+}
 $submit = get_req_data('submit');
 $confirm = get_req_data('confirm');
 $private = ($privateOption && get_req_data('private') == 'Y');
@@ -174,7 +184,13 @@ if ($commentID || $deleteID) {
 
 // if this isn't a form submission, start with the database comment
 if (!$submit && $editing) {
-    $commentText = $oldText;
+    $isMarkdown = isset($_POST['isMarkdown']);
+    if ($isMarkdown) {
+        $commentText = $parsedown->text($oldText);
+    }
+    else {
+        $commentText = $oldText;
+    }
     if ($oldPrivateTo && $privateOption) {
         $private = true;
         $privateTo = $oldPrivateTo;
@@ -606,7 +622,8 @@ echo helpWinLink("help-formatting?comment#spoilertags", "&lt;SPOILER&gt; tag")
             . "comments)</i></span><br>";
         captchaSubForm($captchaKey, $captchaErrMsg, "Verify Code");
     }
-
+    echo "<p><label><input name=isMarkdown type=checkbox value=$>
+        Convert markdown formatting to HTML</label></p>";
     echo "<p><input type=submit name=submitBtn value=\"Save Changes\"> ";
 
     echo "<p>";

@@ -9,7 +9,9 @@ helpPageHeader("Formatting Hints");
 
 <h1>Formatting Hints</h1>
 
-<p>You can use some limited HTML-style formatting code in this field. If you check the "Convert Markdown formatting" checkbox, then Markdown syntax will also be parsed where noted:
+<p>You can use some limited HTML-style formatting code in this field.
+   If you check the "Convert Markdown formatting to HTML" checkbox,
+   then Markdown syntax will also be parsed where noted.
 
 <?php if ($review || $comment) { ?>
 
@@ -49,7 +51,7 @@ this out by hand, you can use our
 <p><b>&lt;A HREF="<i>url</i>"&gt; ... &lt;/A&gt;</b> - hyperlink the
 text between the &lt;A&gt; and &lt;/A&gt; to any Web site.  (For
 safety reasons, Javascript isn't allowed.  The URL must start with
-<tt>http://</tt>, <tt>ftp://</tt>, or <tt>news:</tt>.) <i>Markdown<i>: you can enter a bare link
+<tt>http://</tt>, <tt>ftp://</tt>, or <tt>news:</tt>.) <i>Markdown</i>: you can enter a bare link
    like <i>https://google.com</i> and it will automatically link,
 or add description text like this: [link description](https://google.com)
 
