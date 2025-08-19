@@ -198,7 +198,7 @@ function captchaFormStatus(msg, cls)
 }
 function captchaSolved(response)
 {
-    var url = "capreq?id=<?php echo $sessionKey ?>&code="
+    var url = "capreq?id=<?php echo rawurlencode($sessionKey) ?>&code="
         + encodeURIComponent(response);
     jsonSend(url, null, function(resp) {
 

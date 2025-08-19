@@ -32,6 +32,25 @@ docker compose up --build
 
 All of your database changes should now be available.
 
+# Updating PHP dependencies
+
+Our PHP dependencies are checked into `composer.json` and `composer.lock`. To update those files, you'll need to run `composer` inside the Docker container, using the `docker-php-composer.sh` script, like this:
+
+```
+docker-php-composer.sh update
+docker-php-composer.sh require whatever/dependency
+```
+
+Then, stop your server and restart your dev environment with these commands:
+
+```
+./prepare_dev_environment.sh
+docker compose down
+docker compose up --build
+```
+
+Once your dependency is installed, you'll consume the dependency by adding a `require_once 'vendor/autoload.php';` line to your code.
+
 ## Known Issues with the Development Environment
 
 * Sending email doesn't work. That's unfortunate, because if you want to create a user, you'll need to login with an activation code. After you try to create a new user, you should be able to see the email text in the Docker logs. Search for `EMAIL: NOT SENDING EMAIL IN LOCAL DEVELOPMENT MODE`.

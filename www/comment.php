@@ -486,7 +486,7 @@ if ($succMsg) {
 }
 
 pageHeader($title, "commentForm.commentField", false);
-captchaSupportScripts($captchaKey);
+if (!$errMsg) captchaSupportScripts($captchaKey);
 
 if (!$submit || $errMsg || !$captchaOK) {
     // pre-confirmation - explain the plan and ask for confirmation

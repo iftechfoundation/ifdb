@@ -275,7 +275,7 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse, $count_all_
 
 
         // SELECT parameters for game queries
-        $selectList = "distinct games.id as id,
+        $selectList = "games.id as id,
                        games.title as title,
                        games.author as author,
                        games.desc as description,
@@ -375,7 +375,7 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse, $count_all_
         // if it's unquoted, check for special prefixes
         if (!$quoted
             && preg_match("/^(-?)([#a-z]+:)/i", $w, $match)
-            && isset($specialMap[$m = $match[2]]))
+            && isset($specialMap[$m = mb_strtolower($match[2])]))
         {
             // set up the new special entry - this is an array with
             // element [0] giving the special descriptor, [1] giving
@@ -619,9 +619,8 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse, $count_all_
                 if (!isset($extraJoins[$col])) {
                     $extraJoins[$col] = true;
                     $txt = mysql_real_escape_string($txt, $db);
-                    $tableList .= " inner join compgames "
-                                  . "on compgames.gameid = games.id "
-                                  . "and compgames.compid = '$txt'";
+                    $tableList .= " inner join (select distinct gameid from compgames where compid = '$txt') as compgames "
+                                  . "on compgames.gameid = games.id";
                 }
                 break;
 
@@ -685,7 +684,7 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse, $count_all_
                 }
 
                 $not = (preg_match("/^y.*/i", $txt) ? "" : "not");
-                $expr = "gameid $not in (select gameid from playedgames where userid = '$curuser')";
+                $expr = "games.id $not in (select gameid from playedgames where userid = '$curuser')";
                 break;
 
             case 'willplay':
@@ -695,7 +694,7 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse, $count_all_
                 }
 
                 $not = (preg_match("/^y.*/i", $txt) ? "" : "not");
-                $expr = "gameid $not in (select gameid from wishlists where userid = '$curuser')";
+                $expr = "games.id $not in (select gameid from wishlists where userid = '$curuser')";
                 break;
 
             case 'wontplay':
@@ -705,7 +704,7 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse, $count_all_
                 }
 
                 $not = (preg_match("/^y.*/i", $txt) ? "" : "not");
-                $expr = "gameid $not in (select gameid from unwishlists where userid = '$curuser')";
+                $expr = "games.id $not in (select gameid from unwishlists where userid = '$curuser')";
                 break;
 
 
@@ -716,7 +715,7 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse, $count_all_
                 }
 
                 $not = (preg_match("/^y.*/i", $txt) ? "" : "not");
-                $expr = "gameid $not in (select gameid from reviews where review is not null and userid = '$curuser')";
+                $expr = "games.id $not in (select gameid from reviews where review is not null and userid = '$curuser')";
                 break;
 
             case 'rated':
@@ -726,7 +725,7 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse, $count_all_
                 }
 
                 $not = (preg_match("/^y.*/i", $txt) ? "" : "not");
-                $expr = "gameid $not in (select gameid from reviews where rating is not null and userid = '$curuser')";
+                $expr = "games.id $not in (select gameid from reviews where rating is not null and userid = '$curuser')";
                 break;
 
             case 'author':
@@ -1138,7 +1137,7 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse, $count_all_
     $bindParameters = array_merge($tagsToMatch, $tagsToNegate);
 
     // run the query
-    $result = mysqli_execute_query($db, $sql, $bindParameters);
+    $result = mysql_execute_query($db, $sql, $bindParameters);
     if (!$result) error_log(mysql_error($db));
 //    echo "<p>$sql<p>" . mysql_error($db) . "<p>";  // DIAGNOSTICS
 
