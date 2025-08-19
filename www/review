@@ -299,14 +299,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_REQUEST['delete'])) {
     $rating = get_req_data("rating");
     $summary = get_req_data("summary");
     $isMarkdown = isset($_POST['isMarkdown']);
-    if ($isMarkdown == true) {
-        $reviewbody = $parsedown->text(get_req_data("reviewbody"));
-        $oldVersion = $parsedown->text(get_req_data("oldVersion"));
-    }
-    else {
-        $reviewbody = get_req_data("reviewbody");
-        $oldVersion = get_req_data("oldVersion");  
-    }
+    $reviewbody = get_req_data("reviewbody");
+    $oldVersion = get_req_data("oldVersion");
+    $parsedReview = $parsedown->text($reviewbody);
     $special = get_req_data("special");
     $embargoDate = get_req_data("embargoDate");
     $tags = get_req_data("tags");
@@ -395,12 +390,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $rating = get_req_data("rating");
     $summary = get_req_data("summary");
     $isMarkdown = isset($_POST['isMarkdown']);
-    if ($isMarkdown == true) {
-        $reviewbody = $parsedown->text(get_req_data("reviewbody"));
-    }
-    else {
-        $reviewbody = get_req_data("reviewbody");
-    }
+    $reviewbody = get_req_data("reviewbody");
+    $parsedReview = $parsedown->text($reviewbody);
     $special = get_req_data("special");
     $embargoDate = get_req_data("embargoDate");
     $tags = get_req_data("tags");
@@ -475,7 +466,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             .   "by <a href=\"showuser?id=$userid\">$username</a>"
             . ($userloc != "" ? " ($userloc)" : "")
             . "</span><br>"
-            . fixDesc($reviewbody, FixDescSpoiler);
+            . fixDesc($parsedReview, FixDescSpoiler);
 
         if (trim($tags) != "")
             echo "<p><b>Tags:</b> " . htmlspecialcharx($tags);
@@ -911,15 +902,6 @@ if (isset($errDetail['embargoDate']))
 
          <br><span class=notes>Checking this box will add a note to this
             effect when your review is displayed.</span>
-
-        <br><br>
-        
-        <label><input name="isMarkdown" type="checkbox" value="<?php echo $isMarkdown ?>">
-        Convert markdown formatting to HTML</label>
-        <br><span class=notes>If you check this box,
-            the formatting of the entire review text will be parsed as markdown
-            and converted to HTML. Existing HTML tags are preserved.</span>
-
       </div>
    </p>
 
