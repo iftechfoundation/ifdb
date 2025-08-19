@@ -840,7 +840,7 @@ $filterTypeMap = array(
     "A" => "Adult Content",
     "R" => "Review Embargo");
 
-pageHeader("Maintenance Operations");
+pageHeader("Administrator Operations");
 
 // check for requests
 if (isset($_REQUEST['osvercheck'])) {
@@ -2979,37 +2979,48 @@ function cleanutf8($str)
 
 // show the options
 ?>
-<h1>Maintenance Operations</h1>
+<h1>Administrator Operations</h1>
 
-<a href="adminops?osvercheck">OS versions integrity check</a><br>
-<a href="adminops?cleanpix">Delete orphaned images</a><br>
-<a href="adminops?users&sortby=new">User list</a><br>
-<a href="adminops?finduser">User search</a><br>
-<a href="adminops?recentactivity&days=3">Recent activity</a><br>
-<a href="adminops?adminemail">Send admin email</a><br>
-<a href="adminops?burygame">Bury game</a><br>
-<a href="adminops?bulkaddtag">Bulk add tags</a><br>
-<a href="adminops?bulkdeletetag">Bulk delete tags</a><br>
-<a href="adminops?blocktag">Block tag</a><br>
-<a href="adminops?userSelfComments">User self-comments</a><br>
-<a href="adminops?reaper=30">Persistent session reaper</a><br>
-<a href="adminops?fixsortkeys">
-   Fix NULL author/title sort keys in GAMES table</a><br>
-<a href="adminops?fixsortkeys&rebuild">
-   Rebuild ALL author/title sort keys in GAMES table</a><br>
-<a href="adminops?rebuildgametags">
-   Rebuild GAMES.TAGS from GAMETAGS contents</a><br>
-<a href="adminops?rebuildgametags2">
-   Rebuild GAMETAGS from GAMES.TAGS</a><br>
-<a href="adminops?fixbafs">
-   Fix &lt;A HREF&gt; tags in Baf's Guide reviews</a><br>
-<a href="opsys">Edit OS list</a><br>
-<a href="fileformat">Edit file format list</a><br>
-<a href="adminops?osfmtprivs">Show OS/file format editors</a><br>
-<a href="adminops?filters">View/edit game filter list</a><br>
-<a href="adminops?utf8entities">Fix UTF-8 entities in database</a><br>
-<a href="adminops?sysinfo">Show server software versions</a><br>
-<a href="adminops?addnews">Add a Site News item</a><br>
+<h3>Moderation and communication</h3>
+<ul>
+    <li><a href="adminops?users&sortby=new">User list</a></li>
+    <li><a href="adminops?finduser">User search</a></li>
+    <li><a href="adminops?recentactivity&days=3">Recent activity</a></li>
+    <li><a href="adminops?userSelfComments">User self-comments</a></li>
+    <li><a href="adminops?adminemail">Send admin email</a></li>
+    <li><a href="adminops?addnews">Add a Site News item</a></li>
+    <li><a href="adminops?burygame">Bury game</a></li>
+</ul>
+
+<h3>Tags</h3>
+<ul>
+    <li><a href="adminops?bulkaddtag">Bulk add tags</a></li>
+    <li><a href="adminops?bulkdeletetag">Bulk delete tags</a></li>
+    <li><a href="adminops?blocktag">Block tag</a></li></ul>
+
+<h3>Operating systems and formats</h3>
+<ul>
+    <li><a href="adminops?osvercheck">OS versions integrity check</a></li>
+    <li><a href="opsys">Edit OS list</a></li>
+    <li><a href="fileformat">Edit file format list</a></li>
+    <li><a href="adminops?osfmtprivs">Show OS/file format editors</a></li>
+</ul>
+
+<h3>Maintenance</h3>
+<ul>
+    <li><a href="adminops?cleanpix">Delete orphaned images</a></li>
+    <li><a href="adminops?reaper=30">Persistent session reaper</a></li>
+    <li><a href="adminops?fixsortkeys">Fix NULL author/title sort keys in GAMES table</a></li>
+    <li><a href="adminops?fixsortkeys&rebuild">Rebuild ALL author/title sort keys in GAMES table</a></li>
+    <li><a href="adminops?rebuildgametags">Rebuild GAMES.TAGS from GAMETAGS contents</a></li>
+    <li><a href="adminops?rebuildgametags2">Rebuild GAMETAGS from GAMES.TAGS</a></li>
+    <li><a href="adminops?fixbafs">Fix &lt;A HREF&gt; tags in Baf's Guide reviews</a></li>
+    <li><a href="adminops?filters">View/edit game filter list</a></li>
+    <li><a href="adminops?utf8entities">Fix UTF-8 entities in database</a></li>
+    <li><a href="adminops?sysinfo">Show server software versions</a></li>
+</ul>
+<br>
+
 
 <?php
 pageFooter();
