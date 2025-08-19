@@ -285,7 +285,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_REQUEST['delete'])) {
     echo "<b>$title</b>, by $author<br>"
         . showStars($oldrating)
         . "<b>" . htmlspecialcharx($oldsummary) . "</b><br>"
-        . fixDesc($parsedown->text($oldreview), FixDescSpoiler | FixDescMarkdown);
+        . fixDesc($parsedown->text($oldreview), FixDescSpoiler);
 
     echo "</div><form name=\"confirmdelete\" method=\"post\" "
         . "action=\"review?id=$id&userid=$userid\">"
@@ -464,7 +464,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             .   "by <a href=\"showuser?id=$userid\">$username</a>"
             . ($userloc != "" ? " ($userloc)" : "")
             . "</span><br>"
-            . fixDesc($parsedReview, FixDescSpoiler | FixDescMarkdown);
+            . fixDesc($parsedReview, FixDescSpoiler);
 
         if (trim($tags) != "")
             echo "<p><b>Tags:</b> " . htmlspecialcharx($tags);

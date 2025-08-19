@@ -770,7 +770,7 @@ function showNewItemsRSS($db, $showcnt)
                 }
                 $title .= $stars;
             }
-            $desc = fixDesc($parsedown->line($r['review']), FixDescSpoiler | FixDescRSS | FixDescMarkdown);
+            $desc = fixDesc($parsedown->line($r['review']), FixDescSpoiler | FixDescRSS);
             $link = get_root_url() . "viewgame?id={$r['gameid']}"
                     . "&review={$r['id']}";
             $pubDate = $r['d'];

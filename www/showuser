@@ -610,7 +610,7 @@ if ($errMsg) {
             $author = collapsedAuthors($author);
             $summary = htmlspecialcharx($summary);
             [$review, $revlen, $revtrunc] = summarizeHtml($review, 140);
-            $parsedReview = fixDesc($parsedown->line($review), FixDescMarkdown);
+            $parsedReview = fixDesc($parsedown->line($review));
             if ($moddate && $createdate != $moddate) {
                 $createdate .= " (edited: $moddate)";
             }
