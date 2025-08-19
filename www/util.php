@@ -1122,9 +1122,9 @@ function fixDesc($desc, $specials = 0)
             if (strncasecmp($therest, "lt;", 3) == 0
                 || strncasecmp($therest, "gt;", 3) == 0) {
                 $ofs += 3;
-            } else if (strncasecmp($desc, "amp;", 4) == 0) {
+            } else if (strncasecmp($therest, "amp;", 4) == 0) {
                 $ofs += 4;
-            } else if (strncasecmp($desc, "quot;", 5) == 0) {
+            } else if (strncasecmp($therest, "quot;", 5) == 0) {
                 $ofs += 5;
             } else if ($specials and !FixDescMarkdown) {
                 // not recognized - make it an explicit &amp;
