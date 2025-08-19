@@ -17,7 +17,7 @@
 define("ENABLE_IMAGES", 1);
 
 // get the latest games and game news
-$items = getNewItems($db, 6, NEWITEMS_GAMES | NEWITEMS_GAMENEWS);
+list($items, $game_filter_was_applied) = getNewItems($db, 6, NEWITEMS_GAMES | NEWITEMS_GAMENEWS);
 
 // show the items
 $totcnt = count($items);
