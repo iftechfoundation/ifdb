@@ -606,6 +606,7 @@ echo helpWinLink("help-formatting?comment#spoilertags", "&lt;SPOILER&gt; tag")
             . "comments)</i></span><br>";
         captchaSubForm($captchaKey, $captchaErrMsg, "Verify Code");
     }
+
     echo "<p><input type=submit name=submitBtn value=\"Save Changes\"> ";
 
     echo "<p>";

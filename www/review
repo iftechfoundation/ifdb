@@ -298,7 +298,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_REQUEST['delete'])) {
     $isOldReview = get_req_data("isOld");
     $rating = get_req_data("rating");
     $summary = get_req_data("summary");
-    $isMarkdown = isset($_POST['isMarkdown']);
     $reviewbody = get_req_data("reviewbody");
     $oldVersion = get_req_data("oldVersion");
     $parsedReview = $parsedown->text($reviewbody);
