@@ -388,7 +388,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $isOldReview = get_req_data("isOld");
     $rating = get_req_data("rating");
     $summary = get_req_data("summary");
-    $isMarkdown = isset($_POST['isMarkdown']);
     $reviewbody = get_req_data("reviewbody");
     $parsedReview = $parsedown->text($reviewbody);
     $special = get_req_data("special");
