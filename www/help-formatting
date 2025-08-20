@@ -9,7 +9,7 @@ helpPageHeader("Formatting Hints");
 
 <h1>Formatting Hints</h1>
 
-<p>You can use some limited HTML-style formatting code in this field:
+<p>You can use some limited HTML-style formatting code <?php if ($review) { ?>as well as Markdown<?php } ?> in this field.
 
 <?php if ($review || $comment) { ?>
 
@@ -64,4 +64,3 @@ literally as line breaks in the displayed version.
 <?php
 helpPageFooter();
 ?>
-

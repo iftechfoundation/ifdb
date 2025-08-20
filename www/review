@@ -5,12 +5,15 @@ include_once "util.php";
 include_once "dbconnect.php";
 include_once "starctl.php";
 include_once "searchutil.php";
-
+require_once 'vendor/autoload.php';
 // we have to be logged in to enter/edit a review
 include_once "session-start.php";
 include_once "login-check.php";
 if (!logged_in())
     exit();
+
+// The markdown parser library
+$parsedown = new Parsedown();
 
 // connect to the database
 $db = dbConnect();
@@ -282,7 +285,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_REQUEST['delete'])) {
     echo "<b>$title</b>, by $author<br>"
         . showStars($oldrating)
         . "<b>" . htmlspecialcharx($oldsummary) . "</b><br>"
-        . fixDesc($oldreview, FixDescSpoiler);
+        . fixDesc($parsedown->text($oldreview), FixDescSpoiler);
 
     echo "</div><form name=\"confirmdelete\" method=\"post\" "
         . "action=\"review?id=$id&userid=$userid\">"
@@ -296,11 +299,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_REQUEST['delete'])) {
     $rating = get_req_data("rating");
     $summary = get_req_data("summary");
     $reviewbody = get_req_data("reviewbody");
+    $oldVersion = get_req_data("oldVersion");
+    $parsedReview = $parsedown->text($reviewbody);
     $special = get_req_data("special");
     $embargoDate = get_req_data("embargoDate");
     $tags = get_req_data("tags");
     $omitAvg = get_req_data("omitAvg");
-    $oldVersion = get_req_data("oldVersion");
     addHiddenItems();
 
     pageFooter();
@@ -385,6 +389,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $rating = get_req_data("rating");
     $summary = get_req_data("summary");
     $reviewbody = get_req_data("reviewbody");
+    $parsedReview = $parsedown->text($reviewbody);
     $special = get_req_data("special");
     $embargoDate = get_req_data("embargoDate");
     $tags = get_req_data("tags");
@@ -459,7 +464,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             .   "by <a href=\"showuser?id=$userid\">$username</a>"
             . ($userloc != "" ? " ($userloc)" : "")
             . "</span><br>"
-            . fixDesc($reviewbody, FixDescSpoiler);
+            . fixDesc($parsedReview, FixDescSpoiler);
 
         if (trim($tags) != "")
             echo "<p><b>Tags:</b> " . htmlspecialcharx($tags);
@@ -785,7 +790,6 @@ else if (isset($errDetail['summary']))
 if (isset($missingFields['reviewbody']))
     echo "<span class=errmsg><i>Please enter your review.</i></span><br>";
 ?>
-
     <div id='enter-review'>
         <style nonce="<?=$nonce?>">
             @media (min-width: 65ch) {
@@ -809,7 +813,6 @@ if (isset($missingFields['reviewbody']))
         ?></i></div>
     </div>
     <textarea name="reviewbody" rows=15><?php echo htmlspecialcharx($reviewbody) ?></textarea>
-
    </p>
    <p>
 <?php
@@ -897,7 +900,6 @@ if (isset($errDetail['embargoDate']))
 
          <br><span class=notes>Checking this box will add a note to this
             effect when your review is displayed.</span>
-
       </div>
    </p>
 

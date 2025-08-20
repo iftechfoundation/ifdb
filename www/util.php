@@ -1121,11 +1121,11 @@ function fixDesc($desc, $specials = 0)
             if (strncasecmp($therest, "lt;", 3) == 0
                 || strncasecmp($therest, "gt;", 3) == 0) {
                 $ofs += 3;
-            } else if (strncasecmp($desc, "amp;", 4) == 0) {
+            } else if (strncasecmp($therest, "amp;", 4) == 0) {
                 $ofs += 4;
-            } else if (strncasecmp($desc, "quot;", 5) == 0) {
+            } else if (strncasecmp($therest, "quot;", 5) == 0) {
                 $ofs += 5;
-            } else {
+            } else if ($specials) {
                 // not recognized - make it an explicit &amp;
                 $desc = substr_replace($desc, "&amp;", $ofs, 1);
                 $ofs += 4;
@@ -1134,7 +1134,9 @@ function fixDesc($desc, $specials = 0)
 
         case '"':
             // convert to &quot;
-            $desc = substr_replace($desc, "&quot;", $ofs, 1);
+            if ($specials) {
+                $desc = substr_replace($desc, "&quot;", $ofs, 1);
+            }
             break;
 
         case "'":

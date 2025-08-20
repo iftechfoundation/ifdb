@@ -1,6 +1,7 @@
 <?php
 
 include_once "searchutil.php";
+require_once 'vendor/autoload.php';
 
 define("NEWITEMS_SITENEWS", 0x0001);
 define("NEWITEMS_GAMES", 0x0002);
@@ -361,6 +362,8 @@ function showNewItems($db, $first, $last, $items, $options = [])
 
 function showNewItemList($db, $first, $last, $items, $options)
 {
+    // The markdown parser library
+    $parsedown = new Parsedown();
     $showFlagged = $options['showFlagged'] ?? false;
     $allowHiddenBanner = $options['allowHiddenBanner'] ?? true;
     $showDescriptions = $options['showDescriptions'] ?? true;
@@ -476,7 +479,7 @@ function showNewItemList($db, $first, $last, $items, $options)
                     echo "$stars ";
 
                 if ($len != 0)
-                    echo "<i>\"$summary\"</i>";
+                    echo $parsedown->line("<i>\"$summary\"</i>");
 
                 if ($trunc)
                     echo " - <a class=eager href=\"viewgame?id={$r['gameid']}"
@@ -735,6 +738,9 @@ function showNewItemsRSS($db, $showcnt)
         }
     }
 
+    // The markdown parser library
+    $parsedown = new Parsedown();
+
     // show the items
     for ($idx = 0 ; $idx < $showcnt && $idx < $totcnt ; $idx++)
     {
@@ -764,7 +770,7 @@ function showNewItemsRSS($db, $showcnt)
                 }
                 $title .= $stars;
             }
-            $desc = fixDesc($r['review'], FixDescSpoiler | FixDescRSS);
+            $desc = fixDesc($parsedown->line($r['review']), FixDescSpoiler | FixDescRSS);
             $link = get_root_url() . "viewgame?id={$r['gameid']}"
                     . "&review={$r['id']}";
             $pubDate = $r['d'];
