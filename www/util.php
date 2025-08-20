@@ -765,7 +765,6 @@ function spoilerWarningScript()
 define("FixDescSpoiler", 0x0001);
 define("FixDescRSS", 0x0002);
 define("FixDescIfic", 0x0004);
-define("FixDescMarkdown", 0x0008);
 function fixDesc($desc, $specials = 0)
 {
     $foundSpoiler = false;
@@ -1126,7 +1125,7 @@ function fixDesc($desc, $specials = 0)
                 $ofs += 4;
             } else if (strncasecmp($therest, "quot;", 5) == 0) {
                 $ofs += 5;
-            } else if ($specials and !FixDescMarkdown) {
+            } else if ($specials) {
                 // not recognized - make it an explicit &amp;
                 $desc = substr_replace($desc, "&amp;", $ofs, 1);
                 $ofs += 4;
@@ -1135,7 +1134,7 @@ function fixDesc($desc, $specials = 0)
 
         case '"':
             // convert to &quot;
-            if ($specials and !FixDescMarkdown) {
+            if ($specials) {
                 $desc = substr_replace($desc, "&quot;", $ofs, 1);
             }
             break;
