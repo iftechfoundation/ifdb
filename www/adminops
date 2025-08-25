@@ -2905,45 +2905,18 @@ else if (isset($_REQUEST['deletenews'])) {
     for ($i = 0; $i < $count; $i++) {
         $rec = mysql_fetch_array($result, MYSQL_ASSOC);
         $raw = $rec['review'];
-        // a bunch of reviews have random \r characters strewn about.
-        // Legacy treats these as spaces; Parsedown treats them as line breaks.
-        $removedCarriageReturns = str_replace("\r", " ", $raw);
-        $reviewMarkdown = fixDesc($parsedown->text($removedCarriageReturns), FixDescSpoiler);
+        $reviewMarkdown = fixDesc($parsedown->line($raw), FixDescSpoiler);
         $reviewLegacy = fixDesc($rec['review'], FixDescSpoiler);
         echo json_encode(["id" => $rec['id'], "gameid" => $rec['gameid'], "raw" => $rec['review'], "before" => $reviewLegacy, "after" => $reviewMarkdown]) . ",\n";
     }
     echo "];</script>\n";
     echo "<script nonce='$nonce'>
-    function normalize(html) {
-        const div = document.createElement('div');
-        div.innerHTML = html;
-        for (let i = div.childNodes.length - 1; i >= 0; i--) {
-            trimTextNodes(div.childNodes[i]);
-        }
-        // remove empty p tags
-        [...div.querySelectorAll('p')].filter(p => p.childNodes.length === 0).forEach(p => p.remove());
-        return div.innerHTML.replaceAll('<br><br>', '</p><p>');
-    }
-    function trimTextNodes(node) {
-        if (node.nodeType === Node.TEXT_NODE) {
-            const originalValue = node.nodeValue;
-            const trimmedValue = originalValue.replace(/\s+/g, ' ').trim();
-
-            if (originalValue !== trimmedValue) {
-                node.nodeValue = trimmedValue;
-            }
-        } else if (node.nodeType === Node.ELEMENT_NODE) {
-            for (let i = node.childNodes.length - 1; i >= 0; i--) {
-                trimTextNodes(node.childNodes[i]);
-            }
-        }
-    }
     let matches = 0;
     window.mismatches = [];
     for (let i = 0; i < window.reviews.length; i++) {
         const review = window.reviews[i];
-        let before = normalize('<p>' + review.before);
-        let after = normalize(review.after);
+        let before = review.before
+        let after = review.after;
         if (before == after) {
             matches++;
         } else {
