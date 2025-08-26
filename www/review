@@ -285,7 +285,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_REQUEST['delete'])) {
     echo "<b>$title</b>, by $author<br>"
         . showStars($oldrating)
         . "<b>" . htmlspecialcharx($oldsummary) . "</b><br>"
-        . fixDesc($parsedown->line($oldreview), FixDescSpoiler);
+        . fixDesc($parsedown->line($oldreview), FixDescSpoiler | FixDescMarkdown);
 
     echo "</div><form name=\"confirmdelete\" method=\"post\" "
         . "action=\"review?id=$id&userid=$userid\">"
@@ -389,7 +389,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $rating = get_req_data("rating");
     $summary = get_req_data("summary");
     $reviewbody = get_req_data("reviewbody");
-    $parsedReview = $parsedown->setMarkupEscaped(true)->line($reviewbody);
+    $parsedReview = $parsedown->line($reviewbody);
     $special = get_req_data("special");
     $embargoDate = get_req_data("embargoDate");
     $tags = get_req_data("tags");
@@ -464,7 +464,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             .   "by <a href=\"showuser?id=$userid\">$username</a>"
             . ($userloc != "" ? " ($userloc)" : "")
             . "</span><br>"
-            . fixDesc($parsedReview, FixDescSpoiler);
+            . fixDesc($parsedReview, FixDescSpoiler | FixDescMarkdown);
 
         if (trim($tags) != "")
             echo "<p><b>Tags:</b> " . htmlspecialcharx($tags);

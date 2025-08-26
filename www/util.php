@@ -765,6 +765,7 @@ function spoilerWarningScript()
 define("FixDescSpoiler", 0x0001);
 define("FixDescRSS", 0x0002);
 define("FixDescIfic", 0x0004);
+define("FixDescMarkdown", 0x008);
 function fixDesc($desc, $specials = 0)
 {
     $foundSpoiler = false;
@@ -1183,6 +1184,9 @@ function fixDesc($desc, $specials = 0)
     if ($foundSpoiler)
         $desc .= spoilerWarningScript();
 
+    if ($specials & FixDescMarkdown) {
+        $desc = preg_replace('/<em>((?:.*?)<br>(?:\s*?))<\/em>/im', '*$1*', $desc);
+    }
     // return the result
     return $desc;
 }

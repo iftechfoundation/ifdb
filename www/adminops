@@ -2915,6 +2915,7 @@ else if (isset($_REQUEST['deletenews'])) {
         $rec = mysql_fetch_array($result, MYSQL_ASSOC);
         $raw = $rec['review'];
         $reviewMarkdown = normalizeSpoiler(fixDesc($parsedown->line($raw), FixDescSpoiler));
+        $reviewMarkdown = preg_replace('/<em>((?:.*?)<br>(?:\s*?))<\/em>/im', '*$1*', $reviewMarkdown);
         $reviewLegacy = normalizeSpoiler(fixDesc($rec['review'], FixDescSpoiler));
         echo json_encode(["id" => $rec['id'], "gameid" => $rec['gameid'], "raw" => $rec['review'], "before" => $reviewLegacy, "after" => $reviewMarkdown]) . ",\n";
     }
