@@ -15,7 +15,6 @@
 // make sure we process any persistent login state
 include_once "login-persist.php";
 include_once "commentutil.php";
-require_once 'vendor/autoload.php';
 
 // get the query given a WHERE condition
 function getReviewQuery($db, $where)
@@ -252,7 +251,6 @@ define("SHOWREVIEW_COLLAPSELONG", 0x0010);
 
 function showReview($db, $gameid, $rec, $specialNames, $optionFlags = 0)
 {
-    $parsedown = new Parsedown();
     global $specialCodes;
 
     // note whether or not they want voting and/or comment controls
@@ -272,7 +270,7 @@ function showReview($db, $gameid, $rec, $specialNames, $optionFlags = 0)
     $qreviewid = mysql_real_escape_string($reviewid, $db);
     $rating = $rec['rating'];
     $summary = htmlspecialcharx($rec['summary']);
-    $review = fixDesc($parsedown->line($rec['review']), FixDescSpoiler | FixDescMarkdown);
+    $review = fixDesc(parsedownMultilineText($rec['review']), FixDescSpoiler | FixDescMarkdown);
     $publicationdate = $rec['publicationdatefmt'];
     $moddate = $rec['moddatefmt'];
     $lastupdateFootnote = null;

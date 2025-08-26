@@ -7,6 +7,7 @@ include_once "login-check.php";
 include_once "login-persist.php";
 include_once "pagetpl.php";
 include_once "image-util.php";
+require_once 'vendor/autoload.php';
 
 // https://cheatsheetseries.owasp.org/cheatsheets/Authentication_Cheat_Sheet.html#implement-proper-password-strength-controls
 // "It is important to set a maximum password length to prevent long password Denial of Service attacks."
@@ -1203,6 +1204,29 @@ function closeTagForStackedTag($tag)
     default:
         return $tag;
     }
+}
+
+function parsedownMultilineText($text) {
+    // parsedown->text converts "1st line \n 2nd line" to "<p>1st line <br /> 2nd line</p>"
+    // that's unfortunate, because fixDesc has a special rule for `<br/>`.
+    // We assume that `<br/>` is an iFiction *paragraph* break
+    // We *do* have real `<br/>` iFiction paragraph breaks in the DB, which need to be rendered as
+    // paragraph breaks.
+    // So, we start by replacing all instances of `<br/>` with </p><p>, then run
+    // parsedown, which may generate some new `<br />` tokens. We'll replace those with `<br>`
+    // (so fixDesc won't turn them into paragraph breaks)
+
+    // example:
+    // in: "1st line \n 2nd line <br /> 3rd line" -> "<p>1st line<br>\n2nd line <p> 3rd line</p>"
+    //   (fixDesc will leave that line alone)
+
+    // pre-process iFiction-style <br/> paragraph breaks
+    $replaced_ific_br = preg_replace("/<br *\\/>/", "</p><p>", $text);
+    $parsedown = new Parsedown();
+    $parsedown->setBreaksEnabled(true);
+    $markdown_converted = $parsedown->text($replaced_ific_br);
+    $output = preg_replace("/<br \\/>/", "<br>", $markdown_converted);
+    return $output;
 }
 
 // --------------------------------------------------------------------------
