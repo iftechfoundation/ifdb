@@ -2895,6 +2895,7 @@ else if (isset($_REQUEST['deletenews'])) {
     echo "</table>";
 } else if (isset($_REQUEST['markdownTest'])) {
     $parsedown = new Parsedown();
+    $parsedown->setUrlsLinked(false); // URLs linked are always good, so let's ignore changes due to this
     $result = mysqli_execute_query($db, "select id, gameid, review from reviews where review is not null and special is null");
     $matches = 0;
     $count = mysql_num_rows($result);
