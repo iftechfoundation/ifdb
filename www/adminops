@@ -11,6 +11,7 @@ include_once "pagetpl.php";
 include_once "useractivation.php";
 
 include_once "dbconnect.php";
+require_once "vendor/autoload.php";
 $db = dbConnect();
 
 // assume no privileges
@@ -2892,6 +2893,50 @@ else if (isset($_REQUEST['deletenews'])) {
     }
 
     echo "</table>";
+} else if (isset($_REQUEST['markdownTest'])) {
+    $parsedown = new Parsedown();
+    $parsedown->setUrlsLinked(false); // URLs linked are always good, so let's ignore changes due to this
+    $result = mysqli_execute_query($db, "select id, gameid, review from reviews where review is not null and special is null");
+    $matches = 0;
+    $count = mysql_num_rows($result);
+    echo "<p>Count: $count</p>";
+    $output = [];
+    global $nonce;
+    // fixDesc assigns each spoiler a unique id; we don't want that
+    function normalizeSpoiler($text) {
+        $output = preg_replace("/a_spoiler\d+/", "", $text);
+        $output = preg_replace("/s_spoiler\d+/", "", $output);
+        $output = preg_replace("/data-num='\\d+'/", "", $output);
+        $output = preg_replace("/<script [\\s\\S]*<\\/script>/", "", $output);
+        return $output;
+    }
+    echo "<script nonce='$nonce'>window.reviews = [\n";
+    for ($i = 0; $i < $count; $i++) {
+        $rec = mysql_fetch_array($result, MYSQL_ASSOC);
+        $raw = $rec['review'];
+        $reviewMarkdown = normalizeSpoiler(fixDesc($parsedown->line($raw), FixDescSpoiler));
+        $reviewLegacy = normalizeSpoiler(fixDesc($rec['review'], FixDescSpoiler));
+        echo json_encode(["id" => $rec['id'], "gameid" => $rec['gameid'], "raw" => $rec['review'], "before" => $reviewLegacy, "after" => $reviewMarkdown]) . ",\n";
+    }
+    echo "];</script>\n";
+    echo "<script nonce='$nonce'>
+    let matches = 0;
+    window.mismatches = [];
+    for (let i = 0; i < window.reviews.length; i++) {
+        const review = window.reviews[i];
+        let before = review.before
+        let after = review.after;
+        if (before == after) {
+            matches++;
+        } else {
+            const mismatch = { i, review, befor: before, after };
+            console.log(mismatch);
+            window.mismatches.push(mismatch);
+        }
+    }
+    console.log({matches, count: window.reviews.length});
+    </script>";
+    echo "<p>done</p>";
 }
 
 function adjustImageName($name)
