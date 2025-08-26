@@ -202,6 +202,7 @@ if ($errMsg) {
              null) as embargodate,
            reviews.special as special,
            date_format(greatest(reviews.createdate, ifnull(embargodate, cast(0 as datetime))), '%M %e, %Y') as publicationdatefmt,
+           reviews.moddate as moddate,
            date_format(greatest(reviews.moddate, ifnull(embargodate, cast(0 as datetime))), '%M %e, %Y') as moddatefmt,
            sum(reviewvotes.vote = 'Y' and ifnull(rvu.sandbox, 0) in $sandbox) as helpful,
            sum(reviewvotes.vote = 'N' and ifnull(rvu.sandbox, 0) in $sandbox) as unhelpful,
