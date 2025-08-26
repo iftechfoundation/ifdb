@@ -2902,12 +2902,20 @@ else if (isset($_REQUEST['deletenews'])) {
     echo "<p>Count: $count</p>";
     $output = [];
     global $nonce;
+    // fixDesc assigns each spoiler a unique id; we don't want that
+    function normalizeSpoiler($text) {
+        $output = preg_replace("/a_spoiler\d+/", "", $text);
+        $output = preg_replace("/s_spoiler\d+/", "", $output);
+        $output = preg_replace("/data-num='\\d+'/", "", $output);
+        $output = preg_replace("/<script [\\s\\S]*<\\/script>/", "", $output);
+        return $output;
+    }
     echo "<script nonce='$nonce'>window.reviews = [\n";
     for ($i = 0; $i < $count; $i++) {
         $rec = mysql_fetch_array($result, MYSQL_ASSOC);
         $raw = $rec['review'];
-        $reviewMarkdown = fixDesc($parsedown->line($raw), FixDescSpoiler);
-        $reviewLegacy = fixDesc($rec['review'], FixDescSpoiler);
+        $reviewMarkdown = normalizeSpoiler(fixDesc($parsedown->line($raw), FixDescSpoiler));
+        $reviewLegacy = normalizeSpoiler(fixDesc($rec['review'], FixDescSpoiler));
         echo json_encode(["id" => $rec['id'], "gameid" => $rec['gameid'], "raw" => $rec['review'], "before" => $reviewLegacy, "after" => $reviewMarkdown]) . ",\n";
     }
     echo "];</script>\n";
