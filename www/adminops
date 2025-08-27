@@ -2894,8 +2894,6 @@ else if (isset($_REQUEST['deletenews'])) {
 
     echo "</table>";
 } else if (isset($_REQUEST['markdownTest'])) {
-    $parsedown = new Parsedown();
-    $parsedown->setUrlsLinked(false); // URLs linked are always good, so let's ignore changes due to this
     $result = mysqli_execute_query($db, "select id, gameid, review from reviews where review is not null and special is null");
     $matches = 0;
     $count = mysql_num_rows($result);
@@ -2914,7 +2912,7 @@ else if (isset($_REQUEST['deletenews'])) {
     for ($i = 0; $i < $count; $i++) {
         $rec = mysql_fetch_array($result, MYSQL_ASSOC);
         $raw = $rec['review'];
-        $reviewMarkdown = normalizeSpoiler(fixDesc(parsedownMultilineText($raw)));
+        $reviewMarkdown = normalizeSpoiler(fixDesc(parsedownMultilineText($raw, IsAdminTool)));
         $reviewLegacy = normalizeSpoiler(fixDesc($rec['review']));
         echo json_encode(["id" => $rec['id'], "gameid" => $rec['gameid'], "raw" => $rec['review'], "before" => $reviewLegacy, "after" => $reviewMarkdown]) . ",\n";
     }

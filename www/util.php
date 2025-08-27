@@ -1202,7 +1202,9 @@ function closeTagForStackedTag($tag)
     }
 }
 
-function parsedownMultilineText($text) {
+// Conditional exceptions when searching for differences using admin tool
+define("IsAdminTool", 0x0001);
+function parsedownMultilineText($text, $specials = 0) {
     // parsedown->text converts "1st line \n 2nd line" to "<p>1st line <br /> 2nd line</p>"
     // that's unfortunate, because fixDesc has a special rule for `<br/>`.
     // We assume that `<br/>` is an iFiction *paragraph* break
@@ -1220,6 +1222,11 @@ function parsedownMultilineText($text) {
     $replaced_ific_br = preg_replace("/<br *\\/>/", "</p><p>", $text);
     $parsedown = new Parsedown();
     $parsedown->setBreaksEnabled(true);
+    $parsedown->setUrlsLinked(true);
+    // URLs linked are always good changes, so ignore these differences when using the Markdown Test admin tool
+    if($specials & IsAdminTool) {
+//        $parsedown->setUrlsLinked(false);
+    }
     $markdown_converted = $parsedown->text($replaced_ific_br);
     $output = preg_replace("/<br \\/>/", "<br>", $markdown_converted);
     return $output;
