@@ -273,7 +273,7 @@ function showReview($db, $gameid, $rec, $specialNames, $optionFlags = 0)
     if (strcmp($rec['moddate'], '2025-08-26') < 0) {
         $review = fixDesc($rec['review'], FixDescSpoiler);
     } else {
-        $review = fixDesc(parsedownMultilineText($rec['review']), FixDescSpoiler | FixDescMarkdown);
+        $review = fixDesc(parsedownMultilineText($rec['review']), FixDescSpoiler);
     }
     $publicationdate = $rec['publicationdatefmt'];
     $moddatefmt = $rec['moddatefmt'];
