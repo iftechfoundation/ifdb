@@ -792,7 +792,7 @@ function fixDesc($desc, $specials = 0)
         array('p', 'br',
               'i', 'b', 'u', 'strong', 'em',
               'big', 'small', 'tt', 'sup', 'sub',
-              'cite', 'blockquote',
+              'cite', 'blockquote', 'code', 'pre',
               'ul', 'ol', 'li', 'dl', 'dt', 'dd'), 1);
 
     // tags that trigger explicit line control mode
@@ -903,8 +903,8 @@ function fixDesc($desc, $specials = 0)
                     // it's an iFiction-style <br/> paragraph break - convert
                     // it to <p> and note that we have explicit line control
                     $desc = substr_replace($desc, "<p>", $ofs, $tagLen);
-                    $nlSub = " ";
-                    $nlSubIfic = " ";
+                    $nlSub = "\n";
+                    $nlSubIfic = "\n";
                     $ofs += 2;
 
                 } else if ($tagName == 'spoiler') {
@@ -963,11 +963,11 @@ function fixDesc($desc, $specials = 0)
                     $ofs = $gt;
 
                     // if it's a line tag, switch to explicit line control
-                    // mode - this means that we replace any hard newlines
-                    // in the source text with spaces rather than <br>'s
+                    // mode - this means that we don't replace hard newlines
+                    // in the source text with <br>'s
                     if (isset($lineTags[$tagName])) {
-                        $nlSub = " ";
-                        $nlSubIfic = " ";
+                        $nlSub = "\n";
+                        $nlSubIfic = "\n";
                     }
 
                 } else if ($tagName == 'a') {
