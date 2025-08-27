@@ -469,7 +469,7 @@ function showNewItemList($db, $first, $last, $items, $options)
             }
 
             $stars = showStars($r['rating']);
-            list($summary, $len, $trunc) = summarizeHtml($r['review'], 140);
+            list($summary, $len, $trunc) = summarizeHtml($parsedown->line($r['review']), 140);
             $summary = fixDesc($summary);
             if ($len != 0 || $stars != "")
             {
@@ -479,7 +479,7 @@ function showNewItemList($db, $first, $last, $items, $options)
                     echo "$stars ";
 
                 if ($len != 0)
-                    echo $parsedown->line("<i>\"$summary\"</i>");
+                    echo "<i>\"$summary\"</i>";
 
                 if ($trunc)
                     echo " - <a class=eager href=\"viewgame?id={$r['gameid']}"
