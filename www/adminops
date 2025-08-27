@@ -2914,9 +2914,8 @@ else if (isset($_REQUEST['deletenews'])) {
     for ($i = 0; $i < $count; $i++) {
         $rec = mysql_fetch_array($result, MYSQL_ASSOC);
         $raw = $rec['review'];
-        $reviewMarkdown = normalizeSpoiler(fixDesc($parsedown->line($raw), FixDescSpoiler));
-        $reviewMarkdown = preg_replace('/<em>((?:.*?)<br>(?:\s*?))<\/em>/im', '*$1*', $reviewMarkdown);
-        $reviewLegacy = normalizeSpoiler(fixDesc($rec['review'], FixDescSpoiler));
+        $reviewMarkdown = normalizeSpoiler(fixDesc(parsedownMultilineText($raw), FixDescMarkdown));
+        $reviewLegacy = normalizeSpoiler(fixDesc($rec['review']));
         echo json_encode(["id" => $rec['id'], "gameid" => $rec['gameid'], "raw" => $rec['review'], "before" => $reviewLegacy, "after" => $reviewMarkdown]) . ",\n";
     }
     echo "];</script>\n";
@@ -2957,15 +2956,22 @@ else if (isset($_REQUEST['deletenews'])) {
     }
 
     function generateLineDiffHtml(beforeText, afterText, tuid, reviewId) {
-        const beforeLines = beforeText.split(/(<br>|\n)/i);
-        const afterLines = afterText.split(/(<br>|\n)/i);
+        let re = /(?:<p>|<p\/>|<\/p> *|<br> ?|\n)+/i;
+        const beforeLines = beforeText.split(re).filter(l => !!l.trim());
+        const afterLines = afterText.split(re).filter(l => !!l.trim());
         const maxLength = Math.max(beforeLines.length, afterLines.length);
 
         let html = `<h3><a href='/viewgame?id=${tuid}&review=${reviewId}'>${reviewId}</a></h3>\n`;
+        let match = true;
+        let normalizer = document.createElement('div');
 
         for (let i = 0; i < maxLength; i++) {
-            const beforeLine = beforeLines[i] !== undefined ? beforeLines[i] : '';
-            const afterLine = afterLines[i] !== undefined ? afterLines[i] : '';
+            const beforeLineText = (beforeLines[i] ?? '').trim();
+            const afterLineText = (afterLines[i] ?? '').trim();
+            normalizer.innerHTML = beforeLineText;
+            const beforeLine = normalizer.innerHTML;
+            normalizer.innerHTML = afterLineText;
+            const afterLine = normalizer.innerHTML;
 
             let lineBeforeHtml = '';
             let lineAfterHtml = '';
@@ -2973,6 +2979,8 @@ else if (isset($_REQUEST['deletenews'])) {
             if (beforeLine === afterLine) {
                 continue;
             } else {
+                match = false;
+                console.log({beforeLine, afterLine});
                 const commonPrefix = findLongestCommonPrefix(beforeLine, afterLine);
                 lineBeforeHtml += commonPrefix;
                 lineAfterHtml += commonPrefix;
@@ -3005,7 +3013,7 @@ else if (isset($_REQUEST['deletenews'])) {
         }
         let div = document.createElement('div');
         div.innerHTML = html;
-        return div;
+        return {div, match};
     }
     
     function normalizeSpoiler(text) {
@@ -3018,15 +3026,21 @@ else if (isset($_REQUEST['deletenews'])) {
 
     for (let i = 0; i < window.reviews.length; i++) {
         const review = window.reviews[i];
-        let before = normalizeSpoiler(review.before);
+        let before = normalizeSpoiler("<p>" + review.before);
         let after = normalizeSpoiler(review.after);
         if (before == after) {
             matches++;
         } else {
-            const mismatch = { i, review, befor: before, after };
+            let {div, match}  = generateLineDiffHtml(before, after, review.gameid, review.id)
+            if (match) {
+                console.log('match');
+                matches++;
+                continue;
+            }
+            const mismatch = { i, id: review.id, review, befor: before, after };
             console.log(mismatch);
             window.mismatches.push(mismatch);
-            window.output.appendChild(generateLineDiffHtml(before, after, review.gameid, review.id));
+            window.output.appendChild(div);
         }
     }
     console.log({matches, count: window.reviews.length});
