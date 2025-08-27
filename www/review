@@ -12,9 +12,6 @@ include_once "login-check.php";
 if (!logged_in())
     exit();
 
-// The markdown parser library
-$parsedown = new Parsedown();
-
 // connect to the database
 $db = dbConnect();
 
