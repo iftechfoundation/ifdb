@@ -1135,9 +1135,7 @@ function fixDesc($desc, $specials = 0)
 
         case '"':
             // convert to &quot;
-            if ($specials) {
-                $desc = substr_replace($desc, "&quot;", $ofs, 1);
-            }
+            $desc = substr_replace($desc, "&quot;", $ofs, 1);
             break;
 
         case "'":
