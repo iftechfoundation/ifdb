@@ -39,6 +39,8 @@ reader clicks a button saying they want to see it.
 
 <p><b>&lt;CODE&gt;</b> - monospace text, representing programming code
 
+<p><b>&lt;HR&gt;</b> - a horizontal rule (a line), for section breaks
+
 <p><b>&lt;A GAME="<i>tuid</i>"&gt; ... &lt;/A&gt;</b> - hyperlink the text
 between the &lt;A&gt; and &lt;/A&gt; to a game.  <i>tuid</i> is the
 <a href="help-tuid">TUID</a> identifying the game.  Rather than writing
