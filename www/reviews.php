@@ -271,9 +271,9 @@ function showReview($db, $gameid, $rec, $specialNames, $optionFlags = 0)
     $rating = $rec['rating'];
     $summary = htmlspecialcharx($rec['summary']);
     if (strcmp($rec['moddate'], '2025-08-26') < 0) {
-        $review = fixDesc($rec['review'], FixDescSpoiler);
+        $review = fixDesc($rec['review'], FixDescSpoiler | FixDescDemoteHeadings);
     } else {
-        $review = fixDesc(parsedownMultilineText($rec['review']), FixDescSpoiler);
+        $review = fixDesc(parsedownMultilineText($rec['review']), FixDescSpoiler | FixDescDemoteHeadings);
     }
     $publicationdate = $rec['publicationdatefmt'];
     $moddatefmt = $rec['moddatefmt'];

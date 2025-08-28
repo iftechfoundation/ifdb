@@ -766,6 +766,7 @@ function spoilerWarningScript()
 define("FixDescSpoiler", 0x0001);
 define("FixDescRSS", 0x0002);
 define("FixDescIfic", 0x0004);
+define("FixDescDemoteHeadings", 0x0008);
 function fixDesc($desc, $specials = 0)
 {
     $foundSpoiler = false;
@@ -793,6 +794,7 @@ function fixDesc($desc, $specials = 0)
               'i', 'b', 'u', 'strong', 'em', 'hr',
               'big', 'small', 'tt', 'sup', 'sub',
               'cite', 'blockquote', 'code', 'pre',
+              'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
               'ul', 'ol', 'li', 'dl', 'dt', 'dd'), 1);
 
     // tags that trigger explicit line control mode
@@ -958,6 +960,16 @@ function fixDesc($desc, $specials = 0)
                     }
 
                 } else if (isset($allowedTags[$tagName])) {
+
+                    // If we're demoting headings, convert <h1> to <h4>, <h2> to <h5> and so on
+                    if (($specials & FixDescDemoteHeadings) && preg_match("/^h(\d)$/", $tagName, $matches)) {
+                        $level = min(6, ((int)$matches[1]) + 3);
+                        if ($isClose) {
+                            $desc = substr_replace($desc, "</h$level>", $ofs, $tagLen);
+                        } else {
+                            $desc = substr_replace($desc, "<h$level>", $ofs, $tagLen);
+                        }
+                    }
 
                     // it's an allowed tag - keep it
                     $ofs = $gt;
