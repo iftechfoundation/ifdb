@@ -9,7 +9,7 @@ helpPageHeader("Formatting Hints");
 
 <h1>Formatting Hints</h1>
 
-<p>You can use some limited HTML-style formatting code in this field:
+<p>You can use some limited HTML-style formatting code <?php if ($review) { ?>as well as Markdown<?php } ?> in this field.
 
 <?php if ($review || $comment) { ?>
 
@@ -36,6 +36,8 @@ reader clicks a button saying they want to see it.
 <p><b>&lt;BR/&gt;</b> - paragraph break (this is provided so that you can
    copy text from an <a href="https://babel.ifarchive.org">iFiction</a>
    XML file - the iFiction format uses &lt;BR/&gt; for paragraph breaks)
+
+<p><b>&lt;CODE&gt;</b> - monospace text, representing programming code
 
 <p><b>&lt;A GAME="<i>tuid</i>"&gt; ... &lt;/A&gt;</b> - hyperlink the text
 between the &lt;A&gt; and &lt;/A&gt; to a game.  <i>tuid</i> is the
@@ -64,4 +66,3 @@ literally as line breaks in the displayed version.
 <?php
 helpPageFooter();
 ?>
-
