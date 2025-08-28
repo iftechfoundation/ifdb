@@ -24,20 +24,25 @@ reader clicks a button saying they want to see it.
 
 <p><b>&lt;B&gt; ... &lt;/B&gt;</b> - the text between the &lt;B&gt; and
    &lt;/B&gt; is shown in <b>boldface</b>.
+    <?php if ($review) { ?>Alternatively, wrap text in two asterisks <b>**...**</b>.<?php } ?>
 
 <p><b>&lt;I&gt; ... &lt;/I&gt;</b> - the text between the &lt;I&gt; and
    &lt;/I&gt; is shown in <i>italics</i>.
+    <?php if ($review) { ?>Alternatively, wrap text in one asterisk <b>*...*</b> or one underscore <b>_..._</b><?php } ?>
 
 <p><b>&lt;BR&gt;</b> - line break: ends the current line and starts a new
    one, with no extra space between the lines.
+    <?php if ($review) { ?>Alternatively, just enter a line break with your keyboard.<?php } ?>
 
 <p><b>&lt;P&gt;</b> - paragraph break: shows a blank line between the paragraphs.
+    <?php if ($review) { ?>Alternatively, enter two line breaks with your keyboard.<?php } ?>
 
 <p><b>&lt;BR/&gt;</b> - paragraph break (this is provided so that you can
    copy text from an <a href="https://babel.ifarchive.org">iFiction</a>
    XML file - the iFiction format uses &lt;BR/&gt; for paragraph breaks)
 
 <p><b>&lt;CODE&gt;</b> - monospace text, representing programming code
+    <?php if ($review) { ?>Alternatively, wrap text in backticks <b>`...`</b>.<?php } ?>
 
 <p><b>&lt;HR&gt;</b> - a horizontal rule (a line), for section breaks
 
@@ -51,6 +56,8 @@ this out by hand, you can use our
 text between the &lt;A&gt; and &lt;/A&gt; to any Web site.  (For
 safety reasons, Javascript isn't allowed.  The URL must start with
 <tt>http://</tt>, <tt>ftp://</tt>, or <tt>news:</tt>.)
+    <?php if ($review) { ?>Alternatively, write a URL by itself (starting with <samp>http://</samp> or <samp>https://</samp>)  <b>**...**</b>
+        to link the raw URL. Or, <b>[your-text](your-URL)</b> to display text within brackets which links to a URL within parentheses.<?php } ?>
 
 <p><b>&amp;lt;</b> - a less-than sign (&lt;)
 
@@ -58,12 +65,33 @@ safety reasons, Javascript isn't allowed.  The URL must start with
 
 <p><b>&amp;amp;</b> - an ampersand (&amp;)
 
-<p>If you use any of the line or paragraph break codes, then any
+<?php if (!$review) { ?><p>If you use any of the line or paragraph break codes, then any
 newlines in your text will be ignored - we'll assume that you wanted
 to control the line formatting entirely with the HTML-style codes.
 On the other hand, if you <b>don't</b> use any break codes at all,
 we'll assume that you wanted any newlines in the text to show up
-literally as line breaks in the displayed version.
+literally as line breaks in the displayed version.<?php } ?>
+
+<?php if ($review) { ?>
+
+    <p><b>>...</b> (at the beginning of a line) - blockquotes: indents the line following the greater-than sign,
+        and any subsequent lines which are separated by only one line break.
+        Adding two line breaks will return the text to its normal non-indented display.
+    </p>
+
+    <p><b>*...</b> (at the beginning of a line) - bullet point/unordered list: indents the line and adds a bullet point before it.
+        Any subsequent lines separated by only one line break will be indented as well.
+        Adding two line breaks will return the text to its normal non-indented display.
+    </p>
+
+    <p><b>1. ...</b> or any other number (at the beginning of a line) - numbered list/ordered list: indents the line and includes the number before it.
+        Any subsequent lines separated by only one line break will be indented as well.
+        Adding two line breaks will return the text to its normal non-indented display.
+    </p>
+
+    <p>If you would like to use symbols such as asterisks, underscores, backticks, greater-than signs, etc.
+        <i>without</i> IFDB treating them as markdown and converting them to HTML tags like italics, blockquotes, and bullet points,
+        add a backslash before the symbols: \*heavy sigh\*; \*\*\*YOU HAVE DIED\*\*\*; \> GET LAMP, and so on.</p><?php } ?>
 
 <?php
 helpPageFooter();
