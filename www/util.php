@@ -790,7 +790,7 @@ function fixDesc($desc, $specials = 0)
     // allowed tag list - we keep these tags as-is
     $allowedTags = valuesToKeys(
         array('p', 'br',
-              'i', 'b', 'u', 'strong', 'em',
+              'i', 'b', 'u', 'strong', 'em', 'hr',
               'big', 'small', 'tt', 'sup', 'sub',
               'cite', 'blockquote', 'code', 'pre',
               'ul', 'ol', 'li', 'dl', 'dt', 'dd'), 1);
