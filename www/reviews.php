@@ -270,7 +270,7 @@ function showReview($db, $gameid, $rec, $specialNames, $optionFlags = 0)
     $qreviewid = mysql_real_escape_string($reviewid, $db);
     $rating = $rec['rating'];
     $summary = htmlspecialcharx($rec['summary']);
-    if (strcmp($rec['moddate'], '2025-08-26') < 0) {
+    if (strcmp($rec['moddate'], '2025-08-28') < 0) {
         $review = fixDesc($rec['review'], FixDescSpoiler);
     } else {
         $review = fixDesc(parsedownMultilineText($rec['review']), FixDescSpoiler);
