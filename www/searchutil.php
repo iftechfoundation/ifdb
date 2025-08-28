@@ -43,7 +43,21 @@ function convertTimeStringToMinutes($h_m_string) {
 }
 
 
-function doSearch($db, $term, $searchType, $sortby, $limit, $browse, $count_all_possible_rows = false)
+// Construct a message telling the user that the game results were filtered
+function writeGamesFilteredAnnouncement($page, $sort_order, $search_term) {
+    $games_filtered_announcement = 'Your account is set up to use a game filter by default, and that filter was applied on this page. You can ';
+    if ($page == "search_games") {
+        $games_filtered_announcement .= '<a href="search?sortby=' . $sort_order . '&searchfor=' . $search_term . '&nogamefilter=1">search again without the filter</a>.';
+    } else if ($page == "browse_games") {
+        $games_filtered_announcement .= 'also <a href="search?browse&sortby=' . $sort_order . '&nogamefilter=1">browse without the filter</a>.';
+    } else if ($page == "all_new_reviews") {
+        $games_filtered_announcement .= 'also <a href="allnew?reviews&nogamefilter=1">browse without the filter</a>.';
+    }
+    return $games_filtered_announcement;
+}
+
+
+function doSearch($db, $term, $searchType, $sortby, $limit, $browse, $count_all_possible_rows = false, $override_game_filter = 0)
 {
     // we need the current user for some types of queries
     checkPersistentLogin();
@@ -73,6 +87,9 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse, $count_all_
     // assume no badge info
     $badges = false;
 
+    // So far, we haven't applied a custom game filter
+    $games_were_filtered = false;
+    
     // set up the parameters for the type of search we're performing
     if ($searchType == "list")
     {
@@ -250,7 +267,11 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse, $count_all_
             "rated:" => array("rated", 99),
             "license:" => array("license", 0),
             "competitionid:" => array("competitionid", 99),
-            "format:" => array("/gameformat/", 99));
+            "format:" => array("/gameformat/", 99),
+            // "lastreview:" is not documented for users. It's used in newitems.php
+            // as part of finding new reviews to display when a custom game filter 
+            // is applied.
+            "lastreview:" => array("lastReviewDate", 4));
 
 
         // SELECT parameters for game queries
@@ -277,6 +298,7 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse, $count_all_
                        stdDevRating as ratingdev,
                        numRatingsTotal,
                        numMemberReviews,
+                       lastReviewDate,
                        starsort,
                        games.sort_title as sort_title,
                        games.sort_author as sort_author,
@@ -291,7 +313,21 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse, $count_all_
         $matchCols = "title, author, `desc`, tags";
         $likeCol = "title";
         $summaryDesc = "Games";
-    }
+    
+
+        // Handle custom game filters
+        if ($curuser && $override_game_filter != 1) {
+            // We're logged in, and haven't been told to override a custom game filter, so check for one
+            $result = mysqli_execute_query($db, "select game_filter from users where id = ?", [$curuser]);
+            if (!$result) throw new Exception("Error: " . mysqli_error($db));
+            [$gameFilter] = mysql_fetch_row($result);
+            if ($gameFilter) {
+                // We've found a custom game filter, so add it to the end of the search term
+                $games_were_filtered = true;
+                $term .= " $gameFilter";
+            }
+        }
+    } 
 
     // parse the search
     for ($ofs = 0, $len = strlen($term), $words = array(),
@@ -881,6 +917,7 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse, $count_all_
                 'old' => array('sort_pub,', 'Earliest Publication First'),
                 'long'  => array('rounded_median_time_in_minutes desc, starsort desc,', 'Longest First'),
                 'short' => array('-rounded_median_time_in_minutes desc, starsort desc,', 'Shortest First'),
+                'recently_reviewed' => array('lastReviewDate desc,', 'Recently Reviewed First'),
                 'rand' => array('rand(),', 'Random Order'));
             if (count($words)) {
                 $defSortBy = 'rel';
@@ -1065,19 +1102,16 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse, $count_all_
     }
 
     $sql_calc_found_rows = "sql_calc_found_rows";
-    if ($searchType === "game" && !$term) {
-        // `sql_calc_found_rows` forces the query to ignore the `limit` clause in order to count all possible results.
-        // But when browsing for all games, we can do a fast `count(*)` query instead
-        $sql_calc_found_rows = "";
-    }
-    if (!$count_all_possible_rows) {
-        // `sql_calc_found_rows` forces the query to ignore the `limit` clause 
-        // in order to count all possible results, which means a slower full
-        // table scan. If the total number of rows is not needed, we can skip
-        // `sql_calc_found_rows` to speed up the query.
-        $sql_calc_found_rows = "";
-    }
 
+    if (($searchType === "game" && !$term) || !$count_all_possible_rows) {
+        // `sql_calc_found_rows` forces the query to ignore the `limit` clause in order to
+        // count all possible results, which means a full table scan, which can be slow. 
+        // But if we're browsing all games, we can skip `sql_calc_found_rows` and do a fast 
+        // `count(*)` query instead. If we're searching but we don't need the number of 
+        // possible rows, we can skip the counting altogether.
+
+        $sql_calc_found_rows = "";
+    }
 
     // build the SELECT statement
     $sql = "select $sql_calc_found_rows
@@ -1147,7 +1181,7 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse, $count_all_
 
     // return the results
     return array($rows, $rowcnt, $sortList, $errMsg, $summaryDesc,
-                 $badges, $specials, $specialsUsed, $orderBy);
+                 $badges, $specials, $specialsUsed, $orderBy, $games_were_filtered);
 }
 
 ?>
