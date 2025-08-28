@@ -1126,7 +1126,7 @@ function fixDesc($desc, $specials = 0)
                 $ofs += 4;
             } else if (strncasecmp($therest, "quot;", 5) == 0) {
                 $ofs += 5;
-            } else if ($specials) {
+            } else {
                 // not recognized - make it an explicit &amp;
                 $desc = substr_replace($desc, "&amp;", $ofs, 1);
                 $ofs += 4;
