@@ -11,6 +11,7 @@ include_once "pagetpl.php";
 include_once "useractivation.php";
 
 include_once "dbconnect.php";
+require_once "vendor/autoload.php";
 $db = dbConnect();
 
 // assume no privileges
@@ -2901,6 +2902,163 @@ else if (isset($_REQUEST['deletenews'])) {
     }
 
     echo "</table>";
+} else if (isset($_REQUEST['markdownTest'])) {
+    $parsedown = new Parsedown();
+    $parsedown->setUrlsLinked(false); // URLs linked are always good, so let's ignore changes due to this
+    $result = mysqli_execute_query($db, "select id, gameid, review from reviews where review is not null and special is null");
+    $matches = 0;
+    $count = mysql_num_rows($result);
+    echo "<p>Count: $count</p>";
+    $output = [];
+    global $nonce;
+    // fixDesc assigns each spoiler a unique id; we don't want that
+    function normalizeSpoiler($text) {
+        $output = preg_replace("/a_spoiler\d+/", "", $text);
+        $output = preg_replace("/s_spoiler\d+/", "", $output);
+        $output = preg_replace("/data-num='\\d+'/", "", $output);
+        $output = preg_replace("/<script [\\s\\S]*<\\/script>/", "", $output);
+        return $output;
+    }
+    echo "<script nonce='$nonce'>window.reviews = [\n";
+    for ($i = 0; $i < $count; $i++) {
+        $rec = mysql_fetch_array($result, MYSQL_ASSOC);
+        $raw = $rec['review'];
+        $reviewMarkdown = normalizeSpoiler(fixDesc(parsedownMultilineText($raw)));
+        $reviewLegacy = normalizeSpoiler(fixDesc($rec['review']));
+        echo json_encode(["id" => $rec['id'], "gameid" => $rec['gameid'], "raw" => $rec['review'], "before" => $reviewLegacy, "after" => $reviewMarkdown]) . ",\n";
+    }
+    echo "];</script>\n";
+    echo "<style nonce='$nonce'>
+        .diff-removed {
+            background-color: pink;
+            text-decoration: line-through;
+        }
+        .diff-added {
+            background-color: lightgreen;
+        }
+        .line-wrapper {
+            border-top: 1px solid black;
+            margin-top: 1em;
+        }
+    </style>";
+    echo "<div id='output'></div>\n<script type='module' nonce='$nonce'>\n";
+    echo <<<'EOF'
+    let matches = 0;
+    window.mismatches = [];
+
+    function findLongestCommonPrefix(s1, s2) {
+        let i = 0;
+        while (i < s1.length && i < s2.length && s1[i] === s2[i]) {
+            i++;
+        }
+        return s1.substring(0, i);
+    }
+
+    function findLongestCommonSuffix(s1, s2) {
+        let i = 0;
+        // Iterate from the end of the strings
+        while (i < s1.length && i < s2.length && s1[s1.length - 1 - i] === s2[s2.length - 1 - i]) {
+            i++;
+        }
+        // Return the suffix from s1
+        return s1.substring(s1.length - i);
+    }
+
+    function generateLineDiffHtml(beforeText, afterText, tuid, reviewId) {
+        let re = /(?:<p>|<p\/>|<\/p> *|<br> ?|\n)+/i;
+        const beforeLines = beforeText.split(re).filter(l => !!l.trim());
+        const afterLines = afterText.split(re).filter(l => !!l.trim());
+        const maxLength = Math.max(beforeLines.length, afterLines.length);
+
+        let html = `<h3><a href='/viewgame?id=${tuid}&review=${reviewId}'>${reviewId}</a></h3>\n`;
+        let match = true;
+        let normalizer = document.createElement('div');
+
+        for (let i = 0; i < maxLength; i++) {
+            const beforeLineText = (beforeLines[i] ?? '').trim();
+            const afterLineText = (afterLines[i] ?? '').trim();
+            normalizer.innerHTML = beforeLineText;
+            const beforeLine = normalizer.innerHTML;
+            normalizer.innerHTML = afterLineText;
+            const afterLine = normalizer.innerHTML;
+
+            let lineBeforeHtml = '';
+            let lineAfterHtml = '';
+
+            if (beforeLine === afterLine) {
+                continue;
+            } else {
+                match = false;
+                console.log({beforeLine, afterLine});
+                const commonPrefix = findLongestCommonPrefix(beforeLine, afterLine);
+                lineBeforeHtml += commonPrefix;
+                lineAfterHtml += commonPrefix;
+
+                const remainingBefore = beforeLine.substring(commonPrefix.length);
+                const remainingAfter = afterLine.substring(commonPrefix.length);
+
+                const commonSuffix = findLongestCommonSuffix(remainingBefore, remainingAfter);
+
+                const diffBeforePart = remainingBefore.substring(0, remainingBefore.length - commonSuffix.length);
+                const diffAfterPart = remainingAfter.substring(0, remainingAfter.length - commonSuffix.length);
+
+                if (diffBeforePart.length > 0) {
+                    lineBeforeHtml += `<span class='diff-removed'>${diffBeforePart}</span>`;
+                }
+                if (diffAfterPart.length > 0) {
+                    lineAfterHtml += `<span class='diff-added'>${diffAfterPart}</span>`;
+                }
+
+                lineBeforeHtml += commonSuffix;
+                lineAfterHtml += commonSuffix;
+            }
+
+            html += `
+                <div class='line-wrapper'>
+                    <div class='line-before'>${lineBeforeHtml}</div>
+                    <div class='line-after'>${lineAfterHtml}</div>
+                </div>
+            `;
+        }
+        let div = document.createElement('div');
+        div.innerHTML = html;
+        return {div, match};
+    }
+    
+    function normalizeSpoiler(text) {
+        let output = text
+            .replace(/[as]_spoiler\d+/g, '')
+            .replace(/data-num='\d+'/g, '')
+            .replace(/class="hiddenSpoiler"/g, '')
+        return output;
+    }
+
+    for (let i = 0; i < window.reviews.length; i++) {
+        const review = window.reviews[i];
+        let before = normalizeSpoiler("<p>" + review.before);
+        let after = normalizeSpoiler(review.after);
+        if (before == after) {
+            matches++;
+        } else {
+            let {div, match}  = generateLineDiffHtml(before, after, review.gameid, review.id)
+            if (match) {
+                console.log('match');
+                matches++;
+                continue;
+            }
+            const mismatch = { i, id: review.id, review, befor: before, after };
+            console.log(mismatch);
+            window.mismatches.push(mismatch);
+            window.output.appendChild(div);
+        }
+    }
+    console.log({matches, count: window.reviews.length});
+    let matchesDiv = document.createElement('p');
+    matchesDiv.innerHTML = `<b>Matches: ${matches} out of ${window.reviews.length}</b>`;
+    window.output.appendChild(matchesDiv);
+    </script>
+    EOF;
+    echo "<p>loaded</p>";
 }
 
 function adjustImageName($name)

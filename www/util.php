@@ -7,6 +7,7 @@ include_once "login-check.php";
 include_once "login-persist.php";
 include_once "pagetpl.php";
 include_once "image-util.php";
+require_once 'vendor/autoload.php';
 
 // https://cheatsheetseries.owasp.org/cheatsheets/Authentication_Cheat_Sheet.html#implement-proper-password-strength-controls
 // "It is important to set a maximum password length to prevent long password Denial of Service attacks."
@@ -765,6 +766,7 @@ function spoilerWarningScript()
 define("FixDescSpoiler", 0x0001);
 define("FixDescRSS", 0x0002);
 define("FixDescIfic", 0x0004);
+define("FixDescDemoteHeadings", 0x0008);
 function fixDesc($desc, $specials = 0)
 {
     $foundSpoiler = false;
@@ -789,9 +791,10 @@ function fixDesc($desc, $specials = 0)
     // allowed tag list - we keep these tags as-is
     $allowedTags = valuesToKeys(
         array('p', 'br',
-              'i', 'b', 'u', 'strong', 'em',
+              'i', 'b', 'u', 'strong', 'em', 'hr',
               'big', 'small', 'tt', 'sup', 'sub',
-              'cite', 'blockquote',
+              'cite', 'blockquote', 'code', 'pre',
+              'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
               'ul', 'ol', 'li', 'dl', 'dt', 'dd'), 1);
 
     // tags that trigger explicit line control mode
@@ -902,8 +905,8 @@ function fixDesc($desc, $specials = 0)
                     // it's an iFiction-style <br/> paragraph break - convert
                     // it to <p> and note that we have explicit line control
                     $desc = substr_replace($desc, "<p>", $ofs, $tagLen);
-                    $nlSub = " ";
-                    $nlSubIfic = " ";
+                    $nlSub = "\n";
+                    $nlSubIfic = "\n";
                     $ofs += 2;
 
                 } else if ($tagName == 'spoiler') {
@@ -958,15 +961,25 @@ function fixDesc($desc, $specials = 0)
 
                 } else if (isset($allowedTags[$tagName])) {
 
+                    // If we're demoting headings, convert <h1> to <h4>, <h2> to <h5> and so on
+                    if (($specials & FixDescDemoteHeadings) && preg_match("/^h(\d)$/", $tagName, $matches)) {
+                        $level = min(6, ((int)$matches[1]) + 3);
+                        if ($isClose) {
+                            $desc = substr_replace($desc, "</h$level>", $ofs, $tagLen);
+                        } else {
+                            $desc = substr_replace($desc, "<h$level>", $ofs, $tagLen);
+                        }
+                    }
+
                     // it's an allowed tag - keep it
                     $ofs = $gt;
 
                     // if it's a line tag, switch to explicit line control
-                    // mode - this means that we replace any hard newlines
-                    // in the source text with spaces rather than <br>'s
+                    // mode - this means that we don't replace hard newlines
+                    // in the source text with <br>'s
                     if (isset($lineTags[$tagName])) {
-                        $nlSub = " ";
-                        $nlSubIfic = " ";
+                        $nlSub = "\n";
+                        $nlSubIfic = "\n";
                     }
 
                 } else if ($tagName == 'a') {
@@ -1121,9 +1134,9 @@ function fixDesc($desc, $specials = 0)
             if (strncasecmp($therest, "lt;", 3) == 0
                 || strncasecmp($therest, "gt;", 3) == 0) {
                 $ofs += 3;
-            } else if (strncasecmp($desc, "amp;", 4) == 0) {
+            } else if (strncasecmp($therest, "amp;", 4) == 0) {
                 $ofs += 4;
-            } else if (strncasecmp($desc, "quot;", 5) == 0) {
+            } else if (strncasecmp($therest, "quot;", 5) == 0) {
                 $ofs += 5;
             } else {
                 // not recognized - make it an explicit &amp;
@@ -1197,6 +1210,29 @@ function closeTagForStackedTag($tag)
     default:
         return $tag;
     }
+}
+
+function parsedownMultilineText($text) {
+    // parsedown->text converts "1st line \n 2nd line" to "<p>1st line <br /> 2nd line</p>"
+    // that's unfortunate, because fixDesc has a special rule for `<br/>`.
+    // We assume that `<br/>` is an iFiction *paragraph* break
+    // We *do* have real `<br/>` iFiction paragraph breaks in the DB, which need to be rendered as
+    // paragraph breaks.
+    // So, we start by replacing all instances of `<br/>` with </p><p>, then run
+    // parsedown, which may generate some new `<br />` tokens. We'll replace those with `<br>`
+    // (so fixDesc won't turn them into paragraph breaks)
+
+    // example:
+    // in: "1st line \n 2nd line <br /> 3rd line" -> "<p>1st line<br>\n2nd line <p> 3rd line</p>"
+    //   (fixDesc will leave that line alone)
+
+    // pre-process iFiction-style <br/> paragraph breaks
+    $replaced_ific_br = preg_replace("/<br *\\/>/", "</p><p>", $text);
+    $parsedown = new Parsedown();
+    $parsedown->setBreaksEnabled(true);
+    $markdown_converted = $parsedown->text($replaced_ific_br);
+    $output = preg_replace("/<br \\/>/", "<br>", $markdown_converted);
+    return $output;
 }
 
 // --------------------------------------------------------------------------

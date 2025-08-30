@@ -61,7 +61,7 @@ function getReviewQuery($db, $where)
     // as formatted for display, also to faciliate sorting.
     return
         "select sql_calc_found_rows
-           reviews.id as reviewid, rating, summary, review,
+           reviews.id as reviewid, rating, summary, review, moddate,
            date_format(greatest(reviews.moddate, ifnull(embargodate, cast(0 as datetime))), '%M %e, %Y') as moddatefmt,
            greatest(reviews.createdate, ifnull(embargodate, cast(0 as datetime))) as publicationdate,
            date_format(greatest(reviews.createdate, ifnull(embargodate, cast(0 as datetime))), '%M %e, %Y') as publicationdatefmt,
@@ -270,16 +270,20 @@ function showReview($db, $gameid, $rec, $specialNames, $optionFlags = 0)
     $qreviewid = mysql_real_escape_string($reviewid, $db);
     $rating = $rec['rating'];
     $summary = htmlspecialcharx($rec['summary']);
-    $review = fixDesc($rec['review'], FixDescSpoiler);
+    if (strcmp($rec['moddate'], '2025-08-26') < 0) {
+        $review = fixDesc($rec['review'], FixDescSpoiler | FixDescDemoteHeadings);
+    } else {
+        $review = fixDesc(parsedownMultilineText($rec['review']), FixDescSpoiler | FixDescDemoteHeadings);
+    }
     $publicationdate = $rec['publicationdatefmt'];
-    $moddate = $rec['moddatefmt'];
+    $moddatefmt = $rec['moddatefmt'];
     $lastupdateFootnote = null;
-    if ($moddate && $publicationdate != $moddate) {
+    if ($moddatefmt && $publicationdate != $moddatefmt) {
         // Rating-only review
         if ($review == "") {
-            $publicationdate .= " (last edited on $moddate)";
+            $publicationdate .= " (last edited on $moddatefmt)";
         } else {
-            $lastupdateFootnote = "This review was last edited on $moddate";
+            $lastupdateFootnote = "This review was last edited on $moddatefmt";
             $publicationdate .= "<span title=\"$lastupdateFootnote\">*</span>";
         }
     }

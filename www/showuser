@@ -6,6 +6,10 @@ include_once "util.php";
 include_once "dbconnect.php";
 include_once "commentutil.php";
 include_once "captcha.php";
+require_once 'vendor/autoload.php';
+
+// The markdown parser library
+$parsedown = new Parsedown();
 
 $db = dbConnect();
 
@@ -606,7 +610,7 @@ if ($errMsg) {
             $author = collapsedAuthors($author);
             $summary = htmlspecialcharx($summary);
             [$review, $revlen, $revtrunc] = summarizeHtml($review, 140);
-            $review = fixDesc($review);
+            $parsedReview = fixDesc($parsedown->line($review));
             if ($moddate && $createdate != $moddate) {
                 $createdate .= " (edited: $moddate)";
             }
@@ -616,7 +620,7 @@ if ($errMsg) {
                 . " &nbsp; <span class=details><i>$createdate</i></span><br>"
                 . "<div class=indented><span class=details>"
                 . ($rating ? showStars($rating) . " " : "")
-                . ($revlen ? "<i>\"$review\"</i>" : "");
+                . ($revlen ? "<i>\"$parsedReview\"</i>" : "");
 
             if ($revtrunc)
                 echo " - <a href=\"viewgame?id=$gameid&review=$revid\">"
