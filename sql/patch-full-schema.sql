@@ -404,10 +404,10 @@ where gameid = new_gameid into @gameid,
     @numRatingsInAvg,
     @numRatingsTotal,
     @numMemberReviews,
+    @lastReviewDate,
     @avgRating,
     @stdDevRating,
-    @starsort,
-    @lastReviewDate;
+    @starsort;
 if @gameid is null then
     delete from gameRatingsSandbox0_mv where gameid = new_gameid;
 else
@@ -422,10 +422,10 @@ values (
         @numRatingsInAvg,
         @numRatingsTotal,
         @numMemberReviews,
+        @lastReviewDate,
         @avgRating,
         @stdDevRating,
         @starsort,
-        @lastReviewDate,
         now()
     ) on duplicate key
 update gameid = @gameid,
@@ -437,10 +437,10 @@ update gameid = @gameid,
     numRatingsInAvg = @numRatingsInAvg,
     numRatingsTotal = @numRatingsTotal,
     numMemberReviews = @numMemberReviews,
+    lastReviewDate = @lastReviewDate,
     avgRating = @avgRating,
     stdDevRating = @stdDevRating,
     starsort = @starsort,
-    lastReviewDate = @lastReviewDate,
     updated = now();
 END IF;
 END;
