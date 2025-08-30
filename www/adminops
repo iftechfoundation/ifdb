@@ -218,7 +218,7 @@ if (isset($_REQUEST['recentactivity'])) {
         LEFT JOIN users
             ON reviews.userid = users.id
         WHERE (reviewvotes.createdate) > DATE_SUB(NOW(), INTERVAL ? DAY)
-        ORDER BY reviewvotes.createdate DESC LIMIT 100', [$recent_days]);
+        ORDER BY reviewvotes.createdate DESC', [$recent_days]);
 
 
     // Display recent review helpfulness votes    
