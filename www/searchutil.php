@@ -914,6 +914,7 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse, $count_all_
                 'long'  => array('rounded_median_time_in_minutes desc, starsort desc,', 'Longest First'),
                 'short' => array('-rounded_median_time_in_minutes desc, starsort desc,', 'Shortest First'),
                 'recently_reviewed' => array('lastReviewDate desc,', 'Recently Reviewed First'),
+                'recent_game_news' => array('news_id desc,', 'Recent News First'),
                 'rand' => array('rand(),', 'Random Order'));
             if (count($words)) {
                 $defSortBy = 'rel';
@@ -1034,6 +1035,15 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse, $count_all_
             $tableList .= " left outer join gametimes_mv on games.id = gametimes_mv.gameid";
         }
     }
+    
+    // If we're sorting by recent game news, select the news item's create date
+    // and join the recent game news
+    if ($searchType == "game" && $sortby == "recent_game_news") {
+        $selectList .= ", news_create_date";
+        $tableList .= " left outer join recentgamenews_mv on games.id = recentgamenews_mv.game_id";
+    }
+
+
     
 
     // Build tags join
