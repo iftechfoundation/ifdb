@@ -3059,6 +3059,79 @@ else if (isset($_REQUEST['deletenews'])) {
     </script>
     EOF;
     echo "<p>loaded</p>";
+} else if (isset($_REQUEST['duplicateDetector'])) {
+    global $nonce;
+    $days = (int)($_REQUEST['days'] ?? 50);
+    $levenshtein_limit = 5;
+    require_once("searchutil.php");
+    $result = mysqli_query($db, "select id, title, author, seriesname, seriesnumber from games where created >= date_sub(now(), interval $days day)");
+    $rows = mysqli_fetch_all($result, MYSQLI_ASSOC);
+    $browse = false;
+    $plausible_duplicates = [];
+    function stringify($row) {
+        $title = $row['title'];
+        $author = $row['author'];
+        $separator = "|||||||";
+        return "$title $separator $author";
+    }
+    echo "<form action='/adminops'><input type=hidden name='duplicateDetector'>
+        Search for duplicates in the last <input type=number name=days value=$days> days <button>Submit</button></form>\n";
+    echo "<ul>\n";
+    function Game($tuid, $title, $author, $seriesname, $seriesnumber) {
+        echo "<li><a href='/viewgame?id=$tuid'>" . htmlspecialchars($title) . "</a> by " .
+            "<a href='/search?searchfor=author:" . htmlspecialchars($author) . "'>" . htmlspecialchars($author) . "</a>";
+        if (!isEmpty($seriesname)) {
+            echo " (#" . htmlspecialchars($seriesnumber ?? "null") . " of " . htmlspecialchars($seriesname) . ")";
+        }
+    }
+    $count = 0;
+    for ($i = 0; $i < count($rows); $i++) {
+        $row = $rows[$i];
+        error_log($i . " " . json_encode($row));
+        [$search_results] = doSearch($db, "{$row['title']} {$row['author']} -tuid:{$row['id']}", "game", "rel", "limit 0, 5", $browse);
+        $separator = "|||||||";
+        $original = stringify($row);
+        $levenshteins = [];
+        foreach ($search_results as $search_result) {
+            $levenshtein = levenshtein($original, stringify($search_result));
+            if ($levenshtein > -1 && $levenshtein < $levenshtein_limit) {
+                // games in the same series often have very similar names, e.g. "Foo" "Foo 2"
+                // we'll exclude titles with similar names in the same series and different series numbers
+                $result = mysqli_query($db, "select seriesname, seriesnumber from games where id = '{$search_result['id']}'");
+                [$seriesname, $seriesnumber] = mysqli_fetch_row($result);
+                if (strtolower($seriesname) == strtolower($row['seriesname']) && $seriesnumber != $row['seriesnumber']) {
+                    continue;
+                }
+                $result = mysqli_query($db, "select * from gamexrefs
+                    where (fromid='{$search_result['id']}' and toid='{$row['id']}')
+                    or (toid='{$search_result['id']}' and fromid='{$row['id']}')
+                ");
+                if (mysqli_num_rows($result) > 0) {
+                    continue;
+                }
+                $search_result['seriesname'] = $seriesname;
+                $search_result['seriesnumber'] = $seriesnumber;
+                $search_result['levenshtein'] = $levenshtein;
+                $levenshteins []= $search_result;
+            }
+        };
+        if (count($levenshteins)) {
+            $count++;
+            $output = [
+                "source" => $row,
+                "similars" => $levenshteins,
+            ];
+            error_log(json_encode($output));
+            echo Game($row['id'], $row['title'], $row['author'], $row['seriesname'], $row['seriesnumber']) . "<ul>\n";
+            usort($levenshteins, fn($a, $b) => $a['levenshtein'] <=> $b['levenshtein']);
+            foreach($levenshteins as $similar) {
+                echo Game($similar['id'], $similar['title'], $similar['author'], $similar['seriesname'], $similar['seriesnumber']) . "</li>\n";
+            }
+            echo "</ul>\n</li>\n";
+        }
+    }
+    echo "</ul>\n";
+    echo "<div>$count result(s)</div>";
 }
 
 function adjustImageName($name)
@@ -3157,6 +3230,7 @@ function cleanutf8($str)
     <li><a href="adminops?adminemail">Send admin email</a></li>
     <li><a href="adminops?addnews">Add a Site News item</a></li>
     <li><a href="adminops?burygame">Bury game</a></li>
+    <li><a href="adminops?duplicateDetector">Duplicate detector</a></li>
 </ul>
 
 <h3>Tags</h3>
