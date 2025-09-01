@@ -23,7 +23,8 @@ CREATE VIEW `recentgamenews` AS
         sourceid AS game_id, 
         created AS news_create_date
     FROM news
-    WHERE source = "G"
+    WHERE source = 'G'
+    AND status = 'A'
     AND newsid NOT IN (
         SELECT supersedes
         FROM news
