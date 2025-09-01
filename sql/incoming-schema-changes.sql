@@ -40,7 +40,8 @@ CREATE TABLE recentgamenews_mv (
   news_id BIGINT(20) unsigned NOT NULL,
   game_id VARCHAR(32) NOT NULL,
   news_create_date DATETIME NOT NULL,
-  PRIMARY KEY (news_id)
+  PRIMARY KEY (news_id),
+  KEY (game_id)
 );
 
 
