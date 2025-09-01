@@ -249,14 +249,37 @@ function getNewItems($db, $limit, $itemTypes = NEWITEMS_ALLITEMS, $options = [],
     }
 
     if ($itemTypes & NEWITEMS_GAMENEWS) {
+        // Query the games and sort them so that games with recent news
+        // come first. If the user has a custom game filter and has not 
+        // overridden it, that filter will automatically be applied within 
+        // the doSearch function.
+        $term = "";
+        $searchType = "game";
+        $sortby = "recent_game_news";
         $games_limit = $options['games_limit'] ?? $limit;
+        $limit_clause = "limit $games_limit";
+        $browse = 0;        
+        list($rows, $rowcnt, $sortList, $errMsg, $summaryDesc, $badges,
+         $specials, $specialsUsed, $orderBy) =
+         doSearch($db, $term, $searchType, $sortby, $limit_clause, $browse);
+
+        // Put the resulting game IDs in an array so that we can 
+        // limit news results to these (possibly filtered) games.
+        $games_with_recent_news = [];
+        foreach ($rows as $row) {
+            $games_with_recent_news[] = $row['id'];
+        }
+
         // query game news updates
         queryNewNews(
             $items, $db, $games_limit, "G",
-            "join games as g on g.id = n.sourceid",
+            "join games as g on g.id = n.sourceid "
+            . "join recentgamenews_mv r on r.news_id = n.newsid",
             "g.id as sourceID, g.title as sourceTitle, "
-            . "(g.coverart is not null) as hasart, g.pagevsn", $days);
+            . "(g.coverart is not null) as hasart, g.pagevsn",
+            $days, $games_with_recent_news);
     }
+
 
     if ($itemTypes & NEWITEMS_COMPNEWS) {
         $comps_limit = $options['comps_limit'] ?? $limit;
@@ -295,7 +318,8 @@ function sortNewItemsByDate($a, $b)
 }
 
 function queryNewNews(&$items, $db, $limit, $sourceType,
-                      $sourceJoin, $sourceCols, $days = null)
+                      $sourceJoin, $sourceCols, $days = null,
+                      $games_with_recent_news = [])
 {
     // get the logged-in user
     checkPersistentLogin();
@@ -325,6 +349,15 @@ function queryNewNews(&$items, $db, $limit, $sourceType,
         if ($mysandbox != 0)
             $sandbox = "(0,$mysandbox)";
     }
+    
+    // Include game news only from games that remain after applying a custom filter
+    $andGameIDsMatch = "";
+    if ($games_with_recent_news) {
+        // Change the array to a string
+        $games_with_recent_news = "'" . implode("', '",$games_with_recent_news) . "'";
+        echo "GAMES WITH RECENT NEWS = $games_with_recent_news"; // Delete this line after we get this working
+        $andGameIDsMatch = "and recentgamenews_mv.game_id in ($games_with_recent_news)";
+    }
 
     // query the data
     $result = mysql_query(
@@ -353,6 +386,7 @@ function queryNewNews(&$items, $db, $limit, $sourceType,
            and uorig.sandbox in $sandbox
            and $dayWhere
            $andNotMuted
+           $andGameIDsMatch
          order by
            n.created desc
          limit $limit", $db);
