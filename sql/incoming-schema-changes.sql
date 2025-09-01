@@ -101,7 +101,7 @@ call refresh_recentgamenews_mv(NEW.newsid);
 
 CREATE TRIGGER recentgamenews_update
 AFTER UPDATE ON news FOR EACH ROW
-call refresh_gametimes_mv(NEW.newsid);
+call refresh_recentgamenews_mv(NEW.newsid);
 
 
 CREATE TRIGGER recentgamenews_delete
