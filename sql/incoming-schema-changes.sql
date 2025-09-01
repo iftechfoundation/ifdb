@@ -13,7 +13,8 @@ ALTER TABLE `users` ADD COLUMN `game_filter` VARCHAR(150) DEFAULT '';
 
 
 -- Add a view to track the news items for each game.
--- "G" in the news table means the news is about a game.
+-- "G" in the news table means the news is about a game,
+-- and "A" means the news has not been deleted.
 -- Do not include versions of news items that have been 
 -- superseded by later edits.
 
