@@ -22,12 +22,13 @@ $maxpicks = 12;    // Get the first twelve results. (We want extras so we're not
 $limit = "limit 0, $maxpicks";
 $browse = 1;
 $count_all_possible_rows = false;
+$override_game_filter = 0;
 
 
 // run the search for highly-rated games
 list($recs, $rowcnt, $sortList, $errMsg, $summaryDesc, $badges,
-    $specials, $specialsUsed, $orderBy) =
-    doSearch($db, $term, $searchType, $sortby, $limit, $browse, $count_all_possible_rows);
+    $specials, $specialsUsed, $orderBy, $games_were_filtered) =
+    doSearch($db, $term, $searchType, $sortby, $limit, $browse, $count_all_possible_rows, $override_game_filter);
 
 $recs = array_values(array_filter($recs, function($r) {
     $buried = $r['flags'] & FLAG_SHOULD_HIDE;

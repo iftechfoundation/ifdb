@@ -23,7 +23,7 @@ define("NEWITEMS_ALLITEMS",
     | NEWITEMS_COMPNEWS
 );
 
-function getNewItems($db, $limit, $itemTypes = NEWITEMS_ALLITEMS, $options = [])
+function getNewItems($db, $limit, $itemTypes = NEWITEMS_ALLITEMS, $options = [], $override_game_filter = 0)
 {
     $days = $options['days'] ?? null;
 
@@ -40,6 +40,11 @@ function getNewItems($db, $limit, $itemTypes = NEWITEMS_ALLITEMS, $options = [])
                          . "and filtertype = 'K') = 0";
     }
 
+    $override_game_filter = get_req_data('nogamefilter');
+
+    // So far, we have not applied a custom game filter
+    $game_filter_was_applied = 0;
+    
     // Include only reviews from our sandbox or sandbox 0 (all users)
     $sandbox = "(0)";
     if ($curuser)
@@ -167,6 +172,22 @@ function getNewItems($db, $limit, $itemTypes = NEWITEMS_ALLITEMS, $options = [])
 
     if ($itemTypes & NEWITEMS_REVIEWS) {
         $reviews_limit = $options['reviews_limit'] ?? $limit;
+        $term = "";
+        $searchType = "game";
+        $sortby = "recently_reviewed";
+        $games_limit_clause = "limit $reviews_limit";
+        $browse = 0;
+        // If the user has a custom game filter and has not overridden it, that 
+        // filter will automatically be applied within the doSearch function.
+        list($game_rows_after_filtering, $rowcnt, $sortList, $errMsg, $summaryDesc, 
+            $badges, $specials, $specialsUsed, $orderBy, $game_filter_was_applied) 
+            = doSearch($db, $term, $searchType, $sortby, $games_limit_clause, $browse);
+        // Note the gameids of games that we might want to display reviews for
+        foreach ($game_rows_after_filtering as $game_row) {
+            $gameids_after_filtering[] = "'" . $game_row['id'] . "'";
+        }
+        $reviews_limit_clause = "limit $reviews_limit";
+        // prepare to query reviews
         if ($days) $dayWhere = "greatest(reviews.createdate, ifnull(reviews.embargodate, '0000-00-00')) > date_sub(now(), interval $days day)";
         // query the recent reviews (minus mutes)
         $anm = str_replace('#USERID#', 'reviews.userid', $andNotMuted);
@@ -186,12 +207,11 @@ function getNewItems($db, $limit, $itemTypes = NEWITEMS_ALLITEMS, $options = [])
                games.flags
              from
                reviews
-               join games
-               join users
+               join games on games.id = reviews.gameid
+               join users on users.id = reviews.userid
                left outer join specialreviewers on specialreviewers.id = special
              where
-               games.id = reviews.gameid
-               and users.id = reviews.userid
+               gameid in (".join(",", $gameids_after_filtering).")
                and reviews.review is not null
                and ifnull(now() >= reviews.embargodate, 1)
                and ifnull(specialreviewers.code, '') <> 'external'
@@ -199,7 +219,7 @@ function getNewItems($db, $limit, $itemTypes = NEWITEMS_ALLITEMS, $options = [])
                and $dayWhere
                $anm
              order by d desc, id desc
-             limit $reviews_limit", $db);
+             $reviews_limit_clause", $db);
         $revcnt = mysql_num_rows($result);
         for ($i = 0 ; $i < $revcnt ; $i++) {
             $row = mysql_fetch_array($result, MYSQL_ASSOC);
@@ -230,14 +250,37 @@ function getNewItems($db, $limit, $itemTypes = NEWITEMS_ALLITEMS, $options = [])
     }
 
     if ($itemTypes & NEWITEMS_GAMENEWS) {
+        // Query the games and sort them so that games with recent news
+        // come first. If the user has a custom game filter and has not 
+        // overridden it, that filter will automatically be applied within 
+        // the doSearch function.
+        $term = "";
+        $searchType = "game";
+        $sortby = "recent_game_news";
         $games_limit = $options['games_limit'] ?? $limit;
+        $limit_clause = "limit $games_limit";
+        $browse = 0;        
+        list($rows, $rowcnt, $sortList, $errMsg, $summaryDesc, $badges,
+         $specials, $specialsUsed, $orderBy) =
+         doSearch($db, $term, $searchType, $sortby, $limit_clause, $browse);
+
+        // Put the resulting game IDs in an array so that we can 
+        // limit news results to these (possibly filtered) games.
+        $games_with_recent_news = [];
+        foreach ($rows as $row) {
+            $games_with_recent_news[] = $row['id'];
+        }
+
         // query game news updates
         queryNewNews(
             $items, $db, $games_limit, "G",
-            "join games as g on g.id = n.sourceid",
+            "join games as g on g.id = n.sourceid "
+            . "join recentgamenews_mv r on r.news_id = n.newsid",
             "g.id as sourceID, g.title as sourceTitle, "
-            . "(g.coverart is not null) as hasart, g.pagevsn", $days);
+            . "(g.coverart is not null) as hasart, g.pagevsn",
+            $days, $games_with_recent_news);
     }
+
 
     if ($itemTypes & NEWITEMS_COMPNEWS) {
         $comps_limit = $options['comps_limit'] ?? $limit;
@@ -252,7 +295,7 @@ function getNewItems($db, $limit, $itemTypes = NEWITEMS_ALLITEMS, $options = [])
     usort($items, "sortNewItemsByDate");
 
     // return the item list
-    return $items;
+    return array($items, $game_filter_was_applied);
 }
 
 // sorting callback: sort from newest to oldest
@@ -276,7 +319,8 @@ function sortNewItemsByDate($a, $b)
 }
 
 function queryNewNews(&$items, $db, $limit, $sourceType,
-                      $sourceJoin, $sourceCols, $days = null)
+                      $sourceJoin, $sourceCols, $days = null,
+                      $games_with_recent_news = [])
 {
     // get the logged-in user
     checkPersistentLogin();
@@ -306,6 +350,13 @@ function queryNewNews(&$items, $db, $limit, $sourceType,
         if ($mysandbox != 0)
             $sandbox = "(0,$mysandbox)";
     }
+    
+    // Include game news only from games that remain after applying a custom filter
+    $andGameIDsMatch = "";
+    if ($games_with_recent_news) {
+        $games_with_recent_news = "'" . implode("', '",$games_with_recent_news) . "'";
+        $andGameIDsMatch = "and g.id in ($games_with_recent_news) ";
+    }
 
     // query the data
     $result = mysql_query(
@@ -334,6 +385,7 @@ function queryNewNews(&$items, $db, $limit, $sourceType,
            and uorig.sandbox in $sandbox
            and $dayWhere
            $andNotMuted
+           $andGameIDsMatch
          order by
            n.created desc
          limit $limit", $db);
@@ -351,7 +403,7 @@ function showNewItems($db, $first, $last, $items, $options = [])
     $itemTypes = $options['itemTypes'] ?? NEWITEMS_ALLITEMS;
     // if the caller didn't provide the new item lists, query them
     if (!$items)
-        $items = getNewItems($db, $last, $itemTypes, $options);
+        list($items, $game_filter_was_applied) = getNewItems($db, $last, $itemTypes, $options);
 
     // show them
     showNewItemList($db, $first, $last, $items, $options);
@@ -720,7 +772,7 @@ function showNewItemList($db, $first, $last, $items, $options)
 function showNewItemsRSS($db, $showcnt)
 {
     // query the new items
-    $items = getNewItems($db, $showcnt - 1);
+    list($items, $game_filter_was_applied) = getNewItems($db, $showcnt - 1);
     $totcnt = count($items);
 
     $lastBuildDate = false;

@@ -143,8 +143,9 @@ if (isset($_REQUEST['browse']))
     {
         // run the search
         $count_all_possible_rows = false;
+        $override_game_filter = 0;
         list($rows, $rowcnt, $sortList, $errMsg) =
-            doSearch($db, $searchFor, "game", "rel", "limit 0, 10", false, $count_all_possible_rows);
+            doSearch($db, $searchFor, "game", "rel", "limit 0, 10", false, $count_all_possible_rows, $override_game_filter);
 
         // show the results
         $term = htmlspecialcharx($searchFor);

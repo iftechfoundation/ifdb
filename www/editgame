@@ -66,9 +66,10 @@ if (isset($_REQUEST['search']))
     {
         // run the search
         $count_all_possible_rows = false;
+        $override_game_filter = 0;
         list($rows, $rowcnt, $sortList, $errMsg) =
             doSearch($db, $searchFor, "game", "rel", "limit 0, 10", false, 
-                    $count_all_possible_rows);
+                    $count_all_possible_rows, $override_game_filter);
 
         // if the top result matches the title exactly, consider it a
         // one-row match, even if we found other less relevant titles

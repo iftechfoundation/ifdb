@@ -311,6 +311,7 @@ select `averaged`.`gameid` AS `gameid`,
   `averaged`.`numRatingsInAvg` AS `numRatingsInAvg`,
   `averaged`.`numRatingsTotal` AS `numRatingsTotal`,
   `averaged`.`numMemberReviews` AS `numMemberReviews`,
+  `averaged`.`lastReviewDate` AS `lastReviewDate`,
   `averaged`.`avgRating` AS `avgRating`,
   pow(
     (
@@ -358,6 +359,7 @@ from (
       `rating_counts`.`numRatingsInAvg` AS `numRatingsInAvg`,
       `rating_counts`.`numRatingsTotal` AS `numRatingsTotal`,
       `rating_counts`.`numMemberReviews` AS `numMemberReviews`,
+      `rating_counts`.`lastReviewDate` AS `lastReviewDate`,
 (
         `rating_counts`.`rated1`
         + `rating_counts`.`rated2` * 2
@@ -420,13 +422,20 @@ from (
               when `grouped`.`hasReview` then `grouped`.`count`
               else 0
             end
-          ) AS `numMemberReviews`
+          ) AS `numMemberReviews`,
+          max(
+            case
+              when `grouped`.`hasReview` then `grouped`.`lastRatingOrReviewDate`
+              else null
+            end
+          ) AS `lastReviewDate`
         from (
             select count(`ifdb`.`reviews`.`id`) AS `count`,
               `ifdb`.`reviews`.`rating` AS `rating`,
               `ifdb`.`games`.`id` AS `gameid`,
               ifnull(`ifdb`.`reviews`.`RFlags`, 0) & 2 AS `omitted`,
-              `ifdb`.`reviews`.`review` is not null AS `hasReview`
+              `ifdb`.`reviews`.`review` is not null AS `hasReview`,
+              max(ifnull(embargodate, createdate)) AS `lastRatingOrReviewDate`
             from (
                 `ifdb`.`games`
                 left outer join `ifdb`.`reviews` on (
@@ -479,6 +488,7 @@ select `averaged`.`gameid` AS `gameid`,
   `averaged`.`numRatingsInAvg` AS `numRatingsInAvg`,
   `averaged`.`numRatingsTotal` AS `numRatingsTotal`,
   `averaged`.`numMemberReviews` AS `numMemberReviews`,
+  `averaged`.`lastReviewDate` AS `lastReviewDate`,
   `averaged`.`avgRating` AS `avgRating`,
   pow(
     (
@@ -526,6 +536,7 @@ from (
       `rating_counts`.`numRatingsInAvg` AS `numRatingsInAvg`,
       `rating_counts`.`numRatingsTotal` AS `numRatingsTotal`,
       `rating_counts`.`numMemberReviews` AS `numMemberReviews`,
+      `rating_counts`.`lastReviewDate` AS `lastReviewDate`,
 (
         `rating_counts`.`rated1`
         + `rating_counts`.`rated2` * 2
@@ -588,13 +599,20 @@ from (
               when `grouped`.`hasReview` then `grouped`.`count`
               else 0
             end
-          ) AS `numMemberReviews`
+          ) AS `numMemberReviews`,
+          max(
+            case
+              when `grouped`.`hasReview` then `grouped`.`lastRatingOrReviewDate`
+              else null
+            end
+          ) AS `lastReviewDate`
         from (
             select count(`ifdb`.`reviews`.`id`) AS `count`,
               `ifdb`.`reviews`.`rating` AS `rating`,
               `ifdb`.`games`.`id` AS `gameid`,
               ifnull(`ifdb`.`reviews`.`RFlags`, 0) & 2 AS `omitted`,
-              `ifdb`.`reviews`.`review` is not null AS `hasReview`
+              `ifdb`.`reviews`.`review` is not null AS `hasReview`,
+              max(ifnull(embargodate, createdate)) AS `lastRatingOrReviewDate`
             from (
                 `ifdb`.`games`
                 left outer join `ifdb`.`reviews` on (
@@ -874,6 +892,7 @@ create table gameRatingsSandbox0_mv (
   `numRatingsInAvg` int unsigned,
   `numRatingsTotal` int unsigned,
   `numMemberReviews` int unsigned,
+  `lastReviewDate` datetime NOT NULL,
   `avgRating` double,
   `stdDevRating` double,
   `starsort` double,
@@ -884,7 +903,8 @@ create table gameRatingsSandbox0_mv (
   KEY `numMemberReviews` (`numMemberReviews`),
   KEY `avgRating` (`avgRating`),
   KEY `stdDevRating` (`stdDevRating`),
-  KEY `starsort` (`starsort`)
+  KEY `starsort` (`starsort`),
+  KEY `lastReviewDate` (`lastReviewDate`)
 ) ENGINE = MyISAM DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
 
 lock tables gameRatingsSandbox0_mv write, gameRatingsSandbox0 read;
@@ -910,6 +930,7 @@ where gameid = new_gameid into @gameid,
     @numRatingsInAvg,
     @numRatingsTotal,
     @numMemberReviews,
+    @lastReviewDate,
     @avgRating,
     @stdDevRating,
     @starsort;
@@ -927,6 +948,7 @@ values (
         @numRatingsInAvg,
         @numRatingsTotal,
         @numMemberReviews,
+        @lastReviewDate,
         @avgRating,
         @stdDevRating,
         @starsort,
@@ -941,6 +963,7 @@ update gameid = @gameid,
     numRatingsInAvg = @numRatingsInAvg,
     numRatingsTotal = @numRatingsTotal,
     numMemberReviews = @numMemberReviews,
+    lastReviewDate = @lastReviewDate,
     avgRating = @avgRating,
     stdDevRating = @stdDevRating,
     starsort = @starsort,
