@@ -353,10 +353,8 @@ function queryNewNews(&$items, $db, $limit, $sourceType,
     // Include game news only from games that remain after applying a custom filter
     $andGameIDsMatch = "";
     if ($games_with_recent_news) {
-        // Change the array to a string
         $games_with_recent_news = "'" . implode("', '",$games_with_recent_news) . "'";
-        echo "GAMES WITH RECENT NEWS = $games_with_recent_news"; // Delete this line after we get this working
-        $andGameIDsMatch = "and recentgamenews_mv.game_id in ($games_with_recent_news)";
+        $andGameIDsMatch = "and g.id in ($games_with_recent_news) ";
     }
 
     // query the data
