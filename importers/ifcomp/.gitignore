@@ -4,5 +4,6 @@ cover-art.json
 microdata.json
 microdata-*.json
 external-links.json
+tuid-entry-map.json
 *.zip
 settings.mjs
