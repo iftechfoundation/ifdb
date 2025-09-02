@@ -3100,7 +3100,7 @@ else if (isset($_REQUEST['deletenews'])) {
             $levenshteins = [];
             foreach ($search_results as $search_result) {
                 $levenshtein = levenshtein($original, stringify($search_result));
-                if ($levenshtein > -1 && $levenshtein < $levenshtein_limit) {
+                if ($levenshtein > -1 && $levenshtein < $levenshtein_limit && ($levenshtein < strlen($row['title']) / 3)) {
                     // games in the same series often have very similar names, e.g. "Foo" "Foo 2"
                     // we'll exclude titles with similar names in the same series and different series numbers
                     $result = mysqli_query($db, "select seriesname, seriesnumber from games where id = '{$search_result['id']}'");
