@@ -3063,7 +3063,7 @@ else if (isset($_REQUEST['deletenews'])) {
     global $nonce;
     if (!isset($_REQUEST['days'])) {
         echo "<form action='/adminops'><input type=hidden name='duplicateDetector'>
-        Search for duplicates in the last <input type=number name=days value=50> days <button>Submit</button></form>\n";
+        Search for duplicate games in the last <input type=number name=days value=50> days <button>Submit</button></form>\n";
         echo "<p><b>Beware</b> this can be very slow; if you run it on a lot of days on the production web site, we might slow down or even break the site!</p>";
         echo "<p>If you want to run this on all games for all time, ask Dan to run it offline.</p>";
     } else {
@@ -3237,7 +3237,7 @@ function cleanutf8($str)
     <li><a href="adminops?adminemail">Send admin email</a></li>
     <li><a href="adminops?addnews">Add a Site News item</a></li>
     <li><a href="adminops?burygame">Bury game</a></li>
-    <li><a href="adminops?duplicateDetector">Duplicate detector</a></li>
+    <li><a href="adminops?duplicateDetector">Duplicate game detector</a></li>
 </ul>
 
 <h3>Tags</h3>
