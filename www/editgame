@@ -1736,8 +1736,7 @@ function onComboSelectReviewSite(val)
                   <input id="extrevSourceUrl" type=text size=80><br><br>
 
                   <b>Rating:</b> <?php
-                      echo showStarCtl("extrevStarCtl", 0,
-                                       "setExtRevRating", "null");
+                      echo showStarCtl("extrevStarCtl", 0, "setExtRevRating");
                   ?> <br>
                   <input type=hidden name=extrevRating id=extrevRating value=0>
                   <span class=details>If the site uses a different rating
