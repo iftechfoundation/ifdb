@@ -67,8 +67,7 @@ function updateUnwishList(id, stat)
 
         . "<div class='viewgame__playedSection'>"
         . "<span id=\"ratingCaption\"><b>Rate it:</b></span> "
-        . showStarCtl("ratingStars", $currentUserRating,
-                      "updateRating", "mouseOutRating")
+        . showStarCtl("ratingStars", $currentUserRating, "updateRating")
         . "<button id='submitRating' class='fancy-button hidden'>Submit Rating</button>"
         . "<script nonce='$nonce'>\n"
         . "let arrowKeys = new Set(['ArrowRight', 'ArrowLeft', 'ArrowUp', 'ArrowDown']);"
