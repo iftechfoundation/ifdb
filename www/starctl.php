@@ -1,6 +1,6 @@
 <?php
 
-function showStarCtl($id, $init, $clickFunc)
+function showStarCtl($gameid, $id, $init, $clickFunc)
 {
     
     if (!$init)
@@ -13,16 +13,16 @@ function showStarCtl($id, $init, $clickFunc)
         if ($i == $init) {
             $checked = "checked";
         }
-        $str .= "<input type='radio' name='rating' value='$i' id='{$id}__rating$i' autocomplete='off' $checked>"
+        $str .= "<input type='radio' name='rating_{$id}' value='$i' id='{$id}__rating$i' autocomplete='off' $checked>"
             . "<label for='{$id}__rating$i'><span>"
             . ($i === 1 ? "1 star": "$i stars")
             ."</span></label>";
     }
 
-    $str .= addEventListener("change", "$clickFunc(event.target.value)");
+    $str .= addEventListener("change", "$clickFunc('$gameid', event.target.value)");
 
     $str .= "</div></fieldset><button class='fancy-button remove-rating' type=button>Remove Rating"
-        . addEventListener("click", "setStarCtlValue('$id', 0); $clickFunc(0);")
+        . addEventListener("click", "setStarCtlValue('$id', 0); $clickFunc('$gameid', 0);")
         ."</button>";
 
     
