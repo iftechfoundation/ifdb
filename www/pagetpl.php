@@ -183,7 +183,7 @@ function pageFooter()
 
 <div class="footer prerender-moderate">
 <a class="nav" id="footer-home" href="/">IFDB Home</a> |
-<a class="nav" id="" href="/tips">Tips</a> |
+<a class="nav" id="footer-tips" href="/tips">Tips</a> |
 <a class="nav" id="footer-contact" href="/contact">Contact Us</a> |
 <a class="nav" id="footer-coc" href="/code-of-conduct">Code of Conduct</a> |
 <a class="nav" id="footer-tos" href="/tos">Terms of Service</a> |
