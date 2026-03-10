@@ -1581,7 +1581,7 @@ if ($embargoCnt > 0)
             $result = mysql_query("select sandbox from users where id='$curuser'", $db);
             list($mysandbox) = mysql_fetch_row($result);
             if ($mysandbox != 0)
-                $sandbox = "(0,$mysandbox)";
+                $sandbox = "1";
         }
 
         // show other (non-editorial) special reviews
