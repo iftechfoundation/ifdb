@@ -1283,10 +1283,11 @@ function displayMedianTime($rounded_median_time, $alltimes) {
     foreach ($alltimes as $t) {
         $time_vote_text = "<strong>" . convertTimeToText($t['time_in_minutes']) . "</strong>";
         $note = htmlspecialchars($t['time_note']);
-        // For new time votes, add the note (if present) and link to the user's profile
+        // Add the time note (if present)
         if ($note != "") {
             $time_vote_text .= ": \"$note\"";
         }
+        // Link to the voter's profile
         $time_vote_text .= " — <a href='showuser?id={$t['userid']}'>{$t['name']}</a>";
         echo "<li>$time_vote_text</li>";
     }
