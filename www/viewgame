@@ -1573,14 +1573,8 @@ if ($embargoCnt > 0)
     if ($detailView) {
         // Include only reviews from our sandbox or sandbox 0 (all users)
         $sandbox = "(0)";
-        if ($curuser)
-        {
-            // get my sandbox
-            $mysandbox = 0;
-            $result = mysql_query("select sandbox from users where id='$curuser'", $db);
-            list($mysandbox) = mysql_fetch_row($result);
-            if ($mysandbox != 0)
-                $sandbox = "(0,$mysandbox)";
+        if ($mysandbox != 0) {
+            $sandbox = "(0,$mysandbox)";
         }
         // show other (non-editorial) special reviews
         $result = mysql_query(
