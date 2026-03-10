@@ -1879,7 +1879,7 @@ if ($embargoCnt > 0)
 
     // ---------------- end Game Details section ------------
 
-    } // if ($detailView)
+    } // if ($detailView || $historyView)
 
 
 //------------------------ CROSS-RECOMMENDATIONS --------------------------
