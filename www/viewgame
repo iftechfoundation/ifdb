@@ -1270,8 +1270,6 @@ if ($curuser) {
 
 // --------------------PHP Function for displaying median play time--------------------------
 
-
-
 function displayMedianTime($rounded_median_time, $alltimes) {
     if ($rounded_median_time < 1) return;
     // Turn the total minutes into hours and minutes, and then text
@@ -1295,7 +1293,7 @@ function displayMedianTime($rounded_median_time, $alltimes) {
     echo "</ul></details>";
 }
 
-//--------------------End of PHP Functions for displaying median time-----------------
+//--------------------End of PHP Function for displaying median time-----------------
 
 if ($ratingCntTot == 0 && $memberReviewCnt == 0) {
     displayMedianTime($rounded_median_time, $alltimes);
