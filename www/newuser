@@ -384,7 +384,8 @@ function handlePost()
         "/@.*\b(yahoo|ymail|gmail|hotmail|live|aol|gether-back|interlog"
         . "|siteoptima|googlemail|rediffmail|windowslive|renook"
         . "|gailmproductions|i-s-i|mail15|smoke911"
-        . "|greenfroginteractive|bigmir)\b/i",
+        . "|greenfroginteractive|bigmir|thes.ttct.edu.tw"
+        . ")\b/i",
         $email);
 
     // certain email domains are so popular with spammers that we can just
@@ -392,7 +393,9 @@ function handlePost()
     $domainBanned = false;
     if (preg_match(
         "/@.*\b(mail15|mail333|gailmproductions|siteoptima|bigmir"
-        . "|rediffmail|renook|i-s-i|smoke911|greenfroginteractive)\b/i",
+        . "|rediffmail|renook|i-s-i|smoke911|greenfroginteractive"
+        . "|thes.ttct.edu.tw"
+        . ")\b/i",
         $email))
         $domainBanned = true;
 
