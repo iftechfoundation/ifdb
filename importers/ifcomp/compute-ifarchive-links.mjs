@@ -58,35 +58,46 @@ const extensionsByPlatform = {
     'adventuron': ['html'],
     'zcode': ['zblorb', 'z5', 'z8'],
     'inform': ['gblorb', 'ulx'],
+    'parchment': ['html', 'gblorb', 'ulx'],
     'inform-website': ['gblorb', 'ulx'],
-    'quixe': ['gblorb', 'ulx'],
+    'quixe': ['gblorb', 'ulx', 'html'],
     'tads': ['t3'],
     'windows': ['exe'],
     'other': [],
 }
 
-function findFileMatchingExtensions(path, files, extensions) {
+function findFileMatchingExtensions(path, files, gamePlatform) {
+    const extensions = extensionsByPlatform[gamePlatform];
+    if (!extensions) {
+        throw new Error("No known extensions for gamePlatform " + gamePlatform);
+    }
     let candidates = files.filter(f => {
         if (f.startsWith('__MACOSX/')) return false;
+        if (f.endsWith("UnityCrashHandler64.exe")) return false;
         for (const extension of extensions) {
             if (f.endsWith('.' + extension)) return true;
         }
         return false;
     });
 
-    // if there are multiple HTML candidates, prefer `index.html`
-    if (candidates.length > 1 && extensions.length === 1 && extensions[0] === 'html') {
-        const indexHtml = candidates.filter(f => f.split("/").at(-1) === "index.html");
-        if (indexHtml.length === 1) {
-            candidates = indexHtml;
+    // if there are multiple HTML candidates, prefer `play.html`, then `index.html`
+    if (candidates.length > 1 && candidates.every(f => f.split("/").at(-1).split(".").at(-1) === "html")) {
+        const playHtml = candidates.filter(f => f.split("/").at(-1) === "play.html");
+        if (playHtml.length === 1) {
+            candidates = playHtml;
+        } else {
+            const indexHtml = candidates.filter(f => f.split("/").at(-1) === "index.html");
+            if (indexHtml.length === 1) {
+                candidates = indexHtml;
+            }
         }
     }
 
     if (candidates.length === 0) {
-        console.log(`no candidate [${extensions.join(' ')}] files for ${path}`);
+        console.log(`no candidate ${gamePlatform} [${extensions.join(' ')}] files for ${path}`);
         return null;
     } else if (candidates.length > 1) {
-        console.log(`too many candidate [${extensions.join(' ')}] files for ${path}:\n  ${candidates.join('\n  ')}`);
+        console.log(`too many candidate ${gamePlatform} [${extensions.join(' ')}] files for ${path}:\n  ${candidates.join('\n  ')}`);
     }
     return candidates;
 }
@@ -112,16 +123,8 @@ const results = await Promise.all(links.map(async (link) => {
                 console.log(`No gamePlatform for ${path} ${tuid}`);
                 return { tuid, name, url };
             }
-            const extensions = extensionsByPlatform[gamePlatform];
-            if (!extensions) {
-                throw new Error("No known extensions for gamePlatform " + gamePlatform);
-            }
-            const candidates = findFileMatchingExtensions(path, files, extensions);
-            if (candidates?.length > 1) {
-                const extension = candidates[0].split('.').at(-1);
-                const format = formats[extension];
-                return { tuid, name, url, format };
-            } else if (candidates?.length === 1) {
+            const candidates = findFileMatchingExtensions(path, files, gamePlatform);
+            if (candidates?.length > 0) {
                 const zipMainFile = candidates[0];
                 const extension = zipMainFile.split('.').at(-1);
                 const format = formats[extension];
