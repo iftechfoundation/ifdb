@@ -373,6 +373,48 @@ function handlePost()
     $ip = $_SERVER['REMOTE_ADDR'];
     $sfsIsSpam = sfsCheck($ip, $email, $dname, $sfsBanned);
 
+
+    // Check the email address against the list of suspicious 
+    // domains maintained by the moderators. This list can be 
+    // updated using the admin controls.
+    $result = mysqli_execute_query($db,
+       'SELECT domain, suspicion_level  
+        FROM suspicious_domains
+        WHERE (domain, mod_date) IN 
+           (SELECT domain, MAX(mod_date)
+            FROM suspicious_domains
+            GROUP BY domain)
+        AND suspicion_level >= 1');
+    if (!$result) throw new Exception("Error: " . mysqli_error($db));
+    $suspicious_rows = mysqli_fetch_all($result, MYSQLI_ASSOC);
+    $low_suspicion_domains = "";
+    $medium_suspicion_domains = "";
+    $high_suspicion_domains = "";
+    foreach ($suspicious_rows as $r) {
+        $domain = htmlspecialchars($r['domain']);
+        $suspicion_level = $r['suspicion_level'];
+        if ($suspicion_level == 1) {
+            if ($low_suspicion_domains != "") {
+                $low_suspicion_domains .= "|";
+            }
+            $low_suspicion_domains .= $domain;
+        } else if ($suspicion_level == 2) {
+            if ($medium_suspicion_domains != "") {
+                $medium_suspicion_domains .= "|";
+            }
+            $medium_suspicion_domains .= $domain;
+        } else if ($suspicion_level == 3) {
+            if ($high_suspicion_domains != "") {
+                $high_suspicion_domains .= "|";
+            }
+            $high_suspicion_domains .= $domain;
+        }
+    }
+    echo "low suspicion domains: $low_suspicion_domains<br>";
+    echo "medium suspicion domains: $medium_suspicion_domains<br>";
+    echo "high suspicion domains: $high_suspicion_domains<br>";
+
+
     // Check for users with free email accounts (hotmail, gmail, yahoo, etc)
     // and email domains where we've seen spammers in the past.  Also get
     // spam judgments from Akisment and stopforumspam.  If any of these
@@ -381,28 +423,39 @@ function handlePost()
     // puts a note in the administrator email notification that this account
     // should be checked more thoroughly.
     $emailFlagged = preg_match(
-        "/@.*\b(yahoo|ymail|gmail|hotmail|live|aol|gether-back|interlog"
-        . "|siteoptima|googlemail|rediffmail|windowslive|renook"
-        . "|gailmproductions|i-s-i|mail15|smoke911"
-        . "|greenfroginteractive|bigmir|thes.ttct.edu.tw"
-        . ")\b/i",
+        "/@.*\b($low_suspicion_domains)\b/i",
         $email);
+
+//    $emailFlagged = preg_match(
+//        "/@.*\b(yahoo|ymail|gmail|hotmail|live|aol|gether-back|interlog"
+//        . "|siteoptima|googlemail|rediffmail|windowslive|renook"
+//        . "|gailmproductions|i-s-i|mail15|smoke911"
+//        . "|greenfroginteractive|bigmir|thes.ttct.edu.tw"
+//        . ")\b/i",
+//        $email);        
 
     // certain email domains are so popular with spammers that we can just
     // presume this will be a spammer
     $domainBanned = false;
     if (preg_match(
-        "/@.*\b(mail15|mail333|gailmproductions|siteoptima|bigmir"
-        . "|rediffmail|renook|i-s-i|smoke911|greenfroginteractive"
-        . "|thes.ttct.edu.tw"
-        . ")\b/i",
+        "/@.*\b($medium_suspicion_domains)\b/i",
         $email))
+
+//    if (preg_match(
+//        "/@.*\b(mail15|mail333|gailmproductions|siteoptima|bigmir"
+//        . "|rediffmail|renook|i-s-i|smoke911|greenfroginteractive"
+//        . "|thes.ttct.edu.tw"
+//        . ")\b/i",
+//        $email))
         $domainBanned = true;
 
     // Check for TRULY banned domains.  Certain domains are basically
     // 100% spammers, so we can just ignore them out of hand.
-    if (preg_match("/@.*\b(bigmir)\b/i", $email)
+    if (preg_match("/@.*\b($high_suspicion_domains)\b/i", $email)
         || $ip == "93.75.129.252") // big spam source on 6/21/11
+
+//    if (preg_match("/@.*\b(bigmir)\b/i", $email)
+//        || $ip == "93.75.129.252") // big spam source on 6/21/11
     {
         $errFlagged = "We're sorry, but a problem occurred adding the new "
                       . "user record. Please wait a few minutes and "
@@ -574,4 +627,3 @@ href="/contact">contact us</a> to let us know about the problem.
 } // function handlePost()
 
 ?>
-
