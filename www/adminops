@@ -521,7 +521,7 @@ if (isset($_REQUEST['domains'])) {
 
         // Show the domain history
         echo "<hr>";
-        echo "<h2>Update history for suspicious domains</h2>";
+        echo "<h2>Suspicious domains update history</h2>";
         // Collect the suspicious domains history from the database.
         $result = mysqli_execute_query($db,
             'SELECT s.domain, s.suspicion_level, s.mod_date, s.modified_by, u.id, u.name AS user_name
@@ -546,8 +546,9 @@ if (isset($_REQUEST['domains'])) {
             } else {
                 echo "marked <b>$domain</b> as suspicion level <b>$suspicion_level</b>";
             }
-            echo " on $formatted_date.";
+            echo " on $formatted_date.</li>";
         } // foreach ($suspicious_domain_history_rows as $row)
+        echo "</ul>";
         echo "<hr>";
     } // if (!$new_domain || !$suspicion_level)
      
@@ -643,7 +644,7 @@ if (isset($_REQUEST['domains'])) {
         echo '<p><a href="adminops?domains">Add or update another domain</a></p>';
     }; // if ($new_domain AND $new_suspicion_level) 
 
-    echo '<p><a href="/adminops">Return to the Administrator Operations Panel</a></p>';
+    echo '<p><a href="/adminops">Return to the Administrator Operations panel</a></p>';
     pageFooter();
     exit();
 } // if (isset($_REQUEST['domains']))
