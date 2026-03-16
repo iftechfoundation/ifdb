@@ -468,6 +468,187 @@ if (isset($_REQUEST['recentactivity'])) {
              
 //----------------- end of recent activity -------------
 
+//----------------- BEGIN MANAGE SUSPICIOUS DOMAINS -----------
+
+if (isset($_REQUEST['domains'])) {
+    $new_domain = $_POST['new_domain'] ?? null;
+    $new_suspicion_level = $_POST['new_suspicion_level'] ?? null;
+
+    pageHeader("Manage Suspicious Domains");
+    echo "<h1>Manage Suspicious Domains</h1>";
+    if (!$new_domain || !$new_suspicion_level) {
+        // The user has not completed the form,
+        // so show the form.
+?>
+        <hr>
+        <h2>Add or update a suspicious domain<h2>        
+        <form action="/adminops?domains" method="post">
+        <p>Domain: <input type="text" id="new_domain" name="new_domain" size=25 required></p>
+        <p>Suspicion level:<br>
+        <input type="radio" id="level_1" name="new_suspicion_level" value="1" required>
+        <label for="level_1">1 — Low. Account creation emails will say "suspicious domain."</label><br>
+        <input type="radio" id="level_2" name="new_suspicion_level" value="2" required>
+        <label for="level_2">2 — Medium. Accounts won't be activated until a moderator approves.</label><br>
+        <input type="radio" id="level_3" name="new_suspicion_level" value="3" required>
+        <label for="level_2">3 — High. Account creation will be blocked.</label><br>
+        <input type="radio" id="delete_domain" name="new_suspicion_level" value="delete" required>
+        <label for="delete_domain">Delete this domain from the list of suspicious domains.</label><br><br>
+        <input type="submit" value="Submit"></form></p>
+<?php 
+        // Display the current list of suspicious domains.
+        echo "<hr>";
+        echo "<h2>Current list of suspicious domains</h2>"; 
+        echo "<table>";
+        echo "<tr>";
+        echo "<th>Domain</th>";
+        echo "<th>Suspicion Level</th>";
+        echo "</tr>";
+        $result = mysqli_execute_query($db,
+            'SELECT domain, suspicion_level
+            FROM suspicious_domains
+            ORDER by domain');
+        if (!$result) throw new Exception("Error: " . mysqli_error($db));
+        $suspicious_domains_history_rows = mysqli_fetch_all($result, MYSQLI_ASSOC);
+        foreach ($suspicious_domains_history_rows as $row) {
+            $domain = htmlspecialchars($row['domain']);
+            $suspicion_level = htmlspecialchars($row['suspicion_level']);
+            echo "<tr>";
+            echo "<td>$domain</td>";  
+            echo "<td>$suspicion_level</td>"; 
+            echo "</tr>";    
+        } // foreach ($suspicious_domains_history_rows as $row)
+        echo "</table>";
+
+        // Show the domain history
+        echo "<hr>";
+        echo "<h2>Update history for suspicious domains</h2>";
+        // Collect the suspicious domains history from the database.
+        $result = mysqli_execute_query($db,
+            'SELECT s.domain, s.suspicion_level, s.mod_date, s.modified_by, u.id, u.name AS user_name
+            FROM suspicious_domains_history AS s
+            LEFT OUTER JOIN users AS u ON s.modified_by = u.id
+            ORDER by mod_date DESC');
+            if (!$result) throw new Exception("Error: " . mysqli_error($db));
+        $suspicious_domains_history_rows = mysqli_fetch_all($result, MYSQLI_ASSOC);
+        echo "<ul>";
+        foreach ($suspicious_domains_history_rows as $row) {
+            $modified_by = htmlspecialchars($row['modified_by']);
+            $user_name = htmlspecialchars($row['user_name']);
+            $domain = htmlspecialchars($row['domain']);
+            $suspicion_level = htmlspecialchars($row['suspicion_level']);
+            $mod_date = htmlspecialchars($row['mod_date']);
+            $formatted_date = date('M d, Y', strtotime($mod_date));
+
+            // Print a report about this edit.      
+            echo "<li><a href='/showuser?id=$modified_by'>$user_name</a> ";
+            if ($suspicion_level == "delete") {
+                echo "deleted <b>$domain</b> from the list of suspicious domains";
+            } else {
+                echo "marked <b>$domain</b> as suspicion level <b>$suspicion_level</b>";
+            }
+            echo " on $formatted_date.";
+        } // foreach ($suspicious_domain_history_rows as $row)
+        echo "<hr>";
+    } // if (!$new_domain || !$suspicion_level)
+     
+    if ($new_domain AND $new_suspicion_level) {
+        // User has filled out the form with a domain and a 
+        // suspicion level. Check to see if this domain is 
+        // already listed in the current suspicious domains.
+        $result = mysqli_execute_query($db,
+            'SELECT suspicious_domain_id, domain, suspicion_level 
+            FROM suspicious_domains
+            WHERE domain = ?', [$new_domain]);
+        if (!$result) throw new Exception("Error: " . mysqli_error($db));
+        $matching_suspicious_domains_rows = mysqli_fetch_all($result, MYSQLI_ASSOC);
+        foreach ($matching_suspicious_domains_rows as $row) {
+            // A matching domain was found in the current suspicious domains.
+            $suspicious_domain_id = htmlspecialchars($row['suspicious_domain_id']);
+            $suspicion_level = htmlspecialchars($row['suspicion_level']);
+
+            // If the domain is already set to this suspicion level, don't set it again.
+            if ($suspicion_level == $new_suspicion_level) {
+                echo "The domain <b>$new_domain</b> was already marked as level ";
+                echo "<b>$suspicion_level</b>. No changes were made.";
+
+            } else if (($new_suspicion_level == "1") OR ($new_suspicion_level == "2") OR ($new_suspicion_level == "3")) {
+                // User has entered a new suspicion level for this domain.
+                // Update existing row in the suspicious domains table.
+                mysqli_execute_query($db,
+                    'UPDATE suspicious_domains
+                    SET suspicion_level = ?
+                    WHERE suspicious_domain_id = ?', 
+                    [$new_suspicion_level, $suspicious_domain_id]);
+                
+                // Add a new row to the suspicious domains history table
+                // to note that the level was updated for this domain.
+                mysqli_execute_query($db, 
+                    "INSERT into suspicious_domains_history
+                    (domain, suspicion_level, mod_date, modified_by) 
+                    values (?, ?, now(), ?)",
+                    [$new_domain, $new_suspicion_level, $userid]); 
+
+                echo "The domain <b>$new_domain</b> has been updated ";
+                echo "to suspicion level <b>$new_suspicion_level</b>.";
+
+            } else if ($new_suspicion_level == "delete") {
+
+                // Delete this domain from the suspicious domains table
+                mysqli_execute_query($db,
+                'DELETE FROM suspicious_domains 
+                WHERE suspicious_domain_id = ?', [$suspicious_domain_id]);
+
+                // Add a new entry to the suspicious domains history table
+                // to note that this domain was deleted from the current
+                // suspicious domains
+                mysqli_execute_query($db, 
+                "INSERT into suspicious_domains_history
+                (domain, suspicion_level, mod_date, modified_by) 
+                values (?, ?, now(), ?)",
+                [$new_domain, $new_suspicion_level, $userid]); 
+                
+                echo "The domain <b>$new_domain</b> has been deleted from ";
+                echo "the list of suspicious domains.";
+            } // else if ($new_suspicion_level == "delete")
+        } // foreach ($matching_suspicious_domains_rows as $row)
+
+        if (!$matching_suspicious_domains_rows) {
+            // User has entered a domain that's not in the current list of suspicious domains.
+            if ($new_suspicion_level == "delete") {
+                // The user tried to delete a domain that's not on the list.
+                echo "The domain <b>$new_domain</b> was not on the current list of ";
+                echo "suspicious domains, so it could not be deleted.";
+            
+            } else if (($new_suspicion_level == "1") OR ($new_suspicion_level == "2") OR ($new_suspicion_level == "3")) {
+                // We have a new domain to add to the list.
+                // Add new row to the suspicious_domains table.
+                mysqli_execute_query($db, 
+                "INSERT into suspicious_domains
+                (domain, suspicion_level) 
+                values (?, ?)",
+                [$new_domain, $new_suspicion_level]);
+
+                // Add new row to the suspicious_domains_history table.
+                mysqli_execute_query($db, 
+                "INSERT into suspicious_domains_history
+                (domain, suspicion_level, mod_date, modified_by) 
+                values (?, ?, now(), ?)",
+                [$new_domain, $new_suspicion_level, $userid]);
+
+                echo "The domain <b>$new_domain</b> has now been added to ";
+                echo "the list of suspicious domains. Its suspicion level ";
+                echo "is <b>$new_suspicion_level</b>.";
+            } // else if (($new_suspicion_level == "1") OR ($new_suspicion_level == "2") OR ($new_suspicion_level == "3"))       
+        } // if (!$matching_suspicious_domains_rows) 
+        echo '<p><a href="adminops?domains">Add or update another domain</a></p>';
+    }; // if ($new_domain AND $new_suspicion_level) 
+
+    echo '<p><a href="/adminops">Return to the Administrator Operations Panel</a></p>';
+    pageFooter();
+    exit();
+} // if (isset($_REQUEST['domains']))
+
+//------------------ end of manage suspicious domains ---------------------
 
 if (isset($_REQUEST['bulkaddtag'])) {
     $tag = $_POST['tag'] ?? null;
@@ -3236,6 +3417,7 @@ function cleanutf8($str)
     <li><a href="adminops?userSelfComments">User self-comments</a></li>
     <li><a href="adminops?adminemail">Send admin email</a></li>
     <li><a href="adminops?addnews">Add a Site News item</a></li>
+    <li><a href="adminops?domains">Manage suspicious domains</a></li>
     <li><a href="adminops?burygame">Bury game</a></li>
     <li><a href="adminops?duplicateDetector">Duplicate game detector</a></li>
 </ul>
