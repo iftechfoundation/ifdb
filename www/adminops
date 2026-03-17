@@ -491,8 +491,8 @@ if (isset($_REQUEST['domains'])) {
         <label for="level_2">2 — Medium. Accounts won't be activated until a moderator approves.</label><br>
         <input type="radio" id="level_3" name="new_suspicion_level" value="3" required>
         <label for="level_2">3 — High. Account creation will be blocked.</label><br>
-        <input type="radio" id="delete_domain" name="new_suspicion_level" value="delete" required>
-        <label for="delete_domain">Delete this domain from the list of suspicious domains.</label><br><br>
+        <input type="radio" id="not_suspicious" name="new_suspicion_level" value="not suspicious" required>
+        <label for="delete_domain">Not suspicious. Delete this domain from the list of suspicious domains.</label><br><br>
         <input type="submit" value="Submit"></form></p>
 <?php 
         // Display the current list of suspicious domains.
@@ -541,7 +541,7 @@ if (isset($_REQUEST['domains'])) {
 
             // Print a report about this edit.      
             echo "<li><a href='/showuser?id=$modified_by'>$user_name</a> ";
-            if ($suspicion_level == "delete") {
+            if ($suspicion_level == "not suspicious") {
                 echo "deleted <b>$domain</b> from the list of suspicious domains";
             } else {
                 echo "marked <b>$domain</b> as suspicion level <b>$suspicion_level</b>";
@@ -592,7 +592,7 @@ if (isset($_REQUEST['domains'])) {
                 echo "The domain <b>$new_domain</b> has been updated ";
                 echo "to suspicion level <b>$new_suspicion_level</b>.";
 
-            } else if ($new_suspicion_level == "delete") {
+            } else if ($new_suspicion_level == "not suspicious") {
 
                 // Delete this domain from the suspicious domains table
                 mysqli_execute_query($db,
@@ -610,12 +610,12 @@ if (isset($_REQUEST['domains'])) {
                 
                 echo "The domain <b>$new_domain</b> has been deleted from ";
                 echo "the list of suspicious domains.";
-            } // else if ($new_suspicion_level == "delete")
+            } // else if ($new_suspicion_level == "not suspicious")
         } // foreach ($matching_suspicious_domains_rows as $row)
 
         if (!$matching_suspicious_domains_rows) {
             // User has entered a domain that's not in the current list of suspicious domains.
-            if ($new_suspicion_level == "delete") {
+            if ($new_suspicion_level == "not suspicious") {
                 // The user tried to delete a domain that's not on the list.
                 echo "The domain <b>$new_domain</b> was not on the current list of ";
                 echo "suspicious domains, so it could not be deleted.";

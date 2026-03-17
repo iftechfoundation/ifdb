@@ -22,9 +22,9 @@ values ('yahoo.com', '3');
 DROP TABLE IF EXISTS `suspicious_domains_history`;
 CREATE TABLE `suspicious_domains_history` ( 
   `suspicious_domains_revision_id` BIGINT(2) UNSIGNED NOT NULL AUTO_INCREMENT,
-  `domain` VARCHAR(255) NOT NULL,
   `mod_date` DATETIME NOT NULL,
-  `suspicion_level` VARCHAR(6) NOT NULL,
+  `domain` VARCHAR(255) NOT NULL,
+  `suspicion_level` VARCHAR(14) NOT NULL,
   `modified_by` VARCHAR(255) NOT NULL,
   PRIMARY KEY (suspicious_domains_revision_id)
 );
