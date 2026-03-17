@@ -557,7 +557,7 @@ if (isset($_REQUEST['domains'])) {
         // suspicion level. Check to see if this domain is 
         // already listed in the current suspicious domains.
         $result = mysqli_execute_query($db,
-            'SELECT suspicious_domain_id, domain, suspicion_level 
+            'SELECT suspicious_domain_id, suspicion_level
             FROM suspicious_domains
             WHERE domain = ?', [$new_domain]);
         if (!$result) throw new Exception("Error: " . mysqli_error($db));
