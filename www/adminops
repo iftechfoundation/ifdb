@@ -508,15 +508,15 @@ if (isset($_REQUEST['domains'])) {
             FROM suspicious_domains
             ORDER by domain');
         if (!$result) throw new Exception("Error: " . mysqli_error($db));
-        $suspicious_domains_history_rows = mysqli_fetch_all($result, MYSQLI_ASSOC);
-        foreach ($suspicious_domains_history_rows as $row) {
+        $suspicious_domains_rows = mysqli_fetch_all($result, MYSQLI_ASSOC);
+        foreach ($suspicious_domains_rows as $row) {
             $domain = htmlspecialchars($row['domain']);
             $suspicion_level = htmlspecialchars($row['suspicion_level']);
             echo "<tr>";
             echo "<td>$domain</td>";  
             echo "<td>$suspicion_level</td>"; 
             echo "</tr>";    
-        } // foreach ($suspicious_domains_history_rows as $row)
+        } // foreach ($suspicious_domains_rows as $row)
         echo "</table>";
 
         // Show the domain history
