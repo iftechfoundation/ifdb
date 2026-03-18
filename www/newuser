@@ -508,7 +508,7 @@ function handlePost()
            . "<p>Akisment judgment: " . ($akIsSpam ? "<b>Spam</b>" : "Okay")
            . "<br>StopForumSpam.com: " . $sfsIsSpam
            . "<br>Suspicious email domain: "
-           .     ($emailFlagged ? "<b>Yes</b>" : "No")
+           .     ($email_domain_suspicion_level ? "<b>Yes (".$email_domain_suspicion_level.")</b>" : "No")
 
            . "<br><br><a href=\"http://www.google.com/search?q=%22"
            .    urlencode($email) . "%22\">Search for email</a>"
