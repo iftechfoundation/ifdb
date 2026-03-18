@@ -490,9 +490,9 @@ if (isset($_REQUEST['domains'])) {
         <input type="radio" id="level_2" name="new_suspicion_level" value="2" required>
         <label for="level_2">2 — Medium. Accounts won't be activated until a moderator approves.</label><br>
         <input type="radio" id="level_3" name="new_suspicion_level" value="3" required>
-        <label for="level_2">3 — High. Account creation will be blocked.</label><br>
+        <label for="level_3">3 — High. Account creation will be blocked.</label><br>
         <input type="radio" id="not_suspicious" name="new_suspicion_level" value="not suspicious" required>
-        <label for="delete_domain">Not suspicious. Delete this domain from the list of suspicious domains.</label><br><br>
+        <label for="not_suspicious">Not suspicious. Delete this domain from the list of suspicious domains.</label><br><br>
         <input type="submit" value="Submit"></form></p>
 <?php 
         // Display the current list of suspicious domains.
