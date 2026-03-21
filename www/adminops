@@ -651,6 +651,73 @@ if (isset($_REQUEST['domains'])) {
 
 //------------------ end of manage suspicious domains ---------------------
 
+//----------------- BEGIN LOCKDOWN OPTIONS -----------
+
+if (isset($_REQUEST['lockdown'])) {
+    $switch_to_lockdown = $_POST["lockdown_button"] ?? null;
+    $switch_to_normal = $_POST["normal_button"] ?? null;
+
+    if ($switch_to_lockdown OR $switch_to_normal) {
+        // The user pressed a button to switch modes.
+        // Figure out which mode.
+        $new_account_approval_mode = "";
+        if ($switch_to_lockdown) {
+            $new_account_approval_mode = "lockdown";
+        } else if ($switch_to_normal){
+            $new_account_approval_mode = "normal";
+        }   
+        // Update the account creation mode in the database.
+        mysqli_execute_query($db,
+            "UPDATE global_settings
+            SET current_value = ?
+            WHERE setting_name = 'account approval'", 
+            [$new_account_approval_mode]);
+    }
+
+    // Find which account approval mode we're in
+    $result = mysqli_execute_query($db,
+        "SELECT current_value
+        FROM global_settings
+        WHERE setting_name = 'account approval'");
+    if (!$result) throw new Exception("Error: " . mysqli_error($db));
+        $matching_settings_rows = mysqli_fetch_all($result, MYSQLI_ASSOC);
+        $current_account_approval_mode = "";
+        foreach ($matching_settings_rows as $row) {
+            $current_account_approval_mode = htmlspecialchars($row['current_value']);
+        }     
+
+    // Show what mode we're in and explain the modes
+    pageHeader("Lockdown Options");
+    echo "<h1>Lockdown Options</h1>";
+    echo "<p>Account creation is currently in ";
+    if ($current_account_approval_mode == "normal") {
+        echo "<b>Normal Mode</b>.";
+    } else if ($current_account_approval_mode == "lockdown"){
+        echo "<b>Lockdown Mode</b>.";
+    }
+    echo "<p>In normal mode, low-risk new accounts can be "; 
+    echo "activated without moderator approval.</p>";
+    echo "<p>In lockdown mode, no new accounts can be ";
+    echo "activated until a moderator manually approves them.</p>";
+
+    // Display the button to switch modes
+    echo '<form action="/adminops?lockdown" method="post">';
+        if ($current_account_approval_mode == "normal") { 
+        echo "<input type='submit' name='lockdown_button' id='lockdown_button' value='Switch to Lockdown Mode'>";
+    } else if ($current_account_approval_mode == "lockdown"){ 
+        echo "<input type='submit' name='normal_button' id='normal_button' value='Switch to Normal Mode'>";
+    }
+    echo '</form></p>';
+    echo '<hr>';
+    echo '<p><a href="/adminops">Return to the Administrator Operations panel</a></p>';
+    pageFooter();
+    exit();
+    
+} // if (isset($_REQUEST['lockdown']))
+
+//------------------ end of lockdown options ---------------------
+
+
 if (isset($_REQUEST['bulkaddtag'])) {
     $tag = $_POST['tag'] ?? null;
     $tag2 = $_POST['tag2'] ?? null;
@@ -3419,6 +3486,7 @@ function cleanutf8($str)
     <li><a href="adminops?adminemail">Send admin email</a></li>
     <li><a href="adminops?addnews">Add a Site News item</a></li>
     <li><a href="adminops?domains">Manage suspicious domains</a></li>
+    <li><a href="adminops?lockdown">Lockdown options</a></li>
     <li><a href="adminops?burygame">Bury game</a></li>
     <li><a href="adminops?duplicateDetector">Duplicate game detector</a></li>
 </ul>
