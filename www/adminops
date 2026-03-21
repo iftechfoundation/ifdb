@@ -1930,71 +1930,7 @@ else if (isset($_REQUEST['users'])) {
             . "<div class=\"indented details\">$ctxt</div>";
     }
 
-} else if (isset($_REQUEST['reaper'])) {
 
-    $limit = (int)$_REQUEST['reaper'];
-    if ($limit < 0)
-        $limit = 30;
-
-    $result = mysql_query(
-        "select persistentsessions.id, userid, persistentsessions.lastlogin,
-           name, email,
-           to_days(now()) - to_days(persistentsessions.lastlogin)
-         from persistentsessions, users
-         where
-           persistentsessions.lastlogin <= date_sub(now(), interval $limit day)
-            and users.id = persistentsessions.userid", $db);
-
-    if (mysql_num_rows($result) == 0)
-        echo "No sessions were found that have been inactive for "
-            . "$limit day(s) or more.";
-    else {
-        echo "<table><tr><th>User Name</th><th>Email</th>"
-            . "<th>Last Login</th><th>Days Inactive</th></tr>";
-
-        for ($i = 0 ; $i < mysql_num_rows($result) ; $i++) {
-            list($sid, $uid, $login, $name, $email, $days) =
-               mysql_fetch_row($result);
-
-            $sid = mysql_real_escape_string($sid, $db);
-            $name = htmlspecialcharx($name);
-            $email = htmlspecialcharx($email);
-
-            $bg = (($i % 2) == 0) ? "evenRow" : "oddRow";
-            echo "<tr class=\"$bg;\">"
-                . "<td><a href=\"showuser?id=$uid\">$name</a></td>"
-                . "<td>$email</td>"
-                . "<td>$login</td>"
-                . "<td>$days</td>"
-                . "</tr>";
-        }
-
-        echo "</table>";
-
-        if (isset($_REQUEST['delete'])) {
-            $result = mysql_query(
-                "delete from persistentsessions
-                 where lastlogin <= date_sub(now(), interval $limit day)",
-                $db);
-
-            if ($result)
-                echo "<span class=success>The sessions above have been "
-                    . "deleted.</span>";
-            else
-                echo "<span class=errmsg>An error occurred deleting inactive "
-                    . "sessions.</span>";
-
-            echo "<p><a href=\"adminops?reaper=$limit\">Refresh the list</a>";
-
-        } else {
-
-            echo "<p><a href=\"adminops?reaper=$limit&delete\">"
-                . "Delete these sessions</a>";
-
-        }
-
-        echo "<br><br><hr class=dots><br><br>";
-    }
 
 } else if (isset($_REQUEST['fixsortkeys'])) {
 
