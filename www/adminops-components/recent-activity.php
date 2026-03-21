@@ -1,3 +1,5 @@
+<?php
+
 // For long author and title strings, cut off the 
 // string after a set number of characters and 
 // add "..." if any characters were removed.
@@ -384,4 +386,6 @@ if (isset($_REQUEST['recentactivity'])) {
     pageFooter();
     exit();
 } // if (isset($_REQUEST['recentactivity']))
+
+?>
  
