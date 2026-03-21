@@ -780,3 +780,5 @@ if (isset($_REQUEST['cleanpix'])) {
         . "<br>MySQL version = $mysqlVsn";
 
     echo "<p><hr class=dots><p>";
+
+}
