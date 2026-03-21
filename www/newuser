@@ -438,11 +438,27 @@ function handlePost()
         return true;
     }
 
+    // Check to see if IFDB account approval is currently in lockdown mode
+    $lockdown = false;
+    $result = mysqli_execute_query($db,
+        "SELECT current_value
+        FROM global_settings
+        WHERE setting_name = 'account approval'");
+    if (!$result) throw new Exception("Error: " . mysqli_error($db));
+    $matching_settings_rows = mysqli_fetch_all($result, MYSQLI_ASSOC);
+    $current_account_approval_mode = "";
+    foreach ($matching_settings_rows as $row) {
+        $current_account_approval_mode = htmlspecialchars($row['current_value']);
+    }
+    if ($current_account_approval_mode == "lockdown") {
+        $lockdown = true;
+    }
+
     // If the stopforumspam check turned up an obvious spammer, or the
     // email domain is one that we know from our own experience to be
-    // mostly used by spammers, don't even allow the user to activate
-    // the account until we can review it.
-    if ($sfsBanned || $domainBanned)
+    // mostly used by spammers, or if we're in lockdown mode, don't even 
+    // allow the user to activate the account until we can review it.
+    if ($sfsBanned || $domainBanned || $lockdown)
     {
         // use account statue 'R' - review needed
         $acctStatus = "R";
