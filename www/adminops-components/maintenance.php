@@ -602,3 +602,32 @@ if (isset($_REQUEST['cleanpix'])) {
         echo "<p><b><a href=\"adminops?fixbafs&apply\">Apply these updates</a><p>";
 
 
+} else if (isset($_REQUEST['filters'])) {
+
+    echo "<h1>Game Filters</h1>";
+
+    $result = mysql_query(
+        "select
+           filterID, filterName, ckBoxName, showName, endDate,
+           filterType, explanation
+         from filters", $db);
+    echo mysql_error($db);
+    for ($i = 0 ; $i < mysql_num_rows($result) ; $i++) {
+        list($filterID, $filterName, $ckBoxName, $showName,
+             $endDate, $filterType, $explanation) = mysql_fetch_row($result);
+
+        echo "<p><hr class=dots>"
+            . "<b>Name:</b> $filterName<br>"
+            . "<b>\"Set\" checkbox label:</b> $ckBoxName<br>"
+            . "<b>\"Opt out\" checkbox label:</b> $showName<br>"
+            . "<b>\"End date:</b> " . ($endDate ? $endDate : "None") . "<br>"
+            . "<b>Filter type:</b> " . $filterTypeMap[$filterType] . "<br>"
+            . "<b>Explanation:</b> " . $explanation . "<br>";
+
+        echo "<br><a href=\"adminops?editFilter&filterID=$filterID\">Edit</a>"
+            . " - <a href=\"adminops?delFilter=$filterID\">Delete</a><br>";
+    }
+
+    echo "<p><hr class=dots><p>"
+        . "<a href=\"adminops?addFilter\">Add a new filter</a>"
+        . "<p><hr class=dots><p>";
