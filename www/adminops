@@ -651,7 +651,7 @@ if (isset($_REQUEST['domains'])) {
 
 //------------------ end of manage suspicious domains ---------------------
 
-//----------------- BEGIN LOCKDOWN OPTIONS -----------
+//----------------- BEGIN LOCKDOWN CONTROLS -----------
 
 if (isset($_REQUEST['lockdown'])) {
     $switch_to_lockdown = $_POST["lockdown_button"] ?? null;
@@ -687,8 +687,8 @@ if (isset($_REQUEST['lockdown'])) {
         }     
 
     // Show what mode we're in and explain the modes
-    pageHeader("Lockdown Options");
-    echo "<h1>Lockdown Options</h1>";
+    pageHeader("Lockdown Controls");
+    echo "<h1>Lockdown Controls</h1>";
     echo "<p>Account creation is currently in ";
     if ($current_account_approval_mode == "normal") {
         echo "<b>Normal Mode</b>.";
@@ -715,7 +715,7 @@ if (isset($_REQUEST['lockdown'])) {
     
 } // if (isset($_REQUEST['lockdown']))
 
-//------------------ end of lockdown options ---------------------
+//------------------ end of lockdown controls ---------------------
 
 
 if (isset($_REQUEST['bulkaddtag'])) {
@@ -3486,7 +3486,7 @@ function cleanutf8($str)
     <li><a href="adminops?adminemail">Send admin email</a></li>
     <li><a href="adminops?addnews">Add a Site News item</a></li>
     <li><a href="adminops?domains">Manage suspicious domains</a></li>
-    <li><a href="adminops?lockdown">Lockdown options</a></li>
+    <li><a href="adminops?lockdown">Lockdown controls</a></li>
     <li><a href="adminops?burygame">Bury game</a></li>
     <li><a href="adminops?duplicateDetector">Duplicate game detector</a></li>
 </ul>

@@ -510,6 +510,10 @@ function handlePost()
         values ('$userid', '$ip', now())", $db);
 
     // send notification to the ifdb administrator
+    $lockdown_message = "";
+    if ($lockdown) {
+        $lockdown_message = "<br>IFDB account creation is currently in lockdown mode.";
+    }
     $msg = "IFDB new user registration\r\n"
 
            . "<p>New user email: " . htmlspecialcharx($email)
@@ -525,7 +529,8 @@ function handlePost()
            . "<br>StopForumSpam.com: " . $sfsIsSpam
            . "<br>Suspicious email domain: "
            .     ($email_domain_suspicion_level ? "<b>Yes (".$email_domain_suspicion_level.")</b>" : "No")
-
+           . $lockdown_message
+           
            . "<br><br><a href=\"http://www.google.com/search?q=%22"
            .    urlencode($email) . "%22\">Search for email</a>"
            . "<br><a href=\"http://www.google.com/search?q=%22"
