@@ -765,3 +765,18 @@ if (isset($_REQUEST['cleanpix'])) {
         echo "No rows left that needed fixing";
     }
     exit();
+
+
+
+} else if (isset($_REQUEST['sysinfo'])) {
+
+    $phpVsn = phpversion();
+
+    $result = mysql_query("select version();", $db);
+    list($mysqlVsn) = mysql_fetch_row($result);
+
+    echo "System information:"
+        . "<p>php version = $phpVsn"
+        . "<br>MySQL version = $mysqlVsn";
+
+    echo "<p><hr class=dots><p>";
