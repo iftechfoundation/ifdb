@@ -388,3 +388,217 @@ if (isset($_REQUEST['cleanpix'])) {
 
     echo "<p>Rows successfully updated: $okCnt<br>";
 
+
+} else if (isset($_REQUEST['fixbafs'])) {
+
+    // query up the Baf's reviews that contain tags
+    $result = mysql_query(
+        "select
+           reviews.id as id, reviews.review as review, games.title as title
+         from
+           reviews, specialreviewers, games
+         where
+           reviews.special = specialreviewers.id
+           and specialreviewers.code = 'bafs'
+           and games.id = reviews.gameid
+           and reviews.review like '%<%'", $db);
+
+    // note if we're in APPLY mode
+    $applyMode = isset($_REQUEST['apply']);
+
+    // allowed tags - we keep these tags without modification
+    $allowedTags = valuesToKeys(
+        array('p', 'br',
+              'i', 'b', 'u', 'strong', 'em',
+              'big', 'small', 'tt', 'sup', 'sub',
+              'cite', 'blockquote',
+              'ul', 'ol', 'li', 'dl', 'dt', 'dd'), 1);
+
+    $updateCount = 0;
+    $errRows = false;
+    $allBadTags = array();
+
+    while (($row = mysql_fetch_array($result, MYSQL_ASSOC)) != false) {
+
+        // decode the row
+        $title = $row['title'];
+        $rid = $row['id'];
+        $txt = $origTxt = $row['review'];
+
+        // no unknown tags for this row yet
+        $badTags = array();
+
+        // scan it for tags we actually need to fix
+        $inAnchor = false;
+        for ($ofs = 0 ; ($ofs = strpos($txt, '<', $ofs)) !== false ; ) {
+            // remember where the tag starts
+            $tagOfs = $ofs;
+
+            // find the end of the tag
+            if (($gt = strpos($txt, '>', $ofs+1)) === false) {
+                ++$ofs;
+                continue;
+            }
+
+            // note the length of the full tag from < to >
+            $tagLen = $gt + 1 - $ofs;
+
+            // pull out the tag name
+            $tagName = trim(substr($txt, $ofs + 1, $gt - $ofs - 1));
+
+            // if it's a close tag, drop the slash
+            $isClose = false;
+            if (substr($tagName, 0, 1) == '/') {
+                $isClose = true;
+                $tagName = trim(substr($tagName, 1));
+            }
+
+            // check for auto-closing tags
+            $isAutoClose = false;
+            if (substr($tagName, -1, 1) == '/') {
+                $isAutoClose = true;
+                $tagName = trim(substr($tagName, 0, -1));
+            }
+
+            // if we have parameters, pull them out
+            $tagAttr = false;
+            $sp = strpos($tagName, ' ');
+            if ($sp !== false) {
+                $tagAttr = trim(substr($tagName, $sp + 1));
+                $tagName = substr($tagName, 0, $sp);
+            }
+
+            // canonicalize the case
+            $tagName = strtolower($tagName);
+
+            // check what we have
+            if (isset($allowedTags[$tagName])) {
+                // this one goes through unchanged - just skip it
+                $ofs = $gt + 1;
+            } else if ($tagName == 'a') {
+                // Anchor tag - check for open/close
+                if ($isClose) {
+                    // close - if we're in an anchor, keep it; otherwise
+                    // delete it
+                    if ($inAnchor) {
+                        $inAnchor = false;
+                        $ofs = $gt;
+                    } else {
+                        $txt = substr_replace($txt, "", $tagOfs, $tagLen);
+                    }
+                } else {
+                    // Open anchor - check the href.  If it looks like
+                    // a baf's game reference, change it to an IFDB
+                    // game reference.  Otherwise just delete it, since
+                    // we don't allow off-site references in reviews.
+                    $keepA = false;
+
+                    // $$$ special cases just for our initial import - these
+                    // fix a couple of items that are broken in the Baf's data
+                    if ($tagAttr == "href=game/1822")
+                        $tagAttr = "href=game/2277";
+                    else if ($tagAttr == "hre=game/1")
+                        $tagAttr = "href=game/1";
+
+                    if (preg_match("/^href=([\"']?)game\/([0-9]+)\\1$/i",
+                                   $tagAttr, $match, 0, 0)
+                        || preg_match("/^href=([\"'])http:\/\/"
+                                      . "(?:www\.)?wurb\.com"
+                                      . "\/if\/game\/([0-9]+)\\1$/i",
+                                      $tagAttr, $match, 0, 0)) {
+
+                        // it's a Baf's game reference - look up the game
+                        $qbafsID = mysql_real_escape_string($match[2], $db);
+                        $result2 = mysql_query(
+                            "select id from games where bafsid='$qbafsID'",
+                            $db);
+
+                        // if we found a match, rewrite it
+                        if (mysql_num_rows($result2) > 0) {
+                            $keepA = true;
+                            $gameID = mysql_result($result2, 0, "id");
+                            $newTag = "<a game=\"$gameID\">";
+
+                            $txt = substr_replace(
+                                $txt, $newTag, $tagOfs, $tagLen);
+                            $ofs += strlen($newTag);
+
+                            $inAnchor = true;
+                        }
+                    } else if (preg_match("/^game=([\"'])([a-z0-9]+)\\1$/i",
+                                          $tagAttr, $match, 0, 0)) {
+
+                        // it's already in our own format - keep it as-is
+                        $keepA = true;
+                        $ofs = $gt;
+                        $inAnchor = true;
+                    }
+
+                    // if we're not keeping the tag, delete it
+                    if (!$keepA) {
+                        $badTags["a($tagAttr)"] = true;
+                        $txt = substr_replace($txt, "", $tagOfs, $tagLen);
+                    }
+                }
+            } else {
+                // it's not an allowed tag - note it and keep going
+                $badTags[$tagName] = true;
+                $txt = substr_replace($txt, "", $tagOfs, $tagLen);
+            }
+        }
+
+        // check for changes
+        if (count($badTags) != 0 || $txt != $origTxt) {
+            // count it
+            $updateCount++;
+
+            // note any bad tags
+            echo "<p><b>Review ID=$rid (title=$title):</b><br>"
+                . "<div class=indented>";
+            if (count($badTags) != 0) {
+                echo  "Bad tags found:<br><div class=indented>"
+                    . implode("<br>", array_keys($badTags))
+                    . "</div>";
+            }
+            echo "Updated review text:<div class=indented>"
+                . fixDesc($txt)
+                . "</div></div>";
+
+            foreach ($badTags as $k=>$v)
+                $allBadTags[$k] = true;
+        }
+
+        // if we're in APPLY mode, apply the changes
+        if ($applyMode) {
+            $qtxt = mysql_real_escape_string($txt, $db);
+            $result2 = mysql_query(
+                "update reviews set review='$qtxt' where id='$rid'", $db);
+
+            if (!$result2) {
+                $errRows[] = $rid;
+                echo "<span class=errmsg>Error updating row ("
+                    . mysql_error($db) . ")</span><br>";
+            }
+        }
+    }
+
+    if (count($allBadTags) != 0) {
+        echo "<hr>Summary of bad tags found:<br><div class=indented>"
+            . implode("<br>", array_keys($allBadTags))
+            . "</div><p>";
+    }
+
+    if ($errRows) {
+        echo "<p><span class=errmsg>Database update errors occurred for "
+            . "the following review IDs:</span><br><div class=indented>";
+        foreach ($errRows as $er)
+            echo "<span class=errmsg>$er</span><br>";
+        echo "</div>";
+    }
+
+    if ($updateCount == 0)
+        echo "<p><b>No errors were found - no rows need to be updated</b>";
+    else if (!$applyMode)
+        echo "<p><b><a href=\"adminops?fixbafs&apply\">Apply these updates</a><p>";
+
+
