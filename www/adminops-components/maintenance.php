@@ -1,3 +1,4 @@
+<?php
 
 if (isset($_REQUEST['cleanpix'])) {
     echo "<h1>Scanning for unreferenced images</h1>"
@@ -782,3 +783,5 @@ if (isset($_REQUEST['cleanpix'])) {
     echo "<p><hr class=dots><p>";
 
 }
+
+?>
