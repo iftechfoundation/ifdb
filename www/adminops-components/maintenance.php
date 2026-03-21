@@ -258,3 +258,58 @@ if (isset($_REQUEST['cleanpix'])) {
 
         echo "<br><br><hr class=dots><br><br>";
     }
+
+} else if (isset($_REQUEST['fixsortkeys'])) {
+
+    $errMsg = false;
+    $rebuild = isset($_REQUEST['rebuild']);
+    $where = ($rebuild
+              ? ""
+              : "where sort_title is null or sort_title = ''
+                 or sort_author is null or sort_author = ''");
+
+    $result = mysql_query(
+        "select id, title, author, sort_title, sort_author
+         from games $where", $db);
+    if (!$result)
+        $errMsg = "Query failed: " . mysql_error($db);
+
+    for ($rows = array(), $i = 0 ; $i < mysql_num_rows($result) ; $i++)
+        $rows[] = mysql_fetch_array($result, MYSQL_ASSOC);
+
+    foreach ($rows as $r) {
+        $gameid = mysql_real_escape_string($r['id'], $db);
+        $title = $r['title'];
+        $author = $r['author'];
+        $sortTitle = $r['sort_title'];
+        $sortAuthor = $r['sort_author'];
+
+        $setVars = array();
+
+        if ($rebuild || $sortTitle == "")
+            $setVars[] = "sort_title = '"
+                         . mysql_real_escape_string(strtoupper(
+                             getSortingTitle($title)), $db) . "'";
+
+        if ($rebuild || $sortAuthor == "")
+            $setVars[] = "sort_author = '"
+                         . mysql_real_escape_string(strtoupper(
+                             getSortingPersonalNameList($author)), $db) . "'";
+
+        $setVars = implode(",", $setVars);
+        $result = mysql_query(
+            "update games set $setVars where id='$gameid'", $db);
+        if (!$result) {
+            $errMsg = "Update failed: id=$gameid; " . mysql_error($db);
+            break;
+        }
+    }
+
+    echo "<h1>Fix/Rebuild GAMES table SORT keys</h1>";
+    if ($errMsg)
+        echo "<span class=errmsg>$errMsg</span>";
+    else
+        echo "<span class=success>Success: " . count($rows) . " row(s) updated
+              in GAMES table</span>";
+
+        echo "<br><br><hr class=dots><br><br>";
