@@ -3321,6 +3321,8 @@ else if (isset($_REQUEST['deletenews'])) {
         echo "</ul>\n";
         echo "<div>$count result(s)</div>";
     }
+} else {
+    include "adminops-components/maintenance.php";
 }
 
 function adjustImageName($name)
