@@ -19,8 +19,8 @@ $userprivs = $adminPriv = false;
 
 // check the user for ADMIN privileges
 if ($userid) {
-    $result = mysql_query(
-        "select `privileges` from users where id='$userid'", $db);
+    $result = mysql_execute_query($db,
+        "select `privileges` from users where id=?", [$userid]);
     $userprivs = mysql_result($result, 0, "privileges");
     $adminPriv = (strpos($userprivs, "A") !== false);
 }
@@ -943,14 +943,14 @@ if (isset($_REQUEST['burygame'])) {
 
 if (isset($_REQUEST['reviewvotes'])) {
     if (isset($_REQUEST['reviewid'])) {
-        $reviewid = $_REQUEST['reviewid'];
+        $reviewid = (int) $_REQUEST['reviewid'];
         $rid = htmlspecialcharx($_REQUEST['reviewid']);
-        $result = mysql_query("select
+        $result = mysql_execute_query($db, "select
             userid, name, sandbox, vote
             from reviewvotes
             join users on userid = users.id
-            where reviewid=" . mysql_real_escape_string($reviewid, $db) . "
-            order by vote, sandbox, name", $db);
+            where reviewid=?
+            order by vote, sandbox, name", [$reviewid]);
         pageHeader("Review votes");
         if (!$result) {
             error_log(mysql_error($db));
@@ -2988,16 +2988,16 @@ else if (isset($_REQUEST['editnews'])) {
         echo "<span class=errmsg>No id specified</span>";
         $showForm = false;
     }
-    $id = mysql_real_escape_string(get_req_data('item'), $db);
+    $id = (int) get_req_data('item');
     if (isset($_POST['go'])) {
 
         // apply the update
-        $title = mysql_real_escape_string(get_req_data('title'), $db);
-        $ldesc = mysql_real_escape_string(get_req_data('ldesc'), $db);
+        $title = get_req_data('title');
+        $ldesc = get_req_data('ldesc');
 
-        $result = mysql_query(
-            "update sitenews set title = '$title', ldesc = '$ldesc'
-             where itemid=$id", $db);
+        $result = mysql_execute_query($db,
+            "update sitenews set title = ?, ldesc = ?
+             where itemid=?", [$title, $ldesc, $id]);
 
         if ($result) {
             echo "<span class=success>Item $id was successfully edited. <a href='/news?item=$id'>View it now</a></span>";
@@ -3008,9 +3008,9 @@ else if (isset($_REQUEST['editnews'])) {
         $title = htmlspecialcharx(get_req_data('title'));
         $ldesc = htmlspecialcharx(get_req_data('ldesc'));
     } else if (isset($_REQUEST['item'])) {
-        $result = mysql_query(
+        $result = mysql_execute_query($db,
             "select title, ldesc from sitenews
-             where itemid=$id", $db);
+             where itemid=?", [$id]);
         if (!$result) {
             echo "<span class=errmsg>Error loading item "
                 . htmlspecialcharx(mysql_error($db)) . ": </span>";
@@ -3055,11 +3055,11 @@ else if (isset($_REQUEST['deletenews'])) {
         echo "<span class=errmsg>No id specified</span>";
         $showForm = false;
     }
-    $id = mysql_real_escape_string(get_req_data('item'), $db);
+    $id = (int) get_req_data('item');
     if ($showForm && isset($_POST['go'])) {
         $showForm = false;
-        $result = mysql_query(
-            "delete from sitenews where itemid=$id", $db);
+        $result = mysql_execute_query($db,
+            "delete from sitenews where itemid=?", [$id]);
 
         if ($result) {
             echo "<span class=success>Item $id was successfully deleted.</span>";
@@ -3068,9 +3068,9 @@ else if (isset($_REQUEST['deletenews'])) {
                 . htmlspecialcharx(mysql_error($db)) . "</span>";
         }
     } else if ($showForm) {
-        $result = mysql_query(
+        $result = mysql_execute_query($db,
             "select title, ldesc from sitenews
-             where itemid=$id", $db);
+             where itemid=?", [$id]);
         if (!$result) {
             echo "<span class=errmsg>Error loading item "
                 . htmlspecialcharx(mysql_error($db)) . ": </span>";
