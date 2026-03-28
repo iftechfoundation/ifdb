@@ -15,5 +15,5 @@ $quid = mysql_real_escape_string($uid, $db);
 $loggedIn = (isset($_SESSION['logged_in']) && $_SESSION['logged_in']);
 $debugflag = get_req_data('debug') == 'yesDebug';
 $async = true;
-include "components/ifdb-recommends.php";
+include "home-components/ifdb-recommends.php";
 ?>
