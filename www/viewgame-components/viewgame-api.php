@@ -140,6 +140,13 @@ if (isset($_REQUEST['ifiction']) || $json)
     if ($desc)
         $bibliographic['description'] = $desc;
 
+    if (!isEmpty($seriesname)) {
+        $bibliographic['series'] = $seriesname;
+        if (!isEmpty($seriesnum)) {
+            $bibliographic['seriesnumber'] = $seriesnum;
+        }
+    }
+
     if ($website)
         $contacts['url'] = $website;
 
