@@ -436,7 +436,7 @@ function showReview($db, $gameid, $rec, $specialNames, $optionFlags = 0)
     }
 
     // set up the comment controls, if applicable
-    $commentCtls = $barCommentCtl = "";
+    $commentCtls = $barCommentCtls = "";
     if ($showCommentCtls
         && ($curuser == $userid || ($dfltComments && $showVoteCtls))) {
 
@@ -450,19 +450,30 @@ function showReview($db, $gameid, $rec, $specialNames, $optionFlags = 0)
         }
 
         // set up the <a href> for adding a comment
-        $addCommentLink = "<a href=\"reviewcomment?review=$reviewid\">";
+        $addCommentLink = "<a title=\"Comment on this review\" 
+                             href=\"reviewcomment?review=$reviewid\">";
 
         // generate the controls, depending on the existing comment count
-        if ($commentCount == 0) {
-            $commentCtls = "{$addCommentLink}Add a comment</a>";
-        } else {
-            $commentCtls =
-                "<a href=\"viewgame?id=$gameid&review=$reviewid#comments\">"
-                . "View comments ($commentCount)</a> - "
-                . "{$addCommentLink}Add comment</a>";
+        if ($curuser) {
+            if ($commentCount == 0) {
+                $commentCtls = "{$addCommentLink}Add a comment</a>";
+            } else {
+                $commentCtls = "<a title=\"Direct link to comments\" 
+                    href=\"viewgame?id=$gameid&review=$reviewid#comments\">
+                    View comments ($commentCount)</a>";
+            }
+        }
+        else {
+            if ($commentCount > 0) {
+                $commentCtls = "<a title=\"Direct link to comments\" 
+                    href=\"viewgame?id=$gameid&review=$reviewid#comments\">
+                    View comments ($commentCount)</a>";
+            }
         }
 
-        $barCommentCtls = "| $commentCtls";
+        if ($commentCtls) {
+            $barCommentCtls = "| $commentCtls";
+        }
     }
 
     // add any special notes
@@ -483,15 +494,18 @@ function showReview($db, $gameid, $rec, $specialNames, $optionFlags = 0)
     if ($curuser == $userid) {
 
         echo "<div class=smallfoot><span class=details>
+               <a title=\"Direct link to this review\"
+               href=\"viewgame?id=$gameid&review=$reviewid\">Direct link</a>
+               $barCommentCtls | 
                <i>You wrote this review -
                <a href=\"review?id=$gameid&userid=$userid\">Revise it</a></i>
-               | <a href=\"viewgame?id=$gameid&review=$reviewid\">Direct link</a> $barCommentCtls</span></div>";
+               </span></div>";
 
     } else if ($specialCode == 'external') {
 
         if ($xurl)
-            echo "<span class=details>"
-                . "<a href=\"$xurl\">See the full review</a></span><br>";
+            echo "<span class=details>
+                  <a href=\"$xurl\">See the full review</a></span><br>";
 
     } else if (!$isSpecial && $showVoteCtls) {
 
@@ -506,13 +520,16 @@ function showReview($db, $gameid, $rec, $specialNames, $optionFlags = 0)
         }
         global $nonce;
 
-        echo "<div class=smallfoot><span class=details>";
+        echo "<div class=smallfoot><span class=details>
+            <a href=\"viewgame?id=$gameid&review=$reviewid\" 
+            title=\"Direct link to this review\">Direct link</a> 
+            $barCommentCtls | ";
 
         if (!$curuser) {
-            echo "You can <a href=\"login?dest=viewgame%3Fid%3D$gameid%26review%3D$reviewid\">log in</a> "
-               . "to rate this review, mute this user, or add a comment.";
+            echo "<a href=\"login?dest=viewgame%3Fid%3D$gameid%26review%3D$reviewid\">Log in</a> "
+               . "to comment, rate this review, or mute this user.";
         } else {
-            echo "Was this review helpful to you? &nbsp; "
+            echo "Was this review helpful? &nbsp; "
                 . "<a href=\"needjs\">"
                 . addEventListener('click', "sendReviewVote('$reviewid', 'Y'); return false;")
                 . "Yes</a> &nbsp; "
@@ -561,9 +578,6 @@ function showReview($db, $gameid, $rec, $specialNames, $optionFlags = 0)
                 . "title=\"Notify moderators that this review violates "
                 . "the community guidelines\"><nobr>Flag as inappropriate</nobr></a>"
                 . "</td></tr>"
-                . "<tr><td><a href=\"viewgame?id=$gameid&review=$reviewid\" "
-                . "title=\"Direct link to this review\"><nobr>Direct link</nobr></a>"
-                . "</td></tr>"
                 . "<tr class='reviews__separator'><td></td></tr>"
                 . "<tr><td><a href=\"userfilter?list\">"
                 . "<nobr>View my user filters</nobr></a>"
@@ -575,7 +589,6 @@ function showReview($db, $gameid, $rec, $specialNames, $optionFlags = 0)
                 . "</div>"
                 . "</div>"
 
-                . "&nbsp;$barCommentCtls"
                 . "&nbsp;<span id=\"voteMsg_$reviewid\" class=\"xmlstatmsg\">"
                 . "</span><span id=\"voteStat_$reviewid\"></span>"
                 . "<script type=\"text/javascript\" nonce=\"$nonce\">\r\n<!--\r\n"
@@ -586,8 +599,11 @@ function showReview($db, $gameid, $rec, $specialNames, $optionFlags = 0)
         echo "</span></div>";
 
     } else if ($specialCode == 'author' || $specialCode == 'ifdb') {
-        echo "<div class=smallfoot><span class=details>$commentCtls"
-            . "</span></div>";
+        echo "<div class=smallfoot><span class=details>
+            <a title=\"Direct link to this review\"
+            href=\"viewgame?id=$gameid&review=$reviewid\">Direct link</a>
+            $barCommentCtls
+            </span></div>";
     }
 
 
