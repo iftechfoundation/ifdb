@@ -423,7 +423,7 @@ function sendImageLdesc($title, $imageID)
 </head>
 <body>
 <div class=main>
-   <img src="showimage?id=<?php echo urlencode($imageID) ?>">
+   <img src="showimage?id=<?php echo urlencode($imageID) ?>" alt="Cover art for <?php echo htmlspecialcharx($title) ?>.">
    <?php
       if ($copymsg || ($copystat && isset($copyrightStatList[$copystat]))
           || $username || $created) {
