@@ -936,6 +936,7 @@ echo helpWinLink("help-ifid", "IFID");
                <?php
 if ($hasart) {
     $arthref = "/viewgame?coverart&id=$id";
+    $cover_alt_text = "Cover art for $title. Click for full-sized image and copyright information.";
     $artVersion = $pagevsn;
     if (isset($_REQUEST['version'])) {
         $artVersion = (int)$_REQUEST['version'];
@@ -945,7 +946,7 @@ if ($hasart) {
            <div class=coverart>
 
               <a href="<?php echo $arthref ?>&ldesc">
-                 <?php echo coverArtThumbnail($id, 175, $artVersion); ?>
+                 <?php echo coverArtThumbnail($id, 175, $artVersion, "", $cover_alt_text); ?>
               </a>
            </div>
                <?php
