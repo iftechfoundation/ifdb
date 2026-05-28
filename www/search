@@ -1400,7 +1400,7 @@ else if ($term || $browse)
                 echo "<p>";
                 echo "<article class=grid><div>";
                 if ($art) {
-                    echo "<a class='$eagerness' href=\"viewgame?id=$id\">"
+                    echo "<a class='$eagerness' href=\"viewgame?id=$id\" aria-hidden='true' tabindex='-1'>"
                         . coverArtThumbnail($id, 80, $pagevsn) . "</a>";
                 }
                 echo "</div><div><h3 class=result><a href=\"viewgame?id=$id\">"
