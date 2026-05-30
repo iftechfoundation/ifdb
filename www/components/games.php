@@ -101,7 +101,7 @@ for ($idx = 0 ; $idx <= 5; $idx++)
                     . "<img border=0 width=50 height=50 src=\"showuser?id={$n['userID']}&pic"
                     . "&thumbnail=50x50\"></a>";
             } else if ($n["hasart"]) {
-                echo "<a href=\"viewgame?id={$n['gameid']}\">"
+                echo "<a href=\"viewgame?id={$n['gameid']}\" aria-hidden=\"true\" tabindex=\"-1\">"
                     . coverArtThumbnail($gid, 50, $n['pagevsn'])
                     . "</a>";
             } else {
