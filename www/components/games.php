@@ -97,7 +97,7 @@ for ($idx = 0 ; $idx <= 5; $idx++)
         // image, otherwise generic review icon
         if (ENABLE_IMAGES) {
             if ($n["hasart"]) {
-                echo "<a href=\"viewgame?id={$n['gameid']}\" aria-hidden=\"true\" tabindex=\"-1\">"
+                echo "<a href=\"viewgame?id=$gid\" aria-hidden=\"true\" tabindex=\"-1\">"
                     . coverArtThumbnail($gid, 50, $n['pagevsn'])
                     . "</a>";
             } else if (isset($n["haspic"]) && $n["haspic"]) {
