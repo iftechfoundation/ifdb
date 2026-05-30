@@ -101,9 +101,9 @@ for ($idx = 0 ; $idx <= 5; $idx++)
                     . coverArtThumbnail($gid, 50, $n['pagevsn'])
                     . "</a>";
             } else if (isset($n["haspic"]) && $n["haspic"]) {
-                echo "<a href=\"showuser?id={$n['userID']}\">"
+                echo "<a href=\"showuser?id={$n['userID']}\">" 
                     . "<img border=0 width=50 height=50 src=\"showuser?id={$n['userID']}&pic"
-                    . "&thumbnail=50x50\"></a>";
+                    . "&thumbnail=50x50\" alt=\"$nuname\"></a>";
             } else {
                 // echo "<a href=\"newslog?newsid=$nid\">"
                 //     . "<img border=0 src=\"news50.gif\"></a>";
