@@ -1527,9 +1527,9 @@ else if ($term || $browse)
                 if ($pic) {
                     echo "<table class=grid border=0 cellspacing=0 cellpadding=0>"
                         . "<tr><td>"
-                        . "<a class='$eagerness' href=\"showuser?id=$id\">"
+                        . "<a class='$eagerness' href=\"showuser?id=$id\" aria-hidden=\"true\" tabindex=\-1\">"
                         . "<img src=\"showuser?id=$id&pic&thumbnail=80x80\" "
-                        . "border=0></td><td>"
+                        . "border=0 alt=\"\"></td><td>"
                         . "<h3 class=result><a href=\"showuser?id=$id\">"
                         . "<b>$name</b></a></h3>$badge<br>"
                         . "<span class=details>"
