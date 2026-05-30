@@ -52,8 +52,8 @@ for ($idx = 0 ; $idx <= 5; $idx++)
         // generic game icon
         if (ENABLE_IMAGES) {
             if ($g["hasart"]) {
-                echo "<a href=\"viewgame?id={$g['id']}\">"
-                    . coverArtThumbnail($g['id'], 50, $g['pagevsn'])
+                echo "<a href=\"viewgame?id={$g['id']}\" aria-hidden=\"true\" tabindex=\"-1\">"
+                    . coverArtThumbnail($g['id'], 50, $g['pagevsn'])       
                     . "</a>";
             } else {
                 // echo "<a href=\"viewgame?id={$g['id']}\">"
