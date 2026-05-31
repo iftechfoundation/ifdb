@@ -69,6 +69,10 @@ $fields = [
           . helpWinLink("help-ifid", "What's an IFID?"),
           null, TypeString],
     ["Cover Art", "coverart", 0, null, null, TypeImage],
+    ["Cover Art Description", "cover_art_description", 60, 
+          "Describe what the cover art looks like. "
+          . "This description will be in the alt text for the image.",
+          null, TypeString],
     ["First&nbsp;Publication&nbsp;Date", "published", 15,
           "Format as dd-Mon-yyyy (example: 12-Jul-2005), or
           just enter the year if you don't know the exact date",
@@ -169,7 +173,7 @@ function loadGameRecord($db, $id)
             version, license, system, `desc`, genre, language,
             seriesname, seriesnumber, forgiveness,
             bafsid, website, editedby, moddate, pagevsn,
-            coverart, downloadnotes
+            coverart, cover_art_description, downloadnotes
          from games
          where id = ?", [$id]);
     if (mysql_num_rows($result) == 0)
