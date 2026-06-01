@@ -901,7 +901,7 @@ echo helpWinLink("help-ifid", "IFID");
     // ------------ end of the external links table -----------------
 
     if (!$downloadsView) {
-        showHaveYouPlayedThisCtl($db, $curuser, $id, $currentUserRating, $currentUserReview);
+        showHaveYouPlayedThisCtl($db, $curuser, $id, $currentUserRating, $currentUserReview !== "");
     }
 ?>
     </div>
