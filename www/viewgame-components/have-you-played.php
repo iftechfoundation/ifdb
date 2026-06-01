@@ -63,10 +63,6 @@ function updateUnwishList(id, stat)
 
     initStarControls();
     global $nonce;
-    echo "<style nonce='$nonce'>\n"
-        . ".viewgame__playedSection { margin: 1.25ex 0 0.75ex 0; }\n"
-        . "#submitRating { display: none; }\n"
-        . "</style>\n";
 
     echo "<div class=indented>"
 
@@ -74,7 +70,7 @@ function updateUnwishList(id, stat)
         . "<span id=\"ratingCaption\"><b>Rate it:</b></span> "
         . showStarCtl("ratingStars", $currentUserRating,
                       "updateRating", "mouseOutRating")
-        . "<button id='submitRating' class='fancy-button'>Submit Rating</button>"
+        . "<button id='submitRating' class='fancy-button hidden'>Submit Rating</button>"
         . "<script nonce='$nonce'>\n"
         . "let arrowKeys = new Set(['ArrowRight', 'ArrowLeft', 'ArrowUp', 'ArrowDown']);"
         . "ratingStars.addEventListener('keydown', e => {\n"

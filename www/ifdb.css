@@ -564,6 +564,10 @@ td.coverart {
     white-space: nowrap;
 }
 
+.viewgame__playedSection {
+    margin: 1.25ex 0 0.75ex 0;
+}
+
 /*
 We use the "authorProfileLink" style for hyperlinks to author profiles,
 as shown in the author section of a game listing.  We show these without
