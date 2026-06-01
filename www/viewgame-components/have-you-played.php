@@ -172,6 +172,7 @@ function updateUnwishList(id, stat)
 <p id='timeSubmittedMessage'>Your time has been submitted.</p>
 </div>
 
+</div></div>
 
 <script nonce="<?php global $nonce; echo $nonce; ?>">
 
