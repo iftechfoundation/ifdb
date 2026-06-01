@@ -104,6 +104,13 @@ form.sortingControls {
     margin: 1em 0 1em 0;
 }
 
+/* A box that has the sorting controls and other search result controls */
+.searchControls {
+    display: flex;
+    align-items: baseline;
+    column-gap: 5em;
+}
+
 /*
 The default style for cells within tables.  We use the same style
 here as in the main page body.
