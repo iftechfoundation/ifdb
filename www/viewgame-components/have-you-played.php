@@ -2,7 +2,7 @@
 
 include_once "starctl.php";
 
-function showHaveYouPlayedThisCtl($db, $curuser, $id, $currentUserRating, $currentUserReview) {
+function showHaveYouPlayedThisCtl($db, $curuser, $id, $currentUserRating, bool $currentUserHasReview, bool $hidden = false) {
 ?>
 
 <table class="gamerightbar haveYouPlayed<?php if ($hidden) {echo " hidden";}?>" data-gameid="<?php echo $id?>">
@@ -41,7 +41,7 @@ if ($curuser) {
         . "<button id='submitRating_$id' class='fancy-button hidden'>Submit Rating</button>"
         . " <span id=\"rating_${id}_SaveMsg\" class=xmlstatmsg aria-live='polite'></span><br>"
         . "<a href=\"review?id=$id&userid=$curuser\">"
-        . ($currentUserReview != "" ? "Revise my review" : "Review it")
+        . ($currentUserHasReview ? "Revise my review" : "Review it")
         . "</a><br>"
         . "<a href=\"crossrec?game=$id&edit\">"
         . ($myCrossRecs ? "Edit my suggestions ($myCrossRecs)"
