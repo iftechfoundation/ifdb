@@ -925,7 +925,7 @@ echo helpWinLink("help-ifid", "IFID");
             }
         ?>
          <p>
-         <section id="viewgame__header" cellspacing=0 cellpadding=0 border=0>
+         <section id="viewgame__header">
                <?php
 if ($hasart) {
     $arthref = "{$_SERVER['PHP_SELF']}?coverart&id=$id";
