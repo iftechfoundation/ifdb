@@ -207,7 +207,7 @@ function sendCoverArt()
     if (isset($_REQUEST['ldesc']))
         sendImageLdesc("Cover Art for $title"
                        . ($targVsn ? " (version $targVsn)" : ""),
-                       $imgname);
+                       $imgname, $title, $cover_art_description);
 
     // retrieve the image data
     list($imgdata, $fmt) = fetch_image($imgname, true);
@@ -375,7 +375,8 @@ if (!$errMsg) {
     list($ifids, $title, $author, $authorExt,
          $pubYear, $pubFull, $license,
          $system, $desc, $rawDesc,
-         $hasart, $genre, $seriesname, $seriesnum,
+         $hasart, $cover_art_description,
+         $genre, $seriesname, $seriesnum,
          $forgiveness, $bafsid, $version,
          $language, $languageNameOnly,
          $website, $links,
@@ -929,7 +930,11 @@ echo helpWinLink("help-ifid", "IFID");
                <?php
 if ($hasart) {
     $arthref = "{$_SERVER['PHP_SELF']}?coverart&id=$id";
-    $cover_alt_text = "Cover art for $title. Click for full-sized image and copyright information.";
+    $cover_alt_text = "Cover art for $title. Click for full-sized image";
+    if ($cover_art_description) {
+        $cover_alt_text .= ", description,";
+    }
+    $cover_alt_text .= " and copyright information.";
     if (isset($_REQUEST['version']))
         $arthref .= "&version=" . $_REQUEST['version'];
                ?>
