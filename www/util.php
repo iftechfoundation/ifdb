@@ -382,7 +382,7 @@ function echoStylesheetLink()
 // --------------------------------------------------------------------------
 // send an image description page - this includes the image and the
 // copyright information
-function sendImageLdesc($title, $imageID)
+function sendImageLdesc($page_title, $imageID, $game_title, $cover_art_description)
 {
     global $copyrightStatList;
     checkPersistentLogin();
@@ -414,16 +414,24 @@ function sendImageLdesc($title, $imageID)
             list($username) = mysql_fetch_row($result);
     }
 
+    // Generate the alt text for the full-sized cover art
+    $large_cover_alt_text = "";
+    if ($cover_art_description) {
+        $large_cover_alt_text = $cover_art_description;
+    } else {
+        $large_cover_alt_text = "Cover art for $game_title.";
+    }
+
     // send the page
 ?>
 <html>
 <head>
    <?php echoStylesheetLink(); ?>
-   <title><?php echo htmlspecialcharx($title) ?></title>
+   <title><?php echo htmlspecialcharx($page_title) ?></title>
 </head>
 <body>
 <div class=main>
-   <img src="showimage?id=<?php echo urlencode($imageID) ?>" alt="Cover art for <?php echo htmlspecialcharx($title) ?>.">
+   <img src="showimage?id=<?php echo urlencode($imageID) ?>" alt="<?php echo htmlspecialcharx($large_cover_alt_text) ?>.">
    <?php
       if ($copymsg || ($copystat && isset($copyrightStatList[$copystat]))
           || $username || $created) {
@@ -456,6 +464,14 @@ function sendImageLdesc($title, $imageID)
 
           echo "</span><br>";
       }
+          
+      if ($cover_art_description) {
+          echo "<p><details><summary>Image description</summary>$large_cover_alt_text</details></p>";
+      } else {
+          echo "<p>This image has no description. ";
+          echo "You can add one by editing the game page.</p>";
+      }
+      echo "<br>";
    ?>
 </div>
 </body>
