@@ -70,8 +70,14 @@ $fields = [
           null, TypeString],
     ["Cover Art", "coverart", 0, null, null, TypeImage],
     ["Cover Art Description", "cover_art_description", 60, 
-          "Describe what the cover art looks like. "
-          . "This description will be in the alt text for the image.",
+          'Describe what the cover image looks like, so it can be announced by a screen reader.'
+          . '<details><summary>Guidelines</summary><ul>'
+          . '<li>Avoid saying "image of," "picture of," and the like. Screen readers already announce it as an image. It\'s okay to use more specific words that convey the medium, for instance, "illustration," "cartoon," or "painting."</li>'
+          . '<li>Avoid saying "cover art." IFDB may include that automatically in some places.'
+          . '<li>Avoid including the title, the author, or other text that is readily available on the game page. If the image shows a subtitle that is not found elsewhere, you could include that. For example, you could write, "Text reads: Lost Pig and Place Underground, by Grunk as told to Admiral Jota."</li>'
+          . '<li>End with a period.</li>'
+          . '</ul></details>'
+          . '</details>',
           null, TypeString],
     ["First&nbsp;Publication&nbsp;Date", "published", 15,
           "Format as dd-Mon-yyyy (example: 12-Jul-2005), or
