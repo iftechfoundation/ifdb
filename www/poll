@@ -1351,7 +1351,7 @@ function expandVote(id)
                 // show the cover art if available
                 if ($coverArt) {
                     echo "<td class='poll__artCell'>"
-                        . "<a href=\"viewgame?id=$gameID\">"
+                        . "<a href=\"viewgame?id=$gameID\" aria-hidden=\"true\" tabindex=\"-1\">"
                         . coverArtThumbnail($gameID, 80, $pagevsn)
                         . "</a></td>";
                 } else {
