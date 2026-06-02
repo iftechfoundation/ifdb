@@ -2,13 +2,13 @@
 
 include_once "starctl.php";
 
-function showHaveYouPlayedThisCtl($db, $curuser, $id, $currentUserRating, bool $currentUserHasReview, bool $hidden = false) {
+function showHaveYouPlayedThisCtl($db, $curuser, $id, $currentUserRating, bool $currentUserHasReview, string $extraClasses = '') {
 ?>
 
-<table class="gamerightbar haveYouPlayed<?php if ($hidden) {echo " hidden";}?>" data-gameid="<?php echo $id?>">
+<table class="gamerightbar haveYouPlayed<?php if ($extraClasses) {echo " $extraClasses";}?>" data-gameid="<?php echo $id?>">
    <tr>
       <td>
-         <h3>Have you played this game?</h3>
+         <h3 class="haveYouPlayed_title">Have you played this game?</h3>
             <?php
 if ($curuser) {
     $result = mysqli_execute_query($db, "select userid from playedgames
@@ -35,7 +35,7 @@ if ($curuser) {
 
     echo "<div class=indented>"
 
-        . "<div class='viewgame__playedSection'>"
+        . "<div class='haveYouPlayed_playedSection'>"
         . "<span><b>Rate it:</b></span> "
         . showStarCtl($id, "ratingStars_$id", $currentUserRating, "updateRating")
         . "<button id='submitRating_$id' class='fancy-button hidden'>Submit Rating</button>"
@@ -49,7 +49,7 @@ if ($curuser) {
         . "</a>"
         . "</div>"
 
-        . "<div class='viewgame__playedSection'>";
+        . "<div class='haveYouPlayed_playedSection'>";
     checkboxWrite("ckPlayed_$id", "I've played it", $played, "updatePlayed");
     echo " (<a href=\"playlist?type=played\">view</a>)"
         . " &nbsp; <span id=\"ckPlayed_${id}_SaveMsg\" class=\"xmlstatmsg\">"
@@ -91,12 +91,12 @@ if ($curuser) {
 ?>
 
 <div class=indented>
-<div class='timeVoteControls viewgame__playedSection'><?php // There's an event listener attached to "timeVoteControls" ?>
+<div class='timeVoteControls haveYouPlayed_playedSection'><?php // There's an event listener attached to "timeVoteControls" ?>
 <span><b>Estimated play time:</b></span>
 <noscript>To use this feature, please enable JavaScript in your browser.</noscript>
 
 <div class='submitTimeSection'>
-<span class='howLong'>Vote on how long it takes to finish this game.</span><br>
+<div class='howLong'><span>Vote on how long it takes to finish this game.</span><br>
 <details><summary>Tips</summary>
 <ul>
 <li>Vote only if you've played the game.</li>
@@ -105,7 +105,7 @@ if ($curuser) {
 <li>To help players gauge how long a game with puzzles might take, you can note if your time is with or without hints.</li>
 <li>Times don't need to be exact. Good-faith estimates are fine.</li>
 <li>Your vote will be publicly attributed to you.</li>
-</ul></details>
+</ul></details></div>
 <p><label>Hours: <input type='number' name='hours' class='timeSection_hours' min=0 max=200></label>
 <label>Minutes: <input type='number' name='minutes' class='timeSection_minutes' min=0 max=59></label></p>
 <p><label>Time Note: <input type='text' name='timeNote' class='timeNote' maxlength='150' size='21' placeholder='With/without hints.'></label></p>

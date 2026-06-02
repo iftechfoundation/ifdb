@@ -1433,7 +1433,8 @@ else if ($term || $browse)
                 echo "</div>";
 
                 if ($curuser) {
-                    showHaveYouPlayedThisCtl($db, $curuser, $id, $row['current_user_rating'], $row['current_user_has_review'], /* hidden */ !isset($_GET['showRatingBoxes']));
+                    showHaveYouPlayedThisCtl($db, $curuser, $id, $row['current_user_rating'], $row['current_user_has_review'],
+                        'searchRatingBox' . (isset($_GET['showRatingBoxes']) ? '' : ' hidden'));
                 }
 
                 echo "</article>";
