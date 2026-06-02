@@ -571,8 +571,19 @@ td.coverart {
     white-space: nowrap;
 }
 
-.viewgame__playedSection {
+.haveYouPlayed_playedSection {
     margin: 1.25ex 0 0.75ex 0;
+}
+
+.searchRatingBox {
+    width: 20rem !important; /* Overrides the 'width: 100%' in '.gamerightbar' */
+    margin-left: auto !important;
+    margin-right: 100px !important;
+}
+
+.searchRatingBox .haveYouPlayed_title,
+.searchRatingBox .howLong {
+    display: none;
 }
 
 /*
