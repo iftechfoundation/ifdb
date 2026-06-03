@@ -1,0 +1,19 @@
+<?php
+include_once "session-start.php";
+include_once "util.php";
+include_once "pagetpl.php";
+helpPageHeader("Guidelines for Cover Art Descriptions");
+?>
+
+<h1>Guidelines for Cover Art Descriptions</h1>
+
+<ul>
+    <li>Avoid beginning with "Image of," "Picture of," or the like. Screen readers already announce it as an image. It's okay to use more specific words that convey the medium, for instance, "illustration," "cartoon," or "painting."</li>
+    <li>Avoid beginning with "Cover art." IFDB may include that information automatically in some places.
+    <li>Avoid repeating the title, the author, or other text that is readily available on the game page. If the image shows a subtitle that is not found elsewhere, you could include that. For example, you could write, "Text reads: Lost Pig and Place Underground, by Grunk as told to Admiral Jota."</li>
+    <li>End with a period or other ending punctuation so that the screen reader will pause before moving on to other text.</li>
+</ul>
+
+<?php
+helpPageFooter();
+?>
