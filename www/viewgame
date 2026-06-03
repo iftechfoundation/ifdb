@@ -207,7 +207,7 @@ function sendCoverArt()
     if (isset($_REQUEST['ldesc']))
         sendImageLdesc("Cover Art for $title"
                        . ($targVsn ? " (version $targVsn)" : ""),
-                       $imgname, $title, $cover_art_description);
+                       $imgname, $cover_art_description, $title, $id);
 
     // retrieve the image data
     list($imgdata, $fmt) = fetch_image($imgname, true);

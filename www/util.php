@@ -382,7 +382,7 @@ function echoStylesheetLink()
 // --------------------------------------------------------------------------
 // send an image description page - this includes the image and the
 // copyright information
-function sendImageLdesc($page_title, $imageID, $game_title, $cover_art_description)
+function sendImageLdesc($page_title, $imageID, $cover_art_description, $game_title, $gameID)
 {
     global $copyrightStatList;
     checkPersistentLogin();
@@ -462,14 +462,15 @@ function sendImageLdesc($page_title, $imageID, $game_title, $cover_art_descripti
               echo "<br>";
           }
 
-          echo "</span><br>";
+          echo "</span>";
       }
           
       if ($cover_art_description) {
-          echo "<p><details><summary>Image description</summary>$large_cover_alt_text</details></p>";
+          echo "<p>Image description:<br>$large_cover_alt_text</p>";
+          echo "<p><a href=\"editgame?&id=$gameID\">Edit the cover art description</a></p>";
       } else {
-          echo "<p>This image has no description. ";
-          echo "You can add one by editing the game page.</p>";
+          echo "<p>No image description is available. To add a cover art description, you can ";
+          echo "<a href=\"editgame?&id=$gameID\">edit the game page</a>.</p>";
       }
       echo "<br>";
    ?>
