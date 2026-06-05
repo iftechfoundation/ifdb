@@ -5,9 +5,7 @@ include_once "starctl.php";
 function showHaveYouPlayedThisCtl($db, $curuser, $id, $currentUserRating, bool $currentUserHasReview, string $extraClasses = '') {
 ?>
 
-<table class="gamerightbar haveYouPlayed<?php if ($extraClasses) {echo " $extraClasses";}?>" data-gameid="<?php echo $id?>">
-   <tr>
-      <td>
+<section class="gamerightbar haveYouPlayed<?php if ($extraClasses) {echo " $extraClasses";}?>" data-gameid="<?php echo $id?>">
          <h3 class="haveYouPlayed_title">Have you played this game?</h3>
             <?php
 if ($curuser) {
@@ -142,9 +140,7 @@ prepareHaveYouPlayedBox("<?php echo $id?>");
 }
 
 ?>
-      </td>
-   </tr>
-</table>
+</section>
 
 <?php
 }
