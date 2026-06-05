@@ -693,6 +693,10 @@ on the viewgame page
     display: none;
 }
 
+.submitTimeSection > div {
+    margin-top: 1px;
+}
+
 /*
 The "downloads" section is for external links.
 */
