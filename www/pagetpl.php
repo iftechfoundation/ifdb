@@ -44,11 +44,6 @@ function basePageHeader($title, $focusCtl, $extraOnLoad, $extraHead,
    <title><?php echo $title ?></title>
    <?php echoStylesheetLink(); ?>
    <?php echo $extraHead ?>
-   <?php
-       // add the checkbox javascript if requested
-       if ($ckbox)
-           ckboxSetup();
-   ?>
    <meta name="viewport" content="width=device-width, initial-scale=1.0">
    <?php
    if ($focusCtl) {
@@ -258,31 +253,6 @@ function helpPageHeader($title)
 
 function helpPageFooter()
 {
-}
-
-// --------------------------------------------------------------------------
-// Insert the <script> code for setting up for active checkboxes.
-//
-function ckboxSetup()
-{
-?>
-<script type="text/javascript" nonce="<?php global $nonce; echo $nonce; ?>">
-<!--
-
-function ckboxGetObj(id)
-{
-    return document.getElementById('ckBox' + id);
-}
-
-function ckboxClick(id, onUpdateFunc)
-{
-    const elem = ckboxGetObj(id);
-    if (onUpdateFunc)
-        onUpdateFunc(id, elem.checked);
-}
-//-->
-</script>
-<?php
 }
 
 // this function is intended to create a <script> tag to replace inline event attributes

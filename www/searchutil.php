@@ -283,11 +283,17 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse, $count_all_
                        ifnull(games.published, '9999-12-31') as sort_pub,
                        games.pagevsn,
                        games.flags";
+        if ($curuser) {
+            $selectList .= ", reviews.rating as current_user_rating, coalesce(char_length(reviews.review), 0)>0 as current_user_has_review";
+        }
         $baseWhere = "";
         $groupBy = "";
         $baseOrderBy = "";
         $tableList = "games
                       join ".getGameRatingsView($db)." on games.id = gameid";
+        if ($curuser) {
+            $tableList .= " left outer join reviews on games.id = reviews.gameid and reviews.userid = '$curuser'";
+        }
         $matchCols = "title, author, `desc`, tags";
         $likeCol = "title";
         $summaryDesc = "Games";
