@@ -106,9 +106,9 @@ if ($curuser) {
 <li>Times don't need to be exact. Good-faith estimates are fine.</li>
 <li>Your vote will be publicly attributed to you.</li>
 </ul></details></div>
-<p><label>Hours: <input type='number' name='hours' class='timeSection_hours' min=0 max=200></label>
-<label>Minutes: <input type='number' name='minutes' class='timeSection_minutes' min=0 max=59></label></p>
-<p><label>Time Note: <input type='text' name='timeNote' class='timeNote' maxlength='150' size='21' placeholder='With/without hints.'></label></p>
+<div><label>Hours: <input type='number' name='hours' class='timeSection_hours' min=0 max=200></label>
+<label>Minutes: <input type='number' name='minutes' class='timeSection_minutes' min=0 max=59></label></div>
+<div><label>Time Note: <input type='text' name='timeNote' class='timeNote' maxlength='150' size='21' placeholder='With/without hints.'></label></div>
 <button class='submitTimeButton fancy-button' type='submit'>Submit Time</button>
 </div>
 
