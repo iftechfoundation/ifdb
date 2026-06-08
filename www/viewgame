@@ -941,8 +941,18 @@ if ($hasart) {
            <div class=coverart>
 
               <a href="<?php echo $arthref ?>&ldesc">
-                 <?php echo coverArtThumbnail($id, 175, isset($_REQUEST['version']) ? $_REQUEST['version'] : $pagevsn, "", $cover_alt_text); ?>
-              </a>
+                <?php echo coverArtThumbnail($id, 175, isset($_REQUEST['version']) ? $_REQUEST['version'] : $pagevsn, "", $cover_alt_text);
+                echo "</a>";
+                // If we're logged in and this game doesn't have a cover art description, 
+                // show a link to add one. 
+                if ($curuser && !$cover_art_description) {
+                    global $nonce;
+                    echo "<style nonce='$nonce'>.link_below_cover_viewgame { max-width: 35vw; height: auto; font-size: .7em; text-align: center;}</style>";
+                    echo "<div class='link_below_cover_viewgame'>";
+                    echo "<a href=\"editgame?&id=$id\" "
+                    . "title=\"To help make IFDB more accessible, click to edit the page and add a cover art description.\">Add an image description</a></div>";
+                } ?>
+
            </div>
                <?php
 } // if ($hasart)
