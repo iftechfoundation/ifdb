@@ -4,7 +4,7 @@ USE ifdb;
 
 
 ALTER table games
-    Add column cover_art_description VARCHAR(255) AFTER coverart;
+    Add column cover_art_description VARCHAR(2000) AFTER coverart;
 
 
 
