@@ -449,6 +449,7 @@ function getDeltaDesc($deltas)
                        "language" => "language",
                        "desc" => "description",
                        "coverart" => "cover art",
+                       "cover_art_description" => "cover art description",
                        "genre" => "genre",
                        "seriesname" => "series name",
                        "seriesnumber" => "episode number",
