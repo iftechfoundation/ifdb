@@ -207,7 +207,7 @@ function sendCoverArt()
     if (isset($_REQUEST['ldesc']))
         sendImageLdesc("Cover Art for $title"
                        . ($targVsn ? " (version $targVsn)" : ""),
-                       $imgname);
+                       $imgname, $cover_art_description, $title, $id);
 
     // retrieve the image data
     list($imgdata, $fmt) = fetch_image($imgname, true);
@@ -375,7 +375,8 @@ if (!$errMsg) {
     list($ifids, $title, $author, $authorExt,
          $pubYear, $pubFull, $license,
          $system, $desc, $rawDesc,
-         $hasart, $genre, $seriesname, $seriesnum,
+         $hasart, $cover_art_description,
+         $genre, $seriesname, $seriesnum,
          $forgiveness, $bafsid, $version,
          $language, $languageNameOnly,
          $website, $links,
@@ -929,14 +930,31 @@ echo helpWinLink("help-ifid", "IFID");
                <?php
 if ($hasart) {
     $arthref = "{$_SERVER['PHP_SELF']}?coverart&id=$id";
+    // If there's a custom description for this cover art, include it as part of the alt text.
+    $cover_alt_text = "Cover art for $title. ";
+    if ($cover_art_description) {
+        $cover_alt_text .= "$cover_art_description ";
+    }
+    $cover_alt_text .= "Click for full-sized image and copyright information.";
+    
     if (isset($_REQUEST['version']))
         $arthref .= "&version=" . $_REQUEST['version'];
                ?>
            <div class=coverart>
 
               <a href="<?php echo $arthref ?>&ldesc">
-                 <?php echo coverArtThumbnail($id, 175, isset($_REQUEST['version']) ? $_REQUEST['version'] : $pagevsn); ?>
-              </a>
+                <?php echo coverArtThumbnail($id, 175, isset($_REQUEST['version']) ? $_REQUEST['version'] : $pagevsn, "", $cover_alt_text);
+                echo "</a>";
+                // If we're logged in and this game doesn't have a cover art description, 
+                // show a link to add one. 
+                if ($curuser && !$cover_art_description) {
+                    global $nonce;
+                    echo "<style nonce='$nonce'>.link_below_cover_viewgame { max-width: 35vw; height: auto; font-size: .7em; text-align: center;}</style>";
+                    echo "<div class='link_below_cover_viewgame'>";
+                    echo "<a href=\"editgame?&id=$id\" "
+                    . "title=\"To help make IFDB more accessible, click to edit the page and add a cover art description.\">Add an image description</a></div>";
+                } ?>
+
            </div>
                <?php
 } // if ($hasart)

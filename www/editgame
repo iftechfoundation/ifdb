@@ -1101,6 +1101,12 @@ for ($i = 0 ; $i < count($fields) ; $i++) {
             "This game has no cover art",
             "coverart", $curval, 90);
 
+    } else if ($colname == "cover_art_description") {
+        // multiline field for cover art description
+        echo "<textarea name=\"$colname\" id=\"$colname\"
+            rows=2 cols=$len>" . htmlspecialcharx($curval)
+            . "</textarea>";
+
     } else if ($colname == "desc") {
         // multiline field for description
         echo "<textarea name=\"$colname\" id=\"$colname\"

@@ -382,7 +382,7 @@ function echoStylesheetLink()
 // --------------------------------------------------------------------------
 // send an image description page - this includes the image and the
 // copyright information
-function sendImageLdesc($title, $imageID)
+function sendImageLdesc($page_title, $imageID, $cover_art_description, $game_title, $gameID)
 {
     global $copyrightStatList;
     checkPersistentLogin();
@@ -414,16 +414,24 @@ function sendImageLdesc($title, $imageID)
             list($username) = mysql_fetch_row($result);
     }
 
+    // Generate the alt text for the full-sized cover art
+    $large_cover_alt_text = "";
+    if ($cover_art_description) {
+        $large_cover_alt_text = $cover_art_description;
+    } else {
+        $large_cover_alt_text = "Cover art for $game_title.";
+    }
+
     // send the page
 ?>
 <html>
 <head>
    <?php echoStylesheetLink(); ?>
-   <title><?php echo htmlspecialcharx($title) ?></title>
+   <title><?php echo htmlspecialcharx($page_title) ?></title>
 </head>
 <body>
 <div class=main>
-   <img src="showimage?id=<?php echo urlencode($imageID) ?>">
+   <img src="showimage?id=<?php echo urlencode($imageID) ?>" alt="<?php echo htmlspecialcharx($large_cover_alt_text) ?>.">
    <?php
       if ($copymsg || ($copystat && isset($copyrightStatList[$copystat]))
           || $username || $created) {
@@ -454,8 +462,21 @@ function sendImageLdesc($title, $imageID)
               echo "<br>";
           }
 
-          echo "</span><br>";
+          echo "</span>";
       }
+
+      if ($cover_art_description) {
+          echo "<br><style nonce='$nonce'>";
+          echo "<div class='image_description_box' style='border: 1px solid gray; padding: 0em 1em 0em 1em; height: auto;
+}'>";
+          echo "<p><b>Image description:</b></p><p>$cover_art_description</p>";
+          echo "<p><em>Cover art descriptions are contributed by IFDB members.</em></p></div>";
+         
+      } else {
+          echo "<p>No image description is available. To help make IFDB more accessible, ";
+          echo "you can <a href=\"editgame?&id=$gameid\">add a cover art description</a>.</p>";
+      }
+  
    ?>
 </div>
 </body>
@@ -2834,7 +2855,7 @@ function check_admin_privileges($db, $userid) {
 
 }
 
-function coverArtThumbnail($id, $size, $version, $params = "") {
+function coverArtThumbnail($id, $size, $version, $params = "", $alt_text = "") {
     $thumbnail = "/coverart?id=$id&thumbnail=";
     $x15 = round($size * 3 / 2);
     $x2 = $size * 2;
@@ -2844,7 +2865,7 @@ function coverArtThumbnail($id, $size, $version, $params = "") {
     }
     global $nonce;
     return "<style nonce='$nonce'>.coverart__img { max-width: 35vw; height: auto; }</style>"
-        ."<img class='coverart__img' loading='lazy' srcset=\"$thumbnail{$size}x$size$params, $thumbnail{$x15}x$x15$params 1.5x, $thumbnail{$x2}x$x2$params 2x, $thumbnail{$x3}x$x3$params 3x\" src=\"$thumbnail{$size}x$size$params\" height=$size width=$size border=0 alt=\"\">";
+        ."<img class='coverart__img' loading='lazy' srcset=\"$thumbnail{$size}x$size$params, $thumbnail{$x15}x$x15$params 1.5x, $thumbnail{$x2}x$x2$params 2x, $thumbnail{$x3}x$x3$params 3x\" src=\"$thumbnail{$size}x$size$params\" height=$size width=$size border=0 alt=\"$alt_text\">";
 }
 
 // ----------------------------------------------------------------------------

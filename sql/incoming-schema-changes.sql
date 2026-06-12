@@ -3,6 +3,12 @@ USE ifdb;
 -- use this script for pending changes to the production DB schema
 
 
+ALTER table games
+    Add column cover_art_description VARCHAR(2000) AFTER coverart;
+
+
+
+
 DROP TABLE IF EXISTS `global_settings`;
 CREATE TABLE `global_settings` ( 
   `setting_id` BIGINT(20) UNSIGNED NOT NULL AUTO_INCREMENT,
