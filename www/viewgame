@@ -930,11 +930,13 @@ echo helpWinLink("help-ifid", "IFID");
                <?php
 if ($hasart) {
     $arthref = "{$_SERVER['PHP_SELF']}?coverart&id=$id";
-    $cover_alt_text = "Cover art for $title. Click for full-sized image";
+    // If there's a custom description for this cover art, include it as part of the alt text.
+    $cover_alt_text = "Cover art for $title. ";
     if ($cover_art_description) {
-        $cover_alt_text .= ", description,";
+        $cover_alt_text .= "$cover_art_description ";
     }
-    $cover_alt_text .= " and copyright information.";
+    $cover_alt_text .= "Click for full-sized image and copyright information.";
+    
     if (isset($_REQUEST['version']))
         $arthref .= "&version=" . $_REQUEST['version'];
                ?>
