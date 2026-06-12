@@ -70,7 +70,7 @@ $fields = [
           null, TypeString],
     ["Cover Art", "coverart", 0, null, null, TypeImage],
     ["Cover Art Description", "cover_art_description", 60, 
-          'A description of what the image looks like, to be read aloud by a screen reader - '
+          'A description of what the image looks like, to be included in alt text - '
           . helpWinLink("help-cover-description", "Guidelines for cover art descriptions"),
           null, TypeString],
     ["First&nbsp;Publication&nbsp;Date", "published", 15,
