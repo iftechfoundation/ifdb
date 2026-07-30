@@ -200,6 +200,8 @@ if ($listid != 'new' && $_SERVER['REQUEST_METHOD'] == 'POST'
              where source = 'L' and sourceid = '$qlistid'", $db);
     }
 
+    mysql_query("unlock tables", $db);
+
     // indicate what happened
     pageHeader($result ? "List Deleted" : "Error");
 
