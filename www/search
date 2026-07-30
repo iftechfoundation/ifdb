@@ -9,9 +9,11 @@ checkPersistentLogin();
 include_once "pagetpl.php";
 include_once "util.php";
 include_once "searchutil.php";
+include_once "viewgame-components/have-you-played.php";
 
 include_once "dbconnect.php";
 $db = dbConnect();
+$curuser = checkPersistentLogin();
 
 // check for API requests
 $api_mode = null;
@@ -1126,7 +1128,8 @@ else if ($term || $browse)
                                  . ($searchType == "poll" ? "&poll" : "")
                                  . ($searchType == "member" ? "&member" : "")
                                  . ($searchType == "comp" ? "&comp" : "")
-                                 . ($searchType == "tag" ? "&tag" : ""),
+                                 . ($searchType == "tag" ? "&tag" : "")
+                                 . (isset($_GET['showRatingBoxes']) ? "&showRatingBoxes" : ""),
                                  $pg, $lastPage, $firstOnPage, $lastOnPage,
                                  $rowcnt, true,
                                  $rowcnt < $showAllMaxRows, $pgAll)
@@ -1249,8 +1252,11 @@ else if ($term || $browse)
             $hids[$searchType] = '1';
         if ($urlXL)
             $hids['xlink'] = $extraLink;
+        echo "<div class='searchControls'>";
         showSortingControls("searchOrder", "sortby", $sortList, $sortby,
                             $hids, "search");
+        $checked = isset($_GET['showRatingBoxes']) ? "checked" : "";
+        echo "<label><input type='checkbox' id='showRatingBoxes' autocomplete='off' $checked>Show rating boxes</label></div>";
 
         // show the page controls at the top of the results;
         // if all of the results fit on one page, don't bother with
@@ -1424,9 +1430,16 @@ else if ($term || $browse)
                 if ($playtime != "")
                     echo "<div class=details>$playtime</div>";
 
-                echo "</div></article>";
+                echo "</div>";
+
+                if ($curuser) {
+                    showHaveYouPlayedThisCtl($db, $curuser, $id, $row['current_user_rating'], $row['current_user_has_review'],
+                        'searchRatingBox' . (isset($_GET['showRatingBoxes']) ? '' : ' hidden'));
+                }
+
+                echo "</article>";
                 break;
-            
+
             case "list":
                 // get the row data
                 $id = $row['id'];
@@ -1583,6 +1596,36 @@ else if ($term || $browse)
 if (!$api_mode) {
 ?>
 </div>
+
+<script nonce="<?php global $nonce; echo $nonce; ?>">
+function editUrlParameters(url, param, add) {
+    const u = new URL(url);
+    if (add) {
+        u.searchParams.set('showRatingBoxes', '');
+    } else {
+        u.searchParams.delete('showRatingBoxes');
+    }
+    return u.toString().replace(/=$|=(?=&)/g, '');
+}
+
+document.getElementById('showRatingBoxes').addEventListener('click', (e) => {
+    const checked = e.target.checked;
+
+    // Show/hide boxes
+    document.querySelectorAll('.haveYouPlayed').forEach(elem => {
+        elem.style.display = checked ? 'table' : 'none';
+    });
+
+    // Update address bar
+    window.history.replaceState(null, '', editUrlParameters(window.location.href, 'showRatingBoxes', checked));
+
+    // Update pagination links
+    document.querySelectorAll('.search__rowcnt a').forEach(elem => {
+        elem.href = editUrlParameters(elem.href, 'showRatingBoxes', checked);
+    });
+});
+</script>
+
 <?php
 
 // end the page

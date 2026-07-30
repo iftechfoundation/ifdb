@@ -104,6 +104,13 @@ form.sortingControls {
     margin: 1em 0 1em 0;
 }
 
+/* A box that has the sorting controls and other search result controls */
+.searchControls {
+    display: flex;
+    align-items: baseline;
+    column-gap: 5em;
+}
+
 /*
 The default style for cells within tables.  We use the same style
 here as in the main page body.
@@ -564,6 +571,21 @@ td.coverart {
     white-space: nowrap;
 }
 
+.haveYouPlayed_playedSection {
+    margin: 1.25ex 0 0.75ex 0;
+}
+
+.searchRatingBox {
+    width: 20rem !important; /* Overrides the 'width: 100%' in '.haveYouPlayed' */
+    margin-left: auto !important;
+    margin-right: 100px !important;
+}
+
+.searchRatingBox .haveYouPlayed_title,
+.searchRatingBox .howLong {
+    display: none;
+}
+
 /*
 We use the "authorProfileLink" style for hyperlinks to author profiles,
 as shown in the author section of a game listing.  We show these without
@@ -634,26 +656,24 @@ the page.
     }
 
     /*
-    The "gamerightbar" table is the box on a game's listing page,
+    The "haveYouPlayed" class is the box on a game's listing page,
     underneath the Download box, where we display quick rating
     input links ("Have you played this game?").
     */
-    table.gamerightbar {
-        padding: 0 0 0 0;
-        margin: 0 0 0 0;
+    .haveYouPlayed {
+        padding: 3px;
+        margin: 0;
         background: #F0F0F0;
         border: thin dotted #e0e0e0;
         width: 100%;
         font-size: 80%;
+        height: fit-content;
     }
-    table.gamerightbar h3 {
+    .haveYouPlayed h3 {
         font: 100%/140% Verdana, Arial, Helvetica, Sans-Serif;
         font-weight: bold;
         color: #000080;
         margin: 0 0 0.5em 0;
-    }
-    table.gamerightbar td {
-        padding: 0 0 0.5em 0;
     }
 }
 
@@ -669,6 +689,10 @@ on the viewgame page
 }
 #timeSavedSection {
     display: none;
+}
+
+.submitTimeSection > div {
+    margin-top: 1px;
 }
 
 /*
@@ -2239,14 +2263,14 @@ span.sfl-save-autodesc {
         #externalLinks.downloads h3 {
             color: #d0d0ff;
         }
-        table.gamerightbar {
+        .haveYouPlayed {
             background: #101030;
             border: thin dotted #303030;
         }
-        table.gamerightbar td {
+        .haveYouPlayed {
             color: #d8d8d8;
         }
-        table.gamerightbar td h3 {
+        .haveYouPlayed h3 {
             color: #d0d0ff;
         }
     }
