@@ -26,8 +26,8 @@ function getGameInfo($db, $id, $curuser, $requestVersion, &$errMsg, &$errCode)
     $result = mysqli_execute_query($db,
        "select
             title, author, authorExt, published,
-            version, license, `system`, `desc`, length(coverart) hasart, genre,
-            language, seriesname, seriesnumber, forgiveness, bafsid, website,
+            version, license, `system`, `desc`, length(coverart) hasart, cover_art_description, 
+            genre, language, seriesname, seriesnumber, forgiveness, bafsid, website,
             downloadnotes, editedby,
             concat(date_format(moddate, '%e %M %Y at %l:%i'),
                lower(date_format(moddate, '%p'))) as moddate,
@@ -209,6 +209,7 @@ function getGameInfo($db, $id, $curuser, $requestVersion, &$errMsg, &$errCode)
     $language = $rec["language"];
     $system = $rec["system"];
     $hasart = !is_null($rec["hasart"]);
+    $cover_art_description = $rec["cover_art_description"];
     $genre = $rec["genre"];
     $seriesname = $rec["seriesname"];
     $seriesnum = $rec["seriesnumber"];
@@ -416,7 +417,7 @@ function getGameInfo($db, $id, $curuser, $requestVersion, &$errMsg, &$errCode)
     return array($ifids, $title, $author, $authorExt,
                  $pubYear, $pubFull, $license,
                  $system, $desc, $rawDesc,
-                 $hasart, $genre, $seriesname, $seriesnum,
+                 $hasart, $cover_art_description, $genre, $seriesname, $seriesnum,
                  $forgiveness, $bafsid, $version,
                  $language, $languageNameOnly,
                  $website, $links,
@@ -448,6 +449,7 @@ function getDeltaDesc($deltas)
                        "language" => "language",
                        "desc" => "description",
                        "coverart" => "cover art",
+                       "cover_art_description" => "cover art description",
                        "genre" => "genre",
                        "seriesname" => "series name",
                        "seriesnumber" => "episode number",
