@@ -404,7 +404,7 @@ function saveUpdates($db, $adminPriv, $apiMode,
         $dblen = (isset($dbLens[$key]) ? $dbLens[$key] : 0);
         if ($dblen && gettype($val) != "array" && strlen($val) > $dblen) {
             $errDetail[$key][] = "This value is too long (the maximum "
-                                 . "length is $dblen character).";
+                                 . "length is $dblen characters).";
         }
 
         // validate certain entries
