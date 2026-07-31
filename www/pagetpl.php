@@ -102,6 +102,7 @@ function pageHeader($title, $focusCtl = false, $extraOnLoad = false,
         <nav id="main-nav" class="main-nav">
             <div class="nav-left">
                 <a id="topbar-home" href="/">Home</a>
+                <a id="topbar-tips" href="/tips">Tips</a>
                 <a id="topbar-browse" href="/search?browse">Browse</a>
                 <form class= "searchbar-wrapper" method="get" action="/search" name="search" role="search">
                         <input id="topbar-searchbar" type="search" name="searchbar" placeholder="Search for games...">
@@ -182,6 +183,7 @@ function pageFooter()
 
 <div class="footer prerender-moderate">
 <a class="nav" id="footer-home" href="/">IFDB Home</a> |
+<a class="nav" id="footer-tips" href="/tips">Tips</a> |
 <a class="nav" id="footer-contact" href="/contact">Contact Us</a> |
 <a class="nav" id="footer-coc" href="/code-of-conduct">Code of Conduct</a> |
 <a class="nav" id="footer-tos" href="/tos">Terms of Service</a> |
