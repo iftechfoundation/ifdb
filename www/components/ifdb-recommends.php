@@ -69,7 +69,7 @@ if (count($recs) >= 2) {
         if ($hasart)
             echo "<table border=0 cellspacing=0 cellpadding=0>"
                 . "<tr valign=top><td>"
-                . "<a href=\"viewgame?id=$gameid\" class=\"ifdb-recommends__artLink\" aria-label=\"$title\">"
+                . "<a href=\"viewgame?id=$gameid\" class=\"ifdb-recommends__artLink\" aria-hidden=\"true\" tabindex=\"-1\">"
                 . coverArtThumbnail($gameid, 70, $pagevsn)
                 . "</a></td><td>";
 

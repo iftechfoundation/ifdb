@@ -43,9 +43,9 @@ for ($idx = 0 ; $idx <= 8; $idx++)
     // generic list icon
     if (ENABLE_IMAGES) {
         if ($l["haspic"]) {
-            echo "<a href=\"showuser?id={$l['userid']}\">"
+            echo "<a href=\"showuser?id={$l['userid']}\" aria-hidden=\"true\" tabindex=\"-1\">"
                 . "<img border=0 width=50 height=50 src=\"showuser?id={$l['userid']}&pic"
-                . "&thumbnail=50x50\"></a>";
+                . "&thumbnail=50x50\" alt=\"\"></a>";
         } else {
             // echo "<a href=\"viewlist?id={$l['id']}\">"
             //     . "<img border=0 src=\"reclist50.gif\"></a>";
