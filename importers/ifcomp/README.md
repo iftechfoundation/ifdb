@@ -1,5 +1,7 @@
 This importer is designed to grab the game list from https://ifcomp.org/ballot and upload the games to IFDB.
 
+See also the overview document in the IFComp repository: [Shipping IFComp games to IFDB and IF Archive](https://github.com/iftechfoundation/ifcomp/blob/main/docs/shipping-ifcomp-games-to-ifdb-and-ifarchive.md)
+
 # How to use the scripts
 
 ## Phase 1: Create IFDB listings for each game on the ballot
