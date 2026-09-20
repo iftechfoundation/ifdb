@@ -5,7 +5,7 @@
   "url": "http://localhost:8080/",
   "tests": [{
     "id": "fdc09b91-3859-48da-8bec-15cab03aea43",
-    "name": "001 Top Bar Navigation",
+    "name": "001 Top Bar When Logged Out",
     "commands": [{
       "id": "4b6816e3-66ac-4647-afae-9fc66a700e52",
       "comment": "",
@@ -38,14 +38,7 @@
       "id": "b5a35547-95ab-4d9e-91df-9745906f2339",
       "comment": "",
       "command": "open",
-      "target": "http://localhost:8080/",
-      "targets": [],
-      "value": ""
-    }, {
-      "id": "eec82b88-800a-45c6-8f89-91229cd714b2",
-      "comment": "",
-      "command": "click",
-      "target": "id=topbar-profile",
+      "target": "http://localhost:8080/showuser",
       "targets": [],
       "value": ""
     }, {
@@ -59,14 +52,7 @@
       "id": "c5965ef1-d237-416b-80b1-c0f3cd655061",
       "comment": "",
       "command": "open",
-      "target": "http://localhost:8080/",
-      "targets": [],
-      "value": ""
-    }, {
-      "id": "f8a8de9e-70f9-473e-8e57-6c6251c245cc",
-      "comment": "",
-      "command": "click",
-      "target": "id=topbar-edit",
+      "target": "http://localhost:8080/editprofile",
       "targets": [],
       "value": ""
     }, {
@@ -80,14 +66,7 @@
       "id": "fbf6a986-8717-4982-846f-89d55c23bf24",
       "comment": "",
       "command": "open",
-      "target": "http://localhost:8080/",
-      "targets": [],
-      "value": ""
-    }, {
-      "id": "476860de-489a-4fba-b309-b0d9d58a067f",
-      "comment": "",
-      "command": "click",
-      "target": "id=topbar-personal",
+      "target": "http://localhost:8080/personal",
       "targets": [],
       "value": ""
     }, {
@@ -101,14 +80,7 @@
       "id": "8522f8b9-b870-4d7f-a153-ad0a2f4f4b25",
       "comment": "",
       "command": "open",
-      "target": "http://localhost:8080/",
-      "targets": [],
-      "value": ""
-    }, {
-      "id": "d964101f-b852-4279-a976-eb2036c8172e",
-      "comment": "",
-      "command": "click",
-      "target": "id=topbar-inbox",
+      "target": "http://localhost:8080/commentlog?mode=inbox",
       "targets": [],
       "value": ""
     }, {
@@ -150,7 +122,7 @@
       "id": "21994d43-f076-48e5-9021-03d72e953555",
       "comment": "",
       "command": "click",
-      "target": "id=topbar-search",
+      "target": "id=topbar-search-go-button",
       "targets": [],
       "value": ""
     }, {
