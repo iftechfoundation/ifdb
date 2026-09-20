@@ -2419,6 +2419,9 @@ span.sfl-save-autodesc {
     span.activeBrowseTab {
         background: #444476;
     }
+    span.microhelp {
+        color: #838383;
+    }
     .viewgame__header {
         background: #7098a8;
         color: #000040;

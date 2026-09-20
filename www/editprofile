@@ -812,6 +812,11 @@ captchaSupportScripts($captchaKey);
             <textarea name="profile" id="profile" rows=10 cols=60><?php
                   echo htmlspecialcharx($profile);
             ?></textarea>
+            <p><span class="microhelp">Warning: If you use the <code>&lt;a&gt;</code> element
+                inside your profile description, your profile will be put
+                under review and become hidden to others, and you will lose
+                the ability to tag games or edit game pages. You will need to
+                <a href="https://ifdb.org/contact">contact the IFDB team</a> to remove this status.</span></p>
          </td>
       </tr>
 
