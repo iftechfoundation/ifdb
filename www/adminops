@@ -663,10 +663,10 @@ if (isset($_REQUEST['lockdown'])) {
         $new_account_approval_mode = "";
         if ($switch_to_lockdown) {
             $new_account_approval_mode = "lockdown";
-        } else if ($switch_to_normal){
+        } else if ($switch_to_normal) {
             $new_account_approval_mode = "normal";
         }   
-        // Update the account creation mode in the database.
+        // Update the account approval mode in the database.
         mysqli_execute_query($db,
             "UPDATE global_settings
             SET current_value = ?
@@ -680,11 +680,11 @@ if (isset($_REQUEST['lockdown'])) {
         FROM global_settings
         WHERE setting_name = 'account approval'");
     if (!$result) throw new Exception("Error: " . mysqli_error($db));
-        $matching_settings_rows = mysqli_fetch_all($result, MYSQLI_ASSOC);
-        $current_account_approval_mode = "";
-        foreach ($matching_settings_rows as $row) {
-            $current_account_approval_mode = htmlspecialchars($row['current_value']);
-        }     
+    $matching_settings_rows = mysqli_fetch_all($result, MYSQLI_ASSOC);
+    $current_account_approval_mode = "";
+    foreach ($matching_settings_rows as $row) {
+        $current_account_approval_mode = htmlspecialchars($row['current_value']);
+    }     
 
     // Show what mode we're in and explain the modes
     pageHeader("Lockdown Controls");
@@ -702,7 +702,7 @@ if (isset($_REQUEST['lockdown'])) {
 
     // Display the button to switch modes
     echo '<form action="/adminops?lockdown" method="post">';
-        if ($current_account_approval_mode == "normal") { 
+    if ($current_account_approval_mode == "normal") { 
         echo "<input type='submit' name='lockdown_button' id='lockdown_button' value='Switch to Lockdown Mode'>";
     } else if ($current_account_approval_mode == "lockdown"){ 
         echo "<input type='submit' name='normal_button' id='normal_button' value='Switch to Normal Mode'>";
