@@ -136,6 +136,9 @@ game files.  ifarchive.org is the leading repository of current and
 historical IF works, so most authors of new works like to upload their
 games there, to reach players and for historical preservation.</p>
 
+<p>This form is not to be used by automated agents. All uploads must be
+submitted by people.</p>
+
 <p><b>Before you upload:</b></p>
 
 <ul class="doublespace">
@@ -295,6 +298,10 @@ uploadForm.addEventListener('submit', function (event) {
          id="archiveDir" value="<?php echo $path ?>"/></td></tr>
 
   <tr><td align=right>Agreement:</td><td>&nbsp;</td>
+     <td><input type="checkbox" name="human" id="human">
+        <label for="human">I am a human being.</label>
+     </td></tr>
+  <tr><td></td><td>&nbsp;</td>
      <td><input type="checkbox" name="tos">I agree to the
         <a target="_blank" href="https://www.ifarchive.org/misc/license.html">IF Archive Terms of Use</a>
      </td></tr>
