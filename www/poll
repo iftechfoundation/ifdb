@@ -1318,14 +1318,14 @@ function expandVote(id)
                             $aVote = "<a href=\"poll?id=$id&submitVote"
                                  . "&gameID=$prvGameID&quickQuote=&voteDesc=\">";
                             echo " $aVote<img class=\"vote-checkmark\" "
-                                . "border=0 src=\"img/blank.gif\"></a> "
-                                . "{$aVote}Vote for this game anonymously</a>";
+                                . "border=0 src=\"img/blank.gif\" alt=\"\">"
+                                . "Vote for this game anonymously</a>";
                         } else {
                             $aVote = "<a href=\"poll?id=$id&addVote"
-                                 . "&game=$prvGameID\">";
+                                . "&game=$prvGameID\">";
                             echo " $aVote<img class=\"vote-checkmark\" "
-                                . "border=0 src=\"img/blank.gif\"></a> "
-                                . "{$aVote}Vote for this game</a>";
+                                . "border=0 src=\"img/blank.gif\" alt=\"\">"
+                                . "Vote for this game</a>";
                         }
                     }
                     echo "</span>";
