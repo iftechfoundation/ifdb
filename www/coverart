@@ -105,8 +105,17 @@ if ($targVsn) {
         if (isset($deltas['title']))
             $title = $deltas['title'];
 
+        $pagevsn = (int)$rec['pagevsn'];
+
+        // Hack to assist local development, which uses production as an image source.
+        // If the target version is above what the server knows about, return the latest version.
+        if ($i == 0 && $pagevsn < $targVsn) {
+            $foundvsn = true;
+            break;
+        }
+
         // stop if this is the version we're looking for
-        if ((int)$rec['pagevsn'] == $targVsn)
+        if ($pagevsn == $targVsn)
         {
             $foundvsn = true;
             break;
