@@ -1350,6 +1350,10 @@ span.headlineRss {
         display: none;
     }
 
+    #topbar-tips {
+        display: none;
+    }
+
     #main-nav-wrapper{
         padding: 0;
     }
