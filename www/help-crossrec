@@ -15,12 +15,6 @@ members and review sites like
 target="_blank">Baf's Guide</a>.  We're not being paid to promote one
 game over another.
 
-<?php
-$overloaded = true;
-
-if ($overloaded) {
-    ?>
-
 <p>The system picks front-page recommendations by randomly selecting
 a few games with the highest ratings, excluding games that you've
 told us you've already played.
@@ -36,35 +30,6 @@ confidence in the game, by adding five "fake" ratings to the average
 (one 1-star, one 2-star, one 3-star, one 4-star, and one 5-star rating)
 and subtracting the standard deviation from the result.
 
-    <?php
-} else {
-    ?>
-
-<p>The system picks front-page recommendations by looking for other
-members with similar patterns of likes and dislikes to your own, as
-expressed in the ratings they gave to the games they reviewed.  IFDB
-tries to match you up with a few other members, then recommends games
-that those other members rated highly.
-
-<p>In principle, the more ratings you and other members provide,
-the more accurate the matching will become.  So the recommendations
-should get better and better as you rate more games.
-
-<p>This approach is sometimes called "collaborative filtering."  Some
-people think it's great, others are skeptical.  The obvious objection
-is that it doesn't capture the <i>reasons</i> that you like the games
-you like, so it might match you up with someone who happens to like
-some of the same games, but for completely different reasons.  There's
-obviously no guarantee that the approach will actually produce good
-advice, but we hope that it gives you at least a few leads on games
-that you might otherwise have overlooked.
-
-<p>If the algorithmic recommendations on the home page don't work for
-you, remember that IFDB still offers several ways to get
-<i>personal</i> recommendations from other users, such as member
-reviews and Recommended lists.
-
 <?php
-}
 helpPageFooter();
 ?>
