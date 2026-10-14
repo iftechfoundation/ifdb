@@ -429,11 +429,11 @@ function showNewItemList($db, $first, $last, $items, $options)
             // image, otherwise generic review icon
             if ($enableImages) {
                 if ($r["haspic"]) {
-                    echo "<a href=\"showuser?id={$r['userid']}\">"
+                    echo "<a href=\"showuser?id={$r['userid']}\" aria-hidden=\"true\" tabindex=\"-1\">"
                         . "<img border=0 width=50 height=50 src=\"showuser?id={$r['userid']}&pic"
-                        . "&thumbnail=50x50\"></a>";
+                        . "&thumbnail=50x50\" alt=\"\"></a>";
                 } else if ($r["hasart"]) {
-                    echo "<a href=\"viewgame?id={$r['gameid']}\">"
+                    echo "<a href=\"viewgame?id={$r['gameid']}\" aria-hidden=\"true\" tabindex=\"-1\">"
                         . coverArtThumbnail($r['gameid'], 50, $r['pagevsn'])
                         . "</a>";
                 } else {

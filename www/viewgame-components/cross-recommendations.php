@@ -73,7 +73,7 @@
                     if ($crart)
                         echo "<table class=grid cellspacing=0 cellpadding=0 "
                             . "border=0><tr><td>"
-                            . "<a href=\"viewgame?id=$crid\">"
+                            . "<a href=\"viewgame?id=$crid\" aria-hidden=\"true\" tabindex=\"-1\">"
                             . coverArtThumbnail($crid, 80, $crversion)
                             . "</a></td><td>";
 
