@@ -3,6 +3,9 @@ USE ifdb;
 -- use this script for pending changes to the production DB schema
 
 
+ALTER TABLE `games` MODIFY COLUMN `language` VARCHAR (128);
+
+
 DROP TABLE IF EXISTS `global_settings`;
 CREATE TABLE `global_settings` ( 
   `setting_id` BIGINT(20) UNSIGNED NOT NULL AUTO_INCREMENT,
