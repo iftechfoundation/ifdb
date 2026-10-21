@@ -168,7 +168,7 @@ function approx_utf8($str)
 //
 function htmlspecialcharx($str)
 {
-    return htmlspecialchars($str);
+    return htmlspecialchars($str ?? '');
 }
 
 // sometimes we want to display long file names containing underscores
