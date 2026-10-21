@@ -7,13 +7,21 @@ include_once "dbconnect.php";
 //
 function fetch_image($imageID, $getPic)
 {
+    if ($imageID === null || $imageID === '') {
+        return [null, null];
+    }
+
     // parse the image ID:  <dbnum>:<image key>
-    list ($dbnum, $key) = explode(":", $imageID);
+    $parts = explode(":", (string)$imageID, 2);
+    if (count($parts) < 2) {
+        return [null, null];
+    }
+    list ($dbnum, $key) = $parts;
 
     // connect to the database encoded in the ID
     $db = imageDbConnect((int)$dbnum);
     if (!$db)
-        return false;
+        return [null, null];
 
     // set up to get or skip the image data stream
     $imgcol = ($getPic ? "img" : "null");
@@ -24,8 +32,8 @@ function fetch_image($imageID, $getPic)
         "select $imgcol, format, copystat, copyright, userid
          from images where id='$key'", $db);
 
-    // if we got a result, return it
-    return mysql_fetch_row($result);
+    $row = $result ? mysql_fetch_row($result) : false;
+    return $row ?: [null, null];
 }
 
 // ------------------------------------------------------------------------
