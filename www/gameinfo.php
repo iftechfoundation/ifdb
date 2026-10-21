@@ -165,7 +165,7 @@ function getGameInfo($db, $id, $curuser, $requestVersion, &$errMsg, &$errCode)
             $rec["moddate2"] = $vrec["moddate2"];
 
             // deserialize the array of deltas
-            $deltas = unserialize($vrec['deltas']);
+            $deltas = unserializeGameDeltas($vrec['deltas']);
 
             // copy each modified item into the current row under construction
             foreach ($deltas as $colname => $colval) {
@@ -221,10 +221,10 @@ function getGameInfo($db, $id, $curuser, $requestVersion, &$errMsg, &$errCode)
     $moddate2 = $rec["moddate2"];
     $moddatelatest = $rec["moddatelatest"];
     $pagevsn = $rec["pagevsn"];
-    $ifids = $rec["ifids"];
-    $links = $rec["links"];
-    $extReviews = $rec["extreviews"];
-    $xrefs = $rec["xrefs"];
+    $ifids = is_array($rec["ifids"] ?? null) ? $rec["ifids"] : [];
+    $links = is_array($rec["links"] ?? null) ? $rec["links"] : [];
+    $extReviews = is_array($rec["extreviews"] ?? null) ? $rec["extreviews"] : [];
+    $xrefs = is_array($rec["xrefs"] ?? null) ? $rec["xrefs"] : [];
     $flags = $rec["flags"];
 
     // make sure that the special name and code are set for the external
@@ -435,8 +435,21 @@ function getGameInfo($db, $id, $curuser, $requestVersion, &$errMsg, &$errCode)
 // get a description of the changes made as a comma-separated list of
 // column names
 //
+function unserializeGameDeltas($deltas)
+{
+    if (!is_string($deltas) || $deltas === '') {
+        return [];
+    }
+    $parsed = @unserialize($deltas);
+    return is_array($parsed) ? $parsed : [];
+}
+
 function getDeltaDesc($deltas)
 {
+    if (!is_array($deltas)) {
+        return "";
+    }
+
     // columns -> descriptions
     $deltaDesc = array("title" => "title",
                        "author" => "author",
