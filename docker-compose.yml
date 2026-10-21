@@ -1,7 +1,7 @@
 services:
   db:
-    image: mariadb:10
-    command: mysqld --sql_mode="" --ft_stopword_file="" --ft_min_word_len=1
+    image: mariadb:11
+    command: mariadbd --sql_mode="" --ft_stopword_file="" --ft_min_word_len=1
     volumes:
       - ./initdb:/docker-entrypoint-initdb.d
     environment:
