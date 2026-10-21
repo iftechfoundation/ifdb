@@ -13,7 +13,7 @@ $db = dbConnect();
 $numItems = 25;
 
 // use UTF-8 for RSS feeds
-iconv_set_encoding("output_encoding", "UTF-8");
+ini_set("default_charset", "utf-8");
 
 // send the RSS content-type header
 header("Content-Type: application/rss+xml");
