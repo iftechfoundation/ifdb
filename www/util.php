@@ -196,7 +196,7 @@ function is_mobile()
 function is_kindle()
 {
     // get the browser ID string
-    $b = $_SERVER['HTTP_USER_AGENT'];
+    $b = $_SERVER['HTTP_USER_AGENT'] ?? '';
 
     // check for the relevant strings
     return preg_match("#Kindle/[0-9]#", $b, $match, 0, 0);
@@ -206,7 +206,7 @@ function is_kindle()
 function is_opera()
 {
     // get the browser ID string
-    $ua = $_SERVER['HTTP_USER_AGENT'];
+    $ua = $_SERVER['HTTP_USER_AGENT'] ?? '';
 
     // check for the telltale substring
     return stristr($ua, 'opera') !== false;
@@ -216,7 +216,7 @@ function is_opera()
 function is_firefox()
 {
     // get the browser ID string
-    $ua = $_SERVER['HTTP_USER_AGENT'];
+    $ua = $_SERVER['HTTP_USER_AGENT'] ?? '';
 
     // check for the telltale substring
     return stristr($ua, 'Firefox') !== false;
@@ -225,7 +225,7 @@ function is_firefox()
 function is_ie()
 {
     // get the browser ID string
-    $ua = $_SERVER['HTTP_USER_AGENT'];
+    $ua = $_SERVER['HTTP_USER_AGENT'] ?? '';
 
     // check for the telltale substring
     return stristr($ua, 'MSIE') !== false;
