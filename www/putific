@@ -682,6 +682,9 @@ if ($saveErrMsg) {
                      . htmlspecialcharx(implode("; ", processError($msg)))
                      . "</error></detail>";
     }
+    if ($saveErrCode == "DataValidation") {
+        http_response_code(400);
+    }
     replyXml("<error>"
              . "<code>$saveErrCode</code>"
              . "<message>"
