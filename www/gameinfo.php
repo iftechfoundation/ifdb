@@ -259,9 +259,13 @@ function getGameInfo($db, $id, $curuser, $requestVersion, &$errMsg, &$errCode)
             $link['fmtdesc'] = mysql_result($result, 0, "desc");
             $link['fmticon'] = mysql_result($result, 0, "hasicon");
             $link['fmtclass'] = mysql_result($result, 0, "fmtclass");
+        } else {
+            $link['fmtexternid'] = '';
+            $link['fmtname'] = '';
+            $link['fmtdesc'] = '';
+            $link['fmticon'] = false;
+            $link['fmtclass'] = '';
         }
-        else
-            echo "row not found for format $fmtid";
 
         if ($fmtos) {
             $params = [$fmtos, $fmtos];
