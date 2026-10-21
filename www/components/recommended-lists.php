@@ -14,6 +14,9 @@ $items = getNewItems($db, 10, NEWITEMS_LISTS);
 
 for ($idx = 0 ; $idx <= 8; $idx++)
 {
+    if (!isset($items[$idx])) {
+        break;
+    }
     // get this item
     [$pick, $rawDate, $l] = $items[$idx];
 
