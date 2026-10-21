@@ -735,7 +735,7 @@ if ($geticon) {
             . "<b>External ID:</b> " . htmlspecialcharx($externid) . "<br>"
             . "<b>Format Name:</b> " . htmlspecialcharx($fmtname) . "<br>"
             . "<b>Extensions:</b> " . htmlspecialcharx($fmtext) . "<br>";
-        if ($fmtclass == "G" && $fmtexternID != "tads3web" && $fmtexternID != "hypertextgame") {
+        if ($fmtclass == "G" && $externid != "tads3web" && $externid != "hypertextgame") {
             echo "<b>Description:</b> Requires " . $fmtdesc . ".<br>";
         } else {
             echo "<b>Description:</b> " . $fmtdesc . "<br>";

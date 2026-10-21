@@ -94,14 +94,14 @@ if (count($links) == 0 && $dlnotes == "") {
             htmlspecialcharx($link['title']
         ));
         $linkdesc = htmlspecialcharx($link['desc']);
-        $fmtid = $link['fmtid'];
-        $fmtexternid = $link['fmtexternid'];
-        $fmtos = $link['osid'];
-        $fmtosvsn = $link['osvsn'];
-        $fmtname = $link['fmtname'];
-        $fmtdesc = $link['fmtdesc'];
-        $fmticon = $link['fmticon'];
-        $fmtclass = $link['fmtclass'];
+        $fmtid = $link['fmtid'] ?? '';
+        $fmtexternid = $link['fmtexternid'] ?? '';
+        $fmtos = $link['osid'] ?? '';
+        $fmtosvsn = $link['osvsn'] ?? '';
+        $fmtname = $link['fmtname'] ?? '';
+        $fmtdesc = $link['fmtdesc'] ?? '';
+        $fmticon = $link['fmticon'] ?? false;
+        $fmtclass = $link['fmtclass'] ?? '';
         $fmtcomp = $link['compression'];
         $compPri = zeroWidthSpaceUnderscores(
             htmlspecialcharx($link['compressedprimary'])

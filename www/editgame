@@ -1061,7 +1061,7 @@ function setExtRevRating(rating)
     action="editgame?id=<?php echo $id ?>">
 
    <input type="hidden" name="pagevsn" value="<?php
-      echo htmlspecialcharx($rec['pagevsn']) ?>">
+      echo htmlspecialcharx($rec['pagevsn'] ?? '') ?>">
 
    <table class="gamedataform" border=0>
 

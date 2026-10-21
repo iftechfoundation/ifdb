@@ -41,6 +41,7 @@ if ($uid == "")
 // quote the user ID for SQL use
 $quid = mysql_real_escape_string($uid, $db);
 $errMsg = false;
+$proStat = '';
 
 // check for muting
 $muted = false;

@@ -286,6 +286,9 @@ function getCaptchaSubForm($sessionKey, $errMsg, $requiredCaption)
 {
     $result = "";
 
+    if (is_array($errMsg)) {
+        $errMsg = implode(", ", $errMsg);
+    }
     if ($errMsg == "incorrect-captcha-sol")
         $result .= "<div><span class=\"errmsg\">Please verify that you're not a robot</span></div>";
     else if ($errMsg)
