@@ -18,7 +18,10 @@ services:
     ports:
       - 8081:80
   web:
-    build: .
+    build:
+      context: .
+      args:
+        PHP_VERSION: "8"
     ports:
       - 8080:80
     links:
