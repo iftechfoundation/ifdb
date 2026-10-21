@@ -211,7 +211,7 @@ function showCommentPage($db, $itemAuthor, $srcID, $srcCode,
 {
     // get the logged-in user
     checkPersistentLogin();
-    $curuser = $_SESSION['logged_in_as'];
+    $curuser = $_SESSION['logged_in_as'] ?? null;
     $orOwner = ($curuser ? "or '$curuser' in (c.userid, c.private)" : "");
 
     // if we're logged in, we can check for muting
@@ -345,7 +345,7 @@ function enlistComment(&$coutlst, &$cidx, $crec)
          $ccreated, $cmodified, $cprivate) = $crec;
 
     // if I'm already listed, there's no need to list me again
-    if ($cidx[$cid]['.listed'])
+    if ($cidx[$cid]['.listed'] ?? false)
         return;
 
     // flag it as listed
@@ -353,7 +353,7 @@ function enlistComment(&$coutlst, &$cidx, $crec)
 
     // If this item has a parent, add the item to its parent's child
     // list.  Otherwise, add it to the root list.
-    if ($cpar && $cidx[$cpar]) {
+    if ($cpar && isset($cidx[$cpar])) {
 
         // it has a parent - add it to its parent's child list
         $cidx[$cpar]['.children'][] = $cid;
@@ -381,7 +381,7 @@ function showComment($db,$commentPage, $itemAuthor, $cidx, $coutlst, $i)
 {
     // get the logged-in user
     checkPersistentLogin();
-    $curuser = $_SESSION['logged_in_as'];
+    $curuser = $_SESSION['logged_in_as'] ?? null;
 
     // unpack the item
     $crec = $cidx[$coutlst[$i]];
@@ -486,7 +486,7 @@ function revealMutedComment(ele)
     echo "</div>";
 
     // if there are children, show the child list
-    $children = $crec['.children'];
+    $children = $crec['.children'] ?? null;
     if ($children) {
         // open the reply division
         echo "<div class=reviewCommentReply>";

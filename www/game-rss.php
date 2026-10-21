@@ -121,7 +121,7 @@ function getGameRssItems($db, $id, $feedType, $gameTitle, $links, $extFeed)
             $rssdate = date("D, j M Y H:i:s ", strtotime($ndate)) . 'UT';
             $nlink = htmlspecialcharx(
                 get_root_url() . "viewgame?id=$id&version=$nvsn");
-            $deltas = unserialize($deltas);
+            $deltas = unserializeGameDeltas($deltas);
 
             // build the item XML, according to what kind of update they want
             if ($feedType == GAME_RSS_DLS) {
@@ -162,7 +162,7 @@ function getGameRssItems($db, $id, $feedType, $gameTitle, $links, $extFeed)
                     $mode = $l[0];
                     $l = $l[1];
                     $ltitles[] = htmlspecialcharx($l['title']);
-                    $d = $l[0] . "$mode " . htmlspecialcharx($l['title']);
+                    $d = "$mode " . htmlspecialcharx($l['title']);
                     if ($l['desc'])
                         $d .= " (\"" . htmlspecialcharx($l['desc']) . "\")";
                     $ldescs[] = $d;
