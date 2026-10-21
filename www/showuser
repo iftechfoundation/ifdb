@@ -201,11 +201,12 @@ if ($rss == 'gamenews')
         $items[] = array($moddate, $item);
 
         // Now add news updates for the game itself.
-        $links = getGameInfo($db, $gameid, $curuser, false,
-                        $gameErrMsg, $gameErrCode)[20];
+        $gameInfo = getGameInfo($db, $gameid, $curuser, false,
+                        $gameErrMsg, $gameErrCode);
 
         // add the RSS items for this game to the master list
         if (!$gameErrMsg) {
+            $links = $gameInfo[20];
             $gameItems = getGameRssItems(
                 $db, $gameid, GAME_RSS_ALL, $gtitle, $links, true);
             $items = array_merge($items, $gameItems);

@@ -137,31 +137,33 @@ $errCode = false;
 init();
 
 // load the game information
-//$reqVersion = $_REQUEST['version'] ?? null;
+$reqVersion = $_REQUEST['version'] ?? null;
+$extraHead = '';
 if (!$errMsg) {
-    list($ifids, $title, $author, $authorExt,
-         $pubYear, $pubFull, $license,
-         $system, $desc, $rawDesc,
-         $hasart, $genre, $seriesname, $seriesnum,
-         $forgiveness, $bafsid, $version,
-         $language, $languageNameOnly,
-         $website, $links,
-         $ratingCntAvg, $ratingCntTot, $ratingAvg, $memberReviewCnt,
-         $currentUserRating, $currentUserReview,
-         $editedbyid, $editedbyname, $moddate, $moddate2, $pagevsn,
-         $moddatelatest,
-         $historyView,
-         $dlnotes, $extReviews, $extRevDisplayRank,
-         $ratingHisto, $xrefs, $inrefs, $flags) =
-             getGameInfo($db, $id, $curuser, $reqVersion, $errMsg, $errCode);
-    $title = htmlspecialchars($title);
-    $license = htmlspecialchars($license);
-    $language = htmlspecialchars($language);
-    $seriesnum = htmlspecialchars($seriesnum);
-    $forgiveness = htmlspecialchars($forgiveness);
+    $gameInfo = getGameInfo($db, $id, $curuser, $reqVersion, $errMsg, $errCode);
+    if (!$errMsg) {
+        list($ifids, $title, $author, $authorExt,
+             $pubYear, $pubFull, $license,
+             $system, $desc, $rawDesc,
+             $hasart, $genre, $seriesname, $seriesnum,
+             $forgiveness, $bafsid, $version,
+             $language, $languageNameOnly,
+             $website, $links,
+             $ratingCntAvg, $ratingCntTot, $ratingAvg, $memberReviewCnt,
+             $currentUserRating, $currentUserReview,
+             $editedbyid, $editedbyname, $moddate, $moddate2, $pagevsn,
+             $moddatelatest,
+             $historyView,
+             $dlnotes, $extReviews, $extRevDisplayRank,
+             $ratingHisto, $xrefs, $inrefs, $flags) = $gameInfo;
+        $title = htmlspecialchars($title ?? '');
+        $license = htmlspecialchars($license ?? '');
+        $language = htmlspecialchars($language ?? '');
+        $seriesnum = htmlspecialchars($seriesnum ?? '');
+        $forgiveness = htmlspecialchars($forgiveness ?? '');
 
-    $should_hide = ($flags & FLAG_SHOULD_HIDE);
-
+        $should_hide = ($flags & FLAG_SHOULD_HIDE);
+    }
 }
 
 // Do we need this? What's it for? (from viewgame)
