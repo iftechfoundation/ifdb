@@ -309,7 +309,7 @@ if ($term || $browse) {
     }
 
     // if there's exactly one row, jump directly to the result page
-    if ($rowcnt == 1 && !$browse && !$api_mode) {
+    if ($rowcnt == 1 && !$browse && !$api_mode && isset($rows[0])) {
         $redir = false;
         switch ($searchType) {
         case "game":
