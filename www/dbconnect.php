@@ -71,6 +71,10 @@ function imageDbConnect($dbnum)
 define("MYSQL_ASSOC", MYSQLI_ASSOC);
 define("MYSQL_BOTH",  MYSQLI_BOTH);
 
+// PHP 8.1+ defaults to MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT, which
+// turns failed queries into exceptions. Callers still check false returns.
+mysqli_report(MYSQLI_REPORT_OFF);
+
 $query_i = 0;
 
 function mysql_connect($server, $user, $password) { return mysqli_connect($server, $user, $password); }
@@ -142,7 +146,7 @@ function mysql_insert_id($linkid) { return mysqli_insert_id($linkid); }
  * @return mysqli_result|bool Results as a mysqli_result object, or false if the operation failed.
  */
 if (!function_exists('mysqli_execute_query')) {
-function mysqli_execute_query(mysqli $mysqli, string $sql, array $params = null) {
+function mysqli_execute_query(mysqli $mysqli, string $sql, ?array $params = null) {
   $driver = new mysqli_driver();
 
   $stmt = $mysqli->prepare($sql);
