@@ -109,8 +109,10 @@ if (!$errMsg) {
 
     // save the divisions and games in the main record, in case we need
     // to apply deltas
-    $rec["divisions"] = $divs;
-    $rec["games"] = $games;
+    if (is_array($rec)) {
+        $rec["divisions"] = $divs;
+        $rec["games"] = $games;
+    }
 
     // if we want the version history, or an old page version, get the history
     if ($rss || $historyView || $pagevsn) {
@@ -137,7 +139,7 @@ if (!$errMsg) {
 
     // if we're viewing an old version, apply reverse deltas to get to the
     // desired page version
-    if ($pagevsn && $pagevsn != $rec["pagevsn"]) {
+    if ($pagevsn && is_array($rec) && $pagevsn != $rec["pagevsn"]) {
 
         // we haven't applied any deltas for the game list yet
         $gameDeltas = false;
@@ -150,7 +152,10 @@ if (!$errMsg) {
                  $hModDate, $hVsn, $deltas, $hRawModDate) = $history[$i];
 
             // apply the deltas
-            $deltas = unserialize($deltas);
+            $deltas = @unserialize($deltas);
+            if (!is_array($deltas)) {
+                $deltas = [];
+            }
             foreach ($deltas as $col => $colval)
                 $rec[$col] = $colval;
 
@@ -208,14 +213,19 @@ if (!$errMsg) {
     }
 
     // set the page title to the comp title
-    $pageTitle = htmlspecialcharx($rec["title"]) . " - Details";
+    if (is_array($rec) && isset($rec["title"])) {
+        $pageTitle = htmlspecialcharx($rec["title"]) . " - Details";
+    }
 }
 
 // given a history delta record, generate a printable list of changed items
 function deltaDesc($deltas)
 {
     // unserialize the deltas
-    $deltas = unserialize($deltas);
+    $deltas = @unserialize($deltas);
+    if (!is_array($deltas)) {
+        return "";
+    }
 
     // get a human-readable list of the deltas
     $deltaNames = array(
@@ -270,7 +280,7 @@ if ($rss)
 
         // generate this item
         $item = "<item>"
-                . "<title>Page update$to by $hEdName</title>"
+                . "<title>Page update by $hEdName</title>"
                 . "<description>New $dn</description>"
                 . "<pubDate>$rssdate</pubDate>"
                 . "<guid>$nlink</guid>"
@@ -284,9 +294,10 @@ if ($rss)
     queryNewsRss($items, $db, "C", $compID, 50, "compNewsTitle", false);
 
     // send the data
-    sendRSS($rec["title"],
+    $rssTitle = is_array($rec) ? ($rec["title"] ?? "") : "";
+    sendRSS($rssTitle,
             get_root_url() . "viewcomp?id=$compID",
-            $rec["title"] . " - Competition news &amp; updates from IFDB.",
+            $rssTitle . " - Competition news &amp; updates from IFDB.",
             $items, 50);
 
     // that's it
