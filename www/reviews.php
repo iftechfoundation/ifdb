@@ -275,8 +275,8 @@ function showReview($db, $gameid, $rec, $specialNames, $optionFlags = 0)
     } else {
         $review = fixDesc(parsedownMultilineText($rec['review']), FixDescSpoiler | FixDescDemoteHeadings);
     }
-    $publicationdate = $rec['publicationdatefmt'];
-    $moddatefmt = $rec['moddatefmt'];
+    $publicationdate = $rec['publicationdatefmt'] ?? '';
+    $moddatefmt = $rec['moddatefmt'] ?? '';
     $lastupdateFootnote = null;
     if ($moddatefmt && $publicationdate != $moddatefmt) {
         // Rating-only review
@@ -292,13 +292,13 @@ function showReview($db, $gameid, $rec, $specialNames, $optionFlags = 0)
     $userid = $rec['userid'];
     $username = htmlspecialcharx($rec['username']);
     $location = htmlspecialcharx($rec['location']);
-    $helpful = $rec['helpful'];
-    $unhelpful = $rec['unhelpful'];
+    $helpful = $rec['helpful'] ?? 0;
+    $unhelpful = $rec['unhelpful'] ?? 0;
     $totalvotes = $helpful + $unhelpful;
-    $flags = $rec['flags'];
+    $flags = $rec['flags'] ?? '';
     $spoilerFlag = (strpos($flags, "S") !== false);
-    $oldVersion = ($rec['RFlags'] & RFLAG_OLD_VERSION);
-    $omitAvg = ($rec['RFlags'] & RFLAG_OMIT_AVG);
+    $oldVersion = (($rec['RFlags'] ?? 0) & RFLAG_OLD_VERSION);
+    $omitAvg = (($rec['RFlags'] ?? 0) & RFLAG_OMIT_AVG);
 
     // fetch the review tags
     $tags = queryReviewTags($db, $reviewid);
