@@ -20,6 +20,7 @@ $uploadDesc = false;
 $imgErrMsg = false;
 
 $mainErrMsg = false;
+$mainSuccMsg = false;
 $mainStatMsg = false;
 
 function prettifySize($siz)
