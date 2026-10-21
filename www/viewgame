@@ -398,6 +398,8 @@ if (!$errMsg) {
 
         $should_hide = ($flags & FLAG_SHOULD_HIDE);
         $links = $links ?? [];
+        $ifids = is_array($ifids) ? $ifids : [];
+        $playOnlineButton = '';
     }
 }
 
@@ -756,6 +758,7 @@ if (is_null(getID()) && get_req_data('ifid') != "") {
     // check for a title in the request; if it's there, try searching for
     // matches based on the title
     $title = get_req_data('title');
+    $titleSearch = [];
     if ($title != "") {
         $qtitle = mysql_real_escape_string($title, $db);
         $result = mysql_query(
@@ -1537,7 +1540,7 @@ if ($embargoCnt > 0)
             $iedlink = "IFDB";
 
         // deserialize the deltas
-        $deltas = unserialize($deltas);
+        $deltas = unserializeGameDeltas($deltas);
 
         // get the description of the changes
         $changeList = getDeltaDesc($deltas);
@@ -1975,13 +1978,12 @@ if ($embargoCnt > 0)
         $result = mysql_query(
             getReviewQueryByReview($db, $reviewID), $db);
 
-        // fetch the review
-        $reviewRec = mysql_fetch_array($result, MYSQL_ASSOC);
-        $reviewAuthor = $reviewRec['userid'];
-
         if (mysql_num_rows($result) == 0) {
             echo "The requested review does not exist.";
         } else {
+            // fetch the review
+            $reviewRec = mysql_fetch_array($result, MYSQL_ASSOC);
+            $reviewAuthor = $reviewRec['userid'] ?? null;
 
             // start the section
             showMemberReviewsHeader(false);
