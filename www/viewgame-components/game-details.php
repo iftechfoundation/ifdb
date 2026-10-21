@@ -16,7 +16,7 @@
                    echo helpWinLink("help-forgiveness", "Forgiveness Rating")
                        . ": $forgiveness<br>" ?>
                <?php
-                    if (count($ifids) > 0) {
+                    if (is_array($ifids) && count($ifids) > 0) {
                         echo "<div id=\"ifwiki-link\" class=\"displayNone\"><a href=\"https://www.ifwiki.org/\">IFWiki</a>: <a href=\"https://www.ifwiki.org/index.php?title=IFID:"
                             .htmlspecialcharx($ifids[0])."\">$title</a><br></div>";
                         $jifid = htmlspecialcharx(str_replace("\"", "&#34;", $ifids[0]));
