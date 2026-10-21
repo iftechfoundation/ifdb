@@ -273,7 +273,7 @@ function sortNewItemsByDate($a, $b)
     // in the mysql raw date format, which collates like an ascii string,
     // so we can compare with strcmp.  Reverse the sense of the test so
     // that we sort newest first.
-    if ($a[1] == $b[1] && is_numeric($a[2]['id'])) {
+    if ($a[1] == $b[1] && is_numeric($a[2]['id'] ?? null) && is_numeric($b[2]['id'] ?? null)) {
         return $b[2]['id'] - $a[2]['id'];
     } else {
         return strcmp($b[1], $a[1]);
@@ -663,8 +663,8 @@ function showNewItemList($db, $first, $last, $items, $options)
                     echo "<a href=\"showuser?id={$n['userID']}\">"
                         . "<img border=0 width=50 height=50 src=\"showuser?id={$n['userID']}&pic"
                         . "&thumbnail=50x50\"></a>";
-                } else if ($n["hasart"]) {
-                    echo "<a href=\"viewgame?id={$n['gameid']}\">"
+                } else if (!empty($n["hasart"])) {
+                    echo "<a href=\"viewgame?id=$gid\">"
                         . coverArtThumbnail($gid, 50, $n['pagevsn'])
                         . "</a>";
                 } else {
