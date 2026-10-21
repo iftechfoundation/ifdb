@@ -2036,7 +2036,7 @@ function parseDateVal($val) {
         return false;
 
     // format it as YYYY-MM-DD for passing to MySQL
-    return strftime("%Y-%m-%d", $dt);
+    return date("Y-m-d", $dt);
 }
 
 // ------------------------------------------------------------------------
