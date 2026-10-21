@@ -181,7 +181,7 @@ function sendCoverArt()
         while ($rec = mysql_fetch_array($result, MYSQL_ASSOC)) {
 
             // deserialize the deltas
-            $deltas = unserialize($rec['deltas']);
+            $deltas = unserializeGameDeltas($rec['deltas']);
 
             // if this entry defines artwork, use the override
             if (isset($deltas['coverart']))
@@ -547,7 +547,9 @@ function constructPlayOnlineURL($link) {
         }
     }
 
-    if ($link['fmtexternid'] == 'hypertextgame')
+    $fmtexternid = $link['fmtexternid'] ?? '';
+
+    if ($fmtexternid == 'hypertextgame')
     {
         if (!$link['compression']) {
             $onlineInterpreterType = "HTML";
@@ -570,7 +572,7 @@ function constructPlayOnlineURL($link) {
 
     // if this is the first Parchment-capable link, and it's not compressed,
     // note it so that we can set up a Parchment play link to it
-    if (in_array($link['fmtexternid'], [
+    if (in_array($fmtexternid, [
         'zcode',
         'blorb/zcode',
         'glulx',
@@ -591,7 +593,7 @@ function constructPlayOnlineURL($link) {
         }
     }
 
-    if (in_array($link['fmtexternid'], [
+    if (in_array($fmtexternid, [
         'adrift',
         'adrift38',
         'adrift39',

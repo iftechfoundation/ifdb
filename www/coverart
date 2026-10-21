@@ -1,6 +1,7 @@
 <?php
 
 include_once "image-util.php";
+include_once "gameinfo.php";
 
 function getID() {
     global $db, $errMsg, $errCode;
@@ -96,7 +97,7 @@ if ($targVsn) {
         $rec = mysql_fetch_array($result, MYSQL_ASSOC);
 
         // deserialize the deltas
-        $deltas = unserialize($rec['deltas']);
+        $deltas = unserializeGameDeltas($rec['deltas']);
 
         // if this entry defines artwork, use the override
         if (isset($deltas['coverart']))
