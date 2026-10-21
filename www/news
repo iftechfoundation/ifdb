@@ -132,9 +132,10 @@ $result2 = mysql_query("select found_rows()", $db);
 $lastPage = (int)floor(($totcnt + $perPage - 1)/$perPage);
 
 // set up the pagination control
+$pageCtl = "";
+$pageCtlBreak = "";
 if ($item) {
     // item query - no page controls are needed
-    $pageCtl = "";
 } else {
     $pageCtl = "<nav class=details>"
                . makePageControl(
