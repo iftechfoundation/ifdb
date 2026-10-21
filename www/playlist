@@ -242,7 +242,7 @@ if ($errMsg) {
             $pagevsn = $rec['pagevsn'];
             $onPlayList = ($listtype == "reviewideas" && $rec['onPlayList']);
             $user_time = "";
-            if ($rec['time_in_minutes']) {
+            if (!empty($rec['time_in_minutes'])) {
                 $user_time = convertTimeToText($rec['time_in_minutes']);
             }
 
