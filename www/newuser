@@ -209,14 +209,17 @@ function sfsCheck($ip, $email, $username, &$banned)
     curl_close($ch);
 
     $info = json_decode($result, true);
+    if (!is_array($info)) {
+        return false;
+    }
 
     // assemble the results into a printable string
     $ret = false;
     $typeMap = array('ip' => 'IP', 'email' => 'Email',
                      'username' => 'Name');
     foreach (array_keys($typeMap) as $t) {
-        $i = $info[$t];
-        if ($i['appears']) {
+        $i = $info[$t] ?? null;
+        if (is_array($i) && !empty($i['appears'])) {
             $t = $typeMap[$t];
             $ret []= "$t ({$i['lastseen']}, {$i['frequency']}x)";
         }
