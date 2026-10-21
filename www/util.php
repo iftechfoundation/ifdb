@@ -1094,7 +1094,7 @@ function fixDesc($desc, $specials = 0)
                                 $ofs += $len;
                                 $gt += $len;
                             }
-                        } else if (count($tagStack) != 0) {
+                        } else if ($tagSp >= 0) {
                             // it's not in the stack, so assume it's a typo:
                             // delete this tag and replace it with the
                             // correct close tag from the stack
