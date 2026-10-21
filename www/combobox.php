@@ -27,14 +27,14 @@ function makeComboBox($name, $textlen, $curval, $vals, $onSet = "null")
            . "size=$textlen value=\"" . htmlspecialcharx($curval)
            . "\">"
            . addSiblingEventListeners([
-                ["keydown", "return comboFieldKey(event,'$name','${name}CBSel','D');"],
-                ["keypress", "return comboFieldKey(event,'$name','${name}CBSel','P');"],
+                ["keydown", "return comboFieldKey(event,'$name','{$name}CBSel','D');"],
+                ["keypress", "return comboFieldKey(event,'$name','{$name}CBSel','P');"],
            ]);
 
     // add the drop arrow
     $txt .= "<a href=\"needjs\" data-name=\"$name\">"
-           . addEventListener("keypress", "return comboArrowKey(event,'$name',true,'${name}CBSel');")
-           . addEventListener("keydown", "return comboArrowKey(event,'$name',true,'${name}CBSel');")
+           . addEventListener("keypress", "return comboArrowKey(event,'$name',true,'{$name}CBSel');")
+           . addEventListener("keydown", "return comboArrowKey(event,'$name',true,'{$name}CBSel');")
            . "<img alt=\"Open List\" border=0 "
            . "src=\"/img/blank.gif\" class=\"combobox-arrow\">"
            . addSiblingEventListeners([["click", "postShowComboMenu("

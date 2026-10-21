@@ -59,7 +59,7 @@ for ($rowcnt = mysql_num_rows($result), $fmts = false, $i = 0 ;
      $i < $rowcnt ; $i++) {
     $f = mysql_fetch_row($result);
     $fmts[] = $f;
-    echo "\"${f[2]}\": \"{$f[0]}\", ";
+    echo "\"{$f[2]}\": \"{$f[0]}\", ";
 }
 echo "\" \": 0 };\r\n";
 
@@ -71,7 +71,7 @@ for ($rowcnt = mysql_num_rows($result), $oses = false, $i = 0 ;
      $i < $rowcnt ; $i++) {
     $o = mysql_fetch_row($result);
     $oses[] = $o;
-    echo "\"${o[2]}\": \"${o[0]}\", ";
+    echo "\"{$o[2]}\": \"{$o[0]}\", ";
 }
 echo "\" \": 0 };\r\n";
 
