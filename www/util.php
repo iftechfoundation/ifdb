@@ -476,7 +476,11 @@ function showStars($num, $allowEmpty = false)
     }
 
     // round to the nearest half star
-    list($roundedNum, $starimg, $startxt) = roundStars($num);
+    $stars = roundStars($num);
+    if ($stars === false) {
+        return "";
+    }
+    list($roundedNum, $starimg, $startxt) = $stars;
 
     // return the image string
     $result = "<span role='img' class='nobr' ";
