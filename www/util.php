@@ -89,7 +89,7 @@ function serialize_xml($array) {
             $attrs_parts = [];
             foreach ($attrs as $akey => $avalue) {
                 $avalue = htmlspecialcharx($avalue);
-                $attrs_parts[] = " ${akey}=\"${avalue}\"";
+                $attrs_parts[] = " {$akey}=\"{$avalue}\"";
             }
             $attrs_str = implode('', $attrs_parts);
 
