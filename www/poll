@@ -31,6 +31,7 @@ if (($id == 'new'
 // note the user ID, if available
 $userid = $_SESSION['logged_in_as'] ?? false;
 
+$adminPriv = false;
 if ($userid) {
     $userresult = mysql_query(
         "select `privileges` from users where id='$userid'", $db);
