@@ -25,6 +25,7 @@ $pg = get_req_data('pg');
 
 $errMsg = false;
 $pageTitle = false;
+$sourceInfo = "";
 
 // if there's a news item ID, we're after an item history; otherwise
 // we're after a listing of the news items for this source object
@@ -250,9 +251,8 @@ if ($errMsg) {
              $userID, $userName,
              $headline, $body) = $h;
 
-        // get the immediately preceding item
-        $h = $hist[1];
-        $prvHeadline = $h[8];
+        // get the immediately preceding item, if this item has edits
+        $prvHeadline = $hist[1][8] ?? '';
 
         // we're also interested in the poster of the original item
         $h = $hist[count($hist)-1];
@@ -279,7 +279,7 @@ if ($errMsg) {
         if ($userID != $origUserID) {
             $byline .= " ($updated by <a href=\"showuser?id=$userID\">"
                        . "$userName</a> on $modified)";
-        } else if ($creDate != $modDate) {
+        } else if ($created != $modified) {
             $byline .= " ($updated on $modified)";
         }
 
