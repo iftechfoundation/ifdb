@@ -1,7 +1,7 @@
 <div class=headline id='reviews'><h1 class='unset'>Reviews</h1></div>
 <?php
 // get the latest reviews
-$items = getNewItems($db, 7, NEWITEMS_REVIEWS);
+$items = getNewItems($db, 7, NEWITEMS_REVIEWS, ['reviews_limit' => 7]);
 
 // show the items
 $totcnt = count($items);
