@@ -19,6 +19,18 @@ $result = mysqli_execute_query($db,
     "select name, caughtupdate from users where id=?", [$uid]);
 list($username, $caughtUpDate) = mysql_fetch_row($result);
 
+$authorCreditsResult = mysqli_execute_query($db,
+    "select games.id as id, title
+     from gameprofilelinks
+       join games on games.id = gameprofilelinks.gameid
+     where userid=?
+     order by games.sort_title", [$uid]);
+$foundAuthorCredits = mysql_num_rows($authorCreditsResult) > 0;
+
+$result = mysqli_execute_query($db, "select count(*) as c from reviews
+    where userid = ? and review is not null", [$uid]);
+$fullReviewCnt = mysql_result($result, 0, "c");
+
 pageHeader("$username's IFDB Activity");
 global $nonce;
 echo "<style nonce='$nonce'>\n"
@@ -64,17 +76,9 @@ function headline($text)
 
 // ----------------------- AUTHORING CREDITS -------------------------
 
-$foundAuthorCredits = false;
-$result = mysqli_execute_query($db,
-    "select games.id as id, title
-     from gameprofilelinks
-       join games on games.id = gameprofilelinks.gameid
-     where userid=?
-     order by games.sort_title", [$uid]);
+$result = $authorCreditsResult;
 
-if (mysql_num_rows($result) > 0) {
-
-    $foundAuthorCredits = true;
+if ($foundAuthorCredits) {
 
     headline("Your Authorship Credits");
 
@@ -97,9 +101,6 @@ if (mysql_num_rows($result) > 0) {
 headline("Your Reviews");
 
 $maxreviews = 10;
-$result = mysqli_execute_query($db, "select count(*) as c from reviews
-    where userid = ? and review is not null", [$uid]);
-$fullReviewCnt = mysql_result($result, 0, "c");
 
 $result = mysqli_execute_query($db, "select count(*) as c from reviews
     where userid = ? and review is null", [$uid]);
