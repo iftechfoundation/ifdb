@@ -29,7 +29,7 @@ if (($id == 'new'
     exit();
 
 // note the user ID, if available
-$userid = $_SESSION['logged_in_as'];
+$userid = $_SESSION['logged_in_as'] ?? false;
 
 if ($userid) {
     $userresult = mysql_query(
@@ -993,7 +993,7 @@ administrators can see who voted for what.)
         // RSS mode
 
         // set UTF-8 for RSS
-        iconv_set_encoding("output_encoding", "UTF-8");
+        ini_set("default_charset", "utf-8");
 
         // send the RSS content header
         header("Content-Type: application/rss+xml");
@@ -1147,7 +1147,7 @@ function expandVote(id)
         $sandbox = 0;
 
         // if the user is logged in, look up their sandbox
-        $curuser = $_SESSION['logged_in_as'];
+        $curuser = $_SESSION['logged_in_as'] ?? false;
         if ($curuser) {
             $result = mysql_query("select sandbox from users where id='$curuser'", $db);
             list($sandbox) = mysql_fetch_row($result);

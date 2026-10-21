@@ -996,7 +996,10 @@ if ($api_mode) {
                 $rating = $row['avgrating'];
                 $item['averageRating'] = $rating;
                 $item['numRatings'] = $row['ratingcnt'];
-                [$item['starRating']] = roundStars($rating);
+                $stars = roundStars($rating);
+                if ($stars !== false) {
+                    [$item['starRating']] = $stars;
+                }
                 $item['starSort'] = $row['starsort'];
             }
             if ($row['hasart']) {

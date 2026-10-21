@@ -89,7 +89,7 @@ function serialize_xml($array) {
             $attrs_parts = [];
             foreach ($attrs as $akey => $avalue) {
                 $avalue = htmlspecialcharx($avalue);
-                $attrs_parts[] = " ${akey}=\"${avalue}\"";
+                $attrs_parts[] = " {$akey}=\"{$avalue}\"";
             }
             $attrs_str = implode('', $attrs_parts);
 
@@ -168,7 +168,7 @@ function approx_utf8($str)
 //
 function htmlspecialcharx($str)
 {
-    return htmlspecialchars($str);
+    return htmlspecialchars($str ?? '');
 }
 
 // sometimes we want to display long file names containing underscores
@@ -196,7 +196,7 @@ function is_mobile()
 function is_kindle()
 {
     // get the browser ID string
-    $b = $_SERVER['HTTP_USER_AGENT'];
+    $b = $_SERVER['HTTP_USER_AGENT'] ?? '';
 
     // check for the relevant strings
     return preg_match("#Kindle/[0-9]#", $b, $match, 0, 0);
@@ -206,7 +206,7 @@ function is_kindle()
 function is_opera()
 {
     // get the browser ID string
-    $ua = $_SERVER['HTTP_USER_AGENT'];
+    $ua = $_SERVER['HTTP_USER_AGENT'] ?? '';
 
     // check for the telltale substring
     return stristr($ua, 'opera') !== false;
@@ -216,7 +216,7 @@ function is_opera()
 function is_firefox()
 {
     // get the browser ID string
-    $ua = $_SERVER['HTTP_USER_AGENT'];
+    $ua = $_SERVER['HTTP_USER_AGENT'] ?? '';
 
     // check for the telltale substring
     return stristr($ua, 'Firefox') !== false;
@@ -225,7 +225,7 @@ function is_firefox()
 function is_ie()
 {
     // get the browser ID string
-    $ua = $_SERVER['HTTP_USER_AGENT'];
+    $ua = $_SERVER['HTTP_USER_AGENT'] ?? '';
 
     // check for the telltale substring
     return stristr($ua, 'MSIE') !== false;
@@ -476,7 +476,11 @@ function showStars($num, $allowEmpty = false)
     }
 
     // round to the nearest half star
-    list($roundedNum, $starimg, $startxt) = roundStars($num);
+    $stars = roundStars($num);
+    if ($stars === false) {
+        return "";
+    }
+    list($roundedNum, $starimg, $startxt) = $stars;
 
     // return the image string
     $result = "<span role='img' class='nobr' ";
@@ -2032,7 +2036,7 @@ function parseDateVal($val) {
         return false;
 
     // format it as YYYY-MM-DD for passing to MySQL
-    return strftime("%Y-%m-%d", $dt);
+    return date("Y-m-d", $dt);
 }
 
 // ------------------------------------------------------------------------

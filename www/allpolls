@@ -12,8 +12,9 @@ $db = dbConnect();
 include_once "login-persist.php";
 $curuser = checkPersistentLogin();
 
-$uid = $_REQUEST['user'];
+$uid = get_req_data('user');
 $quid = mysql_real_escape_string($uid, $db);
+$pageTitle = "All Polls";
 
 $gameid = get_req_data('game');
 $qgameid = mysql_real_escape_string($gameid, $db);

@@ -103,7 +103,7 @@ if (preg_match("/^css\/ifdb\.css$/", $fname, $match)) {
     if (mysql_num_rows($result) != 0) {
         $pic = mysql_result($result, 0, "picture");
         $ret = fetch_image($pic, true);
-        if ($ret) {
+        if ($ret[0] !== null) {
             sendImage($ret[0], $ret[1], null, SIF_RAW);
             exit();
         }

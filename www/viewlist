@@ -12,7 +12,7 @@ $db = dbConnect();
 include_once "login-persist.php";
 $curuser = checkPersistentLogin();
 
-$listid = $_REQUEST['id'];
+$listid = $_REQUEST['id'] ?? '';
 $qlistid = mysql_real_escape_string($listid, $db);
 
 $pageTitle = "View List";

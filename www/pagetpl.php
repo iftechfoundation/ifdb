@@ -23,8 +23,6 @@ function basePageHeader($title, $focusCtl, $extraOnLoad, $extraHead,
                         $ckbox, $bodyAttrs)
 {
     ini_set("default_charset", "utf-8");
-    iconv_set_encoding("output_encoding", "utf-8");
-    iconv_set_encoding("input_encoding", "utf-8");
 ?>
 <html lang="en">
 <head>

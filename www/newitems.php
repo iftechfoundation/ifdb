@@ -97,6 +97,11 @@ function getNewItems($db, $limit, $itemTypes = NEWITEMS_ALLITEMS, $options = [])
          $specials, $specialsUsed, $orderBy) =
          doSearch($db, $term, $searchType, $sortby, $limit_clause, $browse);
         foreach ($rows as $row) {
+            $row['desc'] = $row['description'] ?? '';
+            $row['d'] = $row['createdate'] ?? null;
+            $row['fmtdate'] = $row['createdate']
+                ? date('F j, Y', strtotime($row['createdate']))
+                : '';
             $items[] = array('G', $row['createdate'], $row);
         }
     }

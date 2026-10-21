@@ -41,7 +41,7 @@ $downloadsView = false;
 $myCrossRecs = 0;
 
 // note if we're on IE6
-$userAgent = $_SERVER['HTTP_USER_AGENT'];
+$userAgent = $_SERVER['HTTP_USER_AGENT'] ?? '';
 $ie6 = preg_match("/; msie 6\./i", $userAgent);
 
 // Zero-Width Space: for IE6, use &shy;, otherwise use &#8203;.  (The latter
@@ -371,30 +371,34 @@ init();
 
 // load the game information
 $reqVersion = $_REQUEST['version'] ?? null;
+$links = [];
+$should_hide = false;
 if (!$errMsg) {
-    list($ifids, $title, $author, $authorExt,
-         $pubYear, $pubFull, $license,
-         $system, $desc, $rawDesc,
-         $hasart, $genre, $seriesname, $seriesnum,
-         $forgiveness, $bafsid, $version,
-         $language, $languageNameOnly,
-         $website, $links,
-         $ratingCntAvg, $ratingCntTot, $ratingAvg, $memberReviewCnt,
-         $currentUserRating, $currentUserReview,
-         $editedbyid, $editedbyname, $moddate, $moddate2, $pagevsn,
-         $moddatelatest,
-         $historyView,
-         $dlnotes, $extReviews, $extRevDisplayRank,
-         $ratingHisto, $xrefs, $inrefs, $flags) =
-             getGameInfo($db, $id, $curuser, $reqVersion, $errMsg, $errCode);
-    $title = htmlspecialchars($title);
-    $license = htmlspecialchars($license);
-    $language = htmlspecialchars($language);
-    $seriesnum = htmlspecialchars($seriesnum);
-    $forgiveness = htmlspecialchars($forgiveness);
+    $gameInfo = getGameInfo($db, $id, $curuser, $reqVersion, $errMsg, $errCode);
+    if (!$errMsg) {
+        list($ifids, $title, $author, $authorExt,
+             $pubYear, $pubFull, $license,
+             $system, $desc, $rawDesc,
+             $hasart, $genre, $seriesname, $seriesnum,
+             $forgiveness, $bafsid, $version,
+             $language, $languageNameOnly,
+             $website, $links,
+             $ratingCntAvg, $ratingCntTot, $ratingAvg, $memberReviewCnt,
+             $currentUserRating, $currentUserReview,
+             $editedbyid, $editedbyname, $moddate, $moddate2, $pagevsn,
+             $moddatelatest,
+             $historyView,
+             $dlnotes, $extReviews, $extRevDisplayRank,
+             $ratingHisto, $xrefs, $inrefs, $flags) = $gameInfo;
+        $title = htmlspecialchars($title ?? '');
+        $license = htmlspecialchars($license ?? '');
+        $language = htmlspecialchars($language ?? '');
+        $seriesnum = htmlspecialchars($seriesnum ?? '');
+        $forgiveness = htmlspecialchars($forgiveness ?? '');
 
-    $should_hide = ($flags & FLAG_SHOULD_HIDE);
-
+        $should_hide = ($flags & FLAG_SHOULD_HIDE);
+        $links = $links ?? [];
+    }
 }
 
 // check for an explicit redirect from this TUID to another TUID
@@ -1571,6 +1575,7 @@ if ($embargoCnt > 0)
     // -------------------------- DETAIL VIEW ------------------------------
     //
     if ($detailView) {
+        $divStarted = false;
         // Include only reviews from our sandbox or sandbox 0 (all users)
         $sandbox = "(0)";
         if ($mysandbox != 0) {
