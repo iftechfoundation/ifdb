@@ -45,6 +45,11 @@ function convertTimeStringToMinutes($h_m_string) {
 
 function doSearch($db, $term, $searchType, $sortby, $limit, $browse, $count_all_possible_rows = false)
 {
+    // Sometimes people search with old Latin-1 URLs, e.g. ö as %F6, breaking UTF-8 regexes.
+    if ($term !== '' && !mb_check_encoding($term, 'UTF-8')) {
+        $term = mb_convert_encoding($term, 'UTF-8', 'Windows-1252');
+    }
+
     // we need the current user for some types of queries
     checkPersistentLogin();
     $curuser = mysql_real_escape_string($_SESSION['logged_in_as'] ?? '', $db);
