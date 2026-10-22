@@ -304,7 +304,9 @@ if ($term || $browse) {
 
     // adjust our page limits to include the whole result set if desired
     if ($pgAll) {
-        $perPage = $rowcnt;
+        if ($rowcnt > 0) {
+            $perPage = $rowcnt;
+        }
         $lastOnPage = $rowcnt;
     }
 
