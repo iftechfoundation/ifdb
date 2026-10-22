@@ -5,13 +5,13 @@ include_once "util.php";
 include_once "login-persist.php";
 include_once "commentutil.php";
 
-header("Speculation-Rules: \"/speculation-rules\"");
-
 function srcCacheBust($filename)
 {
     $mtime = filemtime($_SERVER['DOCUMENT_ROOT'] . $filename);
     return "$filename?t=$mtime";
 }
+
+header('Speculation-Rules: "' . srcCacheBust('/speculation-rules') . '"');
 
 function scriptSrc($filename, $isModule = false)
 {
