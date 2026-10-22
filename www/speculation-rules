@@ -1,6 +1,6 @@
 <?php
 header("Content-Type: application/speculationrules+json");
-header("Cache-Control: private, no-cache");
+header("Cache-Control: public, max-age=31536000, immutable");
 ?>
 {
     "prerender": [
