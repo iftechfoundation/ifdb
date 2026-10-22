@@ -718,7 +718,7 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse, $count_all_
                     }
 
                     // now look for <first initial>% <last name>
-                    if (count($nl) >= 2) {
+                    if (count($nl) >= 2 && $nl[1] !== '') {
                         $expr .= " or author rlike '[[:<:]]"
                                  . mysql_real_escape_string(
                                      quoteSqlRLike($nl[1][0]), $db)
