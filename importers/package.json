@@ -11,10 +11,10 @@
   "license": "ISC",
   "dependencies": {
     "concurrency-limit-runner": "^1.0.0",
-    "fast-xml-parser": "^4.0.11",
+    "fast-xml-parser": "^5.11.2",
     "jszip": "^3.10.1",
     "leven": "^4.0.0",
     "microdata-node": "^2.0.0",
-    "sharp": "^0.33.5"
+    "sharp": "^0.35.5"
   }
 }
