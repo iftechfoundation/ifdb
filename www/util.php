@@ -390,7 +390,11 @@ function sendImageLdesc($title, $imageID)
                ? $_SESSION['logged_in_as'] : false;
 
     // parse the image ID:  <dbnum>:<image key>
-    list ($dbnum, $key) = explode(":", $imageID);
+    $parts = explode(":", (string)$imageID, 2);
+    if (count($parts) < 2) {
+        exit("No image is available");
+    }
+    list ($dbnum, $key) = $parts;
 
     // connect to the database encoded in the ID
     $db = imageDbConnect((int)$dbnum);
