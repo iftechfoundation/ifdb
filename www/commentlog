@@ -225,7 +225,7 @@ if ($rss) {
                . makePageControl(
                    "commentlog?user=$userid&mode=$mode",
                    $pg, $lastPage, $firstOnPage, $lastOnPage,
-                   $ccnt, true, true, $pgAll)
+                   $rowcnt, true, true, $pgAll)
                . "</span>";
 
     if ($rowcnt == 0)

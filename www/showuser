@@ -162,6 +162,10 @@ if (mysql_num_rows($result) == 0) {
 $rss = get_req_data('rss');
 if ($rss == 'gamenews')
 {
+    if (!isset($username)) {
+        exit($errMsg ?: "The requested member was not found in the database.");
+    }
+
     include_once "gameinfo.php";
     include_once "game-rss.php";
     include_once "rss.php";
