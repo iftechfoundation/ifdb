@@ -7,8 +7,10 @@ include_once "util.php";
 // delete any persistent sessions associated with the user
 $db = dbConnect();
 
-$uid = $_SESSION['logged_in_as'];
-mysql_query("delete from persistentsessions where userid = '$uid'", $db);
+$uid = $_SESSION['logged_in_as'] ?? null;
+if ($uid) {
+    mysql_query("delete from persistentsessions where userid = '$uid'", $db);
+}
 
 $_SESSION['logged_in'] = false;
 $_SESSION['logged_in_as'] = null;
