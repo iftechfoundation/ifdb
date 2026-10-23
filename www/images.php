@@ -14,7 +14,7 @@ define("MAX_TEMP_IMAGES", 5);
 // image copyright status list
 //
 global $copyrightStatList;
-$copyrightStatList = array(
+$copyrightStatList = [
     "U" => "Used by permission.",
     "C" => "Licensed under a "
          . "<a href=\"http://creativecommons.org/licenses/by/3.0/us/\">"
@@ -26,7 +26,7 @@ $copyrightStatList = array(
          . "with any reprint inquiries.",
     "P" => "This image is in the public domain.",
     "" => "The copyright status of this image has not been specified."
-);
+];
 
 // --------------------------------------------------------------------------
 //
@@ -48,9 +48,9 @@ function addTempImageFile($filename, $cprStat, $cprTag)
     $imgtype = $imginfo[2];
 
     // translate the image type to an image/xxx name
-    $xlat = array(IMAGETYPE_JPEG => "jpeg",
+    $xlat = [IMAGETYPE_JPEG => "jpeg",
                   IMAGETYPE_GIF => "gif",
-                  IMAGETYPE_PNG => "png");
+                  IMAGETYPE_PNG => "png"];
     $imgtype = isset($xlat[$imgtype]) ? $xlat[$imgtype] : null;
 
     // validate the copyright status
@@ -93,7 +93,7 @@ function addTempImageFile($filename, $cprStat, $cprTag)
     {
         // get the current file list, if any
         $arr = isset($_SESSION['temp_images'])
-               ? $_SESSION['temp_images'] : array();
+               ? $_SESSION['temp_images'] : [];
 
         // assign the next ID - this is the last extant image ID plus 1
         $newImageID = (count($arr) != 0 ? $arr[count($arr)-1][2] + 1 : 1);
@@ -111,8 +111,8 @@ function addTempImageFile($filename, $cprStat, $cprTag)
         }
 
         // save the image in the array
-        $arr[count($arr)] = array($imgdata, $imgtype, $newImageID,
-                                  $cprStat, $cprTag);
+        $arr[count($arr)] = [$imgdata, $imgtype, $newImageID,
+                             $cprStat, $cprTag];
 
         // update the session
         $_SESSION['temp_images'] = $arr;
@@ -122,7 +122,7 @@ function addTempImageFile($filename, $cprStat, $cprTag)
     }
 
     // return the error indication
-    return array($imgErrMsg, $imgErrShort, $imgErrCode, $imageName);
+    return [$imgErrMsg, $imgErrShort, $imgErrCode, $imageName];
 }
 
 

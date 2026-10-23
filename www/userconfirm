@@ -70,7 +70,7 @@ function verify() {
                 $result = mysql_query(
                     "select acctstatus, email from users
                      where id = '$usernum'", $db);
-                list($acctStatus, $email) = mysql_fetch_row($result);
+                [$acctStatus, $email] = mysql_fetch_row($result);
 
                 // approve the profile once, or set it to trusted
                 if (mysql_query(
@@ -165,7 +165,7 @@ function verify() {
                 "select acctstatus from users where email = '$qemail'", $db);
             if ($result)
             {
-                list($stat) = mysql_fetch_row($result);
+                [$stat] = mysql_fetch_row($result);
                 if ($stat == 'A')
                 {
                     // the account is already active - report success

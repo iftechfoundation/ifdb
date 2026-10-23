@@ -76,13 +76,13 @@ function _recaptcha_http_post($host, $path, $data, $port = 443)
     $http_request .= "\r\n";
     $http_request .= $req;
 
-    $opts = array(
-        "http" => array(
+    $opts = [
+        "http" => [
             "method" => "POST",
             "header" => "Content-Type: application/x-www-form-urlencoded",
             "content" => http_build_query($data)
-        )
-    );
+        ]
+    ];
 
     $context = stream_context_create($opts);
     $url = "https://{$host}{$path}";
@@ -150,7 +150,7 @@ class ReCaptchaResponse {
   * @param array $extra_params an array of extra variables to post to the server
   * @return ReCaptchaResponse
   */
-function recaptcha_check_answer ($privkey, $remoteip, $response, $extra_params = array())
+function recaptcha_check_answer ($privkey, $remoteip, $response, $extra_params = [])
 {
     if ($privkey == null || $privkey == '') {
         die ("To use reCAPTCHA you must get an API key from <a href='https://www.google.com/recaptcha/admin/create'>https://www.google.com/recaptcha/admin/create</a>");
@@ -173,11 +173,11 @@ function recaptcha_check_answer ($privkey, $remoteip, $response, $extra_params =
         $reply = _recaptcha_http_post(
             RECAPTCHA_VERIFY_SERVER,
             "/recaptcha/api/siteverify",
-            array(
+            [
                 'secret' => $privkey,
                 'remoteip' => $remoteip,
                 'response' => $response
-            )
+            ]
         );
 
         $answers = json_decode($reply);
@@ -203,7 +203,7 @@ function recaptcha_check_answer ($privkey, $remoteip, $response, $extra_params =
  * @param string $appname The name of your application
  */
 function recaptcha_get_signup_url ($domain = null, $appname = null) {
-    return "https://www.google.com/recaptcha/admin/create?" .  _recaptcha_qsencode (array ('domains' => $domain, 'app' => $appname));
+    return "https://www.google.com/recaptcha/admin/create?" .  _recaptcha_qsencode ( ['domains' => $domain, 'app' => $appname]);
 }
 
 function _recaptcha_aes_pad($val) {

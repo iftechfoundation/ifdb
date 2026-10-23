@@ -92,7 +92,7 @@ if (isset($_REQUEST['pic'])) {
         sendImageLdesc("Profile Image", $imgname);
     } else {
         // retrieve the data
-        list($img, $fmt) = fetch_image($imgname, true);
+        [$img, $fmt] = fetch_image($imgname, true);
         sendImage($img, $fmt, $thumb);
     }
 
@@ -121,10 +121,10 @@ $result = mysql_query(
 if (mysql_num_rows($result) == 0) {
     $errMsg = "The requested member was not found in the database.";
 } else {
-    list($username, $location, $pubemail, $profile, $proStat, $haspic,
-         $created, $lastlogin, $publiclists, $gender, $emailflags,
-         $acctstatus, $realEmail) =
-         mysql_fetch_row($result);
+    [$username, $location, $pubemail, $profile, $proStat, $haspic,
+     $created, $lastlogin, $publiclists, $gender, $emailflags,
+     $acctstatus, $realEmail] =
+     mysql_fetch_row($result);
 
     $username = htmlspecialcharx($username);
     $location = htmlspecialcharx($location);
@@ -144,7 +144,7 @@ if (mysql_num_rows($result) == 0) {
     $pageTitle = "$username - Member Profile";
 
     // figure their score system ranking
-    list($score, $rank, $rankName) = userScore($uid);
+    [$score, $rank, $rankName] = userScore($uid);
 
     // check for closed accounts
     if ($acctstatus == 'X' || $acctstatus == 'B') {
@@ -171,7 +171,7 @@ if ($rss == 'gamenews')
     include_once "rss.php";
 
     // start with an empty items list
-    $items = array();
+    $items = [];
 
     // get the list of games linked to my profile
     $result = mysql_query(
@@ -184,14 +184,14 @@ if ($rss == 'gamenews')
            l.userid='$quid'", $db);
 
     // fetch the list
-    for ($games = array(), $i = 0 ; $i < mysql_num_rows($result) ; $i++)
+    for ($games = [], $i = 0 ; $i < mysql_num_rows($result) ; $i++)
         $games[] = mysql_fetch_row($result);
 
     // add news for each game in the list
     foreach ($games as $g) {
 
         // decode this row
-        list($gameid, $moddate, $gtitle) = $g;
+        [$gameid, $moddate, $gtitle] = $g;
         $rssdate = gmdate("D, j M Y H:i:s \G\M\T", strtotime($moddate));
         $gtitle = htmlspecialcharx($gtitle);
 
@@ -203,7 +203,7 @@ if ($rss == 'gamenews')
                 . "<pubDate>$rssdate</pubDate>"
                 . "<guid>" . get_root_url() . "viewgame?id=$gameid</guid>"
                 . "</item>";
-        $items[] = array($moddate, $item);
+        $items[] = [$moddate, $item];
 
         // Now add news updates for the game itself.
         $gameInfo = getGameInfo($db, $gameid, $curuser, false,
@@ -478,12 +478,12 @@ if ($errMsg) {
 
         for ($i = 0 ; $i < 5 && $i < mysql_num_rows($result) ; $i++) {
             // fetch the next row
-            list($listid, $title, $desc, $moddate, $itemcnt) =
+            [$listid, $title, $desc, $moddate, $itemcnt] =
                 mysql_fetch_row($result);
 
             // fix up fields for display
             $title = htmlspecialcharx($title);
-            list($desc, $desclen, $desctrunc) = summarizeHtml($desc, 140);
+            [$desc, $desclen, $desctrunc] = summarizeHtml($desc, 140);
             $desc = fixDesc($desc);
 
             // show the summary
@@ -533,12 +533,12 @@ if ($errMsg) {
 
         for ($i = 0 ; $i < 5 && $i < mysql_num_rows($result) ; $i++) {
             // fetch the next row
-            list($pollid, $title, $desc, $created, $votecnt, $gamecnt) =
+            [$pollid, $title, $desc, $created, $votecnt, $gamecnt] =
                 mysql_fetch_row($result);
 
             // fix up fields for display
             $title = htmlspecialcharx($title);
-            list($desc, $desclen, $desctrunc) = summarizeHtml($desc, 140);
+            [$desc, $desclen, $desctrunc] = summarizeHtml($desc, 140);
             $desc = fixDesc($desc);
 
             // show the summary
@@ -688,7 +688,7 @@ if ($errMsg) {
                       $hisHer Played List yet.</i>";
 
             for ($i = 0 ; $i < 5 && $i < mysql_num_rows($result) ; $i++) {
-                list($gid, $title, $author) = mysql_fetch_row($result);
+                [$gid, $title, $author] = mysql_fetch_row($result);
                 $title = htmlspecialcharx($title);
                 $author = htmlspecialcharx($author);
                 $author = collapsedAuthors($author);
@@ -719,7 +719,7 @@ if ($errMsg) {
                       $hisHer Wish List yet.</i>";
 
             for ($i = 0 ; $i < 5 && $i < mysql_num_rows($result) ; $i++) {
-                list($gid, $title, $author) = mysql_fetch_row($result);
+                [$gid, $title, $author] = mysql_fetch_row($result);
                 $title = htmlspecialcharx($title);
                 $author = htmlspecialcharx($author);
                 $author = collapsedAuthors($author);
@@ -751,7 +751,7 @@ if ($errMsg) {
                       $hisHer \"Not Interested\" List yet.</i>";
 
             for ($i = 0 ; $i < 5 && $i < mysql_num_rows($result) ; $i++) {
-                list($gid, $title, $author) = mysql_fetch_row($result);
+                [$gid, $title, $author] = mysql_fetch_row($result);
                 $title = htmlspecialcharx($title);
                 $author = htmlspecialcharx($author);
                 $author = collapsedAuthors($author);
@@ -838,7 +838,7 @@ if ($admin && !$errMsg)
             . "<table id=\"otherLoginTab\">";
         for ($i = 0; $i < $nRows; $i++)
         {
-            list($uid2, $uname2, $email2, $ip2, $when2) = mysql_fetch_row($result);
+            [$uid2, $uname2, $email2, $ip2, $when2] = mysql_fetch_row($result);
             $uname2 = htmlspecialcharx($uname2);
             $email2 = htmlspecialcharx($email2);
             echo "<tr>"

@@ -27,8 +27,8 @@ function getCommentReference($db, $srcID)
          where id = '$quid'", $db);
 
     if (mysql_num_rows($result) == 0)
-        return array(false, false, false, true,
-                     "The specified user isn't in the database.");
+        return [false, false, false, true,
+                "The specified user isn't in the database."];
 
     $rec = mysql_fetch_row($result);
     return [$rec, $rec[0], $rec[1], false, false];
@@ -39,7 +39,7 @@ function showCommentReference($db, $rec)
     // show the review, if we found it
     if ($rec) {
 
-        list($uid, $name, $pic, $loc) = $rec;
+        [$uid, $name, $pic, $loc] = $rec;
         $name = htmlspecialcharx($name);
         $loc = htmlspecialcharx($loc);
 

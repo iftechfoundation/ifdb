@@ -10,7 +10,7 @@ function sortBySortorder($a, $b)
 }
 
 
-$recs = array();
+$recs = [];
 $term = "";
 if ($loggedIn) {
     // If the user is logged in, don't recommend games the user already knows about
@@ -25,8 +25,8 @@ $count_all_possible_rows = false;
 
 
 // run the search for highly-rated games
-list($recs, $rowcnt, $sortList, $errMsg, $summaryDesc, $badges,
-    $specials, $specialsUsed, $orderBy) =
+[$recs, $rowcnt, $sortList, $errMsg, $summaryDesc, $badges,
+ $specials, $specialsUsed, $orderBy] =
     doSearch($db, $term, $searchType, $sortby, $limit, $browse, $count_all_possible_rows);
 
 $recs = array_values(array_filter($recs, function($r) {
@@ -61,7 +61,7 @@ if (count($recs) >= 2) {
         $author = collapsedAuthors($author);
         $hasart = $r['hasart'];
         $pagevsn = $r['pagevsn'];
-        list($summary, $len, $trunc) = summarizeHtml($r['description'], 140);
+        [$summary, $len, $trunc] = summarizeHtml($r['description'], 140);
         $summary = fixDesc($summary);
 
         // display the game information

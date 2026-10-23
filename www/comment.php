@@ -30,8 +30,8 @@ global $type, $srcParamName, $srcCode, $ownSrc, $typeName, $typeTitle,
 $result = mysql_query(
     "select acctstatus, datediff(now(), created), name, email from users
      where id = '$curuser'", $db);
-list($userAccountStatus, $userAccountAge,
-     $userAccountName, $userAccountEmail) =
+[$userAccountStatus, $userAccountAge,
+ $userAccountName, $userAccountEmail] =
          mysql_fetch_row($result);
 $isNewUser = ($userAccountAge < 30);
 
@@ -79,7 +79,7 @@ $errFatal = false;
 $succMsg = false;
 
 // query the reference record
-list($refRec, $refOwner, $refOwnerName, $errFatal, $errMsg) =
+[$refRec, $refOwner, $refOwnerName, $errFatal, $errMsg] =
     getCommentReference($db, $srcID);
 
 if (!$srcpage)
@@ -141,8 +141,8 @@ if ($commentID || $deleteID) {
         $errFatal = true;
     } else {
         // fetch the row
-        list($oldText, $oldParent, $author, $created, $modified, $authorName,
-             $oldPrivateTo, $oldPrivateToName) =
+        [$oldText, $oldParent, $author, $created, $modified, $authorName,
+         $oldPrivateTo, $oldPrivateToName] =
             mysql_fetch_row($result);
 
         // don't allow updating the parent
@@ -221,7 +221,7 @@ if ($privateOption) {
                 break;
 
             // fetch it
-            list($puid, $puname, $ppar) = mysql_fetch_row($result);
+            [$puid, $puname, $ppar] = mysql_fetch_row($result);
 
             // if this is a different user, this is the recipient
             if ($puid != $curuser) {
@@ -363,7 +363,7 @@ if ($errMsg) {
              where
               userid = '$curuser'
               and created + interval 24 hour > now()", $db);
-        list($numRecent) = mysql_fetch_row($ures);
+        [$numRecent] = mysql_fetch_row($ures);
 
         if ($numRecent > $limit)
             $errMsg = "Sorry, but due to spam, we've had to impose a limit "
@@ -423,7 +423,7 @@ if ($errMsg) {
     // if this is a new user account, and we're adding a new comment,
     // check the captcha result
     if ($isNewUser && !$commentID && !$errMsg)
-        list($captchaOK, $captchaErrMsg) = captchaCheckPost($captchaKey);
+        [$captchaOK, $captchaErrMsg] = captchaCheckPost($captchaKey);
 
     // confirming an action
     if (!$errMsg && $captchaOK)
@@ -532,7 +532,7 @@ echo helpWinLink("help-formatting?comment#spoilertags", "&lt;SPOILER&gt; tag")
         if ($parentRow) {
 
             // decode the parent row
-            list($pUserID, $pUserName, $pComment, $pCreated, $pMod, $pPrivate)
+            [$pUserID, $pUserName, $pComment, $pCreated, $pMod, $pPrivate]
                 = $parentRow;
 
             // prepare the results for display

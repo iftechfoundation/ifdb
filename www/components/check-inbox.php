@@ -25,7 +25,7 @@ if ($quid) {
             $since = "since ". date("F j, Y", strtotime($caughtUpDate));
         }
 
-        list($crow) = $inbox[0];
+        [$crow] = $inbox[0];
         $cid = $crow[0];
         $cdate = $crow[5];
         $newCaughtUp = $crow[4];

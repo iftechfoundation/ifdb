@@ -17,7 +17,7 @@ $quid = mysql_real_escape_string($uid, $db);
 
 $result = mysqli_execute_query($db,
     "select name, caughtupdate from users where id=?", [$uid]);
-list($username, $caughtUpDate) = mysql_fetch_row($result);
+[$username, $caughtUpDate] = mysql_fetch_row($result);
 
 $authorCreditsResult = mysqli_execute_query($db,
     "select games.id as id, title
@@ -158,7 +158,7 @@ echo "<style nonce='$nonce'>\n"
     . "</style>\n";
 
 // fetch my subscribed comments, with a limit of the 10 latest items
-list($comments, $commentCnt) = queryComments(
+[$comments, $commentCnt] = queryComments(
     $db, "subscribed", $quid, "limit 0, 10", false, false);
 
 if ($commentCnt == 0) {
@@ -172,13 +172,13 @@ if ($commentCnt == 0) {
     for ($i = 0 ; $i < count($comments) ; $i++) {
 
         // get this comment
-        list($rec, $link, $title, $ltitle) = $comments[$i];
+        [$rec, $link, $title, $ltitle] = $comments[$i];
 
         // decode the row
-        list($cid, $srcid, $src, $ctxt,
-             $ccreDT, $ccre,
-             $cmodDT, $cmod,
-             $cuid, $cuname) = $rec;
+        [$cid, $srcid, $src, $ctxt,
+         $ccreDT, $ccre,
+         $cmodDT, $cmod,
+         $cuid, $cuname] = $rec;
 
         // quote the names
         echo "$ltitle<span class='details personal__ccre'>"
@@ -209,7 +209,7 @@ if ($listCnt == 0) {
         limit 0, $maxlists", [$uid]);
 
     for ($i = 0 ; $i < mysql_num_rows($result) ; $i++) {
-        list($listid, $title) = mysql_fetch_row($result);
+        [$listid, $title] = mysql_fetch_row($result);
         $title = htmlspecialcharx($title);
         echo "<a href=\"viewlist?id=$listid\">$title</a> - "
             . "<span class=details>"
@@ -257,7 +257,7 @@ if ($pollCnt == 0) {
            0, $maxpolls", [$uid]);
 
     for ($i = 0 ; $i < mysql_num_rows($result) ; $i++) {
-        list($pollid, $title, $votecnt, $gamecnt) = mysql_fetch_row($result);
+        [$pollid, $title, $votecnt, $gamecnt] = mysql_fetch_row($result);
         $title = htmlspecialcharx($title);
         echo "<a href=\"poll?id=$pollid\">$title</a> "
             . "<span class='details personal__votecnt'><i>"
@@ -302,7 +302,7 @@ if (mysql_num_rows($result) == 0) {
           </i></span></p>";
 
     for ($i = 0 ; $i < $maxgames && $i < mysql_num_rows($result) ; $i++) {
-        list($gameid, $title, $author) = mysql_fetch_row($result);
+        [$gameid, $title, $author] = mysql_fetch_row($result);
         echo "<a href=\"viewgame?id=$gameid\"><i>"
             . htmlspecialcharx($title)
             . "</i></a>, by "
@@ -329,7 +329,7 @@ echo "<p><span class=notes><i>
      wish list.\"</i></span></p>";
 
 for ($i = 0 ; $i < $maxgames && $i < mysql_num_rows($result) ; $i++) {
-    list($gameid, $title, $author) = mysql_fetch_row($result);
+    [$gameid, $title, $author] = mysql_fetch_row($result);
     echo "<a href=\"viewgame?id=$gameid\"><i>"
         . htmlspecialcharx($title)
         . "</i></a>, by "
@@ -358,7 +358,7 @@ echo "<p><span class=notes><i>
      \"I'm not interested.\"</i></span></p>";
 
 for ($i = 0 ; $i < $maxgames && $i < mysql_num_rows($result) ; $i++) {
-    list($gameid, $title, $author) = mysql_fetch_row($result);
+    [$gameid, $title, $author] = mysql_fetch_row($result);
     echo "<a href=\"viewgame?id=$gameid\"><i>"
         . htmlspecialcharx($title)
         . "</i></a>, by "
@@ -404,7 +404,7 @@ $result = mysql_query(
      order by mdmax desc
      limit 0, $maxgames", $db);
 
-for ($games = array(), $i = 0 ; $i < mysql_num_rows($result) ; $i++)
+for ($games = [], $i = 0 ; $i < mysql_num_rows($result) ; $i++)
     $games[] = mysql_fetch_array($result, MYSQL_ASSOC);
 
 if (count($games) == 0) {

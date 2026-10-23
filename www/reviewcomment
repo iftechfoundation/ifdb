@@ -28,11 +28,11 @@ function getCommentReference($db, $srcID)
 
     // if we didn't find a review, it's a fatal error
     if (mysql_num_rows($result) == 0) {
-        return array(
+        return [
             false, false, false, true,
             "The specified review is not in the database.  The review "
             . "might have been recently deleted, or the link you used "
-            . "to reach this page might be broken.");
+            . "to reach this page might be broken."];
     }
 
     // return the record

@@ -39,7 +39,7 @@ function getNewItems($db, $limit = 10, $itemTypes = NEWITEMS_ALLITEMS, $options 
     $sandbox = "(0)";
     if ($curuser) {
         $result = mysql_query("select sandbox from users where id='$curuser'", $db);
-        list($mysandbox) = mysql_fetch_row($result);
+        [$mysandbox] = mysql_fetch_row($result);
         if ($mysandbox != 0)
             $sandbox = "(0,$mysandbox)";
     }
@@ -477,7 +477,7 @@ function showNewItemList($db, $first, $last, $items, $options)
     if (!$showFlagged && $allowHiddenBanner) {
         for ($idx = $first ; $idx <= $last && $idx < $totcnt ; $idx++)
         {
-            list($pick, $rawDate, $row) = $items[$idx];
+            [$pick, $rawDate, $row] = $items[$idx];
             if ($pick == 'R' && ($row['flags'] & FLAG_SHOULD_HIDE)) {
                 $showHiddenBanner = true;
                 break;
@@ -499,7 +499,7 @@ function showNewItemList($db, $first, $last, $items, $options)
     for ($idx = $first ; $idx <= $last && $idx < $totcnt ; $idx++)
     {
         // get this item
-        list($pick, $rawDate, $row) = $items[$idx];
+        [$pick, $rawDate, $row] = $items[$idx];
 
         $eager = ($idx < 4 ? "class='eager'" : "");
 
@@ -570,7 +570,7 @@ function showNewItemList($db, $first, $last, $items, $options)
             }
 
             $stars = showStars($r['rating']);
-            list($summary, $len, $trunc) = summarizeHtml($parsedown->line($r['review']), 140);
+            [$summary, $len, $trunc] = summarizeHtml($parsedown->line($r['review']), 140);
             $summary = fixDesc($summary);
             if ($len != 0 || $stars != "")
             {
@@ -609,7 +609,7 @@ function showNewItemList($db, $first, $last, $items, $options)
             $itemS = $itemcnt == 1 ? "" : "s";
             $title = htmlspecialcharx($l['title']);
             $username = htmlspecialcharx($l['username']);
-            list($desc, $len, $trunc) = summarizeHtml($l['desc'], 210);
+            [$desc, $len, $trunc] = summarizeHtml($l['desc'], 210);
             $desc = fixDesc($desc);
 
             // show the image: user image if available, otherwise the
@@ -665,7 +665,7 @@ function showNewItemList($db, $first, $last, $items, $options)
                 . htmlspecialcharx($g['author'])
                 . " <span class=notes><i>{$g['fmtdate']}</i></span>";
 
-            list($summary, $len, $trunc) = summarizeHtml($g['desc'], 210);
+            [$summary, $len, $trunc] = summarizeHtml($g['desc'], 210);
             $summary = fixDesc($summary);
             if ($len != 0)
                 echo "<br><div class=indented><span class=details><i>"
@@ -684,7 +684,7 @@ function showNewItemList($db, $first, $last, $items, $options)
             $uid = $p['userid'];
             $uname = htmlspecialcharx($p['username']);
             $title = htmlspecialcharx($p['title']);
-            list($desc, $len, $trunc) = summarizeHtml($p['desc'], 210);
+            [$desc, $len, $trunc] = summarizeHtml($p['desc'], 210);
             $desc = fixDesc($desc);
             $votecnt = $p['votecnt'];
             $gamecnt = $p['gamecnt'];
@@ -788,7 +788,7 @@ function showNewItemList($db, $first, $last, $items, $options)
             // pull out the competition item
             $cid = $c["compid"];
             $ctitle = htmlspecialcharx($c["title"]);
-            list($cdesc, $len, $trunc) = summarizeHtml($c["desc"], 210);
+            [$cdesc, $len, $trunc] = summarizeHtml($c["desc"], 210);
             $cdesc = fixDesc($cdesc);
             $cdate = $c["fmtdate"];
 
@@ -827,7 +827,7 @@ function showNewItemsRSS($db, $showcnt)
     $lastBuildDate = false;
     for ($idx = 0 ; $idx < $showcnt && $idx < $totcnt ; $idx++)
     {
-        list($pick, $rawDate, $row) = $items[$idx];
+        [$pick, $rawDate, $row] = $items[$idx];
         if (!$lastBuildDate) {
             $lastBuildDate = $rawDate;
         } else if ($rawDate < $lastBuildDate) {
@@ -846,7 +846,7 @@ function showNewItemsRSS($db, $showcnt)
     for ($idx = 0 ; $idx < $showcnt && $idx < $totcnt ; $idx++)
     {
         // decode this item
-        list($pick, $rawDate, $row) = $items[$idx];
+        [$pick, $rawDate, $row] = $items[$idx];
 
         // get the details on the next item
         if ($pick == 'R')
@@ -880,7 +880,7 @@ function showNewItemsRSS($db, $showcnt)
         {
             $l = $row;
             $title = "A Recommended List by {$l['username']}: {$l['title']}";
-            list($desc, $len, $trunc) = summarizeHtml($l['desc'], 210);
+            [$desc, $len, $trunc] = summarizeHtml($l['desc'], 210);
             $desc = fixDesc($desc);
             $link = get_root_url() . "viewlist?id={$l['id']}";
             $pubDate = $l['d'];
@@ -889,7 +889,7 @@ function showNewItemsRSS($db, $showcnt)
         {
             $p = $row;
             $title = "A poll by {$p['username']}: {$p['title']}";
-            list($desc, $len, $trunc) = summarizeHtml($p['desc'], 210);
+            [$desc, $len, $trunc] = summarizeHtml($p['desc'], 210);
             $desc = fixDesc($desc);
             $link = get_root_url() . "poll?id={$p['pollid']}";
             $pubDate = $p['d'];
@@ -898,7 +898,7 @@ function showNewItemsRSS($db, $showcnt)
         {
             $n = $row;
             $title = "News on {$n['sourceTitle']}: {$n['headline']}";
-            list($desc, $len, $trunc) = summarizeHtml($n['body'], 210);
+            [$desc, $len, $trunc] = summarizeHtml($n['body'], 210);
             $desc = fixDesc($desc);
             $desc = "Reported by {$n['origUserName']}: $desc";
             $link = get_root_url() . "newslog?newsid={$n['newsID']}";
@@ -908,7 +908,7 @@ function showNewItemsRSS($db, $showcnt)
         {
             $c = $row;
             $title = "A new competition page: {$c['title']}";
-            list($desc, $len, $trunc) = summarizeHtml($c['desc'], 210);
+            [$desc, $len, $trunc] = summarizeHtml($c['desc'], 210);
             $desc = fixDesc($desc);
             $link = get_root_url() . "viewcomp?id={$c['compid']}";
             $pubDate = $c['d'];
@@ -917,7 +917,7 @@ function showNewItemsRSS($db, $showcnt)
         {
             $g = $row;
             $title = "A new listing for {$g['title']} by {$g['author']}";
-            list($desc, $len, $trunc) = summarizeHtml($g['desc'], 210);
+            [$desc, $len, $trunc] = summarizeHtml($g['desc'], 210);
             $desc = fixDesc($desc);
             $link = get_root_url() . "viewgame?id={$g['id']}";
             $pubDate = $g['d'];

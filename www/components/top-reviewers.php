@@ -11,7 +11,7 @@
    $rlst = getTopReviewers($db, 10);
    $n = 1;
    foreach ($rlst as $r) {
-      list($ruid, $runame, $rscore) = $r;
+      [$ruid, $runame, $rscore] = $r;
       $runame = htmlspecialcharx($runame);
       echo "<li><span class='details top-reviewers__reviewer'><i>#$n</i></span>"
          . "<a class=silent href=\"showuser?id=$ruid\">$runame</a></li>";

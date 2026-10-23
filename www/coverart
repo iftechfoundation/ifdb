@@ -73,7 +73,7 @@ if (mysql_num_rows($result) == 0) {
 }
 
 // retrieve the image
-list($imgname, $title, $pagevsn) = mysql_fetch_row($result);
+[$imgname, $title, $pagevsn] = mysql_fetch_row($result);
 
 // get the target version from the request
 $targVsn = (isset($_REQUEST['version'])
@@ -123,7 +123,7 @@ if ($targVsn) {
 }
 
 // retrieve the image data
-list($imgdata, $fmt) = fetch_image($imgname, true);
+[$imgdata, $fmt] = fetch_image($imgname, true);
 
 // get the thumbnail setting
 $thumbnail = (isset($_REQUEST['thumbnail'])

@@ -118,7 +118,7 @@ $result = mysql_query(
        news write", $db);
 
 // we have no referencers yet
-$refs = array();
+$refs = [];
 
 // make sure it's our listing; admin privs overide this
 if (!$adminPriv) {
@@ -127,7 +127,7 @@ if (!$adminPriv) {
         "select editedby, pagevsn from comps_history where compid='$qid'
          union select editedby, pagevsn from competitions where compid='$qid'
          order by pagevsn", $db);
-    list($createdBy) = mysql_fetch_row($result);
+    [$createdBy] = mysql_fetch_row($result);
     if ($createdBy != $userid) {
         pgErrExit("You cannot delete this listing because it was "
                   . "created by another user. Listings can only be "
@@ -142,9 +142,9 @@ if (!$adminPriv) {
     if ($userid == ""
         || $userid != $editedby
         || mysql_result($result, 0, "c") != 0) {
-        $refs[] = array("Other users have edited this listing (you can "
-                        . "only delete a listing if you created it <b>and</b> "
-                        . "you're the only person who's edited it)", false);
+        $refs[] = ["Other users have edited this listing (you can "
+                   . "only delete a listing if you created it <b>and</b> "
+                   . "you're the only person who's edited it)", false];
     }
 }
 
@@ -154,7 +154,7 @@ $result = mysql_query(
     "select count(*) as c from news
      where source = 'C' and sourceid = '$qid'", $db);
 if (!$result || mysql_result($result, 0, "c") != 0)
-    $refs[] = array("This competition has one or news items", true);
+    $refs[] = ["This competition has one or news items", true];
 
 
 // If there are any references, check for an override.  Only allow
