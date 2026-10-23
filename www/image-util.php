@@ -16,7 +16,7 @@ function fetch_image($imageID, $getPic)
     if (count($parts) < 2) {
         return [null, null];
     }
-    list ($dbnum, $key) = $parts;
+    [$dbnum, $key] = $parts;
 
     // connect to the database encoded in the ID
     $db = imageDbConnect((int)$dbnum);
@@ -131,7 +131,7 @@ function sendImage($imgData, $imgFmt, $thumbnail, $flags = 0)
     // if they only want the thumbnail, resize it
     if (!is_null($thumbnail)) {
         // get the thumbnail sizes
-        list ($sx, $sy) = explode("x", $thumbnail);
+        [$sx, $sy] = explode("x", $thumbnail);
 
         // get the image data
         $source = imagecreatefromstring($imgData);
@@ -142,9 +142,9 @@ function sendImage($imgData, $imgFmt, $thumbnail, $flags = 0)
         if ($sx < $ix || $sy < $iy) {
             // apply the default and maximum settings
             if ($sx <= 0 || $sy <= 0)
-                list($sx, $sy) = array(175, 175);
+                [$sx, $sy] = [175, 175];
             else if ($sx > 250 || $sy > 250)
-                list($sx, $sy) = array(250, 250);
+                [$sx, $sy] = [250, 250];
 
             // Figure the scaled size, maintaining the aspect ratio.
             // First try scaling so that the width just fits the bounding

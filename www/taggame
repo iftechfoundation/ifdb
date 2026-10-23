@@ -83,7 +83,7 @@ if (!$xml) {
 } else {
     $id = get_req_data('id');
 
-    for ($i = 0, $tags = array() ; ; $i++) {
+    for ($i = 0, $tags = [] ; ; $i++) {
         if (!isset($_REQUEST["t$i"]))
             break;
 

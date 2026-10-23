@@ -16,7 +16,7 @@ for ($i = 0 ; $i < $argc ; $i++) {
 }
 
 // start the output
-$output = array();
+$output = [];
 $output[] = "IFDB Pending Download Scan";
 $output[] = "";
 
@@ -41,7 +41,7 @@ $output[] = "$rowcnt pending link(s) found";
 for ($i = 0 ; $i < $rowcnt ; $i++)
 {
     // fetch this row
-    list($gameID, $gameTitle, $linkTitle, $url, $ord, $attrs) =
+    [$gameID, $gameTitle, $linkTitle, $url, $ord, $attrs] =
         mysql_fetch_row($result);
 
     // if the URL doesn't start with http://, ignore it
@@ -66,7 +66,7 @@ for ($i = 0 ; $i < $rowcnt ; $i++)
     if ($info)
         $info = explode("\r\n", $info);
     else
-        $info = array("HTTP/1.1 404 Not Found");
+        $info = ["HTTP/1.1 404 Not Found"];
 
     $ok = false;
     if (strstr($info[0], '200 OK') !== false)

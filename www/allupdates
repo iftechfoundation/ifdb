@@ -32,10 +32,10 @@ $quid = mysql_real_escape_string($uid, $db);
 
 $errMsg = false;
 
-$sortList = array(
-    'new' => array('sortdate desc', 'Latest Edits First'),
-    'old' => array('sortdate', 'Oldest Edits First'),
-    'nm' => array('sort_title', 'By Title'));
+$sortList = [
+    'new' => ['sortdate desc', 'Latest Edits First'],
+    'old' => ['sortdate', 'Oldest Edits First'],
+    'nm' => ['sort_title', 'By Title']];
 
 // get the user's name
 $result = mysql_query("select name from users where id='$quid'", $db);
@@ -124,7 +124,7 @@ if (mysql_num_rows($result) == 0) {
 
     // show the sorting controls
     showSortingControls("lstorder", "sortby", $sortList, $sortReq,
-                        array("user" => $uid), "allupdates");
+                        ["user" => $uid], "allupdates");
 
     // show where we are in the list
     $pageCtl = "<span class=details>"
@@ -139,7 +139,7 @@ if (mysql_num_rows($result) == 0) {
     // show each update entry
     for ($i = 0 ; $i < mysql_num_rows($result) ; $i++) {
         // fetch the next row
-        list($gameid, $title, $sortTitle, $author, $pagevsn, $moddate) =
+        [$gameid, $title, $sortTitle, $author, $pagevsn, $moddate] =
             mysql_fetch_row($result);
 
         // fix up fields for display
@@ -161,7 +161,7 @@ if (mysql_num_rows($result) == 0) {
                 and editedby = '$quid'
              order by pagevsn desc", $db);
 
-        $vsns = array(array($pagevsn, $moddate));
+        $vsns = [[$pagevsn, $moddate]];
         for ($j = 0 ; $j < mysql_num_rows($res2) ; $j++)
             $vsns[] = mysql_fetch_row($res2);
 

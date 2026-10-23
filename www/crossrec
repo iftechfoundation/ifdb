@@ -37,7 +37,7 @@ if ($gameID) {
     $result = mysql_query(
         "select title, author from games where id = '$qGameID'", $db);
     if ($result) {
-        list($gTitle, $gAuthor) = mysql_fetch_row($result);
+        [$gTitle, $gAuthor] = mysql_fetch_row($result);
         $gTitle = htmlspecialcharx($gTitle);
         $gAuthor = htmlspecialcharx($gAuthor);
     }
@@ -60,7 +60,7 @@ if ($targetID) {
     $result = mysql_query(
         "select title, author from games where id = '$qTargetID'", $db);
     if ($result) {
-        list($targetTitle, $targetAuthor) = mysql_fetch_row($result);
+        [$targetTitle, $targetAuthor] = mysql_fetch_row($result);
         $targetTitle = htmlspecialcharx($targetTitle);
         $targetAuthor = htmlspecialcharx($targetAuthor);
     }
@@ -161,7 +161,7 @@ if ($editMode) {
         } else {
             // show the results
             for ($i = 0 ; $i < $rowcnt ; $i++) {
-                list($sid, $stitle, $sauthor) = mysql_fetch_row($result);
+                [$sid, $stitle, $sauthor] = mysql_fetch_row($result);
                 $stitle = htmlspecialcharx($stitle);
                 $sauthor = htmlspecialcharx($sauthor);
 
@@ -209,7 +209,7 @@ if ($editMode) {
         if (mysql_num_rows($result) != 0) {
 
             // found one - fetch it
-            list($tTitle, $tAuthor, $tNotes, $tCreated) =
+            [$tTitle, $tAuthor, $tNotes, $tCreated] =
                 mysql_fetch_row($result);
 
             // quote it for display
@@ -384,7 +384,7 @@ if ($editMode) {
             for ($i = 0 ; $i < $cnt ; $i++) {
 
                 // fetch and unpack this row
-                list($sid, $stitle, $sauthor, $notes, $created) =
+                [$sid, $stitle, $sauthor, $notes, $created] =
                     mysql_fetch_row($result);
 
                 $stitle = htmlspecialcharx($stitle);
@@ -488,7 +488,7 @@ if ($editMode) {
     $lastOnPage = $firstOnPage + $perPage - 1;
 
     // load the matches
-    for ($recs = array(), $cur = false, $i = 0 ; $i < $cnt ; $i++) {
+    for ($recs = [], $cur = false, $i = 0 ; $i < $cnt ; $i++) {
         // fetch the next row
         $row = mysql_fetch_row($result);
 
@@ -550,11 +550,11 @@ if ($editMode) {
     for ($i = $firstOnPage ; $i <= $lastOnPage ; $i++) {
         // unpack the game record
         $rec = $recs[$i];
-        list($toID, $toTitle, $toAuthor, $toDesc, $toArt, $toVersion, $toRating) = $rec;
+        [$toID, $toTitle, $toAuthor, $toDesc, $toArt, $toVersion, $toRating] = $rec;
 
         $toTitle = htmlspecialcharx($toTitle);
         $toAuthor = htmlspecialcharx($toAuthor);
-        list($toDesc, $len, $trunc) = summarizeHtml($toDesc, 210);
+        [$toDesc, $len, $trunc] = summarizeHtml($toDesc, 210);
         $toDesc = fixDesc($toDesc);
 
         // show the game listing
@@ -590,15 +590,15 @@ if ($editMode) {
         $unum = 0;
         foreach ($urecs as $u) {
             // unpack the record
-            list ($id2, $ttl2, $auth2, $dsc2, $art2, $rtng2,
-                  $toUserID, $toUserName, $toNotes, $toCreated) = $u;
+             [$id2, $ttl2, $auth2, $dsc2, $art2, $rtng2,
+              $toUserID, $toUserName, $toNotes, $toCreated] = $u;
 
             // quote things
             $toUserName = htmlspecialcharx($toUserName);
             $toNotes = htmlspecialcharx($toNotes);
 
             // get the condensed notes
-            list($toNotesS, $len, $trunc) = summarizeHtml($toNotes, 20);
+            [$toNotesS, $len, $trunc] = summarizeHtml($toNotes, 20);
 
             // show the recommendation
             if ($unum++ != 0)

@@ -50,7 +50,7 @@ function queryComments($db, $mode, $quid, $limit, $caughtUpDate, $keepMuted)
         // get my sandbox
         $sandbox = 0;
         $result = mysql_query("select sandbox from users where id='$curuser'", $db);
-        list($sandbox) = mysql_fetch_row($result);
+        [$sandbox] = mysql_fetch_row($result);
         if ($sandbox != 0)
             $inSandbox = "uc.sandbox in (0, $sandbox)";
     }
@@ -133,14 +133,14 @@ function queryComments($db, $mode, $quid, $limit, $caughtUpDate, $keepMuted)
 
     // count the total rows from the query
     $result2 = mysql_query("select found_rows()", $db);
-    list($rowcnt) = mysql_fetch_row($result2);
+    [$rowcnt] = mysql_fetch_row($result2);
 
     // build the results
-    for ($comments = array(), $i = 0 ; $i < mysql_num_rows($result) ; $i++) {
+    for ($comments = [], $i = 0 ; $i < mysql_num_rows($result) ; $i++) {
 
         // fetch the next row
         $row = mysql_fetch_row($result);
-        list($cid, $srcid, $src, $ctxt,
+        [$cid, $srcid, $src, $ctxt,
              $ccreDT, $ccre,
              $cmodDT, $cmod,
              $cuid, $cuname, $cprivate,
@@ -148,7 +148,7 @@ function queryComments($db, $mode, $quid, $limit, $caughtUpDate, $keepMuted)
              $uuid, $uuname,
              $ltitle, $luid, $luname,
              $ptitle, $puid, $puname,
-             $muted) = $row;
+             $muted] = $row;
 
         // html-ify some of the items
         $cuname = htmlspecialcharx($cuname);
@@ -197,12 +197,12 @@ function queryComments($db, $mode, $quid, $limit, $caughtUpDate, $keepMuted)
         }
 
         // build the return list
-        $comments[] = array($row, $link, $title, $linktitle);
+        $comments[] = [$row, $link, $title, $linktitle];
 
     }
 
     // return the results
-    return array($comments, $rowcnt);
+    return [$comments, $rowcnt];
 }
 
 function showCommentPage($db, $itemAuthor, $srcID, $srcCode,
@@ -230,7 +230,7 @@ function showCommentPage($db, $itemAuthor, $srcID, $srcCode,
         // get my sandbox
         $sandbox = 0;
         $result = mysql_query("select sandbox from users where id='$curuser'", $db);
-        list($sandbox) = mysql_fetch_row($result);
+        [$sandbox] = mysql_fetch_row($result);
         if ($sandbox != 0)
             $inSandbox = "uc.sandbox in (0, $sandbox)";
     }
@@ -256,13 +256,13 @@ function showCommentPage($db, $itemAuthor, $srcID, $srcCode,
 
     // fetch the comments
     $ccnt = mysql_num_rows($result);
-    for ($comments = array(), $i = 0 ; $i < $ccnt ; $i++)
+    for ($comments = [], $i = 0 ; $i < $ccnt ; $i++)
         $comments[] = mysql_fetch_row($result);
 
     // if there are comments, show them
     if ($ccnt != 0) {
         // Build an index of the comments by ID
-        $cidx = array();
+        $cidx = [];
         foreach ($comments as $c) {
             $curCID = $c[0];
             $cidx[$curCID] = $c;
@@ -326,7 +326,7 @@ function showCommentPage($db, $itemAuthor, $srcID, $srcCode,
             . "<p>$pageCtl<br>";
 
         // build the nesting list
-        $coutlst = array();
+        $coutlst = [];
         for ($i = $firstOnPage ; $i <= $lastOnPage ; $i++)
             enlistComment($coutlst, $cidx, $comments[$i]);
 
@@ -341,8 +341,8 @@ function showCommentPage($db, $itemAuthor, $srcID, $srcCode,
 function enlistComment(&$coutlst, &$cidx, $crec)
 {
     // unpack the item
-    list($cid, $cpar, $ctxt, $cuserid, $cusername,
-         $ccreated, $cmodified, $cprivate) = $crec;
+    [$cid, $cpar, $ctxt, $cuserid, $cusername,
+     $ccreated, $cmodified, $cprivate] = $crec;
 
     // if I'm already listed, there's no need to list me again
     if ($cidx[$cid]['.listed'] ?? false)
@@ -385,8 +385,8 @@ function showComment($db,$commentPage, $itemAuthor, $cidx, $coutlst, $i)
 
     // unpack the item
     $crec = $cidx[$coutlst[$i]];
-    list($cid, $cpar, $ctxt, $cuserid, $cusername,
-         $ccreated, $cmodified, $cprivate, $muted) = $crec;
+    [$cid, $cpar, $ctxt, $cuserid, $cusername,
+     $ccreated, $cmodified, $cprivate, $muted] = $crec;
 
     // quote the items
     $ctxt = fixDesc($ctxt, FixDescSpoiler);
@@ -431,8 +431,8 @@ function showComment($db,$commentPage, $itemAuthor, $cidx, $coutlst, $i)
         echo "<span class=details><i>You've muted this comment's author</i>"
             . " - <span><a href=\"needjs\">"
             . addEventListener("click", "revealMutedAuthor(this, '$cuserid', '"
-                . str_replace(array('"', '\''),
-                            array("'+String.fromCharCode(34)+'", "\\'"),
+                . str_replace(['"', '\''],
+                            ["'+String.fromCharCode(34)+'", "\\'"],
                             $cusername)
                 . "');return false;")
             . "Reveal author</a></span>"
@@ -513,7 +513,7 @@ function countComments($db, $srcCode, $qSrcID)
         // get my sandbox
         $sandbox = 0;
         $result = mysql_query("select sandbox from users where id='$curuser'", $db);
-        list($sandbox) = mysql_fetch_row($result);
+        [$sandbox] = mysql_fetch_row($result);
         if ($sandbox != 0)
             $inSandbox = "uc.sandbox in (0, $sandbox)";
     }
@@ -530,7 +530,7 @@ function countComments($db, $srcCode, $qSrcID)
            and ($inSandbox)",
         $db);
 
-    list($cnt) = mysql_fetch_row($result);
+    [$cnt] = mysql_fetch_row($result);
     return $cnt;
 }
 

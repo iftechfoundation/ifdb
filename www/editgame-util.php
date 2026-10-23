@@ -324,7 +324,7 @@ function saveUpdates($db, $adminPriv, $apiMode,
     // since we started working - we have the tables locked now, so there's
     // no change of a race condition from this point forward
     if ($id != "new")
-        list($rec, $errMsg) = loadGameRecord($db, $id);
+        [$rec, $errMsg] = loadGameRecord($db, $id);
 
     // strip whitespace from the IFID field, and uppercase it
     $req['ifids'] = strtoupper(str_replace(
@@ -349,7 +349,7 @@ function saveUpdates($db, $adminPriv, $apiMode,
     }
 
     // calculate the list of changes
-    list ($changesOld, $changesNew) = calcDeltas($rec, $req);
+    [$changesOld, $changesNew] = calcDeltas($rec, $req);
 
     // get the database column definitions
     $result = mysql_query("describe games", $db);
@@ -1070,7 +1070,7 @@ function update_profile_links($db, $qgameid, $plNew, &$progress)
     // query the old profile links
     $result = mysql_query("select userid from gameprofilelinks where gameid = '$qgameid'", $db);
     for ($i = 0, $n = mysql_num_rows($result), $plOldTab = [] ; $i < $n ; $i++) {
-        list($p) = mysql_fetch_row($result);
+        [$p] = mysql_fetch_row($result);
         $plOldTab[$p] = true;
     }
 
@@ -1409,11 +1409,11 @@ function saveOldGame($db, $adminPriv, $apiMode,
 
         // calculate the deltas between the ORIGINAL and NEW database
         // versions - this tells us what the OTHER user changes
-        list ($dbChangesOld, $dbChangesNew) = calcDeltas($origRec, $rec);
+        [$dbChangesOld, $dbChangesNew] = calcDeltas($origRec, $rec);
 
         // calculate the deltas between the ORIGINAL database version
         // and our EDITED version - this tells us what WE changed
-        list ($editChangesOld, $editChangesNew) = calcDeltas($origRec, $req);
+        [$editChangesOld, $editChangesNew] = calcDeltas($origRec, $req);
 
         // Now find out what we changed, what the other user changed, and
         // what we both changed:

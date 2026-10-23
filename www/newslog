@@ -56,7 +56,7 @@ if ($newsID) {
            n.modified desc", $db);
 
     // pull up the history
-    for ($hist = array(), $i = 0 ; $i < mysql_num_rows($result) ; $i++)
+    for ($hist = [], $i = 0 ; $i < mysql_num_rows($result) ; $i++)
         $hist[] = mysql_fetch_row($result);
 
     // get the source information from the first history item (they're
@@ -101,7 +101,7 @@ if ($sourceType == "G") {
     if (mysql_num_rows($result) > 0) {
 
         // build the source item reference
-        list($gtitle, $gauthor) = mysql_fetch_row($result);
+        [$gtitle, $gauthor] = mysql_fetch_row($result);
         $gtitle = htmlspecialcharx($gtitle);
         $gauthor = htmlspecialcharx($gauthor);
 
@@ -139,7 +139,7 @@ if ($sourceType == "G") {
     if (mysql_num_rows($result) > 0) {
 
         // build the source item reference
-        list($ctitle) = mysql_fetch_row($result);
+        [$ctitle] = mysql_fetch_row($result);
         $ctitle = htmlspecialcharx($ctitle);
 
         $cinfo = "<a href=\"viewcomp?id=$sourceID\">$ctitle<a>";
@@ -196,9 +196,9 @@ if ($errMsg) {
         for ($i = 0 ; $i < count($hist) ; $i++) {
 
             // decode the record
-            list($nid, $ntype, $nsrc, $status,
-                 $modified, $created, $userid, $username,
-                 $headline, $body) = $hist[$i];
+            [$nid, $ntype, $nsrc, $status,
+             $modified, $created, $userid, $username,
+             $headline, $body] = $hist[$i];
 
             // quote items for display
             $username = htmlspecialcharx($username);
@@ -247,17 +247,17 @@ if ($errMsg) {
 
         // decode the most recent history item
         $h = $hist[0];
-        list($nid, $nsrc, $nsrcid, $status, $modified, $created,
-             $userID, $userName,
-             $headline, $body) = $h;
+        [$nid, $nsrc, $nsrcid, $status, $modified, $created,
+         $userID, $userName,
+         $headline, $body] = $h;
 
         // get the immediately preceding item, if this item has edits
         $prvHeadline = $hist[1][8] ?? '';
 
         // we're also interested in the poster of the original item
         $h = $hist[count($hist)-1];
-        list($x, $x, $x, $x, $x, $createdOrig,
-             $origUserID, $origUserName) = $h;
+        [$x, $x, $x, $x, $x, $createdOrig,
+         $origUserID, $origUserName] = $h;
 
         // fix up fields for display
         $headline = htmlspecialcharx($headline);
@@ -355,10 +355,10 @@ if ($errMsg) {
         for ($i = 0 ; $i < mysql_num_rows($result) ; $i++) {
 
             // fetch the next row
-            list($nid, $nOrigId, $status,
-                 $creDate, $created, $modDate, $modified,
-                 $userID, $userName, $origUserID, $origUserName,
-                 $headline, $body)
+            [$nid, $nOrigId, $status,
+             $creDate, $created, $modDate, $modified,
+             $userID, $userName, $origUserID, $origUserName,
+             $headline, $body]
                 = mysql_fetch_row($result);
 
             // fix up fields for display

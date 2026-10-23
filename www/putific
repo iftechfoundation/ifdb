@@ -89,7 +89,7 @@ function validateUpload($id, $desc, $required)
 $username = get_req_data("username");
 $password = get_req_data("password");
 
-list($curuser, $errCode, $errMsg) = doLogin($db, $username, $password);
+[$curuser, $errCode, $errMsg] = doLogin($db, $username, $password);
 if (!$curuser)
     replyError(401, "Login", "The IFDB login failed: $errCode.");
 
@@ -112,7 +112,7 @@ function load_xml_file($fname, $fdesc)
     if (!$xml)
     {
         // get the human-readable error messages
-        $errList = array();
+        $errList = [];
         foreach (libxml_get_errors() as $error) {
             $errList[] = "line {$error->line}, col {$error->column}: "
                          . trim($error->message);
@@ -143,29 +143,29 @@ $xml = load_xml_file($ificFile, "iFiction record");
 
 // mapping from IFDB fields to the iFiction XML xpaths, for
 // reporting errors
-$colMap = array();
-$colMap["title"] = array("bibliographic/title", "title");
-$colMap["eAuthor"] = array("bibliographic/author", "author");
-$colMap["ifids"] = array("identification/ifid", "IFID");
-$colMap["tuid"] = array("identification/tuid", "TUID");
+$colMap = [];
+$colMap["title"] = ["bibliographic/title", "title"];
+$colMap["eAuthor"] = ["bibliographic/author", "author"];
+$colMap["ifids"] = ["identification/ifid", "IFID"];
+$colMap["tuid"] = ["identification/tuid", "TUID"];
 $colMap["published"] =
-    array("bibliographic/firstpublished", "publication date");
+    ["bibliographic/firstpublished", "publication date"];
 $colMap["version"] =
-    array("releases/attached/release/version", "version number");
-$colMap["system"] = array("identification/format", "story file format");
-$colMap["language"] = array("bibliographic/language", "spoken language");
-$colMap["desc"] = array("bibliographic/description", "game description");
-$colMap["seriesname"] = array("bibliographic/series", "series name");
+    ["releases/attached/release/version", "version number"];
+$colMap["system"] = ["identification/format", "story file format"];
+$colMap["language"] = ["bibliographic/language", "spoken language"];
+$colMap["desc"] = ["bibliographic/description", "game description"];
+$colMap["seriesname"] = ["bibliographic/series", "series name"];
 $colMap["seriesnumber"] =
-    array("bibliographic/seriesnumber", "series episode number");
-$colMap["genre"] = array("bibliographic/genre", "genre name");
+    ["bibliographic/seriesnumber", "series episode number"];
+$colMap["genre"] = ["bibliographic/genre", "genre name"];
 $colMap["forgiveness"] =
-    array("bibliographic/forgiveness", "forgiveness rating");
-$colMap["bafsid"] = array("identification/bafn", "Baf's Guide ID number");
-$colMap["website"] = array("contacts/url", "game Web site URL");
+    ["bibliographic/forgiveness", "forgiveness rating"];
+$colMap["bafsid"] = ["identification/bafn", "Baf's Guide ID number"];
+$colMap["website"] = ["contacts/url", "game Web site URL"];
 
 // parse out the fields that we can map from iFiction to our game record
-$ifids = array();
+$ifids = [];
 foreach ($xml->story->identification->ifid as $i) {
     $ifids[] = mysql_real_escape_string((string)$i, $db);
 }
@@ -222,16 +222,16 @@ if ($desc)
     // now fix up the description: change any HTML curly quote markups to
     // win cp 1250 characters; replace newlines with spaces
     $desc = str_replace(
-        array("&lsquo;", "&rsquo;", "&ldquo;", "&rdquo;",
-              "\n\r", "\r\n", "\n", "\r"),
-        array("\221", "\222", "\223", "\224",
-              " ", " ", " ", " "),
+        ["&lsquo;", "&rsquo;", "&ldquo;", "&rdquo;",
+         "\n\r", "\r\n", "\n", "\r"],
+        ["\221", "\222", "\223", "\224",
+         " ", " ", " ", " "],
         $desc);
 
     // descriptions aren't *supposed* to use paragraphs, but just in case,
     // convert <p> to <br/>, and convert </p> to nothing
-    $desc = preg_replace(array("/<\s*p\s*>/i", "/<\s*\/?\s*p\s*>/i"),
-                         array("<br/>", ""),
+    $desc = preg_replace(["/<\s*p\s*>/i", "/<\s*\/?\s*p\s*>/i"],
+                         ["<br/>", ""],
                          $desc);
 
     // And finally, trim out excess spaces: turn any run of spaces into one
@@ -244,26 +244,26 @@ if ($desc)
 }
 
 // figure the development system based on the format
-$devSystems = array("zcode" => "Inform",
-                    "glulx" => "Inform",
-                    "tads2" => "TADS 2",
-                    "tads3" => "TADS 3",
-                    "hugo" => "Hugo",
-                    "alan2" => "Alan 2",
-                    "alan3" => "Alan 3",
-                    "adrift" => "ADRIFT",
-                    "level9" => "Level9",
-                    "agt" => "AGT",
-                    "magscrolls" => "Magnetic Scrolls",
-                    "advsys" => "AdvSys",
-                    "executable" => "None");
+$devSystems = ["zcode" => "Inform",
+               "glulx" => "Inform",
+               "tads2" => "TADS 2",
+               "tads3" => "TADS 3",
+               "hugo" => "Hugo",
+               "alan2" => "Alan 2",
+               "alan3" => "Alan 3",
+               "adrift" => "ADRIFT",
+               "level9" => "Level9",
+               "agt" => "AGT",
+               "magscrolls" => "Magnetic Scrolls",
+               "advsys" => "AdvSys",
+               "executable" => "None"];
 if ($fmt && isset($devSystems[$fmt]))
     $devsys = $devSystems[$fmt];
 else
     $devsys = $fmt;
 
 // build the posted data record
-$req = array();
+$req = [];
 if ($title) $req["title"] = $title;
 if ($author) $req["eAuthor"] = $author;
 if ($ifid) $req["ifids"] = $ifid;
@@ -342,7 +342,7 @@ if (count($ifids) > 0)
     case 1:
         // one game matched: we're editing an existing game
         if ($gameid) {
-            list($if_gameid) = mysql_fetch_row($result);
+            [$if_gameid] = mysql_fetch_row($result);
             if ($gameid != $if_gameid) {
                 replyError(409, "IfidsNotUnique",
                    "The IFID(s) in the iFiction record don't match "
@@ -350,7 +350,7 @@ if (count($ifids) > 0)
                    . "uniquely identify a single game.");
             }
         } else {
-            list($gameid) = mysql_fetch_row($result);
+            [$gameid] = mysql_fetch_row($result);
         }
         break;
 
@@ -399,11 +399,11 @@ else if (!$gameid)
 // If we're editing an existing game, load the existing game record, and
 // validate that we're the last editor.
 //
-$rec = array();
+$rec = [];
 if ($gameid != "new")
 {
     // load the old record
-    list($rec, $errMsg, $errMsgShort) = loadGameRecord($db, $gameid);
+    [$rec, $errMsg, $errMsgShort] = loadGameRecord($db, $gameid);
 
     // if an error occurred, fail
     if (!$rec) {
@@ -483,20 +483,20 @@ if ($artFile)
     }
 
     // map the copyright status
-    $statmap = array(
+    $statmap = [
         "by permission" => "U",
         "creative commons" => "C",
         "free software" => "L",
         "fair use" => "F",
         "public domain" => "P",
-        "unspecified" => "");
+        "unspecified" => ""];
 
     if (!isset($statmap[$imgCprStat]))
         replyError(400, "ImageCprInvalid",
                    "The image copyright status is invalid.");
 
     // add it as a temporary image
-    list($imgErrLong, $imgErrShort, $imgErrCode, $artImageName) =
+    [$imgErrLong, $imgErrShort, $imgErrCode, $artImageName] =
         addTempImageFile($artFile, $statmap[$imgCprStat], $imgCprMsg);
 
     // if that failed, abort
@@ -522,7 +522,7 @@ if ($artFile)
     if ($rec["orig:coverart"])
     {
         // query up the old image
-        list($oldImgData) = fetch_image($rec["orig:coverart"], true);
+        [$oldImgData] = fetch_image($rec["orig:coverart"], true);
 
         // load the new image file
         $newImgData = file_get_contents($artFile);
@@ -552,8 +552,8 @@ if ($linkFile)
     // load the translation table for the file formats
     $result = mysql_query(
         "select id, externid from filetypes", $db);
-    for ($i = 0, $fmtMap = array() ; $i < mysql_num_rows($result) ; $i++) {
-        list($id, $ext) = mysql_fetch_row($result);
+    for ($i = 0, $fmtMap = [] ; $i < mysql_num_rows($result) ; $i++) {
+        [$id, $ext] = mysql_fetch_row($result);
         $fmtMap[$ext] = $id;
     }
 
@@ -563,14 +563,14 @@ if ($linkFile)
          from
            operatingsystems as os
            join osversions as vsn on vsn.osid = os.id", $db);
-    for ($i = 0, $osMap = array() ; $i < mysql_num_rows($result) ; $i++) {
-        list($osid, $vsnid, $osext, $vsnext) = mysql_fetch_row($result);
-        $osMap["$osext.$vsnext"] = array($osid, $vsnid);
-        $osMap["$osext."] = array($osid, null);
+    for ($i = 0, $osMap = [] ; $i < mysql_num_rows($result) ; $i++) {
+        [$osid, $vsnid, $osext, $vsnext] = mysql_fetch_row($result);
+        $osMap["$osext.$vsnext"] = [$osid, $vsnid];
+        $osMap["$osext."] = [$osid, null];
     }
 
     // get the original links from the existing record, if any
-    $recLinks = (isset($rec["links"]) ? $rec["links"] : array());
+    $recLinks = (isset($rec["links"]) ? $rec["links"] : []);
 
     $replaceLinks = get_req_data("replaceLinks") === "yes";
     if ($replaceLinks) {
@@ -595,7 +595,7 @@ if ($linkFile)
         $url = (string)$l->url;
 
         // build the link record in the database format
-        $link = array(
+        $link = [
             "url" => $url,
             "title" => (string)$l->title,
             "desc" => (string)$l->desc,
@@ -605,7 +605,7 @@ if ($linkFile)
             "osid" => (isset($osMap[$os]) ? $osMap[$os][0] : false),
             "osvsn" => (isset($osMap[$os]) ? $osMap[$os][1] : false),
             "compression" => (isset($fmtMap[$cmp]) ? $fmtMap[$cmp] : false),
-            "compressedprimary" => (string)$l->compressedPrimary);
+            "compressedprimary" => (string)$l->compressedPrimary];
 
         $i = null;
         if (!$replaceLinks) {
@@ -674,7 +674,7 @@ if ($saveErrCode == "NoChanges")
 
 // if any errors occurred, send the error reply
 if ($saveErrMsg) {
-    $errlist = array();
+    $errlist = [];
     foreach ($errDetail as $col => $msg) {
         $errlist[] = "<detail><field>{$colMap[$col][0]}</field>"
                      . "<desc>{$colMap[$col][1]}</desc>"

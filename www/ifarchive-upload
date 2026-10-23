@@ -19,18 +19,18 @@ pageHeader("IF Archive File Upload", false, false);
 $db = dbConnect();
 $result = mysql_query(
     "select name, email from users where id = '$userid'", $db);
-list($username, $email) = mysql_fetch_row($result);
+[$username, $email] = mysql_fetch_row($result);
 $title = get_req_data("title");
 $system = get_req_data("system");
 $license = get_req_data("license");
 $author = get_req_data("author");
 $version = get_req_data("version");
-$fmtmap = array(
+$fmtmap = [
     "TADS 2" => "tads2", "TADS 3" => "tads3",
     "Inform 6" => "zcode", "Inform 7" => "zcode",
     "ADRIFT" => "adrift", "AdvSys" => "advsys", "AGT" => "agt",
     "Alan" => "alan2", "Alan 3" => "alan3",
-    "Hugo" => "hugo");
+    "Hugo" => "hugo"];
 
 $fmt = $fmtmap[$system];
 
@@ -226,7 +226,7 @@ uploadForm.addEventListener('submit', function (event) {
         <option id="storyfile"<?php if (!$fmt) echo " selected";
         ?>>Please Select</option><?php
         foreach ($fmts as $f) {
-            list($fmtID, $fmtName, $fmtExt) = $f;
+            [$fmtID, $fmtName, $fmtExt] = $f;
             if ($f[3] == 'G' && $f[2] != 'storyfile') {
                 echo "<option value=\"$fmtExt\" ";
                 if ($fmtExt == $fmt)
@@ -247,7 +247,7 @@ uploadForm.addEventListener('submit', function (event) {
         <option id=""<?php if(!$os) echo " selected";
         ?>>Please Select</option><?php
         foreach ($oses as $o) {
-            list($osid, $osname, $osext, $ospri) = $o;
+            [$osid, $osname, $osext, $ospri] = $o;
             if ($osext != '*' && $ospri >= 0) {
                 echo "<option value=\"$osext\" ";
                 if ($osext == $os)

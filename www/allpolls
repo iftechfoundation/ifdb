@@ -26,12 +26,12 @@ $sortReq = get_req_data('sortby');
 
 $errMsg = false;
 
-$sortList = array(
-    'new' => array('p.created desc', 'Newest First'),
-    'old' => array('p.created', 'Oldest First'),
-    'nm' => array('p.title', 'By Title'),
-    'votes' => array('votecount desc', 'Most Votes First'),
-    'mvotes' => array('votecount', 'Fewest Votes First'));
+$sortList = [
+    'new' => ['p.created desc', 'Newest First'],
+    'old' => ['p.created', 'Oldest First'],
+    'nm' => ['p.title', 'By Title'],
+    'votes' => ['votecount desc', 'Most Votes First'],
+    'mvotes' => ['votecount', 'Fewest Votes First']];
 
 // look up the game or user record
 if ($gameid) {
@@ -40,7 +40,7 @@ if ($gameid) {
     if (mysql_num_rows($result) == 0) {
         $errMsg = "The requested game was not found in the database.";
     } else {
-        list($gameTitle) = mysql_fetch_row($result);
+        [$gameTitle] = mysql_fetch_row($result);
         $gameTitle = htmlspecialcharx($gameTitle);
 
         $pageTitle = "Polls with votes for $gameTitle";
@@ -55,7 +55,7 @@ if ($gameid) {
         // get my sandbox
         $mysandbox = 0;
         $result = mysql_query("select sandbox from users where id='$curuser'", $db);
-        list($mysandbox) = mysql_fetch_row($result);
+        [$mysandbox] = mysql_fetch_row($result);
         if ($mysandbox != 0) $whereList = "1";
     }
     $having = "having gameVoteCount > 0";
@@ -66,7 +66,7 @@ if ($gameid) {
     if (mysql_num_rows($result) == 0) {
         $errMsg = "The requested user was not found in the database.";
     } else {
-        list($username) = mysql_fetch_row($result);
+        [$username] = mysql_fetch_row($result);
         $username = htmlspecialcharx($username);
 
         $pageTitle = "All Polls by $username";
@@ -136,7 +136,7 @@ if ($errMsg) {
 
     // get the row count
     $result2 = mysql_query("select found_rows()", $db);
-    list($lstcnt) = mysql_fetch_row($result2);
+    [$lstcnt] = mysql_fetch_row($result2);
 
     // figure how many pages that makes
     $lastPage = ($pgAll ? 1 :
@@ -162,7 +162,7 @@ if ($errMsg) {
     {
         // show the sorting controls
         showSortingControls("lstorder", "sortby", $sortList, $sortReq,
-                            array("user" => $uid, "game" => $gameid),
+                            ["user" => $uid, "game" => $gameid],
                             "allpolls");
 
         // show where we are in the list
@@ -179,12 +179,12 @@ if ($errMsg) {
         for ($i = 0, $cnt = mysql_num_rows($result) ; $i < $cnt ; $i++) {
 
             // fetch the next row
-            list($pollid, $title, $desc, $created, $authid, $authname,
-                 $votecnt, $gamecnt) = mysql_fetch_row($result);
+            [$pollid, $title, $desc, $created, $authid, $authname,
+             $votecnt, $gamecnt] = mysql_fetch_row($result);
 
             // fix up fields for display
             $title = htmlspecialcharx($title);
-            list($desc, $desclen, $desctrunc) = summarizeHtml($desc, 140);
+            [$desc, $desclen, $desctrunc] = summarizeHtml($desc, 140);
             $desc = fixDesc($desc);
             $authname = htmlspecialcharx($authname);
 

@@ -148,9 +148,9 @@ if ($userid == $curuser
                 $imgtype = $imginfo[2];
 
                 // translate the image type to an image/xxx name
-                $xlat = array(IMAGETYPE_JPEG => "jpeg",
-                              IMAGETYPE_GIF => "gif",
-                              IMAGETYPE_PNG => "png");
+                $xlat = [IMAGETYPE_JPEG => "jpeg",
+                         IMAGETYPE_GIF => "gif",
+                         IMAGETYPE_PNG => "png"];
                 $imgtype = isset($xlat[$imgtype]) ? $xlat[$imgtype] : null;
             }
 
@@ -174,7 +174,7 @@ if ($userid == $curuser
             $result = mysql_query(
                 "select count(*), sum(picturebytes) from stylepics
                  where userid = '$curuser'", $db);
-            list($curCnt, $curUsage) = mysql_fetch_row($result);
+            [$curCnt, $curUsage] = mysql_fetch_row($result);
 
             if ($result && $curCnt + 1 > MaxImages) {
                 $result = false;
@@ -277,14 +277,14 @@ function verify_write_access($fname, $verb)
     }
 
     // return the results
-    return array($result, $errMsg, $fname, $imgdesc, $imgpic);
+    return [$result, $errMsg, $fname, $imgdesc, $imgpic];
 }
 
 // check for deletion
 if (isset($_REQUEST['delete']) && $userid == $curuser) {
 
     // verify access
-    list($result, $mainErrMsg, $fname, $imgdesc, $imgpic) =
+    [$result, $mainErrMsg, $fname, $imgdesc, $imgpic] =
         verify_write_access(get_req_data('delete'), "delete");
 
     // if access is good, proceed
@@ -350,7 +350,7 @@ if (isset($_REQUEST['delete']) && $userid == $curuser) {
 $showEditForm = false;
 if (isset($_REQUEST['edit'])) {
     // verify access
-    list($result, $mainErrMsg, $fname, $imgdesc, $imgpic) =
+    [$result, $mainErrMsg, $fname, $imgdesc, $imgpic] =
         verify_write_access(get_req_data('edit'), "edit");
 
     // since we're starting the editing process, the new and old filenames
@@ -368,7 +368,7 @@ if ($userid == $curuser
     && $_REQUEST['formid'] == 'edit') {
 
     // verify access
-    list($result, $mainErrMsg, $oldfname, $olddesc, $imgpic) =
+    [$result, $mainErrMsg, $oldfname, $olddesc, $imgpic] =
         verify_write_access(get_req_data('oldfname'), "edit");
 
     // get the new field values from the request parameters
@@ -584,7 +584,7 @@ if ($rowcnt == 0) {
 
     echo "<table class=thumbnailpic align=center><tr>";
     for ($i = 0, $col = 0, $totBytes = 0 ; $i < $rowcnt ; $i++, $col++) {
-        list($iName, $iDesc, $iPic, $iBytes) = mysql_fetch_row($result);
+        [$iName, $iDesc, $iPic, $iBytes] = mysql_fetch_row($result);
         $totBytes += $iBytes;
         $iNameUrl = urlencode($iName);
         $iName = htmlspecialcharx($iName);

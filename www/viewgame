@@ -24,7 +24,7 @@ $mysandbox = 0;
 if ($curuser) {
     $result = mysqli_execute_query($db,
         "select `privileges`, `sandbox` from users where id=?", [$curuser]);
-    list($userprivs, $mysandbox) = mysql_fetch_row($result);
+    [$userprivs, $mysandbox] = mysql_fetch_row($result);
     $adminPriv = (strpos($userprivs, "A") !== false);
 }
 
@@ -75,7 +75,7 @@ if ($curuser) {
     $result = mysqli_execute_query($db,
         "select offsite_display from users where id = ?", [$curuser]);
     if (mysql_num_rows($result) != 0)
-        list($offsiteMode) = mysql_fetch_row($result);
+        [$offsiteMode] = mysql_fetch_row($result);
 
     // if it's not set, default to 'A'
     if (strlen($offsiteMode) != 1 || strpos("ABLN", $offsiteMode) === false)
@@ -87,7 +87,7 @@ if ($curuser) {
 //
 function getFootnoteStar($num)
 {
-    $f = array("*", "&dagger;", "&Dagger;");
+    $f = ["*", "&dagger;", "&Dagger;"];
     if ($num <= 0)
         return "";
     else if ($num <= count($f))
@@ -155,7 +155,7 @@ function sendCoverArt()
     }
 
     // retrieve the image
-    list($imgname, $title, $pagevsn) = mysql_fetch_row($result);
+    [$imgname, $title, $pagevsn] = mysql_fetch_row($result);
 
     if (isset($_REQUEST['version'])) {
         header("Cache-Control: public, max-age=31536000, immutable");
@@ -210,7 +210,7 @@ function sendCoverArt()
                        $imgname);
 
     // retrieve the image data
-    list($imgdata, $fmt) = fetch_image($imgname, true);
+    [$imgdata, $fmt] = fetch_image($imgname, true);
 
     // get the thumbnail setting
     $thumbnail = (isset($_REQUEST['thumbnail'])
@@ -376,20 +376,20 @@ $should_hide = false;
 if (!$errMsg) {
     $gameInfo = getGameInfo($db, $id, $curuser, $reqVersion, $errMsg, $errCode);
     if (!$errMsg) {
-        list($ifids, $title, $author, $authorExt,
-             $pubYear, $pubFull, $license,
-             $system, $desc, $rawDesc,
-             $hasart, $genre, $seriesname, $seriesnum,
-             $forgiveness, $bafsid, $version,
-             $language, $languageNameOnly,
-             $website, $links,
-             $ratingCntAvg, $ratingCntTot, $ratingAvg, $memberReviewCnt,
-             $currentUserRating, $currentUserReview,
-             $editedbyid, $editedbyname, $moddate, $moddate2, $pagevsn,
-             $moddatelatest,
-             $historyView,
-             $dlnotes, $extReviews, $extRevDisplayRank,
-             $ratingHisto, $xrefs, $inrefs, $flags) = $gameInfo;
+        [$ifids, $title, $author, $authorExt,
+         $pubYear, $pubFull, $license,
+         $system, $desc, $rawDesc,
+         $hasart, $genre, $seriesname, $seriesnum,
+         $forgiveness, $bafsid, $version,
+         $language, $languageNameOnly,
+         $website, $links,
+         $ratingCntAvg, $ratingCntTot, $ratingAvg, $memberReviewCnt,
+         $currentUserRating, $currentUserReview,
+         $editedbyid, $editedbyname, $moddate, $moddate2, $pagevsn,
+         $moddatelatest,
+         $historyView,
+         $dlnotes, $extReviews, $extRevDisplayRank,
+         $ratingHisto, $xrefs, $inrefs, $flags] = $gameInfo;
         $title = htmlspecialchars($title ?? '');
         $license = htmlspecialchars($license ?? '');
         $language = htmlspecialchars($language ?? '');
@@ -412,7 +412,7 @@ function checkRedirect($id)
     if (mysql_num_rows($result) > 0)
     {
         // get the target game
-        list($toID) = mysql_fetch_row($result);
+        [$toID] = mysql_fetch_row($result);
 
         // build the redirect string with all of the original URL parameters
         $redir = "viewgame?id=$toID";
@@ -1273,7 +1273,7 @@ if ($curuser) {
            and embargodate > now()", $db);
     $embargoCnt = mysql_num_rows($result);
     if ($embargoCnt > 0)
-        list($embargoID, $embargoDate) = mysql_fetch_row($result);
+        [$embargoID, $embargoDate] = mysql_fetch_row($result);
 }
 
 
@@ -1345,7 +1345,7 @@ if ($ratingCntTot == 0 && $memberReviewCnt == 0) {
 if (!$should_hide) {
     $result = mysql_query(
         "select count(userid) from playedgames where gameid='$qid'", $db);
-    list($playlistCnt) = mysql_fetch_row($result);
+    [$playlistCnt] = mysql_fetch_row($result);
 
     $emdash = false;
 
@@ -1362,7 +1362,7 @@ if (!$should_hide) {
 
     $result = mysql_query(
         "select count(userid) from wishlists where gameid='$qid'", $db);
-    list($wishlistCnt) = mysql_fetch_row($result);
+    [$wishlistCnt] = mysql_fetch_row($result);
 
     if ($wishlistCnt) {
         if (!$emdash) {
@@ -1691,7 +1691,7 @@ if ($embargoCnt > 0)
         $osr = "";
 
         // fetch the non-external editor reviews
-        $srevs = array();
+        $srevs = [];
         if ($detailView) {
             // fetch the editorial review list
             $result = mysqli_execute_query($db,
@@ -2035,13 +2035,13 @@ if ($embargoCnt > 0)
             $limit = "limit $firstOnPage, $per_page";
 
         // sorting option mapping - "sortby" <select> list to ORDER BY clause
-        $orderByMap = array(
-            'new' => array('publicationdate desc', 'Newest First'),
-            'old' => array('publicationdate', 'Oldest First'),
-            'hlp' => array('netHelpful desc', 'Most Helpful First'),
-            'unh' => array('netHelpful', 'Least Helpful First'),
-            'hi' => array('rating desc', 'Highest Ratings First'),
-            'lo' => array('rating', 'Lowest Ratings First'));
+        $orderByMap = [
+            'new' => ['publicationdate desc', 'Newest First'],
+            'old' => ['publicationdate', 'Oldest First'],
+            'hlp' => ['netHelpful desc', 'Most Helpful First'],
+            'unh' => ['netHelpful', 'Least Helpful First'],
+            'hi' => ['rating desc', 'Highest Ratings First'],
+            'lo' => ['rating', 'Lowest Ratings First']];
 
         // build the query that gives us the right sorting order
         $sortReq = get_req_data('sortby');
@@ -2065,7 +2065,7 @@ if ($embargoCnt > 0)
         // due to muting or other filters
         $realtotcnt = ($ratingsView ? $ratingCntTot : $memberReviewCnt);
         $result2 = mysql_query("select found_rows()", $db);
-        list($totcnt) = mysql_fetch_row($result2);
+        [$totcnt] = mysql_fetch_row($result2);
 
         // if viewing all, make the page limit equal to the actual count
         if ($pgAll)
@@ -2095,8 +2095,8 @@ if ($embargoCnt > 0)
 
             // show the sorting controls
             showSortingControls("reviewOrder", "sortby", $orderByMap, $sortReq,
-                                array("id" => $id, "reviews" => "1",
-                                      "ratings" => $ratingsView),
+                                ["id" => $id, "reviews" => "1",
+                                 "ratings" => $ratingsView],
                                 "viewgame");
 
             // generate the page navigation controls

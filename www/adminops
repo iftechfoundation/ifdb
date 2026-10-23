@@ -907,7 +907,7 @@ if (isset($_REQUEST['burygame'])) {
             pageHeader("Bury game");
             echo "Couldn't find a game with ID " . $tuid;
         } else {
-            list($title, $flags) = mysql_fetch_row($result);
+            [$title, $flags] = mysql_fetch_row($result);
             $flagset = "";
             if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $shouldHide = $_POST['hide'] === 'on';
@@ -970,7 +970,7 @@ if (isset($_REQUEST['reviewvotes'])) {
         <table><tr><th>User</th><th>Sandbox</th><th>Vote</th></tr>
         <?php
         for ($i = 0 ; $i < mysql_num_rows($result) ; $i++) {
-            list($userid, $name, $sandbox, $vote) = mysql_fetch_row($result);
+            [$userid, $name, $sandbox, $vote] = mysql_fetch_row($result);
             echo "<td><a href=\"/adminops?reviewvotes&userid=".htmlspecialcharx($userid)."\">";
             echo htmlspecialcharx($name);
             echo "</a></td><td>".htmlspecialcharx($sandbox)."</td>";
@@ -990,7 +990,7 @@ if (isset($_REQUEST['reviewvotes'])) {
             pageFooter();
             exit();
         }
-        list($name) = mysql_fetch_row($result);
+        [$name] = mysql_fetch_row($result);
 
         $votername = htmlspecialcharx($name);
         echo "<h1>Review votes: $votername</h1>";
@@ -1021,7 +1021,7 @@ if (isset($_REQUEST['reviewvotes'])) {
         <tr><th>Review Author</th><th>Count</th><th>% Helpful?</th></tr>
         <?php
         for ($i = 0 ; $i < mysql_num_rows($result) ; $i++) {
-            list($reviewuserid, $name, $count, $helpful) = mysql_fetch_row($result);
+            [$reviewuserid, $name, $count, $helpful] = mysql_fetch_row($result);
             echo "<tr><td><a href=\"showuser?id=$reviewuserid\">".htmlspecialcharx($name)."</td>";
             echo "<td>$count</td><td>".(round($helpful / $count * 100))."%</td></tr>\n";
         }
@@ -1087,7 +1087,7 @@ if (isset($_REQUEST['reviewvotes'])) {
 }
 
 if (isset($_REQUEST['showimage'])) {
-    list($imgdata, $fmt) = fetch_image($_REQUEST['showimage'], true);
+    [$imgdata, $fmt] = fetch_image($_REQUEST['showimage'], true);
     if (is_null($imgdata))
         exit("Non-existent image ID");
     $thumbnail = isset($_REQUEST['thumbnail']) ? $_REQUEST['thumbnail'] : null;
@@ -1095,9 +1095,9 @@ if (isset($_REQUEST['showimage'])) {
     exit();
 }
 
-$filterTypeMap = array(
+$filterTypeMap = [
     "A" => "Adult Content",
-    "R" => "Review Embargo");
+    "R" => "Review Embargo"];
 
 pageHeader("Administrator Operations");
 
@@ -1111,7 +1111,7 @@ if (isset($_REQUEST['osvercheck'])) {
     $result = mysql_query("select id, name from operatingsystems
          order by name", $db);
     for ($i = 0 ; $i < mysql_num_rows($result) ; $i++) {
-        list($id, $name) = mysql_fetch_row($result);
+        [$id, $name] = mysql_fetch_row($result);
         echo "<b>OS ID=$id, name=" . htmlspecialcharx($name)
             . "</b><br><div class=indented>";
 
@@ -1120,7 +1120,7 @@ if (isset($_REQUEST['osvercheck'])) {
            from osversions where osid='$id' order by seq", $db);
         for ($foundstar = false, $j = 0 ;
              $j < mysql_num_rows($res2) ; $j++) {
-            list($vsnid, $seq, $vsnname) = mysql_fetch_row($res2);
+            [$vsnid, $seq, $vsnname] = mysql_fetch_row($res2);
             echo "Version ID=$vsnid, name=" . htmlspecialcharx($vsnname)
                 . ", sequence number=$seq<br>";
             if ($vsnname == '*')
@@ -1159,7 +1159,7 @@ if (isset($_REQUEST['osvercheck'])) {
     } else {
         for ($i = 0 ; $i < mysql_num_rows($result) ; $i++) {
             $errCnt++;
-            list ($nullid, $vsnid, $osid, $name) = mysql_fetch_row($result);
+             [$nullid, $vsnid, $osid, $name] = mysql_fetch_row($result);
             echo "<span class=errmsg>Orphaned version: vsnid=$vsnid, "
                 . "osid=$osid, name=" . htmlspecialcharx($name);
 
@@ -1201,7 +1201,7 @@ if (isset($_REQUEST['osvercheck'])) {
         echo "<h2>DOWNLOADHELP table integrity check</h2>";
 
         for ($i = 0 ; $i < mysql_num_rows($result) ; $i++) {
-            list($fmtidref, $fmtid, $osidref, $osid, $osvsnref, $osvsn) =
+            [$fmtidref, $fmtid, $osidref, $osid, $osvsnref, $osvsn] =
                 mysql_fetch_row($result);
 
             echo "downloadhelp (format=$fmtidref, osid=$osidref, "
@@ -1231,7 +1231,7 @@ if (isset($_REQUEST['osvercheck'])) {
         echo "<h2>FORMATPRIVS table integrity check</h2>";
 
         for ($i = 0 ; $i < mysql_num_rows($result) ; $i++) {
-            list($fmtidref, $fmtid, $uidref, $uid) =
+            [$fmtidref, $fmtid, $uidref, $uid] =
                 mysql_fetch_row($result);
 
             echo "formatprivs (format=$fmtidref, user=$uidref): "
@@ -1259,7 +1259,7 @@ if (isset($_REQUEST['osvercheck'])) {
         echo "<h2>OSPRIVS table integrity check</h2>";
 
         for ($i = 0 ; $i < mysql_num_rows($result) ; $i++) {
-            list($osidref, $osid, $uidref, $uid) =
+            [$osidref, $osid, $uidref, $uid] =
                 mysql_fetch_row($result);
 
             echo "osprivs (OS=$osidref, user=$uidref): "
@@ -1299,8 +1299,8 @@ if (isset($_REQUEST['osvercheck'])) {
         echo "<h2>GAMELINKS table integrity check</h2>";
 
         for ($i = 0 ; $i < mysql_num_rows($result) ; $i++) {
-            list($gameidref, $gameid, $fmtidref, $fmtid,
-                 $osidref, $osid, $vsnidref, $vsnid) =
+            [$gameidref, $gameid, $fmtidref, $fmtid,
+             $osidref, $osid, $vsnidref, $vsnid] =
                 mysql_fetch_row($result);
 
             echo "gamelinks (game=$gameidref, format=$fmtidref, "
@@ -1332,7 +1332,7 @@ if (isset($_REQUEST['osvercheck'])) {
     if (mysql_num_rows($result) != 0) {
         echo "<h2>GAMETAGS table integrity check</h2>";
         for ($i = 0 ; $i < mysql_num_rows($result) ; $i++) {
-            list($idg, $idu, $tag, $gidg, $uidu) = mysql_fetch_row($result);
+            [$idg, $idu, $tag, $gidg, $uidu] = mysql_fetch_row($result);
             $tag = htmlspecialcharx($tag);
             echo "gametags (gameid=$idg, userid=$idu, tag=$tag): "
                 . ($gidg == "" ? "[broken GAMEID link] " : "")
@@ -1355,7 +1355,7 @@ if (isset($_REQUEST['osvercheck'])) {
     if (mysql_num_rows($result) != 0) {
         echo "<h2>REVIEWTAGS table integrity check</h2>";
         for ($i = 0 ; $i < mysql_num_rows($result) ; $i++) {
-            list($idr, $tag, $ridr) = mysql_fetch_row($result);
+            [$idr, $tag, $ridr] = mysql_fetch_row($result);
             $tag = htmlspecialcharx($tag);
             echo "reviewtags (reviewid=$idr, tag=$tag): "
                 . "[broken REVIEWID link]<br>";
@@ -1376,7 +1376,7 @@ if (isset($_REQUEST['osvercheck'])) {
     if (mysql_num_rows($result) != 0) {
         echo "<h2>REVIEWFLAGS table integrity check</h2>";
         for ($i = 0 ; $i < mysql_num_rows($result) ; $i++) {
-            list($idr, $ridr) = mysql_fetch_row($result);
+            [$idr, $ridr] = mysql_fetch_row($result);
             echo "reviewflags (reviewid=$idr): "
                 . "[broken REVIEWID link]<br>";
         }
@@ -1414,7 +1414,7 @@ if (isset($_REQUEST['osvercheck'])) {
     if (mysql_num_rows($result) != 0) {
         echo "<h2>UCOMMENTS table integrity check</h2>";
         for ($i = 0 ; $i < mysql_num_rows($result) ; $i++) {
-            list($idr, $src, $ridr) = mysql_fetch_row($result);
+            [$idr, $src, $ridr] = mysql_fetch_row($result);
             echo "ucomments (source type=$src, source ID=$idr): "
                 . "[broken SOURCEID link]<br>";
         }
@@ -1437,7 +1437,7 @@ if (isset($_REQUEST['osvercheck'])) {
     if (mysql_num_rows($result) != 0) {
         echo "<h2>RECLISTITEMS table integrity check</h2>";
         for ($i = 0 ; $i < mysql_num_rows($result) ; $i++) {
-            list($idl, $idg, $icmt, $idl2, $lttl, $idg2, $gttl) =
+            [$idl, $idg, $icmt, $idl2, $lttl, $idg2, $gttl] =
                 mysql_fetch_row($result);
             $icmt = htmlspecialcharx($icmt);
             $lttl = htmlspecialcharx($lttl);
@@ -1470,7 +1470,7 @@ if (isset($_REQUEST['osvercheck'])) {
     if (mysql_num_rows($result) != 0) {
         echo "<h2>POLLVOTES table integrity check</h2>";
         for ($i = 0 ; $i < mysql_num_rows($result) ; $i++) {
-            list($idp, $idg, $idu, $qq, $desc, $idp2, $pttl, $idg2, $gttl) =
+            [$idp, $idg, $idu, $qq, $desc, $idp2, $pttl, $idg2, $gttl] =
                 mysql_fetch_row($result);
             $qq = htmlspecialcharx($qq);
             $desc = htmlspecialcharx($desc);
@@ -1498,13 +1498,13 @@ if (isset($_REQUEST['osvercheck'])) {
 }
 else if (isset($_REQUEST['users'])) {
 
-    $sortList = array(
-        'nm' => array('name', 'By Screen Name'),
-        'em' => array('email', 'By Email'),
-        'new' => array('created desc', 'Newest First'),
-        'old' => array('created', 'Oldest First'),
-        'newlog' => array('lastlogin desc', 'Recent Logins First'),
-        'oldlog' => array('lastlogin', 'Oldest Logins First'));
+    $sortList = [
+        'nm' => ['name', 'By Screen Name'],
+        'em' => ['email', 'By Email'],
+        'new' => ['created desc', 'Newest First'],
+        'old' => ['created', 'Oldest First'],
+        'newlog' => ['lastlogin desc', 'Recent Logins First'],
+        'oldlog' => ['lastlogin', 'Oldest Logins First']];
 
     $sortby = get_req_data('sortby');
     $orderBy = isset($sortList[$sortby])
@@ -1534,15 +1534,15 @@ else if (isset($_REQUEST['users'])) {
     if ($lastOnPage > $cnt - 1)
         $lastOnPage = $cnt - 1;
 
-    $statMap = array("A" => "Active", "D" => "Pending Activation",
-                     "B" => "Banned", "X" => "Closed",
-                     "R" => "Pending Review");
-    $proStatMap = array("T" => "Trusted", "R" => "Pending Review",
-                        "" => "Normal");
+    $statMap = ["A" => "Active", "D" => "Pending Activation",
+                "B" => "Banned", "X" => "Closed",
+                "R" => "Pending Review"];
+    $proStatMap = ["T" => "Trusted", "R" => "Pending Review",
+                   "" => "Normal"];
 
     $result = mysql_query("select code, name from `privileges`", $db);
-    for ($i = 0, $privMap = array() ; $i < mysql_num_rows($result) ; $i++) {
-        list($code, $name) = mysql_fetch_row($result);
+    for ($i = 0, $privMap = [] ; $i < mysql_num_rows($result) ; $i++) {
+        [$code, $name] = mysql_fetch_row($result);
         $privMap[$code] = $name;
     }
 
@@ -1572,7 +1572,7 @@ else if (isset($_REQUEST['users'])) {
 
     // show the sorting controls
     showSortingControls("usersort", "sortby", $sortList, $sortby,
-                        array("users" => "1"), "adminops");
+                        ["users" => "1"], "adminops");
 
     // show where we are in the list
     $pageCtl = "<span class=details>"
@@ -1585,8 +1585,8 @@ else if (isset($_REQUEST['users'])) {
     echo "$pageCtl<br><br><br>";
 
     for ($i = 0 ; $i < mysql_num_rows($result) ; $i++) {
-        list($id, $name, $email, $pubmail, $statCode, $proStat, $privcode,
-             $created, $login) =  mysql_fetch_row($result);
+        [$id, $name, $email, $pubmail, $statCode, $proStat, $privcode,
+         $created, $login] =  mysql_fetch_row($result);
         $name = htmlspecialcharx($name);
         $email = htmlspecialcharx($email);
         $email = spoilerWarning($email, "Click to see email");
@@ -1594,7 +1594,7 @@ else if (isset($_REQUEST['users'])) {
         $pubmail = htmlspecialcharx($pubmail);
         $stat = isset($statMap[$statCode]) ? $statMap[$statCode] : "";
         $proStat = isset($proStatMap[$proStat]) ? $proStatMap[$proStat] : "";
-        for ($priv = array(), $c = 0 ; $c < strlen($privcode) ; $c++) {
+        for ($priv = [], $c = 0 ; $c < strlen($privcode) ; $c++) {
             $priv[] = isset($privMap[$privcode[$c]])
                       ? $privMap[$privcode[$c]]
                       : "??? '{$privcode[$c]}'";
@@ -1645,7 +1645,7 @@ else if (isset($_REQUEST['users'])) {
 
     for ($i = 0 ; $i < mysql_num_rows($result) ; $i++)
     {
-        list($uid, $uname, $umail, $udate) = mysql_fetch_row($result);
+        [$uid, $uname, $umail, $udate] = mysql_fetch_row($result);
         $uname = htmlspecialcharx($uname);
         $uamil = htmlspecialcharx($umail);
         echo "<tr>"
@@ -1698,7 +1698,7 @@ else if (isset($_REQUEST['users'])) {
 
         for ($i = 0 ; $i < mysql_num_rows($result) ; $i++)
         {
-            list($uid, $uname, $umail, $ucre, $ulogin) = mysql_fetch_row($result);
+            [$uid, $uname, $umail, $ucre, $ulogin] = mysql_fetch_row($result);
             $uname = htmlspecialcharx($uname);
             $umail = htmlspecialcharx($umail);
             echo "<tr>"
@@ -1734,8 +1734,8 @@ else if (isset($_REQUEST['users'])) {
             created, lastlogin, `privileges`,
             activationcode, pswsalt, remarks, sandbox
          from users where id = '$quid'", $db);
-    list($email, $name, $stat, $proStat, $created, $login, $privcode,
-         $actcode, $pswsalt, $remarks, $sandbox)
+    [$email, $name, $stat, $proStat, $created, $login, $privcode,
+     $actcode, $pswsalt, $remarks, $sandbox]
         = mysql_fetch_row($result);
 
     $email = htmlspecialcharx($email);
@@ -1744,24 +1744,24 @@ else if (isset($_REQUEST['users'])) {
 
     $acturl = get_root_url() . "userconfirm?a=$actcode";
 
-    $statMap = array("A" => "Active", "D" => "Pending Activation",
-                     "B" => "Banned", "X" => "Closed",
-                     "R" => "Pending Review");
+    $statMap = ["A" => "Active", "D" => "Pending Activation",
+                "B" => "Banned", "X" => "Closed",
+                "R" => "Pending Review"];
 
-    $proStatMap = array("T" => "Trusted", "R" => "Pending Review",
-                        "" => "Normal");
+    $proStatMap = ["T" => "Trusted", "R" => "Pending Review",
+                   "" => "Normal"];
     $proStatName = $proStatMap[$proStat];
 
-    $sandboxMap = array(0 => "0 (Normal users)", 1 => "1 (Trolls)");
+    $sandboxMap = [0 => "0 (Normal users)", 1 => "1 (Trolls)"];
 
     $result = mysql_query(
         "select code, name from `privileges` order by name", $db);
-    for ($i = 0, $privMap = array() ; $i < mysql_num_rows($result) ; $i++) {
-        list($pcode, $pname) = mysql_fetch_row($result);
+    for ($i = 0, $privMap = [] ; $i < mysql_num_rows($result) ; $i++) {
+        [$pcode, $pname] = mysql_fetch_row($result);
         $privMap[$pcode] = $pname;
     }
 
-    for ($priv = array(), $c = 0 ; $c < strlen($privcode) ; $c++)
+    for ($priv = [], $c = 0 ; $c < strlen($privcode) ; $c++)
         $priv[] = $privMap[$privcode[$c]];
     $privNames = implode(", ", $priv);
 
@@ -1952,7 +1952,7 @@ else if (isset($_REQUEST['users'])) {
 
     $n = mysql_num_rows($result);
     for ($i = 0 ; $i < $n ; $i++) {
-        list($lip, $lwhen) = mysql_fetch_row($result);
+        [$lip, $lwhen] = mysql_fetch_row($result);
         $lipLink = "<a href=\"adminops?loginsfrom=$lip\">$lip</a>";
         echo "<tr><td class='adminops__loginhistory'>$lwhen<td>$lipLink</td></tr>";
     }
@@ -1983,7 +1983,7 @@ else if (isset($_REQUEST['users'])) {
 
     for ($i = 0 ; $i < mysql_num_rows($result) ; $i++)
     {
-        list($cuid, $cuname, $ctxt, $cmod, $cprivate) =
+        [$cuid, $cuname, $ctxt, $cmod, $cprivate] =
             mysql_fetch_row($result);
 
         $cuname = htmlspecialcharx($cuname);
@@ -2020,7 +2020,7 @@ else if (isset($_REQUEST['users'])) {
             . "<th>Last Login</th><th>Days Inactive</th></tr>";
 
         for ($i = 0 ; $i < mysql_num_rows($result) ; $i++) {
-            list($sid, $uid, $login, $name, $email, $days) =
+            [$sid, $uid, $login, $name, $email, $days] =
                mysql_fetch_row($result);
 
             $sid = mysql_real_escape_string($sid, $db);
@@ -2078,7 +2078,7 @@ else if (isset($_REQUEST['users'])) {
     if (!$result)
         $errMsg = "Query failed: " . mysql_error($db);
 
-    for ($rows = array(), $i = 0 ; $i < mysql_num_rows($result) ; $i++)
+    for ($rows = [], $i = 0 ; $i < mysql_num_rows($result) ; $i++)
         $rows[] = mysql_fetch_array($result, MYSQL_ASSOC);
 
     foreach ($rows as $r) {
@@ -2088,7 +2088,7 @@ else if (isset($_REQUEST['users'])) {
         $sortTitle = $r['sort_title'];
         $sortAuthor = $r['sort_author'];
 
-        $setVars = array();
+        $setVars = [];
 
         if ($rebuild || $sortTitle == "")
             $setVars[] = "sort_title = '"
@@ -2137,15 +2137,15 @@ else if (isset($_REQUEST['users'])) {
 
     // allowed tags - we keep these tags without modification
     $allowedTags = valuesToKeys(
-        array('p', 'br',
-              'i', 'b', 'u', 'strong', 'em',
-              'big', 'small', 'tt', 'sup', 'sub',
-              'cite', 'blockquote',
-              'ul', 'ol', 'li', 'dl', 'dt', 'dd'), 1);
+        ['p', 'br',
+         'i', 'b', 'u', 'strong', 'em',
+         'big', 'small', 'tt', 'sup', 'sub',
+         'cite', 'blockquote',
+         'ul', 'ol', 'li', 'dl', 'dt', 'dd'], 1);
 
     $updateCount = 0;
     $errRows = false;
-    $allBadTags = array();
+    $allBadTags = [];
 
     while (($row = mysql_fetch_array($result, MYSQL_ASSOC)) != false) {
 
@@ -2155,7 +2155,7 @@ else if (isset($_REQUEST['users'])) {
         $txt = $origTxt = $row['review'];
 
         // no unknown tags for this row yet
-        $badTags = array();
+        $badTags = [];
 
         // scan it for tags we actually need to fix
         $inAnchor = false;
@@ -2343,7 +2343,7 @@ else if (isset($_REQUEST['users'])) {
         // load its tag list
         $tresult = mysql_query(
             "select tag from gametags where gameid = '$gameid'", $db);
-        for ($tags = array(), $j = 0, $tcnt = mysql_num_rows($tresult) ;
+        for ($tags = [], $j = 0, $tcnt = mysql_num_rows($tresult) ;
              $j < $tcnt ; $j++)
             $tags[] = mysql_result($tresult, $j, "tag");
 
@@ -2384,12 +2384,12 @@ else if (isset($_REQUEST['users'])) {
         // load the corresponding GAMETAGS list
         $tresult = mysql_query(
             "select tag from gametags where gameid = '$gameid'", $db);
-        for ($gametags = array(), $j = 0, $tcnt = mysql_num_rows($tresult) ;
+        for ($gametags = [], $j = 0, $tcnt = mysql_num_rows($tresult) ;
              $j < $tcnt ; $j++)
             $gametags[] = mysql_result($tresult, $j, "tag");
 
         // look for missing gametags entries
-        $missingTags = array();
+        $missingTags = [];
         foreach ($tags as $t) {
             if (!in_array($t, $gametags))
                 $missingTags[] = $t;
@@ -2418,7 +2418,7 @@ else if (isset($_REQUEST['users'])) {
 
     // fetch all the picture IDs
     $numImageDBs = (isLocalDev() ? 1 : 5);
-    for ($pix = array(), $i = 0 ; $i < $numImageDBs ; $i++) {
+    for ($pix = [], $i = 0 ; $i < $numImageDBs ; $i++) {
         $dbpix = imageDbConnect($i);
         $result = mysql_query("select id from images", $dbpix);
         for ($j = 0 ; $j < mysql_num_rows($result) ; $j++) {
@@ -2546,7 +2546,7 @@ else if (isset($_REQUEST['users'])) {
           join users as u on p.userid = u.id
         where p.picture is not null", $db);
     for ($i = 0 ; $i < mysql_num_rows($result) ; $i++) {
-        list($picuid, $picuname, $picfname, $picid) = mysql_fetch_row($result);
+        [$picuid, $picuname, $picfname, $picid] = mysql_fetch_row($result);
         $art = adjustImageName($picid);
         if (isset($pix[$art]))
             $pix[$art] += 1;
@@ -2608,8 +2608,8 @@ else if (isset($_REQUEST['users'])) {
          from filters", $db);
     echo mysql_error($db);
     for ($i = 0 ; $i < mysql_num_rows($result) ; $i++) {
-        list($filterID, $filterName, $ckBoxName, $showName,
-             $endDate, $filterType, $explanation) = mysql_fetch_row($result);
+        [$filterID, $filterName, $ckBoxName, $showName,
+         $endDate, $filterType, $explanation] = mysql_fetch_row($result);
 
         echo "<p><hr class=dots>"
             . "<b>Name:</b> $filterName<br>"
@@ -2643,8 +2643,8 @@ else if (isset($_REQUEST['users'])) {
              from filters
              where filterid = '$qFilterID'", $db);
         if (mysql_num_rows($result) > 0) {
-            list($filterID, $filterName, $ckBoxName, $showName, $endDate,
-                 $filterType, $explanation) = mysql_fetch_row($result);
+            [$filterID, $filterName, $ckBoxName, $showName, $endDate,
+             $filterType, $explanation] = mysql_fetch_row($result);
 
             echo "<p><b>Do you really want to delete this filter?</b><br><br>"
                 . "<b>Name:</b> $filterName<br>"
@@ -2686,8 +2686,8 @@ else if (isset($_REQUEST['users'])) {
              from filters
              where filterid = '$qFilterID'", $db);
         if (mysql_num_rows($result) > 0) {
-            list($filterName, $ckBoxName, $showName, $endDate, $filterType,
-                 $explanation) = mysql_fetch_row($result);
+            [$filterName, $ckBoxName, $showName, $endDate, $filterType,
+             $explanation] = mysql_fetch_row($result);
         } else {
             $errMsg = "Filter not found.";
         }
@@ -2928,7 +2928,7 @@ else if (isset($_REQUEST['users'])) {
     $phpVsn = phpversion();
 
     $result = mysql_query("select version();", $db);
-    list($mysqlVsn) = mysql_fetch_row($result);
+    [$mysqlVsn] = mysql_fetch_row($result);
 
     echo "System information:"
         . "<p>php version = $phpVsn"
@@ -3132,7 +3132,7 @@ else if (isset($_REQUEST['deletenews'])) {
 
     for ($i = 0 ; $i < mysql_num_rows($result) ; $i++)
     {
-        list($uid, $uname, $objtype, $objid, $objname) =
+        [$uid, $uname, $objtype, $objid, $objname] =
             mysql_fetch_row($result);
 
         if ($objtype == 'fmt') {
@@ -3406,7 +3406,7 @@ function backquote($str) { return "`$str`"; }
 function hilitemarks($str, $showcodes)
 {
     $ret = '';
-    $lst = array();
+    $lst = [];
     $inMark = false;
     for ($i = 0 ; $i < strlen($str) ; $i++) {
         $c = ord($str[$i]);
@@ -3420,7 +3420,7 @@ function hilitemarks($str, $showcodes)
             $ret .= "</span>";
             if ($showcodes)
                 $ret .= listmarks($lst);
-            $lst = array();
+            $lst = [];
             $inMark = false;
         }
         $ret .= $str[$i];

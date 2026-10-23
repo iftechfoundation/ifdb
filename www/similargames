@@ -142,20 +142,20 @@ $extraHead = '';
 if (!$errMsg) {
     $gameInfo = getGameInfo($db, $id, $curuser, $reqVersion, $errMsg, $errCode);
     if (!$errMsg) {
-        list($ifids, $title, $author, $authorExt,
-             $pubYear, $pubFull, $license,
-             $system, $desc, $rawDesc,
-             $hasart, $genre, $seriesname, $seriesnum,
-             $forgiveness, $bafsid, $version,
-             $language, $languageNameOnly,
-             $website, $links,
-             $ratingCntAvg, $ratingCntTot, $ratingAvg, $memberReviewCnt,
-             $currentUserRating, $currentUserReview,
-             $editedbyid, $editedbyname, $moddate, $moddate2, $pagevsn,
-             $moddatelatest,
-             $historyView,
-             $dlnotes, $extReviews, $extRevDisplayRank,
-             $ratingHisto, $xrefs, $inrefs, $flags) = $gameInfo;
+        [$ifids, $title, $author, $authorExt,
+         $pubYear, $pubFull, $license,
+         $system, $desc, $rawDesc,
+         $hasart, $genre, $seriesname, $seriesnum,
+         $forgiveness, $bafsid, $version,
+         $language, $languageNameOnly,
+         $website, $links,
+         $ratingCntAvg, $ratingCntTot, $ratingAvg, $memberReviewCnt,
+         $currentUserRating, $currentUserReview,
+         $editedbyid, $editedbyname, $moddate, $moddate2, $pagevsn,
+         $moddatelatest,
+         $historyView,
+         $dlnotes, $extReviews, $extRevDisplayRank,
+         $ratingHisto, $xrefs, $inrefs, $flags] = $gameInfo;
         $title = htmlspecialchars($title ?? '');
         $license = htmlspecialchars($license ?? '');
         $language = htmlspecialchars($language ?? '');
@@ -408,7 +408,7 @@ if ($errMsg) {
             } else if (strpos($found_genres_string, "/") !== false) {
                 $untrimmed_found_genres_array = explode("/", $found_genres_string);
             } else {
-                $untrimmed_found_genres_array = array($found_genres_string);
+                $untrimmed_found_genres_array = [$found_genres_string];
             }
             // Trim any whitespace around the genres
             $found_genres_array = array_map('trim', $untrimmed_found_genres_array);

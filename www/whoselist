@@ -34,16 +34,16 @@ if (mysql_num_rows($result) == 0) {
     $gauthor = "";
     $pageTitle = "Members Listing a Game";
 } else {
-    list($gtitle, $gauthor) = mysql_fetch_row($result);
+    [$gtitle, $gauthor] = mysql_fetch_row($result);
     $gtitle = htmlspecialcharx($gtitle);
     $gauthor = htmlspecialcharx($gauthor);
     $pageTitle = "Members Listing $gtitle";
 }
 
-$sortList = array(
-    'nam' => array('users.name', 'Sort by Name'),
-    'new' => array('date_added desc', 'Newest Additions First'),
-    'old' => array('date_added', 'Oldest Additions First'));
+$sortList = [
+    'nam' => ['users.name', 'Sort by Name'],
+    'new' => ['date_added desc', 'Newest Additions First'],
+    'old' => ['date_added', 'Oldest Additions First']];
 
 if ($listtype == "wishlist") {
     $listTable = "wishlists";
@@ -81,7 +81,7 @@ if ($errMsg) {
          where
            $listTable.gameid = '$qgameid'
            and locate('$privcode', users.publiclists) > 0", $db);
-    list($cnt) = mysql_fetch_row($result);
+    [$cnt] = mysql_fetch_row($result);
 
     if ($pg == 'all') {
         $pgAll = true;
@@ -130,7 +130,7 @@ if ($errMsg) {
     } else {
         // show the sorting controls
         showSortingControls("whoseorder", "sortby", $sortList, $sortReq,
-                            array("game" => $gameid, "type" => $listtype),
+                            ["game" => $gameid, "type" => $listtype],
                             "whoselist");
 
         // show where we are in the list
@@ -146,7 +146,7 @@ if ($errMsg) {
         // fetch and display each game on the list
         for ($i = 0 ; $i < mysql_num_rows($result) ; $i++) {
             // retrieve the result
-            list($uid, $uname, $upic, $dateAdded) = mysql_fetch_row($result);
+            [$uid, $uname, $upic, $dateAdded] = mysql_fetch_row($result);
             $uname = htmlspecialcharx($uname);
 
             // display the user information

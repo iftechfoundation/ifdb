@@ -15,7 +15,7 @@ else
     exit();
 
 $captchaKey = "editProfile.$usernum";
-list($captchaOK, $captchaErr) = captchaCheckPost($captchaKey);
+[$captchaOK, $captchaErr] = captchaCheckPost($captchaKey);
 
 // if there's an image upload, process that
 include "imageuploadhandler.php";
@@ -320,7 +320,7 @@ function saveChanges()
         if ($defaultOS == "")
             $qdefos = $qdefosvsn = "null";
         else
-            list($qdefos, $qdefosvsn) =
+            [$qdefos, $qdefosvsn] =
                 array_map("dbEscape", explode(".", $defaultOS));
 
         $qNoExes = (int)$noExes;
@@ -452,10 +452,10 @@ function saveChanges()
                 $newprostat = "R";
 
             // profile status code to name map
-            $proStatMap = array(
+            $proStatMap = [
                 "T" => "Trusted",
                 "R" => "Pending Review",
-                "" => "Normal");
+                "" => "Normal"];
 
             // Send email to the IFDB admin on any profile change.  Even
             // if the profile doesn't require review, we want to take a

@@ -26,7 +26,7 @@ if (!check_editing_privileges($db))
 $result = mysql_query(
     "select name, location, `privileges` from users
     where id = '$userid'", $db);
-list($username, $userloc, $userprivs) = mysql_fetch_row($result);
+[$username, $userloc, $userprivs] = mysql_fetch_row($result);
 $username = htmlspecialcharx($username);
 $userloc = htmlspecialcharx($userloc);
 $adminPriv =
@@ -35,7 +35,7 @@ $adminPriv =
 // no errors/status yet
 $errMsg = false;
 $succMsg = false;
-$errDetail = array();
+$errDetail = [];
 $saveErrMsg = false;
 $show = "form";
 $pageTitle = "Edit Competition";
@@ -51,68 +51,68 @@ define("TypeString", 2);
 define("TypeDate", 3);
 
 
-$fields = array(
-    array("Name", "title", 60,
-          "Name of the competition or awards event.  For an annual or "
-          . "other ongoing series, include the year, edition number "
-          . "(\"4th Annual\"), etc.",
-          null, TypeString),
+$fields = [
+    ["Name", "title", 60,
+     "Name of the competition or awards event.  For an annual or "
+     . "other ongoing series, include the year, edition number "
+     . "(\"4th Annual\"), etc.",
+     null, TypeString],
 
-    array("Series", "series", 60,
-          "If this event is repeated annually (or at other intervals), enter "
-          . "the series name here.  Be sure to enter the same series name "
-          . "on the pages for all of the other editions in the series - "
-          . "IFDB uses this to tie the series together",
-          null, TypeString),
+    ["Series", "series", 60,
+     "If this event is repeated annually (or at other intervals), enter "
+     . "the series name here.  Be sure to enter the same series name "
+     . "on the pages for all of the other editions in the series - "
+     . "IFDB uses this to tie the series together",
+     null, TypeString],
 
-    array("Description", "desc", 60,
-          "Overview of the competition: purpose, selection criteria, "
-          . "history, etc.  Be brief; leave the full details to the "
-          . "Comp's official Web site - "
-          . helpWinLink("help-formatting", "Formatting Hints"),
-          null, TypeString),
+    ["Description", "desc", 60,
+     "Overview of the competition: purpose, selection criteria, "
+     . "history, etc.  Be brief; leave the full details to the "
+     . "Comp's official Web site - "
+     . helpWinLink("help-formatting", "Formatting Hints"),
+     null, TypeString],
 
-    array("Keywords", "keywords", 60,
-          "Optional search keywords, separated by spaces; the search engine "
-          . "will match search terms to these words (as well as the title, "
-          . "series name, and description)",
-          null, TypeString),
+    ["Keywords", "keywords", 60,
+     "Optional search keywords, separated by spaces; the search engine "
+     . "will match search terms to these words (as well as the title, "
+     . "series name, and description)",
+     null, TypeString],
 
-    array("Web site", "url", 80,
-          "The competition's official web site, if it has one (http:// is "
-          . "assumed if not included)",
-          null, TypeString),
+    ["Web site", "url", 80,
+     "The competition's official web site, if it has one (http:// is "
+     . "assumed if not included)",
+     null, TypeString],
 
-    array("Organizers", "organizersExt", 80,
-          "The people who organize the competition - "
-          . "<a href=\"needjs\">"
-          . addEventListener("click", "aplOpen('organizersExt', 'Organizers'); return false;")
-          . "Link to profile</a>",
-          null, TypeString),
+    ["Organizers", "organizersExt", 80,
+     "The people who organize the competition - "
+     . "<a href=\"needjs\">"
+     . addEventListener("click", "aplOpen('organizersExt', 'Organizers'); return false;")
+     . "Link to profile</a>",
+     null, TypeString],
 
-    array("Judges", "judgesExt", 80,
-          "For a juried competition, the names of the judges - "
-          . "<a href=\"needjs\">"
-          . addEventListener("click", "aplOpen('judgesExt', 'Judges'); return false;")
-          . "Link to profile</a>",
-          null, TypeString),
+    ["Judges", "judgesExt", 80,
+     "For a juried competition, the names of the judges - "
+     . "<a href=\"needjs\">"
+     . addEventListener("click", "aplOpen('judgesExt', 'Judges'); return false;")
+     . "Link to profile</a>",
+     null, TypeString],
 
-    array("Opening date", "qualopen", 15,
-          "DD-MON-YYYY - The opening date of the qualification period; "
-          . "fill this in if games released over a specific period "
-          . "were eligible",
-          null, TypeDate),
+    ["Opening date", "qualopen", 15,
+     "DD-MON-YYYY - The opening date of the qualification period; "
+     . "fill this in if games released over a specific period "
+     . "were eligible",
+     null, TypeDate],
 
-    array("Closing date", "qualclose", 15,
-          "DD-MON-YYYY - The end of the qualifying period, or the "
-          . "deadline for submitting entries",
-          null, TypeDate),
+    ["Closing date", "qualclose", 15,
+     "DD-MON-YYYY - The end of the qualifying period, or the "
+     . "deadline for submitting entries",
+     null, TypeDate],
 
-    array("Award date", "awarddate", 15,
-          "DD-MON-YYYY (e.g., 16-Oct-2009) - The date the winners "
-          . "were announced",
-          null, TypeDate)
-);
+    ["Award date", "awarddate", 15,
+     "DD-MON-YYYY (e.g., 16-Oct-2009) - The date the winners "
+     . "were announced",
+     null, TypeDate]
+];
 
 // ------------------------------------------------------------------------
 //
@@ -124,20 +124,20 @@ $fields = array(
 $compID = mysql_real_escape_string(get_req_data("id"), $db);
 
 // If we're editing an existing entry, load the old record from the database
-$oldRec = array();
+$oldRec = [];
 if ($compID == "new") {
 
     // creating a new record
     $pageTitle = "New Competition/Awards Event";
 
     // set up the initial division list
-    $oldRec["divisions"] = array(
-        array("divid" => "-2",
-              "divname" => "Main",
-              "divdesc" => "This is the default division. For an event "
-                         . "in which all games are competing for the same "
-                         . "awards, simply list all games under this "
-                         . "division."));
+    $oldRec["divisions"] = [
+        ["divid" => "-2",
+         "divname" => "Main",
+         "divdesc" => "This is the default division. For an event "
+                    . "in which all games are competing for the same "
+                    . "awards, simply list all games under this "
+                    . "division."]];
 
 } else {
 
@@ -172,7 +172,7 @@ if ($compID == "new") {
              order by divno", $db);
 
         // fetch the division records
-        for ($i = 0, $divs = array() ; $i < mysql_num_rows($result) ; $i++)
+        for ($i = 0, $divs = [] ; $i < mysql_num_rows($result) ; $i++)
             $divs[] = mysql_fetch_array($result, MYSQL_ASSOC);
 
         // add the division list to the main record
@@ -192,7 +192,7 @@ if ($compID == "new") {
                c.divid, c.seqno", $db);
 
         // fetch the game list
-        for ($j = 0, $games = array() ; $j < mysql_num_rows($result) ;
+        for ($j = 0, $games = [] ; $j < mysql_num_rows($result) ;
              $j++)
             $games[] = mysql_fetch_array($result, MYSQL_ASSOC);
 
@@ -213,7 +213,7 @@ if ($compID == "new") {
 //   Load the posted form data, if this is a POST submission
 //
 
-$newRec = array();
+$newRec = [];
 if ($_SERVER['REQUEST_METHOD'] == "POST") {
 
     // load the fields from the parameters
@@ -236,14 +236,14 @@ if ($_SERVER['REQUEST_METHOD'] == "POST") {
     $nextNewDiv = -2;
 
     // load the division and games
-    for ($divs = array(), $i = 0 ; ; $i++) {
+    for ($divs = [], $i = 0 ; ; $i++) {
 
         // if we're out of divid# records, we're done
         if (!isset($_REQUEST["divid$i"]))
             break;
 
         // load this record
-        $div = array();
+        $div = [];
         $div["divid"] = $id = get_req_data("divid$i");
         $div["divname"] = get_req_data("divname$i");
         $div["divdesc"] = get_req_data("divdesc$i");
@@ -269,7 +269,7 @@ if ($_SERVER['REQUEST_METHOD'] == "POST") {
     }
 
     // make a map of the divisions by ID
-    for ($divMap = array(), $i = 0 ; $i < count($divs) ; $i++)
+    for ($divMap = [], $i = 0 ; $i < count($divs) ; $i++)
         $divMap[$divs[$i]["divid"]] = 1;
 
     // store the division list in the main record
@@ -277,7 +277,7 @@ if ($_SERVER['REQUEST_METHOD'] == "POST") {
 
     // Load the games.  First, try the grid format: for each division n,
     // there's a list of games with field suffixes like "n_m".
-    for ($games = array(), $i = 0 ; $i < count($divs) ; $i++)
+    for ($games = [], $i = 0 ; $i < count($divs) ; $i++)
     {
         // The games are divided into sets by division.  Each division
         // has a local index 0..Ndivs-1, and and within each division the
@@ -294,7 +294,7 @@ if ($_SERVER['REQUEST_METHOD'] == "POST") {
                 break;
 
             // load this game
-            $game = array();
+            $game = [];
             $game["divid"] = $divid = get_req_data("gamediv$idx");
             $game["gameid"] = get_req_data("gameid$idx");
             $game["place"] = get_req_data("gameplace$idx");
@@ -318,7 +318,7 @@ if ($_SERVER['REQUEST_METHOD'] == "POST") {
             break;
 
         // load this game
-        $game = array();
+        $game = [];
         $game["divid"] = $divid = get_req_data("gamediv$i");
         $game["gameid"] = get_req_data("gameid$i");
         $game["place"] = get_req_data("gameplace$i");
@@ -411,8 +411,8 @@ function calcDeltas($oldRec, $newRec)
     $f = $fields;
 
     // run through the fields and generate the list of differences
-    $changesOld = array();
-    $changesNew = array();
+    $changesOld = [];
+    $changesNew = [];
     for ($i = 0 ; $i < count($f) ; $i++) {
 
         // get the column descriptor
@@ -452,7 +452,7 @@ function calcDeltas($oldRec, $newRec)
     $oldDivs = $oldRec["divisions"];
     if (!arrayOfArrayValsEqual(
         $newDivs, $oldDivs,
-        array("divid", "divname", "divdesc"))) {
+        ["divid", "divname", "divdesc"])) {
         $changesNew["divisions"] = $newDivs;
         $changesOld["divisions"] = $oldDivs;
     }
@@ -462,13 +462,13 @@ function calcDeltas($oldRec, $newRec)
     $oldGames = $oldRec["games"];
     if (!arrayOfArrayValsEqual(
         $newGames, $oldGames,
-        array("divid", "gameid", "place"))) {
+        ["divid", "gameid", "place"])) {
         $changesNew["games"] = gameChangeArray($newGames);
         $changesOld["games"] = gameChangeArray($oldGames);
     }
 
     // return the changes
-    return array($changesOld, $changesNew);
+    return [$changesOld, $changesNew];
 }
 
 // Map a "games" array to the fields relevant for the change history.
@@ -478,11 +478,11 @@ function calcDeltas($oldRec, $newRec)
 // the database, though, so we filter them out here.
 function gameChangeArray($old)
 {
-    for ($new = array(), $i = 0 ; $i < count($old) ; $i++)
+    for ($new = [], $i = 0 ; $i < count($old) ; $i++)
     {
         // get the old record and set up a blank new one
         $o = $old[$i];
-        $n = array();
+        $n = [];
 
         // copy the relevant fields
         $n["divid"] = $o["divid"];
@@ -504,14 +504,14 @@ function valOrNull($val, $db)
 }
 
 // mapping from temporary division IDs for new insertions to real IDs
-$newDivID = array();
+$newDivID = [];
 
 // update the division list
 function saveDivisions($newDivs)
 {
     global $db, $compID, $newDivID;
 
-    $keepList = array();
+    $keepList = [];
     $result = true;
     for ($i = 0 ; $i < count($newDivs) ; $i++) {
 
@@ -565,7 +565,7 @@ function saveDivisions($newDivs)
                and divid not in ('$keepList')", $db);
     }
 
-    return array($result, $progress);
+    return [$result, $progress];
 }
 
 // save games
@@ -599,7 +599,7 @@ function saveGames($newGames)
               values ('$compID', '$divID', '$gameID', '$place', '$i')", $db);
     }
 
-    return array($result, $progress);
+    return [$result, $progress];
 }
 
 // save profile links
@@ -613,10 +613,10 @@ function saveProfileLinks($new, $role)
         "select userid from compprofilelinks
          where compid = '$compID' and role = '$role'", $db);
 
-    for ($i = 0, $old = array(), $oldMap = array() ;
+    for ($i = 0, $old = [], $oldMap = [] ;
          $i < mysql_num_rows($result) ; $i++)
     {
-        list($uid) = mysql_fetch_row($result);
+        [$uid] = mysql_fetch_row($result);
         $old[] = $uid;
         $oldMap[$uid] = 1;
     }
@@ -645,7 +645,7 @@ function saveProfileLinks($new, $role)
     }
 
     // return the status indication
-    return array($result, $progress);
+    return [$result, $progress];
 }
 
 // parse profile links
@@ -660,7 +660,7 @@ function parseProfileLinks(&$newRec, $field, &$errDetail)
     $newRec[$field] = preg_replace("/\s?\{[a-z0-9]+\}/i", "", $txt);
 
     // look for the profile link pattern
-    for ($ofs = 0, $proList = array() ;
+    for ($ofs = 0, $proList = [] ;
          preg_match("/\{([a-z0-9]+)\}/i", $txt, $match,
                     PREG_OFFSET_CAPTURE, $ofs) ; $ofs = $match[0][1]+1) {
         // pull out this match and add it to the list
@@ -729,18 +729,18 @@ function saveNew($newRec)
 
     // insert the divisions
     if ($result)
-        list($result, $progress) = saveDivisions($newRec["divisions"]);
+        [$result, $progress] = saveDivisions($newRec["divisions"]);
 
     // insert the games
     if ($result)
-        list($result, $progress) = saveGames($newRec["games"], false);
+        [$result, $progress] = saveGames($newRec["games"], false);
 
     // insert the profile links
     if ($result)
-        list($result, $progress) = saveProfileLinks(
+        [$result, $progress] = saveProfileLinks(
             $newRec["judges-links"], "J");
     if ($result)
-        list($result, $progress) = saveProfileLinks(
+        [$result, $progress] = saveProfileLinks(
             $newRec["organizers-links"], "O");
 
     // check what happened
@@ -767,7 +767,7 @@ function saveNew($newRec)
     }
 
     // return results
-    return array($result, $progress);
+    return [$result, $progress];
 }
 
 // update an existing listing
@@ -829,22 +829,22 @@ function saveUpdates($newRec, $oldRec, $changesNew, $changesOld)
 
     // insert the divisions
     if ($result)
-        list($result, $progress) = saveDivisions($newRec["divisions"]);
+        [$result, $progress] = saveDivisions($newRec["divisions"]);
 
     // insert the games
     if ($result)
-        list($result, $progress) = saveGames($newRec["games"], false);
+        [$result, $progress] = saveGames($newRec["games"], false);
 
     // insert the profile links
     if ($result)
-        list($result, $progress) = saveProfileLinks(
+        [$result, $progress] = saveProfileLinks(
             $newRec["judges-links"], "J");
     if ($result)
-        list($result, $progress) = saveProfileLinks(
+        [$result, $progress] = saveProfileLinks(
             $newRec["organizers-links"], "O");
 
     // return results
-    return array($result, $progress);
+    return [$result, $progress];
 }
 
 // save the form, if this is a Save submission
@@ -861,7 +861,7 @@ if (!$errMsg && isset($_REQUEST["save"])) {
             $errDetail["divisions"][] = "Please enter a name for each division.";
     }
 
-    $gameMissing = array();
+    $gameMissing = [];
     foreach ($newRec["games"] as $game) {
         $div = $game["divid"];
         if (!$game["gameid"] && !$gameMissing[$div]) {
@@ -896,12 +896,12 @@ if (!$errMsg && isset($_REQUEST["save"])) {
             if ($compID == "new") {
 
                 // save the new record
-                list($result, $progress) = saveNew($newRec);
+                [$result, $progress] = saveNew($newRec);
 
             } else {
 
                 // compute differences
-                list($changesOld, $changesNew) =
+                [$changesOld, $changesNew] =
                     calcDeltas($oldRec, $newRec);
 
                 // if we found anything different, save the updates
@@ -918,7 +918,7 @@ if (!$errMsg && isset($_REQUEST["save"])) {
                     $result = mysql_query(
                         "select pagevsn from competitions
                          where compid = '$compID'", $db);
-                    list($pagevsn) = mysql_fetch_row($result);
+                    [$pagevsn] = mysql_fetch_row($result);
 
                     if ($pagevsn != $newRec["pagevsn"]) {
                         $result = false;
@@ -944,7 +944,7 @@ if (!$errMsg && isset($_REQUEST["save"])) {
 
                 // if everything's good, do the update
                 if ($result) {
-                    list($result, $progress) = saveUpdates(
+                    [$result, $progress] = saveUpdates(
                         $newRec, $oldRec, $changesNew, $changesOld);
                 }
             }
@@ -987,7 +987,7 @@ if (!$errMsg && isset($_REQUEST["save"])) {
             $result = mysql_query(
                 "select pagevsn from competitions
                  where compid = '$compID'", $db);
-            list($newRec["pagevsn"]) = mysql_fetch_row($result);
+            [$newRec["pagevsn"]] = mysql_fetch_row($result);
 
             // use the updated post as the display record, too
             $dispRec = $newRec;
@@ -1119,7 +1119,7 @@ function showHiddenFields($which)
         for ($i = 0 ; $i < count($fields) ; $i++) {
 
             // decode this field descriptor
-            list($title, $colname, $len, $help, $vals, $dtyp) = $fields[$i];
+            [$title, $colname, $len, $help, $vals, $dtyp] = $fields[$i];
 
             // display the hidden field for it
             echo "<input type='hidden' name='$colname' value=\""
@@ -1388,9 +1388,9 @@ function divRowTpl(i, n, row)
     var combo = "<?php
 
         // build the standard list of place names
-        $vals = array(
+        $vals = [
             "Winner", "Nominee", "Entrant",
-            "Co-Winner", "Honorable Mention", "Runner-Up");
+            "Co-Winner", "Honorable Mention", "Runner-Up"];
         for ($i = 1 ; $i <= 50 ; $i++) {
             $m = $i % 10;
             $vals[] = $i . ($i > 10 && $i < 20 ? "th" :
@@ -1641,7 +1641,7 @@ function activateListeners(divno, model)
     for ($i = 0 ; $i < count($fields) ; $i++) {
 
         // decode this field descriptor
-        list($title, $colname, $len, $help, $vals, $dtyp) = $fields[$i];
+        [$title, $colname, $len, $help, $vals, $dtyp] = $fields[$i];
 
         // draw the label
         echo "<tr valign=top><td align=right><b>"

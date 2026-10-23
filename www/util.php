@@ -156,9 +156,9 @@ function is_utf8($str)
 function approx_utf8($str)
 {
     return str_replace(
-        array("\xE2\x80\x99", "\xC2\xB4", " \xEF\xBF\xBD ", "\xE2\x80\xA6",
-              "\xEF\xBF\xBDs"),
-        array("'", "'", " - ", "...", "'s"),
+        ["\xE2\x80\x99", "\xC2\xB4", " \xEF\xBF\xBD ", "\xE2\x80\xA6",
+         "\xEF\xBF\xBDs"],
+        ["'", "'", " - ", "...", "'s"],
         $str);
 }
 
@@ -266,7 +266,7 @@ function quoteSqlRLike($s)
 function jsSpecialChars($s)
 {
     $s = preg_replace("/[\\\"\']/", "\\\\$0", $s);
-    return str_replace(array("\r", "\n"), array("\\r", "\\n"), $s);
+    return str_replace(["\r", "\n"], ["\\r", "\\n"], $s);
 }
 
 // --------------------------------------------------------------------------
@@ -308,7 +308,7 @@ function generateTUID($db, $tableCol, $maxtries)
         foreach ($tableCol as $tc)
         {
             // get this table and column name
-            list($table, $col) = explode(".", $tc);
+            [$table, $col] = explode(".", $tc);
 
             // look for a row in $table with $col equal to this TUID value
             $result = mysql_query("select count(*) as c from `$table`
@@ -394,7 +394,7 @@ function sendImageLdesc($title, $imageID)
     if (count($parts) < 2) {
         exit("No image is available");
     }
-    list ($dbnum, $key) = $parts;
+    [$dbnum, $key] = $parts;
 
     // connect to the database encoded in the ID
     $db = imageDbConnect((int)$dbnum);
@@ -407,7 +407,7 @@ function sendImageLdesc($title, $imageID)
         "select
            copystat, copyright, userid, date_format(createdate, '%M %e, %Y')
          from images where id='$key'", $db);
-    list ($copystat, $copymsg, $userid, $created) = mysql_fetch_row($result);
+    [$copystat, $copymsg, $userid, $created] = mysql_fetch_row($result);
 
     $username = false;
     if ($userid) {
@@ -415,7 +415,7 @@ function sendImageLdesc($title, $imageID)
         $quid = mysql_real_escape_string($userid, $db);
         $result = mysql_query("select name from users where id='$quid'", $db);
         if (mysql_num_rows($result) > 0)
-            list($username) = mysql_fetch_row($result);
+            [$username] = mysql_fetch_row($result);
     }
 
     // send the page
@@ -484,7 +484,7 @@ function showStars($num, $allowEmpty = false)
     if ($stars === false) {
         return "";
     }
-    list($roundedNum, $starimg, $startxt) = $stars;
+    [$roundedNum, $starimg, $startxt] = $stars;
 
     // return the image string
     $result = "<span role='img' class='nobr' ";
@@ -528,27 +528,27 @@ function roundStars($num)
     if (isEmpty($num))
         return false;
     else if ($num < 0.25)
-        return array(0, "0", "0 Stars");
+        return [0, "0", "0 Stars"];
     else if ($num < 0.75)
-        return array(0.5, "0h", "&frac12; Stars");
+        return [0.5, "0h", "&frac12; Stars"];
     else if ($num < 1.25)
-        return array(1, "1", "1 Star");
+        return [1, "1", "1 Star"];
     else if ($num < 1.75)
-        return array(1.5, "1h", "1&frac12; Stars");
+        return [1.5, "1h", "1&frac12; Stars"];
     else if ($num < 2.25)
-        return array(2, "2", "2 Stars");
+        return [2, "2", "2 Stars"];
     else if ($num < 2.75)
-        return array(2.5, "2h", "2&frac12; Stars");
+        return [2.5, "2h", "2&frac12; Stars"];
     else if ($num < 3.25)
-        return array(3, "3", "3 Stars");
+        return [3, "3", "3 Stars"];
     else if ($num < 3.75)
-        return array(3.5, "3h", "3&frac12; Stars");
+        return [3.5, "3h", "3&frac12; Stars"];
     else if ($num < 4.25)
-        return array(4, "4", "4 Stars");
+        return [4, "4", "4 Stars"];
     else if ($num < 4.75)
-        return array(4.5, "4h", "4&frac12; Stars");
+        return [4.5, "4h", "4&frac12; Stars"];
     else
-        return array(5, "5", "5 Stars");
+        return [5, "5", "5 Stars"];
 }
 
 // -------------------------------------------------------------------------
@@ -701,7 +701,7 @@ function showSortingControls($formName, $dropName, $sortMap, $curSortBy,
 // equivalent of php5 array_fill_keys
 function valuesToKeys($arr, $val)
 {
-    $ret = array();
+    $ret = [];
     foreach ($arr as $v)
         $ret[$v] = $val;
     return $ret;
@@ -798,26 +798,26 @@ function fixDesc($desc, $specials = 0)
 
     // allowed tag list - we keep these tags as-is
     $allowedTags = valuesToKeys(
-        array('p', 'br',
-              'i', 'b', 'u', 'strong', 'em', 'hr',
-              'big', 'small', 'tt', 'sup', 'sub',
-              'cite', 'blockquote', 'code', 'pre',
-              'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
-              'ul', 'ol', 'li', 'dl', 'dt', 'dd'), 1);
+        ['p', 'br',
+         'i', 'b', 'u', 'strong', 'em', 'hr',
+         'big', 'small', 'tt', 'sup', 'sub',
+         'cite', 'blockquote', 'code', 'pre',
+         'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
+         'ul', 'ol', 'li', 'dl', 'dt', 'dd'], 1);
 
     // tags that trigger explicit line control mode
-    $lineTags = valuesToKeys(array('p', 'br'), 1);
+    $lineTags = valuesToKeys(['p', 'br'], 1);
 
     // non-stacking tags - these are either tags that aren't containers
     // (such as <br>), or that are containers but don't need to be
     // explicitly closed because they'll be closed implicitly by other
     // tags (e.g., <li> is implicitly closed by another <li> or by
     // the closing </ol> or </ul>)
-    $nonStackingTags = valuesToKeys(array('br', 'li', '-spoiler'), 1);
+    $nonStackingTags = valuesToKeys(['br', 'li', '-spoiler'], 1);
 
     // reformat for allowed tags and markup-specific characters
     $inAnchor = false;
-    $tagStack = array();
+    $tagStack = [];
     $tagSp = -1;
     for ($ofs = 0 ; $ofs < strlen($desc) ; $ofs++) {
         // check what we're looking at
@@ -1299,7 +1299,7 @@ function findEndTag($str, $tag, $ofs)
                         // it's a close tag - drop a nesting level; if our
                         // nesting level is already zero, we're done
                         if ($nesting-- == 0)
-                            return array($ofs, $gt + 1);
+                            return [$ofs, $gt + 1];
                     } else {
                         // it's an open tag - add a nesting level
                         $nesting++;
@@ -1380,8 +1380,8 @@ function summarizeHtml($str, $maxlen)
                 if (preg_match("/^\s*(p|br)\s*\/?\s*>/i", $nxt))
                 {
                     // stop here and return what we have so far
-                    return array(substr($str, 0, $ofs) . "...",
-                                 $outlen + 3, true);
+                    return [substr($str, 0, $ofs) . "...",
+                            $outlen + 3, true];
                 }
             }
             else if ($c == '&')
@@ -1435,15 +1435,15 @@ function summarizeHtml($str, $maxlen)
                 if ($outlen > $maxlen && $lastBrk)
                 {
                     // return the string truncated up to the last breakpoint
-                    return array(substr($str, 0, $lastBrk) . "...",
-                                 $outlen + 3, true);
+                    return [substr($str, 0, $lastBrk) . "...",
+                            $outlen + 3, true];
                 }
             }
         }
     }
 
     // didn't find a truncation point - return the whole string
-    return array($str, $outlen, false);
+    return [$str, $outlen, false];
 }
 
 
@@ -1485,7 +1485,7 @@ function check_editing_privileges($db)
         redirect_to_login_page();
         return false;
     }
-    list($acctstatus, $profilestatus, $sandbox) = mysql_fetch_row($result);
+    [$acctstatus, $profilestatus, $sandbox] = mysql_fetch_row($result);
 
     // don't allow editing if the user has been flagged as a troll
     if ($sandbox == 1) // troll sandbox
@@ -1571,7 +1571,7 @@ function getGameRatingsView($db)
     $curuser = $_SESSION['logged_in_as'] ?? '';
     if ($curuser) {
         $result = mysql_query("select sandbox from users where id='$curuser'", $db);
-        list($sandbox) = mysql_fetch_row($result);
+        [$sandbox] = mysql_fetch_row($result);
     }
 
     // figure the table based on the user's sandbox
@@ -1603,7 +1603,7 @@ function userScore($uid)
          from userScores_mv
          where userid = '$quid'", $db);
     if (mysql_num_rows($result) == 1)
-        list($score, $rscore, $reviewCount) = mysql_fetch_row($result);
+        [$score, $rscore, $reviewCount] = mysql_fetch_row($result);
     else
         $score = $rscore = $reviewCount = 0;
 
@@ -1631,7 +1631,7 @@ function userScore($uid)
         $rankName = false;
 
     // return the score and rank
-    return array($score, $rank, $rankName);
+    return [$score, $rank, $rankName];
 }
 
 //
@@ -1645,16 +1645,16 @@ function getUserScores($db, $n)
     $arr = getTopReviewers($db, $n);
 
     // build a lookup table by user ID
-    $tab = array();
+    $tab = [];
     for ($i = 0 ; $i < count($arr) ; $i++) {
 
         // decompose this record
         $rec = $arr[$i];
-        list($uid, $uanme, $score) = $rec;
+        [$uid, $uanme, $score] = $rec;
         $n = ($i < 10 ? 10 : ($i < 25 ? 25 : ($i < 50 ? 50 : ($i < 100 ? 100 : 0))));
         $badge = ($n ? "Top $n Reviewer" : false);
 
-        $tab[$uid] = array($score, $badge);
+        $tab[$uid] = [$score, $badge];
     }
 
     // return the table
@@ -1677,7 +1677,7 @@ function getTopReviewers($db, $n)
            limit 0, $n", $db);
 
     // fetch the rows
-    for ($i = 0, $nrows = mysql_num_rows($result), $arr = array() ;
+    for ($i = 0, $nrows = mysql_num_rows($result), $arr = [] ;
          $i < $n && $i < $nrows ; ++$i)
         $arr[] = mysql_fetch_row($result);
 
@@ -1744,7 +1744,7 @@ function getSortingPersonalName($name)
         return $name;
 
     // move the last element into first position, adding a comma
-    $names = array_merge(array($names[$c-1] . ","),
+    $names = array_merge([$names[$c-1] . ","],
                          array_slice($names, 0, $c-1));
 
     // put the name string back together and return the result
@@ -1818,7 +1818,7 @@ function showOSPopup($db, $fldName, $curOS, $flags)
 
     // show each OS.version combination
     for ($i = 0 ; $i < mysql_num_rows($result) ; $i++) {
-        list ($osid, $osname, $vsnname, $seq, $pri, $orderkey) =
+        [$osid, $osname, $vsnname, $seq, $pri, $orderkey] =
             mysql_fetch_row($result);
 
         if ($vsnname == "*")
@@ -1887,7 +1887,7 @@ function tentative_store_image($imageData, $imageFormat,
     // if we haven't already set up for tentative images, do so now
     if (!$tentativeImageList) {
         // set up our table of uncommitted images
-        $tentativeImageList = array();
+        $tentativeImageList = [];
 
         // register our callback
         register_shutdown_function("tentative_image_shutdown");
@@ -1930,7 +1930,7 @@ function update_image_copyright($id, $userid, $date,
     global $copyrightStatList;
 
     // parse the image ID:  <dbnum>:<image key>
-    list ($dbnum, $key) = explode(":", $id);
+    [$dbnum, $key] = explode(":", $id);
 
     // connect to the database encoded in the ID
     $db = imageDbConnect((int)$dbnum);
@@ -1946,7 +1946,7 @@ function update_image_copyright($id, $userid, $date,
     }
 
     // generate the SET clause
-    $vars = array();
+    $vars = [];
     if ($userid !== false)
         $vars[] = "userid = " . sqlStringOrNull($userid, $db);
     if ($date !== false)
@@ -1988,7 +1988,7 @@ function sqlStringOrNull($val, $db)
 function delete_image($imageID)
 {
     // parse the image ID:  <dbnum>:<image key>
-    list ($dbnum, $key) = explode(":", $imageID);
+    [$dbnum, $key] = explode(":", $imageID);
 
     // connect to the database encoded in the ID
     $db = imageDbConnect((int)$dbnum);
@@ -2116,21 +2116,21 @@ function arrayOfArrayValsEqual($a, $b, $keys)
 function validate_ttf($data)
 {
     // unpack the offset table
-    list($numTables, $vsn, $ohdr) = ttf_unpack_header($data);
+    [$numTables, $vsn, $ohdr] = ttf_unpack_header($data);
 
     // set up a list of valid IDs
-    $validIDs = array('cmap', 'head', 'hhea', 'hmtx', 'maxp', 'name',
-                      'OS/2', 'post', 'cvt ', 'fpgm', 'glyf', 'loca',
-                      'prep', 'CFF ', 'VORG', 'EBDT', 'EBLC', 'EBSC',
-                      'BASE', 'GDEF', 'GPOS', 'GSUB', 'JSTF', 'DSIG',
-                      'gasp', 'hdmx', 'kern', 'LTSH', 'PCLT', 'VDMX',
-                      'vhea', 'vmtx');
+    $validIDs = ['cmap', 'head', 'hhea', 'hmtx', 'maxp', 'name',
+                 'OS/2', 'post', 'cvt ', 'fpgm', 'glyf', 'loca',
+                 'prep', 'CFF ', 'VORG', 'EBDT', 'EBLC', 'EBSC',
+                 'BASE', 'GDEF', 'GPOS', 'GSUB', 'JSTF', 'DSIG',
+                 'gasp', 'hdmx', 'kern', 'LTSH', 'PCLT', 'VDMX',
+                 'vhea', 'vmtx'];
 
     // check the tables
     for ($i = 0 ; $i < $numTables ; $i++) {
 
         // unpack the table header
-        list($tid, $tsum, $tofs, $tlen) = ttf_unpack_dir($data, $i);
+        [$tid, $tsum, $tofs, $tlen] = ttf_unpack_dir($data, $i);
 
         // calculate the size of the table
         $tend = $tofs + 4*(int)((($tlen + 3) & ~3) / 4);
@@ -2186,14 +2186,14 @@ function validate_ttf($data)
 function ttf_family_name($data)
 {
     // unpack the offset table
-    list($numTables, $vsn, $ohdr) = ttf_unpack_header($data);
+    [$numTables, $vsn, $ohdr] = ttf_unpack_header($data);
     $vsnName = ($vsn == 0x4F54544f ? "OpenType" : "TrueType");
 
     // find the Naming table (tag 'name')
     for ($i = 0 ; $i < $numTables ; $i++) {
 
         // unpack the table header
-        list($tid, $tsum, $tofs, $tlen) = ttf_unpack_dir($data, $i);
+        [$tid, $tsum, $tofs, $tlen] = ttf_unpack_dir($data, $i);
 
         // if it's the naming table, parse it
         if ($tid == 'name') {
@@ -2202,7 +2202,7 @@ function ttf_family_name($data)
             $nameCnt = $b['cnt'];
 
             // scan the entries for names #1 (family name) and #2 (sub name)
-            $names = array();
+            $names = [];
             $storageOfs = $tofs + 6 + $nameCnt*12;
             for ($j = 0 ; $j < $nameCnt ; $j++) {
                 // parse out this name record
@@ -2248,7 +2248,7 @@ function ttf_unpack_header($data)
     $vsn = $ohdr['vsn'];
     $numTables = $ohdr['numTables'];
 
-    return array($numTables, $vsn, $ohdr);
+    return [$numTables, $vsn, $ohdr];
 }
 
 
@@ -2268,7 +2268,7 @@ function ttf_unpack_dir($data, $tblnum)
     $tlen = $thdr['len'];
 
     // return the data
-    return array($tid, $tsum, $tofs, $tlen);
+    return [$tid, $tsum, $tofs, $tlen];
 }
 
 // ------------------------------------------------------------------------
@@ -2356,7 +2356,7 @@ function validate_nonce($db, $id, $nonce, &$errmsg, $singleUse)
             {
                 $result = mysql_query(
                     "select hash from nonces where nonceid = '$qid'", $db);
-                list($qhash) = mysql_fetch_row($result);
+                [$qhash] = mysql_fetch_row($result);
             }
         }
         else
@@ -2748,7 +2748,7 @@ function x_http_get($url, $headersIn = null, &$headersOut = null,
         $headersOut = $msg[0];
 
         // make a table out of the header
-        $htab = array();
+        $htab = [];
         $hh = explode("\r\n", $headersOut);
         foreach ($hh as $hdr)
         {

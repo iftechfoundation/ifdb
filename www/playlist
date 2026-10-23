@@ -43,7 +43,7 @@ if (mysql_num_rows($result) == 0) {
     $his = "";
     $publiclists = "";
 } else {
-    list($username, $location, $publiclists) = mysql_fetch_row($result);
+    [$username, $location, $publiclists] = mysql_fetch_row($result);
     $usernamePoss = $username . "'s";
     $his = "this member's";
     $pageTitle = " for ". htmlspecialcharx($username);
@@ -103,15 +103,15 @@ if ($listTable && !$listJoin) {
                 .  " and $listTable.userid = '$quid'";
 }
 
-$sortList = array(
-    'ttl' => array('sort_title', 'Sort by Title'),
-    'auth' => array('sort_author', 'Sort by Author'),
-    'hiu' => array('urating desc', "$usernamePoss Highest Rating First"),
-    'lou' => array('urating', "$usernamePoss Lowest Rating First"),
-    'hi' => array('rating desc', 'Highest Average Rating First'),
-    'lo' => array('rating', 'Lowest Average Rating First'),
-    'new' => array("$listDate desc", 'Newest Additions First'),
-    'old' => array("$listDate", 'Oldest Additions First'));
+$sortList = [
+    'ttl' => ['sort_title', 'Sort by Title'],
+    'auth' => ['sort_author', 'Sort by Author'],
+    'hiu' => ['urating desc', "$usernamePoss Highest Rating First"],
+    'lou' => ['urating', "$usernamePoss Lowest Rating First"],
+    'hi' => ['rating desc', 'Highest Average Rating First'],
+    'lo' => ['rating', 'Lowest Average Rating First'],
+    'new' => ["$listDate desc", 'Newest Additions First'],
+    'old' => ["$listDate", 'Oldest Additions First']];
 
 // make sure the member allows other members to see this type of list
 if (!$errMsg && $uid && $uid != $curuser
@@ -186,7 +186,7 @@ if ($errMsg) {
 
     // get the total size of the result set
     $result2 = mysql_query("select found_rows()", $db);
-    list($cnt) = mysql_fetch_row($result2);
+    [$cnt] = mysql_fetch_row($result2);
 
     // figure how many pages that makes
     $lastPage = (int)floor(($cnt + $perPage - 1)/$perPage);
@@ -202,7 +202,7 @@ if ($errMsg) {
     } else {
         // show the sorting controls
         showSortingControls("rvworder", "sortby", $sortList, $sortReq,
-                            array("id" => $uid, "type" => $listtype),
+                            ["id" => $uid, "type" => $listtype],
                             "playlist");
 
         // show where we are in the list
@@ -232,7 +232,7 @@ if ($errMsg) {
             $title = htmlspecialcharx($rec['title']);
             $author = htmlspecialcharx($rec['author']);
             $author = collapsedAuthors($author);
-            list($desc, $desclen, $desctrun) = summarizeHtml($rec['desc'], 210);
+            [$desc, $desclen, $desctrun] = summarizeHtml($rec['desc'], 210);
             $desc = fixDesc($desc);
             $shouldHide = $rec['flags'] & FLAG_SHOULD_HIDE;
             $rating = $rec['rating'];

@@ -7,8 +7,8 @@ include_once "login-persist.php";
 function isNameSuffix($s)
 {
     return in_array(strtolower($s),
-                    array("jr", "jr.", "sr", "sr.", "phd", "ph.d.",
-                          "md", "m.d."));
+                    ["jr", "jr.", "sr", "sr.", "phd", "ph.d.",
+                     "md", "m.d."]);
 }
 
 function unNegate($w)
@@ -70,7 +70,7 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse, $count_all_
         // get my sandbox
         $mysandbox = 0;
         $result = mysql_query("select sandbox from users where id='$curuser'", $db);
-        list($mysandbox) = mysql_fetch_row($result);
+        [$mysandbox] = mysql_fetch_row($result);
         if ($mysandbox != 0)
             $sandbox = "(0,$mysandbox)";
     }
@@ -95,8 +95,8 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse, $count_all_
         //   [2] = true -> the match expression goes in the HAVING clause
         //         rather than the WHERE clause
         //
-        $specialMap = array(
-            "author:" => array("users.name", 0));
+        $specialMap = [
+            "author:" => ["users.name", 0]];
 
         // SELECT parameters for list search
         $selectList = "reclists.id as id,
@@ -122,8 +122,8 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse, $count_all_
     else if ($searchType == "poll")
     {
         // special keywords for polls
-        $specialMap = array(
-            "author:" => array("u.name", 0));
+        $specialMap = [
+            "author:" => ["u.name", 0]];
 
         // SELECT parameters for poll queries
         $selectList = "p.pollid as id,
@@ -151,9 +151,9 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse, $count_all_
     else if ($searchType == "member")
     {
         // special keywords for member search
-        $specialMap = array(
-            "location:" => array("location", 0),
-            "hyperlinks:" => array("/hyperlinks/", 99));
+        $specialMap = [
+            "location:" => ["location", 0],
+            "hyperlinks:" => ["/hyperlinks/", 99]];
 
         // SELECT parameters for member queries
         $selectList = "u.id as id,
@@ -180,15 +180,15 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse, $count_all_
     else if ($searchType == "comp")
     {
         // special keywords for competition searches
-        $specialMap = array(
-            "series:" => array("series", 0),
-            "year:" => array("date_format(awarddate, '%Y')", 1),
-            "organizer:" => array("organizers", 0),
-            "organizers:" => array("organizers", 0),
-            "judge:" => array("judges", 0),
-            "judges:" => array("judges", 0),
-            "#games:" => array("count(g.gameid)", 1, true),
-            "#divisions:" => array("count(d.divid)", 1, true));
+        $specialMap = [
+            "series:" => ["series", 0],
+            "year:" => ["date_format(awarddate, '%Y')", 1],
+            "organizer:" => ["organizers", 0],
+            "organizers:" => ["organizers", 0],
+            "judge:" => ["judges", 0],
+            "judges:" => ["judges", 0],
+            "#games:" => ["count(g.gameid)", 1, true],
+            "#divisions:" => ["count(d.divid)", 1, true]];
 
         $selectList = "c.compid as compid,
                        c.title as title,
@@ -228,34 +228,34 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse, $count_all_
     else
     {
         // special keywords for game search:  "keyword:" => descriptor
-        $specialMap = array(
-            "genre:" => array("genre", 0),
-            "published:" => array("published", 4),
-            "added:" => array("created", 4),
-            "system:" => array("system", 0),
-            "series:" => array("seriesname", 0),
-            "tag:" => array("tags", 5),
-            "bafs:" => array("bafsid", 2),
-            "rating:" => array("avgRating", 1, true),
-            "#reviews:" => array("numMemberReviews",1, true),
-            "ratingdev:" => array("stdDevRating", 1, true),
-            "#ratings:" => array("numRatingsInAvg", 1, true),
-            "forgiveness:" => array("forgiveness", 0),
-            "language:" => array("language", 99),
-            "author:" => array("author", 99),
-            "authorid:" => array("authorid", 99),
-            "ifid:" => array("/ifid/", 99),
-            "tuid:" => array("/tuid/", 99),
-            "downloadable:" => array("/downloadable/", 99),
-            "playtime:" => array("rounded_median_time_in_minutes", 99),
-            "played:" => array("played", 99),
-            "willplay:" => array("willplay", 99),
-            "wontplay:" => array("wontplay", 99),
-            "reviewed:" => array("reviewed", 99),
-            "rated:" => array("rated", 99),
-            "license:" => array("license", 0),
-            "competitionid:" => array("competitionid", 99),
-            "format:" => array("/gameformat/", 99));
+        $specialMap = [
+            "genre:" => ["genre", 0],
+            "published:" => ["published", 4],
+            "added:" => ["created", 4],
+            "system:" => ["system", 0],
+            "series:" => ["seriesname", 0],
+            "tag:" => ["tags", 5],
+            "bafs:" => ["bafsid", 2],
+            "rating:" => ["avgRating", 1, true],
+            "#reviews:" => ["numMemberReviews",1, true],
+            "ratingdev:" => ["stdDevRating", 1, true],
+            "#ratings:" => ["numRatingsInAvg", 1, true],
+            "forgiveness:" => ["forgiveness", 0],
+            "language:" => ["language", 99],
+            "author:" => ["author", 99],
+            "authorid:" => ["authorid", 99],
+            "ifid:" => ["/ifid/", 99],
+            "tuid:" => ["/tuid/", 99],
+            "downloadable:" => ["/downloadable/", 99],
+            "playtime:" => ["rounded_median_time_in_minutes", 99],
+            "played:" => ["played", 99],
+            "willplay:" => ["willplay", 99],
+            "wontplay:" => ["wontplay", 99],
+            "reviewed:" => ["reviewed", 99],
+            "rated:" => ["rated", 99],
+            "license:" => ["license", 0],
+            "competitionid:" => ["competitionid", 99],
+            "format:" => ["/gameformat/", 99]];
 
 
         // SELECT parameters for game queries
@@ -299,8 +299,8 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse, $count_all_
     }
 
     // parse the search
-    for ($ofs = 0, $len = strlen($term), $words = array(),
-         $specials = array(), $specialsUsed = array() ; ; $ofs++)
+    for ($ofs = 0, $len = strlen($term), $words = [],
+         $specials = [], $specialsUsed = [] ; ; $ofs++)
     {
         // skip spaces
         if (!preg_match("/\S/", $term, $m, PREG_OFFSET_CAPTURE, $ofs))
@@ -350,7 +350,7 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse, $count_all_
             // element [0] giving the special descriptor, [1] giving
             // the search text, and [2] giving special flags (e.g.,
             // negation)
-            $specials[] = array($specialMap[$m], "", $match[1]);
+            $specials[] = [$specialMap[$m], "", $match[1]];
 
             // note that we've used this special item
             $specialsUsed[$m] = true;
@@ -442,7 +442,7 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse, $count_all_
     }
 
     // add the specials
-    $extraJoins = array();
+    $extraJoins = [];
     foreach ($specials as $s)
     {
         // pull out the descriptor and search text
@@ -768,7 +768,7 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse, $count_all_
                     $qtxt = mysql_real_escape_string(quoteSqlLike($txt), $db);
                     $expr = "(language rlike '(^|[, ]){$qtxt}[[:>:]]'";
                     for ($i = 0 ; $i < mysql_num_rows($result) ; $i++) {
-                        list($cl) = mysql_fetch_row($result);
+                        [$cl] = mysql_fetch_row($result);
                         if ($cl)
                             $expr .= " or language rlike '(^|[, ]){$cl}[[:>:]]'";
                     }
@@ -847,46 +847,46 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse, $count_all_
     {
     case "game":
         if ($browse) {
-            $sortList = array(
-                'ratu' => array('starsort desc,',
-                                'Highest Rated First'),
-                'ratd' => array('starsort,',
-                                'Lowest Rated First'),
-                'lnew' => array('games.created desc,', 'Newest Listing First'),
-                'lold' => array('games.created,', 'Oldest Listing First'),
-                'rcu' => array('ratingcnt desc, starsort desc,',
-                               'Most Ratings First'),
-                'rcd' => array('ratingcnt, starsort desc,',
-                               'Fewest Ratings First'),
-                'ttl' => array('sort_title,', 'Sort by Title'),
-                'auth' => array('sort_author,', 'Sort by Author'),
-                'pnew' => array('published desc,', 'Latest Publication First'),
-                'pold' => array('sort_pub,', 'Earliest Publication First'),
-                'long'  => array('rounded_median_time_in_minutes desc, starsort desc,', 'Longest First'),
-                'short' => array('-rounded_median_time_in_minutes desc, starsort desc,', 'Shortest First'),
-                'rand' => array('rand(),', 'Random Order'));
+            $sortList = [
+                'ratu' => ['starsort desc,',
+                                'Highest Rated First'],
+                'ratd' => ['starsort,',
+                                'Lowest Rated First'],
+                'lnew' => ['games.created desc,', 'Newest Listing First'],
+                'lold' => ['games.created,', 'Oldest Listing First'],
+                'rcu' => ['ratingcnt desc, starsort desc,',
+                               'Most Ratings First'],
+                'rcd' => ['ratingcnt, starsort desc,',
+                               'Fewest Ratings First'],
+                'ttl' => ['sort_title,', 'Sort by Title'],
+                'auth' => ['sort_author,', 'Sort by Author'],
+                'pnew' => ['published desc,', 'Latest Publication First'],
+                'pold' => ['sort_pub,', 'Earliest Publication First'],
+                'long'  => ['rounded_median_time_in_minutes desc, starsort desc,', 'Longest First'],
+                'short' => ['-rounded_median_time_in_minutes desc, starsort desc,', 'Shortest First'],
+                'rand' => ['rand(),', 'Random Order']];
             $defSortBy = 'ratu';
         } else {
-            $sortList = array(
-                'ratu' => array('starsort desc,', 'Highest Rated First'),
-                'ratd' => array('starsort,', 'Lowest Rated First'),
-                'lnew' => array('games.created desc,', 'Newest Listing First'),
-                'lold' => array('games.created,', 'Oldest Listing First'),
-                'ttl' => array('sort_title,', 'Sort by Title'),
-                'auth' => array('sort_author,', 'Sort by Author'),
-                'rcu' => array('ratingcnt desc, starsort desc,',
-                               'Most Ratings First'),
-                'rcd' => array('ratingcnt, starsort desc,',
-                               'Fewest Ratings First'),
-                'rsdu' => array('ratingdev desc, starsort desc,',
-                                'Rating Deviation - High to Low'),
-                'rsdd' => array('ratingdev, starsort desc,',
-                                'Rating Deviation - Low to High'),
-                'new' => array('published desc,', 'Latest Publication First'),
-                'old' => array('sort_pub,', 'Earliest Publication First'),
-                'long'  => array('rounded_median_time_in_minutes desc, starsort desc,', 'Longest First'),
-                'short' => array('-rounded_median_time_in_minutes desc, starsort desc,', 'Shortest First'),
-                'rand' => array('rand(),', 'Random Order'));
+            $sortList = [
+                'ratu' => ['starsort desc,', 'Highest Rated First'],
+                'ratd' => ['starsort,', 'Lowest Rated First'],
+                'lnew' => ['games.created desc,', 'Newest Listing First'],
+                'lold' => ['games.created,', 'Oldest Listing First'],
+                'ttl' => ['sort_title,', 'Sort by Title'],
+                'auth' => ['sort_author,', 'Sort by Author'],
+                'rcu' => ['ratingcnt desc, starsort desc,',
+                               'Most Ratings First'],
+                'rcd' => ['ratingcnt, starsort desc,',
+                               'Fewest Ratings First'],
+                'rsdu' => ['ratingdev desc, starsort desc,',
+                                'Rating Deviation - High to Low'],
+                'rsdd' => ['ratingdev, starsort desc,',
+                                'Rating Deviation - Low to High'],
+                'new' => ['published desc,', 'Latest Publication First'],
+                'old' => ['sort_pub,', 'Earliest Publication First'],
+                'long'  => ['rounded_median_time_in_minutes desc, starsort desc,', 'Longest First'],
+                'short' => ['-rounded_median_time_in_minutes desc, starsort desc,', 'Shortest First'],
+                'rand' => ['rand(),', 'Random Order']];
             if (count($words)) {
                 $defSortBy = 'rel';
             } else {
@@ -901,54 +901,54 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse, $count_all_
         break;
 
     case "list":
-        $sortList = array(
-            'new' => array('moddate desc,', 'Newest First'),
-            'old' => array('moddate,', 'Oldest First'),
-            'ttl' => array('title,', 'Sort by List Title'),
-            'usr' => array('username,', 'Sort by List Author'),
-            'rand' => array('rand(),', 'Random Order'));
+        $sortList = [
+            'new' => ['moddate desc,', 'Newest First'],
+            'old' => ['moddate,', 'Oldest First'],
+            'ttl' => ['title,', 'Sort by List Title'],
+            'usr' => ['username,', 'Sort by List Author'],
+            'rand' => ['rand(),', 'Random Order']];
         $defSortBy = 'new';
         break;
 
     case "poll":
-        $sortList = array(
-            'new' => array('p.created desc,', 'Newest First'),
-            'old' => array('p.created,', 'Oldest First'),
-            'ttl' => array('title,', 'Sort by Poll Title'),
-            'usr' => array('username,', 'Sort by Poll Author'),
-            'newvote' => array('votedate desc,', 'Latest Vote First'),
-            'oldvote' => array('votedate,', 'Longest Since Last Vote First'),
-            'votes' => array('votecnt desc,', 'Most Votes First'),
-            'votesd' => array('votecnt,', 'Least Votes First'),
-            'games' => array('gamecnt desc,', 'Most Games First'),
-            'gamesd' => array('gamecnt,', 'Least Games First'),
-            'rand' => array('rand(),', 'Random Order'));
+        $sortList = [
+            'new' => ['p.created desc,', 'Newest First'],
+            'old' => ['p.created,', 'Oldest First'],
+            'ttl' => ['title,', 'Sort by Poll Title'],
+            'usr' => ['username,', 'Sort by Poll Author'],
+            'newvote' => ['votedate desc,', 'Latest Vote First'],
+            'oldvote' => ['votedate,', 'Longest Since Last Vote First'],
+            'votes' => ['votecnt desc,', 'Most Votes First'],
+            'votesd' => ['votecnt,', 'Least Votes First'],
+            'games' => ['gamecnt desc,', 'Most Games First'],
+            'gamesd' => ['gamecnt,', 'Least Games First'],
+            'rand' => ['rand(),', 'Random Order']];
         $defSortBy = 'new';
         break;
 
     case "member":
-        $sortList = array(
-            'ffpts' => array('userScores_mv.score desc,',
-                             'Highest Frequent Fiction First'),
-            'ffrank' => array('userScores_mv.rankingScore desc,',
-                              'Top Reviewer Status First'),
-            'nm' => array('name,', 'Sort by Name'),
-            'loc' => array('location,', 'Sort by Location'),
-            'new' => array('created desc,', 'Newest First'),
-            'old' => array('created,', 'Oldest First'),
-            'rand' => array('rand(),', 'Random Order'));
+        $sortList = [
+            'ffpts' => ['userScores_mv.score desc,',
+                        'Highest Frequent Fiction First'],
+            'ffrank' => ['userScores_mv.rankingScore desc,',
+                         'Top Reviewer Status First'],
+            'nm' => ['name,', 'Sort by Name'],
+            'loc' => ['location,', 'Sort by Location'],
+            'new' => ['created desc,', 'Newest First'],
+            'old' => ['created,', 'Oldest First'],
+            'rand' => ['rand(),', 'Random Order']];
         $defSortBy = 'ffpts';
         break;
 
     case "comp":
-        $sortList = array(
-            'awn' => array('ifnull(c.awarddate, c.qualclose) desc,', 'Newest First'),
-            'awo' => array('ifnull(c.awarddate, c.qualclose),', 'Oldest First'),
-            'nm' => array('lower(c.title),', 'Sort by Name'),
-            'numgd' => array('count(g.gameid) desc,', 'Most Entries First'),
-            'numgu' => array('count(g.gameid),', 'Fewest Entries First'),
-            'org' => array('lower(c.organizers),', 'Sort by Organizer Name'),
-            'rand' => array('rand(),', 'Random Order'));
+        $sortList = [
+            'awn' => ['ifnull(c.awarddate, c.qualclose) desc,', 'Newest First'],
+            'awo' => ['ifnull(c.awarddate, c.qualclose),', 'Oldest First'],
+            'nm' => ['lower(c.title),', 'Sort by Name'],
+            'numgd' => ['count(g.gameid) desc,', 'Most Entries First'],
+            'numgu' => ['count(g.gameid),', 'Fewest Entries First'],
+            'org' => ['lower(c.organizers),', 'Sort by Organizer Name'],
+            'rand' => ['rand(),', 'Random Order']];
         $defSortBy = 'awn';
         break;
 
@@ -962,13 +962,13 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse, $count_all_
         break;
 
     default:
-        $sortList = array();
+        $sortList = [];
         break;
     }
 
     // add Relevance as a sort option if doing a search with terms
     if (!$browse && count($words)) {
-        $sortList = array('rel' => array('', 'Sort by Relevance'))
+        $sortList = ['rel' => ['', 'Sort by Relevance']]
                     + $sortList;
         $defSortBy = 'rel';
     }
@@ -1115,7 +1115,7 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse, $count_all_
     $errMsg = false;
     if ($result) {
         // fetch the results
-        for ($rows = array(), $i = 0 ; $i < mysql_num_rows($result) ; $i++)
+        for ($rows = [], $i = 0 ; $i < mysql_num_rows($result) ; $i++)
             $rows[] = mysql_fetch_array($result, MYSQL_ASSOC);
 
 //        foreach ($rows as $row) {                 // DIAGNOSTICS
@@ -1139,7 +1139,7 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse, $count_all_
         }
 
     } else {
-        $rows = array();
+        $rows = [];
         $rowcnt = 0;
         $errMsg = "<p><span class=errmsg>"
                   . "An error occurred searching the database.</span><p>";
@@ -1151,8 +1151,8 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse, $count_all_
     }
 
     // return the results
-    return array($rows, $rowcnt, $sortList, $errMsg, $summaryDesc,
-                 $badges, $specials, $specialsUsed, $orderBy);
+    return [$rows, $rowcnt, $sortList, $errMsg, $summaryDesc,
+            $badges, $specials, $specialsUsed, $orderBy];
 }
 
 ?>

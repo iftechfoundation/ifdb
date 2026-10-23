@@ -42,14 +42,14 @@ $result = mysql_query(
     "select name, gender from users
      where id = '$qTargetUser'", $db);
 $foundUser = mysql_num_rows($result);
-list($targetUserName, $gender) = mysql_fetch_row($result);
+[$targetUserName, $gender] = mysql_fetch_row($result);
 
 // check for an existing filter
 $result = mysql_query(
     "select filtertype from userfilters
      where userid = '$curuser' and targetuserid = '$qTargetUser'", $db);
-list($oldFilter) = mysql_fetch_row($result);
-$filterNames = array('P' => "promote", 'D' => "demote", 'K' => "mute");
+[$oldFilter] = mysql_fetch_row($result);
+$filterNames = ['P' => "promote", 'D' => "demote", 'K' => "mute"];
 $oldFilterName = ($oldFilter ? $filterNames[$oldFilter] : false);
 
 $userl = "<a href=\"showuser?id=$targetUser\">$targetUserName</a>";
@@ -244,11 +244,11 @@ if ($showList) {
     } else {
         echo "You have created filters for the following members:";
 
-        $typeMap = array('P' => 'Promoted',
-                         'D' => 'Demoted',
-                         'K' => 'Muted');
+        $typeMap = ['P' => 'Promoted',
+                    'D' => 'Demoted',
+                    'K' => 'Muted'];
         for ($i = 0 ; $i < $rowcnt ; $i++) {
-            list($fuid, $funame, $ftype) = mysql_fetch_row($result);
+            [$fuid, $funame, $ftype] = mysql_fetch_row($result);
             $funame = htmlspecialcharx($funame);
             $ftypename = $typeMap[$ftype];
 

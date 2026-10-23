@@ -79,7 +79,7 @@ if (preg_match("/^css\/ifdb\.css$/", $fname, $match)) {
          where userid = '$userid' and stylesheetid = '$ssid'", $db);
     if (mysql_num_rows($result) != 0) {
         // fetch the row
-        list($contents, $mtime) = mysql_fetch_row($result);
+        [$contents, $mtime] = mysql_fetch_row($result);
 
         // use the later of the stylesheet modified time or the ifdb.css
         // modified time, since it might include ifdb.css
