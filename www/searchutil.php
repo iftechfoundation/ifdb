@@ -726,7 +726,7 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse, $count_all_
                     if (count($nl) >= 2 && $nl[1] !== '') {
                         $expr .= " or author rlike '[[:<:]]"
                                  . mysql_real_escape_string(
-                                     quoteSqlRLike($nl[1][0]), $db)
+                                     quoteSqlRLike(mb_substr($nl[1], 0, 1)), $db)
                                  . ".*[[:space:]]+"
                                  . mysql_real_escape_string(
                                      quoteSqlRLike($nl[0]), $db)

@@ -8,10 +8,10 @@ include_once "session-start.php";
 // read the activation code
 $errFlagged = false;
 $activated = false;
-$actcode = $_REQUEST['a'];
-$email = $_REQUEST['userid'];
-$psw = $_REQUEST['password'];
-$psw2 = $_REQUEST['password2'];
+$actcode = $_REQUEST['a'] ?? '';
+$email = $_REQUEST['userid'] ?? '';
+$psw = $_REQUEST['password'] ?? '';
+$psw2 = $_REQUEST['password2'] ?? '';
 
 // verifier function
 function verify() {
