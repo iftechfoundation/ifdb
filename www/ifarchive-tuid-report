@@ -88,6 +88,7 @@ $db = dbConnect();
 
 $output = [];
 foreach($tuids as $tuid => $path) {
+    $description = $file_descriptions[$path] ?? '';
     // normalize the path using URL normalizer. First we make it an absolute URL, normalize it, then we strip the absolute part off
     $ifarchive_host = "https://ifarchive.org/";
     $path = substr((new URL\Normalizer($ifarchive_host . $path))->normalize(), strlen($ifarchive_host));
@@ -108,7 +109,7 @@ foreach($tuids as $tuid => $path) {
             "tuid" => $tuid,
             "title" => $title,
             "path" => $path,
-            "description" => $file_descriptions[$path],
+            "description" => $description,
         ];
     }
 }
