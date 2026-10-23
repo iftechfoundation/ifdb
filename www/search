@@ -248,7 +248,10 @@ foreach (SEARCH_TYPES as $browseParam => $browseName) {
     break;
 }
 
-$pg = isset($_REQUEST['pg']) ? $_REQUEST['pg'] : "";
+$pg = $_REQUEST['pg'] ?? "";
+if (!is_scalar($pg)) {
+    $pg = "";
+}
 $pgAll = false;
 $perPage = 100;
 $showAllMaxRows = 500;
@@ -278,6 +281,7 @@ if ($pg == 'all') {
 } else {
 
     // we can't be at a page number less than 1
+    $pg = (int)$pg;
     if ($pg < 1)
         $pg = 1;
 
