@@ -24,7 +24,7 @@ $rss = isset($_REQUEST['rss']);
 // comment), 'reviews' means all postings in reviews written by this
 // user, 'comments' means postings by this user.
 $mode = get_req_data('mode');
-if (array_search($mode, array('subscribed', 'reviews', 'comments')) === false)
+if (array_search($mode, ['subscribed', 'reviews', 'comments']) === false)
     $mode = 'subscribed';
 
 // get the page number
@@ -54,7 +54,7 @@ if (!$userid || mysql_num_rows($result) == 0) {
 }
 
 // fetch the target user's name
-list($username, $gender) = mysql_fetch_row($result);
+[$username, $gender] = mysql_fetch_row($result);
 $username = htmlspecialchars($username);
 
 // set up the query based on the mode
@@ -121,7 +121,7 @@ $result = mysql_query($query, $db);
 
 // get the count
 $result2 = mysql_query("select found_rows()", $db);
-list($rowcnt) = mysql_fetch_row($result2);
+[$rowcnt] = mysql_fetch_row($result2);
 
 // show the results
 if ($rss) {
@@ -148,10 +148,10 @@ if ($rss) {
     // show the items
     for ($i = 0 ; $i < $rowcnt ; $i++) {
         // fetch the next row
-        list($cid, $rid, $ctxt, $ccreDT, $ccre, $cmodDT, $cmod,
-             $cuid, $cuname,
-             $ruid, $runame,
-             $gid, $gtitle) = mysql_fetch_row($result);
+        [$cid, $rid, $ctxt, $ccreDT, $ccre, $cmodDT, $cmod,
+         $cuid, $cuname,
+         $ruid, $runame,
+         $gid, $gtitle] = mysql_fetch_row($result);
 
         // html-ify some of the items
         $cuname = htmlspecialchars($cuname);
@@ -160,7 +160,7 @@ if ($rss) {
 
         // set up the XML data
         $title = "$cuname comments on $runame's review of $gtitle";
-        list($desc, $len, $trunc) = summarizeHtml($ctxt, 210);
+        [$desc, $len, $trunc] = summarizeHtml($ctxt, 210);
         $desc = fixDesc($desc, FixDescSpoiler | FixDescRSS);
         $pubDate = date("D, j M Y H:i:s ", strtotime($ccreDT)) . 'UT';
         $link = get_root_url() . "viewgame?id=$gid&review=$rid";
@@ -259,17 +259,17 @@ if ($rss) {
     // show the page
     for ($i = $firstOnPage ; $i <= $lastOnPage ; $i++) {
         // fetch the next row
-        list($cid, $rid, $ctxt, $ccreDT, $ccre, $cmodDT, $cmod,
-             $cuid, $cuname,
-             $ruid, $runame,
-             $gid, $gtitle) = mysql_fetch_row($result);
+        [$cid, $rid, $ctxt, $ccreDT, $ccre, $cmodDT, $cmod,
+         $cuid, $cuname,
+         $ruid, $runame,
+         $gid, $gtitle] = mysql_fetch_row($result);
 
         // html-ify some of the items
         $cuname = htmlspecialchars($cuname);
         $runame = htmlspecialchars($runame);
         $gtitle = htmlspecialchars($gtitle);
 
-        list($ctxt, $len, $trunc) = summarizeHtml($ctxt, 210);
+        [$ctxt, $len, $trunc] = summarizeHtml($ctxt, 210);
         $ctxt = fixDesc($ctxt, FixDescSpoiler);
 
         // display it

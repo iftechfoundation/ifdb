@@ -18,7 +18,7 @@ if (!logged_in())
 
 $userid = $_SESSION['logged_in_as'];
 $errMsg = false;
-$errDetail = array();
+$errDetail = [];
 $saveErrMsg = false;
 $pagetitle = "Edit Game Details";
 
@@ -66,7 +66,7 @@ if (isset($_REQUEST['search']))
     {
         // run the search
         $count_all_possible_rows = false;
-        list($rows, $rowcnt, $sortList, $errMsg) =
+        [$rows, $rowcnt, $sortList, $errMsg] =
             doSearch($db, $searchFor, "game", "rel", "limit 0, 10", false, 
                     $count_all_possible_rows);
 
@@ -201,12 +201,12 @@ function init()
     if ($id == "new")
     {
         // there's no existing game data yet, obviously
-        $rec = array();
+        $rec = [];
     }
     else
     {
         // we're editing an existing game - look it up
-        list($rec, $errMsg) = loadGameRecord($db, $qid);
+        [$rec, $errMsg] = loadGameRecord($db, $qid);
     }
 
     // initialize the link format list and map
@@ -222,12 +222,12 @@ function init()
         order by
            osname, seq", $db);
     $rows = mysql_num_rows($result);
-    $oslist = array();
+    $oslist = [];
     for ($i = 0 ; $i < $rows ; $i++)
         $oslist[] = mysql_fetch_array($result, MYSQL_ASSOC);
 
     // build a map for the OSes keyed by "osid.osversion"
-    $osmap = array();
+    $osmap = [];
     foreach ($oslist as $os)
         $osmap[$os['id'] . '.' . $os['vsnid']] =
             ($os['vsnname'] == "" ? $os['osname'] : $os['vsnname']);
@@ -378,7 +378,7 @@ if ($errMsg) {
         && !isset($_REQUEST['discard'])) {
 
         // loop over the field descriptors and reload each from the request
-        $req = array();
+        $req = [];
         for ($i = 0 ; $i < count($fields) ; $i++) {
             // get this field descriptor
             $field = $fields[$i];
@@ -401,13 +401,13 @@ if ($errMsg) {
         // copy the download links from the request - this is a little more
         // complicated because we have an array of these, which we name
         // (linkurl0, linkfmt0, linkos0, linkosvsn0,...), (linkurl1, ...), etc
-        for ($links = array(), $i = 0 ; ; $i++) {
+        for ($links = [], $i = 0 ; ; $i++) {
             // if we've run out of linkurlN values, there are no more rows
             if (!isset($_POST["linkurl$i"]))
                 break;
 
             // load up this record
-            $link = array();
+            $link = [];
             $link['url'] = get_req_data("linkurl$i");
             $link['title'] = get_req_data("linktitle$i");
             $link['desc'] = get_req_data("linkdesc$i");
@@ -426,13 +426,13 @@ if ($errMsg) {
         $req['links'] = $links;
 
         // copy the review links from the request
-        for ($revs = array(), $i = 0 ; ; $i++) {
+        for ($revs = [], $i = 0 ; ; $i++) {
             // if we've run out of extrevUrlN values, there are no more rows
             if (!isset($_POST["extrevUrl$i"]))
                 break;
 
             // load up this record
-            $rev = array();
+            $rev = [];
             $rev['url'] = get_req_data("extrevUrl$i");
             $rev['sourcename'] = get_req_data("extrevSource$i");
             $rev['sourceurl'] = get_req_data("extrevSourceUrl$i");
@@ -447,13 +447,13 @@ if ($errMsg) {
         $req['extreviews'] = $revs;
 
         // copy the cross-references from the request
-        for ($xrefs = array(), $i = 0 ; ; $i++) {
+        for ($xrefs = [], $i = 0 ; ; $i++) {
             // if we're out of xrefReftype values, we're done
             if (!isset($_POST["xrefReftype$i"]))
                 break;
 
             // load this record
-            $x = array();
+            $x = [];
             $x['reftype'] = get_req_data("xrefReftype$i");
             $x['toID'] = get_req_data("xrefID$i");
             $x['toTitle'] = get_req_data("xrefTitle$i");
@@ -1582,7 +1582,7 @@ var linkModel = {
 };
 var linkVals = [
     <?php
-    $links = isset($rec['links']) ? $rec['links'] : array();
+    $links = isset($rec['links']) ? $rec['links'] : [];
     for ($i = 0 ; $i < count($links) ; $i++) {
         // get the link data
         $link = $links[$i];
@@ -1699,7 +1699,7 @@ var linkVals = [
                   <span class=details>For example, Xyzzy News, SPAG...</span>
                   <br>
                   <?php
-                      $reviewSites = array(
+                      $reviewSites = [
                           "Brass Lantern" => "www.brasslantern.org",
                           "IF-Review"
                               => "http://www.ministryofpeace.com/if-review/",
@@ -1707,7 +1707,7 @@ var linkVals = [
                               => "http://www.ifreviews.org/",
                           "SPAC" => "http://www.caad.es/spac/",
                           "SPAG" => "https://www.spagmag.org/",
-                          "Xyzzy News" => "https://ifarchive.org/indexes/if-archive/magazines/XYZZYnews/");
+                          "Xyzzy News" => "https://ifarchive.org/indexes/if-archive/magazines/XYZZYnews/"];
                       echo makeComboBox(
                          "extrevSource", 80, "", array_keys($reviewSites),
                          "onComboSelectReviewSite");
@@ -1834,7 +1834,7 @@ var reviewModel = {
 };
 var reviewVals = [
     <?php
-    $reviews = isset($rec['extreviews']) ? $rec['extreviews'] : array();
+    $reviews = isset($rec['extreviews']) ? $rec['extreviews'] : [];
     for ($i = 0 ; $i < count($reviews) ; $i++ ) {
         $r = $reviews[$i];
         echo "[";
@@ -1939,12 +1939,12 @@ var xrefModel = {
 // populate the xref options from the database
 $result = mysql_query(
     "select reftype, fromname from gamexreftypes", $db);
-$reftypes = array();
+$reftypes = [];
 for ($i = 0 ; $i < mysql_num_rows($result) ; ++$i) {
-    list($rid, $rname) = mysql_fetch_row($result);
+    [$rid, $rname] = mysql_fetch_row($result);
     $rname = preg_replace("/\s+<\w+>$|<\w+>\s+/", "", $rname);
     $rname = strtoupper(substr($rname, 0, 1)) . substr($rname, 1);
-    $reftypes[] = array($rid, $rname);
+    $reftypes[] = [$rid, $rname];
 }
 function xrefSorter($a, $b) { return strcasecmp($a[1], $b[1]); }
 usort($reftypes, "xrefSorter");
@@ -1986,7 +1986,7 @@ for ($i = 0 ; $i < count($reftypes) ; ++$i) {
 };
 <?php
     echo "var xrefVals = [";
-    $xrefs = isset($rec['xrefs']) ? $rec['xrefs'] : array();
+    $xrefs = isset($rec['xrefs']) ? $rec['xrefs'] : [];
     for ($i = 0 ; $i < count($xrefs) ; $i++) {
         $x = $xrefs[$i];
         echo ($i > 0 ? ",[" : "[");

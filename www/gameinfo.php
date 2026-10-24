@@ -13,7 +13,7 @@ function sortByDisplayOrder($a, $b)
 // -------------------------------------------------------------------------
 // fix a URL to ensure proper formatting in an HTML page
 function fixUrl($url) {
-    return str_replace(array("\""), array("%22"), $url);
+    return str_replace(["\""], ["%22"], $url);
 }
 
 // --------------------------------------------------------------------------
@@ -383,11 +383,11 @@ function getGameInfo($db, $id, $curuser, $requestVersion, &$errMsg, &$errCode)
            $gameRatingsView
          where
            gameid = ?", [$id]);
-    list($rated1, $rated2, $rated3, $rated4, $rated5,
-        $ratingAvgCnt, $ratingTotCnt, $ratingAvg, $memberReviewCnt) =
+    [$rated1, $rated2, $rated3, $rated4, $rated5,
+        $ratingAvgCnt, $ratingTotCnt, $ratingAvg, $memberReviewCnt] =
         mysql_fetch_row($result);
 
-    $ratingHisto = array(0, 0, 0, 0, 0, 0);
+    $ratingHisto = [0, 0, 0, 0, 0, 0];
     $ratingHisto[1] = $rated1;
     $ratingHisto[2] = $rated2;
     $ratingHisto[3] = $rated3;
@@ -417,7 +417,7 @@ function getGameInfo($db, $id, $curuser, $requestVersion, &$errMsg, &$errCode)
         $pubFull = date("F j, Y", strtotime($published));
 
     // build the information into a giant array
-    return array($ifids, $title, $author, $authorExt,
+    return [$ifids, $title, $author, $authorExt,
                  $pubYear, $pubFull, $license,
                  $system, $desc, $rawDesc,
                  $hasart, $genre, $seriesname, $seriesnum,
@@ -430,7 +430,7 @@ function getGameInfo($db, $id, $curuser, $requestVersion, &$errMsg, &$errCode)
                  $moddatelatest,
                  $historyView,
                  $dlnotes, $extReviews, $extRevDisplayRank,
-                 $ratingHisto, $xrefs, $inrefs, $flags);
+                 $ratingHisto, $xrefs, $inrefs, $flags];
 }
 
 // ----------------------------------------------------------------------------
@@ -455,30 +455,30 @@ function getDeltaDesc($deltas)
     }
 
     // columns -> descriptions
-    $deltaDesc = array("title" => "title",
-                       "author" => "author",
-                       "authorExt" => "author",
-                       "published" => "publication date",
-                       "version" => "version number",
-                       "license" => "license type",
-                       "system" => "development system",
-                       "language" => "language",
-                       "desc" => "description",
-                       "coverart" => "cover art",
-                       "genre" => "genre",
-                       "seriesname" => "series name",
-                       "seriesnumber" => "episode number",
-                       "forgiveness" => "forgiveness",
-                       "bafsid" => "Baf's Guide ID",
-                       "website" => "Web site URL",
-                       "nodownloadreason" => "no-download explanation",
-                       "ifids" => "IFIDs",
-                       "links" => "download links",
-                       "xrefs" => "cross-references",
-                       "extreviews" => "external review links");
+    $deltaDesc = ["title" => "title",
+                  "author" => "author",
+                  "authorExt" => "author",
+                  "published" => "publication date",
+                  "version" => "version number",
+                  "license" => "license type",
+                  "system" => "development system",
+                  "language" => "language",
+                  "desc" => "description",
+                  "coverart" => "cover art",
+                  "genre" => "genre",
+                  "seriesname" => "series name",
+                  "seriesnumber" => "episode number",
+                  "forgiveness" => "forgiveness",
+                  "bafsid" => "Baf's Guide ID",
+                  "website" => "Web site URL",
+                  "nodownloadreason" => "no-download explanation",
+                  "ifids" => "IFIDs",
+                  "links" => "download links",
+                  "xrefs" => "cross-references",
+                  "extreviews" => "external review links"];
 
     // build an array keyed by the descriptive names of the columns
-    $changeList = array();
+    $changeList = [];
     foreach ($deltas as $colname => $colval) {
         if (isset($deltaDesc[$colname]) && $deltaDesc[$colname] != "")
             $changeList[$deltaDesc[$colname]] = true;

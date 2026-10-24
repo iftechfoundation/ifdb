@@ -31,11 +31,11 @@ function newsSummary($db, $sourceType, $sourceID, $maxItems,
         for ($i = 0 ; $i < $rowcnt && $i < $maxItems ; $i++) {
 
             // fetch it
-            list($newsid, $newsidOrig, $newsstatus,
-                 $newsdateRaw, $newsdate, $newsmodRaw, $newsmod,
-                 $newsuid, $newsuname,
-                 $newsuidOrig, $newsunameOrig,
-                 $newshead, $newsbody) = mysql_fetch_row($result);
+            [$newsid, $newsidOrig, $newsstatus,
+             $newsdateRaw, $newsdate, $newsmodRaw, $newsmod,
+             $newsuid, $newsuname,
+             $newsuidOrig, $newsunameOrig,
+             $newshead, $newsbody] = mysql_fetch_row($result);
 
             $newshead = htmlspecialcharx($newshead);
             $newsbody = fixDesc($newsbody, FixDescSpoiler);
@@ -101,13 +101,13 @@ function queryNewsRss(&$items, $db, $sourceType, $sourceID, $maxItems,
                         $limit, $rowcnt);
 
     // process the results
-    for ($items = array(), $i = 0 ; $i < $rowcnt ; $i++)
+    for ($items = [], $i = 0 ; $i < $rowcnt ; $i++)
     {
         // fetch and decode this row
-        list($nid, $norig, $nstatus,
-             $ncre, $ncreFmt, $nmod, $nmodFmt,
-             $nuid, $nuname, $nuidOrig, $nunameOrig,
-             $nhead, $nbody) = mysql_fetch_row($result);
+        [$nid, $norig, $nstatus,
+         $ncre, $ncreFmt, $nmod, $nmodFmt,
+         $nuid, $nuname, $nuidOrig, $nunameOrig,
+         $nhead, $nbody] = mysql_fetch_row($result);
 
         // quote/reformat fields
         $nuname = htmlspecialcharx($nuname);
@@ -130,7 +130,7 @@ function queryNewsRss(&$items, $db, $sourceType, $sourceID, $maxItems,
                 . "</item>";
 
         // add the news
-        $items[] = array($ncre, $item);
+        $items[] = [$ncre, $item];
     }
 }
 
@@ -163,7 +163,7 @@ function queryNews($db, $sourceType, $sourceID, $includeDeletions,
         // get my sandbox
         $mysandbox = 0;
         $result = mysql_query("select sandbox from users where id='$curuser'", $db);
-        list($mysandbox) = mysql_fetch_row($result);
+        [$mysandbox] = mysql_fetch_row($result);
         if ($mysandbox != 0)
             $sandbox = "(0,$mysandbox)";
     }
@@ -220,7 +220,7 @@ function queryNews($db, $sourceType, $sourceID, $includeDeletions,
     // the row count is simply what's returned from the query
     if ($limit) {
         $result2 = mysql_query("select found_rows()", $db);
-        list($rowcnt) = mysql_fetch_row($result2);
+        [$rowcnt] = mysql_fetch_row($result2);
     } else {
         $rowcnt = mysql_num_rows($result);
     }

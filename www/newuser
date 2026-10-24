@@ -13,7 +13,7 @@ $errFlagged = false;
 
 // check for successful CAPTCHA
 $capKey = "newuser";
-list($ok, $capErrMsg) = captchaCheckPost($capKey);
+[$ok, $capErrMsg] = captchaCheckPost($capKey);
 
 // If the code is okay, process the post, and redisplay the form if
 // that returns true.  Otherwise, just show the form.
@@ -200,7 +200,7 @@ function sfsCheck($ip, $email, $username, &$banned)
     $username = urlencode($username);
 
     // run the query through stopforumspam.com
-    $info = array();
+    $info = [];
     $ch = curl_init("https://www.stopforumspam.com/api?json&"
                     . "ip=$ip&email=$email&username=$username");
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
@@ -215,8 +215,8 @@ function sfsCheck($ip, $email, $username, &$banned)
 
     // assemble the results into a printable string
     $ret = false;
-    $typeMap = array('ip' => 'IP', 'email' => 'Email',
-                     'username' => 'Name');
+    $typeMap = ['ip' => 'IP', 'email' => 'Email',
+                'username' => 'Name'];
     foreach (array_keys($typeMap) as $t) {
         $i = $info[$t] ?? null;
         if (is_array($i) && !empty($i['appears'])) {

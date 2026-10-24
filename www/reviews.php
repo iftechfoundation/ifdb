@@ -40,7 +40,7 @@ function getReviewQuery($db, $where)
         // get my sandbox
         $mysandbox = 0;
         $result = mysql_query("select sandbox from users where id='$curuser'", $db);
-        list($mysandbox) = mysql_fetch_row($result);
+        [$mysandbox] = mysql_fetch_row($result);
         if ($mysandbox != 0)
             $sandbox = "(0,$mysandbox)";
     }
@@ -315,7 +315,7 @@ function showReview($db, $gameid, $rec, $specialNames, $optionFlags = 0)
         $result = mysql_query(
             "select url, sourcename, sourceurl from extreviews
              where reviewid = '$qreviewid'", $db);
-        list($xurl, $xsrc, $xsrcurl) = mysql_fetch_row($result);
+        [$xurl, $xsrc, $xsrcurl] = mysql_fetch_row($result);
         $xsrc = htmlspecialcharx($xsrc);
     }
 
@@ -468,7 +468,7 @@ function showReview($db, $gameid, $rec, $specialNames, $optionFlags = 0)
     // add any special notes
     if ($oldVersion || $omitAvg) {
 
-        $notes = array();
+        $notes = [];
         if ($oldVersion)
             $notes[] = "this review is based on older version of the game";
         if ($omitAvg)

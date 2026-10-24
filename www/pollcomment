@@ -33,8 +33,8 @@ function getCommentReference($db, $pollID)
 
     // if we didn't find a review, it's a fatal error
     if (mysql_num_rows($result) == 0) {
-        return array(false, false, false, true,
-                     "The specified poll is not in the database.");
+        return [false, false, false, true,
+                "The specified poll is not in the database."];
     }
 
     // return the full record, plus the poll owner's user ID
@@ -47,7 +47,7 @@ function showCommentReference($db, $rec)
     // show the review, if we found it
     if ($rec) {
 
-        list($id, $title, $desc, $uid, $uname) = $rec;
+        [$id, $title, $desc, $uid, $uname] = $rec;
         $title = htmlspecialcharx($title);
         $desc = fixDesc($desc);
         $uname = htmlspecialcharx($uname);

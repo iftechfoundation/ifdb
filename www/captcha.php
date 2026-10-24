@@ -267,10 +267,10 @@ function captchaCheckPost($sessionKey)
             $_SERVER["REMOTE_ADDR"],
             $_POST["g-recaptcha-response"]);
 
-        return array($resp->is_valid, $resp->error);
+        return [$resp->is_valid, $resp->error];
     }
     else
-        return array(false, false);
+        return [false, false];
 }
 
 // ------------------------------------------------------------------------

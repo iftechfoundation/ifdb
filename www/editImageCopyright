@@ -23,7 +23,7 @@ if ($id == "") {
 }
 
 // get the image's current settings
-list($imgData, $imgFmt, $copyStat, $copyMsg, $imguser) =
+[$imgData, $imgFmt, $copyStat, $copyMsg, $imguser] =
     array_pad(fetch_image($id, false), 5, null);
 
 // make sure this is really our image

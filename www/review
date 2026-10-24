@@ -16,8 +16,8 @@ if (!logged_in())
 $db = dbConnect();
 
 $errMsg = false;
-$errDetail = array();
-$missingFields = array();
+$errDetail = [];
+$missingFields = [];
 
 // presume this will be a new review
 $isOldReview = false;
@@ -86,19 +86,19 @@ if (isset($_REQUEST['browse']))
 
             // get the total size of the result set
             $result2 = mysql_query("select found_rows()", $db);
-            list($totcnt) = mysql_fetch_row($result2);
+            [$totcnt] = mysql_fetch_row($result2);
 
             // fetch and display the suggestions
             for ($i = 0 ; $i < $suggcnt ; $i++)
             {
                 // fetch and decode this row
-                list($id, $title, $author, $pgid, $rating) =
+                [$id, $title, $author, $pgid, $rating] =
                     mysql_fetch_row($result);
 
                 $title = htmlspecialcharx($title);
                 $author = htmlspecialcharx($author);
                 $author = collapsedAuthors($author);
-                $mode = array();
+                $mode = [];
                 if ($pgid) $mode[] = "on your play list";
                 if ($rating) $mode[] = "you rated it " . showStars($rating);
                 $mode = implode(", ", $mode);
@@ -143,7 +143,7 @@ if (isset($_REQUEST['browse']))
     {
         // run the search
         $count_all_possible_rows = false;
-        list($rows, $rowcnt, $sortList, $errMsg) =
+        [$rows, $rowcnt, $sortList, $errMsg] =
             doSearch($db, $searchFor, "game", "rel", "limit 0, 10", false, $count_all_possible_rows);
 
         // show the results
@@ -272,7 +272,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_REQUEST['delete'])) {
          from reviews
          where gameid = '$qid' and userid = '$userid'", $db);
     if (mysql_num_rows($result)) {
-        list($oldsummary, $oldreview, $oldrating, $oldFlags) =
+        [$oldsummary, $oldreview, $oldrating, $oldFlags] =
             mysql_fetch_row($result);
 
         $oldOldVersion = ($oldFlags & RFLAG_OLD_VERSION);
@@ -403,7 +403,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     }
 
     // get the tag list
-    $tagList = array();
+    $tagList = [];
     if (trim($tags) != "")
         $tagList = array_map("trim", explode(",", $tags));
 
@@ -673,7 +673,7 @@ up your existing review for further editing.
         // query the tags
         $result = mysql_query(
             "select tag from reviewtags where reviewid='$reviewID'", $db);
-        for ($i = 0, $tags = array() ; $i < mysql_num_rows($result) ; $i++)
+        for ($i = 0, $tags = [] ; $i < mysql_num_rows($result) ; $i++)
             $tags[] = mysql_result($result, $i, "tag");
         $tags = implode(", ", $tags);
     }
@@ -724,7 +724,7 @@ $flagRows = false;
 $rowcnt = mysql_num_rows($result);
 if ($rowcnt != 0) {
     // fetch the rows
-    for ($flagRows = array(), $i = 0 ; $i < $rowcnt ; $i++)
+    for ($flagRows = [], $i = 0 ; $i < $rowcnt ; $i++)
         $flagRows[] = mysql_fetch_row($result);
 
     echo "<p><span class=errmsg>"
@@ -932,12 +932,12 @@ if ($flagRows) {
         . "<div class=indented>";
 
     // set up the flag name map
-    $flagNames = array('S' => "Spoilers");
+    $flagNames = ['S' => "Spoilers"];
 
     // list the flags
     foreach ($flagRows as $row) {
         // unpack the row
-        list($fUserID, $fUserName, $fType, $fNotes, $fDate, $fRevID) = $row;
+        [$fUserID, $fUserName, $fType, $fNotes, $fDate, $fRevID] = $row;
         $fUserName = htmlspecialcharx($fUserName);
         $fNotes = htmlspecialcharx($fNotes);
         $fTypeName = $flagNames[$fType];

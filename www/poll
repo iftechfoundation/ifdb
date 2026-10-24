@@ -51,7 +51,7 @@ if ($userid && isset($_REQUEST['delPoll'])) {
         "select title, `desc`, userid from polls where pollid = '$id'", $db);
 
     if (mysql_num_rows($result) > 0) {
-        list($title, $desc, $authid) = mysql_fetch_row($result);
+        [$title, $desc, $authid] = mysql_fetch_row($result);
         $title = htmlspecialcharx($title);
         $desc = htmlspecialcharx($desc);
         if ($authid == $userid) {
@@ -155,7 +155,7 @@ if ($userid && isset($_REQUEST['editPoll'])) {
          from polls where pollid = '$id'", $db);
 
     if (mysql_num_rows($result) > 0) {
-        list($title, $keywords, $desc, $flags, $authid) = mysql_fetch_row($result);
+        [$title, $keywords, $desc, $flags, $authid] = mysql_fetch_row($result);
         $title = htmlspecialcharx($title);
         $keywords = htmlspecialcharx($keywords);
         $desc = htmlspecialcharx($desc);
@@ -321,7 +321,7 @@ if (isset($_REQUEST['newPollGo'])) {
 
         // get my user name
         $result = mysql_query("select name from users where id='$userid'", $db);
-        list($username) = mysql_fetch_row($result);
+        [$username] = mysql_fetch_row($result);
 
         echo "<h1>New poll created!</h1>"
             . "<p>Your poll has been successfully created as follows:</p>"
@@ -490,7 +490,7 @@ if ($userid && $id && isset($_REQUEST['delVote'])) {
            and v.gameid = '$gameID'", $db);
 
     if (mysql_num_rows($result) > 0) {
-        list($quickQuote, $notes, $pollTitle, $flags, $gameTitle, $gameAuthor) =
+        [$quickQuote, $notes, $pollTitle, $flags, $gameTitle, $gameAuthor] =
             mysql_fetch_row($result);
         $quickQuote = htmlspecialcharx($quickQuote);
         $notes = htmlspecialcharx($notes);
@@ -570,7 +570,7 @@ if ($userid && $id && isset($_REQUEST['addVote'])) {
         pageFooter();
         exit();
     }
-    list($title, $flags) = mysql_fetch_row($result);
+    [$title, $flags] = mysql_fetch_row($result);
     $anonymous = $flags & POLL_FLAG_ANONYMOUS;
     $locked = $flags & POLL_FLAG_LOCKED;
 
@@ -592,7 +592,7 @@ if ($userid && $id && isset($_REQUEST['addVote'])) {
             "select title, author, coverart from games
              where id = '$gameid'", $db);
         if (mysql_num_rows($result) > 0) {
-            list($gameTitle, $gameAuthor, $gArt) = mysql_fetch_row($result);
+            [$gameTitle, $gameAuthor, $gArt] = mysql_fetch_row($result);
             $gameTitle = htmlspecialcharx($gameTitle);
             $gameAuthor = htmlspecialcharx($gameAuthor);
         } else {
@@ -616,7 +616,7 @@ if ($userid && $id && isset($_REQUEST['addVote'])) {
 
         if (mysql_num_rows($result) != 0) {
             // found it - we're editing an existing vote
-            list($voteQuote, $voteDesc) = mysql_fetch_row($result);
+            [$voteQuote, $voteDesc] = mysql_fetch_row($result);
             $noChangeMsg = "without updating your vote";
         } else {
             // there's no existing vote
@@ -662,7 +662,7 @@ if ($userid && $id && isset($_REQUEST['addVote'])) {
 
     } else {
         // there's no TUID in the request, so we're looking up a title
-        $matches = array();
+        $matches = [];
         $gameTitle = get_req_data('addTitle');
         $qTitle = mysql_real_escape_string($gameTitle, $db);
 
@@ -803,7 +803,7 @@ if ($userid && isset($_REQUEST['comment'])) {
          where p.pollid = '$id'", $db);
 
     if (mysql_num_rows($result) > 0) {
-        list($title, $desc, $authid, $gameTitle, $gameAuthor, $comment) =
+        [$title, $desc, $authid, $gameTitle, $gameAuthor, $comment] =
             mysql_fetch_row($result);
         $title = htmlspecialcharx($title);
         $desc = htmlspecialcharx($desc);
@@ -983,7 +983,7 @@ administrators can see who voted for what.)
     }
 
     // fetch the poll row
-    list($title, $desc, $created, $flags, $authid, $authname) =
+    [$title, $desc, $created, $flags, $authid, $authname] =
         mysql_fetch_row($result);
     $title = htmlspecialcharx($title);
     $authname = htmlspecialcharx($authname);
@@ -1038,8 +1038,8 @@ administrators can see who voted for what.)
         // send the rows
         for ($i = 0, $cnt = mysql_num_rows($result) ; $i < $cnt ; $i++) {
             // fetch the data
-            list($authID, $authName, $gameID, $gameTitle, $gameAuthor,
-                 $quickQuote, $notes, $voteDate) = mysql_fetch_row($result);
+            [$authID, $authName, $gameID, $gameTitle, $gameAuthor,
+             $quickQuote, $notes, $voteDate] = mysql_fetch_row($result);
 
             $authName = rss_encode(htmlspecialcharx($authName));
             $gameTitle = rss_encode(htmlspecialcharx($gameTitle));
@@ -1151,7 +1151,7 @@ function expandVote(id)
         $curuser = $_SESSION['logged_in_as'] ?? false;
         if ($curuser) {
             $result = mysql_query("select sandbox from users where id='$curuser'", $db);
-            list($sandbox) = mysql_fetch_row($result);
+            [$sandbox] = mysql_fetch_row($result);
         }
 
         // query the votes
@@ -1191,7 +1191,7 @@ function expandVote(id)
                v.votedate", $db);
 
         // fetch all the votes
-        for ($i = 0, $cnt = mysql_num_rows($result), $rows = array() ;
+        for ($i = 0, $cnt = mysql_num_rows($result), $rows = [] ;
              $i < $cnt ; $i++)
             $rows[] = mysql_fetch_row($result);
 
@@ -1232,13 +1232,13 @@ function expandVote(id)
         for ($i = 0 ; ; $i++) {
             if ($i < $cnt) {
                 // fetch the next row
-                list($voteUserID, $voteUserName, $curUserVote,
-                     $gameID, $gameTitle, $gameAuthor, $voteCount,
-                     $coverArt, $pagevsn,
-                     $quickQuote, $notes,
-                     $voteDateFmt,
-                     $comments,
-                     $reviewID, $hasReviewText, $rating) = $rows[$i];
+                [$voteUserID, $voteUserName, $curUserVote,
+                 $gameID, $gameTitle, $gameAuthor, $voteCount,
+                 $coverArt, $pagevsn,
+                 $quickQuote, $notes,
+                 $voteDateFmt,
+                 $comments,
+                 $reviewID, $hasReviewText, $rating] = $rows[$i];
 
                 $voteUserName = htmlspecialcharx($voteUserName);
                 $gameTitle = htmlspecialcharx($gameTitle);

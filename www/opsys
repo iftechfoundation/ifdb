@@ -17,7 +17,7 @@ $db = dbConnect();
 include "imageuploadhandler.php";
 
 $errMsg = false;
-$errDetail = array();
+$errDetail = [];
 $saveErrMsg = false;
 $saveNotes = "";
 $pagetitle = "Edit Operating Systems";
@@ -60,16 +60,16 @@ $osname = get_req_data('osname');
 $externid = get_req_data('externid');
 $osicon = get_req_data('icon');
 $ospri = (int)get_req_data('displaypriority');
-for ($versions = array(), $i = 0 ; ; $i++) {
+for ($versions = [], $i = 0 ; ; $i++) {
     // if we've reached the end, stop looking
     if (!isset($_REQUEST["vsnid$i"]))
         break;
 
     // add this to the list
-    $versions[] = array(get_req_data("vsnid$i"),
-                        get_req_data("vsnname$i"),
-                        "",
-                        get_req_data("vsnextid$i"));
+    $versions[] = [get_req_data("vsnid$i"),
+                   get_req_data("vsnname$i"),
+                   "",
+                   get_req_data("vsnextid$i")];
 }
 
 // if we just uploaded a picture, select it
@@ -77,27 +77,27 @@ $osicon = getJustUploadedImage($osicon);
 
 define("CTL_INPUT", 1);
 define("CTL_TEXTAREA", 2);
-$vsnfields = array(
-    array(CTL_INPUT, "Browser ID Match Pattern",
-          "browserid",
-          "Enter a regular expression pattern (PHP rules, case insensitive)
-           to find within the HTTP user agent identification string. This
-           is used to guess the user's OS if the user doesn't explicitly
-           specify one."),
-    array(CTL_TEXTAREA,
-          "Instructions for <b>downloading and saving</b> a
-           file from a hyperlink using a typical browser on this OS",
-          "dlinstructions", null),
-    array(CTL_TEXTAREA,
-          "Instructions for <b>downloading and running</b>
-           an application from a hyperlink using a typical
-           browser on this OS",
-          "dlruninstructions", null),
-    array(CTL_TEXTAREA,
-          "Instructions for <b>running</b> a local application file
-           called <b>{fname}</b>",
-          "runinstructions", null));
-$vsnrec = array();
+$vsnfields = [
+    [CTL_INPUT, "Browser ID Match Pattern",
+     "browserid",
+     "Enter a regular expression pattern (PHP rules, case insensitive)
+      to find within the HTTP user agent identification string. This
+      is used to guess the user's OS if the user doesn't explicitly
+      specify one."],
+    [CTL_TEXTAREA,
+     "Instructions for <b>downloading and saving</b> a
+      file from a hyperlink using a typical browser on this OS",
+     "dlinstructions", null],
+    [CTL_TEXTAREA,
+     "Instructions for <b>downloading and running</b>
+      an application from a hyperlink using a typical
+      browser on this OS",
+     "dlruninstructions", null],
+    [CTL_TEXTAREA,
+     "Instructions for <b>running</b> a local application file
+      called <b>{fname}</b>",
+     "runinstructions", null]];
+$vsnrec = [];
 foreach ($vsnfields as $f) {
     $nm = $f[2];
     $vsnrec[$nm] = get_req_data($nm);
@@ -130,7 +130,7 @@ function showHiddenFields()
 
 // get the old settings for the selected format
 $oldexternid = $oldname = $hasicon = $oldicon = $oldpri = "";
-$oldversions = array();
+$oldversions = [];
 $oldvsnrec = false;
 if ($osid != "" && $osid != "new") {
     // query the database values
@@ -161,12 +161,12 @@ if ($osid != "" && $osid != "new") {
          where osid = '$qosid' and name != '*'
          order by seq", $db);
 
-    for ($cnt = mysql_num_rows($result), $i = 0, $oldversions = array() ;
+    for ($cnt = mysql_num_rows($result), $i = 0, $oldversions = [] ;
          $i < $cnt ; $i++)
-        $oldversions[] = array(mysql_result($result, $i, "vsnid"),
-                               mysql_result($result, $i, "name"),
-                               mysql_result($result, $i, "browserid"),
-                               mysql_result($result, $i, "externid"));
+        $oldversions[] = [mysql_result($result, $i, "vsnid"),
+                          mysql_result($result, $i, "name"),
+                          mysql_result($result, $i, "browserid"),
+                          mysql_result($result, $i, "externid")];
 }
 
 // get the old settings for the selected version
@@ -698,11 +698,11 @@ var vsnVals = [
         $result = mysql_query("select vsnid, browserid from osversions
                    where osid='$qosid' and name='*' and seq=0", $db);
         if (mysql_num_rows($result) > 0) {
-            $allvsns = array(
+            $allvsns = [
                 mysql_result($result, 0, "vsnid"),
                 "All Versions",
                 mysql_result($result, 0, "browserid"),
-                "*");
+                "*"];
             array_unshift($dversions, $allvsns);
         }
 
@@ -756,7 +756,7 @@ var vsnVals = [
                 if ($result && mysql_num_rows($result) > 0) {
                     echo "<div class=indented><span class=notes>";
                     for ($j = 0 ; $j < mysql_num_rows($result) ; $j++) {
-                        list($fmtid, $fmtname, $fmtpriv) =
+                        [$fmtid, $fmtname, $fmtpriv] =
                             mysql_fetch_row($result);
                         $fmtname = htmlspecialcharx($fmtname);
                         $href = "fileformat?id=$fmtid&dla=$osid.$vsnid";
@@ -782,7 +782,7 @@ var vsnVals = [
                     from filetypes
                     order by if(externid='*',1,2), fmtname", $db);
                 for ($i = 0 ; $i < mysql_num_rows($result) ; $i++) {
-                    list($fmtid, $fmtname) = mysql_fetch_row($result);
+                    [$fmtid, $fmtname] = mysql_fetch_row($result);
                     $fmtname = htmlspecialcharx($fmtname);
                     echo "<option value=\"$fmtid\">$fmtname</option>";
                 }

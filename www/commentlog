@@ -27,7 +27,7 @@ $rss = isset($_REQUEST['rss']);
 // means all postings in reviews, polls, etc written by this user,
 // 'comments' means postings by this user only.
 $mode = get_req_data('mode');
-if (array_search($mode, array('subscribed', 'inbox', 'comments')) === false)
+if (array_search($mode, ['subscribed', 'inbox', 'comments']) === false)
     $mode = 'subscribed';
 
 // get the page number
@@ -66,7 +66,7 @@ if (!$userid || mysql_num_rows($result) == 0) {
 }
 
 // fetch the target user's name
-list($username, $gender, $caughtUpDate, $acctStatus, $profileStatus) =
+[$username, $gender, $caughtUpDate, $acctStatus, $profileStatus] =
    mysql_fetch_row($result);
 $username = htmlspecialcharx($username);
 
@@ -123,7 +123,7 @@ if ($pg != 'all') {
 }
 
 // go fetch the comments
-list($comments, $rowcnt) =
+[$comments, $rowcnt] =
     queryComments($db, $mode, $quid, $limit, false, false);
 
 // if we're showing all pages, up $perPage to the actual count
@@ -276,19 +276,19 @@ if ($userid == $curuser
 for ($i = 0 ; $i < count($comments) ; $i++) {
 
     // get this comment
-    list($rec, $link, $title, $ltitle) = $comments[$i];
+    [$rec, $link, $title, $ltitle] = $comments[$i];
 
     // decode the row
-    list($cid, $srcid, $src, $ctxt,
-         $ccreDT, $ccre,
-         $cmodDT, $cmod,
-         $cuid, $cuname) = $rec;
+    [$cid, $srcid, $src, $ctxt,
+     $ccreDT, $ccre,
+     $cmodDT, $cmod,
+     $cuid, $cuname] = $rec;
 
     // send the item in the appropriate format
     if ($rss) {
 
         // set up the XML data
-        list($desc, $len, $trunc) = summarizeHtml($ctxt, 210);
+        [$desc, $len, $trunc] = summarizeHtml($ctxt, 210);
         $desc = fixDesc($desc, FixDescSpoiler | FixDescRSS);
         $pubDate = date("D, j M Y H:i:s ", strtotime($ccreDT)) . 'UT';
         $link = get_root_url() . $link;
@@ -312,7 +312,7 @@ for ($i = 0 ; $i < count($comments) ; $i++) {
 
     } else {
 
-        list($ctxt, $len, $trunc) = summarizeHtml($ctxt, 210);
+        [$ctxt, $len, $trunc] = summarizeHtml($ctxt, 210);
         $ctxt = fixDesc($ctxt, FixDescSpoiler);
         $newIcon = ($showNewIcon && $ccreDT > $caughtUpDate ?
                     "<img src='img/blank.gif' class='newcomment'> " : "");

@@ -64,7 +64,7 @@
                          from $gameRatingsView
                          where gameid = '$crid'", $db);
                     if ($result)
-                        list($crravg, $crrcnt, $crrtot) =
+                        [$crravg, $crrcnt, $crrtot] =
                             mysql_fetch_row($result);
                     else
                         $crravg = $crrcnt = $crrtot = 0;

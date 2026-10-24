@@ -71,8 +71,8 @@ if (count($xrefs) != 0) {
     foreach ($xrefs as $x) {
         $x['author'] = collapsedAuthors($x['author']);
         $fn = $x['fromname'];
-        $fn = str_replace(array("<language>", "<system>"),
-                          array($languageNameOnly, $system),
+        $fn = str_replace(["<language>", "<system>"],
+                          [$languageNameOnly, $system],
                           $fn);
         echo "<span class=notes>" . initCap($fn)
             . " <a href=\"viewgame?id={$x['toID']}\"><i>{$x['toTitle']}</i></a>"
@@ -95,8 +95,8 @@ if (count($inrefs) != 0 && !$historyView) {
                 . ":</span><br><div class=\"indented\">";
         } else {
             $toname = str_replace(
-                array('<language>', '<system>'),
-                array($x['language'], $x['system']),
+                ['<language>', '<system>'],
+                [$x['language'], $x['system']],
                 $x['toname']);
             echo "<span class=notes>" . initCap($toname) . " </span>";
         }

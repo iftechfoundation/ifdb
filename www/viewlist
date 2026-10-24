@@ -31,8 +31,8 @@ $result = mysql_query(
 if (mysql_num_rows($result) == 0) {
     $errMsg = "The requested list was not found in the database.";
 } else {
-    list($title, $desc, $moddate,
-         $ownerID, $ownerName, $ownerLoc) = mysql_fetch_row($result);
+    [$title, $desc, $moddate,
+     $ownerID, $ownerName, $ownerLoc] = mysql_fetch_row($result);
 
     $pageTitle = htmlspecialcharx($title) . " - Recommended List";
 
@@ -49,14 +49,14 @@ if (mysql_num_rows($result) == 0) {
              and games.id = reclistitems.gameid
          order by displayorder", $db);
 
-    for ($items = array(), $i = 0 ; $i < mysql_num_rows($result) ; $i++) {
+    for ($items = [], $i = 0 ; $i < mysql_num_rows($result) ; $i++) {
         // fetch the item
         $item = mysql_fetch_array($result, MYSQL_ASSOC);
 
         // set up the match-list subarray
         $match = $item;
         $match['id'] = $item['tuid'];
-        $item['matches'] = array($match);
+        $item['matches'] = [$match];
 
         // add this item to the master list
         $items[] = $item;

@@ -11,7 +11,7 @@ $errFlagged = false;
 
 // validate captcha
 $capKey = "lostact";
-list($ok, $capErrMsg) = captchaCheckPost($capKey);
+[$ok, $capErrMsg] = captchaCheckPost($capKey);
 
 // If we have a valid captcha, try processing the submitted data; if
 // handlePost returns true, proceed to show the form.  If captcha

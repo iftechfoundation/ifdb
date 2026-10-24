@@ -257,7 +257,7 @@ imageTableUpdate("<?php echo "$utab"; ?>", "<?php echo $radioname; ?>", [<?php
        $images = $_SESSION['temp_images'];
 
        // build the image list
-       for ($i = 0, $iarr = array() ; $i < count($images) ; $i++)
+       for ($i = 0, $iarr = [] ; $i < count($images) ; $i++)
            $iarr[] = "\"{$images[$i][2]}\"";
 
        // write it out
@@ -324,7 +324,7 @@ else if (isset($_REQUEST['uploadimage'])
          && is_uploaded_file($_FILES['imagefile']['tmp_name']))
 {
     // looks valid - load the file
-    list($imgErrMsg) = addTempImageFile(
+    [$imgErrMsg] = addTempImageFile(
         $_FILES['imagefile']['tmp_name'],
         get_req_data("imgcopyright"),
         get_req_data("imgcopyrighttag"));

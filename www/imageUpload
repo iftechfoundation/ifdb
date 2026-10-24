@@ -58,12 +58,12 @@ if (isset($_FILES['uplFile']))
     $fname = $_FILES['uplFile']['tmp_name'];
     if (strlen($fname) > 0 && is_uploaded_file($fname))
     {
-        list($errMsg, $errShortMsg, $errCode, $imgName) =
+        [$errMsg, $errShortMsg, $errCode, $imgName] =
             addTempImageFile($fname, "", false);
     }
     else
     {
-        $phpFileUploadErrors = array(
+        $phpFileUploadErrors = [
             0 => 'There is no error, the file uploaded with success',
             1 => 'The uploaded file exceeds the upload_max_filesize directive in php.ini',
             2 => 'The uploaded file exceeds the MAX_FILE_SIZE directive that was specified in the HTML form',
@@ -72,14 +72,14 @@ if (isset($_FILES['uplFile']))
             6 => 'Missing a temporary folder',
             7 => 'Failed to write file to disk.',
             8 => 'A PHP extension stopped the file upload.',
-        );
+        ];
         error_log("Image upload error: " . $_FILES['uplFile']['error'] . ' ' . $phpFileUploadErrors[$_FILES['uplFile']['error']]);
         $imgName = "";
         $errMsg = "A network error occurred uploading the file.";
     }
 
-    $errMsg = preg_replace(array("/\"/", "/[\s\n\r]+/"),
-                           array("&34;", " "),
+    $errMsg = preg_replace(["/\"/", "/[\s\n\r]+/"],
+                           ["&34;", " "],
                            $errMsg);
     ?>
 window.parent.imageUploadDone("<?php echo $radio ?>", "<?php
@@ -92,7 +92,7 @@ window.parent.imageUploadDone("<?php echo $radio ?>", "<?php
        $images = $_SESSION['temp_images'];
 
        // build the image list
-       for ($i = 0, $iarr = array() ; $i < count($images) ; $i++)
+       for ($i = 0, $iarr = [] ; $i < count($images) ; $i++)
            $iarr[] = "\"{$images[$i][2]}\"";
 
        // show the list

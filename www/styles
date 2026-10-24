@@ -44,7 +44,7 @@ if ($setID) {
             if (mysql_num_rows($result) > 0) {
 
                 // get the style sheet information
-                list($title, $authorID, $author) = mysql_fetch_row($result);
+                [$title, $authorID, $author] = mysql_fetch_row($result);
                 $title = htmlspecialcharx($title);
                 $author = htmlspecialcharx($author);
                 $newDesc = "\"$title\", by "
@@ -342,7 +342,7 @@ if ($setID) {
     $ssid = false;
     $authorID = false;
     if (mysql_num_rows($result) > 0)
-        list($ssid, $authorID, $userCnt) = mysql_fetch_row($result);
+        [$ssid, $authorID, $userCnt] = mysql_fetch_row($result);
 
     if (!$userid) {
         $errMsg = "You must <a href=\"login?dest=styles%3Fedit%3D$editID\">"
@@ -403,13 +403,13 @@ if ($setID) {
     $pg = get_req_data('pg');
 
     // set up the sorting list
-    $sortList = array(
-        'pop' => array('popularity desc', 'Most Popular First'),
-        'unpop' => array('popularity', 'Least Popular First'),
-        'title' => array('title', 'Title'),
-        'auth' => array('author', 'Author'),
-        'new' => array('created desc', 'Newest First'),
-        'old' => array('created', 'Oldest First'));
+    $sortList = [
+        'pop' => ['popularity desc', 'Most Popular First'],
+        'unpop' => ['popularity', 'Least Popular First'],
+        'title' => ['title', 'Title'],
+        'auth' => ['author', 'Author'],
+        'new' => ['created desc', 'Newest First'],
+        'old' => ['created', 'Oldest First']];
 
     // get the sorting type from the request
     if (!isset($sortList[$sortBy]))
@@ -447,12 +447,12 @@ if ($setID) {
     } else {
 
         // fetch the results
-        for ($rows = array(), $i = 0 ; $i < $rowcnt ; $i++)
+        for ($rows = [], $i = 0 ; $i < $rowcnt ; $i++)
             $rows[] = mysql_fetch_array($result, MYSQL_ASSOC);
 
         // note the total number of rows
         $result = mysql_query("select found_rows()", $db);
-        list($totrowcnt) = mysql_fetch_row($result);
+        [$totrowcnt] = mysql_fetch_row($result);
 
         // calculate the page position
         $lastPage = (int)floor(($totrowcnt + $perPage - 1) / $perPage);
@@ -472,7 +472,7 @@ if ($setID) {
         // show the top-of-page controls
         echo $pageCtl;
         showSortingControls("searchOrder", "sort", $sortList, $sortBy,
-                            array('gallery' => '1'), "styles");
+                            ['gallery' => '1'], "styles");
         echo "<hr class=dots>";
         global $nonce;
         echo "<style nonce='$nonce'>\n"

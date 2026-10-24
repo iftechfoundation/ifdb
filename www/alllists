@@ -26,10 +26,10 @@ $sortReq = get_req_data('sortby');
 
 $errMsg = false;
 
-$sortList = array(
-    'new' => array('l.moddate desc', 'Newest First'),
-    'old' => array('l.moddate', 'Oldest First'),
-    'nm' => array('l.title', 'By List Name'));
+$sortList = [
+    'new' => ['l.moddate desc', 'Newest First'],
+    'old' => ['l.moddate', 'Oldest First'],
+    'nm' => ['l.title', 'By List Name']];
 
 // look up the game or user record
 // Exclude lists from the sandbox
@@ -39,7 +39,7 @@ if ($curuser)
     // get my sandbox
     $mysandbox = 0;
     $result = mysql_query("select sandbox from users where id='$curuser'", $db);
-    list($mysandbox) = mysql_fetch_row($result);
+    [$mysandbox] = mysql_fetch_row($result);
     if ($mysandbox != 0) $sandbox = "1";
 }
 if ($gameid) {
@@ -48,7 +48,7 @@ if ($gameid) {
     if (mysql_num_rows($result) == 0) {
         $errMsg = "The requested game was not found in the database.";
     } else {
-        list($gameTitle) = mysql_fetch_row($result);
+        [$gameTitle] = mysql_fetch_row($result);
         $gameTitle = htmlspecialcharx($gameTitle);
 
         $pageTitle = "Recommended Lists with $gameTitle";
@@ -65,7 +65,7 @@ if ($gameid) {
     if (mysql_num_rows($result) == 0) {
         $errMsg = "The requested user was not found in the database.";
     } else {
-        list($username) = mysql_fetch_row($result);
+        [$username] = mysql_fetch_row($result);
         $username = htmlspecialcharx($username);
 
         $pageTitle = "All Recommended Lists by $username";
@@ -152,7 +152,7 @@ if ($errMsg) {
 
         // show the sorting controls
         showSortingControls("lstorder", "sortby", $sortList, $sortReq,
-                            array("user" => $uid, "game" => $gameid),
+                            ["user" => $uid, "game" => $gameid],
                             "alllists");
 
         // show where we are in the list
@@ -168,12 +168,12 @@ if ($errMsg) {
         // show each list
         for ($i = 0 ; $i < mysql_num_rows($result) ; $i++) {
             // fetch the next row
-            list($listid, $title, $desc, $moddate, $authid, $authname,
-                 $itemcnt) = mysql_fetch_row($result);
+            [$listid, $title, $desc, $moddate, $authid, $authname,
+             $itemcnt] = mysql_fetch_row($result);
 
             // fix up fields for display
             $title = htmlspecialcharx($title);
-            list($desc, $desclen, $desctrunc) = summarizeHtml($desc, 140);
+            [$desc, $desclen, $desctrunc] = summarizeHtml($desc, 140);
             $desc = fixDesc($desc);
             $authname = htmlspecialcharx($authname);
 

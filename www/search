@@ -113,7 +113,7 @@ if ($api_mode && $enum)
                 else if (strpos($g, "/") !== false)
                     $g = explode("/", $g);
                 else
-                    $g = array($g);
+                    $g = [$g];
 
                 // add each element
                 for ($j = 0 ; $j < count($g) ; $j++)
@@ -200,10 +200,10 @@ if ($api_mode && $enum)
     exit();
 }
 
-$extraLinkMap = array(
+$extraLinkMap = [
     "edit" => "<a href=\"editgame?id=##\">Edit Listing</a>",
     "review" => "<a href=\"review?id=##\">Write a Review</a>"
-);
+];
 if ($extraLink && isset($extraLinkMap[$extraLink])) {
     $hiddenXL = "<input type=\"hidden\" name=\"xlink\" value=\""
                 . htmlspecialcharx($extraLink) . "\">";
@@ -301,8 +301,8 @@ if ($term || $browse) {
     $count_all_possible_rows = true;
 
     // run the search
-    list($rows, $rowcnt, $sortList, $errMsg, $summaryDesc, $badges,
-         $specials, $specialsUsed, $orderBy) =
+    [$rows, $rowcnt, $sortList, $errMsg, $summaryDesc, $badges,
+     $specials, $specialsUsed, $orderBy] =
         doSearch($db, $term, $searchType, $sortby, $limit, $browse, 
                  $count_all_possible_rows);
 
@@ -1251,7 +1251,7 @@ else if ($term || $browse)
         }
 
         // show the sorting controls
-        $hids = array("searchfor" => $term);
+        $hids = ["searchfor" => $term];
         if ($browse)
             $hids['browse'] = '1';
         if ($searchType != "game")
@@ -1360,7 +1360,7 @@ else if ($term || $browse)
                     $tags = array_map("trim", explode(",", $row['tags']));
 
                     // scan the tags for matches to the "tag:" search terms
-                    $tagsMatched = array();
+                    $tagsMatched = [];
                     foreach ($specials as $s) {
                         if ($s[0][0] == "tags") {
                             // Don't try to match negated terms

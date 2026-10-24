@@ -62,8 +62,8 @@ $moddate = $rec['moddate'];
 $deltas = unserialize($rec['deltas']);
 
 // build the update
-$cols = array();
-$locks = array();
+$cols = [];
+$locks = [];
 foreach ($deltas as $colname => $colval)
 {
     switch ($colname)
@@ -102,7 +102,7 @@ $cols[] = "moddate = '$moddate'";
 $cols = implode(", ", $cols);
 
 // no errors yet
-$errors = array();
+$errors = [];
 function addError($desc, $query)
 {
     global $errors, $db;
@@ -140,7 +140,7 @@ runQuery("Game record update", "update games set $cols where id = '$gameid'");
 if (isset($deltas["ifids"])) {
     runQuery("Deleting old IFIDs", "delete from ifids where gameid = '$gameid'");
 
-    $ifidVals = array();
+    $ifidVals = [];
     foreach ($deltas["ifids"] as $ifid) {
         $qifid = mysql_real_escape_string(strtoupper($ifid), $db);
         $ifidVals[] = "('{$gameid}', '{$qifid}')";

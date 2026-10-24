@@ -80,7 +80,7 @@ if ($sourceType == 'G') {
     if (mysql_num_rows($result) > 0) {
 
         // build the source item reference
-        list($gtitle, $gauthor) = mysql_fetch_row($result);
+        [$gtitle, $gauthor] = mysql_fetch_row($result);
         $gtitle = htmlspecialcharx($gtitle);
         $gauthor = htmlspecialcharx($gauthor);
 
@@ -141,7 +141,7 @@ if ($sourceType == 'G') {
     if (mysql_num_rows($result) > 0) {
 
         // build the source item reference
-        list($ctitle) = mysql_fetch_row($result);
+        [$ctitle] = mysql_fetch_row($result);
         $ctitle = htmlspecialcharx($ctitle);
 
         $sourceInfo = ($newsID ? "This news item is" :
@@ -231,7 +231,7 @@ function showItem()
     // query the updater's username
     $result = mysql_query(
         "select name from users where id = '$curuser'", $db);
-    list($curuserName) = mysql_fetch_row($result);
+    [$curuserName] = mysql_fetch_row($result);
 
     // if we're the original author, set the 'original' variables
     if (!$origUserID) {
@@ -279,10 +279,10 @@ if ($newsID && !$errMsg) {
     if (mysql_num_rows($result) > 0) {
 
         // fetch the old information
-        list($newsID, $sourceType, $sourceID, $created, $modified,
+        [$newsID, $sourceType, $sourceID, $created, $modified,
              $authorID, $supersedes, $original, $status,
              $oldHeadline, $oldBody, $superseder,
-             $origUserID, $origUserName) =
+             $origUserID, $origUserName] =
                  mysql_fetch_row($result);
 
         // if we're not submitting a form, use the old data to populate
@@ -340,7 +340,7 @@ if ($reinstateID && !$errMsg && !$submit) {
                = ifnull(n.original, n.newsid)", $db);
 
     if (mysql_num_rows($result) > 0) {
-        list($headline, $body) = mysql_fetch_row($result);
+        [$headline, $body] = mysql_fetch_row($result);
     } else {
         $errMsg = "The item you're attempting to reinstate is no longer "
                   . "in the database.";
