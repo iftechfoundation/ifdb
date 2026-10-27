@@ -239,9 +239,11 @@ async function jsonSend(url, statusSpanID, cbFunc, content, silentMode)
     let jsonResponse = null;
     let msgspan = null;
     let response;
+    let errmsg = null;
     try {
         response = await fetch(url, options);
         jsonResponse = await response.json();
+        errmsg = jsonResponse.error;
         msgspan = (statusSpanID
                 ? document.getElementById(statusSpanID)
                 : null);
@@ -255,16 +257,19 @@ async function jsonSend(url, statusSpanID, cbFunc, content, silentMode)
                 msgspan.innerHTML = lbl;
         }
 
-        const errmsg = jsonResponse.error;
         if (errmsg && !silentMode)
             alert(errmsg);
-    } catch (e) {
+    } catch (_e) {
         if (msgspan)
             msgspan.innerHTML = "Not Saved";
         if (!silentMode)
-            alert("An error occurred sending the update to the server. "
-                   + "(" + response.status + ") "
-                   + "Please try again later.");
+            if (errmsg) {
+                alert(errmsg);
+            } else {
+                alert("An error occurred sending the update to the server. "
+                       + "(" + response.status + ") "
+                       + "Please try again later.");
+            }
     }
     if (cbFunc && response?.ok) {
         cbFunc(jsonResponse);
