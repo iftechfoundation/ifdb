@@ -266,7 +266,7 @@ function loadGameRecord($db, $id)
     $rec['coverart'] = (is_null($art) || strlen($art) == 0 ? "none" : "old");
 
     // return the result
-    return [$rec, false];
+    return [$rec, false, false];
 }
 
 
@@ -801,8 +801,8 @@ function calcDeltas($oldRec, $newRec)
         $colname = $field[1];
 
         // get the old and new values
-        $oldval = (isset($oldRec[$colname]) ? $oldRec[$colname] : "");
-        $newval = $newRec[$colname];
+        $oldval = $oldRec[$colname] ?? "";
+        $newval = $newRec[$colname] ?? "";
 
         // skip derived values
         if ($colname == "eAuthor")
@@ -895,8 +895,8 @@ function calcDeltas($oldRec, $newRec)
     }
 
     // check for changes to the links
-    $newlinks = $newRec['links'];
-    $oldlinks = (isset($oldRec['links']) ? $oldRec['links'] : []);
+    $newlinks = $newRec['links'] ?? [];
+    $oldlinks = $oldRec['links'] ?? [];
     if (!arrayOfArrayValsEqual(
         $newlinks, $oldlinks,
         ['url', 'title', 'desc', 'attrs', 'fmtid', 'osid', 'osvsn',
@@ -907,8 +907,8 @@ function calcDeltas($oldRec, $newRec)
     }
 
     // check for changes to the external reviews
-    $newrevs = $newRec['extreviews'];
-    $oldrevs = (isset($oldRec['extreviews']) ? $oldRec['extreviews'] : []);
+    $newrevs = $newRec['extreviews'] ?? [];
+    $oldrevs = $oldRec['extreviews'] ?? [];
     if (!arrayOfArrayValsEqual(
         $newrevs, $oldrevs,
         ['url', 'sourcename', 'sourceurl', 'rating',
@@ -919,8 +919,8 @@ function calcDeltas($oldRec, $newRec)
     }
 
     // check for changes to the external references
-    $newxrefs = $newRec['xrefs'];
-    $oldxrefs = (isset($oldRec['xrefs']) ? $oldRec['xrefs'] : []);
+    $newxrefs = $newRec['xrefs'] ?? [];
+    $oldxrefs = $oldRec['xrefs'] ?? [];
     if (!arrayOfArrayValsEqual(
         $newxrefs, $oldxrefs, ['reftype', 'toID'])) {
 
