@@ -33,9 +33,9 @@ $qexternid = mysql_real_escape_string($externid, $db);
 
 $dlastr = get_req_data('dla');
 if ($dlastr) {
-    list($dlaos, $dlavsn) = explode(".", $dlastr);
-    $dlaos = (int)$dlaos;
-    $dlavsn = ($dlavsn != "" ? (int)$dlavsn : "");
+    $parts = explode(".", $dlastr, 2);
+    $dlaos = (int)$parts[0];
+    $dlavsn = (isset($parts[1]) && $parts[1] !== "") ? (int)$parts[1] : "";
 }
 
 $geticon = mysql_real_escape_string(get_req_data('geticon'), $db);
