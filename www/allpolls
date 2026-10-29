@@ -20,8 +20,7 @@ $gameid = get_req_data('game');
 $qgameid = mysql_real_escape_string($gameid, $db);
 
 $perPage = 10;
-$pgAll = false;
-$pg = get_req_data('pg');
+[$pgAll, $pg] = parse_page(get_req_data('pg'));
 $sortReq = get_req_data('sortby');
 
 $errMsg = false;
@@ -97,16 +96,9 @@ if ($errMsg) {
     }
 
     // figure the limit clause for the page range
-    if ($pg == 'all') {
-        $pg = 1;
-        $pgAll = true;
-        $firstOnPage = 0;
-        $limit = "";
-    } else {
-        $pg = (int)$pg;
-        if ($pg < 1)
-            $pg = 1;
-        $pgAll = false;
+    $firstOnPage = 0;
+    $limit = "";
+    if (!$pgAll) {
         $firstOnPage = ($pg - 1)*$perPage;
         $limit = "limit $firstOnPage, $perPage";
     }

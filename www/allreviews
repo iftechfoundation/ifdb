@@ -34,8 +34,7 @@ $reqTag = get_req_data('tag');
 $qtag = mysql_real_escape_string($reqTag, $db);
 
 $perPage = 10;
-$pgAll = false;
-$pg = get_req_data('pg');
+[$pgAll, $pg] = parse_page(get_req_data('pg'));
 $sortReq = get_req_data('sortby');
 
 $sortList = array(
@@ -147,19 +146,15 @@ if ($errMsg) {
          $whereReview $whereEmbargo $whereTag", $db);
     $revcnt = mysql_result($result, 0, "c");
 
-    if ($pg == 'all') {
-        $pgAll = true;
+    if ($pgAll && $revcnt > 0) {
         $perPage = $revcnt;
-        $pg = 1;
     }
 
     // figure how many pages that makes
     $lastPage = (int)floor(($revcnt + $perPage - 1)/$perPage);
 
     // limit the page request to existing pages
-    if ($pg < 1)
-        $pg = 1;
-    else if ($pg > $lastPage)
+    if ($pg > $lastPage)
         $pg = $lastPage;
 
     // calculate our position in the list

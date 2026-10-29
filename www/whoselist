@@ -20,9 +20,8 @@ $qgameid = mysql_real_escape_string($gameid, $db);
 $errMsg = false;
 $listtype = get_req_data('type');
 
-$pgAll = false;
 $perPage = 25;
-$pg = get_req_data('pg');
+[$pgAll, $pg] = parse_page(get_req_data('pg'));
 $sortReq = get_req_data('sortby');
 
 // look up the game
@@ -83,19 +82,15 @@ if ($errMsg) {
            and locate('$privcode', users.publiclists) > 0", $db);
     list($cnt) = mysql_fetch_row($result);
 
-    if ($pg == 'all') {
-        $pgAll = true;
+    if ($pgAll && $cnt > 0) {
         $perPage = $cnt;
-        $pg = 1;
     }
 
     // figure how many pages that makes
     $lastPage = (int)floor(($cnt + $perPage - 1)/$perPage);
 
     // limit the page request to existing pages
-    if ($pg < 1)
-        $pg = 1;
-    else if ($pg > $lastPage)
+    if ($pg > $lastPage)
         $pg = $lastPage;
 
     // calculate our position in the list

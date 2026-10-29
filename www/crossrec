@@ -441,8 +441,7 @@ if ($editMode) {
     // view mode - list all cross-recommendations for the game
 
     // get the page to view
-    $pgAll = false;
-    $pg = get_req_data('pg');
+    [$pgAll, $pg] = parse_page(get_req_data('pg'));
 
     // get the game ratings table, taking into account the user's sandbox
     $gameRatingsView = getGameRatingsView($db);
@@ -473,15 +472,9 @@ if ($editMode) {
 
     // figure how many to show
     $perPage = 25;
-    if ($pg == 'all') {
-        $pgAll = true;
+    if ($pgAll && $cnt > 0) {
         $perPage = $cnt;
-        $pg = 1;
     }
-
-    // make sure the page is within range
-    if ($pg < 1)
-        $pg = 1;
 
     // get the page range
     $firstOnPage = ($pg - 1) * $perPage;

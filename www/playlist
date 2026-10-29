@@ -29,9 +29,8 @@ $quid = mysql_real_escape_string($uid, $db);
 $errMsg = false;
 $listtype = get_req_data('type');
 
-$pgAll = false;
 $perPage = 25;
-$pg = get_req_data('pg');
+[$pgAll, $pg] = parse_page(get_req_data('pg'));
 $sortReq = get_req_data('sortby');
 
 // look up the user record
@@ -126,17 +125,6 @@ if ($errMsg) {
     echo "<h1>$title</h1>";
 
     echo "<a href=\"showuser?id=$uid\">View $his profile</a><br><br>";
-
-    if ($pg == 'all') {
-        $pgAll = true;
-        $pg = 1;
-    } else {
-        $pg = (int)$pg;
-    }
-
-    // limit the page request to existing pages
-    if ($pg < 1)
-        $pg = 1;
 
     // calculate our position in the list
     $firstOnPage = ($pg - 1) * $perPage;
