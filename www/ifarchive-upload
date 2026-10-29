@@ -32,7 +32,8 @@ $fmtmap = array(
     "Alan" => "alan2", "Alan 3" => "alan3",
     "Hugo" => "hugo");
 
-$fmt = $fmtmap[$system];
+$fmt = $fmtmap[$system] ?? '';
+$os = get_req_data("opsys");
 
 if ($author)
     $author = preg_replace("/\{[a-z0-9]+\}/i", "", $author);
