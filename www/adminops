@@ -1804,18 +1804,6 @@ else if (isset($_REQUEST['users'])) {
         if (isset($sandboxMap[$newSandbox]))
             $sandbox = $newSandbox;
 
-        for ($i = 0 ; $i < count($formats) ; $i++) {
-            $f = $formats[$i];
-            $k = $f['id'];
-            $formats[$i]['userid'] = ($_REQUEST["fmt-$k"] == $k ? $uid : "");
-        }
-
-        for ($i = 0 ; $i < count($oses) ; $i++) {
-            $o = $oses[$i];
-            $k = $o['id'];
-            $oses[$i]['userid'] = ($_REQUEST["os-$k"] == $k ? $uid : "");
-        }
-
         // update the user table
         $progress = "updating USERS";
         $result = mysql_query(
@@ -1825,36 +1813,6 @@ else if (isset($_REQUEST['users'])) {
                `privileges` = '$privcode',
                sandbox = '$sandbox'
              where id = '$quid'", $db);
-
-        // delete the old format privileges, and insert the new ones
-        if ($result) {
-            $progress = "deleting old format privileges";
-            $result = mysql_query(
-                "delete from formatprivs where userid='$quid'", $db);
-        }
-        foreach ($formats as $f) {
-            if ($f['userid'] && $result) {
-                $progress = "inserting format privilege {$f['fmtname']}";
-                $result = mysql_query(
-                    "insert into formatprivs (fmtid, userid)
-                     values ('{$f['id']}', '$quid')", $db);
-            }
-        }
-
-        // delete the old OS privileges, and insert the new ones
-        if ($result) {
-            $progress = "deleting old OS privileges";
-            $result = mysql_query(
-                "delete from osprivs where userid='$quid'", $db);
-        }
-        foreach ($oses as $o) {
-            if ($o['userid'] && $result) {
-                $progress = "inserting OS privilege {$o['name']}";
-                $result = mysql_query(
-                    "insert into osprivs (osid, userid)
-                     values ('{$o['id']}', '$quid')", $db);
-            }
-        }
 
         if ($result && $oldSandbox != $newSandbox) {
             $progress = "regenerating game ratings sandbox materialized view";
