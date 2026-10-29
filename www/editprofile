@@ -72,7 +72,7 @@ function showHiddenFields()
     global $email, $email2, $pubemail, $dname, $loc, $profile, $pic,
         $defaultOS, $mirror, $noExes,
         $playlistPub, $wishlistPub, $unwishlistPub, $gender,
-        $emailcaptcha, $emailcloaked;
+        $emailcaptcha, $emailcloaked, $offsite, $accessibility;
 
     echo "<input type=hidden name=email value=\""
           . htmlspecialcharx($email) . "\">"
