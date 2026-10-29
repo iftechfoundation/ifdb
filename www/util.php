@@ -2116,6 +2116,10 @@ function arrayValsEqual($a, $b, $keys)
 // compare arrays of arrays, checking the values in each one
 function arrayOfArrayValsEqual($a, $b, $keys)
 {
+    if (!is_array($a) || !is_array($b)) {
+        return $a === $b;
+    }
+
     // make sure the two arrays have the same number of elements
     if (count($a) != count($b))
         return false;
