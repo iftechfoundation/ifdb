@@ -218,7 +218,7 @@ function saveTags()
     dispTags();
     closeTags("tagEditor");
     jsonSend("taggame", "tagStatusSpan", cbSaveTags,
-        {"id": gameid, "tags": tags}, true);
+        {"id": gameid, "tags": tags});
 }
 
 function saveTagsDelete()
