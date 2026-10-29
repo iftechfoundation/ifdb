@@ -529,8 +529,7 @@ function saveUpdates($db, $adminPriv, $apiMode,
             if ($fmt == "") {
                 $errDetail["links"][] =
                     "You must select a file type for each link.";
-            }
-            if ($fmtmap[$fmt][1] == 'X' && $os == "") {
+            } else if (isset($fmtmap[$fmt]) && $fmtmap[$fmt][1] == 'X' && $os == "") {
                 $errDetail["links"][] =
                     "You must select the operating system for an Application
                      or Installer link.";
@@ -1135,7 +1134,7 @@ function saveNewGame($db, $adminPriv, $apiMode,
 
         // if the author field is empty but the external version isn't,
         // it means that the {TUID} formatting was missing the display names
-        if ($col == "author" && $changesNew["authorExt"] != "") {
+        if ($col == "author" && ($changesNew["authorExt"] ?? "") != "") {
             $colErr = "Please be sure to enter the author's display name "
                       . "before each profile link.  Use the format "
                       . "<b>Author Dent {a10x00139ke9041j}</b>.";
