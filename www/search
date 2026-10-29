@@ -63,11 +63,14 @@ if ($term == "" && $bTerm != "")
     $term = $bTerm;
 
 // check for special API requests
+$errMsg = false;
+$rows = [];
 $enum = get_req_data("enum");
 if ($api_mode && $enum)
 {
     // assume no error
     $itemType = false;
+    $items = [];
 
     // queries for the various types
     $queries = [
@@ -962,6 +965,7 @@ if ($api_mode) {
     // send the results
     foreach ($rows as $i => $row)
     {
+        $item = [];
         switch($searchType)
         {
         case "game":
