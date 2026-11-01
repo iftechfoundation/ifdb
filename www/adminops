@@ -1515,18 +1515,13 @@ else if (isset($_REQUEST['users'])) {
     $cnt = mysql_result($result, 0, "c");
 
     $perPage = 50;
-    $pgAll = false;
-    $pg = get_req_data('pg');
-    if ($pg == 'all') {
-        $pgAll = true;
+    [$pgAll, $pg] = parse_page(get_req_data('pg'));
+    if ($pgAll && $cnt > 0) {
         $perPage = $cnt;
-        $pg = 1;
     }
 
     $lastPage = (int)floor(($cnt + $perPage - 1)/$perPage);
-    if ($pg < 1)
-        $pg = 1;
-    else if ($pg > $lastPage)
+    if ($pg > $lastPage)
         $pg = $lastPage;
 
     $firstOnPage = ($pg - 1) * $perPage;

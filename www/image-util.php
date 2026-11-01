@@ -131,10 +131,15 @@ function sendImage($imgData, $imgFmt, $thumbnail, $flags = 0)
     // if they only want the thumbnail, resize it
     if (!is_null($thumbnail)) {
         // get the thumbnail sizes
-        list ($sx, $sy) = explode("x", $thumbnail);
+        $parts = explode("x", (string)$thumbnail, 2);
+        $sx = (int)($parts[0] ?? 0);
+        $sy = (int)($parts[1] ?? 0);
 
         // get the image data
         $source = imagecreatefromstring($imgData);
+        if ($source === false) {
+            exit("No image is available");
+        }
         $ix = imagesx($source);
         $iy = imagesy($source);
 

@@ -66,7 +66,12 @@ if (preg_match("/^css\/ifdb\.css$/", $fname, $match)) {
     // treat this as a root directory image item
     header("Content-Type: image/{$match[2]}");
     header("Last-Modified: $itimeStr");
-    readfile($match[1]);
+    $img = $match[1];
+    $path = is_file("img/$img") ? "img/$img" : $img;
+    if (!is_file($path)) {
+        err404();
+    }
+    readfile($path);
     exit();
 
 } else if (preg_match("/^css\/(.+)\.css$/", $fname, $match)) {

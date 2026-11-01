@@ -244,6 +244,26 @@ function get_req_data($id)
     return $val;
 }
 
+// Parse a pager `pg` request value. Returns [true, 1] for Show All,
+// otherwise [false, N] with N at least 1. Non-scalars (e.g. pg[])
+// are treated as page 1.
+function parse_page($pg)
+{
+    if (!is_scalar($pg)) {
+        $pg = "";
+    }
+
+    if ($pg === 'all') {
+        return [true, 1];
+    }
+
+    $pg = (int)$pg;
+    if ($pg < 1) {
+        $pg = 1;
+    }
+    return [false, $pg];
+}
+
 // --------------------------------------------------------------------------
 // quote a SQL LIKE term - escape "%" and "_" characters
 //
@@ -2096,6 +2116,13 @@ function arrayValsEqual($a, $b, $keys)
 // compare arrays of arrays, checking the values in each one
 function arrayOfArrayValsEqual($a, $b, $keys)
 {
+    if (!is_array($a)) {
+        $a = [];
+    }
+    if (!is_array($b)) {
+        $b = [];
+    }
+
     // make sure the two arrays have the same number of elements
     if (count($a) != count($b))
         return false;

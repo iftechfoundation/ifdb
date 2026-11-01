@@ -73,9 +73,7 @@ if (isset($_REQUEST['rss'])) {
 $item = get_req_data('item');
 
 // get the requested page number
-$pg = get_req_data('pg');
-if ($pg < 1)
-    $pg = 1;
+[, $pg] = parse_page(get_req_data('pg'));
 
 // start the page
 pageHeader("New Features on IFDB");

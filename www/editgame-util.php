@@ -266,7 +266,7 @@ function loadGameRecord($db, $id)
     $rec['coverart'] = (is_null($art) || strlen($art) == 0 ? "none" : "old");
 
     // return the result
-    return [$rec, false];
+    return [$rec, false, false];
 }
 
 
@@ -529,8 +529,7 @@ function saveUpdates($db, $adminPriv, $apiMode,
             if ($fmt == "") {
                 $errDetail["links"][] =
                     "You must select a file type for each link.";
-            }
-            if ($fmtmap[$fmt][1] == 'X' && $os == "") {
+            } else if (isset($fmtmap[$fmt]) && $fmtmap[$fmt][1] == 'X' && $os == "") {
                 $errDetail["links"][] =
                     "You must select the operating system for an Application
                      or Installer link.";
@@ -802,8 +801,8 @@ function calcDeltas($oldRec, $newRec)
         $colname = $field[1];
 
         // get the old and new values
-        $oldval = (isset($oldRec[$colname]) ? $oldRec[$colname] : "");
-        $newval = $newRec[$colname];
+        $oldval = $oldRec[$colname] ?? "";
+        $newval = $newRec[$colname] ?? "";
 
         // skip derived values
         if ($colname == "eAuthor")
@@ -896,8 +895,8 @@ function calcDeltas($oldRec, $newRec)
     }
 
     // check for changes to the links
-    $newlinks = $newRec['links'];
-    $oldlinks = (isset($oldRec['links']) ? $oldRec['links'] : []);
+    $newlinks = $newRec['links'] ?? [];
+    $oldlinks = $oldRec['links'] ?? [];
     if (!arrayOfArrayValsEqual(
         $newlinks, $oldlinks,
         ['url', 'title', 'desc', 'attrs', 'fmtid', 'osid', 'osvsn',
@@ -908,8 +907,8 @@ function calcDeltas($oldRec, $newRec)
     }
 
     // check for changes to the external reviews
-    $newrevs = $newRec['extreviews'];
-    $oldrevs = (isset($oldRec['extreviews']) ? $oldRec['extreviews'] : []);
+    $newrevs = $newRec['extreviews'] ?? [];
+    $oldrevs = $oldRec['extreviews'] ?? [];
     if (!arrayOfArrayValsEqual(
         $newrevs, $oldrevs,
         ['url', 'sourcename', 'sourceurl', 'rating',
@@ -920,8 +919,8 @@ function calcDeltas($oldRec, $newRec)
     }
 
     // check for changes to the external references
-    $newxrefs = $newRec['xrefs'];
-    $oldxrefs = (isset($oldRec['xrefs']) ? $oldRec['xrefs'] : []);
+    $newxrefs = $newRec['xrefs'] ?? [];
+    $oldxrefs = $oldRec['xrefs'] ?? [];
     if (!arrayOfArrayValsEqual(
         $newxrefs, $oldxrefs, ['reftype', 'toID'])) {
 
@@ -1135,7 +1134,7 @@ function saveNewGame($db, $adminPriv, $apiMode,
 
         // if the author field is empty but the external version isn't,
         // it means that the {TUID} formatting was missing the display names
-        if ($col == "author" && $changesNew["authorExt"] != "") {
+        if ($col == "author" && ($changesNew["authorExt"] ?? "") != "") {
             $colErr = "Please be sure to enter the author's display name "
                       . "before each profile link.  Use the format "
                       . "<b>Author Dent {a10x00139ke9041j}</b>.";

@@ -31,8 +31,7 @@ if (array_search($mode, array('subscribed', 'inbox', 'comments')) === false)
     $mode = 'subscribed';
 
 // get the page number
-$pg = get_req_data('pg');
-$pgAll = false;
+[$pgAll, $pg] = parse_page(get_req_data('pg'));
 $perPage = ($rss ? 50 : 25);
 
 // get the target user - if not specified, use the current user
@@ -109,16 +108,9 @@ if ($curuser
 
 // figure the query limit, if we're showing this in pages
 $limit = "";
-if ($pg != 'all') {
-
-    // make sure the page is valid
-    if ($pg < 1)
-        $pg = 1;
-
-    // figure the first item on the page
+$firstOnPage = 0;
+if (!$pgAll) {
     $firstOnPage = ($pg - 1) * $perPage;
-
-    // build the LIMIT clause
     $limit = "limit $firstOnPage, $perPage";
 }
 
@@ -127,9 +119,7 @@ list($comments, $rowcnt) =
     queryComments($db, $mode, $quid, $limit, false, false);
 
 // if we're showing all pages, up $perPage to the actual count
-if ($pg == 'all') {
-    $pgAll = true;
-    $pg = 1;
+if ($pgAll && $rowcnt > 0) {
     $perPage = $rowcnt;
 }
 

@@ -856,9 +856,7 @@ echo helpWinLink("help-ifid", "IFID");
         $ratingsView = isset($_REQUEST['ratings']) && !$should_hide;
 
         // get the page we're showing, defaulting to 1 if it's non-positive
-        $reviewPage = get_req_data('pg');
-        if ($reviewPage != 'all' && $reviewPage < 1)
-            $reviewPage = 1;
+        [$pgAll, $reviewPage] = parse_page(get_req_data('pg'));
     }
     if (isset($_REQUEST['review'])) {
         // we're viewing a single review
@@ -2017,15 +2015,8 @@ if ($embargoCnt > 0)
 
         // number per page
         $per_page = ($ratingsView ? 25 : 10);
-        $pgAll = false;
 
         $limit = "";
-        if ($reviewPage == 'all') {
-            $pgAll = true;
-            $reviewPage = 1;
-        } else {
-            $reviewPage = (int)$reviewPage;
-        }
 
         // calculate the row number of the first review on the page
         $firstOnPage = ($reviewPage - 1) * $per_page;
@@ -2068,7 +2059,7 @@ if ($embargoCnt > 0)
         list($totcnt) = mysql_fetch_row($result2);
 
         // if viewing all, make the page limit equal to the actual count
-        if ($pgAll)
+        if ($pgAll && $totcnt > 0)
             $per_page = $totcnt;
 
         // figure the number of pages that gives us

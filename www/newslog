@@ -20,8 +20,7 @@ $deletions = (isset($_REQUEST['deletions']) ? "&deletions" : false);
 $histp = isset($_REQUEST['history']);
 
 $perPage = 20;
-$pgAll = false;
-$pg = get_req_data('pg');
+[$pgAll, $pg] = parse_page(get_req_data('pg'));
 
 $errMsg = false;
 $pageTitle = false;
@@ -313,14 +312,8 @@ if ($errMsg) {
             . "Create a new item</a></span><p>";
 
         // figure the page limits
-        if ($pg == "all") {
-            $pg = 1;
-            $pgAll = true;
-            $limit = "";
-        } else {
-            $pg = (int)$pg;
-            if ($pg < 1)
-                $pg = 1;
+        $limit = "";
+        if (!$pgAll) {
             $firstOnPage = ($pg - 1) * $perPage;
             $limit = "limit $firstOnPage, $perPage";
         }

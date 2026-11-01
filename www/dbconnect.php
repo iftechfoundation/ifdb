@@ -122,15 +122,21 @@ function mysql_execute_query($db, $query, $params = null) {
     }
 }
 function mysql_num_rows($result) { return $result ? mysqli_num_rows($result) : 0; }
-function mysql_fetch_array($result, $match_type = MYSQLI_BOTH) { return mysqli_fetch_array($result, $match_type); }
-function mysql_fetch_row($result) { return mysqli_fetch_row($result); }
+function mysql_fetch_array($result, $match_type = MYSQLI_BOTH) { return $result ? mysqli_fetch_array($result, $match_type) : false; }
+function mysql_fetch_row($result) { return $result ? mysqli_fetch_row($result) : false; }
 function mysql_close($db) { return mysqli_close($db); }
 function mysql_error($db) { return mysqli_error($db); }
 function mysql_errno($db) { return mysqli_errno($db); }
 function mysql_result($result, $row, $field = 0) {
+    if (!$result) {
+        return null;
+    }
     mysqli_data_seek($result, $row);
-    $row = mysqli_fetch_assoc($result);
-    return $row[$field];
+    $fetched = mysqli_fetch_assoc($result);
+    if (!$fetched) {
+        return null;
+    }
+    return $fetched[$field] ?? null;
 }
 function mysql_insert_id($linkid) { return mysqli_insert_id($linkid); }
 

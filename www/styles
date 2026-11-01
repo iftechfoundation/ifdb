@@ -400,7 +400,7 @@ if ($setID) {
     }
 
     $sortBy = get_req_data('sort');
-    $pg = get_req_data('pg');
+    [, $pg] = parse_page(get_req_data('pg'));
 
     // set up the sorting list
     $sortList = array(
@@ -417,8 +417,6 @@ if ($setID) {
     $orderBy = $sortList[$sortBy][0];
 
     // set up our page bounds
-    if ($pg < 1)
-        $pg = 1;
     $perPage = 20;
     $firstOnPage = ($pg - 1) * $perPage;
     $lastOnPage = $firstOnPage + $perPage - 1;

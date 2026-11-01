@@ -63,11 +63,14 @@ if ($term == "" && $bTerm != "")
     $term = $bTerm;
 
 // check for special API requests
+$errMsg = false;
+$rows = [];
 $enum = get_req_data("enum");
 if ($api_mode && $enum)
 {
     // assume no error
     $itemType = false;
+    $items = [];
 
     // queries for the various types
     $queries = [
@@ -248,11 +251,7 @@ foreach (SEARCH_TYPES as $browseParam => $browseName) {
     break;
 }
 
-$pg = $_REQUEST['pg'] ?? "";
-if (!is_scalar($pg)) {
-    $pg = "";
-}
-$pgAll = false;
+[$pgAll, $pg] = parse_page($_REQUEST['pg'] ?? "");
 $perPage = 100;
 $showAllMaxRows = 500;
 if ($searchType == "tag") {
@@ -264,13 +263,7 @@ $browse = isset($_REQUEST['browse']);
 
 
 // calculate where we are in the results according to the paging mode
-if ($pg == 'all') {
-
-    // showing all results, so we're inherently on the first page
-    $pg = 1;
-
-    // note that we're in Show All mode
-    $pgAll = true;
+if ($pgAll) {
 
     // set the limit clause to show the first row to the maximum fetch
     $limit = "limit 0, $showAllMaxRows";
@@ -279,11 +272,6 @@ if ($pg == 'all') {
     $lastOnPage = 0;
 
 } else {
-
-    // we can't be at a page number less than 1
-    $pg = (int)$pg;
-    if ($pg < 1)
-        $pg = 1;
 
     // calculate where that puts us in the results
     $firstOnPage = ($pg - 1) * $perPage;
@@ -977,6 +965,7 @@ if ($api_mode) {
     // send the results
     foreach ($rows as $i => $row)
     {
+        $item = [];
         switch($searchType)
         {
         case "game":

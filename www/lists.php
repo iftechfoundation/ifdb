@@ -11,7 +11,7 @@ function listMatchItem($match, $num, $showArt, $rating, $hrefTarget)
     $author = collapsedAuthors($author);
     $pubyear = $match['pubyear'];
     $art = $showArt && $match['hasart'];
-    $pagevsn = $match['pagevsn'];
+    $pagevsn = $match['pagevsn'] ?? '';
 
     if ($hrefTarget != "")
         $hrefTarget = " target=\"$hrefTarget\"";
