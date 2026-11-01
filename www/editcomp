@@ -1573,7 +1573,7 @@ function activateListeners(divno, model)
 
     // add the division initializers
     $divs = $dispRec["divisions"];
-    $games = $dispRec["games"];
+    $games = $dispRec["games"] ?? [];
     for ($i = 0 ; $i < count($divs) ; $i++) {
 
         // add this division initializer variable
