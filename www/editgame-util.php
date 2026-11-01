@@ -328,7 +328,7 @@ function saveUpdates($db, $adminPriv, $apiMode,
 
     // strip whitespace from the IFID field, and uppercase it
     $req['ifids'] = strtoupper(str_replace(
-        [" ", "\t"], ["", ""], $req['ifids']));
+        [" ", "\t"], ["", ""], $req['ifids'] ?? ''));
 
     // If there are any profile links in the author name, we actually have
     // an EXTENDED author value.  In this case, set the extended author to
