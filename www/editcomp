@@ -138,6 +138,8 @@ if ($compID == "new") {
                          . "in which all games are competing for the same "
                          . "awards, simply list all games under this "
                          . "division."));
+    $oldRec["games"] = [];
+    $oldRec["pagevsn"] = "";
 
 } else {
 
