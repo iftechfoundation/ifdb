@@ -164,8 +164,10 @@ $colMap["website"] = array("contacts/url", "game Web site URL");
 
 // parse out the fields that we can map from iFiction to our game record
 $ifids = array();
-foreach ($xml->story->identification->ifid as $i) {
-    $ifids[] = mysql_real_escape_string((string)$i, $db);
+if (isset($xml->story->identification->ifid)) {
+    foreach ($xml->story->identification->ifid as $i) {
+        $ifids[] = mysql_real_escape_string((string)$i, $db);
+    }
 }
 $ifid = implode(",", $ifids);
 
@@ -520,7 +522,7 @@ if ($artFile)
     // because of the special UI for images, not for images.  So,
     // we need to load the old image, load the new image, and do a
     // binary compare.
-    if ($rec["orig:coverart"])
+    if (!empty($rec["orig:coverart"]))
     {
         // query up the old image
         list($oldImgData) = fetch_image($rec["orig:coverart"], true);
