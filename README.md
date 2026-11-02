@@ -51,6 +51,17 @@ docker compose up --build
 
 Once your dependency is installed, you'll consume the dependency by adding a `require_once 'vendor/autoload.php';` line to your code.
 
+# PHP coding style
+
+We use [PHP-CS-Fixer](https://github.com/PHP-CS-Fixer/PHP-CS-Fixer) for coding style.
+
+Run it with Docker:
+
+```
+./docker-php-cs-fixer.sh
+./docker-php-cs-fixer.sh --dry-run --diff
+```
+
 ## Known Issues with the Development Environment
 
 * Sending email doesn't work. That's unfortunate, because if you want to create a user, you'll need to login with an activation code. After you try to create a new user, you should be able to see the email text in the Docker logs. Search for `EMAIL: NOT SENDING EMAIL IN LOCAL DEVELOPMENT MODE`.
