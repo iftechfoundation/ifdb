@@ -76,44 +76,15 @@ $targVsn = (isset($_REQUEST['version'])
 
 // if we're retrieving an old version, go back and find it
 if ($targVsn) {
-    // query up the old versions from newest to oldest
-    $result = mysqli_execute_query($db,
-        "select pagevsn, deltas
-        from games_history
-        where id = ?
-        order by pagevsn desc", [$id]);
-
-    // scan for a version that overrides the current definition
-    $rows = mysql_num_rows($result);
-    $foundvsn = false;
-    for ($i = 0 ; $i < $rows ; $i++) {
-        // get this row
-        $rec = mysql_fetch_array($result, MYSQL_ASSOC);
-
-        // deserialize the deltas
-        $deltas = unserializeGameDeltas($rec['deltas']);
-
-        // if this entry defines artwork, use the override
-        if (isset($deltas['coverart']))
-            $imgname = $deltas['coverart'];
-
-        if (isset($deltas['title']))
-            $title = $deltas['title'];
-
-        // stop if this is the version we're looking for
-        if ((int)$rec['pagevsn'] == $targVsn)
-        {
-            $foundvsn = true;
-            break;
-        }
-    }
-
-    // if we didn't find the requested version, give up
+    [$foundvsn, $histRec] = applyGameHistoryDeltas(
+        $db, $id, ["coverart" => $imgname, "title" => $title], $targVsn);
     if (!$foundvsn) {
         http_response_code(404);
         header("Cache-Control: private, no-cache");
         exit("The requested version of the art image wasn't found");
     }
+    $imgname = $histRec["coverart"];
+    $title = $histRec["title"];
 }
 
 // retrieve the image data

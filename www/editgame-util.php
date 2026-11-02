@@ -1,6 +1,7 @@
 <?php
 
 include_once "pagetpl.php";
+include_once "gameinfo.php";
 
 // --------------------------------------------------------------------------
 //
@@ -1400,21 +1401,9 @@ function saveOldGame($db, $adminPriv, $apiMode,
 
         // apply history records from latest to oldest until we get back
         // to the version we've been editing
-        $curvsn = (int)$origRec['pagevsn'];
         $origvsn = (int)$_REQUEST['pagevsn'];
-        $result = mysql_query(
-            "select deltas from games_history
-             where id = '$qid'
-               and pagevsn between $origvsn and $curvsn - 1
-               order by pagevsn desc", $db);
-        for ($i = 0 ; $i < mysql_num_rows($result) ; $i++) {
-            // retrieve and unserialize the deltas
-            $dg = unserialize(mysql_result($result, 0, "deltas"));
-
-            // apply the deltas
-            foreach ($dg as $col => $val)
-                $origRec[$col] = $val;
-        }
+        [, $origRec] = applyGameHistoryDeltas(
+            $db, $id, $origRec, $origvsn);
 
         // put things back in our internal format
         $origRec['ifids'] = implode(",", $origRec['ifids']);
@@ -1697,30 +1686,7 @@ function loadGameRecordAtVersion($db, $id, $version)
 
     // if they want the current version, we're already done reconstructing
     if ($targVsn != $currentVsn) {
-        // apply reverse deltas from newest to oldest until we reach
-        // the requested version (same algorithm as getGameInfo)
-        $result = mysqli_execute_query($db,
-            "select pagevsn, deltas
-             from games_history
-             where id = ?
-             order by pagevsn desc", [$id]);
-        if (!$result)
-            return [false, "Error reading version history.", "dbError"];
-
-        $foundvsn = false;
-        while ($vrec = mysql_fetch_array($result, MYSQL_ASSOC)) {
-            $deltas = @unserialize($vrec['deltas']);
-            if (!is_array($deltas))
-                $deltas = [];
-            foreach ($deltas as $colname => $colval)
-                $rec[$colname] = $colval;
-
-            if ((int)$vrec['pagevsn'] == $targVsn) {
-                $foundvsn = true;
-                break;
-            }
-        }
-
+        [$foundvsn, $rec] = applyGameHistoryDeltas($db, $id, $rec, $targVsn);
         if (!$foundvsn)
             return [false,
                     "The requested version wasn't found in the database.",
