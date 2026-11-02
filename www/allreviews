@@ -37,15 +37,15 @@ $perPage = 10;
 [$pgAll, $pg] = parse_page(get_req_data('pg'));
 $sortReq = get_req_data('sortby');
 
-$sortList = array(
-    'new' => array('publicationdate desc, reviews.createdate desc', 'Newest First'),
-    'old' => array('publicationdate, reviews.createdate', 'Oldest First'),
-    'hlp' => array('netHelpful desc', 'Most Helpful First'),
-    'unh' => array('netHelpful', 'Least Helpful First'),
-    'hi' => array('rating desc', 'Highest Ratings First'),
-    'lo' => array('rating', 'Lowest Ratings First'),
-    'ttl' => array('sort_title', 'Sort by Game Title'),
-    'auth' => array('sort_author', 'Sort by Game Author'));
+$sortList = [
+    'new' => ['publicationdate desc, reviews.createdate desc', 'Newest First'],
+    'old' => ['publicationdate, reviews.createdate', 'Oldest First'],
+    'hlp' => ['netHelpful desc', 'Most Helpful First'],
+    'unh' => ['netHelpful', 'Least Helpful First'],
+    'hi' => ['rating desc', 'Highest Ratings First'],
+    'lo' => ['rating', 'Lowest Ratings First'],
+    'ttl' => ['sort_title', 'Sort by Game Title'],
+    'auth' => ['sort_author', 'Sort by Game Author']];
 
 // look up the user record
 $pageTitle = ($ratings == "only" ? "Ratings" :
@@ -56,7 +56,7 @@ $result = mysql_query(
 if (mysql_num_rows($result) == 0) {
     $errMsg = "The requested user was not found in the database.";
 } else {
-    list($username, $location) = mysql_fetch_row($result);
+    [$username, $location] = mysql_fetch_row($result);
 
     $pageTitle .= " by ". htmlspecialcharx($username);
 }
@@ -103,7 +103,7 @@ if ($errMsg) {
          order by tag", $db);
     if (($rowcnt = mysql_num_rows($result)) > 0) {
         // fetch the tags
-        for ($tags = array(), $i = 0 ; $i < $rowcnt ; $i++)
+        for ($tags = [], $i = 0 ; $i < $rowcnt ; $i++)
             $tags[] = mysql_result($result, $i, "tag");
 
         // display the tag list
@@ -173,7 +173,7 @@ if ($errMsg) {
         // get my sandbox
         $mysandbox = 0;
         $result = mysql_query("select sandbox from users where id='$curuser'", $db);
-        list($mysandbox) = mysql_fetch_row($result);
+        [$mysandbox] = mysql_fetch_row($result);
         if ($mysandbox != 0)
             $sandbox = "(0,$mysandbox)";
     }
@@ -230,8 +230,8 @@ if ($errMsg) {
     } else {
         // show the sorting controls
         showSortingControls("rvworder", "sortby", $sortList, $sortReq,
-                            array("id" => $uid, "ratings" => $ratings,
-                                  "tag" => $reqTag),
+                            ["id" => $uid, "ratings" => $ratings,
+                             "tag" => $reqTag],
                             "allreviews");
 
         // show where we are in the list
