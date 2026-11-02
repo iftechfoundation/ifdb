@@ -760,6 +760,9 @@ function parseDateOrYearVal($val)
     // do the normal date parse
     $d = parseDateVal($val);
 
+    if ($d === null || $d === false)
+        return "";
+
     // if the value doesn't look like just a year value, add the time portion
     if (!preg_match("/[0-9][0-9][0-9][0-9]$/AD", $val))
         $d .= " 01:00:00";
