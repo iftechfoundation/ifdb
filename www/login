@@ -107,7 +107,7 @@ function login()
     }
 
     // try logging in
-    list($userid, $errCode, $errFlagged) = doLogin($db, $username, $psw);
+    [$userid, $errCode, $errFlagged] = doLogin($db, $username, $psw);
 
     // if that failed, return and tell the caller to show the login form again
     if (!$userid)

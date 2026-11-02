@@ -25,12 +25,12 @@ $qlistid = mysql_real_escape_string($listid, $db);
 
 $result = mysql_query("select name, location from users
     where id='$userid'", $db);
-list($username, $userloc) = mysql_fetch_row($result);
+[$username, $userloc] = mysql_fetch_row($result);
 
 $listTitle = get_req_data("title");
 $listDesc = get_req_data("desc");
 $listKeywords = get_req_data("keywords");
-$listItems = array();
+$listItems = [];
 
 $errDetails = false;
 
@@ -98,7 +98,7 @@ if ($listid == 'new') {
                   and games.id = reclistitems.gameid
                 order by displayorder", $db);
 
-            for ($listItems = array(), $i = 0 ;
+            for ($listItems = [], $i = 0 ;
                  $i < mysql_num_rows($result) ; $i++)
                 $listItems[] = mysql_fetch_array($result, MYSQL_ASSOC);
         }
@@ -110,13 +110,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $newdesc = get_req_data('desc');
     $newkeywords = get_req_data('keywords');
 
-    for ($i = 0, $newitems = array() ; ; $i++) {
+    for ($i = 0, $newitems = [] ; ; $i++) {
         // if we're out of items, stop looking
         if (!isset($_REQUEST["comments$i"]))
             break;
 
         // read this item
-        $item = array();
+        $item = [];
         $item['tuid'] = get_req_data("tuid$i");
         $item['title'] = get_req_data("title$i");
         $item['comments'] = get_req_data("comments$i");
@@ -305,7 +305,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_REQUEST['preview'])) {
         $item = $listItems[$i];
 
         // no matches yet
-        $matches = array();
+        $matches = [];
 
         // pull out the search terms
         $tuid = mysql_real_escape_string($item['tuid'], $db);

@@ -114,7 +114,7 @@ $result = mysql_query(
        pollcomments write", $db);
 
 // we have no referencers yet
-$refs = array();
+$refs = [];
 
 // make sure it's our listing; admin privs overide this
 if (!$adminPriv) {
@@ -133,9 +133,9 @@ if (!$adminPriv) {
     if ($userid == ""
         || $userid != $editedby
         || mysql_result($result, 0, "c") != 0) {
-        $refs[] = array("Other users have added votes to this poll (you can "
-                        . "only delete a listing if you created it <b>and</b> "
-                        . "you're the only person who's voted on it)", false);
+        $refs[] = ["Other users have added votes to this poll (you can "
+                   . "only delete a listing if you created it <b>and</b> "
+                   . "you're the only person who's voted on it)", false];
     }
 }
 
@@ -144,7 +144,7 @@ $result = mysql_query(
     "select count(*) as c from pollcomments
      where pollid = '$qid'", $db);
 if (!$result || mysql_result($result, 0, "c") != 0)
-    $refs[] = array("This poll has one or more comments", true);
+    $refs[] = ["This poll has one or more comments", true];
 
 
 // If there are any references, check for an override.  Only allow

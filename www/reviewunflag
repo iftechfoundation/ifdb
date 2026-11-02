@@ -52,11 +52,11 @@ if (mysql_num_rows($result) == 0) {
     exit();
 }
 
-list($flaggerName, $notes, $reviewOwner) = mysql_fetch_row($result);
+[$flaggerName, $notes, $reviewOwner] = mysql_fetch_row($result);
 $flaggerName = htmlspecialcharx($flaggerName);
 $notes = htmlspecialcharx($notes);
 
-$flagNames = array('S' => "Spoilers");
+$flagNames = ['S' => "Spoilers"];
 $flagName = $flagNames[$flagType];
 
 if (!$flagName) $errMsg = "Invalid flag type.";

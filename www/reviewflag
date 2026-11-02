@@ -118,7 +118,7 @@ if ($confirm == 'Y' && $flag && !$errMsg) {
         if ($result) {
             $progress = "RFN703";
             $result = mysql_query("select name, email from users where id='$curuser'", $db);
-            list($flagger_username, $flagger_email) = mysql_fetch_row($result);
+            [$flagger_username, $flagger_email] = mysql_fetch_row($result);
             $flagger_username = htmlspecialchars($flagger_username);
             $flagger_email = htmlspecialchars($flagger_email);
         }

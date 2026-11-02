@@ -34,9 +34,9 @@ function getCommentReference($db, $listID)
 
     // if we didn't find a review, it's a fatal error
     if (mysql_num_rows($result) == 0) {
-        return array(
+        return [
             false, false, false, true,
-            "The specified Recommended List is not in the database.");
+            "The specified Recommended List is not in the database."];
     }
 
     // return the record, and the list owner ID
@@ -49,7 +49,7 @@ function showCommentReference($db, $rec)
     // show the list description, if we found it
     if ($rec) {
 
-        list($id, $title, $desc, $uid, $uname) = $rec;
+        [$id, $title, $desc, $uid, $uname] = $rec;
         $title = htmlspecialcharx($title);
         $desc = fixDesc($desc);
         $uname = htmlspecialcharx($uname);

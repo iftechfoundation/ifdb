@@ -232,7 +232,7 @@ $result = mysql_query(
        news write, compgames write", $db);
 
 // we have no referencers yet
-$refs = array();
+$refs = [];
 
 // only admins can delete games
 if (!$adminPriv) {
@@ -241,7 +241,7 @@ if (!$adminPriv) {
         "select editedby, pagevsn from games_history where id='$qid'
          union select editedby, pagevsn from games where id='$qid'
          order by pagevsn", $db);
-    list($createdBy) = mysql_fetch_row($result);
+    [$createdBy] = mysql_fetch_row($result);
     if ($createdBy != $userid) {
         pgErrExit("You cannot delete this listing because it was "
                   . "created by another user. Listings can only be "
@@ -256,9 +256,9 @@ if (!$adminPriv) {
     if ($userid == ""
         || $userid != $editedby
         || mysql_result($result, 0, "c") != 0) {
-        $refs[] = array("Other users have edited this listing (you can "
-                        . "only delete a listing if you created it <b>and</b> "
-                        . "you're the only person who's edited it)", false);
+        $refs[] = ["Other users have edited this listing (you can "
+                   . "only delete a listing if you created it <b>and</b> "
+                   . "you're the only person who's edited it)", false];
     }
 }
 
@@ -269,72 +269,72 @@ if (!$adminPriv) {
 $result = mysql_query(
     "select count(*) as c from gametags where gameid='$qid'", $db);
 if (!$result || mysql_result($result, 0, "c") != 0)
-    $refs[] = array("This game has one or more tags associated with it", true);
+    $refs[] = ["This game has one or more tags associated with it", true];
 
 $result = mysql_query(
     "select count(*) as c from extreviews where gameid='$qid'", $db);
 if (!$result || mysql_result($result, 0, "c") != 0)
-    $refs[] = array("This game has one or more off-site reviews", false);
+    $refs[] = ["This game has one or more off-site reviews", false];
 
 $result = mysql_query(
     "select count(*) as c from playedgames where gameid='$qid'", $db);
 if (!$result || mysql_result($result, 0, "c") != 0)
-    $refs[] = array("This game has been added to one or more "
-                    . "members' play lists", true);
+    $refs[] = ["This game has been added to one or more "
+               . "members' play lists", true];
 
 $result = mysql_query(
     "select count(*) as c from wishlists where gameid='$qid'", $db);
 if (!$result || mysql_result($result, 0, "c") != 0)
-    $refs[] = array("This game has been added to one or more "
-                    . "members' wishlists", true);
+    $refs[] = ["This game has been added to one or more "
+               . "members' wishlists", true];
 
 $result = mysql_query(
     "select count(*) as c from unwishlists where gameid='$qid'", $db);
 if (!$result || mysql_result($result, 0, "c") != 0)
-    $refs[] = array("This game has been added to one or more "
-                    . "members' \"not interested\" lists", true);
+    $refs[] = ["This game has been added to one or more "
+               . "members' \"not interested\" lists", true];
 
 $result = mysql_query(
     "select count(*) as c from reclistitems where gameid='$qid'", $db);
 if (!$result || mysql_result($result, 0, "c") != 0)
-    $refs[] = array("This game has been listed in one or more "
-                    . "Recommended Lists", true);
+    $refs[] = ["This game has been listed in one or more "
+               . "Recommended Lists", true];
 
 $result = mysql_query(
     "select count(*) as c from reviews
      where gameid='$qid' and review is not null", $db);
 if (!$result || mysql_result($result, 0, "c") != 0)
-    $refs[] = array("This game has one or more member reviews", false);
+    $refs[] = ["This game has one or more member reviews", false];
 
 $result = mysql_query(
     "select count(*) as c from crossrecs
      where fromgame='$qid' or togame='$qid'", $db);
 if (!$result || mysql_result($result, 0, "c") != 0)
-    $refs[] = array("This game is mentioned in one or more "
-                    . "cross-recommendations", true);
+    $refs[] = ["This game is mentioned in one or more "
+               . "cross-recommendations", true];
 
 $result = mysql_query(
     "select count(*) as c from pollvotes where gameid='$qid'", $db);
 if (!$result || mysql_result($result, 0, "c") != 0)
-    $refs[] = array("This game has votes in one or more polls", true);
+    $refs[] = ["This game has votes in one or more polls", true];
 
 $result = mysql_query(
     "select count(*) as c from compgames where gameid='$qid'", $db);
 if (!$result || mysql_result($result, 0, "c") != 0)
-    $refs[] = array("This game is referenced in one or more competitions", true);
+    $refs[] = ["This game is referenced in one or more competitions", true];
 
 $result = mysql_query(
     "select count(*) as c from news
      where source = 'G' and sourceid = '$qid'", $db);
 if (!$result || mysql_result($result, 0, "c") != 0)
-    $refs[] = array("This game has one or more news items", true);
+    $refs[] = ["This game has one or more news items", true];
 
 $result = mysql_query(
     "select count(*) as c from gamefwds
      where fwdgameid = '$qid'", $db);
 if (!$result || mysql_result($result, 0, "c") != 0)
-    $refs[] = array(
-        "One or more games have forwarding redirects to this game", false);
+    $refs[] = [
+        "One or more games have forwarding redirects to this game", false];
 
 // If there are any references, check for an override.  Only allow
 // the deletion if there's a valid override.
@@ -464,7 +464,7 @@ if ($createFwd)
            <input name="fwdid" id="fwdid" type="text" size=50
                  value="<?php echo $fwdid ?>">
            <a href="needjs"><?php echo addEventListener("click", "openGameSearchPopup(
-                 'fwdid', applyFwd, '" . str_replace(array("'", '"'), array("\\'", "&#34;"), $title) . "');return false;"); ?>
+                 'fwdid', applyFwd, '" . str_replace(["'", '"'], ["\\'", "&#34;"], $title) . "');return false;"); ?>
               Find game by title</a>
 
 <script type="text/javascript" nonce="<?php global $nonce; echo $nonce; ?>">

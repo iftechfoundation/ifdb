@@ -20,7 +20,7 @@ if (mysql_num_rows($result) == 0)
     exit("No picture found for user ID");
 
 // retrieve the image
-list($imgdata, $fmt) = fetch_image(mysql_result($result, 0, "picture"), true);
+[$imgdata, $fmt] = fetch_image(mysql_result($result, 0, "picture"), true);
 
 // make sure there's an image
 if (is_null($imgdata))

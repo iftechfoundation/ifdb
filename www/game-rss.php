@@ -28,7 +28,7 @@ define("GAME_RSS_NEWS", 4);     // include only news items
 function getGameRssItems($db, $id, $feedType, $gameTitle, $links, $extFeed)
 {
     // start with an empty news item list
-    $items = array();
+    $items = [];
 
     // quote the game ID
     $qid = mysql_real_escape_string($id, $db);
@@ -56,7 +56,7 @@ function getGameRssItems($db, $id, $feedType, $gameTitle, $links, $extFeed)
             $rlink = htmlspecialcharx(
                 get_root_url() . "viewgame?id=$id&review=$rid");
             $rdate = date("D, j M Y H:i:s ", strtotime($r['publicationdate'])) . 'UT';
-            list($rdesc, $len, $trunc) = summarizeHtml($r['review'], 210);
+            [$rdesc, $len, $trunc] = summarizeHtml($r['review'], 210);
             $rdesc = htmlspecialcharx(fixDesc($rdesc));
             $rauth = htmlspecialcharx($r['username']);
 
@@ -91,7 +91,7 @@ function getGameRssItems($db, $id, $feedType, $gameTitle, $links, $extFeed)
     if ($feedType == GAME_RSS_DLS || $feedType == GAME_RSS_ALL) {
 
         // note the original links in the current record
-        $nextLinks = array();
+        $nextLinks = [];
         foreach ($links as $l)
             $nextLinks[$l['url']] = $l;
 
@@ -108,7 +108,7 @@ function getGameRssItems($db, $id, $feedType, $gameTitle, $links, $extFeed)
         for ($i = 0 ; $i < mysql_num_rows($result) ; $i++) {
 
             // fetch the row
-            list($nvsn, $deltas, $ndate, $nuser) =
+            [$nvsn, $deltas, $ndate, $nuser] =
                 mysql_fetch_row($result);
 
             // the deltas in a version record store the OLD values for this
@@ -131,21 +131,21 @@ function getGameRssItems($db, $id, $feedType, $gameTitle, $links, $extFeed)
                     continue;
 
                 // rebuild it as a url-keyed array
-                $oldLinks = array();
+                $oldLinks = [];
                 foreach ($deltas['links'] as $l)
                     $oldLinks[$l['url']] = $l;
 
                 // build a list of changes
-                $linkDiffs = array();
+                $linkDiffs = [];
                 foreach ($nextLinks as $url=>$l) {
                     // if this one isn't set in the old links, it's new;
                     // if the title or description has changed, it's new
                     $o = isset($oldLinks[$url]) ? $oldLinks[$url] : false;
                     if (!$o)
-                        $linkDiffs[] = array("added", $l);
+                        $linkDiffs[] = ["added", $l];
                     else if ($o['desc'] != $l['desc']
                              || $o['title'] != $l['title'])
-                        $linkDiffs[] = array("updated", $l);
+                        $linkDiffs[] = ["updated", $l];
                 }
 
                 // this is the basi for the next round
@@ -156,8 +156,8 @@ function getGameRssItems($db, $id, $feedType, $gameTitle, $links, $extFeed)
                     continue;
 
                 // build the display list of updated files
-                $ltitles = array();
-                $ldescs = array();
+                $ltitles = [];
+                $ldescs = [];
                 foreach ($linkDiffs as $l) {
                     $mode = $l[0];
                     $l = $l[1];
@@ -201,7 +201,7 @@ function getGameRssItems($db, $id, $feedType, $gameTitle, $links, $extFeed)
             }
 
             // add it to the master list
-            $items[] = array($ndate, $item);
+            $items[] = [$ndate, $item];
         }
     }
 

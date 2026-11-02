@@ -7,7 +7,7 @@ include_once "local-credentials.php";
 /*
 
     function localCredentials() {
-        return array("127.0.0.1", "username", "password");
+        return ["127.0.0.1", "username", "password"];
     }
 
     function localImageCredentials() {
@@ -15,10 +15,10 @@ include_once "local-credentials.php";
     }
 
     function localRecaptchaKeys() {
-        return array(
+        return [
             "public" => "public-key",
             "private" => "private-key",
-        );
+        ];
     }
 
     function localAkismetKey() {

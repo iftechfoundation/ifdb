@@ -118,11 +118,11 @@ $errMsg = false;
 if ($result) {
     // fetch the results
     $rowcnt = mysql_num_rows($result);
-    for ($rows = array(), $i = 0 ; $i < $rowcnt ; $i++)
+    for ($rows = [], $i = 0 ; $i < $rowcnt ; $i++)
         $rows[] = mysql_fetch_array($result, MYSQL_ASSOC);
 
 } else {
-    $rows = array();
+    $rows = [];
     $rowcnt = 0;
     $errMsg = "<p><span class=errmsg>"
               . "An error occurred searching the database.</span><p>";

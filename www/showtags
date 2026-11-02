@@ -35,7 +35,7 @@ $result = mysqli_execute_query($db,
      having freq > ?
      order by freq desc, tag
      $limitClause", [$datalist ? 10 : 0]);
-for ($i = 0, $tags = array(), $cnt = mysql_num_rows($result) ;
+for ($i = 0, $tags = [], $cnt = mysql_num_rows($result) ;
      $i < $cnt ; $i++) {
     $tags[] = mysql_fetch_array($result, MYSQL_ASSOC);
 }
