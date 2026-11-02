@@ -387,5 +387,3 @@ if (isset($_REQUEST['recentactivity'])) {
     exit();
 } // if (isset($_REQUEST['recentactivity']))
 
-?>
-
