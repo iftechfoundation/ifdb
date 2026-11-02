@@ -450,25 +450,18 @@ function showReview($db, $gameid, $rec, $specialNames, $optionFlags = 0)
         }
 
         // set up the <a href> for adding a comment
-        $addCommentLink = "<a title=\"Comment on this review\" 
-                             href=\"reviewcomment?review=$reviewid\">";
+        $addCommentLink = "<a title=\"Comment on this review\" "
+            . "href=\"reviewcomment?review=$reviewid\">";
 
         // generate the controls, depending on the existing comment count
-        if ($curuser) {
-            if ($commentCount == 0) {
+        if ($commentCount == 0) {
+            if ($curuser) {
                 $commentCtls = "{$addCommentLink}Add a comment</a>";
-            } else {
-                $commentCtls = "<a title=\"Direct link to comments\" 
-                    href=\"viewgame?id=$gameid&review=$reviewid#comments\">
-                    View comments ($commentCount)</a>";
             }
-        }
-        else {
-            if ($commentCount > 0) {
-                $commentCtls = "<a title=\"Direct link to comments\" 
-                    href=\"viewgame?id=$gameid&review=$reviewid#comments\">
-                    View comments ($commentCount)</a>";
-            }
+        } else {
+            $commentCtls = "<a title=\"Direct link to comments\" "
+                . "href=\"viewgame?id=$gameid&review=$reviewid#comments\">"
+                . "View comments ($commentCount)</a>";
         }
 
         if ($commentCtls) {
