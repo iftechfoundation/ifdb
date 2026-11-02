@@ -275,7 +275,7 @@ if (isset($_REQUEST['cleanpix'])) {
     if (!$result)
         $errMsg = "Query failed: " . mysql_error($db);
 
-    for ($rows = array(), $i = 0 ; $i < mysql_num_rows($result) ; $i++)
+    for ($rows = [], $i = 0 ; $i < mysql_num_rows($result) ; $i++)
         $rows[] = mysql_fetch_array($result, MYSQL_ASSOC);
 
     foreach ($rows as $r) {
@@ -285,7 +285,7 @@ if (isset($_REQUEST['cleanpix'])) {
         $sortTitle = $r['sort_title'];
         $sortAuthor = $r['sort_author'];
 
-        $setVars = array();
+        $setVars = [];
 
         if ($rebuild || $sortTitle == "")
             $setVars[] = "sort_title = '"
@@ -328,7 +328,7 @@ if (isset($_REQUEST['cleanpix'])) {
         // load its tag list
         $tresult = mysql_query(
             "select tag from gametags where gameid = '$gameid'", $db);
-        for ($tags = array(), $j = 0, $tcnt = mysql_num_rows($tresult) ;
+        for ($tags = [], $j = 0, $tcnt = mysql_num_rows($tresult) ;
              $j < $tcnt ; $j++)
             $tags[] = mysql_result($tresult, $j, "tag");
 
@@ -369,12 +369,12 @@ if (isset($_REQUEST['cleanpix'])) {
         // load the corresponding GAMETAGS list
         $tresult = mysql_query(
             "select tag from gametags where gameid = '$gameid'", $db);
-        for ($gametags = array(), $j = 0, $tcnt = mysql_num_rows($tresult) ;
+        for ($gametags = [], $j = 0, $tcnt = mysql_num_rows($tresult) ;
              $j < $tcnt ; $j++)
             $gametags[] = mysql_result($tresult, $j, "tag");
 
         // look for missing gametags entries
-        $missingTags = array();
+        $missingTags = [];
         foreach ($tags as $t) {
             if (!in_array($t, $gametags))
                 $missingTags[] = $t;
@@ -409,15 +409,15 @@ if (isset($_REQUEST['cleanpix'])) {
 
     // allowed tags - we keep these tags without modification
     $allowedTags = valuesToKeys(
-        array('p', 'br',
-              'i', 'b', 'u', 'strong', 'em',
-              'big', 'small', 'tt', 'sup', 'sub',
-              'cite', 'blockquote',
-              'ul', 'ol', 'li', 'dl', 'dt', 'dd'), 1);
+        ['p', 'br',
+            'i', 'b', 'u', 'strong', 'em',
+            'big', 'small', 'tt', 'sup', 'sub',
+            'cite', 'blockquote',
+            'ul', 'ol', 'li', 'dl', 'dt', 'dd'], 1);
 
     $updateCount = 0;
     $errRows = false;
-    $allBadTags = array();
+    $allBadTags = [];
 
     while (($row = mysql_fetch_array($result, MYSQL_ASSOC)) != false) {
 
@@ -427,7 +427,7 @@ if (isset($_REQUEST['cleanpix'])) {
         $txt = $origTxt = $row['review'];
 
         // no unknown tags for this row yet
-        $badTags = array();
+        $badTags = [];
 
         // scan it for tags we actually need to fix
         $inAnchor = false;
@@ -614,8 +614,8 @@ if (isset($_REQUEST['cleanpix'])) {
          from filters", $db);
     echo mysql_error($db);
     for ($i = 0 ; $i < mysql_num_rows($result) ; $i++) {
-        list($filterID, $filterName, $ckBoxName, $showName,
-             $endDate, $filterType, $explanation) = mysql_fetch_row($result);
+        [$filterID, $filterName, $ckBoxName, $showName,
+            $endDate, $filterType, $explanation] = mysql_fetch_row($result);
 
         echo "<p><hr class=dots>"
             . "<b>Name:</b> $filterName<br>"
@@ -774,7 +774,7 @@ if (isset($_REQUEST['cleanpix'])) {
     $phpVsn = phpversion();
 
     $result = mysql_query("select version();", $db);
-    list($mysqlVsn) = mysql_fetch_row($result);
+    [$mysqlVsn] = mysql_fetch_row($result);
 
     echo "System information:"
         . "<p>php version = $phpVsn"
