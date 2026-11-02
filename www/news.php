@@ -32,10 +32,10 @@ function newsSummary($db, $sourceType, $sourceID, $maxItems,
 
             // fetch it
             [$newsid, $newsidOrig, $newsstatus,
-             $newsdateRaw, $newsdate, $newsmodRaw, $newsmod,
-             $newsuid, $newsuname,
-             $newsuidOrig, $newsunameOrig,
-             $newshead, $newsbody] = mysql_fetch_row($result);
+                $newsdateRaw, $newsdate, $newsmodRaw, $newsmod,
+                $newsuid, $newsuname,
+                $newsuidOrig, $newsunameOrig,
+                $newshead, $newsbody] = mysql_fetch_row($result);
 
             $newshead = htmlspecialcharx($newshead);
             $newsbody = fixDesc($newsbody, FixDescSpoiler);
@@ -105,9 +105,9 @@ function queryNewsRss(&$items, $db, $sourceType, $sourceID, $maxItems,
     {
         // fetch and decode this row
         [$nid, $norig, $nstatus,
-         $ncre, $ncreFmt, $nmod, $nmodFmt,
-         $nuid, $nuname, $nuidOrig, $nunameOrig,
-         $nhead, $nbody] = mysql_fetch_row($result);
+            $ncre, $ncreFmt, $nmod, $nmodFmt,
+            $nuid, $nuname, $nuidOrig, $nunameOrig,
+            $nhead, $nbody] = mysql_fetch_row($result);
 
         // quote/reformat fields
         $nuname = htmlspecialcharx($nuname);

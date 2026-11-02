@@ -13,42 +13,42 @@ function getFileTypeList()
 {
     return [
         "Game" => ["Story File",
-                   false,
-                   "Interpreter-based story file - requires an "
-                   . "interpreter for the user's OS to play.",
-                   false],
+            false,
+            "Interpreter-based story file - requires an "
+            . "interpreter for the user's OS to play.",
+            false],
         "GameExe" => ["Story Program",
-                      "Download and run this application to play "
-                      . "the game.",
-                      "Stand-alone executable game application.",
-                      false],
+            "Download and run this application to play "
+            . "the game.",
+            "Stand-alone executable game application.",
+            false],
         "Inst" => ["Story Installer",
-                   "This Setup program automatically installs the "
-                   . "game on your system.",
-                   "Self-contained, executable SETUP program that "
-                   . "installs the game.",
-                   "img/setupicon.gif"],
+            "This Setup program automatically installs the "
+            . "game on your system.",
+            "Self-contained, executable SETUP program that "
+            . "installs the game.",
+            "img/setupicon.gif"],
         "Hints" => ["Hints",
-                    "Hints for the game (this may contain spoilers).",
-                    false,
-                    "img/hintfileicon.gif"],
+            "Hints for the game (this may contain spoilers).",
+            false,
+            "img/hintfileicon.gif"],
         "Misc" => ["Miscellaneous",
-                   false,
-                   "Miscellaneous file(s).",
-                   false],
+            false,
+            "Miscellaneous file(s).",
+            false],
         "ReadMe" => ["ReadMe",
-                     "Brief overview and installation notes.",
-                     false,
-                     "img/readmeicon.gif"],
+            "Brief overview and installation notes.",
+            false,
+            "img/readmeicon.gif"],
         "Src" => ["Source Code",
-                  "The source file(s) for the game.",
-                  false,
-                  "img/srcfileicon.gif"],
+            "The source file(s) for the game.",
+            false,
+            "img/srcfileicon.gif"],
         "Walk" => ["Walkthrough",
-                   "Full instructions to solve the game. <b>Warning: "
-                   . "contains spoilers.</b>",
-                   false,
-                   "img/walkthruicon.gif"]];
+            "Full instructions to solve the game. <b>Warning: "
+            . "contains spoilers.</b>",
+            false,
+            "img/walkthruicon.gif"]];
 }
 
 ?>

@@ -96,15 +96,15 @@ define("FGRP_AUTOINSTALL", 2000);
 if ($dlastr) {
     $dlafields = [
         ['dlinstructions', FT_TEXT, FGRP_DLA,
-         "Instructions for <b>downloading and installing</b> the "
-         . "Interpreter/Player/Viewer application for this format"],
+            "Instructions for <b>downloading and installing</b> the "
+            . "Interpreter/Player/Viewer application for this format"],
         ['runinstructions', FT_TEXT, FGRP_DLA,
-         "Instructions for <b>running</b> the Interpreter/Player"
-         . "/Viewer application to run/play/view a local file called "
-         . "<b>{fname}</b> (or a game called <b>{title}</b>)"],
+            "Instructions for <b>running</b> the Interpreter/Player"
+            . "/Viewer application to run/play/view a local file called "
+            . "<b>{fname}</b> (or a game called <b>{title}</b>)"],
         ['installer', FT_TEXT, FGRP_AUTOINSTALL,
-         "One or more &lt;interpreter&gt; sections (giving automated "
-         . "install instructions for this format's interpreter(s))"]];
+            "One or more &lt;interpreter&gt; sections (giving automated "
+            . "install instructions for this format's interpreter(s))"]];
 
     $dlarec = [];
     foreach ($dlafields as $f)

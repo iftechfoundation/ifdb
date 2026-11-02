@@ -270,9 +270,9 @@ for ($i = 0 ; $i < count($comments) ; $i++) {
 
     // decode the row
     [$cid, $srcid, $src, $ctxt,
-     $ccreDT, $ccre,
-     $cmodDT, $cmod,
-     $cuid, $cuname] = $rec;
+        $ccreDT, $ccre,
+        $cmodDT, $cmod,
+        $cuid, $cuname] = $rec;
 
     // send the item in the appropriate format
     if ($rss) {

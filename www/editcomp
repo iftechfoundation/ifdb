@@ -53,65 +53,65 @@ define("TypeDate", 3);
 
 $fields = [
     ["Name", "title", 60,
-     "Name of the competition or awards event.  For an annual or "
-     . "other ongoing series, include the year, edition number "
-     . "(\"4th Annual\"), etc.",
-     null, TypeString],
+        "Name of the competition or awards event.  For an annual or "
+        . "other ongoing series, include the year, edition number "
+        . "(\"4th Annual\"), etc.",
+        null, TypeString],
 
     ["Series", "series", 60,
-     "If this event is repeated annually (or at other intervals), enter "
-     . "the series name here.  Be sure to enter the same series name "
-     . "on the pages for all of the other editions in the series - "
-     . "IFDB uses this to tie the series together",
-     null, TypeString],
+        "If this event is repeated annually (or at other intervals), enter "
+        . "the series name here.  Be sure to enter the same series name "
+        . "on the pages for all of the other editions in the series - "
+        . "IFDB uses this to tie the series together",
+        null, TypeString],
 
     ["Description", "desc", 60,
-     "Overview of the competition: purpose, selection criteria, "
-     . "history, etc.  Be brief; leave the full details to the "
-     . "Comp's official Web site - "
-     . helpWinLink("help-formatting", "Formatting Hints"),
-     null, TypeString],
+        "Overview of the competition: purpose, selection criteria, "
+        . "history, etc.  Be brief; leave the full details to the "
+        . "Comp's official Web site - "
+        . helpWinLink("help-formatting", "Formatting Hints"),
+        null, TypeString],
 
     ["Keywords", "keywords", 60,
-     "Optional search keywords, separated by spaces; the search engine "
-     . "will match search terms to these words (as well as the title, "
-     . "series name, and description)",
-     null, TypeString],
+        "Optional search keywords, separated by spaces; the search engine "
+        . "will match search terms to these words (as well as the title, "
+        . "series name, and description)",
+        null, TypeString],
 
     ["Web site", "url", 80,
-     "The competition's official web site, if it has one (http:// is "
-     . "assumed if not included)",
-     null, TypeString],
+        "The competition's official web site, if it has one (http:// is "
+        . "assumed if not included)",
+        null, TypeString],
 
     ["Organizers", "organizersExt", 80,
-     "The people who organize the competition - "
-     . "<a href=\"needjs\">"
-     . addEventListener("click", "aplOpen('organizersExt', 'Organizers'); return false;")
-     . "Link to profile</a>",
-     null, TypeString],
+        "The people who organize the competition - "
+        . "<a href=\"needjs\">"
+        . addEventListener("click", "aplOpen('organizersExt', 'Organizers'); return false;")
+        . "Link to profile</a>",
+        null, TypeString],
 
     ["Judges", "judgesExt", 80,
-     "For a juried competition, the names of the judges - "
-     . "<a href=\"needjs\">"
-     . addEventListener("click", "aplOpen('judgesExt', 'Judges'); return false;")
-     . "Link to profile</a>",
-     null, TypeString],
+        "For a juried competition, the names of the judges - "
+        . "<a href=\"needjs\">"
+        . addEventListener("click", "aplOpen('judgesExt', 'Judges'); return false;")
+        . "Link to profile</a>",
+        null, TypeString],
 
     ["Opening date", "qualopen", 15,
-     "DD-MON-YYYY - The opening date of the qualification period; "
-     . "fill this in if games released over a specific period "
-     . "were eligible",
-     null, TypeDate],
+        "DD-MON-YYYY - The opening date of the qualification period; "
+        . "fill this in if games released over a specific period "
+        . "were eligible",
+        null, TypeDate],
 
     ["Closing date", "qualclose", 15,
-     "DD-MON-YYYY - The end of the qualifying period, or the "
-     . "deadline for submitting entries",
-     null, TypeDate],
+        "DD-MON-YYYY - The end of the qualifying period, or the "
+        . "deadline for submitting entries",
+        null, TypeDate],
 
     ["Award date", "awarddate", 15,
-     "DD-MON-YYYY (e.g., 16-Oct-2009) - The date the winners "
-     . "were announced",
-     null, TypeDate]
+        "DD-MON-YYYY (e.g., 16-Oct-2009) - The date the winners "
+        . "were announced",
+        null, TypeDate]
 ];
 
 // ------------------------------------------------------------------------
@@ -133,11 +133,11 @@ if ($compID == "new") {
     // set up the initial division list
     $oldRec["divisions"] = [
         ["divid" => "-2",
-         "divname" => "Main",
-         "divdesc" => "This is the default division. For an event "
-                    . "in which all games are competing for the same "
-                    . "awards, simply list all games under this "
-                    . "division."]];
+            "divname" => "Main",
+            "divdesc" => "This is the default division. For an event "
+            . "in which all games are competing for the same "
+            . "awards, simply list all games under this "
+            . "division."]];
     $oldRec["games"] = [];
     $oldRec["pagevsn"] = "";
 

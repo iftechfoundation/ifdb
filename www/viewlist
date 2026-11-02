@@ -32,7 +32,7 @@ if (mysql_num_rows($result) == 0) {
     $errMsg = "The requested list was not found in the database.";
 } else {
     [$title, $desc, $moddate,
-     $ownerID, $ownerName, $ownerLoc] = mysql_fetch_row($result);
+        $ownerID, $ownerName, $ownerLoc] = mysql_fetch_row($result);
 
     $pageTitle = htmlspecialcharx($title) . " - Recommended List";
 

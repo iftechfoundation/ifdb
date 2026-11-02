@@ -149,7 +149,7 @@ if (!$errMsg) {
         {
             // decode this history record
             [$hEditorID, $hEditorName,
-             $hModDate, $hVsn, $deltas, $hRawModDate] = $history[$i];
+                $hModDate, $hVsn, $deltas, $hRawModDate] = $history[$i];
 
             // apply the deltas
             $deltas = @unserialize($deltas);

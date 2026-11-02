@@ -245,8 +245,8 @@ if ($showList) {
         echo "You have created filters for the following members:";
 
         $typeMap = ['P' => 'Promoted',
-                    'D' => 'Demoted',
-                    'K' => 'Muted'];
+            'D' => 'Demoted',
+            'K' => 'Muted'];
         for ($i = 0 ; $i < $rowcnt ; $i++) {
             [$fuid, $funame, $ftype] = mysql_fetch_row($result);
             $funame = htmlspecialcharx($funame);

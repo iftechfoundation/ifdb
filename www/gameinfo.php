@@ -327,8 +327,8 @@ function getGameInfo($db, $id, $curuser, $requestVersion, &$errMsg, &$errCode)
                and t.reftype = ?", [$xref['toID'], $xref['reftype']]);
 
         [$xref['toTitle'],
-         $xref['author'],
-         $xref['fromname']]
+            $xref['author'],
+            $xref['fromname']]
             = mysql_fetch_row($result);
     }
 
@@ -456,26 +456,26 @@ function getDeltaDesc($deltas)
 
     // columns -> descriptions
     $deltaDesc = ["title" => "title",
-                  "author" => "author",
-                  "authorExt" => "author",
-                  "published" => "publication date",
-                  "version" => "version number",
-                  "license" => "license type",
-                  "system" => "development system",
-                  "language" => "language",
-                  "desc" => "description",
-                  "coverart" => "cover art",
-                  "genre" => "genre",
-                  "seriesname" => "series name",
-                  "seriesnumber" => "episode number",
-                  "forgiveness" => "forgiveness",
-                  "bafsid" => "Baf's Guide ID",
-                  "website" => "Web site URL",
-                  "nodownloadreason" => "no-download explanation",
-                  "ifids" => "IFIDs",
-                  "links" => "download links",
-                  "xrefs" => "cross-references",
-                  "extreviews" => "external review links"];
+        "author" => "author",
+        "authorExt" => "author",
+        "published" => "publication date",
+        "version" => "version number",
+        "license" => "license type",
+        "system" => "development system",
+        "language" => "language",
+        "desc" => "description",
+        "coverart" => "cover art",
+        "genre" => "genre",
+        "seriesname" => "series name",
+        "seriesnumber" => "episode number",
+        "forgiveness" => "forgiveness",
+        "bafsid" => "Baf's Guide ID",
+        "website" => "Web site URL",
+        "nodownloadreason" => "no-download explanation",
+        "ifids" => "IFIDs",
+        "links" => "download links",
+        "xrefs" => "cross-references",
+        "extreviews" => "external review links"];
 
     // build an array keyed by the descriptive names of the columns
     $changeList = [];

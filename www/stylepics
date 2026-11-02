@@ -149,8 +149,8 @@ if ($userid == $curuser
 
                 // translate the image type to an image/xxx name
                 $xlat = [IMAGETYPE_JPEG => "jpeg",
-                         IMAGETYPE_GIF => "gif",
-                         IMAGETYPE_PNG => "png"];
+                    IMAGETYPE_GIF => "gif",
+                    IMAGETYPE_PNG => "png"];
                 $imgtype = isset($xlat[$imgtype]) ? $xlat[$imgtype] : null;
             }
 

@@ -290,7 +290,7 @@ if ($term || $browse) {
 
     // run the search
     [$rows, $rowcnt, $sortList, $errMsg, $summaryDesc, $badges,
-     $specials, $specialsUsed, $orderBy] =
+        $specials, $specialsUsed, $orderBy] =
         doSearch($db, $term, $searchType, $sortby, $limit, $browse, 
                  $count_all_possible_rows);
 

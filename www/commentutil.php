@@ -337,7 +337,7 @@ function enlistComment(&$coutlst, &$cidx, $crec)
 {
     // unpack the item
     [$cid, $cpar, $ctxt, $cuserid, $cusername,
-     $ccreated, $cmodified, $cprivate] = $crec;
+        $ccreated, $cmodified, $cprivate] = $crec;
 
     // if I'm already listed, there's no need to list me again
     if ($cidx[$cid]['.listed'] ?? false)
@@ -381,7 +381,7 @@ function showComment($db,$commentPage, $itemAuthor, $cidx, $coutlst, $i)
     // unpack the item
     $crec = $cidx[$coutlst[$i]];
     [$cid, $cpar, $ctxt, $cuserid, $cusername,
-     $ccreated, $cmodified, $cprivate, $muted] = $crec;
+        $ccreated, $cmodified, $cprivate, $muted] = $crec;
 
     // quote the items
     $ctxt = fixDesc($ctxt, FixDescSpoiler);

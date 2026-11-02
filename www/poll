@@ -1039,7 +1039,7 @@ administrators can see who voted for what.)
         for ($i = 0, $cnt = mysql_num_rows($result) ; $i < $cnt ; $i++) {
             // fetch the data
             [$authID, $authName, $gameID, $gameTitle, $gameAuthor,
-             $quickQuote, $notes, $voteDate] = mysql_fetch_row($result);
+                $quickQuote, $notes, $voteDate] = mysql_fetch_row($result);
 
             $authName = rss_encode(htmlspecialcharx($authName));
             $gameTitle = rss_encode(htmlspecialcharx($gameTitle));
@@ -1233,12 +1233,12 @@ function expandVote(id)
             if ($i < $cnt) {
                 // fetch the next row
                 [$voteUserID, $voteUserName, $curUserVote,
-                 $gameID, $gameTitle, $gameAuthor, $voteCount,
-                 $coverArt, $pagevsn,
-                 $quickQuote, $notes,
-                 $voteDateFmt,
-                 $comments,
-                 $reviewID, $hasReviewText, $rating] = $rows[$i];
+                    $gameID, $gameTitle, $gameAuthor, $voteCount,
+                    $coverArt, $pagevsn,
+                    $quickQuote, $notes,
+                    $voteDateFmt,
+                    $comments,
+                    $reviewID, $hasReviewText, $rating] = $rows[$i];
 
                 $voteUserName = htmlspecialcharx($voteUserName);
                 $gameTitle = htmlspecialcharx($gameTitle);

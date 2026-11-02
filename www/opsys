@@ -67,9 +67,9 @@ for ($versions = [], $i = 0 ; ; $i++) {
 
     // add this to the list
     $versions[] = [get_req_data("vsnid$i"),
-                   get_req_data("vsnname$i"),
-                   "",
-                   get_req_data("vsnextid$i")];
+        get_req_data("vsnname$i"),
+        "",
+        get_req_data("vsnextid$i")];
 }
 
 // if we just uploaded a picture, select it
@@ -79,24 +79,24 @@ define("CTL_INPUT", 1);
 define("CTL_TEXTAREA", 2);
 $vsnfields = [
     [CTL_INPUT, "Browser ID Match Pattern",
-     "browserid",
-     "Enter a regular expression pattern (PHP rules, case insensitive)
+        "browserid",
+        "Enter a regular expression pattern (PHP rules, case insensitive)
       to find within the HTTP user agent identification string. This
       is used to guess the user's OS if the user doesn't explicitly
       specify one."],
     [CTL_TEXTAREA,
-     "Instructions for <b>downloading and saving</b> a
+        "Instructions for <b>downloading and saving</b> a
       file from a hyperlink using a typical browser on this OS",
-     "dlinstructions", null],
+        "dlinstructions", null],
     [CTL_TEXTAREA,
-     "Instructions for <b>downloading and running</b>
+        "Instructions for <b>downloading and running</b>
       an application from a hyperlink using a typical
       browser on this OS",
-     "dlruninstructions", null],
+        "dlruninstructions", null],
     [CTL_TEXTAREA,
-     "Instructions for <b>running</b> a local application file
+        "Instructions for <b>running</b> a local application file
       called <b>{fname}</b>",
-     "runinstructions", null]];
+        "runinstructions", null]];
 $vsnrec = [];
 foreach ($vsnfields as $f) {
     $nm = $f[2];
@@ -164,9 +164,9 @@ if ($osid != "" && $osid != "new") {
     for ($cnt = mysql_num_rows($result), $i = 0, $oldversions = [] ;
          $i < $cnt ; $i++)
         $oldversions[] = [mysql_result($result, $i, "vsnid"),
-                          mysql_result($result, $i, "name"),
-                          mysql_result($result, $i, "browserid"),
-                          mysql_result($result, $i, "externid")];
+            mysql_result($result, $i, "name"),
+            mysql_result($result, $i, "browserid"),
+            mysql_result($result, $i, "externid")];
 }
 
 // get the old settings for the selected version

@@ -900,7 +900,7 @@ function calcDeltas($oldRec, $newRec)
     if (!arrayOfArrayValsEqual(
         $newlinks, $oldlinks,
         ['url', 'title', 'desc', 'attrs', 'fmtid', 'osid', 'osvsn',
-         'compression', 'compressedprimary'])) {
+            'compression', 'compressedprimary'])) {
         // they don't match - add to the change lists
         $changesOld['links'] = $oldlinks;
         $changesNew['links'] = $newlinks;
@@ -912,7 +912,7 @@ function calcDeltas($oldRec, $newRec)
     if (!arrayOfArrayValsEqual(
         $newrevs, $oldrevs,
         ['url', 'sourcename', 'sourceurl', 'rating',
-         'headline', 'summary'])) {
+            'headline', 'summary'])) {
         // they don't match - add to the change lists
         $changesOld['extreviews'] = $oldrevs;
         $changesNew['extreviews'] = $newrevs;

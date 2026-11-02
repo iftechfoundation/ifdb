@@ -172,7 +172,7 @@ if ($errMsg) {
 
             // fetch the next row
             [$pollid, $title, $desc, $created, $authid, $authname,
-             $votecnt, $gamecnt] = mysql_fetch_row($result);
+                $votecnt, $gamecnt] = mysql_fetch_row($result);
 
             // fix up fields for display
             $title = htmlspecialcharx($title);

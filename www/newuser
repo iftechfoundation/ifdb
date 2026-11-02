@@ -216,7 +216,7 @@ function sfsCheck($ip, $email, $username, &$banned)
     // assemble the results into a printable string
     $ret = false;
     $typeMap = ['ip' => 'IP', 'email' => 'Email',
-                'username' => 'Name'];
+        'username' => 'Name'];
     foreach (array_keys($typeMap) as $t) {
         $i = $info[$t] ?? null;
         if (is_array($i) && !empty($i['appears'])) {

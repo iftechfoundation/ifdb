@@ -73,17 +73,17 @@ class Akismet
 
     // This prevents some potentially sensitive information from being sent accross the wire.
     private $ignore = ['HTTP_COOKIE',
-                       'HTTP_X_FORWARDED_FOR',
-                       'HTTP_X_FORWARDED_HOST',
-                       'HTTP_MAX_FORWARDS',
-                       'HTTP_X_FORWARDED_SERVER',
-                       'REDIRECT_STATUS',
-                       'SERVER_PORT',
-                       'PATH',
-                       'DOCUMENT_ROOT',
-                       'SERVER_ADMIN',
-                       'QUERY_STRING',
-                       'PHP_SELF' ];
+        'HTTP_X_FORWARDED_FOR',
+        'HTTP_X_FORWARDED_HOST',
+        'HTTP_MAX_FORWARDS',
+        'HTTP_X_FORWARDED_SERVER',
+        'REDIRECT_STATUS',
+        'SERVER_PORT',
+        'PATH',
+        'DOCUMENT_ROOT',
+        'SERVER_ADMIN',
+        'QUERY_STRING',
+        'PHP_SELF' ];
 
     /**
      *    @param    string    $blogURL            The URL of your blog.

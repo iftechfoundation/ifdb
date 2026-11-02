@@ -122,8 +122,8 @@ if (mysql_num_rows($result) == 0) {
     $errMsg = "The requested member was not found in the database.";
 } else {
     [$username, $location, $pubemail, $profile, $proStat, $haspic,
-     $created, $lastlogin, $publiclists, $gender, $emailflags,
-     $acctstatus, $realEmail] =
+        $created, $lastlogin, $publiclists, $gender, $emailflags,
+        $acctstatus, $realEmail] =
      mysql_fetch_row($result);
 
     $username = htmlspecialcharx($username);
@@ -608,7 +608,7 @@ if ($errMsg) {
         for ($i = 0 ; $i < 5 && $i < mysql_num_rows($result) ; $i++) {
             // retrieve the result
             [$gameid, $title, $author, $revid, $rating,
-             $summary, $review, $createdate, $moddate] = mysql_fetch_row($result);
+                $summary, $review, $createdate, $moddate] = mysql_fetch_row($result);
 
             // fix up fields for display
             $title = htmlspecialcharx($title);

@@ -110,8 +110,8 @@ function doLogin($db, $username, $password)
         from users where email = '$quid'", $db);
     if (mysql_num_rows($result) == 0) {
         return [false, "incorrect username or password",
-                "The email address and password you entered don't match "
-                . "our records."];
+            "The email address and password you entered don't match "
+            . "our records."];
     }
 
     // generate the hash of the password as entered by the user
@@ -121,8 +121,8 @@ function doLogin($db, $username, $password)
     // verify that it matches what's stored in the database
     if (strcmp($hashpsw, mysql_result($result, 0, "password")) != 0) {
         return [false, "incorrect username or password",
-                "The email address and password you entered don't match "
-                . "our records."];
+            "The email address and password you entered don't match "
+            . "our records."];
     }
 
     // verify that the account is activated
@@ -133,13 +133,13 @@ function doLogin($db, $username, $password)
         $_SESSION['provisional_logged_in_as'] = mysql_result($result, 0, "id");
 
         return [false, "this account has not yet been activated",
-                "You have not yet activated this account. Please "
-                . "check your email inbox for a confirmation message, "
-                . "and follow the instructions in the message to "
-                . "activate your account."
-                . "<p>Even though your account isn't activated yet, "
-                . "you can still <a href=\"editprofile\">"
-                . "edit your profile</a>."];
+            "You have not yet activated this account. Please "
+            . "check your email inbox for a confirmation message, "
+            . "and follow the instructions in the message to "
+            . "activate your account."
+            . "<p>Even though your account isn't activated yet, "
+            . "you can still <a href=\"editprofile\">"
+            . "edit your profile</a>."];
     }
     if ($stat == 'R') {
         $_SESSION['logged_in'] = false;
@@ -147,10 +147,10 @@ function doLogin($db, $username, $password)
         unset($_SESSION['provisional_logged_in_as']);
 
         return [false, "this account is pending review",
-                "This account is pending review. Activation "
-                . "instructions will be sent to the registered "
-                . "email address when the review has been "
-                . "completed."];
+            "This account is pending review. Activation "
+            . "instructions will be sent to the registered "
+            . "email address when the review has been "
+            . "completed."];
     }
 
     // verify that the account isn't disabled or closed
@@ -161,9 +161,9 @@ function doLogin($db, $username, $password)
         unset($_SESSION['provisional_logged_in_as']);
 
         return [false, "this account has been $statName",
-                "This account has been $statName. Please contact "
-                . "the site's administrators for assistance. "
-                . "(<a href=\"contact\">Contact information</a>)"];
+            "This account has been $statName. Please contact "
+            . "the site's administrators for assistance. "
+            . "(<a href=\"contact\">Contact information</a>)"];
     }
 
     // verify that the account has a valid Active code
@@ -173,10 +173,10 @@ function doLogin($db, $username, $password)
         unset($_SESSION['provisional_logged_in_as']);
 
         return [false, "this account is not active",
-                "Our records for this account appear to "
-                . "have an internal error.  Please contact the site's "
-                . "administrators for assistance. "
-                . "(<a href=\"contact\">Contact information</a>)"];
+            "Our records for this account appear to "
+            . "have an internal error.  Please contact the site's "
+            . "administrators for assistance. "
+            . "(<a href=\"contact\">Contact information</a>)"];
     }
 
     // note the user ID

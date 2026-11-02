@@ -583,8 +583,8 @@ if ($editMode) {
         $unum = 0;
         foreach ($urecs as $u) {
             // unpack the record
-             [$id2, $ttl2, $auth2, $dsc2, $art2, $rtng2,
-              $toUserID, $toUserName, $toNotes, $toCreated] = $u;
+            [$id2, $ttl2, $auth2, $dsc2, $art2, $rtng2,
+                $toUserID, $toUserName, $toNotes, $toCreated] = $u;
 
             // quote things
             $toUserName = htmlspecialcharx($toUserName);

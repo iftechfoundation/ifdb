@@ -31,7 +31,7 @@ $result = mysql_query(
     "select acctstatus, datediff(now(), created), name, email from users
      where id = '$curuser'", $db);
 [$userAccountStatus, $userAccountAge,
- $userAccountName, $userAccountEmail] =
+    $userAccountName, $userAccountEmail] =
          mysql_fetch_row($result);
 $isNewUser = ($userAccountAge < 30);
 
@@ -142,7 +142,7 @@ if ($commentID || $deleteID) {
     } else {
         // fetch the row
         [$oldText, $oldParent, $author, $created, $modified, $authorName,
-         $oldPrivateTo, $oldPrivateToName] =
+            $oldPrivateTo, $oldPrivateToName] =
             mysql_fetch_row($result);
 
         // don't allow updating the parent

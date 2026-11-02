@@ -26,7 +26,7 @@ $count_all_possible_rows = false;
 
 // run the search for highly-rated games
 [$recs, $rowcnt, $sortList, $errMsg, $summaryDesc, $badges,
- $specials, $specialsUsed, $orderBy] =
+    $specials, $specialsUsed, $orderBy] =
     doSearch($db, $term, $searchType, $sortby, $limit, $browse, $count_all_possible_rows);
 
 $recs = array_values(array_filter($recs, function($r) {

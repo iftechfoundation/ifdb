@@ -8,7 +8,7 @@ function isNameSuffix($s)
 {
     return in_array(strtolower($s),
                     ["jr", "jr.", "sr", "sr.", "phd", "ph.d.",
-                     "md", "m.d."]);
+                        "md", "m.d."]);
 }
 
 function unNegate($w)
@@ -929,9 +929,9 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse, $count_all_
     case "member":
         $sortList = [
             'ffpts' => ['userScores_mv.score desc,',
-                        'Highest Frequent Fiction First'],
+                'Highest Frequent Fiction First'],
             'ffrank' => ['userScores_mv.rankingScore desc,',
-                         'Top Reviewer Status First'],
+                'Top Reviewer Status First'],
             'nm' => ['name,', 'Sort by Name'],
             'loc' => ['location,', 'Sort by Location'],
             'new' => ['created desc,', 'Newest First'],
@@ -1152,7 +1152,7 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse, $count_all_
 
     // return the results
     return [$rows, $rowcnt, $sortList, $errMsg, $summaryDesc,
-            $badges, $specials, $specialsUsed, $orderBy];
+        $badges, $specials, $specialsUsed, $orderBy];
 }
 
 ?>

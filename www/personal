@@ -176,9 +176,9 @@ if ($commentCnt == 0) {
 
         // decode the row
         [$cid, $srcid, $src, $ctxt,
-         $ccreDT, $ccre,
-         $cmodDT, $cmod,
-         $cuid, $cuname] = $rec;
+            $ccreDT, $ccre,
+            $cmodDT, $cmod,
+            $cuid, $cuname] = $rec;
 
         // quote the names
         echo "$ltitle<span class='details personal__ccre'>"

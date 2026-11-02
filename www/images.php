@@ -112,7 +112,7 @@ function addTempImageFile($filename, $cprStat, $cprTag)
 
         // save the image in the array
         $arr[count($arr)] = [$imgdata, $imgtype, $newImageID,
-                             $cprStat, $cprTag];
+            $cprStat, $cprTag];
 
         // update the session
         $_SESSION['temp_images'] = $arr;

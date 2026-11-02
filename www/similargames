@@ -143,19 +143,19 @@ if (!$errMsg) {
     $gameInfo = getGameInfo($db, $id, $curuser, $reqVersion, $errMsg, $errCode);
     if (!$errMsg) {
         [$ifids, $title, $author, $authorExt,
-         $pubYear, $pubFull, $license,
-         $system, $desc, $rawDesc,
-         $hasart, $genre, $seriesname, $seriesnum,
-         $forgiveness, $bafsid, $version,
-         $language, $languageNameOnly,
-         $website, $links,
-         $ratingCntAvg, $ratingCntTot, $ratingAvg, $memberReviewCnt,
-         $currentUserRating, $currentUserReview,
-         $editedbyid, $editedbyname, $moddate, $moddate2, $pagevsn,
-         $moddatelatest,
-         $historyView,
-         $dlnotes, $extReviews, $extRevDisplayRank,
-         $ratingHisto, $xrefs, $inrefs, $flags] = $gameInfo;
+            $pubYear, $pubFull, $license,
+            $system, $desc, $rawDesc,
+            $hasart, $genre, $seriesname, $seriesnum,
+            $forgiveness, $bafsid, $version,
+            $language, $languageNameOnly,
+            $website, $links,
+            $ratingCntAvg, $ratingCntTot, $ratingAvg, $memberReviewCnt,
+            $currentUserRating, $currentUserReview,
+            $editedbyid, $editedbyname, $moddate, $moddate2, $pagevsn,
+            $moddatelatest,
+            $historyView,
+            $dlnotes, $extReviews, $extRevDisplayRank,
+            $ratingHisto, $xrefs, $inrefs, $flags] = $gameInfo;
         $title = htmlspecialchars($title ?? '');
         $license = htmlspecialchars($license ?? '');
         $language = htmlspecialchars($language ?? '');

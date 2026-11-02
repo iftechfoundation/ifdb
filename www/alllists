@@ -164,7 +164,7 @@ if ($errMsg) {
         for ($i = 0 ; $i < mysql_num_rows($result) ; $i++) {
             // fetch the next row
             [$listid, $title, $desc, $moddate, $authid, $authname,
-             $itemcnt] = mysql_fetch_row($result);
+                $itemcnt] = mysql_fetch_row($result);
 
             // fix up fields for display
             $title = htmlspecialcharx($title);

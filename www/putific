@@ -226,9 +226,9 @@ if ($desc)
     // win cp 1250 characters; replace newlines with spaces
     $desc = str_replace(
         ["&lsquo;", "&rsquo;", "&ldquo;", "&rdquo;",
-         "\n\r", "\r\n", "\n", "\r"],
+            "\n\r", "\r\n", "\n", "\r"],
         ["\221", "\222", "\223", "\224",
-         " ", " ", " ", " "],
+            " ", " ", " ", " "],
         $desc);
 
     // descriptions aren't *supposed* to use paragraphs, but just in case,
@@ -248,18 +248,18 @@ if ($desc)
 
 // figure the development system based on the format
 $devSystems = ["zcode" => "Inform",
-               "glulx" => "Inform",
-               "tads2" => "TADS 2",
-               "tads3" => "TADS 3",
-               "hugo" => "Hugo",
-               "alan2" => "Alan 2",
-               "alan3" => "Alan 3",
-               "adrift" => "ADRIFT",
-               "level9" => "Level9",
-               "agt" => "AGT",
-               "magscrolls" => "Magnetic Scrolls",
-               "advsys" => "AdvSys",
-               "executable" => "None"];
+    "glulx" => "Inform",
+    "tads2" => "TADS 2",
+    "tads3" => "TADS 3",
+    "hugo" => "Hugo",
+    "alan2" => "Alan 2",
+    "alan3" => "Alan 3",
+    "adrift" => "ADRIFT",
+    "level9" => "Level9",
+    "agt" => "AGT",
+    "magscrolls" => "Magnetic Scrolls",
+    "advsys" => "AdvSys",
+    "executable" => "None"];
 if ($fmt && isset($devSystems[$fmt]))
     $devsys = $devSystems[$fmt];
 else

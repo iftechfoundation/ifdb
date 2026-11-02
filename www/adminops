@@ -1300,7 +1300,7 @@ if (isset($_REQUEST['osvercheck'])) {
 
         for ($i = 0 ; $i < mysql_num_rows($result) ; $i++) {
             [$gameidref, $gameid, $fmtidref, $fmtid,
-             $osidref, $osid, $vsnidref, $vsnid] =
+                $osidref, $osid, $vsnidref, $vsnid] =
                 mysql_fetch_row($result);
 
             echo "gamelinks (game=$gameidref, format=$fmtidref, "
@@ -1530,10 +1530,10 @@ else if (isset($_REQUEST['users'])) {
         $lastOnPage = $cnt - 1;
 
     $statMap = ["A" => "Active", "D" => "Pending Activation",
-                "B" => "Banned", "X" => "Closed",
-                "R" => "Pending Review"];
+        "B" => "Banned", "X" => "Closed",
+        "R" => "Pending Review"];
     $proStatMap = ["T" => "Trusted", "R" => "Pending Review",
-                   "" => "Normal"];
+        "" => "Normal"];
 
     $result = mysql_query("select code, name from `privileges`", $db);
     for ($i = 0, $privMap = [] ; $i < mysql_num_rows($result) ; $i++) {
@@ -1581,7 +1581,7 @@ else if (isset($_REQUEST['users'])) {
 
     for ($i = 0 ; $i < mysql_num_rows($result) ; $i++) {
         [$id, $name, $email, $pubmail, $statCode, $proStat, $privcode,
-         $created, $login] =  mysql_fetch_row($result);
+            $created, $login] =  mysql_fetch_row($result);
         $name = htmlspecialcharx($name);
         $email = htmlspecialcharx($email);
         $email = spoilerWarning($email, "Click to see email");
@@ -1730,7 +1730,7 @@ else if (isset($_REQUEST['users'])) {
             activationcode, pswsalt, remarks, sandbox
          from users where id = '$quid'", $db);
     [$email, $name, $stat, $proStat, $created, $login, $privcode,
-     $actcode, $pswsalt, $remarks, $sandbox]
+        $actcode, $pswsalt, $remarks, $sandbox]
         = mysql_fetch_row($result);
 
     $email = htmlspecialcharx($email);
@@ -1740,11 +1740,11 @@ else if (isset($_REQUEST['users'])) {
     $acturl = get_root_url() . "userconfirm?a=$actcode";
 
     $statMap = ["A" => "Active", "D" => "Pending Activation",
-                "B" => "Banned", "X" => "Closed",
-                "R" => "Pending Review"];
+        "B" => "Banned", "X" => "Closed",
+        "R" => "Pending Review"];
 
     $proStatMap = ["T" => "Trusted", "R" => "Pending Review",
-                   "" => "Normal"];
+        "" => "Normal"];
     $proStatName = $proStatMap[$proStat];
 
     $sandboxMap = [0 => "0 (Normal users)", 1 => "1 (Trolls)"];
@@ -2091,10 +2091,10 @@ else if (isset($_REQUEST['users'])) {
     // allowed tags - we keep these tags without modification
     $allowedTags = valuesToKeys(
         ['p', 'br',
-         'i', 'b', 'u', 'strong', 'em',
-         'big', 'small', 'tt', 'sup', 'sub',
-         'cite', 'blockquote',
-         'ul', 'ol', 'li', 'dl', 'dt', 'dd'], 1);
+            'i', 'b', 'u', 'strong', 'em',
+            'big', 'small', 'tt', 'sup', 'sub',
+            'cite', 'blockquote',
+            'ul', 'ol', 'li', 'dl', 'dt', 'dd'], 1);
 
     $updateCount = 0;
     $errRows = false;
@@ -2562,7 +2562,7 @@ else if (isset($_REQUEST['users'])) {
     echo mysql_error($db);
     for ($i = 0 ; $i < mysql_num_rows($result) ; $i++) {
         [$filterID, $filterName, $ckBoxName, $showName,
-         $endDate, $filterType, $explanation] = mysql_fetch_row($result);
+            $endDate, $filterType, $explanation] = mysql_fetch_row($result);
 
         echo "<p><hr class=dots>"
             . "<b>Name:</b> $filterName<br>"
@@ -2597,7 +2597,7 @@ else if (isset($_REQUEST['users'])) {
              where filterid = '$qFilterID'", $db);
         if (mysql_num_rows($result) > 0) {
             [$filterID, $filterName, $ckBoxName, $showName, $endDate,
-             $filterType, $explanation] = mysql_fetch_row($result);
+                $filterType, $explanation] = mysql_fetch_row($result);
 
             echo "<p><b>Do you really want to delete this filter?</b><br><br>"
                 . "<b>Name:</b> $filterName<br>"
@@ -2640,7 +2640,7 @@ else if (isset($_REQUEST['users'])) {
              where filterid = '$qFilterID'", $db);
         if (mysql_num_rows($result) > 0) {
             [$filterName, $ckBoxName, $showName, $endDate, $filterType,
-             $explanation] = mysql_fetch_row($result);
+                $explanation] = mysql_fetch_row($result);
         } else {
             $errMsg = "Filter not found.";
         }

@@ -157,7 +157,7 @@ function approx_utf8($str)
 {
     return str_replace(
         ["\xE2\x80\x99", "\xC2\xB4", " \xEF\xBF\xBD ", "\xE2\x80\xA6",
-         "\xEF\xBF\xBDs"],
+            "\xEF\xBF\xBDs"],
         ["'", "'", " - ", "...", "'s"],
         $str);
 }
@@ -819,11 +819,11 @@ function fixDesc($desc, $specials = 0)
     // allowed tag list - we keep these tags as-is
     $allowedTags = valuesToKeys(
         ['p', 'br',
-         'i', 'b', 'u', 'strong', 'em', 'hr',
-         'big', 'small', 'tt', 'sup', 'sub',
-         'cite', 'blockquote', 'code', 'pre',
-         'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
-         'ul', 'ol', 'li', 'dl', 'dt', 'dd'], 1);
+            'i', 'b', 'u', 'strong', 'em', 'hr',
+            'big', 'small', 'tt', 'sup', 'sub',
+            'cite', 'blockquote', 'code', 'pre',
+            'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
+            'ul', 'ol', 'li', 'dl', 'dt', 'dd'], 1);
 
     // tags that trigger explicit line control mode
     $lineTags = valuesToKeys(['p', 'br'], 1);
@@ -1401,7 +1401,7 @@ function summarizeHtml($str, $maxlen)
                 {
                     // stop here and return what we have so far
                     return [substr($str, 0, $ofs) . "...",
-                            $outlen + 3, true];
+                        $outlen + 3, true];
                 }
             }
             else if ($c == '&')
@@ -1456,7 +1456,7 @@ function summarizeHtml($str, $maxlen)
                 {
                     // return the string truncated up to the last breakpoint
                     return [substr($str, 0, $lastBrk) . "...",
-                            $outlen + 3, true];
+                        $outlen + 3, true];
                 }
             }
         }
@@ -2147,11 +2147,11 @@ function validate_ttf($data)
 
     // set up a list of valid IDs
     $validIDs = ['cmap', 'head', 'hhea', 'hmtx', 'maxp', 'name',
-                 'OS/2', 'post', 'cvt ', 'fpgm', 'glyf', 'loca',
-                 'prep', 'CFF ', 'VORG', 'EBDT', 'EBLC', 'EBSC',
-                 'BASE', 'GDEF', 'GPOS', 'GSUB', 'JSTF', 'DSIG',
-                 'gasp', 'hdmx', 'kern', 'LTSH', 'PCLT', 'VDMX',
-                 'vhea', 'vmtx'];
+        'OS/2', 'post', 'cvt ', 'fpgm', 'glyf', 'loca',
+        'prep', 'CFF ', 'VORG', 'EBDT', 'EBLC', 'EBSC',
+        'BASE', 'GDEF', 'GPOS', 'GSUB', 'JSTF', 'DSIG',
+        'gasp', 'hdmx', 'kern', 'LTSH', 'PCLT', 'VDMX',
+        'vhea', 'vmtx'];
 
     // check the tables
     for ($i = 0 ; $i < $numTables ; $i++) {

@@ -231,7 +231,7 @@ if ($errMsg) {
         // show the sorting controls
         showSortingControls("rvworder", "sortby", $sortList, $sortReq,
                             ["id" => $uid, "ratings" => $ratings,
-                             "tag" => $reqTag],
+                                "tag" => $reqTag],
                             "allreviews");
 
         // show where we are in the list

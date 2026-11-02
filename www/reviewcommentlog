@@ -147,9 +147,9 @@ if ($rss) {
     for ($i = 0 ; $i < $rowcnt ; $i++) {
         // fetch the next row
         [$cid, $rid, $ctxt, $ccreDT, $ccre, $cmodDT, $cmod,
-         $cuid, $cuname,
-         $ruid, $runame,
-         $gid, $gtitle] = mysql_fetch_row($result);
+            $cuid, $cuname,
+            $ruid, $runame,
+            $gid, $gtitle] = mysql_fetch_row($result);
 
         // html-ify some of the items
         $cuname = htmlspecialchars($cuname);
@@ -258,9 +258,9 @@ if ($rss) {
     for ($i = $firstOnPage ; $i <= $lastOnPage ; $i++) {
         // fetch the next row
         [$cid, $rid, $ctxt, $ccreDT, $ccre, $cmodDT, $cmod,
-         $cuid, $cuname,
-         $ruid, $runame,
-         $gid, $gtitle] = mysql_fetch_row($result);
+            $cuid, $cuname,
+            $ruid, $runame,
+            $gid, $gtitle] = mysql_fetch_row($result);
 
         // html-ify some of the items
         $cuname = htmlspecialchars($cuname);
