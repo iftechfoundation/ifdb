@@ -865,6 +865,20 @@ function calcDeltas($oldRec, $newRec)
                 if ($oldval == "none")
                     $oldval = "";
             }
+            else if (is_string($newval) && strncmp($newval, "id:", 3) == 0)
+            {
+                // Restore an existing image by ID (used for version rollback).
+                // The value after the "id:" prefix is the stored image ID.
+                $newval = substr($newval, 3);
+                $oldKey = 'orig:' . $colname;
+                $oldval = isset($oldRec[$oldKey]) ? $oldRec[$oldKey] : "";
+                if ((string)$newval === (string)$oldval)
+                {
+                    // same image - no change
+                    $newval = false;
+                    $oldval = false;
+                }
+            }
             else
             {
                 // no change to the image
@@ -1362,7 +1376,7 @@ function saveOldGame($db, $adminPriv, $apiMode,
     // presume success
     $result = true;
 
-    // note the page version in the *current* record
+    // note the page version in the current record
     $pagevsn = $rec['pagevsn'];
 
     // If the page version has changed since we originally loaded the page,
@@ -1446,13 +1460,11 @@ function saveOldGame($db, $adminPriv, $apiMode,
             if ($apiMode) {
                 $saveErrMsg = "An update conflict occurred. Another user "
                               . "submitted changes while your request "
-                              . "was being processed. Please view the "
-                              . "listing via the IFDB Web site. You can "
-                              . "then make changes manually if you wish.";
+                              . "was being processed.";
                 $saveErrCode = "CannotMerge";
             } else {
                 $saveErrMsg =
-                    "<b>Update Conflict!</b> Another user saved changes to this "
+                    "<b>Update Conflict</b> Another user saved changes to this "
                     . "game while you were working on your changes. You both "
                     . "changed some of the same items, which are flagged "
                     . "below. We recommend that you look at the "
@@ -1466,10 +1478,10 @@ function saveOldGame($db, $adminPriv, $apiMode,
             // this counts as a failure
             $result = false;
 
-            // our base version for the next attempted save is the *new*
+            // our base version for the next attempted save is the new
             // version that we just compared against - if they Save again
             // now that they've been warned, we want to proceed with the
-            // update (unless, of course, *another* concurrent update
+            // update (unless, of course, another concurrent update
             // occurs in the meantime)
             $req['pagevsn'] = $pagevsn;
         }
@@ -1528,7 +1540,7 @@ function saveOldGame($db, $adminPriv, $apiMode,
 
         // the variable list might be empty after all of that,
         // because there are some fields that don't go directly
-        // in the main table - send the update only if we
+        // in the main table. Send the update only if we
         // actually have columns to update
         if ($varlist != "") {
             // send the update
@@ -1651,6 +1663,109 @@ function saveOldGame($db, $adminPriv, $apiMode,
 
     // return success/failure indication
     return $result;
+}
+
+// --------------------------------------------------------------------------
+//
+// Load a game record as it existed at a given page version.  Returns the
+// same shape as loadGameRecord(), with coverart/eAuthor/ifids normalized
+// for use as a saveUpdates() request.  $reqPageVsn is set to the current
+// page version so that saveUpdates can treat this as an edit of the
+// latest base version.
+//
+function loadGameRecordAtVersion($db, $id, $version)
+{
+    // start with the current record
+    [$rec, $errMsg, $errMsgShort] = loadGameRecord($db, $id);
+    if (!$rec)
+        return [false, $errMsg, $errMsgShort];
+
+    $currentVsn = (int)$rec['pagevsn'];
+    $targVsn = (int)$version;
+
+    if ($targVsn < 1 || $targVsn > $currentVsn)
+        return [false,
+                "The requested version wasn't found in the database.",
+                "versionNotFound"];
+
+    // remember the current cover art ID so we can express the target
+    // cover art in form terms ("old" / "none" / "id:...")
+    $currentCoverArt = $rec['orig:coverart'];
+
+    // work with the raw cover-art ID while applying history deltas
+    $rec['coverart'] = $currentCoverArt;
+
+    // if they want the current version, we're already done reconstructing
+    if ($targVsn != $currentVsn) {
+        // apply reverse deltas from newest to oldest until we reach
+        // the requested version (same algorithm as getGameInfo)
+        $result = mysqli_execute_query($db,
+            "select pagevsn, deltas
+             from games_history
+             where id = ?
+             order by pagevsn desc", [$id]);
+        if (!$result)
+            return [false, "Error reading version history.", "dbError"];
+
+        $foundvsn = false;
+        while ($vrec = mysql_fetch_array($result, MYSQL_ASSOC)) {
+            $deltas = @unserialize($vrec['deltas']);
+            if (!is_array($deltas))
+                $deltas = [];
+            foreach ($deltas as $colname => $colval)
+                $rec[$colname] = $colval;
+
+            if ((int)$vrec['pagevsn'] == $targVsn) {
+                $foundvsn = true;
+                break;
+            }
+        }
+
+        if (!$foundvsn)
+            return [false,
+                    "The requested version wasn't found in the database.",
+                    "versionNotFound"];
+    }
+
+    // Normalize IFIDs to the comma-separated form saveUpdates expects
+    if (isset($rec['ifids']) && is_array($rec['ifids'])) {
+        $rec['ifid array'] = $rec['ifids'];
+        $rec['ifids'] = implode(",", $rec['ifids']);
+    } else if (!isset($rec['ifids'])) {
+        $rec['ifids'] = "";
+        $rec['ifid array'] = [];
+    }
+
+    // Normalize cover art: compare the reconstructed image ID against
+    // the current one and express the result in form terms
+    $targetArt = $rec['coverart'] ?? null;
+    if (is_null($targetArt) || $targetArt === "") {
+        $rec['orig:coverart'] = "";
+        $rec['coverart'] = "none";
+    } else if ((string)$targetArt === (string)$currentCoverArt) {
+        $rec['orig:coverart'] = $currentCoverArt;
+        $rec['coverart'] = "old";
+    } else {
+        // restore a different existing image by ID
+        $rec['orig:coverart'] = $targetArt;
+        $rec['coverart'] = "id:" . $targetArt;
+    }
+
+    // author display field used by the edit form / saveUpdates
+    $rec['eAuthor'] = $rec['authorExt'] ? $rec['authorExt'] : ($rec['author'] ?? "");
+
+    // ensure array fields exist
+    if (!isset($rec['links']) || !is_array($rec['links']))
+        $rec['links'] = [];
+    if (!isset($rec['extreviews']) || !is_array($rec['extreviews']))
+        $rec['extreviews'] = [];
+    if (!isset($rec['xrefs']) || !is_array($rec['xrefs']))
+        $rec['xrefs'] = [];
+
+    // saveUpdates concurrency check: claim we're editing the current base
+    $rec['pagevsn'] = $currentVsn;
+
+    return [$rec, false, false];
 }
 
 ?>

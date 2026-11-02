@@ -1506,8 +1506,9 @@ if ($embargoCnt > 0)
             (Current Version)
             - <a href=\"editgame?id=$id\">Edit Page</a>";
 
+    // admins can permanently delete the current version from history
     if ($adminPriv) {
-        echo " - <a href=\"rollbackGameVersion?game=$id\">Delete Version</a>";
+        echo " - <a href=\"deleteGameVersion?game=$id\">Delete Version</a>";
     }
 
     echo " - <a href=\"viewgame?id=$id\">Normal View</a>
@@ -1553,9 +1554,15 @@ if ($embargoCnt > 0)
         if (isset($_REQUEST['version']) && $ivsn == $_REQUEST['version'])
             echo "<img src=\"/img/blank.gif\" class=\"current-version-marker\">&nbsp;";
 
-        // show this version entry
+        // show this version entry; any logged-in editor can roll back
+        // to a historical version (creates a new version non-destructively)
         echo "</td><td><a href=\"viewgame?version=$ivsn&id=$id\">
-           v.$ivsn: {$idate}</a> - $iedlink<br>";
+           v.$ivsn: {$idate}</a> - $iedlink";
+        if ($curuser) {
+            echo " - <a href=\"rollbackGameVersion?game=$id&amp;version=$ivsn\">"
+                . "Roll Back to This Version</a>";
+        }
+        echo "<br>";
     }
 
     // the last version we show is always the first version
