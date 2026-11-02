@@ -912,7 +912,7 @@ echo helpWinLink("help-ifid", "IFID");
 ?>
     </div>
 <?php
-    } // if ($detailView || $historyView)
+    } // if ($detailView || $historyView || $downloadsView)
 
 //------------------------- MAIN SUMMARY -------------------------
 
