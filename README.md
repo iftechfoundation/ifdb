@@ -65,7 +65,7 @@ Run it with Docker:
 ## Known Issues with the Development Environment
 
 * Sending email doesn't work. That's unfortunate, because if you want to create a user, you'll need to login with an activation code. After you try to create a new user, you should be able to see the email text in the Docker logs. Search for `EMAIL: NOT SENDING EMAIL IN LOCAL DEVELOPMENT MODE`.
-* Game box-art images load from the production IFDB site, not the dev environment. IFDB uses a separate "images" database that isn't part of the IFArchive backup. We'll need to generate a backup of that database and make it available on IFArchive, or, at the very least, provide a way for developers to download images from the real IFDB.
+* Existing game box-art images load from the production IFDB site. IFDB uses a separate "images" database that isn't part of the IFArchive backup. You can upload your own cover art in the local environment; newly uploaded images are stored and served locally.
 
 ## Troubleshooting
 

@@ -36,6 +36,41 @@ function fetch_image($imageID, $getPic)
     return $row ?: [null, null];
 }
 
+// Public local-dev has no production images dump. When an image is
+// missing locally, send the browser to ifdb.org, which still has the
+// original artwork. Newly uploaded local images are served from MySQL
+// and never reach this fallback.
+function redirectMissingImageToProductionIfLocal()
+{
+    if (localImageCredentials() !== null) {
+        return false;
+    }
+    if (!isLocalImageFallbackHost()) {
+        return false;
+    }
+    if (empty($_SERVER['REQUEST_URI'])) {
+        return false;
+    }
+
+    $production = defined('PRODUCTION_SERVER_NAME') ? PRODUCTION_SERVER_NAME : 'ifdb.org';
+
+    // Local pagevsn can run ahead of production after test edits.
+    // Omit version so ifdb.org serves its current cover instead of 404ing.
+    $parts = parse_url($_SERVER['REQUEST_URI']);
+    $path = $parts['path'] ?? '/';
+    $query = [];
+    if (!empty($parts['query'])) {
+        parse_str($parts['query'], $query);
+    }
+    unset($query['version']);
+    $qs = http_build_query($query);
+    $location = "https://" . $production . $path . ($qs !== "" ? "?$qs" : "");
+
+    header("HTTP/1.1 302 Found");
+    header("Location: $location");
+    exit();
+}
+
 // ------------------------------------------------------------------------
 //
 // Create a transparent image resource of the given size
@@ -69,8 +104,10 @@ define("SIF_RAW", 0x0001);
 function sendImage($imgData, $imgFmt, $thumbnail, $flags = 0)
 {
     // make sure there's an image
-    if (is_null($imgData))
+    if (is_null($imgData)) {
+        redirectMissingImageToProductionIfLocal();
         exit("No image is available");
+    }
 
     // Get the MIME type, assuming for now that it's an image.  For image
     // types, the MIME type is simply "image/X", where X is our format code

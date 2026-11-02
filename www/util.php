@@ -418,8 +418,10 @@ function sendImageLdesc($title, $imageID)
 
     // connect to the database encoded in the ID
     $db = imageDbConnect((int)$dbnum);
-    if (!$db)
+    if (!$db) {
+        redirectMissingImageToProductionIfLocal();
         return false;
+    }
 
     // fetch the copyright information
     $key = mysql_real_escape_string($key, $db);
@@ -427,7 +429,12 @@ function sendImageLdesc($title, $imageID)
         "select
            copystat, copyright, userid, date_format(createdate, '%M %e, %Y')
          from images where id='$key'", $db);
-    [$copystat, $copymsg, $userid, $created] = mysql_fetch_row($result);
+    $row = $result ? mysql_fetch_row($result) : false;
+    if (!$row) {
+        redirectMissingImageToProductionIfLocal();
+        exit("No image is available");
+    }
+    [$copystat, $copymsg, $userid, $created] = $row;
 
     $username = false;
     if ($userid) {
@@ -1868,6 +1875,9 @@ function store_image($imageData, $imageFormat,
     // choose randomly from one of the secondary databases
     $dbnum = rand(0, 4);
     $db = imageDbConnect($dbnum);
+    if (!$db) {
+        return false;
+    }
 
     // store the image
     $imageData = mysql_real_escape_string($imageData, $db);

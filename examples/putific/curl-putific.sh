@@ -1,7 +1,6 @@
 #!/bin/bash
 
 # if you want to test on the local Docker dev environment, change the url to http://localhost:8080/putific
-# but beware, per the README, the local dev environment doesn't allow you to upload images, so you won't see the cover art
 
 USERNAME=ifdbadmin@ifdb.org
 PASSWORD=secret

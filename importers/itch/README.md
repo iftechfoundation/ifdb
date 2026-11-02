@@ -6,7 +6,7 @@ This importer is designed to grab the game list from an Itch.io game jam and upl
 2. Copy `settings.mjs.template` to `settings.mjs`, putting in your username, password, jamEntriesUrl, tagName, and the compStartDate. (If you want to test the scripts against a local IFDB dev environment, also change the url to `http://localhost:8080`.)
 3. Run `node fetch-entries-json.mjs`. This will record the entries data in `entries.json`.
 4. Run `node process-cover-art.mjs` to download all of the cover art in the `cover-art` directory.
-5. Run `node submit-games.mjs` to submit all of the game listings. (Note that when testing in a dev environment, uploaded images will not appear in the web UI.)
+5. Run `node submit-games.mjs` to submit all of the game listings.
 6. Run `merge-tuids.mjs` to generate `entries-tuids.json`. Check the logs to ensure that we didn't create any duplicate IFDB entries.
 
 # List of the scripts

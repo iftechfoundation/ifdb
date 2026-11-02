@@ -56,13 +56,37 @@ function imageDbConnect($dbnum)
 {
     $dbinfo = localImageCredentials();
 
+    // Public local-dev has no images dump (localImageCredentials() is
+    // null). Still store newly uploaded images in the main local MySQL
+    // instance so cover-art uploads work. Docker creates the empty
+    // ifdb_images* schemas during initdb.
+    if ($dbinfo === null) {
+        if (!isLocalImageFallbackHost()) {
+            return false;
+        }
+        $dbinfo = localCredentials();
+    }
+
     // connect and select the database
     $db = mysql_connect($dbinfo[0], $dbinfo[1], $dbinfo[2]);
-    if ($db != false)
-        mysql_select_db("ifdb_images" . $dbnum, $db);
+    if ($db == false) {
+        return false;
+    }
+
+    if (!mysql_select_db("ifdb_images" . $dbnum, $db)) {
+        return false;
+    }
 
     // return the connection
     return $db;
+}
+
+function isLocalImageFallbackHost()
+{
+    $server = $_SERVER['SERVER_NAME'] ?? '';
+    $production = defined('PRODUCTION_SERVER_NAME') ? PRODUCTION_SERVER_NAME : 'ifdb.org';
+    $staging = defined('STAGING_SERVER_NAME') ? STAGING_SERVER_NAME : 'dev.ifdb.org';
+    return $server !== $production && $server !== $staging;
 }
 
 // --------------------------------------------------------------------------
