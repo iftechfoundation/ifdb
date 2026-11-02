@@ -602,8 +602,12 @@ function showReview($db, $gameid, $rec, $specialNames, $optionFlags = 0)
         echo "<div class=smallfoot><span class=details>
             <a title=\"Direct link to this review\"
             href=\"viewgame?id=$gameid&review=$reviewid\">Direct link</a>
-            $barCommentCtls
-            </span></div>";
+            $barCommentCtls";
+        if (!$curuser && $showCommentCtls && $showVoteCtls) {
+            echo " | <a href=\"login?dest=viewgame%3Fid%3D$gameid%26review%3D$reviewid\">Log in</a> "
+                . "to comment.";
+        }
+        echo "</span></div>";
     }
 
 
