@@ -107,7 +107,7 @@ if ($debugflag) echo "debug mode enabled...<br>";
          </details>
       </div>
 
-      <?php include "components/check-inbox.php"?>
+      <?php include "home-components/check-inbox.php"?>
 
       <div class="block flexer">
          <div class="column col-peer">
@@ -151,35 +151,35 @@ if ($debugflag) echo "debug mode enabled...<br>";
 
       <div class="block flexer">
          <div class="column col-peer">
-            <?php include "components/games.php"?>
+            <?php include "home-components/games.php"?>
          </div>
          <div class="column col-peer">
-            <?php include "components/reviews.php"?>
-         </div>
-      </div>
-
-      <div class="block flexer">
-         <div class="column col-peer">
-            <?php include "components/competitions.php"?>
-         </div>
-         <div class="column col-peer">
-            <?php include "components/poll-sampler.php"?>
+            <?php include "home-components/reviews.php"?>
          </div>
       </div>
 
       <div class="block flexer">
          <div class="column col-peer">
-            <?php include "components/recommended-lists.php"?>
+            <?php include "home-components/competitions.php"?>
          </div>
          <div class="column col-peer">
-            <?php include "components/ifdb-recommends.php"?>
+            <?php include "home-components/poll-sampler.php"?>
+         </div>
+      </div>
+
+      <div class="block flexer">
+         <div class="column col-peer">
+            <?php include "home-components/recommended-lists.php"?>
+         </div>
+         <div class="column col-peer">
+            <?php include "home-components/ifdb-recommends.php"?>
          </div>
       </div>
 
       <div class="block flexer">
          <div class="column col-peer">
             <div class=headline id='top-reviewers'><h1 class='unset'>Top Reviewers</h1></div>
-            <?php include "components/top-reviewers.php"?>
+            <?php include "home-components/top-reviewers.php"?>
          </div>
          <div class="column col-peer">
             <div class="headline" id='new-to-if'><h1 class='unset'>New to IF?</h1></div>
@@ -190,7 +190,7 @@ if ($debugflag) echo "debug mode enabled...<br>";
       <div class="block flexer">
          <div class="column col-peer">
             <div class=headline id='stats'><h1 class='unset'>Database Stats</h1></div>
-            <?php include "components/database-stats.php"?>
+            <?php include "home-components/database-stats.php"?>
          </div>
          <div class="column col-peer">
             <div class=headline id='links'><h1 class='unset'>IF Links</h1></div>
