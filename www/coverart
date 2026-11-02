@@ -35,8 +35,16 @@ function getID() {
 }
 
 if (localImageCredentials() === null) {
+    // Local pagevsn can run ahead of production after test edits.
+    // Omit version so ifdb.org serves its current cover instead of 404ing.
+    $query = $_GET;
+    unset($query['version']);
+    $qs = http_build_query($query);
+    if ($qs !== "") {
+        $qs = "?$qs";
+    }
     header("HTTP/1.1 302 Found");
-    header("Location: https://ifdb.org" . $_SERVER['REQUEST_URI']);
+    header("Location: https://ifdb.org/coverart$qs");
     exit();
 }
 
