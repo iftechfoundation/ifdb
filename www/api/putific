@@ -46,8 +46,7 @@ As of this writing, we have code samples for Python, Node.js, and Bash/Curl.</p>
 <p>Note that you may want to test the API by setting up a local
 developer environment. See the
 <a href="https://github.com/iftechfoundation/ifdb/">README</a> for
-more details. However, the dev environment does not support uploading
-images, so you won't be able to see your cover art if you test locally.
+more details.
 </p>
 
 <p>The example scripts are configured to point directly to the real

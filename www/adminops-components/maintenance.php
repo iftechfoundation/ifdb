@@ -13,7 +13,7 @@ if (isset($_REQUEST['cleanpix'])) {
         echo "<input type=hidden name='showVsnNull' value=1>";
 
     // fetch all the picture IDs
-    $numImageDBs = (isLocalDev() ? 1 : 5);
+    $numImageDBs = 5;
     for ($pix = [], $i = 0 ; $i < $numImageDBs ; $i++) {
         $dbpix = imageDbConnect($i);
         $result = mysql_query("select id from images", $dbpix);

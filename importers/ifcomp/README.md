@@ -12,7 +12,7 @@ See also the overview document in the IFComp repository: [Shipping IFComp games 
 2. Copy `settings.mjs.template` to `settings.mjs`, putting in your username, password, and the compStartDate. (If you want to test the scripts against a local IFDB dev environment, also change the url to `http://localhost:8080`.)
 3. Run `node extract-microdata.mjs` to record the ballot data in `microdata.json`.
 4. Run `node process-cover-art.mjs` to download all of the cover art in the `cover-art` directory.
-5. Run `node submit-games.mjs` to submit all of the game listings. (Note that when testing in a dev environment, uploaded images will not appear in the web UI.)
+5. Run `node submit-games.mjs` to submit all of the game listings.
 6. In the admin UI, run the duplicate detector and resolve any duplicates. https://ifdb.org/adminops?duplicateDetector=&days=2
 7. Run `node merge-tuids.mjs` to record the IFDB TUIDs in `microdata-tuids.json`. (Read the log and look for "too many matches" errors, indicating any duplicate entries we might have missed.)
 8. Run `node tag-games.mjs` to tag each game with the "IFComp YYYY" tag.
