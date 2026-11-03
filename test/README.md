@@ -1,30 +1,26 @@
-# IFDB Selenium IDE Testing
+# IFDB HTTP smoke tests (Hurl)
 
-This is the [Selenium IDE](https://www.selenium.dev/selenium-ide/) automated browser test suite for the IFDB.
+These tests drive the local IFDB over HTTP with [Hurl](https://hurl.dev)
 
-## Preparing Your Own Testing Environment
+## Setup
 
-Selenium IDE is currently available as a Firefox Browser Add-On and as a Chrome Browser Extension. Select one, or both, depending on which browser you are interested in testing.
+1. Start IFDB locally (`docker compose up` → http://localhost:8080).
+2. From this directory:
 
-### Firefox Installation
+```sh
+npm install
+```
 
-1. Open Firefox and navigate to the download page for the [Firefox Browser Selenium IDE Add-On](https://addons.mozilla.org/en-GB/firefox/addon/selenium-ide/).
-1. Follow the instructions for installing the add-on.
+That pulls `@orangeopensource/hurl`, which downloads the correct Hurl binary for your OS.
 
-### Chrome Installation
+## Running
 
-1. Open Chrome and navigate to the Chrome Web Store for the [Chrome Browser Selenium IDE Extension](https://chrome.google.com/webstore/detail/selenium-ide/mooikfkahbdckldjjndioackbalphokd).
-1. Follow the instructions for installing the extension.
+```sh
+npm test
+```
 
-### Opening and Running Tests
+## Layout
 
-1. Start up your local development version of the IFDB.
-1. Open the browser of your choice and click on the Selenium IDE icon in the upper right corner.
-1. In the pop up dialog, select `Open an existing project`.
-1. Open `./IFDB.side`.
-1. Select `Test suites` from the drop down menu on the upper left corner of the application.
-1. Select any of the available test suites and tests.
-1. To run the currently selected test, click on the `Run current test` button.
-1. To run all of the tests in the suite, click on the `Run all tests in suite button`.
-
-For information about using the Selenium IDE, see: https://www.selenium.dev/selenium-ide/docs/en/introduction/getting-started.
+- `http/write/write.hurl` — register a new user, activate it via adminops, and create test data
+- `http/readonly/` — parallel verification
+- `http/run.mjs` — Test orchestration + shared variables

@@ -1,0 +1,11 @@
+{
+  "name": "ifdb-tests",
+  "private": true,
+  "description": "HTTP smoke tests for IFDB (Hurl)",
+  "scripts": {
+    "test": "node http/run.mjs"
+  },
+  "devDependencies": {
+    "@orangeopensource/hurl": "^8.1.0"
+  }
+}
