@@ -142,48 +142,20 @@ function getGameInfo($db, $id, $curuser, $requestVersion, &$errMsg, &$errCode)
     // if we want to go back in time, apply the history
     $historyView = false;
     if ($requestVersion && (int)$requestVersion != $rec['pagevsn']) {
+        [$foundvsn, $rec] = applyGameHistoryDeltas(
+            $db, $id, $rec, $requestVersion,
+            function (&$rec, $vrec, $deltas) {
+                // keep the version timestamp from the history row
+                $rec["moddate"] = $vrec["moddate"];
+                $rec["moddate2"] = $vrec["moddate2"];
 
-        // query up the version history, in order from newest to oldest
-        $result = mysqli_execute_query($db,
-            "select
-               pagevsn, deltas,
-               concat(date_format(moddate, '%e %M %Y at %l:%i'),
-                      lower(date_format(moddate, '%p'))) as moddate,
-               date_format(moddate, '%d-%b-%Y %H:%i') as moddate2
-            from games_history
-            where id = ?
-            order by pagevsn desc", [$id]);
-
-        // we haven't found our target version yet
-        $foundvsn = false;
-
-        // now run through the list until we find the requested version,
-        // applying each item's reverse deltas in order
-        while ($vrec = mysql_fetch_array($result, MYSQL_ASSOC)) {
-            // update the main record with the version's timestamp
-            $rec["moddate"] = $vrec["moddate"];
-            $rec["moddate2"] = $vrec["moddate2"];
-
-            // deserialize the array of deltas
-            $deltas = unserializeGameDeltas($vrec['deltas']);
-
-            // copy each modified item into the current row under construction
-            foreach ($deltas as $colname => $colval) {
-                // save this column
-                $rec[$colname] = $colval;
-
-                // if it's Cover Art, note the new 'hasart' status
-                if ($colname == "coverart")
+                // if Cover Art changed, note the new 'hasart' status
+                if (array_key_exists("coverart", $deltas)) {
+                    $colval = $deltas["coverart"];
                     $rec['hasart'] = (is_null($colval) || strlen($colval) == 0)
                                      ? null : true;
-            }
-
-            // if this is our target version, we can stop now
-            if ((int)($vrec['pagevsn']) == (int)$requestVersion) {
-                $foundvsn = true;
-                break;
-            }
-        }
+                }
+            });
 
         // if we didn't find our target version, it's an error
         if (!$foundvsn) {
@@ -431,6 +403,50 @@ function getGameInfo($db, $id, $curuser, $requestVersion, &$errMsg, &$errCode)
                  $historyView,
                  $dlnotes, $extReviews, $extRevDisplayRank,
                  $ratingHisto, $xrefs, $inrefs, $flags];
+}
+
+// ----------------------------------------------------------------------------
+//
+// Apply reverse deltas from games_history onto a current-version record
+// until the history row for $targetVersion has been applied.  History is
+// walked newest to oldest.  Returns [found, updatedRecord].
+//
+// $afterRow, if provided, is called as (&$rec, $historyRow, $deltas) after
+// each history row's deltas are merged — e.g. to copy moddate or update
+// derived fields like hasart.
+//
+function applyGameHistoryDeltas($db, $id, array $rec, $targetVersion,
+                                $afterRow = null)
+{
+    $targetVersion = (int)$targetVersion;
+    $result = mysqli_execute_query($db,
+        "select
+            pagevsn, deltas,
+            concat(date_format(moddate, '%e %M %Y at %l:%i'),
+                   lower(date_format(moddate, '%p'))) as moddate,
+            date_format(moddate, '%d-%b-%Y %H:%i') as moddate2
+         from games_history
+         where id = ?
+         order by pagevsn desc", [$id]);
+    if (!$result)
+        return [false, $rec];
+
+    $found = false;
+    while ($vrec = mysql_fetch_array($result, MYSQL_ASSOC)) {
+        $deltas = unserializeGameDeltas($vrec['deltas']);
+        foreach ($deltas as $colname => $colval)
+            $rec[$colname] = $colval;
+
+        if ($afterRow)
+            $afterRow($rec, $vrec, $deltas);
+
+        if ((int)$vrec['pagevsn'] == $targetVersion) {
+            $found = true;
+            break;
+        }
+    }
+
+    return [$found, $rec];
 }
 
 // ----------------------------------------------------------------------------
