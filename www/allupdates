@@ -6,6 +6,113 @@ include_once "util.php";
 include_once "dbconnect.php";
 $db = dbConnect();
 
+include_once "editgame-util.php";
+
+function gamesSoleAuthoredByUser($db, $userid, $orderBy = 'sort_title',
+                                 $limit = null, $offset = 0)
+{
+    $result = mysqli_execute_query($db,
+        "select g.id, g.title, g.sort_title, g.author, g.pagevsn,
+                cast(g.moddate as datetime) as moddate,
+                count(*) over() as total
+         from games g
+         where g.editedby = ?
+           and not exists (
+             select 1 from games_history h
+             where h.id = g.id and ifnull(h.editedby, '') <> ?
+           )
+         order by $orderBy"
+         . ($limit === null ? '' : " limit $offset,$limit"),
+        [$userid, $userid]);
+    return $result ? mysqli_fetch_all($result, MYSQLI_ASSOC) : [];
+}
+
+function gamesLatestSharedEditsByUser($db, $userid, $orderBy = 'sort_title',
+                                      $limit = null, $offset = 0)
+{
+    $result = mysqli_execute_query($db,
+        "select g.id, g.title, g.sort_title, g.author, g.pagevsn,
+                cast(g.moddate as datetime) as moddate,
+                count(*) over() as total
+         from games g
+         where g.editedby = ?
+           and g.pagevsn > 1
+           and exists (
+             select 1 from games_history h
+             where h.id = g.id and ifnull(h.editedby, '') <> ?
+           )
+         order by $orderBy"
+         . ($limit === null ? '' : " limit $offset,$limit"),
+        [$userid, $userid]);
+    return $result ? mysqli_fetch_all($result, MYSQLI_ASSOC) : [];
+}
+
+function gamesNotLatestPublicEditsByUser($db, $userid, $orderBy = 'sort_title',
+                                         $limit = null, $offset = 0)
+{
+    $result = mysqli_execute_query($db,
+        "select g.id, g.title, g.sort_title, g.author,
+                max(h.pagevsn) as pagevsn, max(h.moddate) as moddate,
+                count(*) over() as total
+         from games g
+         join games_history h on h.id = g.id
+         where h.editedby = ?
+           and ifnull(g.editedby, '') <> ?
+           and h.spam = 0
+         group by g.id
+         order by $orderBy"
+         . ($limit === null ? '' : " limit $offset,$limit"),
+        [$userid, $userid]);
+    return $result ? mysqli_fetch_all($result, MYSQLI_ASSOC) : [];
+}
+
+function allUpdatesByUser($db, $userid, $orderBy = 'sort_title',
+                          $limit = null, $offset = 0)
+{
+    $result = mysqli_execute_query($db,
+        "select id, title, sort_title, author, pagevsn, moddate,
+                count(*) over() as total
+         from (
+             select id, title, sort_title, author,
+                    max(pagevsn) as pagevsn, max(moddate) as moddate
+             from (
+                 select games.id as id, games.title as title,
+                        games.sort_title as sort_title, games.author as author,
+                        max(games_history.moddate) as moddate,
+                        max(games_history.pagevsn) as pagevsn
+                 from games, games_history
+                 where games_history.id = games.id
+                   and games_history.editedby = ?
+                 group by games.id
+                 union
+                 select id, title, sort_title, author,
+                        cast(moddate as datetime), pagevsn
+                 from games where editedby = ?
+             ) my_edits
+             group by id
+         ) my_edits_trimmed
+         order by $orderBy"
+         . ($limit === null ? '' : " limit $offset,$limit"),
+        [$userid, $userid]);
+    return $result ? mysqli_fetch_all($result, MYSQLI_ASSOC) : [];
+}
+
+// Fetch a page of edits for the current filter; returns [$cnt, $pageRows].
+function fetchAllUpdatesPage($db, $filter, $userid, $orderBy, $limit, $offset)
+{
+    if ($filter == 'soleAuthored')
+        $rows = gamesSoleAuthoredByUser($db, $userid, $orderBy, $limit, $offset);
+    else if ($filter == 'latestEdit')
+        $rows = gamesLatestSharedEditsByUser($db, $userid, $orderBy, $limit, $offset);
+    else if ($filter == 'notLatestEdit')
+        $rows = gamesNotLatestPublicEditsByUser($db, $userid, $orderBy, $limit, $offset);
+    else
+        $rows = allUpdatesByUser($db, $userid, $orderBy, $limit, $offset);
+
+    $cnt = $rows ? (int)$rows[0]['total'] : 0;
+    return [$cnt, $rows];
+}
+
 // note if we're logged in
 include_once "login-check.php";
 $curuser = checkPersistentLogin();
@@ -16,6 +123,10 @@ $uid = get_req_data('user');
 $perPage = 10;
 [$pgAll, $pg] = parse_page(get_req_data('pg'));
 $sortReq = get_req_data('sortby');
+$filter = get_req_data('filter');
+$validFilters = ['soleAuthored', 'latestEdit', 'notLatestEdit'];
+if (!in_array($filter, $validFilters, true))
+    $filter = '';
 
 // if there's no user ID in the request, default to the current user
 if (!$uid) {
@@ -26,105 +137,188 @@ if (!$uid) {
     $uid = $curuser = $_SESSION['logged_in_as'];
 }
 
-// quote it
-$quid = mysql_real_escape_string($uid, $db);
-
 $errMsg = false;
+$statusHtml = "";
+$adminPriv = check_admin_privileges($db, $curuser);
 
 $sortList = [
-    'new' => ['sortdate desc', 'Latest Edits First'],
-    'old' => ['sortdate', 'Oldest Edits First'],
+    'new' => ['moddate desc', 'Latest Edits First'],
+    'old' => ['moddate', 'Oldest Edits First'],
     'nm' => ['sort_title', 'By Title']];
+if (!isset($sortList[$sortReq]))
+    $sortReq = 'new';
 
-// get the user's name
-$result = mysql_query("select name from users where id='$quid'", $db);
-if (mysql_num_rows($result) == 0) {
+// get the user's name and account status
+$result = mysqli_execute_query($db,
+    "select name, acctstatus from users where id = ?", [$uid]);
+if (!$result || mysqli_num_rows($result) == 0) {
     pageHeader("All Updates");
     echo "The specified user ID was not found in the database.";
     pageFooter();
     exit();
 }
-$username = htmlspecialcharx(mysql_result($result, 0, "name"));
+$userRow = mysqli_fetch_assoc($result);
+$username = htmlspecialchars($userRow['name']);
+$acctStatus = $userRow['acctstatus'];
+$huid = htmlspecialchars($uid);
+$filterQuery = $filter ? "&filter=" . urlencode($filter) : "";
 
-// prepare the table of updates
-mysql_query(
-    "create temporary table my_edits as
-     select
-       games.id as id,
-       games.title as title,
-       games.sort_title as sort_title,
-       games.author as author,
-       max(games_history.moddate) as moddate,
-       max(games_history.pagevsn) as pagevsn
-     from
-       games, games_history
-     where
-       games_history.id = games.id
-       and games_history.editedby = '$quid'
-     group by
-       games.id
-     union
-     select id, title, sort_title, author, cast(moddate as datetime), pagevsn
-       from games where editedby = '$quid'", $db);
+// Bulk cleanup actions for banned-user filters (admin only)
+if ($adminPriv
+    && $acctStatus == 'B'
+    && $_SERVER['REQUEST_METHOD'] == 'POST'
+    && $filter != '') {
 
-// uniquify it on user ID
-mysql_query(
-    "create temporary table my_edits_trimmed as
-     select
-        id, title, sort_title, author,
-        max(pagevsn) as pagevsn, max(moddate) as moddate
-     from my_edits
-     group by id", $db);
+    if ($filter == 'soleAuthored'
+        && isset($_REQUEST['deleteSoleAuthoredGames'])) {
+        $deleted = 0;
+        $failed = [];
+        foreach (gamesSoleAuthoredByUser($db, $uid) as $g) {
+            $err = deleteGameListing($db, $g['id'], includeSqlError: true);
+            if ($err) {
+                $failed[] = htmlspecialchars($g['title']) . ": " . $err;
+                continue;
+            }
+            $deleted++;
+        }
+        $statusHtml .= "<p><span class=success>Deleted $deleted game listing"
+            . ($deleted == 1 ? "" : "s") . ".</span></p>";
+        if (count($failed)) {
+            $statusHtml .= "<p><span class=errmsg>Some listings could not be deleted:</span></p><ul>";
+            foreach ($failed as $fail)
+                $statusHtml .= "<li>$fail</li>";
+            $statusHtml .= "</ul>";
+        }
+    }
 
-// count up what we have left
-$result = mysql_query("select count(*) as c from my_edits_trimmed", $db);
-$cnt = mysql_result($result, 0, "c");
+    if ($filter == 'latestEdit'
+        && isset($_REQUEST['rollbackLatestGameEdits'])) {
+        $rolledBack = 0;
+        $failed = [];
+        foreach (gamesLatestSharedEditsByUser($db, $uid) as $g) {
+            $err = safeRollbackBannedUserLatestEdit(
+                $db, $g['id'], $uid, $adminPriv);
+            if ($err) {
+                $failed[] = htmlspecialchars($g['title']) . ": " . $err;
+                continue;
+            }
+            $rolledBack++;
+        }
+        $statusHtml .= "<p><span class=success>Rolled back $rolledBack game listing"
+            . ($rolledBack == 1 ? "" : "s")
+            . " to the last version by another editor.</span></p>";
+        if (count($failed)) {
+            $statusHtml .= "<p><span class=errmsg>Some listings could not be rolled back:</span></p><ul>";
+            foreach ($failed as $fail)
+                $statusHtml .= "<li>$fail</li>";
+            $statusHtml .= "</ul>";
+        }
+    }
 
-if ($pgAll && $cnt > 0) {
-    $perPage = $cnt;
+    if ($filter == 'notLatestEdit'
+        && isset($_REQUEST['markHistoryEditsSpam'])) {
+        $result = mysqli_execute_query($db,
+            "update games_history h
+             join games g on g.id = h.id
+             set h.spam = 1
+             where h.editedby = ?
+               and ifnull(g.editedby, '') <> ?
+               and h.spam = 0",
+            [$uid, $uid]);
+        if ($result) {
+            $marked = mysqli_affected_rows($db);
+            $statusHtml .= "<p><span class=success>Marked $marked game listing version"
+                . ($marked == 1 ? "" : "s")
+                . " as spam.</span></p>";
+        } else {
+            $statusHtml .= "<p><span class=errmsg>Error marking versions as spam: "
+                . htmlspecialchars(mysqli_error($db)) . "</span></p>";
+        }
+    }
 }
 
-pageHeader("Catalog Updates by $username");
+$pageTitle = "Catalog Updates by $username";
+if ($filter == 'soleAuthored')
+    $pageTitle = "Sole-authored listings by $username";
+else if ($filter == 'latestEdit')
+    $pageTitle = "Listings where $username is the latest editor";
+else if ($filter == 'notLatestEdit')
+    $pageTitle = "Publicly visible edits by $username";
 
-echo "<h1>Catalog Updates by $username</h1>";
+pageHeader($pageTitle);
 
-// figure how many pages we have to show
-$lastPage = (int)floor(($cnt + $perPage - 1)/$perPage);
+echo "<h1>$pageTitle</h1>";
+echo $statusHtml;
 
-// limit the page request to existing pages
+$orderBy = $sortList[$sortReq][0];
+$firstOnPage = max(0, ($pg - 1) * $perPage);
+[$cnt, $pageRows] = fetchAllUpdatesPage(
+    $db, $filter, $uid, $orderBy,
+    $pgAll ? null : $perPage, $pgAll ? 0 : $firstOnPage);
+
+// Requested page past the end: learn the total, then re-fetch the last page.
+if (!$pageRows && !$pgAll && $pg > 1) {
+    [$cnt] = fetchAllUpdatesPage($db, $filter, $uid, $orderBy, 1, 0);
+    if ($cnt > 0) {
+        $lastPage = (int)floor(($cnt + $perPage - 1) / $perPage);
+        $pg = $lastPage;
+        $firstOnPage = ($pg - 1) * $perPage;
+        [$cnt, $pageRows] = fetchAllUpdatesPage(
+            $db, $filter, $uid, $orderBy, $perPage, $firstOnPage);
+    }
+}
+
+if ($pgAll && $cnt > 0)
+    $perPage = $cnt;
+
+$lastPage = (int)floor(($cnt + $perPage - 1) / $perPage);
 if ($pg > $lastPage)
     $pg = $lastPage;
-
-// calculate our position in the list
-$firstOnPage = ($pg - 1) * $perPage;
+$firstOnPage = max(0, ($pg - 1) * $perPage);
 $lastOnPage = $firstOnPage + $perPage - 1;
 if ($lastOnPage > $cnt - 1)
     $lastOnPage = $cnt - 1;
 
-// determine the sorting order
-$ord = isset($sortList[$sortReq]) ? $sortList[$sortReq] : $sortList['new'];
+if ($adminPriv && $acctStatus == 'B' && $filter != '' && $cnt > 0) {
+    echo "<form method=\"post\" action=\"allupdates?user=$huid$filterQuery\">";
+    echo "<input type=\"hidden\" name=\"user\" value=\"$huid\">";
+    echo "<input type=\"hidden\" name=\"filter\" value=\""
+        . htmlspecialchars($filter) . "\">";
+    if ($filter == 'soleAuthored') {
+        echo "<p><button type=\"submit\" name=\"deleteSoleAuthoredGames\" value=\"1\">"
+            . "Delete these listings</button></p>";
+    } else if ($filter == 'latestEdit') {
+        echo "<p><button type=\"submit\" name=\"rollbackLatestGameEdits\" value=\"1\">"
+            . "Roll back these versions</button></p>";
+    } else if ($filter == 'notLatestEdit') {
+        echo "<p><button type=\"submit\" name=\"markHistoryEditsSpam\" value=\"1\">"
+            . "Mark these versions as spam</button></p>";
+    }
+    echo "</form>";
+}
 
-// run the query for the current page's contents
-$result = mysql_query(
-    "select id, title, sort_title, author, pagevsn,
-        date_format(moddate, '%M %e, %Y') as moddate,
-        moddate as sortdate
-     from my_edits_trimmed
-     order by {$ord[0]}
-     limit $firstOnPage," . $perPage, $db);
-
-if (mysql_num_rows($result) == 0) {
-    echo "<i>This member hasn't edited or added any catalog listings.</i><br>";
+if (count($pageRows) == 0) {
+    if ($filter == 'soleAuthored')
+        echo "<i>No sole-authored listings for this member.</i><br>";
+    else if ($filter == 'latestEdit')
+        echo "<i>No listings where this member is the latest editor.</i><br>";
+    else if ($filter == 'notLatestEdit')
+        echo "<i>No publicly visible edits where this member is not the latest editor.</i><br>";
+    else
+        echo "<i>This member hasn't edited or added any catalog listings.</i><br>";
 } else {
 
     // show the sorting controls
+    $sortHidden = ["user" => $uid];
+    if ($filter != '')
+        $sortHidden["filter"] = $filter;
     showSortingControls("lstorder", "sortby", $sortList, $sortReq,
-                        ["user" => $uid], "allupdates");
+                        $sortHidden, "allupdates");
 
     // show where we are in the list
     $pageCtl = "<span class=details>"
                . makePageControl(
-                   "allupdates?user=$uid&sortby=$sortReq",
+                   "allupdates?user=$uid$filterQuery&sortby=$sortReq",
                    $pg, $lastPage, $firstOnPage, $lastOnPage, $cnt,
                    true, true, $pgAll)
                . "</span>";
@@ -132,43 +326,62 @@ if (mysql_num_rows($result) == 0) {
     echo "$pageCtl<br><br><br>";
 
     // show each update entry
-    for ($i = 0 ; $i < mysql_num_rows($result) ; $i++) {
-        // fetch the next row
-        [$gameid, $title, $sortTitle, $author, $pagevsn, $moddate] =
-            mysql_fetch_row($result);
+    foreach ($pageRows as $row) {
+        $gameid = $row['id'];
+        $pagevsn = $row['pagevsn'];
+        $moddate = date('F j, Y', strtotime($row['moddate']));
 
         // fix up fields for display
-        $title = htmlspecialcharx($title);
-        $author = htmlspecialcharx($author);
-        $author = collapsedAuthors($author);
+        $title = htmlspecialchars($row['title']);
+        $author = collapsedAuthors(htmlspecialchars($row['author']));
+        $hgameid = htmlspecialchars($gameid);
 
         // show the entry
-        echo "<p><a href=\"viewgame?id=$gameid\"><i>$title</i></a>, "
+        echo "<p><a href=\"viewgame?id=$hgameid\"><i>$title</i></a>, "
             . "by $author<br><div class=indented><span class=details>";
 
-        // show all updates made by this user
-        $res2 = mysqli_execute_query($db,
-            "select pagevsn, date_format(moddate, '%M %e, %Y') as moddate, spam
-             from games_history
-             where
-                id = ?
-                and pagevsn != ?
-                and editedby = ?
-             order by pagevsn desc",
-            [$gameid, $pagevsn, $uid]);
+        if ($filter == 'notLatestEdit') {
+            // Only the publicly visible history versions that would be marked
+            $res2 = mysqli_execute_query($db,
+                "select pagevsn, date_format(moddate, '%M %e, %Y') as moddate, spam
+                 from games_history
+                 where id = ?
+                   and editedby = ?
+                   and spam = 0
+                 order by pagevsn desc",
+                [$gameid, $uid]);
+            $vsns = $res2 ? mysqli_fetch_all($res2, MYSQLI_NUM) : [];
+        } else if ($filter == 'latestEdit') {
+            // Omit version 1 (creation); matches adminops latestEdit scope
+            $res2 = mysqli_execute_query($db,
+                "select pagevsn, date_format(moddate, '%M %e, %Y') as moddate, spam
+                 from games_history
+                 where id = ?
+                   and editedby = ?
+                   and pagevsn > 1
+                 order by pagevsn desc",
+                [$gameid, $uid]);
+            $vsns = $res2 ? mysqli_fetch_all($res2, MYSQLI_NUM) : [];
 
-        // The first listed version may be the live games row (not spam-
-        // flaggable) or a history row; look up spam when present.
-        $firstSpam = 0;
-        $spamCheck = mysqli_execute_query($db,
-            "select spam from games_history where id = ? and pagevsn = ?",
-            [$gameid, $pagevsn]);
-        if ($spamCheck && mysql_num_rows($spamCheck) > 0)
-            $firstSpam = (int)mysql_result($spamCheck, 0, "spam");
+            // Live games row isn't in history — prepend it when missing.
+            if (!$vsns || (int)$vsns[0][0] !== (int)$pagevsn)
+                array_unshift($vsns, [$pagevsn, $moddate, 0]);
+        } else {
+            // All history versions by this user
+            $res2 = mysqli_execute_query($db,
+                "select pagevsn, date_format(moddate, '%M %e, %Y') as moddate, spam
+                 from games_history
+                 where id = ?
+                   and editedby = ?
+                 order by pagevsn desc",
+                [$gameid, $uid]);
+            $vsns = $res2 ? mysqli_fetch_all($res2, MYSQLI_NUM) : [];
 
-        $vsns = [[$pagevsn, $moddate, $firstSpam]];
-        for ($j = 0 ; $j < mysql_num_rows($res2) ; $j++)
-            $vsns[] = mysql_fetch_row($res2);
+            // The listed version may be the live games row, which isn't in
+            // history and can't be marked spam — prepend it when missing.
+            if (!$vsns || (int)$vsns[0][0] !== (int)$pagevsn)
+                array_unshift($vsns, [$pagevsn, $moddate, 0]);
+        }
 
         foreach ($vsns as $v) {
             echo "page version {$v[0]} - "

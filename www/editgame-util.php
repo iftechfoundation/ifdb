@@ -1768,4 +1768,399 @@ function loadGameRecordAtVersion($db, $id, $version)
     return [$rec, false, false];
 }
 
+// ------------------------------------------------------------------------
+//
+// Non-destructively roll back a listing so $userid is no longer the latest
+// editor: restore the most recent version authored by someone else as a
+// new history entry. Returns null on success, or an HTML error message.
+//
+function safeRollbackBannedUserLatestEdit($db, $gameid, $userid, $adminPriv)
+{
+    $result = mysqli_execute_query($db,
+        "select pagevsn, editedby from games where id = ?", [$gameid]);
+    if (!$result || mysql_num_rows($result) == 0)
+        return "Game not found.";
+
+    [$pagevsn, $editedby] = mysql_fetch_row($result);
+    if ($editedby != $userid)
+        return null; // already not the latest editor
+    if ((int)$pagevsn <= 1)
+        return "Version 1 cannot be rolled back; delete the listing instead.";
+
+    // Highest version authored by someone else (history or current).
+    $result = mysqli_execute_query($db,
+        "select max(pagevsn) from (
+             select pagevsn, editedby from games_history where id = ?
+             union all
+             select pagevsn, editedby from games where id = ?
+         ) versions
+         where ifnull(editedby, '') <> ?",
+        [$gameid, $gameid, $userid]);
+    if (!$result || mysql_num_rows($result) == 0)
+        return "No earlier version by another editor was found.";
+    [$targVsn] = mysql_fetch_row($result);
+    if ($targVsn === null || (int)$targVsn < 1)
+        return "No earlier version by another editor was found.";
+    $targVsn = (int)$targVsn;
+
+    [$req, $errMsg] = loadGameRecordAtVersion($db, $gameid, $targVsn);
+    if (!$req)
+        return $errMsg ? $errMsg : "Unable to load version $targVsn.";
+
+    $rec = [];
+    $saveErrMsg = false;
+    $saveErrCode = false;
+    $errDetail = [];
+    $ok = saveUpdates($db, $adminPriv, true,
+                      $gameid, $rec, $req,
+                      $saveErrMsg, $saveErrCode, $errDetail);
+    if (!$ok) {
+        $detail = $saveErrMsg ? $saveErrMsg : "The rollback could not be saved.";
+        if ($saveErrCode)
+            $detail .= " (code: " . htmlspecialcharx($saveErrCode) . ")";
+        if (count($errDetail)) {
+            $detail .= "<ul>";
+            foreach ($errDetail as $field => $msgs) {
+                foreach ($msgs as $m)
+                    $detail .= "<li>" . htmlspecialcharx($field) . ": "
+                        . $m . "</li>";
+            }
+            $detail .= "</ul>";
+        }
+        return $detail;
+    }
+
+    return null;
+}
+
+// ------------------------------------------------------------------------
+//
+// Permanently delete a game listing. Shared by delgame and admin cleanup.
+//
+// $cascade: also remove/repoint played/wishlist/review/etc. references
+// $fwdid: if non-empty, merge references into this game and create a
+//   gamefwds redirect (same as delgame's "with forwarding" path)
+// $fwdnotes: notes stored on the gamefwds row when forwarding
+// $includeSqlError: include mysql_error in the returned failure message
+//
+// Returns null on success, or an error message string on failure.
+//
+function deleteGameListing($db, $gameid, $cascade = true, $fwdid = null,
+                           $fwdnotes = '', $includeSqlError = false)
+{
+    $qid = mysql_real_escape_string($gameid, $db);
+    $createFwd = ($fwdid !== null && $fwdid !== '');
+    $fwdid = $createFwd ? mysql_real_escape_string($fwdid, $db) : '';
+    $fwdnotes = mysql_real_escape_string($fwdnotes, $db);
+
+    $result = true;
+    $progress = "";
+
+    if ($result) {
+        $progress = "EXR5201";
+        $query = ($createFwd ?
+                  "update extreviews set gameid='$fwdid' where gameid='$qid'" :
+                  "delete from extreviews where gameid = '$qid'");
+        $result = mysql_query($query, $db);
+    }
+    if ($result) {
+        if ($createFwd) {
+            $progress = "GMT5250.u";
+            $result = mysql_query(
+                "update gametags
+                 set gameid='$fwdid'
+                 where
+                   gameid='$qid'
+                   and (userid, tag) not in (select userid, tag from (
+                     select * from gametags where gameid = '$fwdid')
+                   as tmp)", $db);
+        }
+        if ($result) {
+            $progress = "GMT5250.d";
+            $result = mysql_query("delete from gametags where gameid='$qid'", $db);
+        }
+    }
+
+    if ($result) {
+        $progress = "LNK5202";
+        $query = ($createFwd ?
+                  "update gamelinks set gameid = '$fwdid' where gameid = '$qid'" :
+                  "delete from gamelinks where gameid = '$qid'");
+        $result = mysql_query($query, $db);
+    }
+
+    if ($result) {
+        $progress = "PRO5203";
+        $query = ($createFwd ?
+                  "update gameprofilelinks set gameid = '$fwdid' where gameid = '$qid'" :
+                  "delete from gameprofilelinks where gameid = '$qid'");
+        $result = mysql_query($query, $db);
+    }
+
+    if ($result) {
+        if ($createFwd) {
+            $progress = "IFI5204.u";
+            $result = mysql_query(
+                "update ifids
+                 set gameid = '$fwdid'
+                 where
+                   gameid = '$qid'
+                   and ifid not in (select ifid from (select * from ifids where gameid='$fwdid') as tmp)", $db);
+        }
+        if ($result) {
+            $progress = "IFI5204.d";
+            $result = mysql_query(
+                "delete from ifids where gameid = '$qid'", $db);
+        }
+    }
+
+    if ($result) {
+        $progress = "HST5205";
+        $result = mysql_query(
+            "delete from games_history where id = '$qid'", $db);
+    }
+
+    if ($result) {
+        $progress = "GME5206";
+        $result = mysql_query(
+            "delete from games where id = '$qid'", $db);
+    }
+
+    if ($cascade)
+    {
+        if ($result) {
+            if ($createFwd) {
+                $progress = "PLG5251.u";
+                $result = mysql_query(
+                    "update playedgames
+                     set gameid = '$fwdid'
+                     where
+                       gameid = '$qid'
+                       and (userid) not in (select userid from (
+                         select * from playedgames where gameid = '$fwdid')
+                       as tmp)", $db);
+            }
+            if ($result) {
+                $progress = "PLG5251.d";
+                $result = mysql_query(
+                    "delete from playedgames where gameid='$qid'", $db);
+            }
+        }
+
+        if ($result) {
+            if ($createFwd) {
+                $progress = "WLS5252.u";
+                $result = mysql_query(
+                    "update wishlists
+                     set gameid = '$fwdid'
+                     where
+                       gameid = '$qid'
+                       and (userid) not in (select userid from (
+                         select * from wishlists where gameid = '$fwdid')
+                       as tmp)", $db);
+            }
+            if ($result) {
+                $progress = "WLS5252.d";
+                $result = mysql_query(
+                    "delete from wishlists where gameid='$qid'", $db);
+            }
+        }
+
+        if ($result) {
+            if ($createFwd) {
+                $progress = "UWS5252.u";
+                $result = mysql_query(
+                    "update unwishlists
+                     set gameid = '$fwdid'
+                     where
+                       gameid = '$qid'
+                       and (userid) not in (select userid from (
+                         select * from unwishlists where gameid = '$fwdid')
+                       as tmp)", $db);
+            }
+            if ($result) {
+                $progress = "UWS5252.d";
+                $result = mysql_query(
+                    "delete from unwishlists where gameid='$qid'", $db);
+            }
+        }
+
+        if ($result) {
+            if ($createFwd) {
+                $progress = "RLI5253.u";
+                $result = mysql_query(
+                    "update reclistitems
+                     set gameid = '$fwdid'
+                     where
+                       gameid = '$qid'
+                       and (listid) not in (select listid from (
+                         select * from reclistitems where gameid = '$fwdid')
+                       as tmp)", $db);
+            }
+            if ($result) {
+                $progress = "RLI5253.d";
+                $result = mysql_query(
+                    "delete from reclistitems where gameid='$qid'", $db);
+            }
+        }
+
+        if ($result) {
+            $progress = "RVC5254.1";
+            $query = ($createFwd ?
+                      "update ucomments
+                       set sourceid = '$fwdid'
+                       where
+                         source = 'R'
+                         and sourceid in (select id from reviews where gameid = '$qid')" :
+                      "delete from ucomments
+                       where
+                         source = 'R'
+                         and sourceid in (select id from reviews where gameid='$qid')");
+            $result = mysql_query($query, $db);
+        }
+
+        if ($createFwd)
+        {
+            if ($result) {
+                $progress = "RVW5254.0";
+                $result = mysql_query(
+                    "update reviews set gameid='$fwdid' where gameid='$qid'", $db);
+            }
+        }
+        else
+        {
+            if ($result) {
+                $progress = "RVF5254.2";
+                $result = mysql_query(
+                    "delete from reviewflags where reviewid in
+                     (select id from reviews where gameid='$qid')", $db);
+            }
+
+            if ($result) {
+                $progress = "RVT5254.3";
+                $result = mysql_query(
+                    "delete from reviewtags where reviewid in
+                     (select id from reviews where gameid='$qid')", $db);
+            }
+
+            if ($result) {
+                $progress = "RVV5254.4";
+                $result = mysql_query(
+                    "delete from reviewvotes where reviewid in
+                     (select id from reviews where gameid='$qid')", $db);
+            }
+
+            if ($result) {
+                $progress = "REV5254";
+                $result = mysql_query(
+                    "delete from reviews where gameid='$qid'", $db);
+            }
+        }
+
+        if ($result) {
+            if ($createFwd) {
+                $progress = "CRS5255.1";
+                $result = mysql_query(
+                    "update crossrecs set fromgame='$fwdid' where fromgame='$qid'", $db);
+                if ($result) {
+                    $progress = "CRS5255.2";
+                    $result = mysql_query(
+                        "update crossrecs set togame='$fwdid' where togame='$qid'", $db);
+                }
+            }
+            else {
+                $progress = "CRS5255.3";
+                $result = mysql_query(
+                    "delete from crossrecs
+                     where fromgame='$qid' or togame='$qid'", $db);
+            }
+        }
+
+        if ($result) {
+            if ($createFwd) {
+                $progress = "PLV5256.u";
+                $result = mysql_query(
+                    "update pollvotes
+                     set gameid = '$fwdid'
+                     where
+                       gameid = '$qid'
+                       and (pollid, userid) not in (select pollid, userid from (
+                         select * from pollvotes where gameid = '$fwdid')
+                       as tmp)", $db);
+            }
+            if ($result) {
+                $progress = "PLV5256.d";
+                $result = mysql_query(
+                    "delete from pollvotes where gameid='$qid'", $db);
+            }
+        }
+
+        if ($result) {
+            $progress = "PLC5256";
+            $query = ($createFwd ?
+                      "update pollcomments set gameid='$fwdid' where gameid='$qid'" :
+                      "delete from pollcomments where gameid='$qid'");
+            $result = mysql_query($query, $db);
+        }
+
+        if ($result) {
+            $progress = "CMG5256";
+            $query = ($createFwd ?
+                      "update compgames set gameid='$fwdid' where gameid='$qid'" :
+                      "delete from compgames where gameid='$qid'");
+            $result = mysql_query($query, $db);
+        }
+
+        if ($result) {
+            $progress = "NWS5256";
+            $query = ($createFwd ?
+                      "update news
+                         set sourceid = '$fwdid'
+                         where sourceid = '$qid' and source = 'G'" :
+                      "delete from news where source = 'G' and sourceid = '$qid'");
+            $result = mysql_query($query, $db);
+        }
+    }
+
+    if ($createFwd)
+    {
+        if ($result) {
+            $progress = "CFW5257";
+            $result = mysql_query(
+                "insert into gamefwds
+                 (gameid, fwdgameid, created, notes)
+                 values ('$qid', '$fwdid', now(), '$fwdnotes')", $db);
+        }
+
+        if ($result) {
+            $progress = "UFW5258";
+            $result = mysql_query(
+                "update gamefwds
+                 set fwdgameid = '$fwdid'
+                 where fwdgameid = '$qid'", $db);
+        }
+    }
+    else if ($cascade)
+    {
+        if ($result) {
+            $progress = "DFW5259";
+            $result = mysql_query(
+                "delete from gamefwds where fwdgameid = '$qid'", $db);
+        }
+    }
+
+    $sqlerr = mysql_error($db);
+    mysql_query("unlock tables", $db);
+
+    if (!$result) {
+        return "An error occurred deleting the game from the database "
+            . "(error code $progress"
+            . ($includeSqlError && $sqlerr
+               ? "; database error: " . htmlspecialchars($sqlerr) : "")
+            . ").";
+    }
+
+    return null;
+}
+
 ?>
