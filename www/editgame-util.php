@@ -950,10 +950,15 @@ function calcDeltas($oldRec, $newRec)
     // if we're updating the IFID list, represent this as an array
     if (isset($changesNew['ifids']))
     {
-        // turn the IFID lists into arrays
-        if (isset($changesOld['ifids']) && $changesOld['ifids'] != "")
+        // turn the IFID lists into arrays (empty string -> [])
+        if (!isset($changesOld['ifids']) || $changesOld['ifids'] === "")
+            $changesOld['ifids'] = [];
+        else if (is_string($changesOld['ifids']))
             $changesOld['ifids'] = explode(",", $changesOld['ifids']);
-        if (isset($changesNew['ifids']) && $changesNew['ifids'] != "")
+
+        if ($changesNew['ifids'] === "")
+            $changesNew['ifids'] = [];
+        else if (is_string($changesNew['ifids']))
             $changesNew['ifids'] = explode(",", $changesNew['ifids']);
     }
 
@@ -1693,13 +1698,17 @@ function loadGameRecordAtVersion($db, $id, $version)
                     "versionNotFound"];
     }
 
-    // Normalize IFIDs to the comma-separated form saveUpdates expects
+    // Normalize IFIDs to the comma-separated form saveUpdates expects.
+    // History deltas may store ifids as an array or as a string.
     if (isset($rec['ifids']) && is_array($rec['ifids'])) {
         $rec['ifid array'] = $rec['ifids'];
         $rec['ifids'] = implode(",", $rec['ifids']);
-    } else if (!isset($rec['ifids'])) {
+    } else if (!isset($rec['ifids']) || $rec['ifids'] === "") {
         $rec['ifids'] = "";
         $rec['ifid array'] = [];
+    } else if (is_string($rec['ifids'])) {
+        $rec['ifid array'] = array_values(array_filter(
+            explode(",", $rec['ifids']), function ($x) { return $x !== ""; }));
     }
 
     // Normalize cover art: compare the reconstructed image ID against
