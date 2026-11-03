@@ -5,3 +5,4 @@ www/local-credentials.php
 initdb
 www/vendor
 .php-cs-fixer.cache
+test/node_modules/
