@@ -1848,10 +1848,7 @@ function safeRollbackBannedUserLatestEdit($db, $gameid, $userid, $adminPriv)
 function deleteGameListing($db, $gameid, $cascade = true, $fwdid = null,
                            $fwdnotes = '', $includeSqlError = false)
 {
-    $qid = mysql_real_escape_string($gameid, $db);
     $createFwd = ($fwdid !== null && $fwdid !== '');
-    $fwdid = $createFwd ? mysql_real_escape_string($fwdid, $db) : '';
-    $fwdnotes = mysql_real_escape_string($fwdnotes, $db);
 
     // Self-referential merge updates need a second LOCK TABLES alias per table.
     $progress = "lock";
@@ -1874,73 +1871,85 @@ function deleteGameListing($db, $gameid, $cascade = true, $fwdid = null,
 
     if ($result) {
         $progress = "EXR5201";
-        $query = ($createFwd ?
-                  "update extreviews set gameid='$fwdid' where gameid='$qid'" :
-                  "delete from extreviews where gameid = '$qid'");
-        $result = mysql_query($query, $db);
+        $result = $createFwd
+            ? mysqli_execute_query($db,
+                "update extreviews set gameid = ? where gameid = ?",
+                [$fwdid, $gameid])
+            : mysqli_execute_query($db,
+                "delete from extreviews where gameid = ?",
+                [$gameid]);
     }
     if ($result) {
         if ($createFwd) {
             $progress = "GMT5250.u";
-            $result = mysql_query(
+            $result = mysqli_execute_query($db,
                 "update gametags
-                 set gameid='$fwdid'
+                 set gameid = ?
                  where
-                   gameid='$qid'
+                   gameid = ?
                    and (userid, tag) not in (
                      select userid, tag from gametags as gametags_fwd
-                     where gameid = '$fwdid')", $db);
+                     where gameid = ?)",
+                [$fwdid, $gameid, $fwdid]);
         }
         if ($result) {
             $progress = "GMT5250.d";
-            $result = mysql_query("delete from gametags where gameid='$qid'", $db);
+            $result = mysqli_execute_query($db,
+                "delete from gametags where gameid = ?", [$gameid]);
         }
     }
 
     if ($result) {
         $progress = "LNK5202";
-        $query = ($createFwd ?
-                  "update gamelinks set gameid = '$fwdid' where gameid = '$qid'" :
-                  "delete from gamelinks where gameid = '$qid'");
-        $result = mysql_query($query, $db);
+        $result = $createFwd
+            ? mysqli_execute_query($db,
+                "update gamelinks set gameid = ? where gameid = ?",
+                [$fwdid, $gameid])
+            : mysqli_execute_query($db,
+                "delete from gamelinks where gameid = ?",
+                [$gameid]);
     }
 
     if ($result) {
         $progress = "PRO5203";
-        $query = ($createFwd ?
-                  "update gameprofilelinks set gameid = '$fwdid' where gameid = '$qid'" :
-                  "delete from gameprofilelinks where gameid = '$qid'");
-        $result = mysql_query($query, $db);
+        $result = $createFwd
+            ? mysqli_execute_query($db,
+                "update gameprofilelinks set gameid = ? where gameid = ?",
+                [$fwdid, $gameid])
+            : mysqli_execute_query($db,
+                "delete from gameprofilelinks where gameid = ?",
+                [$gameid]);
     }
 
     if ($result) {
         if ($createFwd) {
             $progress = "IFI5204.u";
-            $result = mysql_query(
+            $result = mysqli_execute_query($db,
                 "update ifids
-                 set gameid = '$fwdid'
+                 set gameid = ?
                  where
-                   gameid = '$qid'
+                   gameid = ?
                    and ifid not in (
-                     select ifid from ifids as ifids_fwd where gameid='$fwdid')", $db);
+                     select ifid from ifids as ifids_fwd where gameid = ?)",
+                [$fwdid, $gameid, $fwdid]);
         }
         if ($result) {
             $progress = "IFI5204.d";
-            $result = mysql_query(
-                "delete from ifids where gameid = '$qid'", $db);
+            $result = mysqli_execute_query($db,
+                "delete from ifids where gameid = ?", [$gameid]);
         }
     }
 
     if ($result) {
         $progress = "HST5205";
-        $result = mysql_query(
-            "delete from games_history where id = '$qid'", $db);
+        $result = mysqli_execute_query($db,
+            "delete from games_history where id = ?", [$gameid]);
     }
 
     if ($result) {
         $progress = "GME5206";
-        $result = mysql_query(
-            "delete from games where id = '$qid'", $db);
+        $result = mysqli_execute_query($db,
+            "delete from games where id = ?", [$gameid]);
     }
 
     if ($cascade)
@@ -1948,194 +1957,219 @@ function deleteGameListing($db, $gameid, $cascade = true, $fwdid = null,
         if ($result) {
             if ($createFwd) {
                 $progress = "PLG5251.u";
-                $result = mysql_query(
+                $result = mysqli_execute_query($db,
                     "update playedgames
-                     set gameid = '$fwdid'
+                     set gameid = ?
                      where
-                       gameid = '$qid'
+                       gameid = ?
                        and userid not in (
                          select userid from playedgames as playedgames_fwd
-                         where gameid = '$fwdid')", $db);
+                         where gameid = ?)",
+                    [$fwdid, $gameid, $fwdid]);
             }
             if ($result) {
                 $progress = "PLG5251.d";
-                $result = mysql_query(
-                    "delete from playedgames where gameid='$qid'", $db);
+                $result = mysqli_execute_query($db,
+                    "delete from playedgames where gameid = ?", [$gameid]);
             }
         }
 
         if ($result) {
             if ($createFwd) {
                 $progress = "WLS5252.u";
-                $result = mysql_query(
+                $result = mysqli_execute_query($db,
                     "update wishlists
-                     set gameid = '$fwdid'
+                     set gameid = ?
                      where
-                       gameid = '$qid'
+                       gameid = ?
                        and userid not in (
                          select userid from wishlists as wishlists_fwd
-                         where gameid = '$fwdid')", $db);
+                         where gameid = ?)",
+                    [$fwdid, $gameid, $fwdid]);
             }
             if ($result) {
                 $progress = "WLS5252.d";
-                $result = mysql_query(
-                    "delete from wishlists where gameid='$qid'", $db);
+                $result = mysqli_execute_query($db,
+                    "delete from wishlists where gameid = ?", [$gameid]);
             }
         }
 
         if ($result) {
             if ($createFwd) {
                 $progress = "UWS5252.u";
-                $result = mysql_query(
+                $result = mysqli_execute_query($db,
                     "update unwishlists
-                     set gameid = '$fwdid'
+                     set gameid = ?
                      where
-                       gameid = '$qid'
+                       gameid = ?
                        and userid not in (
                          select userid from unwishlists as unwishlists_fwd
-                         where gameid = '$fwdid')", $db);
+                         where gameid = ?)",
+                    [$fwdid, $gameid, $fwdid]);
             }
             if ($result) {
                 $progress = "UWS5252.d";
-                $result = mysql_query(
-                    "delete from unwishlists where gameid='$qid'", $db);
+                $result = mysqli_execute_query($db,
+                    "delete from unwishlists where gameid = ?", [$gameid]);
             }
         }
 
         if ($result) {
             if ($createFwd) {
                 $progress = "RLI5253.u";
-                $result = mysql_query(
+                $result = mysqli_execute_query($db,
                     "update reclistitems
-                     set gameid = '$fwdid'
+                     set gameid = ?
                      where
-                       gameid = '$qid'
+                       gameid = ?
                        and listid not in (
                          select listid from reclistitems as reclistitems_fwd
-                         where gameid = '$fwdid')", $db);
+                         where gameid = ?)",
+                    [$fwdid, $gameid, $fwdid]);
             }
             if ($result) {
                 $progress = "RLI5253.d";
-                $result = mysql_query(
-                    "delete from reclistitems where gameid='$qid'", $db);
+                $result = mysqli_execute_query($db,
+                    "delete from reclistitems where gameid = ?", [$gameid]);
             }
         }
 
         if ($result) {
             $progress = "RVC5254.1";
-            $query = ($createFwd ?
-                      "update ucomments
-                       set sourceid = '$fwdid'
-                       where
-                         source = 'R'
-                         and sourceid in (select id from reviews where gameid = '$qid')" :
-                      "delete from ucomments
-                       where
-                         source = 'R'
-                         and sourceid in (select id from reviews where gameid='$qid')");
-            $result = mysql_query($query, $db);
+            $result = $createFwd
+                ? mysqli_execute_query($db,
+                    "update ucomments
+                     set sourceid = ?
+                     where
+                       source = 'R'
+                       and sourceid in (select id from reviews where gameid = ?)",
+                    [$fwdid, $gameid])
+                : mysqli_execute_query($db,
+                    "delete from ucomments
+                     where
+                       source = 'R'
+                       and sourceid in (select id from reviews where gameid = ?)",
+                    [$gameid]);
         }
 
         if ($createFwd)
         {
             if ($result) {
                 $progress = "RVW5254.0";
-                $result = mysql_query(
-                    "update reviews set gameid='$fwdid' where gameid='$qid'", $db);
+                $result = mysqli_execute_query($db,
+                    "update reviews set gameid = ? where gameid = ?",
+                    [$fwdid, $gameid]);
             }
         }
         else
         {
             if ($result) {
                 $progress = "RVF5254.2";
-                $result = mysql_query(
+                $result = mysqli_execute_query($db,
                     "delete from reviewflags where reviewid in
-                     (select id from reviews where gameid='$qid')", $db);
+                     (select id from reviews where gameid = ?)",
+                    [$gameid]);
             }
 
             if ($result) {
                 $progress = "RVT5254.3";
-                $result = mysql_query(
+                $result = mysqli_execute_query($db,
                     "delete from reviewtags where reviewid in
-                     (select id from reviews where gameid='$qid')", $db);
+                     (select id from reviews where gameid = ?)",
+                    [$gameid]);
             }
 
             if ($result) {
                 $progress = "RVV5254.4";
-                $result = mysql_query(
+                $result = mysqli_execute_query($db,
                     "delete from reviewvotes where reviewid in
-                     (select id from reviews where gameid='$qid')", $db);
+                     (select id from reviews where gameid = ?)",
+                    [$gameid]);
             }
 
             if ($result) {
                 $progress = "REV5254";
-                $result = mysql_query(
-                    "delete from reviews where gameid='$qid'", $db);
+                $result = mysqli_execute_query($db,
+                    "delete from reviews where gameid = ?",
+                    [$gameid]);
             }
         }
 
         if ($result) {
             if ($createFwd) {
                 $progress = "CRS5255.1";
-                $result = mysql_query(
-                    "update crossrecs set fromgame='$fwdid' where fromgame='$qid'", $db);
+                $result = mysqli_execute_query($db,
+                    "update crossrecs set fromgame = ? where fromgame = ?",
+                    [$fwdid, $gameid]);
                 if ($result) {
                     $progress = "CRS5255.2";
-                    $result = mysql_query(
-                        "update crossrecs set togame='$fwdid' where togame='$qid'", $db);
+                    $result = mysqli_execute_query($db,
+                        "update crossrecs set togame = ? where togame = ?",
+                        [$fwdid, $gameid]);
                 }
             }
             else {
                 $progress = "CRS5255.3";
-                $result = mysql_query(
+                $result = mysqli_execute_query($db,
                     "delete from crossrecs
-                     where fromgame='$qid' or togame='$qid'", $db);
+                     where fromgame = ? or togame = ?",
+                    [$gameid, $gameid]);
             }
         }
 
         if ($result) {
             if ($createFwd) {
                 $progress = "PLV5256.u";
-                $result = mysql_query(
+                $result = mysqli_execute_query($db,
                     "update pollvotes
-                     set gameid = '$fwdid'
+                     set gameid = ?
                      where
-                       gameid = '$qid'
+                       gameid = ?
                        and (pollid, userid) not in (
                          select pollid, userid from pollvotes as pollvotes_fwd
-                         where gameid = '$fwdid')", $db);
+                         where gameid = ?)",
+                    [$fwdid, $gameid, $fwdid]);
             }
             if ($result) {
                 $progress = "PLV5256.d";
-                $result = mysql_query(
-                    "delete from pollvotes where gameid='$qid'", $db);
+                $result = mysqli_execute_query($db,
+                    "delete from pollvotes where gameid = ?", [$gameid]);
             }
         }
 
         if ($result) {
             $progress = "PLC5256";
-            $query = ($createFwd ?
-                      "update pollcomments set gameid='$fwdid' where gameid='$qid'" :
-                      "delete from pollcomments where gameid='$qid'");
-            $result = mysql_query($query, $db);
+            $result = $createFwd
+                ? mysqli_execute_query($db,
+                    "update pollcomments set gameid = ? where gameid = ?",
+                    [$fwdid, $gameid])
+                : mysqli_execute_query($db,
+                    "delete from pollcomments where gameid = ?",
+                    [$gameid]);
         }
 
         if ($result) {
             $progress = "CMG5256";
-            $query = ($createFwd ?
-                      "update compgames set gameid='$fwdid' where gameid='$qid'" :
-                      "delete from compgames where gameid='$qid'");
-            $result = mysql_query($query, $db);
+            $result = $createFwd
+                ? mysqli_execute_query($db,
+                    "update compgames set gameid = ? where gameid = ?",
+                    [$fwdid, $gameid])
+                : mysqli_execute_query($db,
+                    "delete from compgames where gameid = ?",
+                    [$gameid]);
         }
 
         if ($result) {
             $progress = "NWS5256";
-            $query = ($createFwd ?
-                      "update news
-                         set sourceid = '$fwdid'
-                         where sourceid = '$qid' and source = 'G'" :
-                      "delete from news where source = 'G' and sourceid = '$qid'");
-            $result = mysql_query($query, $db);
+            $result = $createFwd
+                ? mysqli_execute_query($db,
+                    "update news
+                     set sourceid = ?
+                     where sourceid = ? and source = 'G'",
+                    [$fwdid, $gameid])
+                : mysqli_execute_query($db,
+                    "delete from news where source = 'G' and sourceid = ?",
+                    [$gameid]);
         }
     }
 
@@ -2143,26 +2177,28 @@ function deleteGameListing($db, $gameid, $cascade = true, $fwdid = null,
     {
         if ($result) {
             $progress = "CFW5257";
-            $result = mysql_query(
+            $result = mysqli_execute_query($db,
                 "insert into gamefwds
                  (gameid, fwdgameid, created, notes)
-                 values ('$qid', '$fwdid', now(), '$fwdnotes')", $db);
+                 values (?, ?, now(), ?)",
+                [$gameid, $fwdid, $fwdnotes]);
         }
 
         if ($result) {
             $progress = "UFW5258";
-            $result = mysql_query(
+            $result = mysqli_execute_query($db,
                 "update gamefwds
-                 set fwdgameid = '$fwdid'
-                 where fwdgameid = '$qid'", $db);
+                 set fwdgameid = ?
+                 where fwdgameid = ?",
+                [$fwdid, $gameid]);
         }
     }
     else if ($cascade)
     {
         if ($result) {
             $progress = "DFW5259";
-            $result = mysql_query(
-                "delete from gamefwds where fwdgameid = '$qid'", $db);
+            $result = mysqli_execute_query($db,
+                "delete from gamefwds where fwdgameid = ?", [$gameid]);
         }
     }
 
