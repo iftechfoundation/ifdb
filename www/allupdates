@@ -147,23 +147,35 @@ if (mysql_num_rows($result) == 0) {
             . "by $author<br><div class=indented><span class=details>";
 
         // show all updates made by this user
-        $res2 = mysql_query(
-            "select pagevsn, date_format(moddate, '%M %e, %Y') as moddate
+        $res2 = mysqli_execute_query($db,
+            "select pagevsn, date_format(moddate, '%M %e, %Y') as moddate, spam
              from games_history
              where
-                id = '$gameid'
-                and pagevsn != '$pagevsn'
-                and editedby = '$quid'
-             order by pagevsn desc", $db);
+                id = ?
+                and pagevsn != ?
+                and editedby = ?
+             order by pagevsn desc",
+            [$gameid, $pagevsn, $uid]);
 
-        $vsns = [[$pagevsn, $moddate]];
+        // The first listed version may be the live games row (not spam-
+        // flaggable) or a history row; look up spam when present.
+        $firstSpam = 0;
+        $spamCheck = mysqli_execute_query($db,
+            "select spam from games_history where id = ? and pagevsn = ?",
+            [$gameid, $pagevsn]);
+        if ($spamCheck && mysql_num_rows($spamCheck) > 0)
+            $firstSpam = (int)mysql_result($spamCheck, 0, "spam");
+
+        $vsns = [[$pagevsn, $moddate, $firstSpam]];
         for ($j = 0 ; $j < mysql_num_rows($res2) ; $j++)
             $vsns[] = mysql_fetch_row($res2);
 
-
         foreach ($vsns as $v) {
             echo "page version {$v[0]} - "
-                . ($v[0] == 1 ? "created" : "edited") . " on {$v[1]}<br>";
+                . ($v[0] == 1 ? "created" : "edited") . " on {$v[1]}";
+            if ((int)($v[2] ?? 0) !== 0)
+                echo " <i>This version was marked as spam by IFDB moderators</i>";
+            echo "<br>";
         }
 
         echo "</span></div>";
