@@ -223,12 +223,12 @@ function pgErrExit($msg)
 // lock the tables that we'll be checking or updating
 $result = mysql_query(
     "lock tables games write, gamefwds write,
-       gametags read write, playedgames read write,
-       wishlists read write, unwishlists read write,
+       gametags write, playedgames write,
+       wishlists write, unwishlists write,
        reclistitems write, reviews write,
        extreviews write, gamelinks write, gameprofilelinks write,
-       games_history write, ifids read write, crossrecs write,
-       pollvotes read write, pollcomments write, ucomments write,
+       games_history write, ifids write, crossrecs write,
+       pollvotes write, pollcomments write, ucomments write,
        reviewflags write, reviewtags write, reviewvotes write,
        news write, compgames write", $db);
 
@@ -500,7 +500,9 @@ function applyFwd(id, title, author)
     }
 }
 
-// we have confirmation - do the deletion (deleteGameListing unlocks)
+// we have confirmation - do the deletion
+mysql_query("unlock tables", $db);
+
 $err = deleteGameListing(
     $db, get_req_data("id"), $cascade,
     $createFwd ? get_req_data('fwdid') : null,

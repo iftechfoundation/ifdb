@@ -1853,8 +1853,24 @@ function deleteGameListing($db, $gameid, $cascade = true, $fwdid = null,
     $fwdid = $createFwd ? mysql_real_escape_string($fwdid, $db) : '';
     $fwdnotes = mysql_real_escape_string($fwdnotes, $db);
 
-    $result = true;
-    $progress = "";
+    // Self-referential merge updates need a second LOCK TABLES alias per table.
+    $progress = "lock";
+    $result = mysql_query(
+        "lock tables games write, gamefwds write,
+           gametags write, gametags as gametags_fwd read,
+           playedgames write, playedgames as playedgames_fwd read,
+           wishlists write, wishlists as wishlists_fwd read,
+           unwishlists write, unwishlists as unwishlists_fwd read,
+           reclistitems write, reclistitems as reclistitems_fwd read,
+           reviews write,
+           extreviews write, gamelinks write, gameprofilelinks write,
+           games_history write,
+           ifids write, ifids as ifids_fwd read,
+           crossrecs write,
+           pollvotes write, pollvotes as pollvotes_fwd read,
+           pollcomments write, ucomments write,
+           reviewflags write, reviewtags write, reviewvotes write,
+           news write, compgames write", $db);
 
     if ($result) {
         $progress = "EXR5201";
@@ -1871,9 +1887,9 @@ function deleteGameListing($db, $gameid, $cascade = true, $fwdid = null,
                  set gameid='$fwdid'
                  where
                    gameid='$qid'
-                   and (userid, tag) not in (select userid, tag from (
-                     select * from gametags where gameid = '$fwdid')
-                   as tmp)", $db);
+                   and (userid, tag) not in (
+                     select userid, tag from gametags as gametags_fwd
+                     where gameid = '$fwdid')", $db);
         }
         if ($result) {
             $progress = "GMT5250.d";
@@ -1905,7 +1921,8 @@ function deleteGameListing($db, $gameid, $cascade = true, $fwdid = null,
                  set gameid = '$fwdid'
                  where
                    gameid = '$qid'
-                   and ifid not in (select ifid from (select * from ifids where gameid='$fwdid') as tmp)", $db);
+                   and ifid not in (
+                     select ifid from ifids as ifids_fwd where gameid='$fwdid')", $db);
         }
         if ($result) {
             $progress = "IFI5204.d";
@@ -1936,9 +1953,9 @@ function deleteGameListing($db, $gameid, $cascade = true, $fwdid = null,
                      set gameid = '$fwdid'
                      where
                        gameid = '$qid'
-                       and (userid) not in (select userid from (
-                         select * from playedgames where gameid = '$fwdid')
-                       as tmp)", $db);
+                       and userid not in (
+                         select userid from playedgames as playedgames_fwd
+                         where gameid = '$fwdid')", $db);
             }
             if ($result) {
                 $progress = "PLG5251.d";
@@ -1955,9 +1972,9 @@ function deleteGameListing($db, $gameid, $cascade = true, $fwdid = null,
                      set gameid = '$fwdid'
                      where
                        gameid = '$qid'
-                       and (userid) not in (select userid from (
-                         select * from wishlists where gameid = '$fwdid')
-                       as tmp)", $db);
+                       and userid not in (
+                         select userid from wishlists as wishlists_fwd
+                         where gameid = '$fwdid')", $db);
             }
             if ($result) {
                 $progress = "WLS5252.d";
@@ -1974,9 +1991,9 @@ function deleteGameListing($db, $gameid, $cascade = true, $fwdid = null,
                      set gameid = '$fwdid'
                      where
                        gameid = '$qid'
-                       and (userid) not in (select userid from (
-                         select * from unwishlists where gameid = '$fwdid')
-                       as tmp)", $db);
+                       and userid not in (
+                         select userid from unwishlists as unwishlists_fwd
+                         where gameid = '$fwdid')", $db);
             }
             if ($result) {
                 $progress = "UWS5252.d";
@@ -1993,9 +2010,9 @@ function deleteGameListing($db, $gameid, $cascade = true, $fwdid = null,
                      set gameid = '$fwdid'
                      where
                        gameid = '$qid'
-                       and (listid) not in (select listid from (
-                         select * from reclistitems where gameid = '$fwdid')
-                       as tmp)", $db);
+                       and listid not in (
+                         select listid from reclistitems as reclistitems_fwd
+                         where gameid = '$fwdid')", $db);
             }
             if ($result) {
                 $progress = "RLI5253.d";
@@ -2084,9 +2101,9 @@ function deleteGameListing($db, $gameid, $cascade = true, $fwdid = null,
                      set gameid = '$fwdid'
                      where
                        gameid = '$qid'
-                       and (pollid, userid) not in (select pollid, userid from (
-                         select * from pollvotes where gameid = '$fwdid')
-                       as tmp)", $db);
+                       and (pollid, userid) not in (
+                         select pollid, userid from pollvotes as pollvotes_fwd
+                         where gameid = '$fwdid')", $db);
             }
             if ($result) {
                 $progress = "PLV5256.d";
