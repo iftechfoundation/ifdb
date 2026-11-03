@@ -1686,6 +1686,13 @@ function loadGameRecordAtVersion($db, $id, $version)
     // cover art in form terms ("old" / "none" / "id:...")
     $currentCoverArt = $rec['orig:coverart'];
 
+    // Required listing fields: some legacy history rows store null for
+    // title/author (invalid under the current schema). Keep the current
+    // values as fallbacks so rollback can still save other restored fields.
+    $fallbackTitle = $rec['title'] ?? "";
+    $fallbackAuthor = $rec['author'] ?? "";
+    $fallbackAuthorExt = $rec['authorExt'] ?? "";
+
     // work with the raw cover-art ID while applying history deltas
     $rec['coverart'] = $currentCoverArt;
 
@@ -1724,6 +1731,24 @@ function loadGameRecordAtVersion($db, $id, $version)
         // restore a different existing image by ID
         $rec['orig:coverart'] = $targetArt;
         $rec['coverart'] = "id:" . $targetArt;
+    }
+
+    // Coerce null scalars from legacy deltas to empty strings
+    foreach (['title', 'author', 'authorExt', 'published', 'version',
+              'license', 'system', 'language', 'desc', 'genre',
+              'seriesname', 'seriesnumber', 'forgiveness', 'website',
+              'downloadnotes'] as $col) {
+        if (array_key_exists($col, $rec) && $rec[$col] === null)
+            $rec[$col] = "";
+    }
+
+    // Required fields: if history reconstructed them as empty, keep the
+    // current listing values so saveUpdates validation can succeed.
+    if ($rec['title'] === "")
+        $rec['title'] = $fallbackTitle;
+    if ($rec['author'] === "" && $rec['authorExt'] === "") {
+        $rec['author'] = $fallbackAuthor;
+        $rec['authorExt'] = $fallbackAuthorExt;
     }
 
     // author display field used by the edit form / saveUpdates
