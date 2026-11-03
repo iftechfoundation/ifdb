@@ -135,10 +135,11 @@ function approx_utf8($str)
         $str);
 }
 
-// ------------------------------------------------------------------------
-//
-// htmlspecialchars() replacement. TODO delete
-//
+/**
+ * htmlspecialchars() replacement that also coerces null to ''.
+ *
+ * @deprecated Use htmlspecialchars() instead. TODO delete.
+ */
 function htmlspecialcharx($str)
 {
     return htmlspecialchars($str ?? '');
