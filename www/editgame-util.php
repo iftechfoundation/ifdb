@@ -1768,4 +1768,266 @@ function loadGameRecordAtVersion($db, $id, $version)
     return [$rec, false, false];
 }
 
+// ------------------------------------------------------------------------
+//
+// Non-destructively roll back a listing so $userid is no longer the latest
+// editor: restore the most recent version authored by someone else as a
+// new history entry. Returns null on success, or an HTML error message.
+//
+function safeRollbackBannedUserLatestEdit($db, $gameid, $userid, $adminPriv)
+{
+    $result = mysqli_execute_query($db,
+        "select pagevsn, editedby from games where id = ?", [$gameid]);
+    if (!$result || mysql_num_rows($result) == 0)
+        return "Game not found.";
+
+    [$pagevsn, $editedby] = mysql_fetch_row($result);
+    if ($editedby != $userid)
+        return null; // already not the latest editor
+    if ((int)$pagevsn <= 1)
+        return "Version 1 cannot be rolled back; delete the listing instead.";
+
+    // Highest version authored by someone else (history or current).
+    $result = mysqli_execute_query($db,
+        "select max(pagevsn) from (
+             select pagevsn, editedby from games_history where id = ?
+             union all
+             select pagevsn, editedby from games where id = ?
+         ) versions
+         where ifnull(editedby, '') <> ?",
+        [$gameid, $gameid, $userid]);
+    if (!$result || mysql_num_rows($result) == 0)
+        return "No earlier version by another editor was found.";
+    [$targVsn] = mysql_fetch_row($result);
+    if ($targVsn === null || (int)$targVsn < 1)
+        return "No earlier version by another editor was found.";
+    $targVsn = (int)$targVsn;
+
+    [$req, $errMsg] = loadGameRecordAtVersion($db, $gameid, $targVsn);
+    if (!$req)
+        return $errMsg ? $errMsg : "Unable to load version $targVsn.";
+
+    $rec = [];
+    $saveErrMsg = false;
+    $saveErrCode = false;
+    $errDetail = [];
+    $ok = saveUpdates($db, $adminPriv, true,
+                      $gameid, $rec, $req,
+                      $saveErrMsg, $saveErrCode, $errDetail);
+    if (!$ok) {
+        $detail = $saveErrMsg ? $saveErrMsg : "The rollback could not be saved.";
+        if ($saveErrCode)
+            $detail .= " (code: " . htmlspecialcharx($saveErrCode) . ")";
+        if (count($errDetail)) {
+            $detail .= "<ul>";
+            foreach ($errDetail as $field => $msgs) {
+                foreach ($msgs as $m)
+                    $detail .= "<li>" . htmlspecialcharx($field) . ": "
+                        . $m . "</li>";
+            }
+            $detail .= "</ul>";
+        }
+        return $detail;
+    }
+
+    return null;
+}
+
+// ------------------------------------------------------------------------
+//
+// Lock the tables that deleteGameListing reads or writes
+//
+function lockGameDeletionTables($db)
+{
+    return mysql_query(
+        "lock tables games write, gamefwds write,
+           gametags write, gametags as gt2 read,
+           playedgames write, playedgames as pg2 read,
+           wishlists write, wishlists as wl2 read,
+           unwishlists write, unwishlists as uw2 read,
+           reclistitems write, reclistitems as rl2 read,
+           reviews write, reviews as r1 read, reviews as r2 read,
+           extreviews write, gamelinks write, gameprofilelinks write,
+           games_history write, ifids write, ifids as if2 read,
+           crossrecs write,
+           playertimes write, playertimes as pt2 read,
+           gamexrefs write, gamexrefs as gx2 read,
+           pollvotes write, pollvotes as pv2 read,
+           pollcomments write, ucomments write,
+           reviewflags write, reviewtags write, reviewvotes write,
+           news write, compgames write", $db);
+}
+
+// ------------------------------------------------------------------------
+//
+// Permanently delete a game listing, while holding lockGameDeletionTables.
+// With $cascade, references to the game are deleted too, or merged into
+// $fwdid when it's set. Returns null on success, or an error message.
+//
+function deleteGameListing($db, $gameid, $cascade = true, $fwdid = null,
+                           $fwdnotes = '', $includeSqlError = false)
+{
+    $fwd = ($fwdid !== null && $fwdid !== '');
+    $id = [$gameid];
+    $ids = [$fwdid, $gameid];
+    $merge = [$fwdid, $gameid, $fwdid];
+
+    $steps = [];
+    $steps[] = $fwd
+        ? ["EXR5201", "update extreviews set gameid = ? where gameid = ?", $ids]
+        : ["EXR5201", "delete from extreviews where gameid = ?", $id];
+    if ($fwd)
+        $steps[] = ["GMT5250.u",
+            "update gametags set gameid = ?
+             where gameid = ?
+               and (userid, tag) not in (select userid, tag
+                 from gametags as gt2 where gt2.gameid = ?)", $merge];
+    $steps[] = ["GMT5250.d", "delete from gametags where gameid = ?", $id];
+    $steps[] = $fwd
+        ? ["LNK5202", "update gamelinks set gameid = ? where gameid = ?", $ids]
+        : ["LNK5202", "delete from gamelinks where gameid = ?", $id];
+    $steps[] = $fwd
+        ? ["PRO5203", "update gameprofilelinks set gameid = ? where gameid = ?", $ids]
+        : ["PRO5203", "delete from gameprofilelinks where gameid = ?", $id];
+    if ($fwd)
+        $steps[] = ["IFI5204.u",
+            "update ifids set gameid = ?
+             where gameid = ?
+               and ifid not in (select ifid
+                 from ifids as if2 where if2.gameid = ?)", $merge];
+    $steps[] = ["IFI5204.d", "delete from ifids where gameid = ?", $id];
+    if ($fwd)
+        $steps[] = ["PLT5207.u",
+            "update playertimes set gameid = ?
+             where gameid = ?
+               and userid not in (select userid
+                 from playertimes as pt2 where pt2.gameid = ?)", $merge];
+    $steps[] = ["PLT5207.d", "delete from playertimes where gameid = ?", $id];
+    if ($fwd)
+        $steps[] = ["XRF5208.u",
+            "update gamexrefs set toid = ?
+             where toid = ?
+               and fromid <> ?
+               and (fromid, reftype) not in (select fromid, reftype
+                 from gamexrefs as gx2 where gx2.toid = ?)",
+            [$fwdid, $gameid, $fwdid, $fwdid]];
+    $steps[] = ["XRF5208.d",
+        "delete from gamexrefs where fromid = ? or toid = ?",
+        [$gameid, $gameid]];
+    $steps[] = ["HST5205", "delete from games_history where id = ?", $id];
+    // the playertimes triggers leave @gameid set, and the games trigger reuses it
+    $steps[] = ["GME5206.0", "set @gameid = null", []];
+    $steps[] = ["GME5206", "delete from games where id = ?", $id];
+
+    if ($cascade) {
+        foreach ([["PLG5251", "playedgames", "pg2", "userid"],
+                  ["WLS5252", "wishlists", "wl2", "userid"],
+                  ["UWS5252", "unwishlists", "uw2", "userid"],
+                  ["RLI5253", "reclistitems", "rl2", "listid"]]
+                 as [$code, $table, $alias, $key]) {
+            if ($fwd)
+                $steps[] = ["$code.u",
+                    "update $table set gameid = ?
+                     where gameid = ?
+                       and $key not in (select $key
+                         from $table as $alias where $alias.gameid = ?)",
+                    $merge];
+            $steps[] = ["$code.d", "delete from $table where gameid = ?", $id];
+        }
+
+        if ($fwd) {
+            // rating-only reviews on the target that this game has a written review for
+            $superseded = "select r1.id from reviews as r1
+                           where r1.gameid = ? and r1.review is null
+                             and r1.userid in (
+                               select r2.userid from reviews as r2
+                               where r2.gameid = ?
+                                 and r2.userid not in ('', '\$system')
+                                 and r2.review is not null)";
+            $steps[] = ["RVS5254.t",
+                "delete from reviewtags where reviewid in ($superseded)", $ids];
+            $steps[] = ["RVS5254.f",
+                "delete from reviewflags where reviewid in ($superseded)", $ids];
+            $steps[] = ["RVS5254.v",
+                "delete from reviewvotes where reviewid in ($superseded)", $ids];
+            $steps[] = ["RVS5254.c",
+                "delete from ucomments
+                 where source = 'R' and sourceid in ($superseded)", $ids];
+            $steps[] = ["RVS5254.d",
+                "delete from reviews where id in ($superseded)", $ids];
+            $steps[] = ["RVW5254.0",
+                "update reviews set gameid = ?
+                 where gameid = ?
+                   and (userid in ('', '\$system') or userid not in
+                     (select r2.userid from reviews as r2
+                      where r2.gameid = ?))", $merge];
+        }
+
+        $reviews = "select id from reviews where gameid = ?";
+        $steps[] = ["RVC5254.1",
+            "delete from ucomments
+             where source = 'R' and sourceid in ($reviews)", $id];
+        $steps[] = ["RVF5254.2",
+            "delete from reviewflags where reviewid in ($reviews)", $id];
+        $steps[] = ["RVT5254.3",
+            "delete from reviewtags where reviewid in ($reviews)", $id];
+        $steps[] = ["RVV5254.4",
+            "delete from reviewvotes where reviewid in ($reviews)", $id];
+        $steps[] = ["REV5254", "delete from reviews where gameid = ?", $id];
+
+        if ($fwd) {
+            $steps[] = ["CRS5255.1",
+                "update crossrecs set fromgame = ? where fromgame = ?", $ids];
+            $steps[] = ["CRS5255.2",
+                "update crossrecs set togame = ? where togame = ?", $ids];
+        } else {
+            $steps[] = ["CRS5255.3",
+                "delete from crossrecs where fromgame = ? or togame = ?",
+                [$gameid, $gameid]];
+        }
+
+        if ($fwd)
+            $steps[] = ["PLV5256.u",
+                "update pollvotes set gameid = ?
+                 where gameid = ?
+                   and (pollid, userid) not in (select pollid, userid
+                     from pollvotes as pv2 where pv2.gameid = ?)", $merge];
+        $steps[] = ["PLV5256.d", "delete from pollvotes where gameid = ?", $id];
+        $steps[] = $fwd
+            ? ["PLC5256", "update pollcomments set gameid = ? where gameid = ?", $ids]
+            : ["PLC5256", "delete from pollcomments where gameid = ?", $id];
+        $steps[] = $fwd
+            ? ["CMG5256", "update compgames set gameid = ? where gameid = ?", $ids]
+            : ["CMG5256", "delete from compgames where gameid = ?", $id];
+        $steps[] = $fwd
+            ? ["NWS5256", "update news set sourceid = ?
+                           where sourceid = ? and source = 'G'", $ids]
+            : ["NWS5256", "delete from news
+                           where source = 'G' and sourceid = ?", $id];
+    }
+
+    if ($fwd) {
+        $steps[] = ["CFW5257",
+            "insert into gamefwds (gameid, fwdgameid, created, notes)
+             values (?, ?, now(), ?)", [$gameid, $fwdid, $fwdnotes]];
+        // redirect any games that redirected to this game to the new forward
+        $steps[] = ["UFW5258",
+            "update gamefwds set fwdgameid = ? where fwdgameid = ?", $ids];
+    } else if ($cascade) {
+        $steps[] = ["DFW5259",
+            "delete from gamefwds where fwdgameid = ?", $id];
+    }
+
+    foreach ($steps as [$progress, $sql, $params]) {
+        if (!mysqli_execute_query($db, $sql, $params)) {
+            $sqlerr = $includeSqlError
+                ? "; database error: " . htmlspecialchars(mysql_error($db))
+                : "";
+            return "An error occurred deleting the game from the database "
+                . "(error code $progress$sqlerr).";
+        }
+    }
+    return null;
+}
+
 ?>
