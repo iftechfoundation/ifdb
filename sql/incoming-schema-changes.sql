@@ -63,3 +63,10 @@ values
   ('thes.ttct.edu.tw', '2026-03-10 17:47:43', '2', 'oyrrw74upu8n2dds'),
   ('bigmir.net', '2007-07-31 00:00:00.000', '3', 'asdf90813lkjf09813')
 ;
+
+-- Fix invalid published dates in games_history deltas (issue #1438).
+-- parseDateOrYearVal used to turn empty dates into " 01:00:00"; replace with "".
+UPDATE games_history
+SET deltas = REPLACE(deltas, 's:9:"published";s:9:" 01:00:00"', 's:9:"published";s:0:""')
+WHERE deltas LIKE '%s:9:"published";s:9:" 01:00:00"%';
+
