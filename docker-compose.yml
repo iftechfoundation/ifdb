@@ -18,6 +18,7 @@ services:
     ports:
       - 8081:80
   web:
+    image: ifdb-web
     build:
       context: .
       args:
