@@ -367,6 +367,21 @@ init();
 $reqVersion = $_REQUEST['version'] ?? null;
 $links = [];
 $should_hide = false;
+$viewingSpamVersion = false;
+if ($reqVersion) {
+    $result = mysqli_execute_query($db,
+        "select spam from games_history where id = ? and pagevsn = ?",
+        [$id, (int)$reqVersion]);
+    if ($result && mysql_num_rows($result) > 0)
+        $viewingSpamVersion = (int)mysql_result($result, 0, "spam") !== 0;
+}
+if (!$errMsg && $viewingSpamVersion && !$adminPriv) {
+    $errMsg = "This version of this game listing is no longer available.
+        It was marked as spam by IFDB moderators.
+        <a href=\"viewgame?id=$id\">Click here
+        to view the current listing</a>.";
+    $errCode = "versionGone";
+}
 if (!$errMsg) {
     $gameInfo = getGameInfo($db, $id, $curuser, $reqVersion, $errMsg, $errCode);
     if (!$errMsg) {
@@ -435,6 +450,8 @@ if ($errCode == "notFound") {
     header("HTTP/1.1 404 Not Found");
 } else if ($errCode == "versionNotFound") {
     header("HTTP/1.1 404 Not Found");
+} else if ($errCode == "versionGone") {
+    header("HTTP/1.1 410 Gone");
 } else if ($errCode == "dbError") {
     header("HTTP/1.1 500 Internal Server Error");
 } else if ($errCode == "badRequest") {
@@ -685,7 +702,7 @@ include "viewgame-components/viewgame-api.php";
 
 // start the page
 $extraHead = scriptSrc('/viewgame.js', true);
-if ($should_hide) {
+if ($should_hide || $viewingSpamVersion) {
     $extraHead .= "<meta name=\"robots\" content=\"noindex\">";
 }
 
@@ -923,6 +940,9 @@ echo helpWinLink("help-ifid", "IFID");
         <?php
             if ($should_hide) {
                 ?><div class=restricted>Links to this page and its ratings have been restricted, due to violations of our <a href="/code-of-conduct">Code of Conduct</a>.</div><?php
+            }
+            if ($viewingSpamVersion) {
+                ?><div class=restricted>This version was marked as spam by IFDB moderators. It is only visible to IFDB administrators.</div><?php
             }
         ?>
          <p>
@@ -1515,14 +1535,14 @@ if ($embargoCnt > 0)
           <br>";
 
     // query up the version history
-    $result = mysql_query("select pagevsn, editedby, users.name editorname,
-               date_format(moddate, '%d-%b-%Y %H:%i') moddate, deltas
+    $result = mysqli_execute_query($db, "select pagevsn, editedby, users.name editorname,
+               date_format(moddate, '%d-%b-%Y %H:%i') moddate, deltas, spam
             from games_history
               left outer join users on users.id = editedby
-            where games_history.id = '$qid'
-            order by pagevsn desc", $db);
+            where games_history.id = ?
+            order by pagevsn desc", [$id]);
     $rowcnt = mysql_num_rows($result);
-    while ([$ivsn, $ieditor, $ieditorname, $idate, $deltas] =
+    while ([$ivsn, $ieditor, $ieditorname, $idate, $deltas, $ispam] =
             mysql_fetch_row($result)) {
         // make the user name safe for display
         $ieditorname = htmlspecialcharx($ieditorname);
@@ -1554,13 +1574,27 @@ if ($embargoCnt > 0)
         if (isset($_REQUEST['version']) && $ivsn == $_REQUEST['version'])
             echo "<img src=\"/img/blank.gif\" class=\"current-version-marker\">&nbsp;";
 
-        // show this version entry; any logged-in editor can roll back
-        // to a historical version (creates a new version non-destructively)
-        echo "</td><td><a href=\"viewgame?version=$ivsn&id=$id\">
-           v.$ivsn: {$idate}</a> - $iedlink";
-        if ($curuser) {
+        $isSpamVersion = (int)$ispam !== 0;
+        $versionLabel = "v.$ivsn: {$idate}";
+        echo "</td><td>";
+        if ($isSpamVersion && !$adminPriv)
+            echo $versionLabel;
+        else
+            echo "<a href=\"viewgame?version=$ivsn&id=$id\">$versionLabel</a>";
+        echo " - $iedlink";
+        if ($isSpamVersion) {
+            echo " <i>This version was marked as spam by IFDB moderators</i>";
+        }
+        // any logged-in editor can roll back to a historical version
+        // (creates a new version non-destructively)
+        if ($curuser && (!$isSpamVersion || $adminPriv)) {
             echo " - <a href=\"rollbackGameVersion?game=$id&amp;version=$ivsn\">"
                 . "Roll Back to This Version</a>";
+        }
+        if ($adminPriv) {
+            $spamFlag = $isSpamVersion ? 0 : 1;
+            $spamLabel = $isSpamVersion ? "Unmark as spam" : "Mark as spam";
+            echo " - <a href=\"markGameVersionSpam?game=$id&amp;version=$ivsn&amp;spam=$spamFlag\">$spamLabel</a>";
         }
         echo "<br>";
     }

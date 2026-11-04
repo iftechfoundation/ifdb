@@ -1,0 +1,60 @@
+<?php
+
+include_once "session-start.php";
+include_once "login-persist.php";
+$curuser = checkPersistentLogin();
+
+include_once "dbconnect.php";
+$db = dbConnect();
+
+include_once "pagetpl.php";
+include_once "util.php";
+
+$gameid = $_REQUEST['game'] ?? '';
+$version = (int)($_REQUEST['version'] ?? 0);
+$spam = isset($_REQUEST['spam']) ? (int)$_REQUEST['spam'] : 1;
+
+function showResult($title, $msg)
+{
+    global $gameid;
+    $hid = htmlspecialcharx($gameid);
+    pageHeader($title);
+    echo "<h1>{$title}</h1>"
+        . "<p>{$msg}</p>"
+        . "<p><a href=\"viewgame?id={$hid}&amp;history\">Return to game page</a></p>";
+    pageFooter();
+    exit();
+}
+
+$adminPriv = check_admin_privileges($db, $curuser);
+
+if (!$adminPriv) {
+    showResult(
+        "Admin authorization required",
+        "This function can only be performed by administrators.  Please contact us "
+        . "to let us know what you needed to do here and we'll try to assist you.");
+}
+
+if ($gameid === '' || $version < 1 || ($spam !== 0 && $spam !== 1)) {
+    showResult("Invalid request",
+        "A game ID, version number, and spam flag are required.");
+}
+
+$result = mysqli_execute_query($db,
+    "select pagevsn from games_history where id = ? and pagevsn = ?",
+    [$gameid, $version]);
+if (!$result || mysql_num_rows($result) == 0) {
+    showResult("Version not found",
+        "That game version wasn't found in the history. The current version of a listing can't be marked as spam; delete it instead.");
+}
+
+$result = mysqli_execute_query($db,
+    "update games_history set spam = ? where id = ? and pagevsn = ?",
+    [$spam, $gameid, $version]);
+if (!$result) {
+    showResult("Error updating database", htmlspecialcharx(mysql_error($db)));
+}
+
+$action = $spam ? "marked as spam" : "unmarked as spam";
+showResult("Success", "Version $version was $action.");
+?>

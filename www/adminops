@@ -1457,6 +1457,81 @@ else if (isset($_REQUEST['users'])) {
         . "<p>Remarks: $remarks<br>"
         . "<p>" . genNewUserAdminLinks(true, $actcode, $pswsalt);
 
+    if ($stat == 'B') {
+        $result = mysqli_execute_query($db,
+            "select count(*)
+             from games g
+             where g.editedby = ?
+               and not exists (
+                 select 1 from games_history h
+                 where h.id = g.id and ifnull(h.editedby, '') <> ?
+               )",
+            [$uid, $uid]);
+        [$soleAuthoredCount] = mysql_fetch_row($result);
+        $soleAuthoredCount = (int)$soleAuthoredCount;
+
+        $result = mysqli_execute_query($db,
+            "select count(*)
+             from games g
+             where g.editedby = ?
+               and g.pagevsn > 1
+               and exists (
+                 select 1 from games_history h
+                 where h.id = g.id and ifnull(h.editedby, '') <> ?
+               )",
+            [$uid, $uid]);
+        [$latestEditCount] = mysql_fetch_row($result);
+        $latestEditCount = (int)$latestEditCount;
+
+        $result = mysqli_execute_query($db,
+            "select count(*) from games_history h
+             join games g on g.id = h.id
+             where h.editedby = ?
+               and ifnull(g.editedby, '') <> ?
+               and h.spam = 0",
+            [$uid, $uid]);
+        [$notLatestEditCount] = mysql_fetch_row($result);
+        $notLatestEditCount = (int)$notLatestEditCount;
+
+        $result = mysqli_execute_query($db,
+            "select count(*) from games_history where editedby = ? and spam = 1",
+            [$uid]);
+        [$spamEditCount] = mysql_fetch_row($result);
+
+        $huid = htmlspecialcharx($uid);
+        echo "<ul>";
+        echo "<li>";
+        if ($soleAuthoredCount > 0) {
+            echo "<a href=\"allupdates?user=$huid&amp;filter=soleAuthored\" target=\"_blank\">";
+        }
+        echo ($soleAuthoredCount == 1
+                ? "1 game listing"
+                : "$soleAuthoredCount game listings");
+        if ($soleAuthoredCount > 0)
+            echo "</a>";
+        echo " created by $name where $name is the only editor.";
+        echo "</li><li>";
+        if ($latestEditCount > 0) {
+            echo "<a href=\"allupdates?user=$huid&amp;filter=latestEdit\" target=\"_blank\">";
+        }
+        echo ($latestEditCount == 1 ? "1 edit" : "$latestEditCount edits");
+        if ($latestEditCount > 0)
+            echo "</a>";
+        echo " to games where $name is the latest editor.";
+        echo "</li><li>";
+        if ($notLatestEditCount > 0) {
+            echo "<a href=\"allupdates?user=$huid&amp;filter=notLatestEdit\" target=\"_blank\">";
+        }
+        echo ($notLatestEditCount == 1
+                ? "1 publicly visible edit"
+                : "$notLatestEditCount publicly visible edits");
+        if ($notLatestEditCount > 0)
+            echo "</a>";
+        echo " to games where $name is not the latest editor.";
+        echo "</li><li>" . ($spamEditCount == 1 ? "1 edit" : "$spamEditCount edits")
+            . " marked as spam</li></ul>";
+    }
+
     echo "<p>";
 
     echo "Account status:<br><div class=indented>";

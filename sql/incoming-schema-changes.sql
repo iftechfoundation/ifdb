@@ -70,3 +70,6 @@ UPDATE games_history
 SET deltas = REPLACE(deltas, 's:9:"published";s:9:" 01:00:00"', 's:9:"published";s:0:""')
 WHERE deltas LIKE '%s:9:"published";s:9:" 01:00:00"%';
 
+ALTER TABLE games_history
+  ADD COLUMN spam TINYINT(1) NOT NULL DEFAULT 0;
+
