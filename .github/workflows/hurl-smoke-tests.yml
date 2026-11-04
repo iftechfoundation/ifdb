@@ -1,0 +1,79 @@
+name: Hurl smoke tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  hurl:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Resolve IF Archive zip name
+        id: archive
+        run: |
+          FILENAME=$(sed -n 's/^FILENAME=\(.*\)/\1/p' prepare_dev_environment.sh)
+          echo "filename=$FILENAME" >> "$GITHUB_OUTPUT"
+          echo "path=sql/$FILENAME" >> "$GITHUB_OUTPUT"
+
+      # prepare_dev_environment.sh skips the IF Archive download when this file
+      # already exists, so caching it avoids re-fetching ~30MB on every run.
+      - name: Cache IF Archive zip
+        uses: actions/cache@v5
+        with:
+          path: ${{ steps.archive.outputs.path }}
+          key: ${{ steps.archive.outputs.filename }}
+
+      - name: Prepare dev environment
+        run: ./prepare_dev_environment.sh
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+
+      # Layer-cache the PHP/Apache image (mysqli/gd compile is the slow part).
+      # First run populates the GHA cache; later runs reuse unchanged layers.
+      - name: Build web image
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          load: true
+          tags: ifdb-web:latest
+          cache-from: type=gha,scope=ifdb-web
+          cache-to: type=gha,mode=max,scope=ifdb-web
+          build-args: |
+            PHP_VERSION=8
+
+      - name: Start Docker stack
+        run: docker compose up -d db web
+
+      - name: Wait for IFDB
+        run: |
+          for i in $(seq 1 180); do
+            if curl -fsS http://localhost:8080/ 2>/dev/null | grep -q 'Welcome to IFDB'; then
+              echo "IFDB is ready"
+              exit 0
+            fi
+            echo "Waiting for IFDB... ($i)"
+            sleep 5
+          done
+          echo "Timed out waiting for IFDB"
+          docker compose logs
+          exit 1
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: lts/*
+          cache: npm
+          cache-dependency-path: test/package-lock.json
+
+      - name: Install Hurl
+        working-directory: test
+        run: npm ci
+
+      - name: Run Hurl smoke tests
+        working-directory: test
+        run: npm test
