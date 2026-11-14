@@ -179,7 +179,7 @@ else
 
    <div><label for="userid"><b>Email</b></label></div>
    <div><input type="email" name="userid" id="userid" size=30
-                   value="<?php echo $username ?>" tabindex=0></div>
+                   value="<?php echo htmlspecialchars($username) ?>" tabindex=0></div>
    <br>
    <div><label for="password"><b>Password</b></label></div>
    <div><input type="password" name="password" id="password" size=30></div>
@@ -235,7 +235,7 @@ if ($errFlagged != false)
 
    <div><label for="userid"><b>Email</b></label></div>
    <div><input type="email" name="userid" id="userid" size=30
-                   value="<?php echo $username ?>" tabindex=0></div>
+                   value="<?php echo htmlspecialchars($username) ?>" tabindex=0></div>
    <br>
    <div><label for="password"><b>Password</b></label></div>
    <div><input type="password" name="password" id="password" size=30></div>
