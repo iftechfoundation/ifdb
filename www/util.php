@@ -976,11 +976,11 @@ function fixDesc($desc, $specials = 0)
                         $outName = "h" . min(6, ((int)$matches[1]) + 3);
                     }
 
-                    // keep the tag, rewriting it if we need to drop attributes
-                    if ($outName != $tagName || $tagAttr !== false) {
-                        $repl = "<" . ($isClose ? "/" : "") . $outName
-                            . ($isClose ? "" : fixDescTagAttrs($tagName, $tagAttr))
-                            . ($isAutoClose ? "/" : "") . ">";
+                    // keep the tag, rewriting it unless it's already clean
+                    $repl = "<" . ($isClose ? "/" : "") . $outName
+                        . ($isClose ? "" : fixDescTagAttrs($tagName, $tagAttr))
+                        . ($isAutoClose ? "/" : "") . ">";
+                    if (strcasecmp($repl, substr($desc, $tagOfs, $tagLen)) != 0) {
                         $desc = substr_replace($desc, $repl, $tagOfs, $tagLen);
                         $tagLen = strlen($repl);
                         $gt = $tagOfs + $tagLen - 1;
@@ -1217,8 +1217,7 @@ function fixDesc($desc, $specials = 0)
 function fixDescTagAttrs($tagName, $attrs)
 {
     if ($tagName == 'ol' && $attrs !== false
-        && preg_match("/(?:^|\s)start\s*=\s*([\"']?)(\d{1,6})\\1(?:\s|$)/i",
-                      $attrs, $match))
+        && preg_match("/^start\s*=\s*([\"']?)(\d{1,9})\\1$/i", $attrs, $match))
         return " start=\"{$match[2]}\"";
 
     return "";
