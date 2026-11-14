@@ -347,7 +347,7 @@ function echoStylesheetLink()
 
     // check for a temporary CSS override
     if ($cssOverride) {
-        $ssid = $cssOverride;
+        $ssid = (int)$cssOverride;
         $result = mysqli_execute_query($db,
             "select userid, dark, modified from stylesheets
              where stylesheetid = ?", [$ssid]);

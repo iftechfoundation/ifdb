@@ -53,7 +53,7 @@ $ie6 = preg_match("/; msie 6\./i", $userAgent);
 $zwsp = ($ie6 ? "&shy;" : "&#8203;");
 
 if (isset($_REQUEST['cssOverride']))
-    $cssOverride = get_req_data('cssOverride');
+    $cssOverride = (int)get_req_data('cssOverride');
 
 // connect to the database
 include_once "dbconnect.php";
