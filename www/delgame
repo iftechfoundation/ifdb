@@ -652,21 +652,6 @@ if ($cascade)
         }
     }
 
-    if ($result) {
-        $progress = "RVC5254.1";
-        $query = ($createFwd ?
-                  "update ucomments
-                   set sourceid = '$fwdid'
-                   where
-                     source = 'R'
-                     and sourceid in (select id from reviews where gameid = '$qid')" :
-                  "delete from ucomments
-                   where
-                     source = 'R'
-                     and sourceid in (select id from reviews where gameid='$qid')");
-        $result = mysql_query($query, $db);
-    }
-
     if ($createFwd)
     {
         if ($result) {
@@ -677,6 +662,15 @@ if ($cascade)
     }
     else
     {
+        if ($result) {
+            $progress = "RVC5254.1";
+            $result = mysql_query(
+                "delete from ucomments
+                 where
+                   source = 'R'
+                   and sourceid in (select id from reviews where gameid='$qid')", $db);
+        }
+
         if ($result) {
             $progress = "RVF5254.2";
             $result = mysql_query(
