@@ -338,7 +338,7 @@ function handlePost()
     if (mysql_num_rows($result) != 0) {
         $errFlagged = "This email address is already registered.  If you've
             already registered this address, and you've forgotten your
-            password, <a href='lostpsw'>click here</a>.";
+            password, <a href='lostpass'>click here</a>.";
         return true;
     }
 

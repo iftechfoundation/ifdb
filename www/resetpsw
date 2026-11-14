@@ -145,7 +145,7 @@ if (strlen($actcode) != 40) {
 
 <p>This page is for use only <b>after</b> you request a new password.
 If you've forgotten your password and you'd like to request a new one,
-<a href="lostpsw">click here</a>.
+<a href="lostpass">click here</a>.
 
 <p>If you've already requested a new password, and you've come here
 according to the instructions in the email you received, make sure
