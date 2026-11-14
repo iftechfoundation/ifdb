@@ -27,7 +27,10 @@ $id = $_REQUEST['id'];
 
 $userid = $_SESSION['logged_in_as'] ?? null;
 if (!empty($_REQUEST['userid']) && check_admin_privileges($db, $userid)) {
-    $userid = $_REQUEST['userid'];
+    $result = mysqli_execute_query($db, "select id from users where id = ?", [$_REQUEST['userid']]);
+    [$userid] = mysqli_fetch_row($result) ?? [null];
+    if (!$userid)
+        errExit("The requested user isn't in the database.");
 }
 
 global $nonce;
