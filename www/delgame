@@ -506,8 +506,8 @@ $result = true;
 if ($result) {
     $progress = "EXR5201";
     $query = ($createFwd ?
-              "delete from extreviews where gameid = '$qid'" :
-              "update extreviews set gameid='$fwdid' where gameid='$qid'");
+              "update extreviews set gameid='$fwdid' where gameid='$qid'" :
+              "delete from extreviews where gameid = '$qid'");
     $result = mysql_query($query, $db);
 }
 if ($result) {
