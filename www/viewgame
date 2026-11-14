@@ -413,7 +413,7 @@ function checkRedirect($id)
         foreach ($_GET as $key => $val) {
             if (strcasecmp($key, "id") != 0) {
                 $val = urlencode(get_req_data($key));
-                $redir .= "&$key" . ($val ? "=$val" : "");
+                $redir .= "&" . urlencode($key) . ($val ? "=$val" : "");
             }
         }
 
@@ -423,7 +423,7 @@ function checkRedirect($id)
 
         echo "The listing you requested was a duplicate. Your browser should "
             . "automatically take you to the original in a moment. "
-            . "(<a href=\"$redir\">Click here</a> if your "
+            . "(<a href=\"" . htmlspecialchars($redir) . "\">Click here</a> if your "
             . "browser doesn't load the new page automatically.)";
 
         exit();
