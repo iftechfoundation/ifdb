@@ -257,7 +257,7 @@ $showAllMaxRows = 500;
 if ($searchType == "tag") {
     $showAllMaxRows = 10000;
 }
-$sortby = isset($_REQUEST['sortby']) ? $_REQUEST['sortby'] : "";
+$sortby = isset($_REQUEST['sortby']) && is_string($_REQUEST['sortby']) ? $_REQUEST['sortby'] : "";
 
 $browse = isset($_REQUEST['browse']);
 
@@ -293,6 +293,8 @@ if ($term || $browse) {
         $specials, $specialsUsed, $orderBy] =
         doSearch($db, $term, $searchType, $sortby, $limit, $browse, 
                  $count_all_possible_rows);
+    if (!isset($sortList[$sortby]))
+        $sortby = "";
 
     // adjust our page limits to include the whole result set if desired
     if ($pgAll) {

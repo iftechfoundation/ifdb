@@ -102,7 +102,9 @@ if ($lastOnPage > $cnt - 1)
     $lastOnPage = $cnt - 1;
 
 // determine the sorting order
-$ord = isset($sortList[$sortReq]) ? $sortList[$sortReq] : $sortList['new'];
+if (!is_string($sortReq) || !isset($sortList[$sortReq]))
+    $sortReq = 'new';
+$ord = $sortList[$sortReq];
 
 // run the query for the current page's contents
 $result = mysql_query(

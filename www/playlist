@@ -135,7 +135,9 @@ if ($errMsg) {
         $limit = "limit $firstOnPage, $perPage";
 
     // determine the sorting order
-    $ord = isset($sortList[$sortReq]) ? $sortList[$sortReq] : $sortList['ttl'];
+    if (!is_string($sortReq) || !isset($sortList[$sortReq]))
+        $sortReq = 'ttl';
+    $ord = $sortList[$sortReq];
 
     // query the reviews
     $sql = "select sql_calc_found_rows

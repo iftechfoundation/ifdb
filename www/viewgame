@@ -2036,8 +2036,9 @@ if ($embargoCnt > 0)
 
         // build the query that gives us the right sorting order
         $sortReq = get_req_data('sortby');
-        $orderBy = isset($orderByMap[$sortReq])
-                   ? $orderByMap[$sortReq][0] : "publicationdate desc";
+        if (!is_string($sortReq) || !isset($orderByMap[$sortReq]))
+            $sortReq = 'new';
+        $orderBy = $orderByMap[$sortReq][0];
 
         // if it's a helpfulness query, apply the user filter ordering
         if ($sortReq == 'hlp')

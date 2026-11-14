@@ -164,7 +164,9 @@ if ($errMsg) {
         $lastOnPage = $revcnt - 1;
 
     // determine the sorting order
-    $ord = isset($sortList[$sortReq]) ? $sortList[$sortReq] : $sortList['new'];
+    if (!is_string($sortReq) || !isset($sortList[$sortReq]))
+        $sortReq = 'new';
+    $ord = $sortList[$sortReq];
 
     // Include only reviews from our sandbox or sandbox 0 (all users)
     $sandbox = "(0)";
