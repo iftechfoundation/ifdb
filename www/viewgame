@@ -929,7 +929,7 @@ echo helpWinLink("help-ifid", "IFID");
          <section id="viewgame__header">
                <?php
 if ($hasart) {
-    $arthref = "{$_SERVER['PHP_SELF']}?coverart&id=$id";
+    $arthref = "/viewgame?coverart&id=$id";
     $artVersion = $pagevsn;
     if (isset($_REQUEST['version'])) {
         $artVersion = (int)$_REQUEST['version'];
