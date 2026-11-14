@@ -31,6 +31,50 @@ $tests = [
     # Strip newlines
     ["\nhello world\n", "hello world"],
     ["\r\nhello world\r\n", "hello world"],
+
+    # Attributes are dropped from allowed tags
+    ["<b onmouseover=\"alert(1)\">x</b>", "<b>x</b>"],
+    ["<I ONCLICK='alert(1)'>x</I>", "<i>x</I>"],
+    ["<p style=\"position:fixed\">x</p>", "<p>x</p>"],
+    ["<p class=x id=y>x", "<p>x</p>"],
+    ["<b onclick=alert(1)/>x", "<b/>x"],
+    ["<br onclick=alert(1)>x", "<br>x"],
+    ["<hr style=\"display:none\">", "<hr></hr>"],
+    ["<b>x</b onclick=alert(1)>", "<b>x</b>"],
+    ["<b title=\"a>b\" onclick=alert(1)>x</b>", "<b>b&quot; onclick=alert(1)&gt;x</b>"],
+    ["<code class=\"language-php\">x</code>", "<code>x</code>"],
+    ["<ol start=\"3\"><li>x</ol>", "<ol start=\"3\"><li>x</ol>"],
+    ["<ol start=\"3\" onclick=\"alert(1)\"><li>x</ol>", "<ol start=\"3\"><li>x</ol>"],
+    ["<ol start=\"javascript:alert(1)\"><li>x</ol>", "<ol><li>x</ol>"],
+    ["<ul type=disc><li>x</ul>", "<ul><li>x</ul>"],
+    ["<h1 class=\"x\">t</h1>", "<h1>t</h1>"],
+    ["<h1 class=\"x\">t</h1>", "<h4>t</h4>", FixDescDemoteHeadings],
+    ["<h1 class=\"aaaaaaaaaaaaaaaaaaaaaaaa\"><img src=x onerror=alert(1)>", "<h4>&lt;img src=x onerror=alert(1)&gt;</h4>", FixDescDemoteHeadings],
+    ["<h2>a</h2><h3>b", "<h5>a</h5><h6>b</h6>", FixDescDemoteHeadings],
+    ["<spoiler onclick=alert(1)>x</spoiler>y", "y"],
+
+    # Tags with junk after the name aren't allowed
+    ["<b/onclick=alert(1)>x", "&lt;b/onclick=alert(1)&gt;x"],
+    ["<b\tonclick=alert(1)>x", "&lt;b onclick=alert(1)&gt;x"],
+    ["<img src=x onerror=alert(1)>", "&lt;img src=x onerror=alert(1)&gt;"],
+    ["<script>alert(1)</script>", "&lt;script&gt;alert(1)&lt;/script&gt;"],
+    ["<svg onload=alert(1)>", "&lt;svg onload=alert(1)&gt;"],
+
+    # Links
+    ["<a href=\"https://ifdb.org/\">x</a>", "<a href=\"https://ifdb.org/\">x</a>"],
+    ["<a href='http://ifdb.org/'>x</a>", "<a href='http://ifdb.org/'>x</a>"],
+    ["<a game=\"abc123\">x</a>", "<a href=\"viewgame?id=abc123\">x</a>"],
+    ["<a href=\"javascript:alert(1)\">x</a>", "&lt;a href=&quot;javascript:alert(1)&quot;&gt;x&lt;/a&gt;"],
+    ["<a href=\" javascript:alert(1)\">x</a>", "&lt;a href=&quot; javascript:alert(1)&quot;&gt;x&lt;/a&gt;"],
+    ["<a href=\"data:text/html,x\">x</a>", "&lt;a href=&quot;data:text/html,x&quot;&gt;x&lt;/a&gt;"],
+    ["<a href=javascript:alert(1)>x</a>", "&lt;a href=javascript:alert(1)&gt;x&lt;/a&gt;"],
+    ["<a href=\"https://ifdb.org/\" onclick=\"alert(1)\">x</a>", "&lt;a href=&quot;https://ifdb.org/&quot; onclick=&quot;alert(1)&quot;&gt;x&lt;/a&gt;"],
+    ["<a href=\"https://ifdb.org/\" style=\"position:fixed\">x</a>", "&lt;a href=&quot;https://ifdb.org/&quot; style=&quot;position:fixed&quot;&gt;x&lt;/a&gt;"],
+    ["<a onclick=\"alert(1)\" href=\"https://ifdb.org/\">x</a>", "&lt;a onclick=&quot;alert(1)&quot; href=&quot;https://ifdb.org/&quot;&gt;x&lt;/a&gt;"],
+
+    # Line breaks
+    ["a\nb", "a<br>b"],
+    ["<p>a\nb", "<p>a\nb</p>"],
 ];
 
 foreach ($tests as &$test) {
