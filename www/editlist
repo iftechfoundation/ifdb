@@ -105,6 +105,13 @@ if ($listid == 'new') {
     }
 }
 
+if ($errMsg) {
+    pageHeader($pagetitle);
+    echo "<h1>$pagetitle</h1><span class=errmsg>$errMsg</span>";
+    pageFooter();
+    exit();
+}
+
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $newtitle = get_req_data('title');
     $newdesc = get_req_data('desc');
@@ -733,13 +740,9 @@ echo "<h1>$pagetitle</h1>";
 gameSearchPopupSupportFuncs();
 gameSearchPopupDiv();
 
-if ($errMsg) {
-    echo "<span class=errmsg>$errMsg</span>";
-} else {
-
-    if ($saveErrMsg) {
-        echo "<span class=errmsg>$saveErrMsg</span>";
-    }
+if ($saveErrMsg) {
+    echo "<span class=errmsg>$saveErrMsg</span>";
+}
 ?>
 
 <p>You can use a Recommended List to tell people about games you like.
@@ -979,6 +982,5 @@ if ($listid != 'new')
 </form>
 
 <?php
-}
 pageFooter();
 ?>
