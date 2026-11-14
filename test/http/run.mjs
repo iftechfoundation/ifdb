@@ -13,9 +13,9 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const ROOT = join(__dirname, '..');
 const HTTP_DIR = __dirname;
-const BASE_URL = 'http://localhost:8080';
+const BASE_URL = 'http://host.docker.internal:8080';
+const HURL_IMAGE = 'ghcr.io/orange-opensource/hurl:8.1.0';
 
 const work = mkdtempSync(join(tmpdir(), 'ifdb-hurl-'));
 const varsFile = join(work, 'vars.env');
@@ -23,11 +23,18 @@ const writeJson = join(work, 'write.json');
 const ifictionPath = join(work, 'ifiction.xml');
 
 function runHurl(hurlArgs) {
-  const result = spawnSync('npx', ['hurl', ...hurlArgs], {
-    cwd: ROOT,
-    encoding: 'utf8',
-    stdio: 'inherit',
-  });
+  const dockerArgs = [
+    'run',
+    '--rm',
+    '--add-host=host.docker.internal:host-gateway',
+    '-v',
+    `${HTTP_DIR}:/tests:ro`,
+    '-v',
+    `${work}:/work`,
+    HURL_IMAGE,
+    ...hurlArgs,
+  ];
+  const result = spawnSync('docker', dockerArgs, { stdio: 'inherit' });
   if (result.error) throw result.error;
   if (result.status !== 0) {
     process.exit(result.status ?? 1);
@@ -120,18 +127,18 @@ console.log(`==> Writes (${suffix}) in ${work}`);
 runHurl([
   '--json',
   '--output',
-  writeJson,
+  '/work/write.json',
   '--file-root',
-  work,
+  '/work',
   '--variables-file',
-  varsFile,
-  join(HTTP_DIR, 'write/write.hurl'),
+  '/work/vars.env',
+  '/tests/write/write.hurl',
 ]);
 convertCapturesToVars();
 
 const readonlyFiles = readdirSync(join(HTTP_DIR, 'readonly'))
   .filter((name) => name.endsWith('.hurl'))
-  .map((name) => join(HTTP_DIR, 'readonly', name))
+  .map((name) => `/tests/readonly/${name}`)
   .sort();
 console.log('==> Parallel read-only checks');
 runHurl([
@@ -139,7 +146,7 @@ runHurl([
   '--jobs',
   String(cpus().length || 1),
   '--variables-file',
-  varsFile,
+  '/work/vars.env',
   ...readonlyFiles,
 ]);
 console.log('All Hurl smoke tests passed');

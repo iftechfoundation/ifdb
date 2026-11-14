@@ -4,14 +4,7 @@ These tests drive the local IFDB over HTTP with [Hurl](https://hurl.dev)
 
 ## Setup
 
-1. Start IFDB locally (`docker compose up` → http://localhost:8080).
-2. From this directory:
-
-```sh
-npm install
-```
-
-That pulls `@orangeopensource/hurl`, which downloads the correct Hurl binary for your OS.
+Requires Docker. Start IFDB locally (`docker compose up` → http://localhost:8080). Hurl runs from its official Docker image.
 
 ## Running
 
