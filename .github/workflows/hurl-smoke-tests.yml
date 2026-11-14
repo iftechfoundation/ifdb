@@ -67,12 +67,6 @@ jobs:
       - uses: actions/setup-node@v6
         with:
           node-version: lts/*
-          cache: npm
-          cache-dependency-path: test/package-lock.json
-
-      - name: Install Hurl
-        working-directory: test
-        run: npm ci
 
       - name: Run Hurl smoke tests
         working-directory: test
