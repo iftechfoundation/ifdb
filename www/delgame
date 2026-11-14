@@ -225,6 +225,8 @@ $result = mysql_query(
        extreviews write, gamelinks write, gameprofilelinks write,
        games_history write, ifids write, ifids as if2 read,
        crossrecs write,
+       playertimes write, playertimes as pt2 read,
+       gamexrefs write, gamexrefs as gx2 read,
        pollvotes write, pollvotes as pv2 read,
        pollcomments write, ucomments write,
        reviewflags write, reviewtags write, reviewvotes write,
@@ -569,9 +571,53 @@ if ($result) {
 }
 
 if ($result) {
+    if ($createFwd) {
+        $progress = "PLT5207.u";
+        $result = mysql_query(
+            "update playertimes
+             set gameid = '$fwdid'
+             where
+               gameid = '$qid'
+               and userid not in (select userid
+                 from playertimes as pt2 where pt2.gameid = '$fwdid')", $db);
+    }
+    if ($result) {
+        $progress = "PLT5207.d";
+        $result = mysql_query(
+            "delete from playertimes where gameid = '$qid'", $db);
+    }
+}
+
+if ($result) {
+    if ($createFwd) {
+        $progress = "XRF5208.u";
+        $result = mysql_query(
+            "update gamexrefs
+             set toid = '$fwdid'
+             where
+               toid = '$qid'
+               and fromid <> '$fwdid'
+               and (fromid, reftype) not in (select fromid, reftype
+                 from gamexrefs as gx2 where gx2.toid = '$fwdid')", $db);
+    }
+    if ($result) {
+        $progress = "XRF5208.d";
+        $result = mysql_query(
+            "delete from gamexrefs where fromid = '$qid' or toid = '$qid'",
+            $db);
+    }
+}
+
+if ($result) {
     $progress = "HST5205";
     $result = mysql_query(
         "delete from games_history where id = '$qid'", $db);
+}
+
+// the playertimes triggers leave @gameid set, and the games trigger reuses it
+if ($result) {
+    $progress = "GME5206.0";
+    $result = mysql_query("set @gameid = null", $db);
 }
 
 if ($result) {
