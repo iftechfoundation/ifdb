@@ -95,7 +95,11 @@ if ($parentID) {
            ucomments as c
            join users as u on u.id = c.userid
          where
-           c.commentid = ?", [$parentID]);
+           c.commentid = ?
+           and c.source = ?
+           and c.sourceid = ?
+           and (c.private is null or ? in (c.userid, c.private))",
+        [$parentID, $srcCode, $srcID, $curuser]);
 
     $parentRow = mysql_fetch_row($result);
 
@@ -195,7 +199,7 @@ if ($privateOption) {
     // the parent chain, and use that other user.  This allows for
     // private exchanges between the object owner and another user who
     // posts a private message to the object.
-    if ($privateTo == $curuser && $parentID)
+    if ($privateTo == $curuser && $parentID && ($editing || $parentRow))
     {
         // look up the parent chain for anyone else in the conversation
         for ($par = $parentID ; $par ; $par = $ppar) {
@@ -452,7 +456,7 @@ if ($errMsg) {
                  (parent, source, sourceid, userid, comment, private,
                   created, modified)
                  values (?, ?, ?, ?, ?, ?, now(), now())",
-                [$parentID ?: null, $srcCode, $srcID, $curuser,
+                [$parentRow ? $parentID : null, $srcCode, $srcID, $curuser,
                  $commentText, $privateVal]);
         }
 
