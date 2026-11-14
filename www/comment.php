@@ -105,7 +105,7 @@ if ($parentID) {
 
     // if the parent is private, and this isn't a form submission,
     // set the new message to private by default
-    if ($parent[5] && !$submit)
+    if ($parentRow && $parentRow[5] && !$submit)
         $private = true;
 }
 
@@ -528,12 +528,11 @@ echo helpWinLink("help-formatting?comment#spoilertags", "&lt;SPOILER&gt; tag")
 <?php
 
     // if we're commenting on another comment, show it
-    $pPrivate = false;
     if ($parentID) {
         if ($parentRow) {
 
             // decode the parent row
-            [$pUserID, $pUserName, $pComment, $pCreated, $pMod, $pPrivate]
+            [$pUserID, $pUserName, $pComment, $pCreated, $pMod]
                 = $parentRow;
 
             // prepare the results for display
@@ -541,11 +540,6 @@ echo helpWinLink("help-formatting?comment#spoilertags", "&lt;SPOILER&gt; tag")
             $pComment = fixDesc($pComment, FixDescSpoiler);
             $pTime = ($pCreated == $pMod
                       ? $pCreated : "$pCreated (last updated $pMod)");
-
-            // if we're replying to a private message, this is a private
-            // reply
-            if ($pPrivate)
-                $private = true;
 
             // show the comment
             echo "<p>You are replying to "
