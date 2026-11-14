@@ -563,6 +563,7 @@ function makePageControl($baseUrl, $curPage, $lastPage,
                          $firstItemOnPage, $lastItemOnPage, $totalItems,
                          $showPageList, $showAllButton, $showingAll)
 {
+    $baseUrl = htmlspecialchars($baseUrl);
     $p = "";
 
     // if we're currently showing all items, set up a control to revert
