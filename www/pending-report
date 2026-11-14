@@ -37,12 +37,12 @@ while ($row = mysqli_fetch_row($result)) {
         ));
     }
     $results[] = [
-        gameid => $gameid,
-        title => $title,
-        file => $file,
-        url => $url,
-        moddate => $moddate,
-        pagevsn => $pagevsn,
+        'gameid' => $gameid,
+        'title' => $title,
+        'file' => $file,
+        'url' => $url,
+        'moddate' => $moddate,
+        'pagevsn' => $pagevsn,
     ];
 }
 
