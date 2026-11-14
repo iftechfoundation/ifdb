@@ -216,14 +216,22 @@ function pgErrExit($msg)
 // lock the tables that we'll be checking or updating
 $result = mysql_query(
     "lock tables games write, gamefwds write,
-       gametags read write, playedgames read write,
-       wishlists read write, unwishlists read write,
-       reclistitems write, reviews write,
+       gametags write, gametags as gt2 read,
+       playedgames write, playedgames as pg2 read,
+       wishlists write, wishlists as wl2 read,
+       unwishlists write, unwishlists as uw2 read,
+       reclistitems write, reclistitems as rl2 read,
+       reviews write,
        extreviews write, gamelinks write, gameprofilelinks write,
-       games_history write, ifids read write, crossrecs write,
-       pollvotes read write, pollcomments write, ucomments write,
+       games_history write, ifids write, ifids as if2 read,
+       crossrecs write,
+       pollvotes write, pollvotes as pv2 read,
+       pollcomments write, ucomments write,
        reviewflags write, reviewtags write, reviewvotes write,
        news write, compgames write", $db);
+if (!$result)
+    errExit("The database tables couldn't be locked: "
+            . htmlspecialchars(mysql_error($db)));
 
 // we have no referencers yet
 $refs = [];
@@ -518,9 +526,8 @@ if ($result) {
              set gameid='$fwdid'
              where
                gameid='$qid'
-               and (userid, tag) not in (select userid, tag from (
-                 select * from gametags where gameid = '$fwdid')
-               as tmp)", $db);
+               and (userid, tag) not in (select userid, tag
+                 from gametags as gt2 where gt2.gameid = '$fwdid')", $db);
     }
     if ($result) {
         $progress = "GMT5250.d";
@@ -551,7 +558,7 @@ if ($result) {
              set gameid = '$fwdid'
              where
                gameid = '$qid'
-               and ifid not in (select ifid from (select * from ifids where gameid='$fwdid') as tmp)", $db);
+               and ifid not in (select ifid from ifids as if2 where if2.gameid='$fwdid')", $db);
         $progress = "IFI5204.u";
     }
     if ($result) {
@@ -584,9 +591,8 @@ if ($cascade)
                  set gameid = '$fwdid'
                  where
                    gameid = '$qid'
-                   and (userid) not in (select userid from (
-                     select * from playedgames where gameid = '$fwdid')
-                   as tmp)", $db);
+                   and userid not in (select userid
+                     from playedgames as pg2 where pg2.gameid = '$fwdid')", $db);
         }
         if ($result) {
             $progress = "PLG5251.d";
@@ -603,9 +609,8 @@ if ($cascade)
                  set gameid = '$fwdid'
                  where
                    gameid = '$qid'
-                   and (userid) not in (select userid from (
-                     select * from wishlists where gameid = '$fwdid')
-                   as tmp)", $db);
+                   and userid not in (select userid
+                     from wishlists as wl2 where wl2.gameid = '$fwdid')", $db);
         }
         if ($result) {
             $progress = "WLS5252.d";
@@ -622,9 +627,8 @@ if ($cascade)
                  set gameid = '$fwdid'
                  where
                    gameid = '$qid'
-                   and (userid) not in (select userid from (
-                     select * from unwishlists where gameid = '$fwdid')
-                   as tmp)", $db);
+                   and userid not in (select userid
+                     from unwishlists as uw2 where uw2.gameid = '$fwdid')", $db);
         }
         if ($result) {
             $progress = "UWS5252.d";
@@ -641,9 +645,8 @@ if ($cascade)
                  set gameid = '$fwdid'
                  where
                    gameid = '$qid'
-                   and (listid) not in (select listid from (
-                     select * from reclistitems where gameid = '$fwdid')
-                   as tmp)", $db);
+                   and listid not in (select listid
+                     from reclistitems as rl2 where rl2.gameid = '$fwdid')", $db);
         }
         if ($result) {
             $progress = "RLI5253.d";
@@ -726,9 +729,8 @@ if ($cascade)
                  set gameid = '$fwdid'
                  where
                    gameid = '$qid'
-                   and (pollid, userid) not in (select pollid, userid from (
-                     select * from pollvotes where gameid = '$fwdid')
-                   as tmp)", $db);
+                   and (pollid, userid) not in (select pollid, userid
+                     from pollvotes as pv2 where pv2.gameid = '$fwdid')", $db);
         }
         if ($result) {
             $progress = "PLV5256.d";
