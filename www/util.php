@@ -2876,7 +2876,7 @@ function coverArtThumbnail($id, $size, $version, $params = "") {
     $x2 = $size * 2;
     $x3 = $size * 3;
     if ($version) {
-        $params .= "&version=$version";
+        $params .= "&version=" . (int)$version;
     }
     global $nonce;
     return "<style nonce='$nonce'>.coverart__img { max-width: 35vw; height: auto; }</style>"
