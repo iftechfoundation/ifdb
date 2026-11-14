@@ -36,4 +36,7 @@ header("Content-Security-Policy: "
     ."style-src 'self' ifdb.org 'nonce-$nonce'; "
     ."connect-src 'self' https://www.ifwiki.org/ 'nonce-$nonce'; "
     ."frame-ancestors 'self'; "
+    ."form-action 'self' https://www.paypal.com https://upload.ifarchive.org; "
+    ."base-uri 'self'; "
+    ."object-src 'none'; "
 );
