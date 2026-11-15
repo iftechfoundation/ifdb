@@ -1,4 +1,7 @@
-name: Hurl smoke tests
+# Runs the Hurl smoke tests on every PR and push to main. After a push to
+# main passes, deploys it to dev. See deploy.yml.
+
+name: Test and deploy
 
 on:
   push:
@@ -71,3 +74,11 @@ jobs:
       - name: Run Hurl smoke tests
         working-directory: test
         run: npm test
+
+  deploy-dev:
+    needs: hurl
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    uses: ./.github/workflows/deploy.yml
+    permissions:
+      contents: read
+

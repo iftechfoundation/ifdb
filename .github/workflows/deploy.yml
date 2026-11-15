@@ -1,0 +1,42 @@
+# Deploys the commit that triggered the calling workflow to dev.ifdb.org, by
+# running deploy-ifdb on the server over SSH. Called by test-and-deploy.yml
+# after every push to main.
+#
+# Repository setup: Settings > Environments > dev, limited to the main branch,
+# with secrets DEPLOY_SSH_KEY, DEPLOY_SSH_TARGET and DEPLOY_KNOWN_HOSTS.
+#
+# DEPLOY_SSH_TARGET is user@host, or ssh://user@host:port. The host is the
+# server's own IP address, which Cloudflare hides, so it's a secret: the logs
+# are public, and GitHub masks secrets in them but not vars. The server side is
+# deploy-ifdb-ci in ifdb-infra-initial.
+
+name: Deploy
+
+on:
+  workflow_call:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: dev
+    concurrency:
+      group: deploy-dev
+      cancel-in-progress: false
+    steps:
+      - name: Deploy ${{ github.sha }}
+        env:
+          SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+          KNOWN_HOSTS: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
+          SSH_TARGET: ${{ secrets.DEPLOY_SSH_TARGET }}
+        run: |
+          # GitHub masks the whole secret, but ssh's errors print the bare host.
+          host=${SSH_TARGET#ssh://}
+          host=${host#*@}
+          echo "::add-mask::${host%:*}"
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$SSH_KEY" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          printf '%s\n' "$KNOWN_HOSTS" > ~/.ssh/known_hosts
+          # deploy-ifdb-ci on the server reads the SHA from the command line.
+          ssh -i ~/.ssh/deploy_key -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes \
+            "$SSH_TARGET" "$GITHUB_SHA"
