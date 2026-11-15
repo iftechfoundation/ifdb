@@ -80,7 +80,7 @@ if (!is_array($deltas))
     $deltas = [];
 
 // confirm before deleting
-if (!isset($_REQUEST['confirm'])) {
+if (!isset($_POST['confirm'])) {
     pageHeader("Delete Game Version");
     echo "<h1>Delete Game Version</h1>"
         . "<p>Permanently delete version {$currentVsn} of "
@@ -88,8 +88,13 @@ if (!isset($_REQUEST['confirm'])) {
         . "<p><b>This cannot be undone.</b> Version {$currentVsn} will be "
         . "removed from the update history. To keep history intact, use "
         . "Roll Back instead.</p>"
-        . "<p><a href=\"deleteGameVersion?game={$gameid}&amp;confirm\">"
-        . "Yes, permanently delete version {$currentVsn}</a></p>"
+        . "<form method=\"post\" action=\"deleteGameVersion\">"
+        . "<input type=\"hidden\" name=\"game\" value=\""
+        . htmlspecialchars($gameid) . "\">"
+        . "<input type=\"hidden\" name=\"confirm\" value=\"1\">"
+        . "<p><button>Yes, permanently delete version {$currentVsn}"
+        . "</button></p>"
+        . "</form>"
         . "<p><a href=\"viewgame?id={$gameid}&amp;history\">Cancel</a></p>";
     pageFooter();
     exit();

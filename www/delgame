@@ -30,9 +30,6 @@ $userName = htmlspecialcharx(mysql_result($result, 0, "name"));
 // Check for cascade mode.
 $cascade = (get_req_data("refmode") == "cascade");
 $createFwd = $adminPriv && isset($_REQUEST['fwd']);
-$confirmParam = "&confirm"
-                . ($cascade ? "&refmode=cascade" : "")
-                . ($createFwd ? "&fwd" : "");
 
 // make sure we have a game
 $qid = mysql_real_escape_string(get_req_data("id"), $db);
@@ -197,7 +194,7 @@ function refErrExit($refs)
         $msg .= "<p>How would you like to proceed?"
                 . "<p><a href=\"delgame?id=$qid&refmode=cascade\">"
                 . "Delete it anyway</a>"
-                . "<p><a href=\"delgame?id=$qid&fwd&confirm&refmode=cascade\">"
+                . "<p><a href=\"delgame?id=$qid&fwd&refmode=cascade\">"
                 . "Delete it, but merge the references into another game's page</a>"
                 . "<p><a href=\"viewgame?id=$qid\">No, return to the game's "
                 . "page</a>";
@@ -360,7 +357,7 @@ if (count($refs) != 0) {
 // Okay, we've passed our reference checking, so we can proceed
 
 // show the confirmation page if applicable
-if (!isset($_REQUEST['confirm'])) {
+if (!isset($_POST['confirm'])) {
 
     // we're done with this operation - release our table locks
     mysql_query("unlock tables", $db);
@@ -377,17 +374,25 @@ if (!isset($_REQUEST['confirm'])) {
     information from scratch.
 
     <p>Do you still want to delete this listing?
-    <?php
 
-if ($adminPriv) {
-    echo "<p><a href=\"delgame?id=$qid$confirmParam&fwd\">Yes, permanently "
-        . "delete it <b>with</b> a forwarding redirect</a>"
-        . "<br><a href=\"delgame?id=$qid$confirmParam\">Yes, permanently "
-        . "delete it <b>without</b> a forwarding redirect</a>";
-} else {
-    echo "<p><a href=\"delgame?id=$qid$confirmParam\">Yes, permanently "
-        . "delete this listing</a>";
-}
+    <form method="post" action="delgame">
+        <input type="hidden" name="id" value="<?= htmlspecialchars($qid) ?>">
+        <input type="hidden" name="confirm" value="1">
+        <?php if ($cascade) { ?>
+            <input type="hidden" name="refmode" value="cascade">
+        <?php } ?>
+        <?php if ($adminPriv) { ?>
+            <p><button name="fwd" value="1">Yes, permanently delete it
+                <b>with</b> a forwarding redirect</button>
+            <?php if (!$createFwd) { ?>
+                <p><button>Yes, permanently delete it <b>without</b> a
+                    forwarding redirect</button>
+            <?php } ?>
+        <?php } else { ?>
+            <p><button>Yes, permanently delete this listing</button>
+        <?php } ?>
+    </form>
+    <?php
 
     echo "<p><a href=\"viewgame?id=$qid\">No, return to the game's "
         . "page</a>";
@@ -455,10 +460,9 @@ if ($createFwd)
         <form name="fwdgame" method="post" action="delgame">
            <input type=hidden name="id" value="<?php echo $qid ?>">
            <input type=hidden name="fwd" value="">
-           <input type=hidden name="confirm" value="<?php
-              echo get_req_data("confirm") ?>">
+           <input type=hidden name="confirm" value="1">
            <input type=hidden name="refmode" value="<?php
-              echo get_req_data("refmode") ?>">
+              echo $cascade ? "cascade" : "" ?>">
 
            <b>Target game for forwarding redirect (TUID):</b><br>
            <input name="fwdid" id="fwdid" type="text" size=50

@@ -72,7 +72,7 @@ if ($targVsn == $currentVsn) {
 }
 
 // confirm before rolling back
-if (!isset($_REQUEST['confirm'])) {
+if (!isset($_POST['confirm'])) {
     pageHeader("Roll Back Game Version");
     echo "<h1>Roll Back Game Version</h1>"
         . "<p>Create a new version of <i>{$title}</i> that restores "
@@ -80,9 +80,13 @@ if (!isset($_REQUEST['confirm'])) {
         . "<p>The current version (v.{$currentVsn}) and all other "
         . "history will be preserved. This is equivalent to manually "
         . "re-entering the older data and saving.</p>"
-        . "<p><a href=\"rollbackGameVersion?game="
-        . urlencode($gameid) . "&amp;version={$targVsn}&amp;confirm\">"
-        . "Yes, roll back to version {$targVsn}</a></p>"
+        . "<form method=\"post\" action=\"rollbackGameVersion\">"
+        . "<input type=\"hidden\" name=\"game\" value=\""
+        . htmlspecialchars($gameid) . "\">"
+        . "<input type=\"hidden\" name=\"version\" value=\"{$targVsn}\">"
+        . "<input type=\"hidden\" name=\"confirm\" value=\"1\">"
+        . "<p><button>Yes, roll back to version {$targVsn}</button></p>"
+        . "</form>"
         . "<p><a href=\"viewgame?id=" . urlencode($gameid)
         . "&amp;history\">Cancel</a></p>";
     pageFooter();
