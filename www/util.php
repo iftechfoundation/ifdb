@@ -971,16 +971,21 @@ function fixDesc($desc, $specials = 0)
                 } else if (isset($allowedTags[$tagName])) {
 
                     // If we're demoting headings, convert <h1> to <h4>, <h2> to <h5> and so on
+                    $outName = $tagName;
                     if (($specials & FixDescDemoteHeadings) && preg_match("/^h(\d)$/", $tagName, $matches)) {
-                        $level = min(6, ((int)$matches[1]) + 3);
-                        if ($isClose) {
-                            $desc = substr_replace($desc, "</h$level>", $ofs, $tagLen);
-                        } else {
-                            $desc = substr_replace($desc, "<h$level>", $ofs, $tagLen);
-                        }
+                        $outName = "h" . min(6, ((int)$matches[1]) + 3);
                     }
 
-                    // it's an allowed tag - keep it
+                    // keep the tag, rewriting it unless it's already clean
+                    $repl = "<" . ($isClose ? "/" : "") . $outName
+                        . ($isClose ? "" : fixDescTagAttrs($tagName, $tagAttr))
+                        . ($isAutoClose ? "/" : "") . ">";
+                    if (strcasecmp($repl, substr($desc, $tagOfs, $tagLen)) != 0) {
+                        $desc = substr_replace($desc, $repl, $tagOfs, $tagLen);
+                        $tagLen = strlen($repl);
+                        $gt = $tagOfs + $tagLen - 1;
+                        $tagName = $outName;
+                    }
                     $ofs = $gt;
 
                     // if it's a line tag, switch to explicit line control
@@ -1205,6 +1210,17 @@ function fixDesc($desc, $specials = 0)
 
     // return the result
     return $desc;
+}
+
+// Get the attributes fixDesc keeps for an allowed tag
+//
+function fixDescTagAttrs($tagName, $attrs)
+{
+    if ($tagName == 'ol' && $attrs !== false
+        && preg_match("/^start\s*=\s*([\"']?)(\d{1,9})\\1$/i", $attrs, $match))
+        return " start=\"{$match[2]}\"";
+
+    return "";
 }
 
 // Translate a stacked close tag to the actual HTML close tag
