@@ -79,6 +79,8 @@ jobs:
     needs: hurl
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     uses: ./.github/workflows/deploy.yml
+    # Without this, deploy.yml gets no secrets, not even the dev environment's.
+    secrets: inherit
     permissions:
       contents: read
 
