@@ -1,0 +1,20 @@
+# Run by hand (Actions > Deploy main to production > Run workflow, or
+# `gh workflow run deploy-prod.yml`) to deploy main's tip to production once
+# its hurl check passes. See deploy.yml and .github/scripts/plan-deploy.sh.
+
+name: Deploy main to production
+
+on:
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    if: github.ref == 'refs/heads/main'
+    uses: ./.github/workflows/deploy.yml
+    with:
+      mode: prod-manual
+    # Without this, deploy.yml gets no secrets, not even its environment's.
+    secrets: inherit
+    permissions:
+      contents: write
+      checks: read
