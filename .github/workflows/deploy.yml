@@ -4,9 +4,11 @@
 #
 # Repository setup (Settings > Environments), each limited to the main branch:
 #
-#   dev                 secrets DEPLOY_SSH_KEY, DEPLOY_SSH_TARGET and
-#                       DEPLOY_KNOWN_HOSTS
-#   production          the same, plus var SMOKE_URL (https://ifdb.org/)
+#   dev                 secrets DEPLOY_SSH_KEY, DEPLOY_SSH_TARGET,
+#                       DEPLOY_KNOWN_HOSTS and SMOKE_AUTH; var SMOKE_URL
+#                       (https://dev.ifdb.org/)
+#   production          the deploy secrets, plus var SMOKE_URL
+#                       (https://ifdb.org/)
 #   approve-production  no secrets; required reviewer. Production deploys
 #                       wait here when plan-deploy.sh says they need a person
 #                       to look first.
@@ -15,6 +17,9 @@
 # servers' own IP addresses, which Cloudflare hides, so they're secrets: the
 # logs are public, and GitHub masks secrets in them but not vars. The server
 # side is deploy-ifdb-ci in ifdb-infra-initial.
+#
+# SMOKE_AUTH is user:password for dev's HTTP basic auth, for the site check
+# after the deploy. Leave it unset where the site has no basic auth.
 
 name: Deploy
 
@@ -97,6 +102,9 @@ jobs:
         if: vars.SMOKE_URL != ''
         env:
           SMOKE_URL: ${{ vars.SMOKE_URL }}
+          SMOKE_AUTH: ${{ secrets.SMOKE_AUTH }}
         run: |
-          curl -fsS --retry 3 --retry-delay 5 -o home.html "$SMOKE_URL"
+          auth=()
+          if [ -n "$SMOKE_AUTH" ]; then auth=(--user "$SMOKE_AUTH"); fi
+          curl -fsS --retry 3 --retry-delay 5 "${auth[@]}" -o home.html "$SMOKE_URL"
           grep -q 'Welcome to IFDB' home.html
