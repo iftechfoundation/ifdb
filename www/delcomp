@@ -27,7 +27,6 @@ $adminPriv =
 
 // Check for cascade parameter
 $cascade = (get_req_data("refmode") == "cascade");
-$confirmParam = "&confirm" . ($cascade ? "&refmode=cascade" : "");
 
 // make sure we have a competition
 $qid = mysql_real_escape_string(get_req_data("id"), $db);
@@ -181,7 +180,7 @@ if (count($refs) != 0) {
 // okay, we've passed our reference checking, so we can proceed
 
 // show the confirmation page if applicable
-if (!isset($_REQUEST['confirm'])) {
+if (!isset($_POST['confirm'])) {
 
     // we're done with this operation - release our table locks
     mysql_query("unlock tables", $db);
@@ -209,11 +208,18 @@ if (!isset($_REQUEST['confirm'])) {
     to it.
 
     <p>Do you still want to delete this listing?
+
+    <form method="post" action="delcomp">
+        <input type="hidden" name="id" value="<?= htmlspecialchars($qid) ?>">
+        <input type="hidden" name="confirm" value="1">
+        <?php if ($cascade) { ?>
+            <input type="hidden" name="refmode" value="cascade">
+        <?php } ?>
+        <p><button>Yes, permanently delete this listing</button>
+    </form>
     <?php
 
-    echo "<p><a href=\"delcomp?id=$qid$confirmParam\">Yes, permanently "
-        . "delete this listing</a>"
-        . "<p><a href=\"viewcomp?id=$qid\">No, return to the competition's "
+    echo "<p><a href=\"viewcomp?id=$qid\">No, return to the competition's "
         . "page</a>";
 
     pageFooter();
