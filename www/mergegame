@@ -49,7 +49,7 @@ $toTitle = htmlspecialcharx(mysql_result($result, 0, "title"));
 
 pageHeader("$fromTitle - Merge Listing");
 
-if (!isset($_REQUEST['confirm'])) {
+if (!isset($_POST['confirm'])) {
     echo "FROM game: <a href=\"viewgame?id=$qfrom\">$fromTitle</a><br>"
         . "TO game: <a href=\"viewgame?id=$qto\">$toTitle</a><br>"
         . "<p>"
@@ -74,9 +74,14 @@ if (!isset($_REQUEST['confirm'])) {
         . "merge step and after you are satisfied that all of the main "
         . "listing data that you wish to preserve from the FROM listing "
         . "is properly duplicated in the TO listing."
-        . "<p>"
-        . "<a href=\"mergegame?from=$qfrom&to=$qto&confirm\">"
-        . "Click here to merge these listings</a><p>";
+        . "<form method=\"post\" action=\"mergegame\">"
+        . "<input type=\"hidden\" name=\"from\" value=\""
+        . htmlspecialchars($qfrom) . "\">"
+        . "<input type=\"hidden\" name=\"to\" value=\""
+        . htmlspecialchars($qto) . "\">"
+        . "<input type=\"hidden\" name=\"confirm\" value=\"1\">"
+        . "<p><button>Merge these listings</button>"
+        . "</form>";
 
     pageFooter();
     exit();

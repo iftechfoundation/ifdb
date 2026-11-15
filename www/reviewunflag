@@ -21,7 +21,7 @@ $db = dbConnect();
 $reviewID = get_req_data('review');
 $flagger = get_req_data('flagger');
 $flagType = get_req_data('type');
-$confirm = get_req_data('confirm');
+$confirm = $_POST['confirm'] ?? '';
 
 $qReviewID = mysql_real_escape_string($reviewID, $db);
 $qFlagger = mysql_real_escape_string($flagger, $db);
@@ -120,8 +120,16 @@ if (!$confirm || $errMsg) {
         . "Please act in good faith: only delete the flag if you've "
         . "adequately addressed it by changing your review, or "
         . "you honestly feel the flag is not warranted."
-        . "<p><a href=\"reviewunflag?review=$reviewID&flagger=$flagger"
-        . "&type=$flagType&confirm=Y\">Yes, delete this flag</a><br>"
+        . "<form method=\"post\" action=\"reviewunflag\">"
+        . "<input type=\"hidden\" name=\"review\" value=\""
+        . htmlspecialchars($reviewID) . "\">"
+        . "<input type=\"hidden\" name=\"flagger\" value=\""
+        . htmlspecialchars($flagger) . "\">"
+        . "<input type=\"hidden\" name=\"type\" value=\""
+        . htmlspecialchars($flagType) . "\">"
+        . "<input type=\"hidden\" name=\"confirm\" value=\"Y\">"
+        . "<p><button>Yes, delete this flag</button>"
+        . "</form>"
         . "<a href=\"needjs\">"
         . addEventListener('click', "window.close(); return false;")
         . "No, keep flag and close window</a>";

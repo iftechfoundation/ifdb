@@ -45,7 +45,7 @@ $deleteID = get_req_data('delete');
 $parentID = get_req_data('replyto');
 $commentText = get_req_data('text');
 $submit = get_req_data('submit');
-$confirm = get_req_data('confirm');
+$confirm = $_POST['confirm'] ?? '';
 $private = ($privateOption && get_req_data('private') == 'Y');
 $privateTo = false;
 $privateToName = false;
@@ -322,8 +322,16 @@ if ($errMsg) {
 
         echo "<p>Are you sure you want to <b>permanently</b> "
             . "delete this comment?"
-            . "<p><a href=\"$urlWithSrc&delete=$commentID"
-            . "&confirm=Y&src=$srcpageParam\">Yes, delete this comment</a>"
+            . "<form method=\"post\" action=\"$baseUrl\">"
+            . "<input type=\"hidden\" name=\"$srcParamName\" value=\""
+            . htmlspecialchars($srcID) . "\">"
+            . "<input type=\"hidden\" name=\"delete\" value=\""
+            . htmlspecialchars($commentID) . "\">"
+            . "<input type=\"hidden\" name=\"confirm\" value=\"Y\">"
+            . "<input type=\"hidden\" name=\"src\" value=\""
+            . htmlspecialchars($srcpage) . "\">"
+            . "<p><button>Yes, delete this comment</button>"
+            . "</form>"
             . "<p><a href=\"$srcpage\">No, return without deleting</a>";
 
         pageFooter();
