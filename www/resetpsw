@@ -9,6 +9,7 @@ include_once "password-login.php";
 // read the activation code
 $errFlagged = false;
 $activated = false;
+$showForm = true;
 $actcode = $_REQUEST['a'] ?? '';
 $email = $_REQUEST['userid'] ?? '';
 $psw = $_REQUEST['password'] ?? '';
@@ -16,7 +17,7 @@ $psw2 = $_REQUEST['password2'] ?? '';
 
 // verifier function
 function verify() {
-    global $actcode, $activated, $errFlagged, $email, $psw, $psw2;
+    global $actcode, $activated, $errFlagged, $showForm, $email, $psw, $psw2;
 
     // connect to the database
     $db = dbConnect();
@@ -30,15 +31,25 @@ function verify() {
 
     // look up the activation code
     $qcode = mysql_real_escape_string($actcode, $db);
-    $result = mysql_query("select id, email, acctstatus from users
-        where activationcode = '$qcode'", $db);
+    $result = mysql_query("select id, email, acctstatus,
+            resetexpires > now() as unexpired
+        from users where activationcode = '$qcode'", $db);
     if (mysql_num_rows($result) == 0) {
         // the activation code doesn't exist
-        $errFlagged = "No matching account wasn't found in the user database.
-            Please check that you copied the link correctly from your password
-            reset email. If you've already reset your password through this
-            link, you must <a href=\"lostpass\">request another reset</a>
-            - the reset code is good for one use only.";
+        $errFlagged = "This password reset link isn't valid. Please check
+            that you copied the link correctly from your password reset
+            email. Reset links work only once, and if you requested more
+            than one reset, only the link in the most recent email works.
+            To get a new link, <a href=\"lostpass\">request another
+            reset</a>.";
+        $showForm = false;
+        return true;
+    }
+    if (!mysql_result($result, 0, "unexpired")) {
+        $errFlagged = "This password reset link has expired. Reset links
+            work for 24 hours. To get a new link,
+            <a href=\"lostpass\">request another reset</a>.";
+        $showForm = false;
         return true;
     }
 
@@ -50,6 +61,7 @@ function verify() {
     // check for review needed
     if ($acctstatus == 'R') {
         $errFlagged = "This account is still pending review.";
+        $showForm = false;
         return true;
     }
 
@@ -72,11 +84,12 @@ function verify() {
         $newcode = random_token();
         mysqli_execute_query($db,
             "update users set activationcode = ?
-             where id = ? and activationcode = ?",
+             where id = ? and activationcode = ? and resetexpires > now()",
             [$newcode, $usernum, $actcode]);
         if (mysqli_affected_rows($db) != 1) {
-            $errFlagged = "This password reset link has already been used.
+            $errFlagged = "This password reset link is no longer valid.
                 Please <a href=\"lostpass\">request another reset</a>.";
+            $showForm = false;
             return true;
         }
         $actcode = $newcode;
@@ -104,6 +117,9 @@ function verify() {
                 about it.";
             return true;
         }
+        mysqli_execute_query($db,
+            "update users set resetexpires = null
+             where id = ? and activationcode = ?", [$usernum, $actcode]);
 
         // all is well - start the page
         pageHeader("Password Reset");
@@ -159,7 +175,7 @@ shown in the email.
         exit();
 
     // start the page
-    pageHeader("resetpsw.userid");
+    pageHeader("Password Reset", $showForm ? "resetpsw.userid" : false);
 ?>
 
 <h1>Password Reset</h1>
@@ -174,6 +190,9 @@ shown in the email.
 
 <p><a href="lostpass">Click here to request a password reset</a>
 
+<?php
+    if ($showForm) {
+?>
 <p>To select a new password, enter your email address and the new
 password below.  You must enter your email address exactly as it's
 registered.  (You must enter the password twice, identically both
@@ -209,6 +228,7 @@ times, to confirm that you didn't make any mistakes typing it.)
    <input type=hidden name="a" id="a" value="<?php echo htmlspecialchars($actcode) ?>">
 
 <?php
+    }
    pageFooter();
 }
 ?>
