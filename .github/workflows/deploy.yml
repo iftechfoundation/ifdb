@@ -1,26 +1,68 @@
-# Deploys the commit that triggered the calling workflow to dev.ifdb.org, by
-# running deploy-ifdb on the server over SSH. Called by test-and-deploy.yml
-# after every push to main.
+# Deploys the commit that triggered the calling workflow, by running
+# deploy-ifdb on the server over SSH. Called by test-and-deploy.yml after
+# every push to main, and by deploy-prod.yml when run by hand.
 #
-# Repository setup: Settings > Environments > dev, limited to the main branch,
-# with secrets DEPLOY_SSH_KEY, DEPLOY_SSH_TARGET and DEPLOY_KNOWN_HOSTS.
+# Repository setup (Settings > Environments), each limited to the main branch:
 #
-# DEPLOY_SSH_TARGET is user@host, or ssh://user@host:port. The host is the
-# server's own IP address, which Cloudflare hides, so it's a secret: the logs
-# are public, and GitHub masks secrets in them but not vars. The server side is
-# deploy-ifdb-ci in ifdb-infra-initial.
+#   dev                 secrets DEPLOY_SSH_KEY, DEPLOY_SSH_TARGET and
+#                       DEPLOY_KNOWN_HOSTS
+#   production          the same, plus var SMOKE_URL (https://ifdb.org/)
+#   approve-production  no secrets; required reviewer. Production deploys
+#                       wait here when plan-deploy.sh says they need a person
+#                       to look first.
+#
+# DEPLOY_SSH_TARGET is user@host, or ssh://user@host:port. The hosts are the
+# servers' own IP addresses, which Cloudflare hides, so they're secrets: the
+# logs are public, and GitHub masks secrets in them but not vars. The server
+# side is deploy-ifdb-ci in ifdb-infra-initial.
 
 name: Deploy
 
 on:
   workflow_call:
+    inputs:
+      mode:
+        description: dev, prod-on-merge or prod-manual (see .github/scripts/plan-deploy.sh)
+        required: true
+        type: string
 
 jobs:
-  deploy:
+  plan:
     runs-on: ubuntu-latest
-    environment: dev
+    outputs:
+      deploy: ${{ steps.plan.outputs.deploy }}
+      needs-approval: ${{ steps.plan.outputs.needs-approval }}
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          # History and tags without file contents, to compare with the
+          # production tag.
+          fetch-depth: 0
+          filter: blob:none
+
+      - id: plan
+        env:
+          MODE: ${{ inputs.mode }}
+          GH_TOKEN: ${{ github.token }}
+        run: .github/scripts/plan-deploy.sh
+
+  approve:
+    needs: plan
+    if: needs.plan.outputs.needs-approval == 'true'
+    runs-on: ubuntu-latest
+    environment: approve-production
+    steps:
+      - run: echo "Approved"
+
+  deploy:
+    needs: [plan, approve]
+    if: >-
+      !cancelled() && needs.plan.outputs.deploy == 'true' &&
+      (needs.approve.result == 'success' || needs.approve.result == 'skipped')
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.mode == 'dev' && 'dev' || 'production' }}
     concurrency:
-      group: deploy-dev
+      group: ${{ inputs.mode == 'dev' && 'deploy-dev' || 'deploy-production' }}
       cancel-in-progress: false
     steps:
       - name: Deploy ${{ github.sha }}
@@ -40,3 +82,21 @@ jobs:
           # deploy-ifdb-ci on the server reads the SHA from the command line.
           ssh -i ~/.ssh/deploy_key -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes \
             "$SSH_TARGET" "$GITHUB_SHA"
+
+      - name: Move the production tag
+        if: inputs.mode != 'dev'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh api -X PATCH "repos/$GITHUB_REPOSITORY/git/refs/tags/production" \
+              -f sha="$GITHUB_SHA" -F force=true \
+            || gh api -X POST "repos/$GITHUB_REPOSITORY/git/refs" \
+              -f ref=refs/tags/production -f sha="$GITHUB_SHA"
+
+      - name: Check the site
+        if: vars.SMOKE_URL != ''
+        env:
+          SMOKE_URL: ${{ vars.SMOKE_URL }}
+        run: |
+          curl -fsS --retry 3 --retry-delay 5 -o home.html "$SMOKE_URL"
+          grep -q 'Welcome to IFDB' home.html
