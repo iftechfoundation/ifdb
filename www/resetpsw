@@ -105,6 +105,9 @@ function verify() {
             return true;
         }
 
+        throttle_clear($db, 'login', $usernum);
+        throttle_clear($db, 'email', $usernum);
+
         // all is well - start the page
         pageHeader("Password Reset");
 ?>

@@ -2490,6 +2490,108 @@ function close_user_acct($db, $uid, $stat, &$progress)
 
 // ------------------------------------------------------------------------
 //
+// Throttling for failed password checks ('login') and for account
+// emails ('email')
+//
+define("LOGIN_THROTTLE_MINUTES", 15);
+define("LOGIN_FAILURES_PER_ACCOUNT", 10);
+define("LOGIN_FAILURES_PER_IP", 50);
+define("ACCOUNT_EMAILS_PER_DAY", 12);
+define("ACCOUNT_EMAILS_PER_IP_PER_HOUR", 20);
+
+function throttle_record($db, $action, $userid = null)
+{
+    mysqli_execute_query($db,
+        "delete from throttle where `when` < date_sub(now(), interval 1 day)");
+    mysqli_execute_query($db,
+        "insert into throttle (action, ip, userid, `when`)
+         values (?, ?, ?, now())",
+        [$action, $_SERVER['REMOTE_ADDR'], $userid]);
+}
+
+// Clears the account's count but keeps the per-IP history
+function throttle_clear($db, $action, $userid)
+{
+    mysqli_execute_query($db,
+        "update throttle set userid = null where action = ? and userid = ?",
+        [$action, $userid]);
+}
+
+function login_throttled($db, $userid)
+{
+    $result = mysqli_execute_query($db,
+        "select ifnull(sum(userid = ?), 0), ifnull(sum(ip = ?), 0)
+         from throttle
+         where action = 'login'
+           and `when` > date_sub(now(), interval "
+           . LOGIN_THROTTLE_MINUTES . " minute)",
+        [$userid, $_SERVER['REMOTE_ADDR']]);
+    [$byUser, $byIp] = mysql_fetch_row($result);
+    return $byUser >= LOGIN_FAILURES_PER_ACCOUNT
+        || $byIp >= LOGIN_FAILURES_PER_IP;
+}
+
+function login_throttled_message()
+{
+    return "There have been too many failed password attempts. "
+        . "Please wait "
+        . LOGIN_THROTTLE_MINUTES . " minutes and try again, or "
+        . "<a href=\"lostpass\">reset your password</a>.";
+}
+
+// Minutes to wait before sending another account email to this user.
+// Each email in the last day doubles the wait.
+function account_email_wait($db, $userid)
+{
+    $result = mysqli_execute_query($db,
+        "select count(*),
+           timestampdiff(second, now(), max(`when`)),
+           timestampdiff(second, now(), date_add(min(`when`), interval 1 day))
+         from throttle
+         where action = 'email' and userid = ?
+           and `when` > date_sub(now(), interval 1 day)", [$userid]);
+    [$n, $untilLast, $untilFirstExpires] = mysql_fetch_row($result);
+    if ($n >= ACCOUNT_EMAILS_PER_DAY)
+        $wait = $untilFirstExpires;
+    else if ($n > 0)
+        $wait = $untilLast + 60 * 2 ** ($n - 1);
+    else
+        $wait = 0;
+
+    $result = mysqli_execute_query($db,
+        "select count(*), timestampdiff(second, now(),
+           date_add(min(`when`), interval 1 hour))
+         from throttle
+         where action = 'email' and ip = ?
+           and `when` > date_sub(now(), interval 1 hour)",
+        [$_SERVER['REMOTE_ADDR']]);
+    [$byIp, $untilIpExpires] = mysql_fetch_row($result);
+    if ($byIp >= ACCOUNT_EMAILS_PER_IP_PER_HOUR)
+        $wait = max($wait, $untilIpExpires);
+
+    return max(0, (int)ceil($wait / 60));
+}
+
+function throttle_lock($db, $name)
+{
+    $result = mysqli_execute_query($db, "select get_lock(?, 10)", [$name]);
+    return mysql_fetch_row($result)[0] == 1;
+}
+
+function throttle_account_email($db, $userid)
+{
+    if (!throttle_lock($db, 'throttle_email'))
+        return 1;
+    $wait = account_email_wait($db, $userid);
+    if (!$wait)
+        throttle_record($db, 'email', $userid);
+    mysqli_execute_query($db, "select release_lock('throttle_email')");
+    return $wait;
+}
+
+
+// ------------------------------------------------------------------------
+//
 // Simple http_get.  The timeout is specified in milliseconds.  On return,
 // $timeout is set to true if we in fact timed out, false if not.
 //
