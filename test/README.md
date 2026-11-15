@@ -4,7 +4,7 @@ These tests drive the local IFDB over HTTP with [Hurl](https://hurl.dev)
 
 ## Setup
 
-Requires Docker. Start IFDB locally (`docker compose up` → http://localhost:8080). Hurl runs from its official Docker image.
+Requires Docker. Start IFDB locally (`docker compose up` → http://localhost:8080). Hurl runs from its official Docker image and targets the `web` container of this checkout's Compose project, so that must be running.
 
 ## Running
 

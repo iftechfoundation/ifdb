@@ -14,8 +14,24 @@ import { fileURLToPath } from 'node:url';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const HTTP_DIR = __dirname;
-const BASE_URL = 'http://host.docker.internal:8080';
+const REPO_ROOT = join(__dirname, '..', '..');
+const BASE_URL = `http://host.docker.internal:${webPort()}`;
 const HURL_IMAGE = 'ghcr.io/orange-opensource/hurl:8.1.0';
+
+function webPort() {
+  const result = spawnSync('docker', ['compose', 'port', 'web', '80'], {
+    cwd: REPO_ROOT,
+    encoding: 'utf8',
+  });
+  const match = result.status === 0 && result.stdout.trim().match(/:(\d+)$/);
+  if (!match) {
+    console.error(
+      `Couldn't find the web container for ${REPO_ROOT}; start it with docker compose up.`,
+    );
+    process.exit(1);
+  }
+  return match[1];
+}
 
 const work = mkdtempSync(join(tmpdir(), 'ifdb-hurl-'));
 const varsFile = join(work, 'vars.env');
