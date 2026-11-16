@@ -6,6 +6,8 @@ if (isset($_REQUEST['cleanpix'])) {
         . "<input type=hidden name=cleanpix value=1>";
 
     $ignoreVsnNull = !isset($_REQUEST['showVsnNull']);
+    $fixEmpties = isset($_POST['fixempties']);
+    $deleting = isset($_POST['delete']);
     $vsnNullCnt = 0;
     $missingImageCnt = 0;
 
@@ -37,7 +39,7 @@ if (isset($_REQUEST['cleanpix'])) {
                 . "$id</a> ";
 
             $fld = "missing-game-$id";
-            if (isset($_REQUEST['fixempties'])
+            if ($fixEmpties
                 && isset($_REQUEST[$fld])
                 && ($newpix = $_REQUEST[$fld]) != ""
                 && (strcasecmp($newpix, "none") == 0 || isset($pix[$newpix])))
@@ -99,7 +101,7 @@ if (isset($_REQUEST['cleanpix'])) {
                 . "id=$id&version=$vsn\">$title ($id) v.$vsn</a> ";
 
             $fld = "empty-$id-$vsn";
-            if (isset($_REQUEST['fixempties'])
+            if ($fixEmpties
                 && isset($_REQUEST[$fld])
                 && ($newpix = $_REQUEST[$fld]) != ""
                 && (strcasecmp($newpix, "none") == 0 || isset($pix[$newpix])))
@@ -161,7 +163,7 @@ if (isset($_REQUEST['cleanpix'])) {
                 . "unreferenced image <a href=\"adminops?showimage=$id\">"
                 . "$id</a><br clear=all>";
 
-            if (isset($_REQUEST['delete'])) {
+            if ($deleting) {
                 if (delete_image($id))
                     echo " - deleted";
                 else
@@ -176,12 +178,9 @@ if (isset($_REQUEST['cleanpix'])) {
     if ($missingImageCnt)
         echo "<br>(Enter NONE to set a missing image link to no image.)";
 
-    if (!isset($_REQUEST['delete']) && $cnt != 0) {
-        echo "<br><a href=\"adminops?cleanpix&delete\">Delete all "
-            . "unreferenced images</a>";
-    } else {
+    $showDelete = !$deleting && $cnt != 0;
+    if (!$showDelete)
         echo "<br><br><br>No unreferenced images found.";
-    }
 
     if ($ignoreVsnNull)
         echo "<br><a href=\"adminops?cleanpix&showVsnNull\">Show "
@@ -191,6 +190,13 @@ if (isset($_REQUEST['cleanpix'])) {
         echo "<p><input type=submit name=fixempties value=\"Apply Updates\">";
 
     echo "</form>";
+
+    if ($showDelete)
+        echo "<form method=post action=\"adminops\">"
+            . "<input type=hidden name=cleanpix value=1>"
+            . "<input type=hidden name=delete value=1>"
+            . "<p><button type=submit>Delete all unreferenced images</button>"
+            . "</form>";
     echo "<p><hr class=dots><br><br>";
 
 
@@ -235,7 +241,7 @@ if (isset($_REQUEST['cleanpix'])) {
 
         echo "</table>";
 
-        if (isset($_REQUEST['delete'])) {
+        if (isset($_POST['delete'])) {
             $result = mysql_query(
                 "delete from persistentsessions
                  where lastlogin <= date_sub(now(), interval $limit day)",
@@ -252,13 +258,40 @@ if (isset($_REQUEST['cleanpix'])) {
 
         } else {
 
-            echo "<p><a href=\"adminops?reaper=$limit&delete\">"
-                . "Delete these sessions</a>";
+            echo "<form method=post action=\"adminops\">"
+                . "<input type=hidden name=reaper value=$limit>"
+                . "<input type=hidden name=delete value=1>"
+                . "<p><button type=submit>Delete these sessions</button>"
+                . "</form>";
 
         }
 
         echo "<br><br><hr class=dots><br><br>";
     }
+
+} else if ($_SERVER['REQUEST_METHOD'] != 'POST'
+           && (isset($_REQUEST['fixsortkeys'])
+               || isset($_REQUEST['rebuildgametags']))) {
+
+    if (isset($_REQUEST['rebuildgametags'])) {
+        $op = "rebuildgametags";
+        $title = "Rebuild GAMES.TAGS from GAMETAGS contents";
+    } else if (isset($_REQUEST['rebuild'])) {
+        $op = "fixsortkeys";
+        $title = "Rebuild ALL author/title sort keys in GAMES table";
+    } else {
+        $op = "fixsortkeys";
+        $title = "Fix NULL author/title sort keys in GAMES table";
+    }
+
+    echo "<h1>$title</h1>"
+        . "<form method=post action=\"adminops\">"
+        . "<input type=hidden name=$op value=1>"
+        . (isset($_REQUEST['rebuild'])
+           ? "<input type=hidden name=rebuild value=1>" : "")
+        . "<button type=submit>Run</button>"
+        . "</form>"
+        . "<br><br><hr class=dots><br><br>";
 
 } else if (isset($_REQUEST['fixsortkeys'])) {
 
@@ -405,7 +438,7 @@ if (isset($_REQUEST['cleanpix'])) {
            and reviews.review like '%<%'", $db);
 
     // note if we're in APPLY mode
-    $applyMode = isset($_REQUEST['apply']);
+    $applyMode = isset($_POST['apply']);
 
     // allowed tags - we keep these tags without modification
     $allowedTags = valuesToKeys(
@@ -600,7 +633,11 @@ if (isset($_REQUEST['cleanpix'])) {
     if ($updateCount == 0)
         echo "<p><b>No errors were found - no rows need to be updated</b>";
     else if (!$applyMode)
-        echo "<p><b><a href=\"adminops?fixbafs&apply\">Apply these updates</a><p>";
+        echo "<form method=post action=\"adminops\">"
+            . "<input type=hidden name=fixbafs value=1>"
+            . "<input type=hidden name=apply value=1>"
+            . "<p><button type=submit><b>Apply these updates</b></button>"
+            . "</form>";
 
 
 } else if (isset($_REQUEST['filters'])) {
