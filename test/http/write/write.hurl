@@ -131,7 +131,14 @@ poll_id: regex "poll\\?id=([a-z0-9]+)"
 xpath "normalize-space(//h1)" == "New poll created!"
 
 # --- Poll vote ---
-GET {{base_url}}/poll?submitVote&id={{poll_id}}&gameID={{game_id}}&quickQuote=Great&voteDesc=Hurl%20smoke%20vote
+POST {{base_url}}/poll
+Content-Type: application/x-www-form-urlencoded
+[FormParams]
+id: {{poll_id}}
+gameID: {{game_id}}
+submitVote: 1
+quickQuote: Great
+voteDesc: Hurl smoke vote
 HTTP 200
 [Asserts]
 body contains "Thanks for voting!"

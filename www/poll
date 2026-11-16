@@ -60,7 +60,7 @@ if ($userid && isset($_REQUEST['delPoll'])) {
             pageHeader("Delete Poll");
 
             // check for confirmation
-            if (get_req_data('confirm') == $id) {
+            if (($_POST['confirm'] ?? '') == $id) {
 
                 // lock the related tables
                 $progress = "LKT6101";
@@ -135,8 +135,12 @@ if ($userid && isset($_REQUEST['delPoll'])) {
                 . "Poll: <b>$title</b><br>"
                 . "Details: $desc</br>"
                 . "</div>"
-                . "<p><a href=\"poll?id=$id&delPoll&confirm=$id\">"
-                . "Permanently delete this poll</a>"
+                . "<form method=\"post\" action=\"poll\"><p>"
+                . "<input type=hidden name=id value=\"$id\">"
+                . "<input type=hidden name=delPoll value=1>"
+                . "<input type=hidden name=confirm value=\"$id\">"
+                . "<button type=submit>Permanently delete this poll</button>"
+                . "</form>"
                 . "<p><a href=\"poll?id=$id\">Return the poll page</a> "
                 . "(without deleting anything)";
 
@@ -163,7 +167,7 @@ if ($userid && isset($_REQUEST['editPoll'])) {
         if ($authid == $userid) {
 
             // if this is a Save Changes request, apply the changes
-            if (isset($_REQUEST['editPollGo'])) {
+            if (isset($_POST['editPollGo'])) {
                 // get the updates from the request
                 $title = get_req_data('title');
                 $keywords = get_req_data('keywords');
@@ -260,7 +264,7 @@ $newTitle = false;
 $newKeywords = false;
 $newDesc = false;
 $newErrMsg = false;
-if (isset($_REQUEST['newPollGo'])) {
+if (isset($_POST['newPollGo'])) {
 
     // get the fields
     $newTitle = trim(get_req_data('title'));
@@ -376,7 +380,7 @@ function prependPlus($str) { return "+" . $str; }
 // check for a final vote form submission
 $voteQuote = false;
 $voteDesc = false;
-if ($userid && $id && isset($_REQUEST['submitVote'])) {
+if ($userid && $id && isset($_POST['submitVote'])) {
 
     // final submission form
 
@@ -511,7 +515,7 @@ if ($userid && $id && isset($_REQUEST['delVote'])) {
     }
 
     // if this is a confirmation request, delete the row, otherwise prompt
-    if (!$formErrMsg && get_req_data('confirm') == $gameID) {
+    if (!$formErrMsg && ($_POST['confirm'] ?? '') == $gameID) {
 
         $result = mysql_query(
             "delete from pollvotes
@@ -543,10 +547,14 @@ if ($userid && $id && isset($_REQUEST['delVote'])) {
                 . "<p>"
                 . "Quick quote: \"$quickQuote\"<br>"
                 . "$notes"
-                . "</div><p>"
-                . "<a href=\"poll?id=$id&delVote=$gameID&confirm=$gameID\">"
-                . "<b>Yes</b>, really delete my vote</a>"
-                . "<a href=\"poll?id=$id\"><br>"
+                . "</div>"
+                . "<form method=\"post\" action=\"poll\"><p>"
+                . "<input type=hidden name=id value=\"$id\">"
+                . "<input type=hidden name=delVote value=\"$gameID\">"
+                . "<input type=hidden name=confirm value=\"$gameID\">"
+                . "<button type=submit><b>Yes</b>, really delete my vote</button>"
+                . "</form>"
+                . "<p><a href=\"poll?id=$id\">"
                 . "<b>No</b>, keep my vote and return to the poll page</a>";
         }
 
@@ -740,11 +748,15 @@ if ($userid && $id && isset($_REQUEST['addVote'])) {
         for ($i = 0 ; $i < count($matches) ; $i++) {
             $match = $matches[$i];
             if ($anonymous) {
-                echo "<p><a href=\"poll?submitVote&id=$id&gameID={$match['id']}&quickQuote=&voteDesc=\">"
-                    . "Vote anonymously</a> =&gt; "
+                echo "<form method=\"post\" action=\"poll\"><p>"
+                    . "<input type=hidden name=id value=\"$id\">"
+                    . "<input type=hidden name=gameID value=\"{$match['id']}\">"
+                    . "<input type=hidden name=submitVote value=1>"
+                    . "<button type=submit>Vote anonymously</button> =&gt; "
                     . "<a href=\"viewgame?id={$match['id']}\" "
                     . "target=\"_blank\">" . htmlspecialcharx($match['title'])
-                    . "</a>, by " . htmlspecialcharx($match['author']);
+                    . "</a>, by " . htmlspecialcharx($match['author'])
+                    . "</form>";
             } else {
                 echo "<p><a href=\"poll?addVote&id=$id&game={$match['id']}\">"
                     . "Vote</a> =&gt; "
@@ -814,7 +826,7 @@ if ($userid && isset($_REQUEST['comment'])) {
         if ($authid == $userid) {
 
             // check for a submission
-            if (isset($_REQUEST['commentSave'])) {
+            if (isset($_POST['commentSave'])) {
 
                 // use the updated comment from the request
                 $comment = get_req_data('commentText');
@@ -1229,6 +1241,7 @@ function expandVote(id)
 
         // display the list
         $curGameID = '[start]';
+        $voteForms = "";
         for ($i = 0 ; ; $i++) {
             if ($i < $cnt) {
                 // fetch the next row
@@ -1316,11 +1329,16 @@ function expandVote(id)
                         }
                     } else if (!$locked) {
                         if ($anonymous) {
-                            $aVote = "<a href=\"poll?id=$id&submitVote"
-                                 . "&gameID=$prvGameID&quickQuote=&voteDesc=\">";
-                            echo " $aVote<img class=\"vote-checkmark\" "
+                            $voteForms .= "<form id=\"vote-$prvGameID\" "
+                                . "method=\"post\" action=\"poll\">"
+                                . "<input type=hidden name=id value=\"$id\">"
+                                . "<input type=hidden name=gameID value=\"$prvGameID\">"
+                                . "<input type=hidden name=submitVote value=1>"
+                                . "</form>";
+                            echo " <button type=submit form=\"vote-$prvGameID\">"
+                                . "<img class=\"vote-checkmark\" "
                                 . "border=0 src=\"img/blank.gif\" alt=\"\">"
-                                . "Vote for this game anonymously</a>";
+                                . "Vote for this game anonymously</button>";
                         } else {
                             $aVote = "<a href=\"poll?id=$id&addVote"
                                 . "&game=$prvGameID\">";
@@ -1340,7 +1358,7 @@ function expandVote(id)
                 // if we've reached the last row, we're done
                 if ($i >= $cnt) {
                     // end the table
-                    echo "</table></div>";
+                    echo "</table></div>$voteForms";
 
                     // terminate the loop
                     break;
