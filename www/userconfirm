@@ -161,13 +161,12 @@ function verify() {
         if ($reqEmail)
         {
             // look up the account information
-            $email = $reqEmail;
-            $qemail = mysql_real_escape_string($reqEmail, $db);
-            $result = mysql_query(
-                "select acctstatus from users where email = '$qemail'", $db);
+            $result = mysqli_execute_query($db,
+                "select acctstatus, email from users where email = ?",
+                [$reqEmail]);
             if ($result)
             {
-                [$stat] = mysql_fetch_row($result);
+                [$stat, $email] = mysql_fetch_row($result);
                 if ($stat == 'A')
                 {
                     // the account is already active - report success
@@ -367,12 +366,12 @@ your account has not yet been activated due to the following error:
 <h1>Account Activated</h1>
 
 <p>Your new user account has been successfully activated!  You can now
-<a href="login?userid=<?php echo $email ?>">log in</a> using your email
+<a href="login?userid=<?php echo htmlspecialchars(urlencode($email)) ?>">log in</a> using your email
 address to access our members-only features.
 
 <p>Now that you've established your new account, you might want to
 take a few moments to
-<a href="login?userid=<?php echo $email ?>&dest=editprofile">fill in your
+<a href="login?userid=<?php echo htmlspecialchars(urlencode($email)) ?>&dest=editprofile">fill in your
 profile</a>.
 
 <?php
