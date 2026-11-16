@@ -347,7 +347,7 @@ function echoStylesheetLink()
 
     // check for a temporary CSS override
     if ($cssOverride) {
-        $ssid = $cssOverride;
+        $ssid = (int)$cssOverride;
         $result = mysqli_execute_query($db,
             "select userid, dark, modified from stylesheets
              where stylesheetid = ?", [$ssid]);
@@ -563,6 +563,7 @@ function makePageControl($baseUrl, $curPage, $lastPage,
                          $firstItemOnPage, $lastItemOnPage, $totalItems,
                          $showPageList, $showAllButton, $showingAll)
 {
+    $baseUrl = htmlspecialchars($baseUrl);
     $p = "";
 
     // if we're currently showing all items, set up a control to revert
@@ -2875,7 +2876,7 @@ function coverArtThumbnail($id, $size, $version, $params = "") {
     $x2 = $size * 2;
     $x3 = $size * 3;
     if ($version) {
-        $params .= "&version=$version";
+        $params .= "&version=" . (int)$version;
     }
     global $nonce;
     return "<style nonce='$nonce'>.coverart__img { max-width: 35vw; height: auto; }</style>"

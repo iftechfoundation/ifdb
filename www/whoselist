@@ -100,7 +100,9 @@ if ($errMsg) {
         $lastOnPage = $cnt - 1;
 
     // determine the sorting order
-    $ord = isset($sortList[$sortReq]) ? $sortList[$sortReq] : $sortList['nam'];
+    if (!is_string($sortReq) || !isset($sortList[$sortReq]))
+        $sortReq = 'nam';
+    $ord = $sortList[$sortReq];
 
     // query the reviews
     $sql = "select

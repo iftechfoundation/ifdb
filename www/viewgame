@@ -53,7 +53,7 @@ $ie6 = preg_match("/; msie 6\./i", $userAgent);
 $zwsp = ($ie6 ? "&shy;" : "&#8203;");
 
 if (isset($_REQUEST['cssOverride']))
-    $cssOverride = get_req_data('cssOverride');
+    $cssOverride = (int)get_req_data('cssOverride');
 
 // connect to the database
 include_once "dbconnect.php";
@@ -413,7 +413,7 @@ function checkRedirect($id)
         foreach ($_GET as $key => $val) {
             if (strcasecmp($key, "id") != 0) {
                 $val = urlencode(get_req_data($key));
-                $redir .= "&$key" . ($val ? "=$val" : "");
+                $redir .= "&" . urlencode($key) . ($val ? "=$val" : "");
             }
         }
 
@@ -423,7 +423,7 @@ function checkRedirect($id)
 
         echo "The listing you requested was a duplicate. Your browser should "
             . "automatically take you to the original in a moment. "
-            . "(<a href=\"$redir\">Click here</a> if your "
+            . "(<a href=\"" . htmlspecialchars($redir) . "\">Click here</a> if your "
             . "browser doesn't load the new page automatically.)";
 
         exit();
@@ -929,14 +929,17 @@ echo helpWinLink("help-ifid", "IFID");
          <section id="viewgame__header">
                <?php
 if ($hasart) {
-    $arthref = "{$_SERVER['PHP_SELF']}?coverart&id=$id";
-    if (isset($_REQUEST['version']))
-        $arthref .= "&version=" . $_REQUEST['version'];
+    $arthref = "/viewgame?coverart&id=$id";
+    $artVersion = $pagevsn;
+    if (isset($_REQUEST['version'])) {
+        $artVersion = (int)$_REQUEST['version'];
+        $arthref .= "&version=$artVersion";
+    }
                ?>
            <div class=coverart>
 
               <a href="<?php echo $arthref ?>&ldesc">
-                 <?php echo coverArtThumbnail($id, 175, isset($_REQUEST['version']) ? $_REQUEST['version'] : $pagevsn); ?>
+                 <?php echo coverArtThumbnail($id, 175, $artVersion); ?>
               </a>
            </div>
                <?php
@@ -2036,8 +2039,9 @@ if ($embargoCnt > 0)
 
         // build the query that gives us the right sorting order
         $sortReq = get_req_data('sortby');
-        $orderBy = isset($orderByMap[$sortReq])
-                   ? $orderByMap[$sortReq][0] : "publicationdate desc";
+        if (!is_string($sortReq) || !isset($orderByMap[$sortReq]))
+            $sortReq = 'new';
+        $orderBy = $orderByMap[$sortReq][0];
 
         // if it's a helpfulness query, apply the user filter ordering
         if ($sortReq == 'hlp')
