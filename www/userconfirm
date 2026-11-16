@@ -12,6 +12,7 @@ pageHeader("New Account Activation");
 // read the activation code
 $errFlagged = false;
 $altMsg = false;
+$confirmNeeded = false;
 $actcode = get_req_data('a');
 $reqsalt = get_req_data('s');
 $action = get_req_data('c');
@@ -25,7 +26,8 @@ $reqEmail = get_req_data("email");
 // verifier function
 function verify() {
     global $actcode, $errFlagged, $altMsg, $reqsalt, $action,
-           $nonce, $reviewProfile, $usernum, $reqEmail, $email, $db;
+           $nonce, $reviewProfile, $usernum, $reqEmail, $email, $db,
+           $confirmNeeded;
 
     // connect to the database
     if ($db == false) {
@@ -159,13 +161,12 @@ function verify() {
         if ($reqEmail)
         {
             // look up the account information
-            $email = $reqEmail;
-            $qemail = mysql_real_escape_string($reqEmail, $db);
-            $result = mysql_query(
-                "select acctstatus from users where email = '$qemail'", $db);
+            $result = mysqli_execute_query($db,
+                "select acctstatus, email from users where email = ?",
+                [$reqEmail]);
             if ($result)
             {
-                [$stat] = mysql_fetch_row($result);
+                [$stat, $email] = mysql_fetch_row($result);
                 if ($stat == 'A')
                 {
                     // the account is already active - report success
@@ -188,6 +189,10 @@ function verify() {
         $dbsalt = mysql_result($result, 0, "pswsalt");
         $email = mysql_result($result, 0, "email");
         if (!$reqsalt && ($stat == 'A' || $stat == 'D')) {
+            if ($_SERVER['REQUEST_METHOD'] != 'POST') {
+                $confirmNeeded = true;
+                return;
+            }
 
             // activation codes are single-use, so scramble it
             $newcode = sha1(md5_rand($usernum));
@@ -342,18 +347,33 @@ your account has not yet been activated due to the following error:
 
 
 <?php
+    } else if ($confirmNeeded) {
+?>
+
+<h1>Activate Your Account</h1>
+
+<p>To finish activating the IFDB account for
+<b><?php echo htmlspecialchars($email) ?></b>, click the button below.
+
+<form method="post" action="userconfirm">
+   <input type="hidden" name="a" value="<?php echo htmlspecialchars($actcode) ?>">
+   <input type="hidden" name="email" value="<?php echo htmlspecialchars($email) ?>">
+   <input type="submit" value="Activate Account">
+</form>
+
+<?php
     } else {
 ?>
 
 <h1>Account Activated</h1>
 
 <p>Your new user account has been successfully activated!  You can now
-<a href="login?userid=<?php echo $email ?>">log in</a> using your email
+<a href="login?userid=<?php echo htmlspecialchars(urlencode($email)) ?>">log in</a> using your email
 address to access our members-only features.
 
 <p>Now that you've established your new account, you might want to
 take a few moments to
-<a href="login?userid=<?php echo $email ?>&dest=editprofile">fill in your
+<a href="login?userid=<?php echo htmlspecialchars(urlencode($email)) ?>&dest=editprofile">fill in your
 profile</a>.
 
 <?php
