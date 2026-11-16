@@ -20,7 +20,7 @@ if (!provisionally_logged_in() && !logged_in(true))
     exit();
 
 // check for a copyright status update
-if (isset($_REQUEST['setCopyright']))
+if (isset($_POST['setCopyright']))
 {
     // get the request parameters
     $id = get_req_data('imageID');
