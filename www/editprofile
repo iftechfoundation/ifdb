@@ -123,6 +123,16 @@ function dbEscape($str)
         return "'" . mysql_real_escape_string($str, $db) . "'";
 }
 
+function currentPasswordMatches($psw)
+{
+    global $db, $usernum;
+
+    $result = mysqli_execute_query($db,
+        "select password, pswsalt from users where id = ?", [$usernum]);
+    $row = mysql_fetch_row($result);
+    return $row && hash_equals($row[0], sha1($row[1] . $psw));
+}
+
 // initialize
 function init()
 {
@@ -490,12 +500,24 @@ function saveChanges()
         }
 
         // if they're changing the email address, verify that they're
-        // serious
-        if ($emailChanged && !isset($_REQUEST['confirmEmailChange'])) {
+        // serious, and that they know the current password
+        $pswErr = false;
+        if ($emailChanged && isset($_REQUEST['confirmEmailChange'])
+            && !currentPasswordMatches($_POST['curpsw'] ?? '')) {
+            $pswErr = "The password you entered doesn't match your
+                current password.";
+        }
+        if ($emailChanged
+            && (!isset($_REQUEST['confirmEmailChange']) || $pswErr)) {
             // we haven't asked for confirmation yet - display
             pageHeader("Confirm Email Change");
 ?>
 <h1>Confirm E-mail Change</h1>
+
+<?php
+    if ($pswErr)
+        echo "<p><span class=errmsg>$pswErr</span>";
+?>
 
 <p>You have entered a new email address: "<?php
     echo htmlspecialcharx($email) ?>"
@@ -510,6 +532,10 @@ complete the re-activation process.</b>
 
 <p>
 <form method="post" action="editprofile" name="confirmEmail">
+   <p><label for="curpsw">To confirm, enter your current password:</label>
+   <br><input type="password" name="curpsw" id="curpsw" size=30
+              autocomplete="current-password">
+   <p>
    <input type=submit name="confirmEmailChange" value=" Proceed ">
    &nbsp;&nbsp;&nbsp;
    <input type=submit name="cancelEmailChange" value=" Cancel ">
