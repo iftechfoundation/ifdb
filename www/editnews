@@ -36,10 +36,11 @@ $created = false;
 $modified = false;
 $authorID = $curuser;
 
-$publish = isset($_REQUEST['publish']);
+$isPost = $_SERVER['REQUEST_METHOD'] == 'POST';
+$publish = $isPost && isset($_POST['publish']);
 $preview = isset($_REQUEST['preview']);
 $delete = $newsID && isset($_REQUEST['delete']);
-$deleteConfirm = $newsID && get_req_data('delete') == "Y$sourceID";
+$deleteConfirm = $isPost && $newsID && ($_POST['delete'] ?? '') === "Y$sourceID";
 
 // note whether we're submitting a form
 $submit = ($publish || $preview);
@@ -351,8 +352,6 @@ if ($reinstateID && !$errMsg && !$submit) {
 if ($srcpage)
     $hrefCancel = $srcpage;
 
-$srcpageUrl = urlencode($srcpage);
-
 // if we've already failed, show an error page and give up
 if ($errMsg) {
     pageHeader("$Mode News Item");
@@ -408,10 +407,11 @@ if ($delete && $deleteConfirm) {
         . "reinstated later if necessary).  The deletion will be "
         . "logged under your user ID."
         . "<p>Are you sure you want to delete this item?"
-        . "<p><a href=\"editnews?newsid=$newsID"
-        . "&type=$sourceType&source=$sourceID"
-        . "&delete=Y$sourceID&xactid=$xactid&srcpage=$srcpageUrl\">"
-        . "Yes, delete it</a><br>"
+        . "<form method=\"post\" action=\"editnews\">"
+        . hiddenFields(false)
+        . "<input type=\"hidden\" name=\"delete\" value=\""
+        . htmlspecialcharx("Y$sourceID") . "\">"
+        . "<p><button>Yes, delete it</button></form>"
         . "<p><a href=\"$hrefCancel\">No, keep it</a>";
 
     pageFooter();
