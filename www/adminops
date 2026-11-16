@@ -1377,7 +1377,7 @@ else if (isset($_REQUEST['users'])) {
     $privNames = implode(", ", $priv);
 
     // check if we're logging in as the user
-    if (isset($_REQUEST['su'])) {
+    if (isset($_POST['su'])) {
         $_SESSION['logged_in_as'] = $quid;
         shoot_recommendation_cache();
         echo "<p><span class=success>setuser successful</span><p>";
@@ -1498,11 +1498,15 @@ else if (isset($_REQUEST['users'])) {
     }
     echo "</div>";
 
-    echo "<p><a href=\"adminops?user=$uid&su\">Log in as $name</a>";
+    echo "<p><button type=submit form=\"useradmin-su\">Log in as $name</button>";
 
     echo "<p><input type=\"submit\" name=\"apply\" value=\"Apply\">"
         . "</form>"
-        . $adminForms;
+        . $adminForms
+        . "<form id=\"useradmin-su\" method=\"post\" action=\"adminops\">"
+        . "<input type=hidden name=user value=\"" . htmlspecialcharx($uid) . "\">"
+        . "<input type=hidden name=su value=1>"
+        . "</form>";
 
     global $nonce;
     echo "<style nonce='$nonce'>\n"
