@@ -46,22 +46,6 @@ function verify() {
     $dbemail = mysql_result($result, 0, "email");
     $acctstatus = mysql_result($result, 0, "acctstatus");
 
-    // check for activation
-    if ($acctstatus == 'D') {
-        // activate now
-        if (mysql_query("update users set acctstatus = 'A'
-                where id = '$usernum'", $db) == false) {
-            $errFlagged = "An error occurred updating the user database to
-                activate your account. Please try again. If the problem
-                persists, please <a href='/contact'>contact us</a> to
-                let us know about the problem.";
-            return true;
-        }
-
-        // note that we activated
-        $activated = true;
-    }
-
     // check for review needed
     if ($acctstatus == 'R') {
         $errFlagged = "This account is still pending review.";
@@ -69,7 +53,8 @@ function verify() {
     }
 
     // check for updates
-    if (strlen($email) != 0 || strlen($psw) != 0 || strlen($psw2) != 0) {
+    if ($_SERVER['REQUEST_METHOD'] == 'POST'
+        && (strlen($email) != 0 || strlen($psw) != 0 || strlen($psw2) != 0)) {
         // validate the user ID
         if (strcasecmp($email, $dbemail) != 0) {
             $errFlagged = "Incorrect email address - you must enter your
@@ -93,6 +78,22 @@ function verify() {
                 <b>identical</b> password two times to ensure that you
                 didn't make any mistakes typing it.";
             return true;
+        }
+
+        // check for activation
+        if ($acctstatus == 'D') {
+            // activate now
+            if (mysql_query("update users set acctstatus = 'A'
+                    where id = '$usernum'", $db) == false) {
+                $errFlagged = "An error occurred updating the user database to
+                    activate your account. Please try again. If the problem
+                    persists, please <a href='/contact'>contact us</a> to
+                    let us know about the problem.";
+                return true;
+            }
+
+            // note that we activated
+            $activated = true;
         }
 
         // looks good - make the updates; first, calculate the hashed password
@@ -120,6 +121,11 @@ function verify() {
 <h1>Password Changed</h1>
 
 <p>Your new password is now in effect. Please make a note of it.
+
+<?php
+        if ($activated)
+            echo "<p>Your new account has also been activated.";
+?>
 
 <p><a href="login">Click here</a> to log in.
 
@@ -170,12 +176,6 @@ shown in the email.
 <?php
     if ($errFlagged) {
         echo "<p><font color=red><b>Error:</b> $errFlagged</font>";
-    }
-
-    if ($activated) {
-        echo "<p><b>Note: Successful Activation!</b> Your new account has ";
-        echo "now been activated. If you also want to change your password, ";
-        echo "you can do so using the form below.";
     }
 ?>
 
