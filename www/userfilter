@@ -19,7 +19,7 @@ $db = dbConnect();
 // get the parameters
 $targetUser = get_req_data('user');
 $action = get_req_data('action');
-$confirm = get_req_data('confirm');
+$confirm = $_POST['confirm'] ?? '';
 $srcpage = get_req_data('src');
 $showList = isset($_REQUEST['list']);
 
@@ -195,9 +195,13 @@ if ($err) {
     }
 
     echo "<p>Do you really want to apply this change?"
-        . "<p><a href=\"userfilter?user=$targetUser&action=$action&confirm=Y"
-        . "&src=$srcpageParam\">Yes - $newFilterName this user</a>"
-        . "<br><a href=\"$srcpage\">No - return with no changes</a>";
+        . "<form method=\"post\" action=\"userfilter?user="
+        . urlencode($targetUser) . "&amp;action=" . urlencode($action)
+        . "&amp;src=$srcpageParam\">"
+        . "<input type=hidden name=confirm value=Y>"
+        . "<p><button>Yes - $newFilterName this user</button>"
+        . "</form>"
+        . "<a href=\"$srcpage\">No - return with no changes</a>";
 }
 
 // show the list, if applicable
