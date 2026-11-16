@@ -90,10 +90,11 @@ else if ($acctStatus == 'X' || $acctStatus == 'B' || $profileStatus == 'R')
 // if this is the current user, and they're doing a catch-up, apply it
 if ($curuser
     && $curuser == $userid
-    && isset($_REQUEST['catchUp'])) {
+    && $_SERVER['REQUEST_METHOD'] == 'POST'
+    && isset($_POST['catchUp'])) {
 
     // get the catch-up date
-    $d = get_req_data('catchUp');
+    $d = $_POST['catchUp'];
 
     // validate that it's earlier than 'now'
     $dd = strtotime($d);
@@ -234,7 +235,12 @@ if ($userid == $curuser
 
     $showNewIcon = false;
     $newestDate = $comments[0][0][4];
-    $catchup = "commentlog?mode=$mode&catchUp=" . urlencode($newestDate);
+    $catchupForm = "<form id=\"catchup\" method=\"post\" "
+        . "action=\"commentlog\">"
+        . "<input type=hidden name=mode value=\"$mode\">"
+        . "<input type=hidden name=catchUp value=\""
+        . htmlspecialcharx($newestDate) . "\">"
+        . "</form>";
     $dispDate = date("F j, Y", strtotime($caughtUpDate));
 
     if ($caughtUpDate
@@ -244,8 +250,8 @@ if ($userid == $curuser
         echo "<p><span class=details><i>"
             . "<img src='img/blank.gif' class='newcomment'> = this message is new "
             . "since you last \"caught up\" on $dispDate</i> - "
-            . "<a href=\"$catchup\">Catch up now</a>"
-            . "</span><p>";
+            . "<button form=\"catchup\">Catch up now</button>"
+            . "</span><p>$catchupForm";
 
     } else if ($caughtUpDate) {
 
@@ -255,9 +261,9 @@ if ($userid == $curuser
     } else {
 
         echo "<p><span class=details>"
-            . "<a href=\"$catchup\">I'm caught up on these comments</a>"
-            . " (this lets IFDB alert you to new messages "
-            . "that arrive after these)</span><p>";
+            . "<button form=\"catchup\">I'm caught up on these comments"
+            . "</button> (this lets IFDB alert you to new messages "
+            . "that arrive after these)</span><p>$catchupForm";
 
     }
 }
