@@ -850,7 +850,7 @@ function saveUpdates($newRec, $oldRec, $changesNew, $changesOld)
 }
 
 // save the form, if this is a Save submission
-if (!$errMsg && isset($_REQUEST["save"])) {
+if (!$errMsg && isset($_POST["save"])) {
 
     // validate fields
     if (preg_replace("/\s/", "", $newRec["title"]) == "")
