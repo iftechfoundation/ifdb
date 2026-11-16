@@ -216,7 +216,9 @@ function verify() {
             if ($reqsalt == $dbsalt) {
 
                 // check the action code
-                if ($action == 'approve') {
+                if ($_SERVER['REQUEST_METHOD'] != 'POST') {
+                    $errFlagged = "Admin actions must be submitted from the user admin page.";
+                } else if ($action == 'approve') {
 
                     // presume success
                     $errFlagged = false;

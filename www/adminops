@@ -1353,6 +1353,7 @@ else if (isset($_REQUEST['users'])) {
     $remarks = htmlspecialcharx($remarks);
 
     $acturl = get_root_url() . "userconfirm?a=$actcode";
+    [$adminButtons, $adminForms] = genNewUserAdminLinks($actcode, $pswsalt);
 
     $statMap = ["A" => "Active", "D" => "Pending Activation",
         "B" => "Banned", "X" => "Closed",
@@ -1455,7 +1456,7 @@ else if (isset($_REQUEST['users'])) {
         . "allupdates?user=$quid</a><br>"
         . "<span class=details>Activation URL: $acturl</span><br>"
         . "<p>Remarks: $remarks<br>"
-        . "<p>" . genNewUserAdminLinks(true, $actcode, $pswsalt);
+        . "<p>" . $adminButtons;
 
     echo "<p>";
 
@@ -1500,7 +1501,8 @@ else if (isset($_REQUEST['users'])) {
     echo "<p><a href=\"adminops?user=$uid&su\">Log in as $name</a>";
 
     echo "<p><input type=\"submit\" name=\"apply\" value=\"Apply\">"
-        . "</form>";
+        . "</form>"
+        . $adminForms;
 
     global $nonce;
     echo "<style nonce='$nonce'>\n"
