@@ -338,9 +338,9 @@ function showImageCopyrightForm($defStatus, $defOwner)
         $rbval = $defStatus;
 
     if ($defOwner)
-        $defOwner = "'Copyright " . jsSpecialChars($defOwner) . "'";
+        $defOwner = "Copyright $defOwner";
 
-    $defCC = "''";
+    $defCC = "";
     if (isset($_SESSION['logged_in']) && $_SESSION['logged_in']) {
         $db = dbConnect();
         checkPersistentLogin();
@@ -349,7 +349,6 @@ function showImageCopyrightForm($defStatus, $defOwner)
         if (mysql_num_rows($result) > 0) {
             $username = mysql_result($result, 0, "name");
             $defCC = "Copyright $username";
-            $defCC = "'" . jsSpecialChars($defCC) . "'";
         }
     }
 
@@ -361,8 +360,8 @@ function showImageCopyrightForm($defStatus, $defOwner)
 <!--
 var imageCopyrightState = {
     lastAutoSet: "",
-    defOwner: <?php echo $defOwner ?>,
-    defCC: <?php echo $defCC ?>
+    defOwner: <?php echo json_encode($defOwner, JSON_HEX_TAG | JSON_INVALID_UTF8_SUBSTITUTE) ?>,
+    defCC: <?php echo json_encode($defCC, JSON_HEX_TAG | JSON_INVALID_UTF8_SUBSTITUTE) ?>
 };
 function initImageCopyrightForm()
 {
