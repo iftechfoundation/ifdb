@@ -111,12 +111,13 @@ function imageTableUpdate(tab, radio, images, firstCol, curVal, thumbSize)
         var href = "tempimage?id=" + image + "&thumbnail="
                    + thumbSize + "x" + thumbSize;
         var val = "tmp" + image;
+        var rname = encodeHTML(radio);
         row.cells[i + firstCol].innerHTML =
             "<label><input type='radio' name=\""
-            + radio + "\" value=\"" + val + "\" id=\"" + radio + "-tmp"
-            + i + "\"" + (val == curVal ? " checked" : "")
-            + "><label for=\"" + radio + "-tmp" + i + "\">&nbsp;<img src=\""
-            + href + "\" align='absmiddle'></label></label><br>"
+            + rname + "\" value=\"" + encodeHTML(val) + "\" id=\"" + rname
+            + "-tmp" + i + "\"" + (val == curVal ? " checked" : "")
+            + "><label for=\"" + rname + "-tmp" + i + "\">&nbsp;<img src=\""
+            + encodeHTML(href) + "\" align='absmiddle'></label></label><br>"
             + "<span class='details'><i>(Uploaded image)</i></span>";
 
         if (val == curVal)
@@ -264,8 +265,10 @@ imageTableUpdate("<?php echo "$utab"; ?>", "<?php echo $radioname; ?>", [<?php
        echo implode(",", $iarr);
    }
 
-   ?>], <?php echo $col0; ?>, "<?php echo $curval; ?>", <?php
-   echo $thumbSiz ?>);
+   ?>], <?php echo $col0; ?>, <?php
+   echo json_encode((string)$curval, JSON_HEX_TAG | JSON_HEX_AMP
+       | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_INVALID_UTF8_SUBSTITUTE);
+   ?>, <?php echo $thumbSiz ?>);
 //-->
 </script>
     <?php
@@ -447,7 +450,7 @@ function setDefaultImageCopyright(def)
        <p>Enter the image's copyright description, if applicable.
        For example: "Copyright 2000 by Big IF Games"<br>
        <input type=text name="imgcopyrighttag" id="imgcopyrighttag" size=100
-              value="<?php echo get_req_data("imgcopyrighttag") ?>">
+              value="<?php echo htmlspecialchars((string)get_req_data("imgcopyrighttag")) ?>">
     </div>
 
     <?php
