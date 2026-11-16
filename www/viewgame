@@ -543,11 +543,17 @@ function constructPlayOnlineURL($link) {
 
     $fmtexternid = $link['fmtexternid'] ?? '';
 
+    $webUrl = trim($link['url']);
+    if (!preg_match('!^https?://!i', $webUrl))
+        $webUrl = false;
+
     if ($fmtexternid == 'hypertextgame')
     {
         if (!$link['compression']) {
+            if (!$webUrl)
+                return [$isGameLink, $onlineInterpreterType, $playOnlineURL];
             $onlineInterpreterType = "HTML";
-            $playOnlineURL = $link['url'];
+            $playOnlineURL = $webUrl;
             return [$isGameLink, $onlineInterpreterType, $playOnlineURL];
         } else if ($unboxUrl) {
             $onlineInterpreterType = "HTML";
@@ -556,11 +562,11 @@ function constructPlayOnlineURL($link) {
         }
     }
 
-    if (stripos($link['title'], "Play Online") !== false)
+    if ($webUrl && stripos($link['title'], "Play Online") !== false)
     {
         $isGameLink = true;
         $onlineInterpreterType = "HTML";
-        $playOnlineURL = $link['url'];
+        $playOnlineURL = $webUrl;
         return [$isGameLink, $onlineInterpreterType, $playOnlineURL];
     }
 
