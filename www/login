@@ -15,6 +15,10 @@ $psw = get_req_data('password');
 $persist = get_req_data('persist');
 $smallPage = get_req_data('small');
 $dest = get_req_data('dest');
+if (!is_string($dest))
+    $dest = "";
+if ($dest !== "")
+    $dest = "/" . ltrim($dest, "/\\\t\n\r");
 
 include_once "login-persist.php";
 
@@ -115,9 +119,6 @@ function login()
 
     // if there's a redirect page, go there
     if (strlen($dest) != 0) {
-        if (substr($dest, 0, 1) !== "/") {
-           $dest = "/$dest";
-        }
         // go to the redirect page
         header("HTTP/1.1 301 Moved Permanently");
         header("Content-Type: text/html");
@@ -127,7 +128,8 @@ function login()
         if ($persist)
             setLoginCookie($db, $userid, $ip);
 
-        echo("Redirecting to $dest<br><br><a href=\"$dest\">");
+        $destHtml = htmlspecialchars($dest);
+        echo("Redirecting to $destHtml<br><br><a href=\"$destHtml\">");
         echo("(Click here if your browser doesn't redirect automatically)");
         echo("</a>");
 
