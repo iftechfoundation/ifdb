@@ -58,7 +58,7 @@ if ($errFlagged != false) {
    <div><label for="userid">Email address</label></div>
     <div>
         <input type="email" name="userid" id="userid" size=30
-                  value="<?php echo get_req_data('userid')?>">
+                  value="<?php echo htmlspecialchars(get_req_data('userid')) ?>">
     </div>
     <br><br>
     <?php

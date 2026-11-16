@@ -145,7 +145,7 @@ if (strlen($actcode) != 40) {
 
 <p>This page is for use only <b>after</b> you request a new password.
 If you've forgotten your password and you'd like to request a new one,
-<a href="lostpsw">click here</a>.
+<a href="lostpass">click here</a>.
 
 <p>If you've already requested a new password, and you've come here
 according to the instructions in the email you received, make sure
@@ -197,27 +197,25 @@ times, to confirm that you didn't make any mistakes typing it.)
             Email address:
          <td>
             <input type="text" name="userid" id="userid" size=30
-                  value="<?php echo $email ?>">
+                  value="<?php echo htmlspecialchars($email) ?>">
 
       <tr>
          <td>
             Password:
          <td>
-            <input type="password" name="password" id="password" size=30
-                  value="<?php echo $psw ?>">
+            <input type="password" name="password" id="password" size=30>
 
       <tr>
          <td>
             Repeat Password:
          <td>
-            <input type="password" name="password2" id="password2" size=30
-                  value="<?php echo $psw2 ?>">
+            <input type="password" name="password2" id="password2" size=30>
 
    </table>
 
    <br><br>
    <input type=submit value="Submit">
-   <input type=hidden name="a" id="a" value="<?php echo $actcode ?>">
+   <input type=hidden name="a" id="a" value="<?php echo htmlspecialchars($actcode) ?>">
 
 <?php
    pageFooter();
