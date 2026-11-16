@@ -20,7 +20,7 @@ $gameID = get_req_data('game');
 $editMode = isset($_REQUEST['edit']);
 $edit = get_req_data('edit');
 $targetID = get_req_data('targ');
-$confirm = get_req_data('confirm');
+$confirm = $_POST['confirm'] ?? '';
 
 // quote parameters for SQL
 $qGameID = mysql_real_escape_string($gameID, $db);
@@ -108,6 +108,9 @@ if ($editMode) {
     $returnLink = "<a href=\"viewgame?id=$gameID\">"
                   . "Return to <i>$gTitle</i>'s page"
                   . "</a>";
+
+    if ($edit == 'save' && $_SERVER['REQUEST_METHOD'] != 'POST')
+        $edit = 'add';
 
     // check the process step
     if ($edit == 'search') {
@@ -320,9 +323,13 @@ if ($editMode) {
 
                     . "<p>Are you sure you want to permanently delete this "
                     . "suggestion?"
-                    . "<p><a href=\"crossrec?game=$gameID&edit=delete"
-                    . "&targ=$targetID&confirm=Y\">Yes, delete it</a>"
-                    . "<br><a href=\"crossrec?game=$gameID&edit\">"
+                    . "<form method=\"post\" action=\"crossrec?game="
+                    . urlencode($gameID) . "&amp;edit=delete&amp;targ="
+                    . urlencode($targetID) . "\">"
+                    . "<input type=hidden name=confirm value=Y>"
+                    . "<p><button>Yes, delete it</button>"
+                    . "</form>"
+                    . "<a href=\"crossrec?game=$gameID&edit\">"
                     . "No, keep it</a>";
             } else {
                 $errMsg = "The suggestion you are trying to delete "
