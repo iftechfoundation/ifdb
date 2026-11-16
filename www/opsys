@@ -26,9 +26,6 @@ $pagetitle = "Edit Operating Systems";
 $osid = get_req_data('id');
 $qosid = mysql_real_escape_string($osid, $db);
 
-$editvsn = get_req_data('editvsn');
-$qeditvsn = mysql_real_escape_string($editvsn, $db);
-
 $geticon = mysql_real_escape_string(get_req_data('geticon'), $db);
 
 
@@ -68,40 +65,11 @@ for ($versions = [], $i = 0 ; ; $i++) {
     // add this to the list
     $versions[] = [get_req_data("vsnid$i"),
         get_req_data("vsnname$i"),
-        "",
         get_req_data("vsnextid$i")];
 }
 
 // if we just uploaded a picture, select it
 $osicon = getJustUploadedImage($osicon);
-
-define("CTL_INPUT", 1);
-define("CTL_TEXTAREA", 2);
-$vsnfields = [
-    [CTL_INPUT, "Browser ID Match Pattern",
-        "browserid",
-        "Enter a regular expression pattern (PHP rules, case insensitive)
-      to find within the HTTP user agent identification string. This
-      is used to guess the user's OS if the user doesn't explicitly
-      specify one."],
-    [CTL_TEXTAREA,
-        "Instructions for <b>downloading and saving</b> a
-      file from a hyperlink using a typical browser on this OS",
-        "dlinstructions", null],
-    [CTL_TEXTAREA,
-        "Instructions for <b>downloading and running</b>
-      an application from a hyperlink using a typical
-      browser on this OS",
-        "dlruninstructions", null],
-    [CTL_TEXTAREA,
-        "Instructions for <b>running</b> a local application file
-      called <b>{fname}</b>",
-        "runinstructions", null]];
-$vsnrec = [];
-foreach ($vsnfields as $f) {
-    $nm = $f[2];
-    $vsnrec[$nm] = get_req_data($nm);
-}
 
 function showHiddenFields()
 {
@@ -124,14 +92,13 @@ function showHiddenFields()
             . "<input type=hidden name=\"vsnname$i\" value=\""
             . htmlspecialcharx($v[1]) . "\">"
             . "<input type=hidden name=\"vsnextid$i\" value=\""
-            . htmlspecialcharx($v[3]) . "\">";
+            . htmlspecialcharx($v[2]) . "\">";
     }
 }
 
 // get the old settings for the selected format
 $oldexternid = $oldname = $hasicon = $oldicon = $oldpri = "";
 $oldversions = [];
-$oldvsnrec = false;
 if ($osid != "" && $osid != "new") {
     // query the database values
     $result = mysql_query(
@@ -156,7 +123,7 @@ if ($osid != "" && $osid != "new") {
 
     // get the version list
     $result = mysql_query(
-        "select vsnid, externid, name, seq, browserid
+        "select vsnid, externid, name, seq
          from osversions
          where osid = '$qosid' and name != '*'
          order by seq", $db);
@@ -165,31 +132,7 @@ if ($osid != "" && $osid != "new") {
          $i < $cnt ; $i++)
         $oldversions[] = [mysql_result($result, $i, "vsnid"),
             mysql_result($result, $i, "name"),
-            mysql_result($result, $i, "browserid"),
             mysql_result($result, $i, "externid")];
-}
-
-// get the old settings for the selected version
-if ($editvsn) {
-    // look up the record - if we're looking for the All-Versions record,
-    // look for a record for this OS with name='*' and seq=0, otherwise
-    // just look for the version by the given ID
-    $vsnwhere = ($editvsn == "*"
-                 ? "osid='$qosid' and name='*' and seq=0"
-                 : "vsnid='$qeditvsn'");
-    $result = mysql_query("select vsnid, externid, name, browserid,
-         dlinstructions, dlruninstructions, runinstructions
-         from osversions
-         where $vsnwhere", $db);
-    $oldvsnrec = mysql_fetch_array($result, MYSQL_ASSOC);
-
-    // get the version name
-    $vsnname = ($editvsn == "*" ? "$oldname (defaults)" : $oldvsnrec['name']);
-
-    // get the real version ID, in case we looked it up by name
-    $origeditvsn = $editvsn;
-    $editvsn = $oldvsnrec['vsnid'];
-    $qeditvsn = mysql_real_escape_string($editvsn, $db);
 }
 
 // if the current icon setting refers to an uploaded image
@@ -204,8 +147,6 @@ if ($_SERVER['REQUEST_METHOD'] != 'POST') {
     $osicon = $oldicon;
     $ospri = $oldpri;
     $versions = $oldversions;
-
-    $vsnrec = $oldvsnrec;
 }
 
 // if we didn't get an OS name via the request parameters, use the
@@ -311,7 +252,7 @@ if ($geticon) {
             $v = $versions[$i];
             $vsnid = mysql_real_escape_string($v[0], $db);
             $vsnname = mysql_real_escape_string($v[1], $db);
-            $vsnextid = mysql_real_escape_string($v[3], $db);
+            $vsnextid = mysql_real_escape_string($v[2], $db);
 
             // assign its sequence - this is just the index in the new list
             $seq = $i + 1;
@@ -327,7 +268,7 @@ if ($geticon) {
 
                 // update our internal record of the version ID
                 if ($result)
-                    $versions[$i][0] = $v[3];
+                    $versions[$i][0] = $v[2];
             } else {
                 $progress = "updating version record #$i";
                 $result = mysql_query(
@@ -376,116 +317,12 @@ if ($geticon) {
                record - changes were <b>not</b> saved.  (Failed
                operation was: $progress.)<br>";
     }
-    else if ($editPriv
-             && $_SERVER['REQUEST_METHOD'] == 'POST'
-             && isset($_REQUEST['savevsn'])) {
-
-        // note that we're attempting a save
-        $saving = true;
-
-        // update the table
-        $setvars = "";
-        foreach ($vsnfields as $f) {
-
-            if ($setvars != "")
-                $setvars .= ",";
-
-            $col = $f[2];
-            $val = mysql_real_escape_string($vsnrec[$col], $db);
-            if ($val == "")
-                $setvars .= "$col=null";
-            else
-                $setvars .= "$col='$val'";
-        }
-
-        // update the table
-        $progress = "updating version row (setvars=$setvars)";
-        $sql = "update osversions set $setvars where vsnid='$qeditvsn'";
-        $result = mysql_query($sql, $db);
-        if ($result) {
-            // save the audit entry
-            mysql_query("insert into audit (userid, action)
-                        values ('$userid', '"
-                        . mysql_real_escape_string($sql, $db) . "')", $db);
-        }
-
-        // note any error
-        if (!$result && !$saveErrMsg)
-            $saveErrMsg = "A database error occurred updating the
-                OS version record - changes were <b>note</b> saved.
-                (Failed operation was: $progress.)<br>";
-    }
 
     //
     // Check which mode we're in
     //
 
-    if ($editPriv && isset($_REQUEST['editvsn'])) {
-    // -------------------------  EDIT VERSION -------------------------------
-
-        pageHeader("Edit OS/Interpreter Version", false);
-
-        if ($saveErrMsg)
-            echo "<p><span class=errmsg>$saveErrMsg</span><p>";
-        else if ($saving) {
-            echo "<p><span class=success>Your changes were saved.</span><br>";
-            if ($saveNotes != "")
-                echo $saveNotes;
-            echo "<p>";
-        }
-        $pagetitle = htmlspecialcharx(
-            $vsnname != '*'
-            ? "$vsnname - Edit OS Version"
-            : "$osname - Edit Defaults for All Versions");
-
-        ?>
-        <h1><?php echo $pagetitle ?></h1>
-
-        <a href="opsys">Return to OS List</a><br>
-        <a href="opsys?id=<?php echo $osid ?>">Return to <?php echo $osname
-           ?> overview</a>
-        <br><br><br>
-
-        <form name="editvsn" id="editvsn" method="post"
-              action="opsys?id=<?php echo $osid ?>">
-
-           <input type=hidden name=editvsn value="<?php echo $origeditvsn ?>">
-           <input type=hidden name=id value="<?php echo $osid ?>">
-           <?php
-
-               foreach ($vsnfields as $f) {
-                   echo "<p>{$f[1]}:<br>";
-
-                   switch ($f[0]) {
-                   case CTL_INPUT:
-                       echo "<input type=\"text\" "
-                           . "name=\"{$f[2]}\" id=\"{$f[2]}\" "
-                           . "size=60 value=\""
-                           . htmlspecialcharx($vsnrec[$f[2]])
-                           . "\">";
-                       break;
-
-                   case CTL_TEXTAREA:
-                       echo "<textarea name=\"{$f[2]}\" id=\"{$f[2]}\" "
-                           . "rows=5 cols=60>"
-                           . htmlspecialcharx($vsnrec[$f[2]])
-                           . "</textarea>";
-                       break;
-                   }
-
-                   if ($f[3])
-                       echo "<br><span class=details>{$f[3]}</span>";
-               }
-           ?>
-
-            <p><button name="savevsn" value="Save Changes"
-                class="fancy-button"
-                id="opsys-save-version-button">Save Changes</button>
-        </form>
-        <?php
-    }
-
-    else if ($editPriv && isset($_REQUEST['edit'])) {
+    if ($editPriv && isset($_REQUEST['edit'])) {
     // ------------------------- EDIT OS ENTRY -------------------------------
 
         // we can edit it - show the editing form
@@ -624,7 +461,7 @@ var vsnVals = [
        $v = $versions[$i];
        $vsnid = jsSpecialChars($v[0]);
        $vsnname = jsSpecialChars($v[1]);
-       $vsnextid = jsSpecialChars($v[3]);
+       $vsnextid = jsSpecialChars($v[2]);
        echo "[\"$vsnid\",\"$vsnname\",\"$vsnextid\"]"
            . ($i + 1 < count($versions) ? "," : "");
     }
@@ -691,17 +528,16 @@ var vsnVals = [
             . "<br>";
 
         // show versions
-        echo "<h2>Versions &amp; Download Adviser entries</h2>";
+        echo "<h2>Versions</h2>";
 
         // add the "all versions" entry to the display list, if present
         $dversions = $versions;
-        $result = mysql_query("select vsnid, browserid from osversions
+        $result = mysql_query("select vsnid from osversions
                    where osid='$qosid' and name='*' and seq=0", $db);
         if (mysql_num_rows($result) > 0) {
             $allvsns = [
                 mysql_result($result, 0, "vsnid"),
                 "All Versions",
-                mysql_result($result, 0, "browserid"),
                 "*"];
             array_unshift($dversions, $allvsns);
         }
@@ -715,88 +551,9 @@ var vsnVals = [
         } else {
             for ($i = 0 ; $i < count($dversions) ; $i++) {
                 $v = $dversions[$i];
-                $vsnid = $v[0];
                 $vsnnm = htmlspecialcharx($v[1]);
-                $vsnbs = htmlspecialcharx($v[2]);
-                $vsnext = htmlspecialcharx($v[3]);
-                echo "$vsnnm [External ID: $externid.$vsnext"
-                    . ($vsnbs ? "; Browser ID match pattern: $vsnbs" : "")
-                    . "]";
-
-                if ($editPriv)
-                    echo " - <a href=\"opsys?id=$osid&editvsn=$vsnid\">"
-                        . "Edit version</a>";
-
-                echo "<br>";
-
-                $qvsnid = mysql_real_escape_string($vsnid, $db);
-                if ($userid) {
-                    $privCols = "formatprivs.fmtid";
-                    $privJoin =
-                        "left outer join formatprivs"
-                        . " on formatprivs.fmtid = downloadhelp.fmtid"
-                        . "    and formatprivs.userid = '$userid'";
-                } else {
-                    $privCols = "0";
-                    $privJoin = "";
-                }
-                $result = mysql_query(
-                    "select
-                       downloadhelp.fmtid as fmtid,
-                       filetypes.fmtname as fmtname,
-                       $privCols
-                     from
-                       downloadhelp $privJoin, filetypes
-                     where
-                       downloadhelp.fmtid = filetypes.id
-                       and downloadhelp.osid = '$qosid'
-                       and downloadhelp.osvsnid = '$qvsnid'
-                     order by fmtname", $db);
-
-                if ($result && mysql_num_rows($result) > 0) {
-                    echo "<div class=indented><span class=notes>";
-                    for ($j = 0 ; $j < mysql_num_rows($result) ; $j++) {
-                        [$fmtid, $fmtname, $fmtpriv] =
-                            mysql_fetch_row($result);
-                        $fmtname = htmlspecialcharx($fmtname);
-                        $href = "fileformat?id=$fmtid&dla=$osid.$vsnid";
-                        echo "<a href=\"$href\">$fmtname</a>";
-
-                        if ($editPriv || $fmtpriv)
-                            echo " - <a href=\"$href&edit\">Edit</a>";
-
-                        echo "<br>";
-                    }
-                    echo "</span></div>";
-                }
-            }
-
-            if ($editPriv) {
-                echo "<p><form name=\"newdla\" id=\"newdla\" "
-                    . "method=\"get\" action=\"fileformat\">"
-                    . "<input type=hidden name=edit value=1>"
-                    . "Add a new Download Adviser entry for: "
-                    . "<select name=\"id\">";
-
-                $result = mysql_query("select id, fmtname
-                    from filetypes
-                    order by if(externid='*',1,2), fmtname", $db);
-                for ($i = 0 ; $i < mysql_num_rows($result) ; $i++) {
-                    [$fmtid, $fmtname] = mysql_fetch_row($result);
-                    $fmtname = htmlspecialcharx($fmtname);
-                    echo "<option value=\"$fmtid\">$fmtname</option>";
-                }
-
-                echo "</select> on <select name=\"dla\">";
-                for ($i = 0 ; $i < count($dversions) ; $i++) {
-                    $v = $dversions[$i];
-                    $vsnid = $v[0];
-                    $vsnname = htmlspecialcharx($v[1]);
-                    echo "<option value=\"$osid.$vsnid\">$vsnname</option>";
-                }
-
-                echo "</select> "
-                    . "<button>Go</button></form>";
+                $vsnext = htmlspecialcharx($v[2]);
+                echo "$vsnnm [External ID: $externid.$vsnext]<br>";
             }
         }
 

@@ -31,18 +31,10 @@ $qfmtid = mysql_real_escape_string($fmtid, $db);
 $externid = get_req_data('externid');
 $qexternid = mysql_real_escape_string($externid, $db);
 
-$dlastr = get_req_data('dla');
-if ($dlastr) {
-    $parts = explode(".", $dlastr, 2);
-    $dlaos = (int)$parts[0];
-    $dlavsn = (isset($parts[1]) && $parts[1] !== "") ? (int)$parts[1] : "";
-}
-
 $geticon = mysql_real_escape_string(get_req_data('geticon'), $db);
 
 // assume no privileges
 $thisFmtPriv = $allFmtPriv = false;
-$thisOsPriv = $allOsPriv = false;
 $userprivs = $adminPriv = false;
 
 // check the user for ADMIN and EDIT FORMATS privileges
@@ -52,7 +44,6 @@ if ($userid) {
     $userprivs = mysql_result($result, 0, "privileges");
     $adminPriv = (strpos($userprivs, "A") !== false);
     $allFmtPriv = (strpos($userprivs, "F") !== false);
-    $allOsPriv = (strpos($userprivs, "O") !== false);
 }
 
 // check the user for specific format privileges for the target format
@@ -63,18 +54,8 @@ if ($fmtid && $userid) {
         $thisFmtPriv = true;
 }
 
-// check the user for specific OS privileges for the target OS
-if ($dlastr && $userid) {
-    $result = mysql_query("select osid from osprivs
-        where userid='$userid' and osid='$dlaos'", $db);
-    if (mysql_num_rows($result) > 0)
-        $thisOsPriv = true;
-}
-
-
 // determine if editing is authorized based on the data
 $editFmtPriv = ($adminPriv || $allFmtPriv || $thisFmtPriv);
-$editDlaPriv = ($editFmtPriv || $allOsPriv || $thisOsPriv);
 
 // get the request parameters
 $fmtname = get_req_data('fmtname');
@@ -86,30 +67,6 @@ $fmtext = get_req_data('extension');
 
 // if we just uploaded a picture, select it
 $fmticon = getJustUploadedImage($fmticon);
-
-define("FT_TEXT", 1);
-define("FT_STRING", 2);
-
-define("FGRP_DLA", 1000);
-define("FGRP_AUTOINSTALL", 2000);
-
-if ($dlastr) {
-    $dlafields = [
-        ['dlinstructions', FT_TEXT, FGRP_DLA,
-            "Instructions for <b>downloading and installing</b> the "
-            . "Interpreter/Player/Viewer application for this format"],
-        ['runinstructions', FT_TEXT, FGRP_DLA,
-            "Instructions for <b>running</b> the Interpreter/Player"
-            . "/Viewer application to run/play/view a local file called "
-            . "<b>{fname}</b> (or a game called <b>{title}</b>)"],
-        ['installer', FT_TEXT, FGRP_AUTOINSTALL,
-            "One or more &lt;interpreter&gt; sections (giving automated "
-            . "install instructions for this format's interpreter(s))"]];
-
-    $dlarec = [];
-    foreach ($dlafields as $f)
-        $dlarec[$f[0]] = get_req_data($f[0]);
-}
 
 function showHiddenFields()
 {
@@ -137,7 +94,7 @@ function showHiddenFields()
 
 // get the old settings for the selected format
 $oldexternid = $oldname = $olddesc = $oldwebsite =
-    $hasicon = $oldicon = $oldclass = $olddla = $oldext = "";
+    $hasicon = $oldicon = $oldclass = $oldext = "";
 if ($fmtid) {
     // query the database values
     $result = mysql_query("select externid, fmtname, `desc`, website,
@@ -158,19 +115,6 @@ if ($fmtid) {
 }
 
 
-// get the old settings for the selected DLA entry
-if ($dlastr) {
-    // query the database values
-    $dlaWhere = "fmtid = '$qfmtid' and osid = '$dlaos' and osvsnid "
-                . ($dlavsn ? "= '$dlavsn'" : "is null");
-    $result = mysql_query("select * from downloadhelp
-        where $dlaWhere", $db);
-    if (mysql_num_rows($result) > 0)
-        $olddla = mysql_fetch_array($result, MYSQL_ASSOC);
-    else
-        $olddla = false;
-}
-
 // if the current icon setting refers to an uploaded image
 // that's been discarded, revert to the old icon
 if (substr($fmticon, 0, 3) == "tmp" && !findTempImage($fmticon))
@@ -185,7 +129,6 @@ if ($_SERVER['REQUEST_METHOD'] != 'POST') {
     $fmticon = $oldicon;
     $fmtclass = $oldclass;
     $fmtext = $oldext;
-    $dlarec = $olddla;
 } else {
     if (!isset($_REQUEST['fmtname']))
         $fmtname = $oldname;
@@ -201,270 +144,6 @@ if ($geticon) {
                  ? mysql_result($result, 0, "icon") : "");
     sendImage($iconData, "gif", null);
     exit();
-
-} else if ($dlastr) {
-
-    // ?dla=xxx - view/edit/update the download adviser data for a
-    // format.OS intersection
-
-    $saving = $deleting = false;
-
-    if ($editDlaPriv
-        && $olddla
-        && $_SERVER['REQUEST_METHOD'] == 'GET'
-        && isset($_REQUEST['delete'])) {
-
-        $deleting = true;
-        $result = mysql_query("delete from downloadhelp where $dlaWhere", $db);
-        if (!$result)
-            $saveErrMsg = "A database error occurred deleting the record. "
-                          . "The record was <b>not</b> deleted.";
-
-        $_REQUEST['edit'] = true;
-    }
-
-    if ($editDlaPriv
-        && $_SERVER['REQUEST_METHOD'] == 'POST'
-        && isset($_REQUEST['save'])) {
-
-        $saving = true;
-
-        $vals = [];
-        foreach ($dlafields as $f) {
-            $col = $f[0];
-            $val = $dlarec[$col];
-            $val = ($val == ""
-                    ? "null"
-                    : "'" . mysql_real_escape_string($val, $db) . "'");
-            $vals[$col] = $val;
-        }
-
-        // Saving download adviser updates
-        if ($olddla) {
-            // updating an existing record
-            $progress = "updating DLA record";
-            $sql = "update downloadhelp set ";
-            $collist = [];
-            foreach ($vals as $col=>$val)
-                $collist[] = "$col = $val";
-            $sql .= implode(",", $collist) . " where $dlaWhere";
-        } else {
-            // inserting a new record
-            $progress = "inserting new DLA record";
-            $sql = "insert into downloadhelp (fmtid, osid, osvsnid";
-            foreach ($vals as $col=>$val)
-                $sql .= ", $col";
-            $sql .= ") values ('$qfmtid', '$dlaos', "
-                    . ($dlavsn == "" ? "null" : "'$dlavsn'");
-            foreach ($vals as $val)
-                $sql .= ", $val";
-            $sql .= ")";
-        }
-
-        $result = mysql_query($sql);
-        if ($result) {
-            mysql_query("insert into audit (userid, action)
-               values ('$userid', '" . mysql_real_escape_string($sql, $db)
-                        . "')", $db);
-        }
-        else
-            $saveErrMsg = "A database error occurred (failed operation:
-                $progress) - changes were <b>not</b> saved.";
-    }
-
-    // get the OS name for display purposes
-    $result = mysql_query(
-        "select name from osversions where vsnid='$dlavsn'", $db);
-    $osname = mysql_result($result, 0, "name");
-    if ($osname == "*" || $osname == "*") {
-        $suffix = ($osname == "*" ? " (All Versions)" : "");
-        $result = mysql_query(
-            "select name from operatingsystems where id='$dlaos'", $db);
-        $osname = mysql_result($result, 0, "name") . $suffix;
-    }
-
-    $editing = $editDlaPriv && isset($_REQUEST['edit']);
-
-    pageHeader("Download Adviser",
-               $editing ? "editdla." . $dlafields[0][0] : false);
-
-    echo "<h1>Download Adviser Data - "
-        . htmlspecialcharx($fmtname) . " for "
-        . htmlspecialcharx($osname) . "</h1><p>";
-
-    if ($olddla && !$editing && $editDlaPriv)
-        echo "<a href=\"fileformat?id=$fmtid&dla=$dlastr&edit\">"
-            . "Edit this Download Adviser entry</a><br>";
-
-    if ($olddla && $editing)
-        echo "<a href=\"fileformat?id=$fmtid&dla=$dlastr\">Return to the "
-            . htmlspecialcharx($fmtname) . " for "
-            . htmlspecialcharx($osname) . " Download Adviser overview</a><br>";
-
-    echo "<a href=\"fileformat?id=$fmtid\">Return to the "
-        . htmlspecialcharx($fmtname) . " format overview</a><br>"
-        . "<a href=\"fileformat\">Return to the format list</a>";
-
-    if ($olddla && $editing)
-        echo "<p><a href=\"fileformat?id=$fmtid&dla=$dlastr&delete\">Delete "
-            . "this entire Download Adviser record</a><br>";
-
-    if ($editing) {
-
-        // Editing the Download Adviser entry for a Format.OS combination
-
-        function showDlaFields($grp)
-        {
-            global $dlafields, $dlarec;
-            foreach ($dlafields as $f) {
-                if ($f[2] == $grp) {
-                    echo "<p>{$f[3]}:<br>";
-                    $nm = "name=\"{$f[0]}\" id=\"{$f[0]}\"";
-                    $val = htmlspecialcharx($dlarec[$f[0]]);
-                    switch ($f[1]) {
-                    case FT_TEXT:
-                        echo "<textarea $nm rows=10 cols=60>$val</textarea>";
-                        break;
-
-                    case FT_STRING:
-                        echo "<input type=text $nm size=50 value=\"$val\">";
-                        break;
-                    }
-                }
-            }
-        }
-
-        if ($saveErrMsg)
-            echo "<p><span class=errmsg>$saveErrMsg</span><p>";
-        else if ($saving)
-            echo "<p><span class=success>Your changes were saved.</span><p>";
-        else if ($deleting)
-            echo "<p><span class=success>This record has been deleted. You "
-                . "can reinstate it by clicking Save Changes. If you leave "
-                . "this page without saving, the record will be permanently "
-                . "deleted.</span><p>";
-
-        echo "<form name=\"editdla\" id=\"editdla\" method=\"post\" "
-            . "action=\"fileformat\">"
-            . "<input type=hidden name=id value=\"$fmtid\">"
-            . "<input type=hidden name=dla value=\"$dlastr\">"
-            . "<input type=hidden name=edit value=1>";
-
-        echo "<h2>Instruction Entries</h2>"
-            . "<span class=notes>The Download Adviser constructs its "
-            . "step-by-step instructions from these fields.  The DLA "
-            . "first figures out which file types are available for "
-            . "a selected game on the user's OS, then looks up the "
-            . "DLA records for the relevant File Type/OS combinations, "
-            . "and finally displays the instructions from those records. "
-            . "<p><ul>"
-            . "<li>Full HTML is allowed (make sure it's valid - "
-            . "the system doesn't filter it before display)"
-            . "<li>Leave a field blank to \"inherit\" the value from "
-            . "the next earlier OS version with a non-blank setting"
-            . "<li>Start with the <b>goal</b>: \"If you "
-            . "don't already have a TADS Interpreter, install it as "
-            . "follows...\""
-            . "<li>Use a &lt;UL&gt;...&lt;LI&gt;...&lt;LI&gt;...&lt;/UL&gt; "
-            . "sub-list if you need to display multiple steps.  If the "
-            . "<b>entire</b> entry is a &lt;UL&gt; list, it will be bumped "
-            . "up a level and displayed as steps at the top level of the "
-            . "overall instructions list. If you want a true sublist, just "
-            . "put something before the opening &lt;UL&gt;."
-            . "<li>&lt;download href=\"<i>url</i>\" "
-            . "localref=\"<i>localname</i>\" "
-            . "compression=\"<i>format</i>\" run=\"filename\"&gt; - show "
-            . "instructions for downloading a file; if "
-            . "<i>localref=localname</i> is present, <i>localname</i> is "
-            . "used as the default filename for the downloaded local copy "
-            . "of the file, otherwise the local copy is assumed to be "
-            . "named as the root name from the URL; "
-            . "<i>compression=format</i> is present, adds instructions "
-            . "for unpacking a compressed file (e.g., ZIP); if <i>run</i> "
-            . "is present <i>without</i> a filename, we add instructions "
-            . "for running the downloaded file itself; if <i>run</i> is "
-            . "present <i>with</i> a filename, we add instructions for "
-            . "running the given local file after unpacking it from the "
-            . "compressed archive"
-            . "<li>use &lt;skip&gt; as the <b>entire</b> contents of "
-            . "an instruction field if the step isn't necessary on this "
-            . "OS; for example, on later Windows versions, installing "
-            . "an UNZIP tool isn't necessary because Windows has ZIP "
-            . "tools built in"
-            . "<li>Parameters of the form {xxx}, as listed in a field's "
-            . "description, are substituted for the actual download data "
-            . "before display"
-            . "<li>{lb} produces a left brace '{', {rb} a right brace '}'"
-            . "<li>#include <i>terp-name.terp-version.format-name</i>, "
-            . "on a line by itself, inserts the contents of the "
-            . "corresponding field from the DLA record for the named "
-            . "interpreter (use \"external names\" for all name parts:"
-            . "for example, \"win-gargoyle.*.*\" for the All Formats/All "
-            . "Versions DLA entry for Gargoyle). "
-            . "This allows sharing of DLA records for multi-format "
-            . "interpreters - define the data for the interpreter, then "
-            . "#include it in each format that the interpreter handles."
-            . "</ul>"
-            . "</span>";
-
-        showDlaFields(FGRP_DLA);
-
-        echo "<h2>Automatic Installer Data</h2>"
-            . "<p><span class=notes>This section is used <b>only</b> "
-            . "on systems that have IFDB Meta Installer tools. (These are "
-            . "custom tools written for use with IFDB - we're not talking "
-            . "about installers that come with an OS.) The purpose of this "
-            . "section is to tell an auto-installer how to download and "
-            . "install support for this file format with minimal user "
-            . "intervention. These tools are customized for each OS, so "
-            . "the data format here is OS-dependent. See the Meta Installer "
-            . "documentation for your OS for information."
-            . "</span>";
-
-        showDlaFields(FGRP_AUTOINSTALL);
-
-
-        echo "<p><button name=save value=\"Save Changes\" "
-            . "class=\"fancy-button\" "
-            . "id=\"fileformat-save-dla-button\">Save Changes</button>"
-            . "</form>";
-
-    } else if ($olddla) {
-
-        function showDlaValues($grp)
-        {
-            global $dlafields, $dlarec;
-
-            foreach ($dlafields as $f) {
-                if ($f[2] == $grp) {
-                    $val = htmlspecialcharx($dlarec[$f[0]]);
-                    $val = str_replace("\n", "<br>", $val);
-                    if ($val == "")
-                        $val = "<span class=notes><i>(Not set)</i></span>";
-                    echo "<p>{$f[3]}:<br><div class=indented>"
-                        . "<div class=prebox>$val</div></div>";
-                }
-            }
-        }
-
-        // Viewing the Download Adviser entry for a Format.OS combination
-        showDlaValues(FGRP_DLA);
-
-        echo "<p><h2>Automatic Installer Data</h2>"
-            . "<p><span class=notes><i>"
-            . "This information is used by automatic downloaders/"
-            . "installers, only on systems where such a tool is available. "
-            . "The exact requirements for these fields might vary by "
-            . "system."
-            . "</i></span>";
-
-        showDlaValues(FGRP_AUTOINSTALL);
-    } else {
-
-        echo "<p><span class=errmsg>No download adviser record exists "
-            . "for this Format/OS combination.</span>";
-
-    }
 
 } else if ($fmtid) {
 
@@ -755,64 +434,6 @@ if ($geticon) {
         if ($editFmtPriv)
             echo "<p><a href=\"fileformat?id=$fmtid&edit\">"
                 . "Edit this format</a><br>";
-
-        echo "<p><h2>Download Adviser Entries</h2>";
-
-        $result = mysql_query(
-            "select
-               operatingsystems.id as osid,
-               osversions.vsnid as vsnid,
-               operatingsystems.name as osname,
-               osversions.name as vsnname,
-               osversions.seq as seq
-             from
-               downloadhelp
-               left outer join osversions
-                 on downloadhelp.osvsnid = osversions.vsnid,
-               operatingsystems
-             where
-               downloadhelp.fmtid = '$qfmtid'
-               and operatingsystems.id = downloadhelp.osid
-             order by
-               osname, seq", $db);
-        $rowcnt = mysql_num_rows($result);
-        if ($rowcnt == 0)
-            echo "<i>No entries exist for this format.</i>";
-        else {
-            echo "<div class=indented>";
-            for ($i = 0 ; $i < $rowcnt ; $i++) {
-                [$osid, $vsnid, $osname, $osvsn, $seq] =
-                    mysql_fetch_row($result);
-                $href = "fileformat?id=$fmtid&dla=$osid.$vsnid";
-                echo "<a href=\"$href\">"
-                    . htmlspecialcharx(
-                        $osvsn == "" ? $osname :
-                        ($osvsn == "*" ? "$osname (All Versions)" :
-                        $osvsn))
-                    . "</a>";
-
-                if ($editFmtPriv || $editDlaPriv)
-                    echo " - <a href=\"$href&edit\">Edit</a>";
-
-                echo "<br>";
-            }
-
-            echo "</div>";
-        }
-
-        if ($editFmtPriv || $editDlaPriv) {
-            echo "<p><form name=newdlos method=get action=\"fileformat\">"
-                . "<input type=hidden name=id value=\"$fmtid\">"
-                . "<input type=hidden name=edit value=1>"
-                . "Add a new Download Adviser entry: ";
-            showOSPopup($db, "dla", "",
-                        OSPOP_GENERIC_VSNS | OSPOP_DEFOS_OPTION);
-            echo " <button>Go</button><br><br>"
-                . "<i>Note: when an OS has multiple versions, you only need "
-                . "to define instructions for the earliest compatible "
-                . "version. Later OS versions \"inherit\" the instructions "
-                . "from the highest previous version.</i></form><br>";
-        }
 
         echo "<br><br><br><a href=\"fileformat\">"
             . "Return to the format list</a>";

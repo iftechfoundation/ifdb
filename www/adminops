@@ -794,42 +794,6 @@ if (isset($_REQUEST['osvercheck'])) {
         }
     }
 
-    // check for orphaned file format entries
-    $result = mysql_query(
-        "select
-           downloadhelp.fmtid, filetypes.id,
-           downloadhelp.osid, operatingsystems.id,
-           downloadhelp.osvsnid, osversions.vsnid
-         from
-           downloadhelp
-           left outer join filetypes
-             on downloadhelp.fmtid = filetypes.id
-           left outer join operatingsystems
-             on downloadhelp.osid = operatingsystems.id
-           left outer join osversions
-             on downloadhelp.osvsnid = osversions.vsnid
-         where
-           filetypes.id is null
-           or operatingsystems.id is null
-           or osversions.vsnid is null", $db);
-    if (mysql_num_rows($result) != 0) {
-        echo "<h2>DOWNLOADHELP table integrity check</h2>";
-
-        for ($i = 0 ; $i < mysql_num_rows($result) ; $i++) {
-            [$fmtidref, $fmtid, $osidref, $osid, $osvsnref, $osvsn] =
-                mysql_fetch_row($result);
-
-            echo "downloadhelp (format=$fmtidref, osid=$osidref, "
-                . "osvsnid=$osvsnref): "
-                . ($fmtid == "" ? "[broken FILETYPE reference]" : "")
-                . ($osid == "" ? "[broken OS reference] " : "")
-                . ($osvsn == "" ? "[broken OS VERSION reference] " : "")
-                . "<br>";
-        }
-        echo "<p><span class=errmsg><b>The downloadhelp error(s) above must "
-            . "be fixed manually.</b></span><p>";
-    }
-
     // check for orphaned formatprivs rows
     $result = mysql_query(
         "select
