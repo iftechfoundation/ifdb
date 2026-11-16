@@ -27,23 +27,31 @@ function sendActivationEmail($email, $actcode)
     return send_mail($email, "IFDB user activation", $msg, $hdrs);
 }
 
-function genNewUserAdminLinks($verbose, $actcode, $salt)
+function genNewUserAdminLinks($actcode, $salt)
 {
-    $br = ($verbose ? "<p>" : "<br>");
-    return "<a href=\"" . get_root_url() . "userconfirm?"
-        . "a=$actcode&s=$salt&c=approve\">"
-        . ($verbose ? "<b>Approve</b> - " : "")
-        . "Send activation email</a>"
-        . "$br<a href=\"" . get_root_url() . "userconfirm?"
-        . "a=$actcode&s=$salt&c=flush\">"
-        . addEventListener('click', "return confirm(\"Do you really want to delete this user?\");")
-        . ($verbose ? "<b>Delete</b> - " : "")
-        . "Delete user completely</a>"
-        . "$br<a href=\"" . get_root_url() . "userconfirm?"
-        . "a=$actcode&s=$salt&c=ban\">"
-        . addEventListener('click', "return confirm(\"Do you really want to ban this user?\");")
-        . ($verbose ? "<b>Ban</b> - " : "")
-        . "Forbid login; hide reviews, comments, and profile</a>";
+    $actions = [
+        ["approve", "<b>Approve</b> - Send activation email", ""],
+        ["flush", "<b>Delete</b> - Delete user completely",
+            "Do you really want to delete this user?"],
+        ["ban", "<b>Ban</b> - Forbid login; hide reviews, comments, and profile",
+            "Do you really want to ban this user?"],
+    ];
+    $forms = [];
+    $buttons = [];
+    $actcode = htmlspecialcharx($actcode);
+    $salt = htmlspecialcharx($salt);
+    foreach ($actions as [$c, $label, $prompt]) {
+        $forms[] = "<form id=\"useradmin-$c\" method=\"post\" "
+            . "action=\"userconfirm\">"
+            . "<input type=hidden name=a value=\"$actcode\">"
+            . "<input type=hidden name=s value=\"$salt\">"
+            . "<input type=hidden name=c value=\"$c\">"
+            . "</form>";
+        $buttons[] = "<button type=submit form=\"useradmin-$c\">"
+            . ($prompt ? addEventListener('click', "return confirm(\"$prompt\");") : "")
+            . "$label</button>";
+    }
+    return [implode("<p>", $buttons), implode("", $forms)];
 }
 
 ?>

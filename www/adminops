@@ -720,7 +720,7 @@ pageHeader("Administrator Operations");
 if (isset($_REQUEST['osvercheck'])) {
     echo "<h1>OS Version Integrity Check</h1>";
 
-    $apply = isset($_REQUEST['apply']);
+    $apply = isset($_POST['apply']);
     $errCnt = 0;
 
     $result = mysql_query("select id, name from operatingsystems
@@ -1106,8 +1106,11 @@ if (isset($_REQUEST['osvercheck'])) {
 
 
     if (!$apply && $errCnt)
-        echo "<p><a href=\"adminops?osvercheck&apply\">"
-            . "<b>$errCnt error(s) found - fix now</b></a>";
+        echo "<form method=post action=\"adminops\">"
+            . "<input type=hidden name=osvercheck value=1>"
+            . "<input type=hidden name=apply value=1>"
+            . "<p><button type=submit><b>$errCnt error(s) found - fix now</b></button>"
+            . "</form>";
 
     echo "<br><br><hr class=dots><br>";
 }
@@ -1353,6 +1356,7 @@ else if (isset($_REQUEST['users'])) {
     $remarks = htmlspecialcharx($remarks);
 
     $acturl = get_root_url() . "userconfirm?a=$actcode";
+    [$adminButtons, $adminForms] = genNewUserAdminLinks($actcode, $pswsalt);
 
     $statMap = ["A" => "Active", "D" => "Pending Activation",
         "B" => "Banned", "X" => "Closed",
@@ -1376,7 +1380,7 @@ else if (isset($_REQUEST['users'])) {
     $privNames = implode(", ", $priv);
 
     // check if we're logging in as the user
-    if (isset($_REQUEST['su'])) {
+    if (isset($_POST['su'])) {
         $_SESSION['logged_in_as'] = $quid;
         shoot_recommendation_cache();
         echo "<p><span class=success>setuser successful</span><p>";
@@ -1455,7 +1459,7 @@ else if (isset($_REQUEST['users'])) {
         . "allupdates?user=$quid</a><br>"
         . "<span class=details>Activation URL: $acturl</span><br>"
         . "<p>Remarks: $remarks<br>"
-        . "<p>" . genNewUserAdminLinks(true, $actcode, $pswsalt);
+        . "<p>" . $adminButtons;
 
     echo "<p>";
 
@@ -1497,9 +1501,14 @@ else if (isset($_REQUEST['users'])) {
     }
     echo "</div>";
 
-    echo "<p><a href=\"adminops?user=$uid&su\">Log in as $name</a>";
+    echo "<p><button type=submit form=\"useradmin-su\">Log in as $name</button>";
 
     echo "<p><input type=\"submit\" name=\"apply\" value=\"Apply\">"
+        . "</form>"
+        . $adminForms
+        . "<form id=\"useradmin-su\" method=\"post\" action=\"adminops\">"
+        . "<input type=hidden name=user value=\"" . htmlspecialcharx($uid) . "\">"
+        . "<input type=hidden name=su value=1>"
         . "</form>";
 
     global $nonce;
@@ -1571,7 +1580,7 @@ else if (isset($_REQUEST['users'])) {
 } else if (isset($_REQUEST['delFilter'])) {
 
     $qFilterID = mysql_real_escape_string(get_req_data('delFilter'), $db);
-    if (isset($_REQUEST['delFilterConfirm'])) {
+    if (isset($_POST['delFilterConfirm'])) {
 
         echo "*** not yet implemented ***<p><hr class=dots><p>";
 
@@ -1595,8 +1604,11 @@ else if (isset($_REQUEST['users'])) {
                 . "<b>Filter type:</b> " . $filterTypeMap[$filterType] . "<br>"
                 . "<b>Explanation:</b> " . $explanation . "<br>";
 
-            echo "<br><a href=\"adminops?delFilter=$filterID&delFilterConfirm\">"
-                . "Yes, really delete it</a>"
+            echo "<form method=post action=\"adminops\">"
+                . "<input type=hidden name=delFilter value=\"$filterID\">"
+                . "<input type=hidden name=delFilterConfirm value=1>"
+                . "<br><button type=submit>Yes, really delete it</button>"
+                . "</form>"
                 . "<p><hr class=dots><p>";
         }
     }
@@ -1634,7 +1646,7 @@ else if (isset($_REQUEST['users'])) {
         }
     }
 
-    if (isset($_REQUEST['addfilterGo'])) {
+    if (isset($_POST['addfilterGo'])) {
 
         $qFilterName = mysql_real_escape_string($filterName, $db);
         $qShowName = mysql_real_escape_string($showName, $db);
