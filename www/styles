@@ -12,12 +12,25 @@ include_once "pagetpl.php";
 include_once "dbconnect.php";
 $db = dbConnect();
 
+$setStyleForms = [];
+function setStyleButton($ssid, $label)
+{
+    global $setStyleForms;
+    $ssid = htmlspecialcharx($ssid);
+    $setStyleForms[$ssid] = "<form id=\"setstyle-$ssid\" method=\"post\" "
+        . "action=\"styles\">"
+        . "<input type=hidden name=set value=\"$ssid\">"
+        . "<input type=hidden name=confirm value=1>"
+        . "</form>";
+    return "<button form=\"setstyle-$ssid\">$label</button>";
+}
+
 $setID = get_req_data('set');
 $editID = get_req_data('edit');
 $copyFromID = get_req_data('copyfrom');
 $deleteID = get_req_data('delete');
 $isGallery = isset($_REQUEST['gallery']);
-$isConfirmed = isset($_REQUEST['confirm']);
+$isConfirmed = isset($_POST['confirm']);
 
 $showBasicPage = false;
 $errMsg = false;
@@ -55,8 +68,14 @@ if ($setID) {
             }
         }
 
-        // update the profile data, if we haven't encountered an error already
-        if (!$errMsg) {
+        if (!$errMsg && !$isConfirmed) {
+            pageHeader("Select Style Sheet");
+            echo "<h1>Select Style Sheet</h1>"
+                . "<p>Would you like to switch your style sheet to $newDesc?"
+                . "<p>" . setStyleButton($setID ?: "default", "Yes, use this style sheet")
+                . "<p><a href=\"styles\">No, return to the main Custom "
+                . "Styles page</a>";
+        } else if (!$errMsg) {
             $result = mysqli_execute_query($db,
                 "update users set stylesheetid = ?
                 where id = ?", [$setID, $userid]);
@@ -365,8 +384,11 @@ if ($setID) {
 
         echo "<p><b>Please confirm that you'd really like to delete "
             . "this style sheet.</b>"
-            . "<p><a href=\"styles?delete=$deleteID&confirm\">Yes, I'd "
-            . "really like to delete it</a><br>"
+            . "<form method=\"post\" action=\"styles\">"
+            . "<input type=hidden name=delete value=\"$ssid\">"
+            . "<input type=hidden name=confirm value=1>"
+            . "<p><button>Yes, I'd really like to delete it</button>"
+            . "</form>"
             . "<a href=\"styles\">No, don't delete it</a>";
 
     } else {
@@ -514,8 +536,7 @@ if ($setID) {
             if ($curssid == $ssid)
                 echo "<i>This is your current active style</i>";
             else
-                echo "<a href=\"styles?set=$ssid\">"
-                    . "Set as my active style</a>";
+                echo setStyleButton($ssid, "Set as my active style");
 
             echo "</span></td></tr></table>";
 
@@ -628,14 +649,12 @@ if ($userid) {
         echo "Your current style sheet is \"$title\", by "
             . "<a href=\"showuser?id=$authorID\">$author</a>."
             . "<p><a href=\"styles?gallery\">Style Sheet Gallery</a>"
-            . "<br><a href=\"styles?set=default\">Switch to the "
-            . "IFDB default style</a>";
+            . "<br>" . setStyleButton("default", "Switch to the IFDB default style");
     } else if ($ssid) {
         echo "Unfortunately, the style sheet you selected most recently "
             . "has been deleted by its author, so you're currently "
             . "using the IFDB default style instead."
-            . "<p><a href=\"styles?set=default\">Explicitly switch back "
-            . "to the IFDB default</a>";
+            . "<p>" . setStyleButton("default", "Explicitly switch back to the IFDB default");
     } else {
         echo "You're currently using the default IFDB style sheet."
             . "<p><a href=\"styles?gallery\">Style Sheet Gallery</a>";
@@ -704,8 +723,7 @@ if ($userid) {
             if ($ssid == $curssid)
                 echo "<i>This is your current active style</i>";
             else
-                echo "<a href=\"styles?set=$ssid\">Set as my "
-                    . "current style</a>";
+                echo setStyleButton($ssid, "Set as my current style");
 
             echo " - <a href=\"css?id=$ssid\" target=\"_blank\">"
                 . "View Source</a>";
@@ -733,4 +751,5 @@ if ($userid) {
 
 }
 
+echo implode("", $setStyleForms);
 pageFooter();
