@@ -27,9 +27,9 @@ global $type, $srcParamName, $srcCode, $ownSrc, $typeName, $typeTitle,
 // Check to see if this is a recently created user account.  If so,
 // require a CAPTCHA test before allowing a new posting.  Also get the
 // username and email for Akismet's use.
-$result = mysql_query(
+$result = mysqli_execute_query($db,
     "select acctstatus, datediff(now(), created), name, email from users
-     where id = '$curuser'", $db);
+     where id = ?", [$curuser]);
 [$userAccountStatus, $userAccountAge,
     $userAccountName, $userAccountEmail] =
          mysql_fetch_row($result);
@@ -60,11 +60,6 @@ $urlWithSrc = "$baseUrl?$srcParamName=$srcID";
 if ($deleteID)
     $commentID = $deleteID;
 
-// quote some parameters
-$qSrcID = mysql_real_escape_string($srcID, $db);
-$qParentID = mysql_real_escape_string($parentID, $db);
-$qCommentID = mysql_real_escape_string($commentID, $db);
-
 // if there's no return page in the parameters, use the referer
 $srcpage = get_req_data('src');
 if (!$srcpage)
@@ -90,7 +85,7 @@ $srcpageParam = urlencode($srcpage);
 $parentRow = false;
 if ($parentID) {
     // query the parent comment
-    $result = mysql_query(
+    $result = mysqli_execute_query($db,
         "select
            c.userid, u.name, c.comment,
            date_format(c.created, '%M %e, %Y'),
@@ -100,7 +95,7 @@ if ($parentID) {
            ucomments as c
            join users as u on u.id = c.userid
          where
-           c.commentid = '$qParentID'", $db);
+           c.commentid = ?", [$parentID]);
 
     $parentRow = mysql_fetch_row($result);
 
@@ -118,7 +113,7 @@ $editing = false;
 if ($commentID || $deleteID) {
 
     $editing = true;
-    $result = mysql_query(
+    $result = mysqli_execute_query($db,
         "select
            c.comment, c.parent, c.userid,
            date_format(c.created, '%M %e, %Y'),
@@ -130,9 +125,9 @@ if ($commentID || $deleteID) {
            join users as u on u.id = c.userid
            left outer join users as pu on pu.id = c.private
          where
-           c.commentid = '$qCommentID'
-           and c.source = '$srcCode'
-           and c.sourceid = '$qSrcID'", $db);
+           c.commentid = ?
+           and c.source = ?
+           and c.sourceid = ?", [$commentID, $srcCode, $srcID]);
 
     if (mysql_num_rows($result) == 0) {
         $errMsg = "The specified comment is not in the database. The "
@@ -147,7 +142,6 @@ if ($commentID || $deleteID) {
 
         // don't allow updating the parent
         $parentID = $oldParent;
-        $qParentID = mysql_real_escape_string($parentID, $db);
 
         // Deleting is allowed if the current user is the author of the
         // comment OR the author of the base object.  Editing is allowed only
@@ -187,7 +181,7 @@ if (!$submit && $editing) {
 }
 
 // If there's a private option, figure the default private recipient.
-$privateVal = "null";
+$privateVal = null;
 if ($privateOption) {
 
     // Start with the owner of the object we're commenting on.  For example,
@@ -201,20 +195,20 @@ if ($privateOption) {
     // the parent chain, and use that other user.  This allows for
     // private exchanges between the object owner and another user who
     // posts a private message to the object.
-    if ($privateTo == $curuser && $qParentID)
+    if ($privateTo == $curuser && $parentID)
     {
         // look up the parent chain for anyone else in the conversation
-        for ($par = $qParentID ; $par ; $par = $ppar) {
+        for ($par = $parentID ; $par ; $par = $ppar) {
 
             // query this parent record
-            $result = mysql_query(
+            $result = mysqli_execute_query($db,
                 "select
                    c.userid, u.name, c.parent
                  from
                    ucomments as c
                    join users as u on u.id = c.userid
                  where
-                   c.commentid = '$par'", $db);
+                   c.commentid = ?", [$par]);
 
             // stop if that failed
             if (mysql_num_rows($result) == 0)
@@ -240,11 +234,8 @@ if ($privateOption) {
 
     // if we still can and want to set the private option, set the db params
     if ($private && $privateOption && $privateTo)
-        $privateVal = "'$privateTo'";
+        $privateVal = $privateTo;
 }
-
-// quote the comment text
-$qCommentText = mysql_real_escape_string($commentText, $db);
 
 // figure the title
 if ($parentID)
@@ -263,8 +254,8 @@ if ($errMsg) {
 
         // confirmed - delete the comment
         $progress = "RVD203";
-        $result = mysql_query(
-            "delete from ucomments where commentid = '$qCommentID'", $db);
+        $result = mysqli_execute_query($db,
+            "delete from ucomments where commentid = ?", [$commentID]);
 
         if ($result) {
 
@@ -365,12 +356,12 @@ if ($errMsg) {
                   ($userAccountAge < 30 ? 25 : 100));
 
         // check that the account isn't over this limit
-        $ures = mysql_query(
+        $ures = mysqli_execute_query($db,
             "select count(*)
              from ucomments
              where
-              userid = '$curuser'
-              and created + interval 24 hour > now()", $db);
+              userid = ?
+              and created + interval 24 hour > now()", [$curuser]);
         [$numRecent] = mysql_fetch_row($ures);
 
         if ($numRecent > $limit)
@@ -411,7 +402,7 @@ if ($errMsg) {
                 . "<br>Email: "
                 . htmlspecialchars($userAccountEmail)
                 . "<br>Source code: $srcCode"
-                . "<br>Source ID: $qSrcID<br>"
+                . "<br>Source ID: " . htmlspecialchars($srcID) . "<br>"
 
                 . "<br>Message: "
                 . htmlspecialchars($commentText) . "<br><br>"
@@ -441,30 +432,28 @@ if ($errMsg) {
 
             // updating
             $progress = "RVU201";
-            $result = mysql_query(
+            $result = mysqli_execute_query($db,
                 "update ucomments
                  set
-                   comment = '$qCommentText',
+                   comment = ?,
                    modified = now(),
-                   private = $privateVal
+                   private = ?
                  where
-                   commentid = '$qCommentID'", $db);
+                   commentid = ?", [$commentText, $privateVal, $commentID]);
 
         } else {
 
             // creating
 
-            // get the parent as a string or NULL
-            $parentVal = ($parentID ? "'$qParentID'" : "null");
-
             // do the insert
             $progress = "RVI202";
-            $result = mysql_query(
+            $result = mysqli_execute_query($db,
                 "insert into ucomments
                  (parent, source, sourceid, userid, comment, private,
                   created, modified)
-                 values ($parentVal, '$srcCode', '$qSrcID', '$curuser',
-                         '$qCommentText', $privateVal, now(), now())", $db);
+                 values (?, ?, ?, ?, ?, ?, now(), now())",
+                [$parentID ?: null, $srcCode, $srcID, $curuser,
+                 $commentText, $privateVal]);
         }
 
         // check the results
