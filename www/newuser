@@ -65,12 +65,12 @@ if ($errFlagged != false) {
    <div><label for="userid">Email Address</label></div>
    <div>
         <input type="email" name="userid" id="userid" size=30
-            value="<?php echo get_req_data("userid")?>">
+            value="<?php echo htmlspecialchars(get_req_data("userid")) ?>">
     </div>
     <div><label for="userid2">Confirm Email</label></div>
     <div>
         <input type="email" name="userid2" id="userid2" size=30
-            value="<?php echo get_req_data("userid2") ?>">
+            value="<?php echo htmlspecialchars(get_req_data("userid2")) ?>">
     </div>
 
     <p>
@@ -157,7 +157,7 @@ if ($errFlagged != false) {
     <div><label for="dname">Screen Name</label></div>
     <div>
         <input type="text" name="dname" id="dname" size=30
-            value="<?php echo get_req_data('dname') ?>">
+            value="<?php echo htmlspecialchars(get_req_data('dname')) ?>">
     </div>
 
    <p>
@@ -577,10 +577,10 @@ activate your account, you must follow the instructions in the email.
 <h1>Registration Confirmed</h1>
 
 <p>You've successfully registered!  Your user ID for future log-ins
-is <b><?php echo get_req_data('userid') ?></b>.
+is <b><?php echo htmlspecialchars(get_req_data('userid')) ?></b>.
 
 <p>Before you can use your new account, you must activate it.  We
-just sent you email at <?php echo get_req_data('userid') ?> with
+just sent you email at <?php echo htmlspecialchars(get_req_data('userid')) ?> with
 your activation instructions.  When you receive this message, simply
 follow the instructions in the email to complete your registration.
 

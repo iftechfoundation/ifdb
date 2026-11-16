@@ -197,7 +197,7 @@ times, to confirm that you didn't make any mistakes typing it.)
             Email address:
          <td>
             <input type="text" name="userid" id="userid" size=30
-                  value="<?php echo $email ?>">
+                  value="<?php echo htmlspecialchars($email) ?>">
 
       <tr>
          <td>
@@ -217,7 +217,7 @@ times, to confirm that you didn't make any mistakes typing it.)
 
    <br><br>
    <input type=submit value="Submit">
-   <input type=hidden name="a" id="a" value="<?php echo $actcode ?>">
+   <input type=hidden name="a" id="a" value="<?php echo htmlspecialchars($actcode) ?>">
 
 <?php
    pageFooter();
