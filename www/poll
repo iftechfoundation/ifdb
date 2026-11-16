@@ -167,7 +167,7 @@ if ($userid && isset($_REQUEST['editPoll'])) {
         if ($authid == $userid) {
 
             // if this is a Save Changes request, apply the changes
-            if (isset($_REQUEST['editPollGo'])) {
+            if (isset($_POST['editPollGo'])) {
                 // get the updates from the request
                 $title = get_req_data('title');
                 $keywords = get_req_data('keywords');
@@ -264,7 +264,7 @@ $newTitle = false;
 $newKeywords = false;
 $newDesc = false;
 $newErrMsg = false;
-if (isset($_REQUEST['newPollGo'])) {
+if (isset($_POST['newPollGo'])) {
 
     // get the fields
     $newTitle = trim(get_req_data('title'));
@@ -826,7 +826,7 @@ if ($userid && isset($_REQUEST['comment'])) {
         if ($authid == $userid) {
 
             // check for a submission
-            if (isset($_REQUEST['commentSave'])) {
+            if (isset($_POST['commentSave'])) {
 
                 // use the updated comment from the request
                 $comment = get_req_data('commentText');
