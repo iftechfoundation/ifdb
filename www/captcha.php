@@ -269,6 +269,14 @@ function captchaCheckPost($sessionKey)
 
         return [$resp->is_valid, $resp->error];
     }
+    else if (($_SERVER["REQUEST_METHOD"] ?? "") == "POST")
+    {
+        // The form was submitted without a CAPTCHA response.  This happens
+        // when the reCAPTCHA script was blocked or failed to load, so the
+        // widget never rendered.  Report it instead of silently redisplaying
+        // the form.
+        return [false, "captcha-not-loaded"];
+    }
     else
         return [false, false];
 }
@@ -291,6 +299,8 @@ function getCaptchaSubForm($sessionKey, $errMsg, $requiredCaption)
     }
     if ($errMsg == "incorrect-captcha-sol")
         $result .= "<div><span class=\"errmsg\">Please verify that you're not a robot</span></div>";
+    else if ($errMsg == "captcha-not-loaded")
+        $result .= "<div><span class=\"errmsg\">The robot test couldn't load. Please make sure your browser isn't blocking Google reCAPTCHA, then try again.</span></div>";
     else if ($errMsg)
         $result .= "<div><span class=\"errmsg\">Something went wrong with the robot test (error code: {$errMsg})</span></div>";
 
