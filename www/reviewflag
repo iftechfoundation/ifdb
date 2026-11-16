@@ -20,8 +20,8 @@ $db = dbConnect();
 // get the parameters
 $reviewID = get_req_data('review');
 $flagType = get_req_data('type');
-$confirm = get_req_data('confirm');
-$notes = get_req_data('notes');
+$confirm = $_POST['confirm'] ?? '';
+$notes = $_POST['notes'] ?? '';
 
 // if there's no return page in the parameters, use the referer
 $srcpage = get_req_data('src');
