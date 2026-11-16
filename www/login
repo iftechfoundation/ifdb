@@ -96,11 +96,8 @@ function login()
         return true;
     }
 
-    // if this is a GET with a username but no password, assume that
-    // another page has pre-populated the user ID field rather than that
-    // this is an actual login attempt
-    if ($_SERVER['REQUEST_METHOD'] == 'GET'
-        && !isset($_REQUEST['password']))
+    // only POST logs in; other requests just show the form
+    if ($_SERVER['REQUEST_METHOD'] != 'POST')
         return true;
 
     // if there's no '@' in the user ID, flag an error
