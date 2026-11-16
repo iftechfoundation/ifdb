@@ -83,16 +83,14 @@ if ($errFlagged != false) {
     </p>
     <div><label for="password">Password</label></div>
     <div>
-        <input type="password" name="password" id="password" size=30
-               value="<?php echo get_req_data('password') ?>">
+        <input type="password" name="password" id="password" size=30>
     </div>
     <div class='newuser__strength'>Strength:
         <span id="pswStrength">&nbsp;</span>
     </div>
     <div><label for="password2">Confirm Password</label></div>
     <div>
-        <input type="password" name="password2" id="password2" size=30
-               value="<?php echo get_req_data('password2') ?>">
+        <input type="password" name="password2" id="password2" size=30>
     </div>
     <div class='newuser__strength'>Match:
         <span id="confMatch">&nbsp;</span>

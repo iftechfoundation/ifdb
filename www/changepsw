@@ -135,22 +135,19 @@ if (!verify())
          <td>
             <b>Current</b> Password:
          <td>
-            <input type="password" name="oldpsw" id="oldpsw" size=30
-                  value="<?php echo $oldpsw ?>">
+            <input type="password" name="oldpsw" id="oldpsw" size=30>
 
       <tr>
          <td>
             <b>New</b> Password:
          <td>
-            <input type="password" name="password" id="password" size=30
-                  value="<?php echo $psw ?>">
+            <input type="password" name="password" id="password" size=30>
 
       <tr>
          <td>
             Repeat New Password:
          <td>
-            <input type="password" name="password2" id="password2" size=30
-                  value="<?php echo $psw2 ?>">
+            <input type="password" name="password2" id="password2" size=30>
 
    </table>
 
