@@ -111,12 +111,13 @@ function imageTableUpdate(tab, radio, images, firstCol, curVal, thumbSize)
         var href = "tempimage?id=" + image + "&thumbnail="
                    + thumbSize + "x" + thumbSize;
         var val = "tmp" + image;
+        var rname = encodeHTML(radio);
         row.cells[i + firstCol].innerHTML =
             "<label><input type='radio' name=\""
-            + radio + "\" value=\"" + val + "\" id=\"" + radio + "-tmp"
-            + i + "\"" + (val == curVal ? " checked" : "")
-            + "><label for=\"" + radio + "-tmp" + i + "\">&nbsp;<img src=\""
-            + href + "\" align='absmiddle'></label></label><br>"
+            + rname + "\" value=\"" + encodeHTML(val) + "\" id=\"" + rname
+            + "-tmp" + i + "\"" + (val == curVal ? " checked" : "")
+            + "><label for=\"" + rname + "-tmp" + i + "\">&nbsp;<img src=\""
+            + encodeHTML(href) + "\" align='absmiddle'></label></label><br>"
             + "<span class='details'><i>(Uploaded image)</i></span>";
 
         if (val == curVal)
