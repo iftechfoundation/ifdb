@@ -6,13 +6,14 @@
 if ($foundGame)
 {
     echo "<div class='viewgame__foundGame'>";
+    $playOnlineHref = htmlspecialchars($primaryPlayOnlineURL);
 
     $playOnlineButton = "";
 
     // if we have an HTML playable game, set up a play online link
     if ($playOnlineInterpreterType == "HTML" && $primaryPlayOnlineURL) {
         $ptarget = (is_kindle() ? "" : "target=\"_blank\"");
-        $playOnlineButton = "<a href=\"$primaryPlayOnlineURL\" $ptarget "
+        $playOnlineButton = "<a href=\"$playOnlineHref\" $ptarget "
             . "title=\"Play this game right now in your browser. No "
             . "installation is required.\" class=\"fancy-button viewgame__playOnline\">Play Online"
             . "</a>";
@@ -22,7 +23,7 @@ if ($foundGame)
     // if we have a Parchment-capable game, set up a play-with-Parchment link
     if ($playOnlineInterpreterType == "Parchment" && $primaryPlayOnlineURL) {
         $ptarget = (is_kindle() ? "" : "target=\"_blank\"");
-        $playOnlineButton = "<a href=\"$primaryPlayOnlineURL\" $ptarget "
+        $playOnlineButton = "<a href=\"$playOnlineHref\" $ptarget "
             . "title=\"Play this game right now in your browser, using "
             . "the Parchment interpreter. No installation is required.\" "
             . "class=\"fancy-button viewgame__playOnline\">Play Online"
@@ -33,7 +34,7 @@ if ($foundGame)
     // if we have an ADRIFT game, set up a play-online link
     if ($playOnlineInterpreterType == "ADRIFT" && $primaryPlayOnlineURL) {
         $atarget = (is_kindle() ? "" : "target=\"_blank\"");
-        $playOnlineButton = "<a href=\"{$primaryPlayOnlineURL}\" $atarget "
+        $playOnlineButton = "<a href=\"$playOnlineHref\" $atarget "
             . "title=\"Play this game right now in your browser. No "
             . "installation is required.\""
             . "class=\"fancy-button viewgame__playOnline\">Play Online"
@@ -179,7 +180,7 @@ if (count($links) == 0 && $dlnotes == "") {
         //   ... unless the HTML is zipped, in which case we *do* need a Play Online link
         $playOnlineMiniLink = "";
         if ($playOnlineURL && ($onlineInterpreterType !== "HTML" || $compPri)) {
-            $playOnlineMiniLink = "<div class='details'><a href='$playOnlineURL'>Play Online</a></div>";
+            $playOnlineMiniLink = "<div class='details'><a href='" . htmlspecialchars($playOnlineURL) . "'>Play Online</a></div>";
             echo $playOnlineMiniLink;
         }
 
