@@ -10,7 +10,7 @@ $curuser = $_SESSION['logged_in_as'];
 
 $srcpage = get_req_data("srcpage");
 if (!$srcpage)
-    $srcpage = $_SERVER['HTTP_REFERER'];
+    $srcpage = $_SERVER['HTTP_REFERER'] ?? '';
 
 include_once "pagetpl.php";
 include_once "util.php";
@@ -53,7 +53,7 @@ $Mode = ($newsID ? "Edit" : "Add a");
 // fresh.
 $xactid = get_req_data('xactid');
 if (($publish || $delete)
-    && $xactid && $xactid == $_SESSION['editnews.xactid']) {
+    && $xactid && $xactid == ($_SESSION['editnews.xactid'] ?? null)) {
     $publish = $preview = $delete = $submit = false;
     $newsID = false;
     $headline = $body = false;
@@ -189,6 +189,7 @@ if ($sourceType == 'G') {
 } else {
 
     // missing or unknown source
+    $hrefCancel = "/";
     $errMsg = "The page parameters are incorrect. The link "
               . "that you followed to reach this page might be broken.";
 }
@@ -227,7 +228,7 @@ function hiddenFields($all)
 function showItem()
 {
     global $db, $newsID, $sourceType, $sourceID, $headline, $body,
-           $authorID, $origUserName, $origUserID, $curuser;
+           $authorID, $origUserName, $origUserID, $curuser, $created;
 
     // query the updater's username
     $result = mysql_query(
@@ -238,13 +239,15 @@ function showItem()
     if (!$origUserID) {
         $origUserID = $curuser;
         $origUserName = $curuserName;
-        $created = date("M j, Y");
+        $postDate = date("M j, Y");
+    } else {
+        $postDate = date("M j, Y", strtotime($created));
     }
 
     // figure the byline
     $byline = "Posted by <a href=\"showuser?id=$origUserID\">"
               . htmlspecialcharx($origUserName)
-              . "</a> on $created";
+              . "</a> on $postDate";
 
     if ($origUserID != $curuser)
         $byline .= " (edited by <a href=\"showuser?id=$curuser\">"
