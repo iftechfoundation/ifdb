@@ -60,11 +60,10 @@ if ($db == false)
 
 // get the request parameters
 $xml = isset($_REQUEST['xml']);
+if ($_SERVER['REQUEST_METHOD'] != 'POST') {
+    sendResponse("405 Method Not Allowed", "Not Saved", "This API requires you to use HTTP method POST");
+}
 if (!$xml) {
-    if ($_SERVER['REQUEST_METHOD'] != 'POST') {
-        sendResponse("405 Method Not Allowed", "Not Saved", "This API requires you to use HTTP method POST");
-    }
-
     $input_json = json_decode(file_get_contents('php://input'), true);
     if (is_null($input_json)) {
         sendResponse("400 Bad Request", "Not Saved", "The submitted POST body was not valid JSON.");
@@ -81,14 +80,14 @@ if (!$xml) {
             $tags[] = $tag;
     }
 } else {
-    $id = get_req_data('id');
+    $id = $_POST['id'] ?? null;
 
     for ($i = 0, $tags = [] ; ; $i++) {
-        if (!isset($_REQUEST["t$i"]))
+        if (!isset($_POST["t$i"]))
             break;
 
         // get this tag
-        $tag = get_req_data("t$i");
+        $tag = $_POST["t$i"];
 
         // convert smart apostrophes, quotes, etc. to ASCII
         $tag = approx_utf8($tag);
@@ -109,8 +108,8 @@ if (!$userid) {
         $username = $input_json['username'] ?? $_SERVER['PHP_AUTH_USER'] ?? null;
         $password = $input_json['password'] ?? $_SERVER['PHP_AUTH_PW'] ?? null;
     } else {
-        $username = get_req_data("username");
-        $password = get_req_data("password");
+        $username = $_POST['username'] ?? '';
+        $password = $_POST['password'] ?? '';
     }
     [$userid, $errCode, $errMsg] = doLogin($db, $username, $password);
 }
