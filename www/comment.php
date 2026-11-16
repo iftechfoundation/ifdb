@@ -49,6 +49,8 @@ $confirm = $_POST['confirm'] ?? '';
 $private = ($privateOption && get_req_data('private') == 'Y');
 $privateTo = false;
 $privateToName = false;
+if ($_SERVER['REQUEST_METHOD'] != 'POST')
+    $submit = '';
 
 
 // generate a captcha session key, in case we need it
