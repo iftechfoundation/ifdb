@@ -60,7 +60,7 @@ if ($userid && isset($_REQUEST['delPoll'])) {
             pageHeader("Delete Poll");
 
             // check for confirmation
-            if (get_req_data('confirm') == $id) {
+            if (($_POST['confirm'] ?? '') == $id) {
 
                 // lock the related tables
                 $progress = "LKT6101";
@@ -135,8 +135,12 @@ if ($userid && isset($_REQUEST['delPoll'])) {
                 . "Poll: <b>$title</b><br>"
                 . "Details: $desc</br>"
                 . "</div>"
-                . "<p><a href=\"poll?id=$id&delPoll&confirm=$id\">"
-                . "Permanently delete this poll</a>"
+                . "<form method=\"post\" action=\"poll\"><p>"
+                . "<input type=hidden name=id value=\"$id\">"
+                . "<input type=hidden name=delPoll value=1>"
+                . "<input type=hidden name=confirm value=\"$id\">"
+                . "<button type=submit>Permanently delete this poll</button>"
+                . "</form>"
                 . "<p><a href=\"poll?id=$id\">Return the poll page</a> "
                 . "(without deleting anything)";
 
