@@ -515,7 +515,7 @@ if ($userid && $id && isset($_REQUEST['delVote'])) {
     }
 
     // if this is a confirmation request, delete the row, otherwise prompt
-    if (!$formErrMsg && get_req_data('confirm') == $gameID) {
+    if (!$formErrMsg && ($_POST['confirm'] ?? '') == $gameID) {
 
         $result = mysql_query(
             "delete from pollvotes
@@ -547,10 +547,14 @@ if ($userid && $id && isset($_REQUEST['delVote'])) {
                 . "<p>"
                 . "Quick quote: \"$quickQuote\"<br>"
                 . "$notes"
-                . "</div><p>"
-                . "<a href=\"poll?id=$id&delVote=$gameID&confirm=$gameID\">"
-                . "<b>Yes</b>, really delete my vote</a>"
-                . "<a href=\"poll?id=$id\"><br>"
+                . "</div>"
+                . "<form method=\"post\" action=\"poll\"><p>"
+                . "<input type=hidden name=id value=\"$id\">"
+                . "<input type=hidden name=delVote value=\"$gameID\">"
+                . "<input type=hidden name=confirm value=\"$gameID\">"
+                . "<button type=submit><b>Yes</b>, really delete my vote</button>"
+                . "</form>"
+                . "<p><a href=\"poll?id=$id\">"
                 . "<b>No</b>, keep my vote and return to the poll page</a>";
         }
 
