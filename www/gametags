@@ -60,7 +60,7 @@ $mine_only = get_req_data('mine_only');
 if ($mine_only) {
     $username = get_req_data("username");
     $password = get_req_data("password");
-    [$userid, $errCode, $errMsg] = doLogin($db, $username, $password);
+    [$userid, $errCode, $errMsg] = apiLogin($db, $username, $password);
     if (!$userid) {
         sendResponse("401 Unauthorized", "Please specify a valid username and password to login.");
     }

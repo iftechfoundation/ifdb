@@ -96,9 +96,58 @@ function redirect_to_login_page($smallPage = false)
 //
 function doLogin($db, $username, $password)
 {
+    [$usernum, $errCode, $errMsg, $acctid, $stat] =
+        checkCredentials($db, $username, $password);
+
+    if (!$usernum) {
+        if ($stat == 'D') {
+            $_SESSION['provisional_logged_in_as'] = $acctid;
+        } else if ($stat !== null) {
+            $_SESSION['logged_in'] = false;
+            $_SESSION['logged_in_as'] = null;
+            unset($_SESSION['provisional_logged_in_as']);
+        }
+        return [false, $errCode, $errMsg];
+    }
+
+    recordLogin($db, $usernum);
+
+    // It all looks good - we're logged in!  Set the session status.
+    $_SESSION['logged_in'] = true;
+    $_SESSION['logged_in_as'] = $usernum;
+    unset($_SESSION['provisional_logged_in_as']);
+
+    // clear the recommendation cache
+    shoot_recommendation_cache();
+
+    // success
+    return [$usernum, null, null];
+}
+
+// Log in for a single API request without changing the stored session.
+function apiLogin($db, $username, $password)
+{
+    [$usernum, $errCode, $errMsg] =
+        checkCredentials($db, $username, $password);
+    if (!$usernum)
+        return [false, $errCode, $errMsg];
+
+    recordLogin($db, $usernum);
+
+    session_write_close();
+    $_SESSION['logged_in'] = true;
+    $_SESSION['logged_in_as'] = $usernum;
+
+    return [$usernum, null, null];
+}
+
+// Returns the same values as doLogin(), plus the account ID and status
+// when the password matched.  Doesn't touch the session.
+function checkCredentials($db, $username, $password)
+{
     if (strlen($password) > MAX_PASSWORD_LENGTH) {
         return [false, "incorrect username or password",
-            "The password is too long. If this is your password, please reset it by using the \"Lost Password\" page."];
+            "The password is too long. If this is your password, please reset it by using the \"Lost Password\" page.", null, null];
     }
 
     // set up a quoted version of the user ID
@@ -111,7 +160,7 @@ function doLogin($db, $username, $password)
     if (mysql_num_rows($result) == 0) {
         return [false, "incorrect username or password",
             "The email address and password you entered don't match "
-            . "our records."];
+            . "our records.", null, null];
     }
 
     // generate the hash of the password as entered by the user
@@ -122,16 +171,15 @@ function doLogin($db, $username, $password)
     if (strcmp($hashpsw, mysql_result($result, 0, "password")) != 0) {
         return [false, "incorrect username or password",
             "The email address and password you entered don't match "
-            . "our records."];
+            . "our records.", null, null];
     }
+
+    $acctid = mysql_result($result, 0, "id");
 
     // verify that the account is activated
     $stat = mysql_result($result, 0, "acctstatus");
     if ($stat == 'D')
     {
-        // set the provisional login status
-        $_SESSION['provisional_logged_in_as'] = mysql_result($result, 0, "id");
-
         return [false, "this account has not yet been activated",
             "You have not yet activated this account. Please "
             . "check your email inbox for a confirmation message, "
@@ -139,49 +187,40 @@ function doLogin($db, $username, $password)
             . "activate your account."
             . "<p>Even though your account isn't activated yet, "
             . "you can still <a href=\"editprofile\">"
-            . "edit your profile</a>."];
+            . "edit your profile</a>.", $acctid, $stat];
     }
     if ($stat == 'R') {
-        $_SESSION['logged_in'] = false;
-        $_SESSION['logged_in_as'] = null;
-        unset($_SESSION['provisional_logged_in_as']);
-
         return [false, "this account is pending review",
             "This account is pending review. Activation "
             . "instructions will be sent to the registered "
             . "email address when the review has been "
-            . "completed."];
+            . "completed.", $acctid, $stat];
     }
 
     // verify that the account isn't disabled or closed
     if ($stat == 'B' || $stat == 'X') {
         $statName = ($stat == 'B' ? "disabled" : "closed");
-        $_SESSION['logged_in'] = false;
-        $_SESSION['logged_in_as'] = null;
-        unset($_SESSION['provisional_logged_in_as']);
 
         return [false, "this account has been $statName",
             "This account has been $statName. Please contact "
             . "the site's administrators for assistance. "
-            . "(<a href=\"contact\">Contact information</a>)"];
+            . "(<a href=\"contact\">Contact information</a>)", $acctid, $stat];
     }
 
     // verify that the account has a valid Active code
     if ($stat != 'A') {
-        $_SESSION['logged_in'] = false;
-        $_SESSION['logged_in_as'] = null;
-        unset($_SESSION['provisional_logged_in_as']);
-
         return [false, "this account is not active",
             "Our records for this account appear to "
             . "have an internal error.  Please contact the site's "
             . "administrators for assistance. "
-            . "(<a href=\"contact\">Contact information</a>)"];
+            . "(<a href=\"contact\">Contact information</a>)", $acctid, $stat];
     }
 
-    // note the user ID
-    $usernum = mysql_result($result, 0, "id");
+    return [$acctid, null, null, $acctid, $stat];
+}
 
+function recordLogin($db, $usernum)
+{
     // update the last-login time for the user in the database
     mysql_query("update users set lastlogin = now()
         where id = '$usernum'", $db);
@@ -190,17 +229,6 @@ function doLogin($db, $username, $password)
     $ip = $_SERVER['REMOTE_ADDR'];
     mysql_query("insert into logins (uid, ip, `when`)
         values ('$usernum', '$ip', now())", $db);
-
-    // It all looks good - we're logged in!  Set the session status.
-    $_SESSION['logged_in'] = true;
-    $_SESSION['logged_in_as'] = $usernum;
-    unset($_SESSION['provisional_logged_in_as']);
-
-    // clear the recommendation cache
-    shoot_recommendation_cache();
-
-    // success
-    return [$usernum, null, null];
 }
 
 // ------------------------------------------------------------------------

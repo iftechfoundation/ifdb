@@ -111,7 +111,7 @@ if (!$userid) {
         $username = $_POST['username'] ?? '';
         $password = $_POST['password'] ?? '';
     }
-    [$userid, $errCode, $errMsg] = doLogin($db, $username, $password);
+    [$userid, $errCode, $errMsg] = apiLogin($db, $username, $password);
 }
 
 if (!$userid) {
