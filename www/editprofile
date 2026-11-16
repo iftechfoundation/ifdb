@@ -545,7 +545,7 @@ complete the re-activation process.</b>
         // if we're changing the email address, send an activation email
         if ($emailChanged) {
             // generate a new activation code - they're single use only
-            $actcode = sha1(md5_rand($usernum) . md5_rand($email));
+            $actcode = random_token();
 
             // build the activation link
             $actlink = get_root_url() . "userconfirm?a=$actcode";

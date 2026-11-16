@@ -69,7 +69,7 @@ function verify() {
             return true;
 
         // reset codes are one-time-only, so claim this one
-        $newcode = sha1($usernum . md5(rand()) . md5(rand()). md5(rand()));
+        $newcode = random_token();
         mysqli_execute_query($db,
             "update users set activationcode = ?
              where id = ? and activationcode = ?",

@@ -488,7 +488,7 @@ function handlePost()
     // It all looks good - add the record.  The account status is
     // initially 'D' for deactivated - login is disabled until the
     // activation process has been completed.
-    $actcode = sha1(md5_rand($userid) . md5_rand($email));
+    $actcode = random_token();
     $tosver = TOS_VERSION;
     $sql = "insert into users
         (id, email, name, `password`, pswsalt, activationcode,

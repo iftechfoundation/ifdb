@@ -154,7 +154,7 @@ function handlePost()
 
 
     // select a new activation code for the new request
-    $actcode = sha1($usernum . md5(rand()) . md5(rand()). md5(rand()));
+    $actcode = random_token();
 
     // udpate the database
     mysql_query("update users set activationcode = '$actcode'
