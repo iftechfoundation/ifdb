@@ -7,3 +7,5 @@ www/vendor
 .php-cs-fixer.cache
 test/node_modules/
 .env
+/vendor
+.phpunit.cache
