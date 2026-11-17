@@ -10,8 +10,7 @@ global $nonce;
 
 // we have to be logged in to upload a game
 include_once "current-user.php";
-require_login();
-$userid = $_SESSION['logged_in_as'];
+$userid = require_login();
 
 pageHeader("IF Archive File Upload", false, false);
 

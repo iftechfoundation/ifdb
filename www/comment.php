@@ -6,9 +6,7 @@ include_once "current-user.php";
 include_once "captcha.php";
 include_once "akismet.php";
 
-require_login();
-
-$curuser = $_SESSION['logged_in_as'];
+$curuser = require_login();
 
 // include some utility modules
 include_once "pagetpl.php";

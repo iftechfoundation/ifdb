@@ -4,9 +4,7 @@
 include_once "session-start.php";
 include_once "current-user.php";
 include_once "util.php";
-require_login();
-
-$curuser = $_SESSION['logged_in_as'];
+$curuser = require_login();
 
 $srcpage = get_req_data("srcpage");
 if (!$srcpage)

@@ -18,10 +18,7 @@ $uid = get_req_data('id');
 if (!$uid) {
     // no user ID in the request, so we're looking at the current user's
     // list - make sure we're logged in
-    require_login();
-
-    // use the current user ID
-    $uid = $curuser = $_SESSION['logged_in_as'];
+    $uid = $curuser = require_login();
 }
 
 $quid = mysql_real_escape_string($uid, $db);

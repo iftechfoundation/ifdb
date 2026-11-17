@@ -10,7 +10,7 @@ require_once 'vendor/autoload.php';
 include_once "session-start.php";
 include_once "current-user.php";
 include_once "login-links.php";
-require_login();
+$userid = require_login();
 
 // connect to the database
 $db = dbConnect();
@@ -25,7 +25,6 @@ $isOldReview = false;
 // get the game ID
 $id = $_REQUEST['id'];
 
-$userid = $_SESSION['logged_in_as'] ?? null;
 if (!empty($_REQUEST['userid']) && check_admin_privileges($db, $userid)) {
     $result = mysqli_execute_query($db, "select id from users where id = ?", [$_REQUEST['userid']]);
     [$userid] = mysqli_fetch_row($result) ?? [null];

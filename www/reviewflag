@@ -3,9 +3,7 @@
 // we have to be logged in to do this
 include_once "session-start.php";
 include_once "current-user.php";
-require_login();
-
-$curuser = $_SESSION['logged_in_as'];
+$curuser = require_login();
 
 // include some utility modules
 include_once "pagetpl.php";

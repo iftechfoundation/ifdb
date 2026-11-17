@@ -8,9 +8,7 @@ include_once "gamesearchpopup.php";
 // we have to be logged in to edit a game
 include_once "session-start.php";
 include_once "current-user.php";
-require_login();
-
-$userid = $_SESSION['logged_in_as'];
+$userid = require_login();
 $errMsg = false;
 $errItems = false;
 $saveErrMsg = false;

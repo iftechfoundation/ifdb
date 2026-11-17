@@ -7,9 +7,7 @@ include "starctl.php";
 include_once "editgame-util.php";
 
 include_once "current-user.php";
-require_login();
-
-$userid = $_SESSION['logged_in_as'];
+$userid = require_login();
 
 include_once "dbconnect.php";
 $db = dbConnect();

@@ -19,10 +19,7 @@ $sortReq = get_req_data('sortby');
 
 // if there's no user ID in the request, default to the current user
 if (!$uid) {
-    require_login();
-
-    // use the current user ID
-    $uid = $curuser = $_SESSION['logged_in_as'];
+    $uid = $curuser = require_login();
 }
 
 // quote it
