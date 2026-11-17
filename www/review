@@ -541,9 +541,6 @@ up your existing review for further editing.
         $result = mysql_query(
             "lock tables reviews write, reviewtags write", $db);
 
-        // if it contains any links, send an admin email about it for spam detection
-        send_admin_email_if_links($reviewbody, "Review of $title by $author", "viewgame?id=$qid");
-
         // look up any existing review by the same user for the same game
         if ($result) {
             $progress = "SLR675B";
@@ -628,6 +625,9 @@ up your existing review for further editing.
         // otherwise, return to the entry page with an error
 
         if ($result) {
+
+            // if it contains any links, send an admin email about it for spam detection
+            send_admin_email_if_links($reviewbody, "Review of $title by $author", "viewgame?id=$qid");
 
             // success - redirect back to the game page
             header("HTTP/1.1 301 Moved Permanently");
