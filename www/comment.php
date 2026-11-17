@@ -345,7 +345,6 @@ if ($errMsg) {
     // banned them in the database.
     if ($userAccountStatus != 'A')
     {
-        log_out_if_blocked($curuser);
         $errMsg = "Sorry, an error occurred updating the "
                   . "database. (RVN6611)";
     }

@@ -155,12 +155,14 @@ function verify() {
                     // presume success
                     $errFlagged = false;
 
-                    if (mysql_query(
+                    $result = mysql_query(
                         "update users
                          set acctstatus = 'B', sandbox = 1
-                         where id = '$usernum'", $db) == false) {
+                         where id = '$usernum'", $db);
+                    if ($result)
+                        $result = forget_remembered_logins($db, $usernum);
+                    if (!$result)
                         $errFlagged = "Error updating database. ";
-                    }
                     if (!$errFlagged) {
                         error_log("regenerating game ratings sandbox materialized view");
                         $result = mysql_query("lock tables gameRatingsSandbox0_mv write, gameRatingsSandbox0 read", $db);

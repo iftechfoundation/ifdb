@@ -1381,7 +1381,9 @@ else if (isset($_REQUEST['users'])) {
 
     // check if we're logging in as the user
     if (isset($_POST['su'])) {
-        start_login_session($quid);
+        $result = mysqli_execute_query($db,
+            "select password from users where id = ?", [$uid]);
+        start_login_session($quid, mysql_result($result, 0, "password"));
         echo "<p><span class=success>setuser successful</span><p>";
     }
 
@@ -1433,6 +1435,11 @@ else if (isset($_REQUEST['users'])) {
             if ($result) $result = mysql_query("truncate table gameRatingsSandbox0_mv", $db);
             if ($result) $result = mysql_query("insert into gameRatingsSandbox0_mv select *, now() from gameRatingsSandbox0", $db);
             mysql_query("unlock tables", $db);
+        }
+
+        if ($result && $stat != 'A' && $stat != 'D') {
+            $progress = "deleting user's persistent login sessions";
+            $result = forget_remembered_logins($db, $uid);
         }
 
         // show the results
