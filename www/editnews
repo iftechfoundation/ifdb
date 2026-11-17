@@ -2,7 +2,8 @@
 
 // we have to be logged in to do this
 include_once "session-start.php";
-include_once "login-check.php";
+include_once "current-user.php";
+include_once "util.php";
 if (!logged_in())
     exit();
 
@@ -13,7 +14,6 @@ if (!$srcpage)
     $srcpage = $_SERVER['HTTP_REFERER'] ?? '';
 
 include_once "pagetpl.php";
-include_once "util.php";
 include_once "dbconnect.php";
 $db = dbConnect();
 

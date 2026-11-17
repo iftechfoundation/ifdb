@@ -6,7 +6,7 @@ include "starctl.php";
 
 // we have to be logged in to edit a game
 include_once "session-start.php";
-include_once "login-check.php";
+include_once "current-user.php";
 if (!logged_in())
     exit();
 

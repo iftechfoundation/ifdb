@@ -1,7 +1,7 @@
 <?php
 
 include_once "util.php";
-include_once "login-persist.php";
+include_once "current-user.php";
 
 // is the given string a name suffix?
 function isNameSuffix($s)

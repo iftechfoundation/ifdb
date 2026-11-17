@@ -13,7 +13,7 @@
 // Get the various forms of the review query
 
 // make sure we process any persistent login state
-include_once "login-persist.php";
+include_once "current-user.php";
 include_once "commentutil.php";
 
 // get the query given a WHERE condition

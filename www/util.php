@@ -3,8 +3,8 @@
 include_once "session-start.php";
 include_once "dbconnect.php";
 include_once "images.php";
-include_once "login-check.php";
-include_once "login-persist.php";
+include_once "current-user.php";
+include_once "login-links.php";
 include_once "pagetpl.php";
 include_once "image-util.php";
 require_once 'vendor/autoload.php';

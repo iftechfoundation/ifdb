@@ -3,7 +3,8 @@
 include_once "session-start.php";
 
 // make sure we process any persistent login state
-include_once "login-persist.php";
+include_once "current-user.php";
+include_once "password-login.php";
 checkPersistentLogin();
 
 include_once "pagetpl.php";

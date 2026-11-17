@@ -1,7 +1,7 @@
 <?php
 
 include_once "util.php";
-include_once "login-check.php";
+include_once "current-user.php";
 include_once "dbconnect.php";
 include_once "tags.php";
 

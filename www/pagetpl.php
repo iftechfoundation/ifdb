@@ -2,7 +2,7 @@
 
 include_once "csp-nonce.php";
 include_once "util.php";
-include_once "login-persist.php";
+include_once "current-user.php";
 include_once "commentutil.php";
 
 function srcCacheBust($filename)

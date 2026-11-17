@@ -8,7 +8,7 @@ include "starctl.php";
 include_once "gamesearchpopup.php";
 
 // we have to be logged in to edit a game
-include_once "login-check.php";
+include_once "current-user.php";
 if (!logged_in())
     exit();
 

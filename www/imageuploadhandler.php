@@ -1,7 +1,7 @@
 <?php
 
 include_once "images.php";
-include_once "login-persist.php";
+include_once "current-user.php";
 
 // set up the scripts for the image upload form
 function imageUploadScripts()

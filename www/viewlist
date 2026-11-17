@@ -9,7 +9,7 @@ include "lists.php";
 include_once "dbconnect.php";
 $db = dbConnect();
 
-include_once "login-persist.php";
+include_once "current-user.php";
 $curuser = checkPersistentLogin();
 
 $listid = $_REQUEST['id'] ?? '';

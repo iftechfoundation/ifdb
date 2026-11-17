@@ -17,7 +17,7 @@ $db = dbConnect();
 $uid = isset($_REQUEST['id']) ? $_REQUEST['id'] : null;
 
 // check for persistent login
-include_once "login-check.php";
+include_once "current-user.php";
 $curuser = checkPersistentLogin();
 
 // check for an unlock override - this allows the administrator to

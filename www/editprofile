@@ -4,7 +4,7 @@ include_once "captcha.php";
 include_once "akismet.php";
 
 include_once "session-start.php";
-include_once "login-check.php";
+include_once "current-user.php";
 include_once "pagetpl.php";
 include_once "util.php";
 if (provisionally_logged_in())

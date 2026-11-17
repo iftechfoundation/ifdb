@@ -12,7 +12,8 @@ include_once "editgame-util.php";
 include_once "session-start.php";
 
 // we have to be logged in to edit a game
-include_once "login-check.php";
+include_once "current-user.php";
+include_once "login-links.php";
 if (!logged_in())
     exit();
 
