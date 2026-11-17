@@ -45,6 +45,14 @@ function end_login_session()
     unset($_SESSION['provisional_logged_in_as']);
 }
 
+function log_out($db)
+{
+    $userid = $_SESSION['logged_in_as'] ?? null;
+    if ($userid)
+        forget_remembered_logins($db, $userid);
+    end_login_session();
+}
+
 function require_login($smallPage = false)
 {
     $userid = current_user_id();

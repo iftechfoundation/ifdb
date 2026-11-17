@@ -4,16 +4,8 @@ include_once "session-start.php";
 include_once "dbconnect.php";
 include_once "util.php";
 
-// delete any persistent sessions associated with the user
 $db = dbConnect();
-
-$uid = $_SESSION['logged_in_as'] ?? null;
-if ($uid) {
-    forget_remembered_logins($db, $uid);
-}
-
-$_SESSION['logged_in'] = false;
-$_SESSION['logged_in_as'] = null;
+log_out($db);
 
 include_once "pagetpl.php";
 pageHeader("Logged out");

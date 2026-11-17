@@ -45,17 +45,8 @@ function login()
     // to a form), check for an existing login.
     if ($_SERVER['REQUEST_METHOD'] == 'GET') {
         // if 'switch' is set, this counts as a logout
-        if (isset($_REQUEST['switch']) && $_SESSION['logged_in']) {
-            // not the UID
-            $uid = $_SESSION['logged_in_as'];
-
-            // clear the session login status
-            $_SESSION['logged_in'] = false;
-            $_SESSION['logged_in_as'] = null;
-            unset($_SESSION['provisional_logged_in_as']);
-
-            forget_remembered_logins($db, $uid);
-        }
+        if (isset($_REQUEST['switch']))
+            log_out($db);
 
         // check for a persistent connection
         $usernum = current_user_id();
