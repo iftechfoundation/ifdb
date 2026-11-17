@@ -269,12 +269,14 @@ function captchaCheckPost($sessionKey)
 
         return [$resp->is_valid, $resp->error];
     }
-    else if (($_SERVER["REQUEST_METHOD"] ?? "") == "POST")
+    else if (($_SERVER["REQUEST_METHOD"] ?? "") == "POST" && isset($_POST["captchaShown"]))
     {
-        // The form was submitted without a CAPTCHA response.  This happens
-        // when the reCAPTCHA script was blocked or failed to load, so the
-        // widget never rendered.  Report it instead of silently redisplaying
-        // the form.
+        // The posted form displayed the CAPTCHA widget but was submitted
+        // without a response.  This happens when the reCAPTCHA script was
+        // blocked or failed to load, so the widget never rendered.  Report
+        // it instead of silently redisplaying the form.  (The captchaShown
+        // field is emitted only with the CAPTCHA subform, so a first
+        // submission that never showed the CAPTCHA isn't reported here.)
         return [false, "captcha-not-loaded"];
     }
     else
@@ -304,6 +306,7 @@ function getCaptchaSubForm($sessionKey, $errMsg, $requiredCaption)
     else if ($errMsg)
         $result .= "<div><span class=\"errmsg\">Something went wrong with the robot test (error code: {$errMsg})</span></div>";
 
+    $result .= "<input type=hidden name=\"captchaShown\" value=\"1\">";
     $result .= "<div class=\"g-recaptcha\" data-sitekey=\"" . RECAPTCHA_PUBLIC_KEY . "\"></div>";
     return $result;
 }
