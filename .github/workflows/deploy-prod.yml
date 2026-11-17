@@ -1,6 +1,6 @@
 # Run by hand (Actions > Deploy main to production > Run workflow, or
 # `gh workflow run deploy-prod.yml`) to deploy main's tip to production once
-# its hurl check passes. See deploy.yml and .github/scripts/plan-deploy.sh.
+# it's deployed to dev. See deploy.yml and .github/scripts/plan-deploy.sh.
 
 name: Deploy main to production
 

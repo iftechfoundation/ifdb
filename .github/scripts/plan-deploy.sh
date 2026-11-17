@@ -5,9 +5,9 @@
 #
 # MODE is one of:
 #   dev            Always deploy.
-#   prod-on-merge  After a push to main that passed CI. Deploy only if the
+#   prod-on-merge  After a push to main deployed to dev. Deploy only if the
 #                  merged PR has the deploy-on-merge label.
-#   prod-manual    Run by hand. Wait for the hurl check on main's tip, then
+#   prod-manual    Run by hand. Wait for main's tip to deploy to dev, then
 #                  deploy everything that isn't in production yet.
 #
 # A production deploy waits for approval when:
@@ -55,23 +55,24 @@ if [[ $MODE == prod-on-merge ]]; then
     reasons+=("PR #$number has the schema-change label.")
   fi
 else
-  # Wait up to 15 minutes for CI on main's tip to finish.
+  # Wait up to 30 minutes for main's tip to deploy to dev.
+  check="deploy-dev / deploy"
   run=
-  for _ in $(seq 1 90); do
-    run=$(gh api "repos/$repo/commits/$sha/check-runs?check_name=hurl" \
+  for _ in $(seq 1 180); do
+    run=$(gh api -X GET "repos/$repo/commits/$sha/check-runs" -f check_name="$check" \
       --jq '.check_runs | max_by(.started_at) // empty | "\(.status) \(.conclusion)"')
     case $run in
       "completed success") break ;;
       completed*)
-        echo "::error::The hurl check on $sha didn't pass ($run)."
+        echo "::error::The $check check on $sha didn't pass ($run)."
         exit 1
         ;;
     esac
-    echo "Waiting for the hurl check on $sha (${run:-not started yet})..."
+    echo "Waiting for the $check check on $sha (${run:-not started yet})..."
     sleep 10
   done
   if [[ $run != "completed success" ]]; then
-    echo "::error::Timed out waiting for the hurl check on $sha."
+    echo "::error::Timed out waiting for the $check check on $sha."
     exit 1
   fi
 fi
