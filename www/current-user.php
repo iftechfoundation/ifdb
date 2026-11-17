@@ -21,16 +21,19 @@ function current_user_id()
     return $userid;
 }
 
-function log_out_if_blocked($userid) {
+// Banned, closed and pending-review accounts are blocked.
+function log_out_if_blocked($userid)
+{
     $db = dbConnect();
     $result = mysqli_execute_query($db,
-        "select 1 from users where id = ? and acctstatus = 'B'", [$userid]);
-    $banned = mysql_num_rows($result) > 0;
-    if ($banned) {
-        error_log("user $user_id is banned; logging out");
-        end_login_session();
+        "select acctstatus from users where id = ?", [$userid]);
+    $row = mysql_fetch_row($result);
+    $blocked = !$row || ($row[0] != 'A' && $row[0] != 'D');
+    if ($blocked) {
+        error_log("user $userid is blocked; logging out");
+        log_out($db);
     }
-    return $banned;
+    return $blocked;
 }
 
 function require_login($smallPage = false)

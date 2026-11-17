@@ -33,7 +33,7 @@ function log_in_with_password($db, $username, $password)
         if ($stat == 'D') {
             start_provisional_session($usernum);
         } else if ($usernum) {
-            end_login_session();
+            log_out($db);
         }
         [$errCode, $errMsg] = login_error($stat);
         return [false, $errCode, $errMsg];
