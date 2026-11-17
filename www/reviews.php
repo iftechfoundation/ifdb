@@ -20,7 +20,7 @@ include_once "commentutil.php";
 function getReviewQuery($db, $where)
 {
     // check for a logged-in user
-    $curuser = checkPersistentLogin();
+    $curuser = current_user_id();
 
     // If we're logged in, set up the review query modifiers for muting
     // and promotions and demotions.
@@ -261,7 +261,7 @@ function showReview($db, $gameid, $rec, $specialNames, $optionFlags = 0)
     $collapseLong = ($optionFlags & SHOWREVIEW_COLLAPSELONG);
 
     // get the current user, if we're logged in
-    checkPersistentLogin();
+    current_user_id();
     $curuser = isset($_SESSION['logged_in'])
                ? $_SESSION['logged_in_as'] : false;
 

@@ -4,7 +4,7 @@ include_once "session-start.php";
 
 // make sure we process any persistent login state
 include_once "current-user.php";
-$curuser = checkPersistentLogin();
+$curuser = current_user_id();
 
 include_once "pagetpl.php";
 include_once "util.php";
@@ -16,7 +16,7 @@ include_once "commentutil.php";
 include_once "news.php";
 
 $db = dbConnect();
-$curuser = checkPersistentLogin();
+$curuser = current_user_id();
 
 // check the user for ADMIN privileges and sandbox setting
 $userprivs = $adminPriv = false;

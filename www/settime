@@ -29,7 +29,7 @@ if ($game == "")
     send_action_response("Not Saved", "No game was specified.");
 
 // make sure we process any persistent login state
-$userid = checkPersistentLogin();
+$userid = current_user_id();
 if (!$userid && !logged_in(true))
     exit();
 

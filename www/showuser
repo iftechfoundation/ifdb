@@ -18,7 +18,7 @@ $uid = isset($_REQUEST['id']) ? $_REQUEST['id'] : null;
 
 // check for persistent login
 include_once "current-user.php";
-$curuser = checkPersistentLogin();
+$curuser = current_user_id();
 
 // check for an unlock override - this allows the administrator to
 // view a new account's page even when it's hidden for review

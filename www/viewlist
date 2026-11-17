@@ -10,7 +10,7 @@ include_once "dbconnect.php";
 $db = dbConnect();
 
 include_once "current-user.php";
-$curuser = checkPersistentLogin();
+$curuser = current_user_id();
 
 $listid = $_REQUEST['id'] ?? '';
 $qlistid = mysql_real_escape_string($listid, $db);

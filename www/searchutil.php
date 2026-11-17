@@ -51,7 +51,7 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse, $count_all_
     }
 
     // we need the current user for some types of queries
-    checkPersistentLogin();
+    current_user_id();
     $curuser = mysql_real_escape_string($_SESSION['logged_in_as'] ?? '', $db);
 
     // set up the mute filter

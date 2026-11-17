@@ -4,7 +4,7 @@ include_once "session-start.php";
 
 // make sure we process any persistent login state
 include_once "current-user.php";
-$userid = checkPersistentLogin();
+$userid = current_user_id();
 
 include_once "util.php";
 include_once "pagetpl.php";

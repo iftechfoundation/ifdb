@@ -6,7 +6,7 @@ include_once "util.php";
 // we have to be logged in to edit a game
 include_once "session-start.php";
 include_once "current-user.php";
-$userid = checkPersistentLogin();
+$userid = current_user_id();
 
 include_once "dbconnect.php";
 $db = dbConnect();

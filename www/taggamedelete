@@ -26,7 +26,7 @@ if (isEmpty($id))
         "Not Saved", "No game was specified in the tag request.");
 
 // make sure we process any persistent login state
-$userid = checkPersistentLogin();
+$userid = current_user_id();
 
 $adminPriv = false;
 if ($userid) {

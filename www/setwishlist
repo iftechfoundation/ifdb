@@ -28,7 +28,7 @@ if (mysql_num_rows($result) == 0)
                          . "database.");
 
 // make sure we process any persistent login state
-$userid = checkPersistentLogin();
+$userid = current_user_id();
 if (!$userid && !logged_in(true)) {
     http_response_code(401);
     echo "401 Unauthorized";

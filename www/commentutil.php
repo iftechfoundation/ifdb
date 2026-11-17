@@ -12,7 +12,7 @@ $inboxCnt = 0;
 function queryComments($db, $mode, $quid, $limit, $caughtUpDate, $keepMuted)
 {
     // get the logged-in user
-    checkPersistentLogin();
+    current_user_id();
     $curuser = $_SESSION['logged_in_as'] ?? null;
     $orOwner = ($curuser ? "or '$curuser' in (c.userid, c.private)" : "");
 
@@ -210,7 +210,7 @@ function showCommentPage($db, $itemAuthor, $srcID, $srcCode,
                          $title, $anchor)
 {
     // get the logged-in user
-    checkPersistentLogin();
+    current_user_id();
     $curuser = $_SESSION['logged_in_as'] ?? null;
     $orOwner = ($curuser ? "or '$curuser' in (c.userid, c.private)" : "");
 
@@ -375,7 +375,7 @@ $mutedCommentNum = 0;
 function showComment($db,$commentPage, $itemAuthor, $cidx, $coutlst, $i)
 {
     // get the logged-in user
-    checkPersistentLogin();
+    current_user_id();
     $curuser = $_SESSION['logged_in_as'] ?? null;
 
     // unpack the item
@@ -497,7 +497,7 @@ function revealMutedComment(ele)
 function countComments($db, $srcCode, $qSrcID)
 {
     // set up the owner join if the owner information is provided
-    checkPersistentLogin();
+    current_user_id();
     $curuser = $_SESSION['logged_in_as'] ?? null;
     $orOwner = ($curuser ? "or '$curuser' in (c.userid, c.private)" : "");
 

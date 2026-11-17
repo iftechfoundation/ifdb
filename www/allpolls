@@ -10,7 +10,7 @@ $db = dbConnect();
 
 // note if we're logged in
 include_once "current-user.php";
-$curuser = checkPersistentLogin();
+$curuser = current_user_id();
 
 $uid = get_req_data('user');
 $quid = mysql_real_escape_string($uid, $db);

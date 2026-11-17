@@ -77,7 +77,7 @@ function helpWinLink($href, $text)
 function pageHeader($title, $focusCtl = false, $extraOnLoad = false,
                     $extraHead = false, $ckbox = false, $bodyAttrs = "")
 {
-    checkPersistentLogin();
+    current_user_id();
     $isLoggedIn = (isset($_SESSION['logged_in']) && $_SESSION['logged_in']);
 
     // show the basic header

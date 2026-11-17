@@ -60,7 +60,7 @@ function login()
         }
 
         // check for a persistent connection
-        $usernum = checkPersistentLogin();
+        $usernum = current_user_id();
 
         // check to see if we're already logged in - if we are, confirm the
         // logged-in user and show how to log out.

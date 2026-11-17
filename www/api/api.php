@@ -3,7 +3,7 @@
 include_once "../pagetpl.php";
 include_once "../util.php";
 include_once "../current-user.php";
-checkPersistentLogin();
+current_user_id();
 
 function apiPageHeader($title)
 {

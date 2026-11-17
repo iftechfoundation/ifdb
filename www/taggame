@@ -103,7 +103,7 @@ if (!$xml) {
 }
 
 // make sure we process any persistent login state
-$userid = checkPersistentLogin();
+$userid = current_user_id();
 if (!$userid) {
     if (!$xml) {
         $username = $input_json['username'] ?? $_SERVER['PHP_AUTH_USER'] ?? null;

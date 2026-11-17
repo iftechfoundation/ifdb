@@ -346,7 +346,7 @@ function showImageCopyrightForm($defStatus, $defOwner)
     $defCC = "";
     if (isset($_SESSION['logged_in']) && $_SESSION['logged_in']) {
         $db = dbConnect();
-        checkPersistentLogin();
+        current_user_id();
         $uid = mysql_real_escape_string($_SESSION['logged_in_as'], $db);
         $result = mysql_query("select name from users where id='$uid'", $db);
         if (mysql_num_rows($result) > 0) {

@@ -8,7 +8,7 @@ $db = dbConnect();
 
 // note if we're logged in
 include_once "current-user.php";
-$curuser = checkPersistentLogin();
+$curuser = current_user_id();
 
 // get the request parameter
 $uid = get_req_data('user');

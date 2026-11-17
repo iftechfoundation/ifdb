@@ -3,7 +3,7 @@
 // make sure we process any persistent login state
 include_once "current-user.php";
 $db = dbConnect(); // Is this the right place for this?
-$curuser = checkPersistentLogin(); // Is this the right place for this?
+$curuser = current_user_id(); // Is this the right place for this?
 
 include_once "pagetpl.php";
 

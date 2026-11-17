@@ -325,7 +325,7 @@ function echoStylesheetLink()
     $db = dbConnect();
 
     // check for a profile style
-    $userid = checkPersistentLogin();
+    $userid = current_user_id();
     $ssid = false;
     if ($userid && !$cssOverride) {
         $result = mysqli_execute_query($db,
@@ -371,7 +371,7 @@ function echoStylesheetLink()
 function sendImageLdesc($title, $imageID)
 {
     global $copyrightStatList;
-    checkPersistentLogin();
+    current_user_id();
     $curuser = (isset($_SESSION['logged_in']) && $_SESSION['logged_in'])
                ? $_SESSION['logged_in_as'] : false;
 

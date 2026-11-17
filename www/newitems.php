@@ -25,7 +25,7 @@ define("NEWITEMS_ALLITEMS",
 
 function getNewItems($db, $limit = 10, $itemTypes = NEWITEMS_ALLITEMS, $options = [])
 {
-    checkPersistentLogin();
+    current_user_id();
     $curuser = $_SESSION['logged_in_as'] ?? null;
 
     $andNotMuted = "";
