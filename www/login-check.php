@@ -117,9 +117,6 @@ function doLogin($db, $username, $password)
     $_SESSION['logged_in_as'] = $usernum;
     unset($_SESSION['provisional_logged_in_as']);
 
-    // clear the recommendation cache
-    shoot_recommendation_cache();
-
     // success
     return [$usernum, null, null];
 }

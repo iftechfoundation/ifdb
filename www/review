@@ -617,10 +617,6 @@ up your existing review for further editing.
         // unlock the tables
         mysql_query("unlock tables", $db);
 
-        // clear the recommendation cache, since the new review gives
-        // use new information for calculating user proximity
-        shoot_recommendation_cache();
-
         // if that succeeded, redirect back to the game's home page;
         // otherwise, return to the entry page with an error
 

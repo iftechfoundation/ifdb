@@ -15,9 +15,6 @@ if ($uid) {
 $_SESSION['logged_in'] = false;
 $_SESSION['logged_in_as'] = null;
 
-// clear the recommendation cache
-shoot_recommendation_cache();
-
 include_once "pagetpl.php";
 pageHeader("Logged out");
 ?>

@@ -53,14 +53,6 @@ define("POLL_FLAG_LOCKED", 0x0002);
 define("STYLESHEET_DARKFORCE_DARK", 1);
 define("STYLESHEET_DARKFORCE_LIGHT", 2);
 
-// --------------------------------------------------------------------------
-// shoot the recommendation cache
-//
-function shoot_recommendation_cache()
-{
-    unset($_SESSION['ifdb_recommendations']);
-}
-
 // ------------------------------------------------------------------------
 //
 // Encode output for RSS.  We send RSS in UTF-8 format, so this converts
