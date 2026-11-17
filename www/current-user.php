@@ -13,7 +13,7 @@ function logged_in($smallPage = false)
 {
     // if we have the session flag indicating we're logged in, we're good
     if (isset($_SESSION['logged_in']) && $_SESSION['logged_in'] == true) {
-        if (check_banned($_SESSION['logged_in_as'])) {
+        if (log_out_if_blocked($_SESSION['logged_in_as'])) {
             redirect_to_login($smallPage);
             return false;
         }
@@ -36,7 +36,7 @@ function current_user_id()
     // session
     if (isset($_SESSION['logged_in']) && $_SESSION['logged_in'] == true) {
         $userid = $_SESSION['logged_in_as'];
-        if (check_banned($userid)) return false;
+        if (log_out_if_blocked($userid)) return false;
         return $userid;
     }
 
@@ -78,7 +78,7 @@ function current_user_id()
 }
 
 
-function check_banned($userid) {
+function log_out_if_blocked($userid) {
     $db = dbConnect();
     $result = mysqli_execute_query($db,
         "select 1 from users where id = ? and acctstatus = 'B'", [$userid]);
