@@ -1,5 +1,5 @@
 # Runs the Hurl smoke tests on every PR and push to main. After a push to
-# main passes, deploys it to dev, and to production too if the merged PR has
+# main passes, deploys it to dev, and then to production if the merged PR has
 # the deploy-on-merge label. See deploy.yml.
 
 name: Test and deploy
@@ -88,7 +88,7 @@ jobs:
       contents: read
 
   deploy-prod:
-    needs: hurl
+    needs: deploy-dev
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     uses: ./.github/workflows/deploy.yml
     with:
