@@ -30,6 +30,16 @@ function logged_in($smallPage = false)
     return false;
 }
 
+function require_login($smallPage = false)
+{
+    $userid = current_user_id();
+    if (!$userid) {
+        redirect_to_login($smallPage);
+        exit();
+    }
+    return $userid;
+}
+
 function current_user_id()
 {
     // if we're already logged in, there's no need to check for a persistent

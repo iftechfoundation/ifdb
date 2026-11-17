@@ -97,11 +97,8 @@ if (isset($_REQUEST['pic'])) {
 
 $pageTitle = "Member Profile";
 
-if ($uid == "") {
-    if (!logged_in(false)) {
-        exit();
-    }
-}
+if ($uid == "")
+    require_login();
 
 // look up the user record
 $result = mysql_query(

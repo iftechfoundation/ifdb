@@ -17,16 +17,15 @@ $id = mysql_real_escape_string(get_req_data('id'), $db);
 // we have to be logged in to create, edit, or vote
 $userid = false;
 current_user_id();
-if (($id == 'new'
-     || isset($_REQUEST['newPollGo'])
-     || isset($_REQUEST['editPoll'])
-     || isset($_REQUEST['delPoll'])
-     || isset($_REQUEST['submitVote'])
-     || isset($_REQUEST['delVote'])
-     || isset($_REQUEST['addVote'])
-     || isset($_REQUEST['comment']))
-    && !logged_in())
-    exit();
+if ($id == 'new'
+    || isset($_REQUEST['newPollGo'])
+    || isset($_REQUEST['editPoll'])
+    || isset($_REQUEST['delPoll'])
+    || isset($_REQUEST['submitVote'])
+    || isset($_REQUEST['delVote'])
+    || isset($_REQUEST['addVote'])
+    || isset($_REQUEST['comment']))
+    require_login();
 
 // note the user ID, if available
 $userid = $_SESSION['logged_in_as'] ?? false;

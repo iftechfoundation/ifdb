@@ -39,8 +39,8 @@ if (!$userid)
     $userid = $curuser;
 
 // if there's no user ID, make sure we're logged in
-if (!$userid && !logged_in())
-    exit();
+if (!$userid)
+    require_login();
 
 // quote the user ID for queries
 $quid = mysql_real_escape_string($userid, $db);

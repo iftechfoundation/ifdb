@@ -28,14 +28,7 @@ $timenote = trim(get_req_data('note'));
 if ($game == "")
     send_action_response("Not Saved", "No game was specified.");
 
-// make sure we process any persistent login state
-$userid = current_user_id();
-if (!$userid && !logged_in(true))
-    exit();
-
-// make sure we're logged in
-if (!$userid)
-    send_action_response("Not Saved", "To submit a time, please log in.");
+$userid = require_login(true);
 
 // make sure the game is valid
 $result = mysqli_execute_query($db, "select id from games where id = ?", [$game]);

@@ -3,8 +3,7 @@
 // we have to be logged in to do this
 include_once "session-start.php";
 include_once "current-user.php";
-if (!logged_in())
-    exit();
+require_login();
 
 $curuser = $_SESSION['logged_in_as'];
 

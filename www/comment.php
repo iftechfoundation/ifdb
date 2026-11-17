@@ -6,8 +6,7 @@ include_once "current-user.php";
 include_once "captcha.php";
 include_once "akismet.php";
 
-if (!logged_in())
-    exit();
+require_login();
 
 $curuser = $_SESSION['logged_in_as'];
 

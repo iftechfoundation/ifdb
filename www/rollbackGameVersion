@@ -7,8 +7,7 @@ include "starctl.php";
 include_once "editgame-util.php";
 
 include_once "current-user.php";
-if (!logged_in())
-    exit();
+require_login();
 
 $userid = $_SESSION['logged_in_as'];
 

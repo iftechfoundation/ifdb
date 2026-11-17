@@ -4,8 +4,7 @@
 include_once "session-start.php";
 include_once "current-user.php";
 include_once "util.php";
-if (!logged_in())
-    exit();
+require_login();
 
 $curuser = $_SESSION['logged_in_as'];
 

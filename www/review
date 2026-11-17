@@ -10,8 +10,7 @@ require_once 'vendor/autoload.php';
 include_once "session-start.php";
 include_once "current-user.php";
 include_once "login-links.php";
-if (!logged_in())
-    exit();
+require_login();
 
 // connect to the database
 $db = dbConnect();
