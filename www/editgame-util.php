@@ -787,7 +787,7 @@ function calcDeltas($oldRec, $newRec)
     global $fields;
 
     // get the logged-in user
-    $userid = $_SESSION['logged_in_as'];
+    $userid = current_user_id();
 
     // set up our internal list of fields - start with the display list,
     // and add our special internal fields
@@ -1143,7 +1143,7 @@ function saveNewGame($db, $adminPriv, $apiMode,
     global $fields;
 
     // get the logged-in user
-    $userid = $_SESSION['logged_in_as'];
+    $userid = current_user_id();
 
     // make sure that the required fields are present
     foreach (["title" => "title", "author" => "eAuthor"]
@@ -1352,7 +1352,7 @@ function saveOldGame($db, $adminPriv, $apiMode,
                      &$progress, &$saveErrMsg, &$saveErrCode, &$errDetail)
 {
     // get the logged-in user
-    $userid = $_SESSION['logged_in_as'];
+    $userid = current_user_id();
 
     // the ID of an existing game will not change
     $newid = $id;

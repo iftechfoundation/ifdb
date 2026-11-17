@@ -13,7 +13,7 @@ $db = dbConnect();
 $uid = current_user_id();
 $quid = mysql_real_escape_string($uid ?: '', $db);
 
-$loggedIn = (isset($_SESSION['logged_in']) && $_SESSION['logged_in']);
+$loggedIn = (bool)$uid;
 
 $adminPriv = false;
 $caughtUpDate = false;

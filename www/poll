@@ -15,8 +15,7 @@ $db = dbConnect();
 $id = mysql_real_escape_string(get_req_data('id'), $db);
 
 // we have to be logged in to create, edit, or vote
-$userid = false;
-current_user_id();
+$userid = current_user_id();
 if ($id == 'new'
     || isset($_REQUEST['newPollGo'])
     || isset($_REQUEST['editPoll'])
@@ -26,9 +25,6 @@ if ($id == 'new'
     || isset($_REQUEST['addVote'])
     || isset($_REQUEST['comment']))
     require_login();
-
-// note the user ID, if available
-$userid = $_SESSION['logged_in_as'] ?? false;
 
 $adminPriv = false;
 if ($userid) {
@@ -1159,7 +1155,7 @@ function expandVote(id)
         $sandbox = 0;
 
         // if the user is logged in, look up their sandbox
-        $curuser = $_SESSION['logged_in_as'] ?? false;
+        $curuser = current_user_id();
         if ($curuser) {
             $result = mysql_query("select sandbox from users where id='$curuser'", $db);
             [$sandbox] = mysql_fetch_row($result);

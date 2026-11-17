@@ -4,7 +4,7 @@
 $sandbox = 0;
 
 // if the user is logged in, look up their sandbox
-$curuser = $_SESSION['logged_in_as'] ?? null;
+$curuser = current_user_id();
 if ($curuser) {
     $result = mysqli_execute_query($db, "select sandbox from users where id=?", [$curuser]);
     [$sandbox] = mysql_fetch_row($result);

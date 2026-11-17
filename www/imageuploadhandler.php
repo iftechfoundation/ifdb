@@ -344,10 +344,10 @@ function showImageCopyrightForm($defStatus, $defOwner)
         $defOwner = "Copyright $defOwner";
 
     $defCC = "";
-    if (isset($_SESSION['logged_in']) && $_SESSION['logged_in']) {
+    $uid = current_user_id();
+    if ($uid) {
         $db = dbConnect();
-        current_user_id();
-        $uid = mysql_real_escape_string($_SESSION['logged_in_as'], $db);
+        $uid = mysql_real_escape_string($uid, $db);
         $result = mysql_query("select name from users where id='$uid'", $db);
         if (mysql_num_rows($result) > 0) {
             $username = mysql_result($result, 0, "name");

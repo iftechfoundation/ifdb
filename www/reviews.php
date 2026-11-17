@@ -261,9 +261,7 @@ function showReview($db, $gameid, $rec, $specialNames, $optionFlags = 0)
     $collapseLong = ($optionFlags & SHOWREVIEW_COLLAPSELONG);
 
     // get the current user, if we're logged in
-    current_user_id();
-    $curuser = isset($_SESSION['logged_in'])
-               ? $_SESSION['logged_in_as'] : false;
+    $curuser = current_user_id();
 
     // pull out the fields from the review record
     $reviewid = $rec['reviewid'];

@@ -51,8 +51,7 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse, $count_all_
     }
 
     // we need the current user for some types of queries
-    current_user_id();
-    $curuser = mysql_real_escape_string($_SESSION['logged_in_as'] ?? '', $db);
+    $curuser = mysql_real_escape_string(current_user_id() ?: '', $db);
 
     // set up the mute filter
     $andNotMuted = "";

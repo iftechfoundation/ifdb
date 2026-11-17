@@ -371,9 +371,7 @@ function echoStylesheetLink()
 function sendImageLdesc($title, $imageID)
 {
     global $copyrightStatList;
-    current_user_id();
-    $curuser = (isset($_SESSION['logged_in']) && $_SESSION['logged_in'])
-               ? $_SESSION['logged_in_as'] : false;
+    $curuser = current_user_id();
 
     // parse the image ID:  <dbnum>:<image key>
     $parts = explode(":", (string)$imageID, 2);
@@ -1480,8 +1478,8 @@ function initCap($str)
 //
 function check_editing_privileges($db)
 {
-    // make sure we're logged in at the session level
-    $curuser = $_SESSION['logged_in_as'] ?? null;
+    // make sure we're logged in
+    $curuser = current_user_id();
     if (!$curuser)
     {
         redirect_to_login();
@@ -1578,7 +1576,7 @@ function getGameRatingsView($db)
     $sandbox = 0;
 
     // if the user is logged in, look up their sandbox
-    $curuser = $_SESSION['logged_in_as'] ?? '';
+    $curuser = current_user_id();
     if ($curuser) {
         $result = mysql_query("select sandbox from users where id='$curuser'", $db);
         [$sandbox] = mysql_fetch_row($result);
@@ -2696,7 +2694,7 @@ function send_admin_email_if_links($txt, $context, $contextLink)
 {
     if (preg_match("/https?:\/\//i", $txt))
     {
-        $userid = $_SESSION['logged_in_as'];
+        $userid = current_user_id();
         $hdrs = "From: IFDB <noreply@ifdb.org>\r\n"
                 . "Content-type: Text/HTML\r\n";
         send_mail("ifdbadmin@ifdb.org", "IFDB hyperlink review",

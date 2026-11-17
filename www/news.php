@@ -144,8 +144,7 @@ function queryNews($db, $sourceType, $sourceID, $includeDeletions,
                    $limit, &$rowcnt)
 {
     // get the logged-in user
-    current_user_id();
-    $curuser = $_SESSION['logged_in_as'] ?? null;
+    $curuser = current_user_id();
 
     // filter out muted users, if applicable
     $andNotMuted = "";
