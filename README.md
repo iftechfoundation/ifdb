@@ -51,6 +51,15 @@ docker compose up --build
 
 Once your dependency is installed, you'll consume the dependency by adding a `require_once 'vendor/autoload.php';` line to your code.
 
+# Unit tests
+
+Unit tests live in `test/unit` and use [PHPUnit](https://phpunit.de). Run them with Docker:
+
+```
+./docker-phpunit.sh
+./docker-phpunit.sh --filter FixDesc
+```
+
 # PHP coding style
 
 We use [PHP-CS-Fixer](https://github.com/PHP-CS-Fixer/PHP-CS-Fixer) for coding style.
