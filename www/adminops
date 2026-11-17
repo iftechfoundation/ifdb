@@ -1381,7 +1381,7 @@ else if (isset($_REQUEST['users'])) {
 
     // check if we're logging in as the user
     if (isset($_POST['su'])) {
-        $_SESSION['logged_in_as'] = $quid;
+        start_login_session($quid);
         echo "<p><span class=success>setuser successful</span><p>";
     }
 

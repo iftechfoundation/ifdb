@@ -345,8 +345,7 @@ if ($errMsg) {
     // banned them in the database.
     if ($userAccountStatus != 'A')
     {
-        $_SESSION['logged_in'] = false;
-        $_SESSION['logged_in_as'] = null;
+        end_login_session();
         $errMsg = "Sorry, an error occurred updating the "
                   . "database. (RVN6611)";
     }

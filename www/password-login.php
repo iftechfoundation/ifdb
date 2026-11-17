@@ -1,6 +1,6 @@
 <?php
 
-include_once "session-start.php";
+include_once "current-user.php";
 include_once "dbconnect.php";
 include_once "util.php";
 
@@ -32,21 +32,16 @@ function log_in_with_password($db, $username, $password)
 
     if (!$usernum) {
         if ($stat == 'D') {
-            $_SESSION['provisional_logged_in_as'] = $acctid;
+            start_provisional_session($acctid);
         } else if ($stat !== null) {
-            $_SESSION['logged_in'] = false;
-            $_SESSION['logged_in_as'] = null;
-            unset($_SESSION['provisional_logged_in_as']);
+            end_login_session();
         }
         return [false, $errCode, $errMsg];
     }
 
     record_login($db, $usernum);
 
-    // It all looks good - we're logged in!  Set the session status.
-    $_SESSION['logged_in'] = true;
-    $_SESSION['logged_in_as'] = $usernum;
-    unset($_SESSION['provisional_logged_in_as']);
+    start_login_session($usernum);
 
     // success
     return [$usernum, null, null];
@@ -63,8 +58,7 @@ function log_in_for_api_request($db, $username, $password)
     record_login($db, $usernum);
 
     session_write_close();
-    $_SESSION['logged_in'] = true;
-    $_SESSION['logged_in_as'] = $usernum;
+    start_login_session($usernum);
 
     return [$usernum, null, null];
 }

@@ -25,6 +25,25 @@ function logged_in($smallPage = false)
     return false;
 }
 
+function start_login_session($userid)
+{
+    $_SESSION['logged_in'] = true;
+    $_SESSION['logged_in_as'] = $userid;
+    unset($_SESSION['provisional_logged_in_as']);
+}
+
+function start_provisional_session($userid)
+{
+    $_SESSION['provisional_logged_in_as'] = $userid;
+}
+
+function end_login_session()
+{
+    $_SESSION['logged_in'] = false;
+    $_SESSION['logged_in_as'] = null;
+    unset($_SESSION['provisional_logged_in_as']);
+}
+
 function require_login($smallPage = false)
 {
     $userid = current_user_id();
@@ -74,10 +93,7 @@ function current_user_id()
             $result = mysqli_execute_query($db, "update users set lastlogin = now()
                 where id = ?", [$userid]);
 
-            // save the user credentials in the session
-            $_SESSION['logged_in'] = true;
-            $_SESSION['logged_in_as'] = $userid;
-            unset($_SESSION['provisional_logged_in_as']);
+            start_login_session($userid);
 
             // return the user number
             return $userid;
@@ -96,9 +112,7 @@ function log_out_if_blocked($userid) {
     $banned = mysql_num_rows($result) > 0;
     if ($banned) {
         error_log("user $user_id is banned; logging out");
-        $_SESSION['logged_in'] = false;
-        $_SESSION['logged_in_as'] = null;
-        unset($_SESSION['provisional_logged_in_as']);
+        end_login_session();
     }
     return $banned;
 }
