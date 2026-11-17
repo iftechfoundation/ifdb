@@ -11,7 +11,7 @@
 #                  deploy everything that isn't in production yet.
 #
 # A production deploy waits for approval when:
-#   - sql/incoming-schema-changes.sql changed since the production tag;
+#   - sql/migrations changed since the production tag;
 #   - the merged PR has the schema-change label (prod-on-merge);
 #   - main has other changes that aren't in production yet (prod-on-merge);
 #   - there's no production tag yet.
@@ -90,8 +90,8 @@ if git rev-parse -q --verify refs/tags/production > /dev/null; then
   if [[ $MODE == prod-on-merge && $count -gt 1 ]]; then
     reasons+=("main has $((count - 1)) other change(s) that aren't in production yet.")
   fi
-  if ! git diff --quiet production "$sha" -- sql/incoming-schema-changes.sql; then
-    reasons+=("sql/incoming-schema-changes.sql changed since the last production deploy. Apply the schema changes before approving.")
+  if ! git diff --quiet production "$sha" -- sql/migrations; then
+    reasons+=("sql/migrations changed since the last production deploy. The deploy will run the new migrations.")
   fi
 else
   reasons+=("There's no production tag yet, so this can't tell what the deploy includes.")
