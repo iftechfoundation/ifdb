@@ -4,11 +4,6 @@ include_once "session-start.php";
 include_once "dbconnect.php";
 include_once "login-links.php";
 
-function provisionally_logged_in()
-{
-    return (isset($_SESSION['provisional_logged_in_as']));
-}
-
 function logged_in($smallPage = false)
 {
     // if we have the session flag indicating we're logged in, we're good
@@ -38,6 +33,12 @@ function require_login($smallPage = false)
         exit();
     }
     return $userid;
+}
+
+// Accounts pending activation can still edit their profile.
+function require_login_or_provisional($smallPage = false)
+{
+    return $_SESSION['provisional_logged_in_as'] ?? require_login($smallPage);
 }
 
 function current_user_id()

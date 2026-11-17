@@ -16,8 +16,7 @@ function jsStr($val)
         | JSON_HEX_QUOT | JSON_INVALID_UTF8_SUBSTITUTE);
 }
 
-if (!provisionally_logged_in())
-    require_login(true);
+require_login_or_provisional(true);
 
 // check for a copyright status update
 if (isset($_POST['setCopyright']))
