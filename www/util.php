@@ -1484,7 +1484,7 @@ function check_editing_privileges($db)
     $curuser = $_SESSION['logged_in_as'] ?? null;
     if (!$curuser)
     {
-        redirect_to_login_page();
+        redirect_to_login();
         return false;
     }
 
@@ -1492,7 +1492,7 @@ function check_editing_privileges($db)
     if (!($result = mysql_query("select acctstatus, profilestatus, sandbox from users where id='$curuser'", $db))
         || mysql_num_rows($result) == 0)
     {
-        redirect_to_login_page();
+        redirect_to_login();
         return false;
     }
     [$acctstatus, $profilestatus, $sandbox] = mysql_fetch_row($result);

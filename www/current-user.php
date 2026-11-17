@@ -14,7 +14,7 @@ function logged_in($smallPage = false)
     // if we have the session flag indicating we're logged in, we're good
     if (isset($_SESSION['logged_in']) && $_SESSION['logged_in'] == true) {
         if (check_banned($_SESSION['logged_in_as'])) {
-            redirect_to_login_page($smallPage);
+            redirect_to_login($smallPage);
             return false;
         }
         return true;
@@ -26,7 +26,7 @@ function logged_in($smallPage = false)
         return true;
 
     // redirect to the login page
-    redirect_to_login_page($smallPage);
+    redirect_to_login($smallPage);
     return false;
 }
 

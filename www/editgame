@@ -2060,7 +2060,7 @@ for ($i = 0 ; $i < count($reftypes) ; ++$i) {
                       if ($userloc != "")
                           echo " (" . htmlspecialcharx($userloc) . ")"
                    ?>."
-                   <a href="<?php echo switchUserAndReturnHRef() ?>">
+                   <a href="<?php echo switch_user_url() ?>">
                       Click here</a> to log in as a different user
                    (but note that this will discard your unsaved changes
                    above).

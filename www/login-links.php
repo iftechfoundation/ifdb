@@ -1,6 +1,6 @@
 <?php
 
-function logInAndReturnQuery()
+function login_dest()
 {
     // come back to the current page when we're done
     $dest = urlencode($_SERVER['PHP_SELF']);
@@ -20,22 +20,22 @@ function logInAndReturnQuery()
     return $dest;
 }
 
-function switchUserAndReturnHRef()
+function switch_user_url()
 {
-    return "login?switch&dest=" . logInAndReturnQuery();
+    return "login?switch&dest=" . login_dest();
 }
 
-function logInAndReturnHRef($smallPage = false)
+function login_url($smallPage = false)
 {
-    $href = "login?dest=" . logInAndReturnQuery();
+    $href = "login?dest=" . login_dest();
     if ($smallPage)
         $href .= "&small=1";
     return $href;
 }
 
-function redirect_to_login_page($smallPage = false)
+function redirect_to_login($smallPage = false)
 {
-    $href = logInAndReturnHRef($smallPage);
+    $href = login_url($smallPage);
     header("HTTP/1.1 301 Moved Permanently");
     header("Content-Type: text/html");
     header("Location: $href");

@@ -989,7 +989,7 @@ When your review is displayed, it will be attributed to you as "<?php
     echo $username;
     if ($userloc != "")
         echo " ($userloc)";
-?>."  If this isn't you, <a href="<?php echo switchUserAndReturnHRef() ?>">
+?>."  If this isn't you, <a href="<?php echo switch_user_url() ?>">
 click here</a> to log in as a different user (but note that this will
 discard your unsaved changes above).
 </span>

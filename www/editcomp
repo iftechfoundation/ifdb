@@ -1752,7 +1752,7 @@ function activateListeners(divno, model)
 
         . "<br><br><span class=details>"
         . "<i>Your changes will be attributed to you as $displayName. "
-        . "<a href=\"" . switchUserAndReturnHRef()
+        . "<a href=\"" . switch_user_url()
         . "\">Click here</a> to log in as a different user (but note "
         . "that this will discard your unsaved changes above).</i></span>"
 
