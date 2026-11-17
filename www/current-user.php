@@ -3,6 +3,7 @@
 include_once "session-start.php";
 include_once "dbconnect.php";
 include_once "login-links.php";
+include_once "remember-me.php";
 
 function logged_in($smallPage = false)
 {
@@ -70,38 +71,10 @@ function current_user_id()
         return $userid;
     }
 
-    // check for the session ID
-    if (isset($_COOKIE['IFDBSessionID'])) {
-        // set up the database connection
-        $db = dbConnect();
-        if (!$db)
-            return false;
-
-        // see if we can find the session ID in the persistent session table
-        $key = $_COOKIE['IFDBSessionID'];
-        $result = mysqli_execute_query($db, "select userid from persistentsessions
-            where id = ?", [$key]);
-        if (mysql_num_rows($result) > 0) {
-            // Got it - the user is logged in.  Fetch the user ID.
-            $userid = mysql_result($result, 0, "userid");
-
-            // update the last login timestamp for the persistent session
-            mysqli_execute_query($db, "update persistentsessions set lastlogin = now()
-                where id = ?", [$key]);
-
-            // also update the last login time in the user record
-            $result = mysqli_execute_query($db, "update users set lastlogin = now()
-                where id = ?", [$userid]);
-
-            start_login_session($userid);
-
-            // return the user number
-            return $userid;
-        }
-    }
-
-    // not logged in
-    return false;
+    $userid = remembered_user_id();
+    if ($userid)
+        start_login_session($userid);
+    return $userid;
 }
 
 
