@@ -87,7 +87,7 @@ function validateUpload($id, $desc, $required)
 $username = get_req_data("username");
 $password = get_req_data("password");
 
-[$curuser, $errCode, $errMsg] = apiLogin($db, $username, $password);
+[$curuser, $errCode, $errMsg] = log_in_for_api_request($db, $username, $password);
 if (!$curuser)
     replyError(401, "Login", "The IFDB login failed: $errCode.");
 

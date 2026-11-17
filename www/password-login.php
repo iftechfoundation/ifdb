@@ -25,10 +25,10 @@ include_once "util.php";
 // errorMessage is the long-form message, in HTML format, suitable for
 // display in the error message slot in the interactive login form.
 //
-function doLogin($db, $username, $password)
+function log_in_with_password($db, $username, $password)
 {
     [$usernum, $errCode, $errMsg, $acctid, $stat] =
-        checkCredentials($db, $username, $password);
+        check_credentials($db, $username, $password);
 
     if (!$usernum) {
         if ($stat == 'D') {
@@ -41,7 +41,7 @@ function doLogin($db, $username, $password)
         return [false, $errCode, $errMsg];
     }
 
-    recordLogin($db, $usernum);
+    record_login($db, $usernum);
 
     // It all looks good - we're logged in!  Set the session status.
     $_SESSION['logged_in'] = true;
@@ -53,14 +53,14 @@ function doLogin($db, $username, $password)
 }
 
 // Log in for a single API request without changing the stored session.
-function apiLogin($db, $username, $password)
+function log_in_for_api_request($db, $username, $password)
 {
     [$usernum, $errCode, $errMsg] =
-        checkCredentials($db, $username, $password);
+        check_credentials($db, $username, $password);
     if (!$usernum)
         return [false, $errCode, $errMsg];
 
-    recordLogin($db, $usernum);
+    record_login($db, $usernum);
 
     session_write_close();
     $_SESSION['logged_in'] = true;
@@ -69,9 +69,9 @@ function apiLogin($db, $username, $password)
     return [$usernum, null, null];
 }
 
-// Returns the same values as doLogin(), plus the account ID and status
-// when the password matched.  Doesn't touch the session.
-function checkCredentials($db, $username, $password)
+// Returns the same values as log_in_with_password(), plus the account ID
+// and status when the password matched.  Doesn't touch the session.
+function check_credentials($db, $username, $password)
 {
     if (strlen($password) > MAX_PASSWORD_LENGTH) {
         return [false, "incorrect username or password",
@@ -147,7 +147,7 @@ function checkCredentials($db, $username, $password)
     return [$acctid, null, null, $acctid, $stat];
 }
 
-function recordLogin($db, $usernum)
+function record_login($db, $usernum)
 {
     // update the last-login time for the user in the database
     mysql_query("update users set lastlogin = now()

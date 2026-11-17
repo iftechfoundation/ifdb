@@ -112,7 +112,7 @@ if (!$userid) {
         $username = $_POST['username'] ?? '';
         $password = $_POST['password'] ?? '';
     }
-    [$userid, $errCode, $errMsg] = apiLogin($db, $username, $password);
+    [$userid, $errCode, $errMsg] = log_in_for_api_request($db, $username, $password);
 }
 
 if (!$userid) {

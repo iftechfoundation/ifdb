@@ -25,7 +25,7 @@ foreach (['xml', 'json'] as $api_param) {
 if ($api_mode && !isset($_SESSION['logged_in_as']) && isset($_SERVER['PHP_AUTH_USER'])) {
     $username = $_SERVER['PHP_AUTH_USER'];
     $password = $_SERVER['PHP_AUTH_PW'] ?? null;
-    [$userid, $errCode, $errMsg] = apiLogin($db, $username, $password);
+    [$userid, $errCode, $errMsg] = log_in_for_api_request($db, $username, $password);
 
     if ($errCode) {
         // start the API reply
