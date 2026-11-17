@@ -29,14 +29,10 @@ if (mysql_num_rows($result) == 0)
 
 // make sure we process any persistent login state
 $userid = current_user_id();
-if (!$userid && !logged_in(true)) {
+if (!$userid) {
     http_response_code(401);
-    echo "401 Unauthorized";
-    exit();
-}
-
-if (!$userid)
     send_action_response("Not Saved", "You must log in to use this feature.");
+}
 
 $progress = "QU107";
 $result = mysqli_execute_query($db,

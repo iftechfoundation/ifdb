@@ -23,14 +23,10 @@ $vote = $_REQUEST['vote'];
 
 // make sure we process any persistent login state
 $userid = current_user_id();
-if (!$userid && !logged_in(true)) {
+if (!$userid) {
     http_response_code(401);
-    echo "401 Unauthorized";
-    exit();
-}
-
-if (!$userid)
     send_action_response("Not Saved", "To vote on a review, please log in.");
+}
 
 if (isEmpty($id) || isEmpty($vote) || strstr("YNR", $vote) == false)
     send_action_response("Not Saved", "This voting link is not valid.");

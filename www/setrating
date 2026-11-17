@@ -28,15 +28,10 @@ if ($game == "")
 
 // make sure we process any persistent login state
 $userid = current_user_id();
-if (!$userid && !logged_in(true)) {
+if (!$userid) {
     http_response_code(401);
-    echo "401 Unauthorized";
-    exit();
-}
-
-// make sure we're logged in
-if (!$userid)
     send_action_response("Not Saved", "To rate a game, please log in.");
+}
 
 // make sure the game is valid
 $result = mysqli_execute_query($db, "select id from games where id = ?", [$game]);
