@@ -54,9 +54,7 @@ function login()
             $_SESSION['logged_in_as'] = null;
             unset($_SESSION['provisional_logged_in_as']);
 
-            // delete any persistent session keys for the user
-            mysql_query("delete from persistentsessions
-                where userid = '$uid'", $db);
+            forget_remembered_logins($db, $uid);
         }
 
         // check for a persistent connection

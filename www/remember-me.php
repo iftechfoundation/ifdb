@@ -66,4 +66,10 @@ function remembered_user_id()
     return false;
 }
 
+function forget_remembered_logins($db, $userid)
+{
+    return mysqli_execute_query($db,
+        "delete from persistentsessions where userid = ?", [$userid]);
+}
+
 ?>

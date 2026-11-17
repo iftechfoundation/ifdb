@@ -2347,8 +2347,7 @@ function close_user_acct($db, $uid, $stat, &$progress)
     // cancel any persistent sessions
     if ($result) {
         $progress = "deleting user's persistent login sessions";
-        $result = mysql_query(
-            "delete from persistentsessions where userid='$quid'", $db);
+        $result = forget_remembered_logins($db, $uid);
     }
 
     // delete discussions, part 1: delete postings by user

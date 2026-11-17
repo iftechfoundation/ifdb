@@ -9,7 +9,7 @@ $db = dbConnect();
 
 $uid = $_SESSION['logged_in_as'] ?? null;
 if ($uid) {
-    mysql_query("delete from persistentsessions where userid = '$uid'", $db);
+    forget_remembered_logins($db, $uid);
 }
 
 $_SESSION['logged_in'] = false;
