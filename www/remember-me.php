@@ -8,7 +8,7 @@ include_once "util.php";
 // any other information on the page, since cookies must be sent with the
 // header information in the reply.
 //
-function setLoginCookie($db, $usernum, $ip)
+function remember_login($db, $usernum, $ip)
 {
     // generate a crypto-random identifier for the session - this
     // effectively becomes a password, so we need to make it hard

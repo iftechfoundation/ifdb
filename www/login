@@ -120,7 +120,7 @@ function login()
 
         // set the persistent session cookie, if desired
         if ($persist)
-            setLoginCookie($db, $userid, $ip);
+            remember_login($db, $userid, $ip);
 
         $destHtml = htmlspecialchars($dest);
         echo("Redirecting to $destHtml<br><br><a href=\"$destHtml\">");
@@ -134,7 +134,7 @@ function login()
         // there's no redirect, so simply show a confirmation screen; first,
         // though, set the persistent session cookie if desired
         if ($persist)
-            setLoginCookie($db, $userid, $ip);
+            remember_login($db, $userid, $ip);
 
         // start the page
         varPageHeader("Login Successful", false, $smallPage);
