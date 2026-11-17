@@ -7,9 +7,8 @@ include_once "dbconnect.php";
 $db = dbConnect();
 
 // make sure we process any persistent login state
-include_once "login-check.php";
-include_once "login-persist.php";
-$curuser = checkPersistentLogin();
+include_once "current-user.php";
+$curuser = current_user_id();
 
 include_once "pagetpl.php";
 include_once "util.php";
@@ -78,11 +77,7 @@ if ($targetID && !$targetTitle) {
 if ($editMode) {
 
     // edit mode - we must be logged in to use this mode
-    if (!logged_in())
-        exit();
-
-    // update the user ID, in case we just filled it in
-    $curuser = $_SESSION['logged_in_as'];
+    $curuser = require_login();
 
     // get the search title from the parameters
     $searchFor = get_req_data('searchfor');

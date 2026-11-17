@@ -2,7 +2,7 @@
 
 include_once "csp-nonce.php";
 include_once "util.php";
-include_once "login-persist.php";
+include_once "current-user.php";
 include_once "commentutil.php";
 
 function srcCacheBust($filename)
@@ -77,8 +77,8 @@ function helpWinLink($href, $text)
 function pageHeader($title, $focusCtl = false, $extraOnLoad = false,
                     $extraHead = false, $ckbox = false, $bodyAttrs = "")
 {
-    checkPersistentLogin();
-    $isLoggedIn = (isset($_SESSION['logged_in']) && $_SESSION['logged_in']);
+    $curuser = current_user_id();
+    $isLoggedIn = (bool)$curuser;
 
     // show the basic header
     basePageHeader($title, $focusCtl, $extraOnLoad, $extraHead,
@@ -87,8 +87,6 @@ function pageHeader($title, $focusCtl = false, $extraOnLoad = false,
     // get the actual current page
     $pagescript = basename($_SERVER['SCRIPT_FILENAME']);
     parse_str($_SERVER['QUERY_STRING'], $query);
-    $curuser = ((isset($_SESSION['logged_in']) && $_SESSION['logged_in'])
-                ? $_SESSION['logged_in_as'] : false);
     // add the top bar for a regular window
 ?>
 

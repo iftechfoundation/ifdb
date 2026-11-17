@@ -2,7 +2,7 @@
 include_once "session-start.php";
 include_once "util.php";
 include_once "pagetpl.php";
-include_once "login-check.php";
+include_once "password-login.php";
 
 function sendResponse($status, $errmsg, $tagInfo=null)
 {
@@ -60,7 +60,7 @@ $mine_only = get_req_data('mine_only');
 if ($mine_only) {
     $username = get_req_data("username");
     $password = get_req_data("password");
-    [$userid, $errCode, $errMsg] = apiLogin($db, $username, $password);
+    [$userid, $errCode, $errMsg] = log_in_for_api_request($db, $username, $password);
     if (!$userid) {
         sendResponse("401 Unauthorized", "Please specify a valid username and password to login.");
     }

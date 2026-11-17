@@ -8,11 +8,9 @@ include_once "gamesearchpopup.php";
 
 // we have to be logged in to edit a competition
 include_once "session-start.php";
-include_once "login-check.php";
-if (!logged_in())
-    exit();
-
-$userid = $_SESSION['logged_in_as'];
+include_once "current-user.php";
+include_once "login-links.php";
+$userid = require_login();
 
 // connect to the database
 include_once "dbconnect.php";
@@ -1751,7 +1749,7 @@ function activateListeners(divno, model)
 
         . "<br><br><span class=details>"
         . "<i>Your changes will be attributed to you as $displayName. "
-        . "<a href=\"" . switchUserAndReturnHRef()
+        . "<a href=\"" . switch_user_url()
         . "\">Click here</a> to log in as a different user (but note "
         . "that this will discard your unsaved changes above).</i></span>"
 

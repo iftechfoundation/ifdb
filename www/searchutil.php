@@ -1,7 +1,7 @@
 <?php
 
 include_once "util.php";
-include_once "login-persist.php";
+include_once "current-user.php";
 
 // is the given string a name suffix?
 function isNameSuffix($s)
@@ -51,8 +51,7 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse, $count_all_
     }
 
     // we need the current user for some types of queries
-    checkPersistentLogin();
-    $curuser = mysql_real_escape_string($_SESSION['logged_in_as'] ?? '', $db);
+    $curuser = mysql_real_escape_string(current_user_id() ?: '', $db);
 
     // set up the mute filter
     $andNotMuted = "";

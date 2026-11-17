@@ -9,10 +9,8 @@ include_once "dbconnect.php";
 global $nonce;
 
 // we have to be logged in to upload a game
-include_once "login-check.php";
-if (!logged_in())
-    exit();
-$userid = $_SESSION['logged_in_as'];
+include_once "current-user.php";
+$userid = require_login();
 
 pageHeader("IF Archive File Upload", false, false);
 

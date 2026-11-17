@@ -7,8 +7,8 @@ include_once "util.php";
 include_once "session-start.php";
 
 // make sure we process any persistent login state
-include_once "login-persist.php";
-$userid = checkPersistentLogin();
+include_once "current-user.php";
+$userid = current_user_id();
 
 include_once "dbconnect.php";
 $db = dbConnect();

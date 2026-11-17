@@ -2,7 +2,7 @@
 
 include_once "session-start.php";
 include_once "util.php";
-include_once "login-check.php";
+include_once "current-user.php";
 include_once "dbconnect.php";
 
 if ($_SERVER['REQUEST_METHOD'] != 'POST') {
@@ -22,15 +22,11 @@ $id = $_REQUEST['id'];
 $vote = $_REQUEST['vote'];
 
 // make sure we process any persistent login state
-$userid = checkPersistentLogin();
-if (!$userid && !logged_in(true)) {
+$userid = current_user_id();
+if (!$userid) {
     http_response_code(401);
-    echo "401 Unauthorized";
-    exit();
-}
-
-if (!$userid)
     send_action_response("Not Saved", "To vote on a review, please log in.");
+}
 
 if (isEmpty($id) || isEmpty($vote) || strstr("YNR", $vote) == false)
     send_action_response("Not Saved", "This voting link is not valid.");

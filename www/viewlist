@@ -9,8 +9,8 @@ include "lists.php";
 include_once "dbconnect.php";
 $db = dbConnect();
 
-include_once "login-persist.php";
-$curuser = checkPersistentLogin();
+include_once "current-user.php";
+$curuser = current_user_id();
 
 $listid = $_REQUEST['id'] ?? '';
 $qlistid = mysql_real_escape_string($listid, $db);

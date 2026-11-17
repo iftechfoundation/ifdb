@@ -2,8 +2,8 @@
 
 include_once "session-start.php";
 include_once "dbconnect.php";
-include_once "login-persist.php";
-$userid = checkPersistentLogin();
+include_once "current-user.php";
+$userid = current_user_id();
 $db = dbConnect();
 
 include_once "util.php";

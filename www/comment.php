@@ -2,14 +2,11 @@
 
 // we have to be logged in to do this
 include_once "session-start.php";
-include_once "login-check.php";
+include_once "current-user.php";
 include_once "captcha.php";
 include_once "akismet.php";
 
-if (!logged_in())
-    exit();
-
-$curuser = $_SESSION['logged_in_as'];
+$curuser = require_login();
 
 // include some utility modules
 include_once "pagetpl.php";
@@ -348,8 +345,7 @@ if ($errMsg) {
     // banned them in the database.
     if ($userAccountStatus != 'A')
     {
-        $_SESSION['logged_in'] = false;
-        $_SESSION['logged_in_as'] = null;
+        log_out_if_blocked($curuser);
         $errMsg = "Sorry, an error occurred updating the "
                   . "database. (RVN6611)";
     }

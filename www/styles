@@ -1,8 +1,8 @@
 <?php
 
 include_once "session-start.php";
-include_once "login-persist.php";
-$userid = checkPersistentLogin();
+include_once "current-user.php";
+$userid = current_user_id();
 
 define("MaxSheets", 10);
 

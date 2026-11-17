@@ -3,8 +3,8 @@
 include_once "session-start.php";
 include_once "dbconnect.php";
 include_once "images.php";
-include_once "login-check.php";
-include_once "login-persist.php";
+include_once "current-user.php";
+include_once "login-links.php";
 include_once "pagetpl.php";
 include_once "image-util.php";
 require_once 'vendor/autoload.php';
@@ -52,14 +52,6 @@ define("POLL_FLAG_LOCKED", 0x0002);
 
 define("STYLESHEET_DARKFORCE_DARK", 1);
 define("STYLESHEET_DARKFORCE_LIGHT", 2);
-
-// --------------------------------------------------------------------------
-// shoot the recommendation cache
-//
-function shoot_recommendation_cache()
-{
-    unset($_SESSION['ifdb_recommendations']);
-}
 
 // ------------------------------------------------------------------------
 //
@@ -333,7 +325,7 @@ function echoStylesheetLink()
     $db = dbConnect();
 
     // check for a profile style
-    $userid = checkPersistentLogin();
+    $userid = current_user_id();
     $ssid = false;
     if ($userid && !$cssOverride) {
         $result = mysqli_execute_query($db,
@@ -379,9 +371,7 @@ function echoStylesheetLink()
 function sendImageLdesc($title, $imageID)
 {
     global $copyrightStatList;
-    checkPersistentLogin();
-    $curuser = (isset($_SESSION['logged_in']) && $_SESSION['logged_in'])
-               ? $_SESSION['logged_in_as'] : false;
+    $curuser = current_user_id();
 
     // parse the image ID:  <dbnum>:<image key>
     $parts = explode(":", (string)$imageID, 2);
@@ -1488,11 +1478,11 @@ function initCap($str)
 //
 function check_editing_privileges($db)
 {
-    // make sure we're logged in at the session level
-    $curuser = $_SESSION['logged_in_as'] ?? null;
+    // make sure we're logged in
+    $curuser = current_user_id();
     if (!$curuser)
     {
-        redirect_to_login_page();
+        redirect_to_login();
         return false;
     }
 
@@ -1500,7 +1490,7 @@ function check_editing_privileges($db)
     if (!($result = mysql_query("select acctstatus, profilestatus, sandbox from users where id='$curuser'", $db))
         || mysql_num_rows($result) == 0)
     {
-        redirect_to_login_page();
+        redirect_to_login();
         return false;
     }
     [$acctstatus, $profilestatus, $sandbox] = mysql_fetch_row($result);
@@ -1586,7 +1576,7 @@ function getGameRatingsView($db)
     $sandbox = 0;
 
     // if the user is logged in, look up their sandbox
-    $curuser = $_SESSION['logged_in_as'] ?? '';
+    $curuser = current_user_id();
     if ($curuser) {
         $result = mysql_query("select sandbox from users where id='$curuser'", $db);
         [$sandbox] = mysql_fetch_row($result);
@@ -2357,8 +2347,7 @@ function close_user_acct($db, $uid, $stat, &$progress)
     // cancel any persistent sessions
     if ($result) {
         $progress = "deleting user's persistent login sessions";
-        $result = mysql_query(
-            "delete from persistentsessions where userid='$quid'", $db);
+        $result = forget_remembered_logins($db, $uid);
     }
 
     // delete discussions, part 1: delete postings by user
@@ -2704,7 +2693,7 @@ function send_admin_email_if_links($txt, $context, $contextLink)
 {
     if (preg_match("/https?:\/\//i", $txt))
     {
-        $userid = $_SESSION['logged_in_as'];
+        $userid = current_user_id();
         $hdrs = "From: IFDB <noreply@ifdb.org>\r\n"
                 . "Content-type: Text/HTML\r\n";
         send_mail("ifdbadmin@ifdb.org", "IFDB hyperlink review",

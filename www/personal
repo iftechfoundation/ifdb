@@ -1,9 +1,8 @@
 <?php
 
 include_once "session-start.php";
-include_once "login-check.php";
-if (!logged_in())
-    exit();
+include_once "current-user.php";
+$uid = require_login();
 
 include_once "dbconnect.php";
 include_once "util.php";
@@ -12,7 +11,6 @@ include_once "commentutil.php";
 
 $db = dbConnect();
 
-$uid = $_SESSION['logged_in_as'];
 $quid = mysql_real_escape_string($uid, $db);
 
 $result = mysqli_execute_query($db,

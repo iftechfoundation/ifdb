@@ -2,7 +2,8 @@
 
 include_once "session-start.php";
 include_once "util.php";
-include_once "login-check.php";
+include_once "current-user.php";
+include_once "password-login.php";
 include_once "tags.php";
 
 function sendResponse($status, $statmsg, $errmsg, $tagInfo = null)
@@ -102,7 +103,7 @@ if (!$xml) {
 }
 
 // make sure we process any persistent login state
-$userid = checkPersistentLogin();
+$userid = current_user_id();
 if (!$userid) {
     if (!$xml) {
         $username = $input_json['username'] ?? $_SERVER['PHP_AUTH_USER'] ?? null;
@@ -111,7 +112,7 @@ if (!$userid) {
         $username = $_POST['username'] ?? '';
         $password = $_POST['password'] ?? '';
     }
-    [$userid, $errCode, $errMsg] = apiLogin($db, $username, $password);
+    [$userid, $errCode, $errMsg] = log_in_for_api_request($db, $username, $password);
 }
 
 if (!$userid) {

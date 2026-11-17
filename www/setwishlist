@@ -2,7 +2,7 @@
 
 include_once "session-start.php";
 include_once "util.php";
-include_once "login-check.php";
+include_once "current-user.php";
 include_once "dbconnect.php";
 
 if ($_SERVER['REQUEST_METHOD'] != 'POST') {
@@ -28,15 +28,11 @@ if (mysql_num_rows($result) == 0)
                          . "database.");
 
 // make sure we process any persistent login state
-$userid = checkPersistentLogin();
-if (!$userid && !logged_in(true)) {
+$userid = current_user_id();
+if (!$userid) {
     http_response_code(401);
-    echo "401 Unauthorized";
-    exit();
-}
-
-if (!$userid)
     send_action_response("Not Saved", "You must log in to use this feature.");
+}
 
 $progress = "QU107";
 $result = mysqli_execute_query($db,

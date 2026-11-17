@@ -2,8 +2,6 @@
 
 include_once "../pagetpl.php";
 include_once "../util.php";
-include_once "../login-persist.php";
-checkPersistentLogin();
 
 function apiPageHeader($title)
 {

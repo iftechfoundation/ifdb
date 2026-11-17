@@ -3,8 +3,8 @@
 include_once "session-start.php";
 
 // make sure we process any persistent login state
-include_once "login-persist.php";
-$userid = checkPersistentLogin();
+include_once "current-user.php";
+$userid = current_user_id();
 
 include_once "util.php";
 include_once "pagetpl.php";
@@ -1381,8 +1381,7 @@ else if (isset($_REQUEST['users'])) {
 
     // check if we're logging in as the user
     if (isset($_POST['su'])) {
-        $_SESSION['logged_in_as'] = $quid;
-        shoot_recommendation_cache();
+        start_login_session($quid);
         echo "<p><span class=success>setuser successful</span><p>";
     }
 

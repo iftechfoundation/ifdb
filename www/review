@@ -8,9 +8,9 @@ include_once "searchutil.php";
 require_once 'vendor/autoload.php';
 // we have to be logged in to enter/edit a review
 include_once "session-start.php";
-include_once "login-check.php";
-if (!logged_in())
-    exit();
+include_once "current-user.php";
+include_once "login-links.php";
+$userid = require_login();
 
 // connect to the database
 $db = dbConnect();
@@ -25,7 +25,6 @@ $isOldReview = false;
 // get the game ID
 $id = $_REQUEST['id'];
 
-$userid = $_SESSION['logged_in_as'] ?? null;
 if (!empty($_REQUEST['userid']) && check_admin_privileges($db, $userid)) {
     $result = mysqli_execute_query($db, "select id from users where id = ?", [$_REQUEST['userid']]);
     [$userid] = mysqli_fetch_row($result) ?? [null];
@@ -617,10 +616,6 @@ up your existing review for further editing.
         // unlock the tables
         mysql_query("unlock tables", $db);
 
-        // clear the recommendation cache, since the new review gives
-        // use new information for calculating user proximity
-        shoot_recommendation_cache();
-
         // if that succeeded, redirect back to the game's home page;
         // otherwise, return to the entry page with an error
 
@@ -992,7 +987,7 @@ When your review is displayed, it will be attributed to you as "<?php
     echo $username;
     if ($userloc != "")
         echo " ($userloc)";
-?>."  If this isn't you, <a href="<?php echo switchUserAndReturnHRef() ?>">
+?>."  If this isn't you, <a href="<?php echo switch_user_url() ?>">
 click here</a> to log in as a different user (but note that this will
 discard your unsaved changes above).
 </span>

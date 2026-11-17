@@ -2,8 +2,8 @@
 include_once "session-start.php";
 
 // note if we're logged in
-include_once "login-check.php";
-$curuser = checkPersistentLogin();
+include_once "current-user.php";
+$curuser = current_user_id();
 
 include_once "pagetpl.php";
 include_once "util.php";

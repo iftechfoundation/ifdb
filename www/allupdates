@@ -7,8 +7,8 @@ include_once "dbconnect.php";
 $db = dbConnect();
 
 // note if we're logged in
-include_once "login-check.php";
-$curuser = checkPersistentLogin();
+include_once "current-user.php";
+$curuser = current_user_id();
 
 // get the request parameter
 $uid = get_req_data('user');
@@ -19,11 +19,7 @@ $sortReq = get_req_data('sortby');
 
 // if there's no user ID in the request, default to the current user
 if (!$uid) {
-    if (!logged_in())
-        exit();
-
-    // use the current user ID
-    $uid = $curuser = $_SESSION['logged_in_as'];
+    $uid = $curuser = require_login();
 }
 
 // quote it

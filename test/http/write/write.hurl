@@ -55,6 +55,8 @@ password: {{password}}
 persist: 1
 dest: personal
 HTTP 301
+[Captures]
+remember_cookie: cookie "IFDBSessionID"
 [Asserts]
 header "Location" contains "personal"
 

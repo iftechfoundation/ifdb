@@ -9,8 +9,8 @@ include_once "dbconnect.php";
 $db = dbConnect();
 
 // note if we're logged in
-include_once "login-persist.php";
-$curuser = checkPersistentLogin();
+include_once "current-user.php";
+$curuser = current_user_id();
 
 $uid = get_req_data('user');
 $quid = mysql_real_escape_string($uid, $db);

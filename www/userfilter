@@ -2,11 +2,8 @@
 
 // we have to be logged in to do this
 include_once "session-start.php";
-include_once "login-check.php";
-if (!logged_in())
-    exit();
-
-$curuser = $_SESSION['logged_in_as'];
+include_once "current-user.php";
+$curuser = require_login();
 
 // include some utility modules
 include_once "pagetpl.php";

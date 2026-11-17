@@ -1,8 +1,8 @@
 <?php
 
 include_once "session-start.php";
-include_once "login-persist.php";
-$curuser = checkPersistentLogin();
+include_once "current-user.php";
+$curuser = current_user_id();
 
 define("MaxImages", 100);            // maximum number of stored images
 define("MaxImageQuota", 256*1024);   // maximum aggregate stored image size

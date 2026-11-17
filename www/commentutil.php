@@ -1,7 +1,7 @@
 <?php
 
 include_once "util.php";
-include_once "login-persist.php";
+include_once "current-user.php";
 
 // Use globals for the inbox and the number of inbox messages 
 // so that once we call queryComments(), we can use the results 
@@ -12,8 +12,7 @@ $inboxCnt = 0;
 function queryComments($db, $mode, $quid, $limit, $caughtUpDate, $keepMuted)
 {
     // get the logged-in user
-    checkPersistentLogin();
-    $curuser = $_SESSION['logged_in_as'] ?? null;
+    $curuser = current_user_id();
     $orOwner = ($curuser ? "or '$curuser' in (c.userid, c.private)" : "");
 
     // if there's a caught-up date, only query messages newer than that date
@@ -210,8 +209,7 @@ function showCommentPage($db, $itemAuthor, $srcID, $srcCode,
                          $title, $anchor)
 {
     // get the logged-in user
-    checkPersistentLogin();
-    $curuser = $_SESSION['logged_in_as'] ?? null;
+    $curuser = current_user_id();
     $orOwner = ($curuser ? "or '$curuser' in (c.userid, c.private)" : "");
 
     // if we're logged in, we can check for muting
@@ -375,8 +373,7 @@ $mutedCommentNum = 0;
 function showComment($db,$commentPage, $itemAuthor, $cidx, $coutlst, $i)
 {
     // get the logged-in user
-    checkPersistentLogin();
-    $curuser = $_SESSION['logged_in_as'] ?? null;
+    $curuser = current_user_id();
 
     // unpack the item
     $crec = $cidx[$coutlst[$i]];
@@ -497,8 +494,7 @@ function revealMutedComment(ele)
 function countComments($db, $srcCode, $qSrcID)
 {
     // set up the owner join if the owner information is provided
-    checkPersistentLogin();
-    $curuser = $_SESSION['logged_in_as'] ?? null;
+    $curuser = current_user_id();
     $orOwner = ($curuser ? "or '$curuser' in (c.userid, c.private)" : "");
 
     // Include only reviews from our sandbox or sandbox 0 (all users)

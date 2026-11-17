@@ -2,18 +2,15 @@
 
 // we have to be logged in to do this
 include_once "session-start.php";
-include_once "login-check.php";
-if (!logged_in())
-    exit();
-
-$curuser = $_SESSION['logged_in_as'];
+include_once "current-user.php";
+include_once "util.php";
+$curuser = require_login();
 
 $srcpage = get_req_data("srcpage");
 if (!$srcpage)
     $srcpage = $_SERVER['HTTP_REFERER'] ?? '';
 
 include_once "pagetpl.php";
-include_once "util.php";
 include_once "dbconnect.php";
 $db = dbConnect();
 

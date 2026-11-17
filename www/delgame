@@ -8,11 +8,8 @@ include "starctl.php";
 include_once "gamesearchpopup.php";
 
 // we have to be logged in to edit a game
-include_once "login-check.php";
-if (!logged_in())
-    exit();
-
-$userid = $_SESSION['logged_in_as'];
+include_once "current-user.php";
+$userid = require_login();
 $errMsg = false;
 
 // connect to the database

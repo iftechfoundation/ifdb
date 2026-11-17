@@ -1,7 +1,7 @@
 <?php
 
 include_once "util.php";
-include_once "login-check.php";
+include_once "current-user.php";
 include_once "dbconnect.php";
 include_once "tags.php";
 
@@ -26,7 +26,7 @@ if (isEmpty($id))
         "Not Saved", "No game was specified in the tag request.");
 
 // make sure we process any persistent login state
-$userid = checkPersistentLogin();
+$userid = current_user_id();
 
 $adminPriv = false;
 if ($userid) {

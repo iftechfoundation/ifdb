@@ -1,7 +1,7 @@
 <?php
 
 include_once "images.php";
-include_once "login-persist.php";
+include_once "current-user.php";
 
 // set up the scripts for the image upload form
 function imageUploadScripts()
@@ -344,10 +344,10 @@ function showImageCopyrightForm($defStatus, $defOwner)
         $defOwner = "Copyright $defOwner";
 
     $defCC = "";
-    if (isset($_SESSION['logged_in']) && $_SESSION['logged_in']) {
+    $uid = current_user_id();
+    if ($uid) {
         $db = dbConnect();
-        checkPersistentLogin();
-        $uid = mysql_real_escape_string($_SESSION['logged_in_as'], $db);
+        $uid = mysql_real_escape_string($uid, $db);
         $result = mysql_query("select name from users where id='$uid'", $db);
         if (mysql_num_rows($result) > 0) {
             $username = mysql_result($result, 0, "name");

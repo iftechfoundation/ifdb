@@ -2,7 +2,9 @@
 
 include_once "pagetpl.php";
 include_once "util.php";
-include_once "login-check.php";
+include_once "current-user.php";
+include_once "password-login.php";
+include_once "remember-me.php";
 include_once "dbconnect.php";
 
 include_once "session-start.php";
@@ -19,8 +21,6 @@ if (!is_string($dest))
     $dest = "";
 if ($dest !== "")
     $dest = "/" . ltrim($dest, "/\\\t\n\r");
-
-include_once "login-persist.php";
 
 function login()
 {
@@ -45,25 +45,11 @@ function login()
     // to a form), check for an existing login.
     if ($_SERVER['REQUEST_METHOD'] == 'GET') {
         // if 'switch' is set, this counts as a logout
-        if (isset($_REQUEST['switch']) && $_SESSION['logged_in']) {
-            // not the UID
-            $uid = $_SESSION['logged_in_as'];
-
-            // clear the session login status
-            $_SESSION['logged_in'] = false;
-            $_SESSION['logged_in_as'] = null;
-            unset($_SESSION['provisional_logged_in_as']);
-
-            // clear the recommendation cache
-            shoot_recommendation_cache();
-
-            // delete any persistent session keys for the user
-            mysql_query("delete from persistentsessions
-                where userid = '$uid'", $db);
-        }
+        if (isset($_REQUEST['switch']))
+            log_out($db);
 
         // check for a persistent connection
-        $usernum = checkPersistentLogin();
+        $usernum = current_user_id();
 
         // check to see if we're already logged in - if we are, confirm the
         // logged-in user and show how to log out.
@@ -108,7 +94,7 @@ function login()
     }
 
     // try logging in
-    [$userid, $errCode, $errFlagged] = doLogin($db, $username, $psw);
+    [$userid, $errCode, $errFlagged] = log_in_with_password($db, $username, $psw);
 
     // if that failed, return and tell the caller to show the login form again
     if (!$userid)
@@ -123,7 +109,7 @@ function login()
 
         // set the persistent session cookie, if desired
         if ($persist)
-            setLoginCookie($db, $userid, $ip);
+            remember_login($db, $userid, $ip);
 
         $destHtml = htmlspecialchars($dest);
         echo("Redirecting to $destHtml<br><br><a href=\"$destHtml\">");
@@ -137,7 +123,7 @@ function login()
         // there's no redirect, so simply show a confirmation screen; first,
         // though, set the persistent session cookie if desired
         if ($persist)
-            setLoginCookie($db, $userid, $ip);
+            remember_login($db, $userid, $ip);
 
         // start the page
         varPageHeader("Login Successful", false, $smallPage);

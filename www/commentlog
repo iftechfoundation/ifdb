@@ -3,15 +3,14 @@
 include_once "session-start.php";
 
 // make sure we process any persistent login state
-include_once "login-persist.php";
-$curuser = checkPersistentLogin();
+include_once "current-user.php";
+$curuser = current_user_id();
 
 // include some utility modules
 include_once "pagetpl.php";
 include "reviews.php";
 include_once "util.php";
 include_once "commentutil.php";
-include_once "login-check.php";
 
 // connect to the database
 include_once "dbconnect.php";
@@ -40,8 +39,8 @@ if (!$userid)
     $userid = $curuser;
 
 // if there's no user ID, make sure we're logged in
-if (!$userid && !logged_in())
-    exit();
+if (!$userid)
+    require_login();
 
 // quote the user ID for queries
 $quid = mysql_real_escape_string($userid, $db);
