@@ -5,27 +5,6 @@ include_once "dbconnect.php";
 include_once "login-links.php";
 include_once "remember-me.php";
 
-function logged_in($smallPage = false)
-{
-    // if we have the session flag indicating we're logged in, we're good
-    if (isset($_SESSION['logged_in']) && $_SESSION['logged_in'] == true) {
-        if (log_out_if_blocked($_SESSION['logged_in_as'])) {
-            redirect_to_login($smallPage);
-            return false;
-        }
-        return true;
-    }
-
-    // look for a persistent session
-    $userid = current_user_id();
-    if ($userid)
-        return true;
-
-    // redirect to the login page
-    redirect_to_login($smallPage);
-    return false;
-}
-
 function start_login_session($userid)
 {
     $_SESSION['logged_in'] = true;
