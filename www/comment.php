@@ -284,6 +284,8 @@ if ($errMsg) {
         $time = ($created == $modified
                  ? $created : "$created (last updated $modified)");
 
+        if ($oldPrivateTo)
+            header("Cache-Control: private, no-store");
         pageHeader($title);
 
         echo "<h1>$title</h1>";

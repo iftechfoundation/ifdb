@@ -45,6 +45,13 @@ if (!$userid)
 // quote the user ID for queries
 $quid = mysql_real_escape_string($userid, $db);
 
+$isAdmin = ($curuser && check_admin_privileges($db, $curuser));
+$wantPrivate = ($isAdmin && get_req_data('private') === '1');
+$adminPrivate = ($wantPrivate && $mode == 'comments' && !$rss);
+$privParam = ($wantPrivate ? "&private=1" : "");
+if ($adminPrivate)
+    header("Cache-Control: private, no-store");
+
 // get the name of the target user
 $result = mysql_query(
     "select
@@ -69,7 +76,7 @@ if (!$userid || mysql_num_rows($result) == 0) {
 $username = htmlspecialcharx($username);
 
 // check for inactive users
-if ($curuser && $curuser == $userid)
+if (($curuser && $curuser == $userid) || $adminPrivate)
 {
     // we can view our own comments even when pending review
 }
@@ -82,6 +89,9 @@ else if ($acctStatus == 'X' || $acctStatus == 'B' || $profileStatus == 'R')
             . "</span>";
     else
         echo "<i>This user's profile is pending review.</i>";
+    if ($isAdmin)
+        echo "<p><a href=\"commentlog?user=$userid&mode=comments&private=1\">"
+            . "View comments including private messages</a>";
     pageFooter();
     exit();
 }
@@ -116,7 +126,8 @@ if (!$pgAll) {
 
 // go fetch the comments
 [$comments, $rowcnt] =
-    queryComments($db, $mode, $quid, $limit, false, false);
+    queryComments($db, $mode, $quid, $limit, false, $adminPrivate,
+                  $adminPrivate);
 
 // if we're showing all pages, up $perPage to the actual count
 if ($pgAll && $rowcnt > 0) {
@@ -163,12 +174,12 @@ if ($rss) {
               "their")));
 
     $subscribedLink = "<a href=\"commentlog?user=$userid"
-                      . "&mode=subscribed\">"
+                      . "&mode=subscribed$privParam\">"
                       . "all of $your subscribed discussions</a>";
-    $reviewsLink = "<a href=\"commentlog?user=$userid&mode=inbox\">"
+    $reviewsLink = "<a href=\"commentlog?user=$userid&mode=inbox$privParam\">"
                       . "$your comment Inbox</a>";
-    $commentsLink = "<a href=\"commentlog?user=$userid&mode=comments\">"
-                   . "$your comments only</a>";
+    $commentsLink = "<a href=\"commentlog?user=$userid&mode=comments"
+                   . "$privParam\">$your comments only</a>";
 
 
     switch ($mode) {
@@ -201,6 +212,16 @@ if ($rss) {
         . "<a class=\"rss-icon\" href=\"commentlog?user=$userid&mode=$mode&rss\">"
         . "RSS Feed of this list</a></span>";
 
+    $privUrl = "commentlog?user=$userid&mode=comments";
+    if ($adminPrivate)
+        echo "<p><span class=warning>This list includes private messages "
+            . "$username sent, which are visible to you because you're "
+            . "an administrator.</span> <span class=details>"
+            . "<a href=\"$privUrl\">Hide private messages</a></span>";
+    else if ($isAdmin && $mode == 'comments')
+        echo "<p><span class=details><a href=\"$privUrl&private=1\">"
+            . "Include private messages</a></span>";
+
     // figure where we are in the list
     $lastPage = (int)floor(($rowcnt + $perPage - 1)/$perPage);
     if ($pg > $lastPage)
@@ -213,7 +234,7 @@ if ($rss) {
     // set up the paging controls
     $pageCtl = "<span class=details>"
                . makePageControl(
-                   "commentlog?user=$userid&mode=$mode",
+                   "commentlog?user=$userid&mode=$mode$privParam",
                    $pg, $lastPage, $firstOnPage, $lastOnPage,
                    $rowcnt, true, true, $pgAll)
                . "</span>";
@@ -311,7 +332,9 @@ for ($i = 0 ; $i < count($comments) ; $i++) {
 
     } else {
 
-        [$ctxt, $len, $trunc] = summarizeHtml($ctxt, 210);
+        $showPrivate = ($adminPrivate && $cprivate);
+        if (!$showPrivate)
+            [$ctxt, $len, $trunc] = summarizeHtml($ctxt, 210);
         $ctxt = fixDesc($ctxt, FixDescSpoiler);
         $newIcon = ($showNewIcon && $ccreDT > $caughtUpDate ?
                     "<img src='img/blank.gif' class='newcomment'> " : "");
@@ -325,13 +348,21 @@ for ($i = 0 ; $i < count($comments) ; $i++) {
                 . "</b></span><br>";
         }
 
+        if ($showPrivate) {
+            $back = urlencode("commentlog?user=$userid&mode=comments"
+                              . "&private=1&pg=" . ($pgAll ? "all" : $pg));
+            $action = "<a href=\"usercomment?user=$srcid&delete=$cid"
+                . "&src=$back\">Delete</a>";
+        } else {
+            $action = "<a href=\"$link\">View discussion</a>";
+        }
+
         // display it
         echo "<p>$newIcon$ltitle"
             . "<span class='details commentlog__ccre'><i>$ccre"
             . ($cmod != $ccre ? " (updated $cmod)" : "")
             . "</i></span><br><div class=indented>$privLabel$ctxt<br>"
-            . "<span class=details><a href=\"$link\">"
-            . "View discussion</a></span></div>";
+            . "<span class=details>$action</span></div>";
     }
 }
 
