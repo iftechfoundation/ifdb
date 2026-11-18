@@ -15,6 +15,30 @@ function isLocalDev() {
     return !isProduction() && !isStaging();
 }
 
+// Protecting against CSRF in 2025: https://words.filippo.io/csrf/
+function checkCrossOrigin() {
+    $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
+    if (in_array($method, ['GET', 'HEAD', 'OPTIONS'])) return;
+
+    $site = $_SERVER['HTTP_SEC_FETCH_SITE'] ?? '';
+    $origin = $_SERVER['HTTP_ORIGIN'] ?? '';
+    $host = $_SERVER['HTTP_HOST'] ?? '';
+    if ($site !== '') {
+        $allowed = in_array($site, ['same-origin', 'none'], true);
+    } else {
+        $allowed = in_array($origin, ['', "https://$host", "http://$host"], true);
+    }
+    if ($allowed) return;
+
+    error_log("Blocked cross-origin request: $method " . $_SERVER['REQUEST_URI']
+        . " Sec-Fetch-Site: $site Origin: $origin Host: $host");
+    http_response_code(403);
+    header('Content-Type: text/plain');
+    exit("Cross-origin request blocked");
+}
+
+checkCrossOrigin();
+
 session_set_cookie_params([
     'secure' => !isLocalDev(),
     'httponly' => 1,
