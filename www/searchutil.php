@@ -43,7 +43,7 @@ function convertTimeStringToMinutes($h_m_string) {
 }
 
 
-function doSearch($db, $term, $searchType, $sortby, $limit, $browse, $count_all_possible_rows = false)
+function doSearch($db, $term, $searchType, $sortby, $limit, $browse)
 {
     // Sometimes people search with old Latin-1 URLs, e.g. ö as %F6, breaking UTF-8 regexes.
     if ($term !== '' && !mb_check_encoding($term, 'UTF-8')) {
@@ -1068,23 +1068,8 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse, $count_all_
         $orderBy = substr($orderBy, 0, -1);
     }
 
-    $sql_calc_found_rows = "sql_calc_found_rows";
-    if ($searchType === "game" && !$term) {
-        // `sql_calc_found_rows` forces the query to ignore the `limit` clause in order to count all possible results.
-        // But when browsing for all games, we can do a fast `count(*)` query instead
-        $sql_calc_found_rows = "";
-    }
-    if (!$count_all_possible_rows) {
-        // `sql_calc_found_rows` forces the query to ignore the `limit` clause 
-        // in order to count all possible results, which means a slower full
-        // table scan. If the total number of rows is not needed, we can skip
-        // `sql_calc_found_rows` to speed up the query.
-        $sql_calc_found_rows = "";
-    }
-
-
     // build the SELECT statement
-    $sql = "select $sql_calc_found_rows
+    $sql = "select
               $selectList
               $relevance
             from
@@ -1126,10 +1111,7 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse, $count_all_
 //        }
 
         // get the total size of the result set
-        if ($sql_calc_found_rows) {
-            $result = mysql_query("select found_rows()", $db);
-            [$rowcnt] = mysql_fetch_row($result);
-        } else if ($searchType === "game" && !$term) {
+        if ($searchType === "game" && !$term) {
             if ($logging_level) error_log("select count(*) from games");
             $result = mysql_query("select count(*) from games", $db);
             [$rowcnt] = mysql_fetch_row($result);

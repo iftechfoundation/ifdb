@@ -265,37 +265,38 @@ $browse = isset($_REQUEST['browse']);
 
 // calculate where we are in the results according to the paging mode
 if ($pgAll) {
-
-    // set the limit clause to show the first row to the maximum fetch
-    $limit = "limit 0, $showAllMaxRows";
-
+    $pageRows = $showAllMaxRows;
     $firstOnPage = 0;
     $lastOnPage = 0;
-
 } else {
-
-    // calculate where that puts us in the results
+    $pageRows = $perPage;
     $firstOnPage = ($pg - 1) * $perPage;
     $lastOnPage = $firstOnPage + $perPage - 1;
-
-    // limit the query to this range
-    $limit = "limit $firstOnPage, $perPage";
 }
+
+// fetch through $showAllMaxRows or the end of the page, plus one row to
+// tell whether there are more; doSearch counts games when browsing them
+$fetchRows = $pageRows;
+if (!$api_mode && ($searchType != "game" || $term))
+    $fetchRows = max($pageRows, $showAllMaxRows - $firstOnPage) + 1;
+$limit = "limit $firstOnPage, $fetchRows";
+$moreRows = false;
 
 // if we have a search term, find it
 if ($term || $browse) {
-    
-    // We want a count of all possible results, regardless of 
-    // limit clause, so we can display that number
-    $count_all_possible_rows = true;
 
     // run the search
     [$rows, $rowcnt, $sortList, $errMsg, $summaryDesc, $badges,
         $specials, $specialsUsed, $orderBy] =
-        doSearch($db, $term, $searchType, $sortby, $limit, $browse, 
-                 $count_all_possible_rows);
+        doSearch($db, $term, $searchType, $sortby, $limit, $browse);
     if (!isset($sortList[$sortby]))
         $sortby = "";
+
+    if ($fetchRows > $pageRows) {
+        $moreRows = count($rows) == $fetchRows;
+        $rowcnt = $firstOnPage + count($rows) - ($moreRows ? 1 : 0);
+        $rows = array_slice($rows, 0, $pageRows);
+    }
 
     // adjust our page limits to include the whole result set if desired
     if ($pgAll) {
@@ -1112,7 +1113,7 @@ else if ($term || $browse)
         echo $errMsg;
 
     // calculate the number of pages available
-    $lastPage = (int)floor(($rowcnt + $perPage - 1)/$perPage);
+    $lastPage = (int)floor(($rowcnt + $perPage - 1)/$perPage) + ($moreRows ? 1 : 0);
     if ($lastOnPage > $rowcnt - 1)
         $lastOnPage = $rowcnt - 1;
 
@@ -1173,10 +1174,11 @@ else if ($term || $browse)
             $otherBrowse .= "</div>";
         }
 
+        $total = $rowcnt . ($moreRows ? "+" : "");
         if ($pgAll)
-            $range = "$rowcnt Result" . ($rowcnt == 1 ? "" : "s");
+            $range = "$total Result" . ($rowcnt == 1 ? "" : "s");
         else
-            $range = ($firstOnPage+1) . "&ndash;" . ($lastOnPage+1) . " of $rowcnt";
+            $range = ($firstOnPage+1) . "&ndash;" . ($lastOnPage+1) . " of $total";
 
         // show where we are in the results
         echo ($term == "" ? "<div class=\"browseLabel\">Browsing</div>" : "")
