@@ -20,17 +20,39 @@ The IFDB web app is a LAMP app (Linux, Apache, MySQL, PHP). The development envi
 
 # Database Changes
 
-Changes to the web site should update immediately but changes to the database require a few more steps.
+Changes to the database's schema or content are made with migrations: SQL files in `./sql/migrations`, applied by [dbmate](https://github.com/amacneil/dbmate). Each database keeps track of which migrations it has already applied. Your local database applies any new ones whenever you start it with `docker compose up`, and dev.ifdb.org and ifdb.org apply them when they're deployed.
 
-Make all database schema and content changes in `./sql/incoming-schema-changes.sql`. After saving your changes, type the following three commands:
+Once your development environment is set up, you can make a database change at any time, whether or not it's running:
 
-```
-./prepare_dev_environment.sh
-docker compose down
-docker compose up --build
-```
+1. Create a migration file:
 
-All of your database changes should now be available.
+   ```
+   ./docker-dbmate.sh new add_example_to_games
+   ```
+
+   Replace `add_example_to_games` with a few words describing your change, in lowercase with underscores instead of spaces. The command creates `sql/migrations/<timestamp>_add_example_to_games.sql`.
+
+2. In that file, put the SQL for your change under `-- migrate:up`, and SQL that undoes it under `-- migrate:down`:
+
+   ```
+   -- migrate:up
+   ALTER TABLE games ADD COLUMN example VARCHAR(255);
+
+   -- migrate:down
+   ALTER TABLE games DROP COLUMN example;
+   ```
+
+   If your change can't be undone, put `SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Irreversible';` under `-- migrate:down`, so that trying to undo it fails with an error.
+
+3. Apply it to your local database:
+
+   ```
+   ./docker-dbmate.sh
+   ```
+
+   That applies every migration your database doesn't have yet, so you never name a specific one. You don't need to restart anything.
+
+To change a migration you've applied but haven't merged yet, edit the file, then rebuild your local database with `docker compose down` and `docker compose up`. Once a migration is merged, don't edit it; databases that already applied it won't run it again. Make a new migration instead.
 
 # Updating PHP dependencies
 

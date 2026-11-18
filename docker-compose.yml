@@ -6,6 +6,19 @@ services:
       - ./initdb:/docker-entrypoint-initdb.d
     environment:
       MYSQL_ROOT_PASSWORD: secret
+  migrate:
+    image: ghcr.io/amacneil/dbmate:2.38.1
+    command: up
+    depends_on:
+      - db
+    volumes:
+      - ./sql/migrations:/db/migrations
+    environment:
+      DATABASE_URL: mysql://root:secret@db/ifdb
+      DBMATE_MIGRATIONS_DIR: /db/migrations
+      DBMATE_NO_DUMP_SCHEMA: "true"
+      DBMATE_WAIT: "true"
+      DBMATE_WAIT_TIMEOUT: 30m
   phpmyadmin:
     image: phpmyadmin/phpmyadmin
     links:
@@ -26,5 +39,8 @@ services:
       - ${IFDB_WEB_PORT:-8080}:80
     links:
       - db
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
     volumes:
       - ./www:/var/www/html

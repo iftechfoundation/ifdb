@@ -14,7 +14,6 @@ cat sql/create-db.sql ifdb-archive.sql > initdb/00-init.sql
 cp sql/unscrub-ifarchive.sql initdb/01-unscrub-ifarchive.sql
 cp sql/create-admin.sql initdb/02-create-admin.sql
 cp sql/create-test-user.sql initdb/03-create-test-user.sql
-cp sql/incoming-schema-changes.sql initdb/04-incoming-schema-changes.sql
 cp sql/create-images-db.sql initdb/05-create-images.sql
 
 sed 's/"127.0.0.1", "username", "password"/"db", "root", "secret"/' local-credentials.php.template > www/local-credentials.php
