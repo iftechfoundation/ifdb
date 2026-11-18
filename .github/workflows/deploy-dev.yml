@@ -1,7 +1,8 @@
 # Run by hand (Actions > Deploy branches to dev > Run workflow) to merge
 # branches into main, force-push the result to the dev branch, and deploy it
-# to dev after approval. With no branches, deploys main. The next push to main
-# deploys plain main to dev again. See deploy.yml.
+# to dev after approval. PRs, including ones from forks, can be given as #123.
+# With no branches, deploys main. The next push to main deploys plain main to
+# dev again. See deploy.yml.
 
 name: Deploy branches to dev
 
@@ -9,7 +10,7 @@ on:
   workflow_dispatch:
     inputs:
       branches:
-        description: Branches to merge into main, separated by spaces
+        description: Branches or PR numbers (#123) to merge into main, separated by spaces
         type: string
         default: ''
       reset-db:
@@ -44,7 +45,13 @@ jobs:
           echo "## Merging into main \`$(git rev-parse HEAD)\`" >> "$GITHUB_STEP_SUMMARY"
           echo >> "$GITHUB_STEP_SUMMARY"
           for branch in $BRANCHES; do
-            if ! sha=$(git rev-parse -q --verify "refs/remotes/origin/$branch^{commit}"); then
+            if [[ $branch =~ ^#[0-9]+$ ]]; then
+              if ! git fetch -q origin "refs/pull/${branch#\#}/head"; then
+                echo "::error::There's no PR $branch."
+                exit 1
+              fi
+              sha=$(git rev-parse FETCH_HEAD)
+            elif ! sha=$(git rev-parse -q --verify "refs/remotes/origin/$branch^{commit}"); then
               echo "::error::There's no branch named $branch."
               exit 1
             fi
