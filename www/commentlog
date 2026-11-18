@@ -277,7 +277,8 @@ for ($i = 0 ; $i < count($comments) ; $i++) {
     [$cid, $srcid, $src, $ctxt,
         $ccreDT, $ccre,
         $cmodDT, $cmod,
-        $cuid, $cuname] = $rec;
+        $cuid, $cuname, $cprivate] = $rec;
+    $privateToName = $rec[24];
 
     // send the item in the appropriate format
     if ($rss) {
@@ -293,6 +294,9 @@ for ($i = 0 ; $i < count($comments) ; $i++) {
             echo "<lastBuildDate>$pubDate</lastBuildDate>";
 
         // send it
+        if ($cprivate)
+            $title .= " (private message)";
+
         echo "<item>\r\n"
             . "<title>" .rss_encode($title)
             . "</title>\r\n"
@@ -312,11 +316,20 @@ for ($i = 0 ; $i < count($comments) ; $i++) {
         $newIcon = ($showNewIcon && $ccreDT > $caughtUpDate ?
                     "<img src='img/blank.gif' class='newcomment'> " : "");
 
+        $privLabel = "";
+        if ($cprivate) {
+            $privLabel = "<span class=details><b>Private message to "
+                . ($cprivate === $curuser ? "you" :
+                   "<a href=\"showuser?id=$cprivate\">"
+                   . htmlspecialcharx($privateToName ?? $cprivate) . "</a>")
+                . "</b></span><br>";
+        }
+
         // display it
         echo "<p>$newIcon$ltitle"
             . "<span class='details commentlog__ccre'><i>$ccre"
             . ($cmod != $ccre ? " (updated $cmod)" : "")
-            . "</i></span><br><div class=indented>$ctxt<br>"
+            . "</i></span><br><div class=indented>$privLabel$ctxt<br>"
             . "<span class=details><a href=\"$link\">"
             . "View discussion</a></span></div>";
     }

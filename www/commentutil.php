@@ -98,7 +98,8 @@ function queryComments($db, $mode, $quid, $limit, $caughtUpDate, $keepMuted)
            l.title, l.userid, lu.name,
            p.title, p.userid, pu.name,
 
-           $mutedCol
+           $mutedCol,
+           pc.name
 
          from
            ucomments as c
@@ -119,6 +120,8 @@ function queryComments($db, $mode, $quid, $limit, $caughtUpDate, $keepMuted)
            left outer join polls as p
              on (c.source = 'P' and c.sourceid = p.pollid)
            left outer join users as pu on p.userid = pu.id
+
+           left outer join users as pc on pc.id = c.private
 
            $modeJoin
          where
