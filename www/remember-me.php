@@ -16,11 +16,16 @@ function remember_login($db, $usernum, $ip)
     // to guess; use a secure hash of some volatile values
     $cookie = sha1(md5_rand($ip) . md5_rand($ip) . md5_rand($ip));
 
-    // add an entry to the session table for this user
-    $result = mysql_query(
-        "insert into persistentsessions
-         (id, userid, lastlogin)
-         values ('$cookie', '$usernum', now())", $db);
+    // add an entry to the session table for this user, unless the password
+    // has changed since this session logged in
+    $result = mysqli_execute_query($db,
+        "insert into persistentsessions (id, userid, lastlogin)
+         select ?, id, now() from users
+         where id = ? and sha2(password, 256) = ?
+           and acctstatus in ('A', 'D')",
+        [$cookie, $usernum, $_SESSION['pswver'][$usernum] ?? '']);
+    if (!$result || mysqli_affected_rows($db) != 1)
+        return;
 
     // set the cookie in the browser
     setcookie("IFDBSessionID", $cookie, [
@@ -32,22 +37,25 @@ function remember_login($db, $usernum, $ip)
     ]);
 }
 
-function remembered_user_id()
+function remembered_login()
 {
     // check for the session ID
     if (isset($_COOKIE['IFDBSessionID'])) {
         // set up the database connection
         $db = dbConnect();
         if (!$db)
-            return false;
+            return [false, null];
 
         // see if we can find the session ID in the persistent session table
         $key = $_COOKIE['IFDBSessionID'];
-        $result = mysqli_execute_query($db, "select userid from persistentsessions
-            where id = ?", [$key]);
+        $result = mysqli_execute_query($db,
+            "select p.userid, u.password
+             from persistentsessions p join users u on u.id = p.userid
+             where p.id = ? and u.acctstatus in ('A', 'D')", [$key]);
         if (mysql_num_rows($result) > 0) {
             // Got it - the user is logged in.  Fetch the user ID.
             $userid = mysql_result($result, 0, "userid");
+            $pswhash = mysql_result($result, 0, "password");
 
             // update the last login timestamp for the persistent session
             mysqli_execute_query($db, "update persistentsessions set lastlogin = now()
@@ -57,19 +65,20 @@ function remembered_user_id()
             $result = mysqli_execute_query($db, "update users set lastlogin = now()
                 where id = ?", [$userid]);
 
-            // return the user number
-            return $userid;
+            return [$userid, $pswhash];
         }
     }
 
     // no remembered login
-    return false;
+    return [false, null];
 }
 
-function forget_remembered_logins($db, $userid)
+function forget_remembered_logins($db, $userid, $keepCurrent = false)
 {
+    $keep = $keepCurrent ? ($_COOKIE['IFDBSessionID'] ?? '') : '';
     return mysqli_execute_query($db,
-        "delete from persistentsessions where userid = ?", [$userid]);
+        "delete from persistentsessions where userid = ? and id <> ?",
+        [$userid, $keep]);
 }
 
 ?>

@@ -4,6 +4,7 @@ include_once "pagetpl.php";
 include_once "dbconnect.php";
 
 include_once "session-start.php";
+include_once "password-login.php";
 
 // read the activation code
 $errFlagged = false;
@@ -63,22 +64,22 @@ function verify() {
         }
 
         // validate the password
-        if (strlen($psw) < 6) {
-            $errFlagged = "The password is too short - it must be at least
-                six characters long.";
+        $errFlagged = new_password_error($psw, $psw2);
+        if ($errFlagged)
+            return true;
+
+        // reset codes are one-time-only, so claim this one
+        $newcode = sha1($usernum . md5(rand()) . md5(rand()). md5(rand()));
+        mysqli_execute_query($db,
+            "update users set activationcode = ?
+             where id = ? and activationcode = ?",
+            [$newcode, $usernum, $actcode]);
+        if (mysqli_affected_rows($db) != 1) {
+            $errFlagged = "This password reset link has already been used.
+                Please <a href=\"lostpass\">request another reset</a>.";
             return true;
         }
-        $max_password_length = MAX_PASSWORD_LENGTH;
-        if (strlen($psw) > $max_password_length) {
-            $errFlagged = "Your password is too long - please use no more than $max_password_length characters.";
-            return true;
-        }
-        if (strcmp($psw, $psw2) != 0) {
-            $errFlagged = "Password mismatch - you must enter the
-                <b>identical</b> password two times to ensure that you
-                didn't make any mistakes typing it.";
-            return true;
-        }
+        $actcode = $newcode;
 
         // check for activation
         if ($acctstatus == 'D') {
@@ -96,17 +97,7 @@ function verify() {
             $activated = true;
         }
 
-        // looks good - make the updates; first, calculate the hashed password
-        $salt = md5(rand());
-        $hashpsw = sha1($salt . $psw);
-
-        // activation code are one-time-only, so change it
-        $actcode = sha1($usernum . md5(rand()) . md5(rand()). md5(rand()));
-
-        // update the database
-        if (mysql_query("update users set password = '$hashpsw',
-                pswsalt = '$salt', activationcode = '$actcode'
-                where id = '$usernum'", $db) == false) {
+        if (!set_password($db, $usernum, $psw)) {
             $errFlagged = "An error occurred updating the database. You might
                 want to try again - if the problem persists,
                 <a href=\"/contact\">contact us</a> to let us know

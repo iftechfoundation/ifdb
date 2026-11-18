@@ -1,6 +1,7 @@
 <?php
 include_once "session-start.php";
 include_once "current-user.php";
+include_once "password-login.php";
 $usernum = require_login_or_provisional();
 
 include_once "pagetpl.php";
@@ -58,37 +59,20 @@ function verify() {
         }
 
         // validate the NEW password
-        if (strlen($psw) < 6) {
-            $errFlagged = "The password is too short - it must be at least
-                six characters long.";
+        $errFlagged = new_password_error($psw, $psw2);
+        if ($errFlagged)
             return true;
-        }
-        $max_password_length = MAX_PASSWORD_LENGTH;
-        if (strlen($psw) > $max_password_length) {
-            $errFlagged = "Your password is too long - please use no more than $max_password_length characters.";
-            return true;
-        }
-        if (strcmp($psw, $psw2) != 0) {
-            $errFlagged = "Password mismatch - you must enter the
-                <b>identical</b> password two times to ensure that you
-                didn't make any mistakes typing it.";
-            return true;
-        }
 
-        // looks good - make the updates; first, calculate the hashed password
-        $salt = md5(rand());
-        $hashpsw = sha1($salt . $psw);
-
-        // update the database
-        if (mysql_query("update users
-                set `password` = '$hashpsw', pswsalt = '$salt'
-                where id = '$usernum'", $db) == false) {
+        $hashpsw = set_password($db, $usernum, $psw, $dbpsw);
+        if (!$hashpsw) {
             $errFlagged = "An error occurred updating the database. You might
                 want to try again - if the problem persists,
                 <a href=\"/contact\">contact us</a> to let us know
                 about it.";
             return true;
         }
+
+        $_SESSION['pswver'][$usernum] = password_version($hashpsw);
 
         // all is well
 ?>
