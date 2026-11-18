@@ -5,6 +5,9 @@
 #
 # MODE is one of:
 #   dev            Always deploy.
+#   dev-branches   Always deploy. Run by hand (deploy-dev.yml) to deploy
+#                  branches that may not be on main yet; waits for approval
+#                  if they aren't.
 #   prod-on-merge  After a push to main deployed to dev. Deploy only if the
 #                  merged PR has the deploy-on-merge label.
 #   prod-manual    Run by hand. Wait for main's tip to deploy to dev, then
@@ -18,7 +21,7 @@
 
 set -euo pipefail
 
-sha=$GITHUB_SHA
+sha=${SHA:-$GITHUB_SHA}
 repo=$GITHUB_REPOSITORY
 
 out() { echo "$1=$2" >> "$GITHUB_OUTPUT"; }
@@ -30,6 +33,17 @@ case $MODE in
     say "Deploying \`$sha\` to dev."
     out deploy true
     out needs-approval false
+    exit 0
+    ;;
+  dev-branches)
+    out deploy true
+    if git merge-base --is-ancestor "$sha" refs/remotes/origin/main; then
+      say "Deploying \`$sha\` to dev."
+      out needs-approval false
+    else
+      say "Deploying \`$sha\` to dev. It isn't on main, so it waits for approval."
+      out needs-approval true
+    fi
     exit 0
     ;;
   prod-on-merge | prod-manual) ;;

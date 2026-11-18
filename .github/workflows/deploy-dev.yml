@@ -1,0 +1,73 @@
+# Run by hand (Actions > Deploy branches to dev > Run workflow) to merge
+# branches into main, force-push the result to the dev branch, and deploy it
+# to dev after approval. With no branches, deploys main. The next push to main
+# deploys plain main to dev again. See deploy.yml.
+
+name: Deploy branches to dev
+
+on:
+  workflow_dispatch:
+    inputs:
+      branches:
+        description: Branches to merge into main, separated by spaces
+        type: string
+        default: ''
+      reset-db:
+        description: Restore dev's database from a production backup first
+        type: boolean
+        default: false
+      backup-date:
+        description: The backup to restore (YYYY-MM-DD); yesterday's by default
+        type: string
+        default: ''
+
+jobs:
+  merge:
+    if: github.repository == 'iftechfoundation/ifdb' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    outputs:
+      sha: ${{ steps.merge.outputs.sha }}
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - id: merge
+        env:
+          BRANCHES: ${{ inputs.branches }}
+        run: |
+          set -f
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          echo "## Merging into main \`$(git rev-parse HEAD)\`" >> "$GITHUB_STEP_SUMMARY"
+          echo >> "$GITHUB_STEP_SUMMARY"
+          for branch in $BRANCHES; do
+            if ! sha=$(git rev-parse -q --verify "refs/remotes/origin/$branch^{commit}"); then
+              echo "::error::There's no branch named $branch."
+              exit 1
+            fi
+            echo "- \`$branch\` at \`$sha\`" >> "$GITHUB_STEP_SUMMARY"
+            if ! git merge --no-ff --no-edit -m "Merge $branch into dev" "$sha"; then
+              echo "::error::$branch doesn't merge cleanly."
+              exit 1
+            fi
+          done
+          git push --force origin HEAD:refs/heads/dev
+          echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+
+  # Not named deploy-dev: plan-deploy.sh looks for test-and-deploy.yml's
+  # deploy-dev / deploy check on main's commits.
+  deploy:
+    needs: merge
+    uses: ./.github/workflows/deploy.yml
+    with:
+      mode: dev-branches
+      sha: ${{ needs.merge.outputs.sha }}
+      reset-db: ${{ inputs.reset-db }}
+      backup-date: ${{ inputs.backup-date }}
+    # Without this, deploy.yml gets no secrets, not even its environment's.
+    secrets: inherit
+    permissions:
+      contents: read
