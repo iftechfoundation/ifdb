@@ -295,7 +295,8 @@ function loadGameRecord($db, $id)
 //
 function saveUpdates($db, $adminPriv, $apiMode,
                      $id, &$rec, &$req,
-                     &$saveErrMsg, &$saveErrCode, &$errDetail)
+                     &$saveErrMsg, &$saveErrCode, &$errDetail,
+                     $restoredVsn = null)
 {
     global $fields, $fmtmap;
 
@@ -326,6 +327,23 @@ function saveUpdates($db, $adminPriv, $apiMode,
     // no change of a race condition from this point forward
     if ($id != "new")
         [$rec, $errMsg] = loadGameRecord($db, $id);
+
+    if ($restoredVsn !== null) {
+        $check = $result ? mysqli_execute_query($db,
+            "select spam from games_history where id = ? and pagevsn = ?",
+            [$id, $restoredVsn]) : false;
+        $row = $check ? mysql_fetch_row($check) : null;
+        if (!$row || $row[0]) {
+            mysql_query("unlock tables", $db);
+            mysql_query("set autocommit=1", $db);
+            $saveErrMsg = $row
+                ? "Version $restoredVsn was marked as spam by IFDB "
+                  . "moderators, so it can't be restored."
+                : "Version $restoredVsn couldn't be loaded.";
+            $saveErrCode = $row ? "SpamVersion" : "VersionNotFound";
+            return false;
+        }
+    }
 
     // strip whitespace from the IFID field, and uppercase it
     $req['ifids'] = strtoupper(str_replace(
@@ -657,6 +675,8 @@ function saveUpdates($db, $adminPriv, $apiMode,
                 $saveErrMsg .= " (Note that <b>$errcnt</b> fields
                     require your attention.)";
         }
+        mysql_query("unlock tables", $db);
+        mysql_query("set autocommit=1", $db);
         return false;
     }
 
@@ -1369,6 +1389,8 @@ function saveOldGame($db, $adminPriv, $apiMode,
     if (count($changesOld) == 0) {
         $saveErrMsg = "You didn't make any changes.";
         $saveErrCode = "NoChanges";
+        mysql_query("unlock tables", $db);
+        mysql_query("set autocommit=1", $db);
         return false;
     }
 
@@ -1790,7 +1812,8 @@ function safeRollbackBannedUserLatestEdit($db, $gameid, $userid, $adminPriv)
     // Highest version authored by someone else (history or current).
     $result = mysqli_execute_query($db,
         "select max(pagevsn) from (
-             select pagevsn, editedby from games_history where id = ?
+             select pagevsn, editedby from games_history
+             where id = ? and spam = 0
              union all
              select pagevsn, editedby from games where id = ?
          ) versions
@@ -1813,7 +1836,7 @@ function safeRollbackBannedUserLatestEdit($db, $gameid, $userid, $adminPriv)
     $errDetail = [];
     $ok = saveUpdates($db, $adminPriv, true,
                       $gameid, $rec, $req,
-                      $saveErrMsg, $saveErrCode, $errDetail);
+                      $saveErrMsg, $saveErrCode, $errDetail, $targVsn);
     if (!$ok) {
         $detail = $saveErrMsg ? $saveErrMsg : "The rollback could not be saved.";
         if ($saveErrCode)

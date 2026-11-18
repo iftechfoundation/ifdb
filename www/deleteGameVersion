@@ -33,7 +33,8 @@ if ($curuser) {
 
 function showResult($title, $msg)
 {
-    global $gameid;
+    global $gameid, $db;
+    mysql_query("unlock tables", $db);
     pageHeader($title);
     echo "<h1>{$title}</h1>"
         . "<p>{$msg}</p>"
@@ -53,18 +54,35 @@ if ($gameid == "") {
     showResult("Missing game ID", "No game was specified in the request.");
 }
 
+if (isset($_POST['confirm'])
+    && !mysql_query("lock tables games write, games_history write,
+           gamelinks write, ifids write, extreviews write, reviews write,
+           gamexrefs write, gameprofilelinks write, users read,
+           gamefwds read, gamexreftypes read, filetypes read", $db))
+    showResult("Error updating database",
+               "The database tables couldn't be locked.");
+
 // look up the game title for the confirmation page
 $result = mysqli_execute_query($db,
-    "select title, pagevsn from games where id = ?", [$gameid]);
+    "select title, pagevsn, moddate from games where id = ?", [$gameid]);
 if (!$result || mysql_num_rows($result) == 0)
     showResult("Game not found", "The specified game wasn't found.");
 
 $title = htmlspecialchars(mysql_result($result, 0, "title"));
 $currentVsn = (int)mysql_result($result, 0, "pagevsn");
+$currentModDate = mysql_result($result, 0, "moddate");
+
+if (isset($_POST['confirm'])
+    && (($_POST['version'] ?? '') !== "$currentVsn"
+        || ($_POST['moddate'] ?? '') !== $currentModDate))
+    showResult("Listing changed",
+               "<i>{$title}</i> was edited since you confirmed, so nothing "
+               . "was deleted. Please review the update history and "
+               . "try again.");
 
 // query the most recent history entry (required to restore the prior version)
 $result = mysqli_execute_query($db,
-    "select pagevsn, editedby, moddate, deltas from games_history
+    "select pagevsn, editedby, moddate, deltas, spam from games_history
      where id = ? order by pagevsn desc", [$gameid]);
 if (!$result || mysql_num_rows($result) == 0)
     showResult("No history",
@@ -79,6 +97,12 @@ $deltas = unserialize($rec['deltas']);
 if (!is_array($deltas))
     $deltas = [];
 
+if ($rec['spam'])
+    showResult("Version marked as spam",
+               "Version {$pagevsn} was marked as spam, so it can't be "
+               . "restored as the current version. Roll back to another "
+               . "version instead.");
+
 // confirm before deleting
 if (!isset($_POST['confirm'])) {
     pageHeader("Delete Game Version");
@@ -91,6 +115,9 @@ if (!isset($_POST['confirm'])) {
         . "<form method=\"post\" action=\"deleteGameVersion\">"
         . "<input type=\"hidden\" name=\"game\" value=\""
         . htmlspecialchars($gameid) . "\">"
+        . "<input type=\"hidden\" name=\"version\" value=\"{$currentVsn}\">"
+        . "<input type=\"hidden\" name=\"moddate\" value=\""
+        . htmlspecialchars($currentModDate) . "\">"
         . "<input type=\"hidden\" name=\"confirm\" value=\"1\">"
         . "<p><button>Yes, permanently delete version {$currentVsn}"
         . "</button></p>"
@@ -103,29 +130,15 @@ if (!isset($_POST['confirm'])) {
 // build the update
 $cols = [];
 $params = [];
-$locks = [];
 foreach ($deltas as $colname => $colval)
 {
     switch ($colname)
     {
     case "links":
-        $locks[] = "gamelinks write";
-        break;
-
     case "ifids":
-        $locks[] = "ifids write";
-        break;
-
     case "extreviews":
-        $locks[] = "extreviews write, reviews write";
-        break;
-
     case "xrefs":
-        $locks[] = "gamexrefs write";
-        break;
-
     case "profileLinks":
-        $locks[] = "gameprofilelinks write";
         break;
 
     default:
@@ -163,19 +176,6 @@ function runQuery($desc, $query, $params = [])
     global $db;
     if (!mysqli_execute_query($db, $query, $params))
         addError($desc, $query);
-}
-
-// lock tables if we're updating more than just 'games'
-if (count($locks)) {
-    $locks[] = "games write";
-    $locks[] = "games_history write";
-    $locks[] = "users read";
-    $locks[] = "gamefwds read";
-    $locks[] = "gamexreftypes read";
-    $locks[] = "filetypes read";
-    runQuery("Locking tables", "lock tables " . implode(", ", $locks));
-    if (count($errors))
-        showResult("Error updating database", implode("", $errors));
 }
 
 // execute the update

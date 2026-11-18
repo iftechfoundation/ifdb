@@ -61,6 +61,13 @@ if ($targVsn < 1 || $targVsn > $currentVsn) {
                $gameid);
 }
 
+if (!$adminPriv && isSpamGameVersion($db, $gameid, $targVsn)) {
+    showResult("Version not available",
+               "Version {$targVsn} of this game was marked as spam by IFDB "
+               . "moderators.",
+               $gameid);
+}
+
 if ($targVsn == $currentVsn) {
     showResult("Already current",
                "Version {$targVsn} is already the current version of "
@@ -107,7 +114,8 @@ $saveErrCode = false;
 $errDetail = [];
 $result = saveUpdates($db, $adminPriv, true,
                       $gameid, $rec, $req,
-                      $saveErrMsg, $saveErrCode, $errDetail);
+                      $saveErrMsg, $saveErrCode, $errDetail,
+                      $adminPriv ? null : $targVsn);
 
 if (!$result) {
     $detail = $saveErrMsg ? $saveErrMsg : "The rollback could not be saved.";
