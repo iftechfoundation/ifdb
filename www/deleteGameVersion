@@ -21,6 +21,8 @@ include_once "editgame-util.php";
 
 // get the game ID
 $gameid = $_REQUEST['game'] ?? '';
+if (!is_string($gameid))
+    $gameid = '';
 
 // check the user for ADMIN privileges
 $userprivs = $adminPriv = false;
@@ -37,7 +39,8 @@ function showResult($title, $msg)
     pageHeader($title);
     echo "<h1>{$title}</h1>"
         . "<p>{$msg}</p>"
-        . "<p><a href=\"viewgame?id={$gameid}&history\">Return to game page</a></p>";
+        . "<p><a href=\"viewgame?id=" . urlencode($gameid)
+        . "&amp;history\">Return to game page</a></p>";
     pageFooter();
     exit();
 }
@@ -95,7 +98,8 @@ if (!isset($_POST['confirm'])) {
         . "<p><button>Yes, permanently delete version {$currentVsn}"
         . "</button></p>"
         . "</form>"
-        . "<p><a href=\"viewgame?id={$gameid}&amp;history\">Cancel</a></p>";
+        . "<p><a href=\"viewgame?id=" . urlencode($gameid)
+        . "&amp;history\">Cancel</a></p>";
     pageFooter();
     exit();
 }
