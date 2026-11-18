@@ -82,16 +82,24 @@ function check_credentials($db, $username, $password)
     if (mysql_num_rows($result) == 0)
         return [null, 'no-match', null];
 
-    // generate the hash of the password as entered by the user
-    $pswsalt = mysql_result($result, 0, "pswsalt");
-    $hashpsw = sha1($pswsalt . $password);
-
     // verify that it matches what's stored in the database
-    if (strcmp($hashpsw, mysql_result($result, 0, "password")) != 0)
+    $pswhash = mysql_result($result, 0, "password");
+    if (!password_matches($password, $pswhash,
+                          mysql_result($result, 0, "pswsalt")))
         return [null, 'no-match', null];
 
-    return [mysql_result($result, 0, "id"),
-            mysql_result($result, 0, "acctstatus"), $hashpsw];
+    $usernum = mysql_result($result, 0, "id");
+    if (password_needs_upgrade($pswhash) && password_can_be_hashed($password)) {
+        $newhash = hash_password($password);
+        mysqli_execute_query($db,
+            "update users set password = ? where id = ? and password = ?",
+            [$newhash, $usernum, $pswhash]);
+        if (mysqli_affected_rows($db) != 1)
+            return [null, 'no-match', null];
+        $pswhash = $newhash;
+    }
+
+    return [$usernum, mysql_result($result, 0, "acctstatus"), $pswhash];
 }
 
 // Returns [errorCode, errorMessage] for a login that check_credentials()
@@ -142,15 +150,51 @@ function login_error($reason)
     }
 }
 
+// bcrypt ignores everything after 72 bytes, so prefer Argon2id
+define("PASSWORD_ALGO",
+       defined("PASSWORD_ARGON2ID") ? PASSWORD_ARGON2ID : PASSWORD_DEFAULT);
+define("MAX_HASHABLE_LENGTH",
+       PASSWORD_ALGO == PASSWORD_BCRYPT ? 72 : MAX_PASSWORD_LENGTH);
+
+function hash_password($password)
+{
+    return password_hash($password, PASSWORD_ALGO);
+}
+
+// Legacy hashes are salted SHA-1 hex strings
+function password_matches($password, $hash, $salt)
+{
+    if (password_get_info($hash)['algo'] === PASSWORD_BCRYPT
+        && strlen($password) > 72)
+        return false;
+    if (str_starts_with($hash, '$'))
+        return password_verify($password, $hash);
+    return hash_equals($hash, sha1($salt . $password));
+}
+
+function password_needs_upgrade($hash)
+{
+    return !str_starts_with($hash, '$')
+        || password_needs_rehash($hash, PASSWORD_ALGO);
+}
+
+function password_can_be_hashed($password)
+{
+    return strlen($password) <= MAX_HASHABLE_LENGTH
+        && strpos($password, "\0") === false;
+}
+
 // Returns an error message, or false if the new password is acceptable.
 function new_password_error($psw, $psw2)
 {
     if (strlen($psw) < 6)
         return "The password is too short - it must be at least
             six characters long.";
-    $max_password_length = MAX_PASSWORD_LENGTH;
-    if (strlen($psw) > $max_password_length)
-        return "Your password is too long - please use no more than $max_password_length characters.";
+    if (strlen($psw) > MAX_HASHABLE_LENGTH)
+        return "Your password is too long - please use no more than "
+            . MAX_HASHABLE_LENGTH . " characters.";
+    if (strpos($psw, "\0") !== false)
+        return "Your password contains an invalid character.";
     if (strcmp($psw, $psw2) != 0)
         return "Password mismatch - you must enter the
             <b>identical</b> password two times to ensure that you
@@ -163,17 +207,16 @@ function new_password_error($psw, $psw2)
 // remembered login is kept.  Returns the new hash, or false on failure.
 function set_password($db, $userid, $psw, $oldhash = null)
 {
-    $salt = md5(rand());
-    $hashpsw = sha1($salt . $psw);
+    $hashpsw = hash_password($psw);
 
     // lock so that no remember-me login sees the new password while the
     // old logins remain
     $ok = mysql_query("lock tables users write, persistentsessions write", $db)
         && forget_remembered_logins($db, $userid, $oldhash !== null)
         && mysqli_execute_query($db,
-            "update users set password = ?, pswsalt = ?
+            "update users set password = ?
              where id = ? and (? is null or password = ?)",
-            [$hashpsw, $salt, $userid, $oldhash, $oldhash])
+            [$hashpsw, $userid, $oldhash, $oldhash])
         && mysqli_affected_rows($db) == 1;
     mysql_query("unlock tables", $db);
     return $ok ? $hashpsw : false;
