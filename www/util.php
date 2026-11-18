@@ -469,7 +469,7 @@ function sendImageLdesc($page_title, $imageID, $cover_art_description, $game_tit
          
       } else {
           echo "<p>No image description is available. To help make IFDB more accessible, ";
-          echo "you can <a href=\"editgame?&id=$gameid\">add a cover art description</a>.</p>";
+          echo "you can <a href=\"editgame?&id=$gameID\">add a cover art description</a>.</p>";
       }
   
    ?>
