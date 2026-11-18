@@ -62,7 +62,10 @@ function queryComments($db, $mode, $quid, $limit, $caughtUpDate, $keepMuted)
         $modeJoin = "join ucomments as c2"
                     . " on c2.source = c.source and c2.sourceid = c.sourceid";
         $modeGroup =  "group by c.commentid";
-        $modeHaving = "having sum(c2.userid = '$quid') <> 0 or $myItem";
+        $orOwner2 = ($curuser ? "or '$curuser' in (c2.userid, c2.private)" : "");
+        $modeHaving = "having sum(c2.userid = '$quid'"
+                      . " and (c2.private is null $orOwner2)) <> 0"
+                      . " or $myItem";
         break;
 
     case 'inbox':
@@ -70,7 +73,10 @@ function queryComments($db, $mode, $quid, $limit, $caughtUpDate, $keepMuted)
         // replies to this user's comments
         $modeJoin = "left outer join ucomments as cparent "
                     . " on c.parent = cparent.commentid";
-        $modeWhere = "$myItem or cparent.userid = '$quid'";
+        $orOwnerParent = ($curuser ?
+            "or '$curuser' in (cparent.userid, cparent.private)" : "");
+        $modeWhere = "$myItem or (cparent.userid = '$quid'"
+                     . " and (cparent.private is null $orOwnerParent))";
         break;
 
     case 'comments':
