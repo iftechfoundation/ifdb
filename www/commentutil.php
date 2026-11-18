@@ -9,11 +9,14 @@ include_once "current-user.php";
 $inbox = [];
 $inboxCnt = 0;
 
-function queryComments($db, $mode, $quid, $limit, $caughtUpDate, $keepMuted)
+function queryComments($db, $mode, $quid, $limit, $caughtUpDate, $keepMuted,
+                       $includePrivate = false)
 {
     // get the logged-in user
     $curuser = current_user_id();
     $orOwner = ($curuser ? "or '$curuser' in (c.userid, c.private)" : "");
+    $includePrivate = ($includePrivate && $mode == 'comments');
+    $privateFilter = ($includePrivate ? "1" : "(c.private is null $orOwner)");
 
     // if there's a caught-up date, only query messages newer than that date
     $andNew = "";
@@ -53,6 +56,8 @@ function queryComments($db, $mode, $quid, $limit, $caughtUpDate, $keepMuted)
         if ($sandbox != 0)
             $inSandbox = "uc.sandbox in (0, $sandbox)";
     }
+    if ($includePrivate)
+        $inSandbox = "1";
 
     switch ($mode) {
     case 'subscribed':
@@ -98,7 +103,8 @@ function queryComments($db, $mode, $quid, $limit, $caughtUpDate, $keepMuted)
            l.title, l.userid, lu.name,
            p.title, p.userid, pu.name,
 
-           $mutedCol
+           $mutedCol,
+           pc.name
 
          from
            ucomments as c
@@ -120,9 +126,11 @@ function queryComments($db, $mode, $quid, $limit, $caughtUpDate, $keepMuted)
              on (c.source = 'P' and c.sourceid = p.pollid)
            left outer join users as pu on p.userid = pu.id
 
+           left outer join users as pc on pc.id = c.private
+
            $modeJoin
          where
-           (c.private is null $orOwner)
+           $privateFilter
            and ($modeWhere)
            $andNew
            $andNotMuted

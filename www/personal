@@ -176,11 +176,15 @@ if ($commentCnt == 0) {
         [$cid, $srcid, $src, $ctxt,
             $ccreDT, $ccre,
             $cmodDT, $cmod,
-            $cuid, $cuname] = $rec;
+            $cuid, $cuname, $cprivate] = $rec;
 
         // quote the names
         echo "$ltitle<span class='details personal__ccre'>"
-            . "<i>$ccre</i></span><br>";
+            . "<i>$ccre</i></span>"
+            . ($cprivate
+               ? "<span class=\"details reviewCommentPrivate\">Private</span>"
+               : "")
+            . "<br>";
     }
 
     echo "<p><a href=\"commentlog\">See all discussion updates</a> - "
