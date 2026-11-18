@@ -151,14 +151,15 @@ function sendCoverArt()
     // retrieve the image
     [$imgname, $title, $pagevsn] = mysql_fetch_row($result);
 
-    if (isset($_REQUEST['version'])) {
-        header("Cache-Control: public, max-age=31536000, immutable");
-    }
-
     // get the target version from the request
     $targVsn = (isset($_REQUEST['version'])
                 && (int)$pagevsn != (int)($_REQUEST['version']))
                ? (int)($_REQUEST['version']) : false;
+
+    $spamVsn = checkSpamCoverArtVersion($db, $id, $targVsn);
+    if (isset($_REQUEST['version']) && !$spamVsn) {
+        header("Cache-Control: public, max-age=31536000, immutable");
+    }
 
     // if we're retrieving an old version, go back and find it
     if ($targVsn) {
@@ -367,21 +368,7 @@ init();
 $reqVersion = $_REQUEST['version'] ?? null;
 $links = [];
 $should_hide = false;
-$viewingSpamVersion = false;
-if ($reqVersion) {
-    $result = mysqli_execute_query($db,
-        "select spam from games_history where id = ? and pagevsn = ?",
-        [$id, (int)$reqVersion]);
-    if ($result && mysql_num_rows($result) > 0)
-        $viewingSpamVersion = (int)mysql_result($result, 0, "spam") !== 0;
-}
-if (!$errMsg && $viewingSpamVersion && !$adminPriv) {
-    $errMsg = "This version of this game listing is no longer available.
-        It was marked as spam by IFDB moderators.
-        <a href=\"viewgame?id=$id\">Click here
-        to view the current listing</a>.";
-    $errCode = "versionGone";
-}
+$viewingSpamVersion = $reqVersion && isSpamGameVersion($db, $id, $reqVersion);
 if (!$errMsg) {
     $gameInfo = getGameInfo($db, $id, $curuser, $reqVersion, $errMsg, $errCode);
     if (!$errMsg) {

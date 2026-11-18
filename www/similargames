@@ -166,6 +166,9 @@ if (!$errMsg) {
     }
 }
 
+if ($errCode == "versionGone")
+    header("HTTP/1.1 410 Gone");
+
 // Do we need this? What's it for? (from viewgame)
 //if ($errCode == "notFound") {
 //    checkRedirect($id);

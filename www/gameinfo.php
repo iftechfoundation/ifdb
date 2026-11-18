@@ -22,6 +22,16 @@ function fixUrl($url) {
 //
 function getGameInfo($db, $id, $curuser, $requestVersion, &$errMsg, &$errCode)
 {
+    if ($requestVersion && isSpamGameVersion($db, $id, $requestVersion)
+        && !check_admin_privileges($db, $curuser)) {
+        $errMsg = "This version of this game listing is no longer available.
+            It was marked as spam by IFDB moderators.
+            <a href=\"viewgame?id=" . urlencode($id) . "\">Click here
+            to view the current listing</a>.";
+        $errCode = "versionGone";
+        return;
+    }
+
     // look up the game
     $result = mysqli_execute_query($db,
        "select
@@ -403,6 +413,29 @@ function getGameInfo($db, $id, $curuser, $requestVersion, &$errMsg, &$errCode)
                  $historyView,
                  $dlnotes, $extReviews, $extRevDisplayRank,
                  $ratingHisto, $xrefs, $inrefs, $flags];
+}
+
+function isSpamGameVersion($db, $id, $version)
+{
+    $result = mysqli_execute_query($db,
+        "select spam from games_history where id = ? and pagevsn = ?",
+        [$id, (int)$version]);
+    return $result && mysql_num_rows($result) > 0
+        && mysql_result($result, 0, "spam");
+}
+
+// Non-admins get 410 Gone for a spam version's cover art
+function checkSpamCoverArtVersion($db, $id, $version)
+{
+    if (!$version || !isSpamGameVersion($db, $id, $version))
+        return false;
+    include_once "current-user.php";
+    header("Cache-Control: private, no-cache");
+    if (!check_admin_privileges($db, current_user_id())) {
+        http_response_code(410);
+        exit("This version of the art image was marked as spam");
+    }
+    return true;
 }
 
 // ----------------------------------------------------------------------------
