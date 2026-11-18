@@ -1,6 +1,7 @@
-# Deploys the commit that triggered the calling workflow, by running
-# deploy-ifdb on the server over SSH. Called by test-and-deploy.yml after
-# every push to main, and by deploy-prod.yml when run by hand.
+# Deploys the commit that triggered the calling workflow (or inputs.sha), by
+# running deploy-ifdb on the server over SSH. Called by test-and-deploy.yml
+# after every push to main, and by deploy-prod.yml and deploy-dev.yml when run
+# by hand.
 #
 # Repository setup (Settings > Environments), each limited to the main branch:
 #
@@ -11,7 +12,8 @@
 #                       (https://ifdb.org/)
 #   approve-production  no secrets; required reviewer. Production deploys
 #                       wait here when plan-deploy.sh says they need a person
-#                       to look first.
+#                       to look first, and so do deploy-dev.yml's deploys of
+#                       branches that aren't on main.
 #
 # DEPLOY_SSH_TARGET is user@host, or ssh://user@host:port. The hosts are the
 # servers' own IP addresses, which Cloudflare hides, so they're secrets: the
@@ -24,9 +26,21 @@ on:
   workflow_call:
     inputs:
       mode:
-        description: dev, prod-on-merge or prod-manual (see .github/scripts/plan-deploy.sh)
+        description: dev, dev-branches, prod-on-merge or prod-manual (see .github/scripts/plan-deploy.sh)
         required: true
         type: string
+      sha:
+        description: The commit to deploy, if not the one that triggered the caller
+        type: string
+        default: ''
+      reset-db:
+        description: Restore dev's database from a production backup first
+        type: boolean
+        default: false
+      backup-date:
+        description: The backup to restore (YYYY-MM-DD); yesterday's by default
+        type: string
+        default: ''
 
 jobs:
   plan:
@@ -45,6 +59,7 @@ jobs:
       - id: plan
         env:
           MODE: ${{ inputs.mode }}
+          SHA: ${{ inputs.sha }}
           GH_TOKEN: ${{ github.token }}
         run: .github/scripts/plan-deploy.sh
 
@@ -62,16 +77,21 @@ jobs:
       !cancelled() && needs.plan.outputs.deploy == 'true' &&
       (needs.approve.result == 'success' || needs.approve.result == 'skipped')
     runs-on: ubuntu-latest
-    environment: ${{ inputs.mode == 'dev' && 'dev' || 'production' }}
+    environment: ${{ startsWith(inputs.mode, 'dev') && 'dev' || 'production' }}
     concurrency:
-      group: ${{ inputs.mode == 'dev' && 'deploy-dev' || 'deploy-production' }}
+      # deploy-ifdb also takes a lock, so dev deploys from both groups queue
+      # on the server instead of replacing each other here.
+      group: deploy-${{ startsWith(inputs.mode, 'prod') && 'production' || inputs.mode }}
       cancel-in-progress: false
     steps:
-      - name: Deploy ${{ github.sha }}
+      - name: Deploy ${{ inputs.sha || github.sha }}
         env:
           SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
           KNOWN_HOSTS: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
           SSH_TARGET: ${{ secrets.DEPLOY_SSH_TARGET }}
+          SHA: ${{ inputs.sha || github.sha }}
+          RESET_DB: ${{ inputs.reset-db }}
+          BACKUP_DATE: ${{ inputs.backup-date }}
         run: |
           # GitHub masks the whole secret, but ssh's errors print the bare host.
           host=${SSH_TARGET#ssh://}
@@ -81,19 +101,25 @@ jobs:
           printf '%s\n' "$SSH_KEY" > ~/.ssh/deploy_key
           chmod 600 ~/.ssh/deploy_key
           printf '%s\n' "$KNOWN_HOSTS" > ~/.ssh/known_hosts
-          # deploy-ifdb-ci on the server reads the SHA from the command line.
+          # deploy-ifdb-ci on the server reads these from the command line.
+          args=("$SHA")
+          if [ "$RESET_DB" = true ]; then
+            args+=(reset-db)
+            if [ -n "$BACKUP_DATE" ]; then args+=("$BACKUP_DATE"); fi
+          fi
           ssh -i ~/.ssh/deploy_key -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes \
-            "$SSH_TARGET" "$GITHUB_SHA"
+            -o ServerAliveInterval=60 "$SSH_TARGET" "${args[*]}"
 
       - name: Move the production tag
-        if: inputs.mode != 'dev'
+        if: ${{ !startsWith(inputs.mode, 'dev') }}
         env:
           GH_TOKEN: ${{ github.token }}
+          SHA: ${{ inputs.sha || github.sha }}
         run: |
           gh api -X PATCH "repos/$GITHUB_REPOSITORY/git/refs/tags/production" \
-              -f sha="$GITHUB_SHA" -F force=true \
+              -f sha="$SHA" -F force=true \
             || gh api -X POST "repos/$GITHUB_REPOSITORY/git/refs" \
-              -f ref=refs/tags/production -f sha="$GITHUB_SHA"
+              -f ref=refs/tags/production -f sha="$SHA"
 
       - name: Check the site
         if: vars.SMOKE_URL != ''
