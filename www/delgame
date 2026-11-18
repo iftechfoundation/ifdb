@@ -773,7 +773,7 @@ if ($cascade)
             $result = mysql_query(
                 "update crossrecs set fromgame='$fwdid' where fromgame='$qid'", $db);
             if ($result) {
-                $progress = "$CRS5255.2";
+                $progress = "CRS5255.2";
                 $result = mysql_query(
                     "update crossrecs set togame='$fwdid' where togame='$qid'", $db);
             }
