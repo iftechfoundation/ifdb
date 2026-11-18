@@ -221,7 +221,7 @@ $result = mysql_query(
        wishlists write, wishlists as wl2 read,
        unwishlists write, unwishlists as uw2 read,
        reclistitems write, reclistitems as rl2 read,
-       reviews write,
+       reviews write, reviews as r1 read, reviews as r2 read,
        extreviews write, gamelinks write, gameprofilelinks write,
        games_history write, ifids write, ifids as if2 read,
        crossrecs write,
@@ -655,51 +655,70 @@ if ($cascade)
         }
     }
 
-    if ($createFwd)
-    {
-        if ($result) {
-            $progress = "RVW5254.0";
-            $result = mysql_query(
-                "update reviews set gameid='$fwdid' where gameid='$qid'", $db);
+    if ($createFwd) {
+        // rating-only reviews on the target that this game has a written review for
+        $superseded = "select r1.id from reviews as r1
+                       where r1.gameid = '$fwdid' and r1.review is null
+                         and r1.userid in (
+                           select r2.userid from reviews as r2
+                           where r2.gameid = '$qid'
+                             and r2.userid not in ('', '\$system')
+                             and r2.review is not null)";
+        $steps = [
+            "RVS5254.t" => "delete from reviewtags where reviewid in ($superseded)",
+            "RVS5254.f" => "delete from reviewflags where reviewid in ($superseded)",
+            "RVS5254.v" => "delete from reviewvotes where reviewid in ($superseded)",
+            "RVS5254.c" => "delete from ucomments
+                            where source = 'R' and sourceid in ($superseded)",
+            "RVS5254.d" => "delete from reviews where id in ($superseded)",
+            "RVW5254.0" => "update reviews set gameid = '$fwdid'
+                            where gameid = '$qid'
+                              and (userid in ('', '\$system') or userid not in
+                                (select r2.userid from reviews as r2
+                                 where r2.gameid = '$fwdid'))",
+        ];
+        foreach ($steps as $code => $sql) {
+            if (!$result)
+                break;
+            $progress = $code;
+            $result = mysql_query($sql, $db);
         }
     }
-    else
-    {
-        if ($result) {
-            $progress = "RVC5254.1";
-            $result = mysql_query(
-                "delete from ucomments
-                 where
-                   source = 'R'
-                   and sourceid in (select id from reviews where gameid='$qid')", $db);
-        }
 
-        if ($result) {
-            $progress = "RVF5254.2";
-            $result = mysql_query(
-                "delete from reviewflags where reviewid in
-                 (select id from reviews where gameid='$qid')", $db);
-        }
+    if ($result) {
+        $progress = "RVC5254.1";
+        $result = mysql_query(
+            "delete from ucomments
+             where
+               source = 'R'
+               and sourceid in (select id from reviews where gameid='$qid')", $db);
+    }
 
-        if ($result) {
-            $progress = "RVT5254.3";
-            $result = mysql_query(
-                "delete from reviewtags where reviewid in
-                 (select id from reviews where gameid='$qid')", $db);
-        }
+    if ($result) {
+        $progress = "RVF5254.2";
+        $result = mysql_query(
+            "delete from reviewflags where reviewid in
+             (select id from reviews where gameid='$qid')", $db);
+    }
 
-        if ($result) {
-            $progress = "RVV5254.4";
-            $result = mysql_query(
-                "delete from reviewvotes where reviewid in
-                 (select id from reviews where gameid='$qid')", $db);
-        }
+    if ($result) {
+        $progress = "RVT5254.3";
+        $result = mysql_query(
+            "delete from reviewtags where reviewid in
+             (select id from reviews where gameid='$qid')", $db);
+    }
 
-        if ($result) {
-            $progress = "REV5254";
-            $result = mysql_query(
-                "delete from reviews where gameid='$qid'", $db);
-        }
+    if ($result) {
+        $progress = "RVV5254.4";
+        $result = mysql_query(
+            "delete from reviewvotes where reviewid in
+             (select id from reviews where gameid='$qid')", $db);
+    }
+
+    if ($result) {
+        $progress = "REV5254";
+        $result = mysql_query(
+            "delete from reviews where gameid='$qid'", $db);
     }
 
     if ($result) {
