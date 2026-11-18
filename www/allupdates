@@ -165,8 +165,38 @@ if ($adminPriv
     && $_SERVER['REQUEST_METHOD'] == 'POST'
     && $filter != '') {
 
+    $button = ['soleAuthored' => 'deleteSoleAuthoredGames',
+               'latestEdit' => 'rollbackLatestGameEdits',
+               'notLatestEdit' => 'markHistoryEditsSpam'][$filter];
+    if (isset($_POST[$button]) && !isset($_POST['confirm'])) {
+        [$total] = fetchAllUpdatesPage($db, $filter, $uid, 'sort_title', 1, 0);
+        $listings = ($total == 1 ? "1 listing" : "all $total listings");
+        if ($filter == 'soleAuthored')
+            $question = "Permanently delete $listings where $username is "
+                . "the only editor? This can't be undone.";
+        else if ($filter == 'latestEdit')
+            $question = "Roll back $listings where $username is the latest "
+                . "editor to the last version by another editor?";
+        else
+            $question = "Mark $username's publicly visible versions of "
+                . "$listings as spam?";
+        pageHeader("Are you sure?");
+        echo "<h1>Are you sure?</h1><p>$question</p>"
+            . "<form method=\"post\" action=\"allupdates\">"
+            . "<input type=\"hidden\" name=\"user\" value=\"$huid\">"
+            . "<input type=\"hidden\" name=\"filter\" value=\"$filter\">"
+            . "<input type=\"hidden\" name=\"$button\" value=\"1\">"
+            . "<input type=\"hidden\" name=\"confirm\" value=\"1\">"
+            . "<p><button>Yes, I'm sure</button></p>"
+            . "</form>"
+            . "<p><a href=\"allupdates?user=" . urlencode($uid)
+            . htmlspecialchars($filterQuery) . "\">Cancel</a></p>";
+        pageFooter();
+        exit();
+    }
+
     if ($filter == 'soleAuthored'
-        && isset($_REQUEST['deleteSoleAuthoredGames'])) {
+        && isset($_POST['deleteSoleAuthoredGames'])) {
         $deleted = 0;
         $failed = [];
         $games = gamesSoleAuthoredByUser($db, $uid);
@@ -175,6 +205,13 @@ if ($adminPriv
                 . htmlspecialchars(mysql_error($db));
         } else {
             foreach ($games as $g) {
+                $result = mysqli_execute_query($db,
+                    "select count(*) from games where id = ? and editedby = ?
+                       and not exists (select 1 from games_history
+                         where id = ? and ifnull(editedby, '') <> ?)",
+                    [$g['id'], $uid, $g['id'], $uid]);
+                if (!$result || !mysql_fetch_row($result)[0])
+                    continue;
                 $err = deleteGameListing($db, $g['id'], includeSqlError: true);
                 if ($err)
                     $failed[] = htmlspecialchars($g['title']) . ": " . $err;
@@ -194,7 +231,7 @@ if ($adminPriv
     }
 
     if ($filter == 'latestEdit'
-        && isset($_REQUEST['rollbackLatestGameEdits'])) {
+        && isset($_POST['rollbackLatestGameEdits'])) {
         $rolledBack = 0;
         $failed = [];
         foreach (gamesLatestSharedEditsByUser($db, $uid) as $g) {
@@ -218,7 +255,7 @@ if ($adminPriv
     }
 
     if ($filter == 'notLatestEdit'
-        && isset($_REQUEST['markHistoryEditsSpam'])) {
+        && isset($_POST['markHistoryEditsSpam'])) {
         $result = mysqli_execute_query($db,
             "update games_history h
              join games g on g.id = h.id
