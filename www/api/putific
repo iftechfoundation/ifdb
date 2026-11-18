@@ -459,10 +459,9 @@ for the OS.  The first part is the external ID for the OS itself, and
 the second is the OS version.  The two parts are separated by a period
 '.'.  You can find the list of versions for each OS by going to the <a
 href="/opsys">Operating Systems</a> page, then clicking on the OS you
-want to look up.  The OS page has a list of "Version &amp; Download
-Adviser entries".  Each version shows the External ID string for the
-OS/version combination.  For example, Windows 95's External ID is
-"Windows.95".
+want to look up.  The OS page has a list of "Versions".  Each version
+shows the External ID string for the OS/version combination.  For
+example, Windows 95's External ID is "Windows.95".
 
 <p>IFDB's basic assumption for OS versioning is that applications for
 version N of a given OS will also run on version N+1.  You should

@@ -1784,68 +1784,6 @@ function getSortingTitle($title)
 }
 
 // --------------------------------------------------------------------------
-// show a popup list for selecting an OS
-//
-define("OSPOP_NONE_OPTION",  0x0001);
-define("OSPOP_GENERIC_VSNS", 0x0002);
-define("OSPOP_DEFOS_OPTION", 0x0004);
-
-function showOSPopup($db, $fldName, $curOS, $flags)
-{
-    // start the selector control
-    echo "<select name=\"$fldName\" id=\"$fldName\">";
-
-    // show the "None" option, if desired
-    if ($flags & OSPOP_NONE_OPTION)
-        echo "<option value=\"\"" . ($curOS == "" ? " selected" : "")
-            . ">(None)</option>";
-
-    $joinFilter = ($flags & OSPOP_GENERIC_VSNS
-                   ? "" : "and osversions.name != '*'");
-    $defFilter = ($flags & OSPOP_DEFOS_OPTION
-                  ? "1" : "id != 0");
-
-    // query up the OS list
-    $result = mysql_query(
-        "select
-           concat(id, '.', ifnull(vsnid, '')),
-           operatingsystems.name as osname,
-           osversions.name,
-           seq,
-           displaypriority,
-           if(id=1, 0, 1) as orderkey
-         from
-            operatingsystems
-            left outer join osversions
-              on operatingsystems.id = osversions.osid $joinFilter
-         where
-            $defFilter
-            and displaypriority >= 0
-         order by
-            orderkey, displaypriority desc, osname, seq", $db);
-
-    // show each OS.version combination
-    for ($i = 0 ; $i < mysql_num_rows($result) ; $i++) {
-        [$osid, $osname, $vsnname, $seq, $pri, $orderkey] =
-            mysql_fetch_row($result);
-
-        if ($vsnname == "*")
-            $vsnname = "$osname (All Versions)";
-        else if ($flags & OSPOP_GENERIC_VSNS)
-            $vsnname = "&nbsp;&nbsp;&nbsp;$vsnname";
-
-        echo "<option value=\"$osid\""
-            . ($osid == $curOS ? " selected" : "")
-            . ">"
-            . ($vsnname == "" ? $osname : $vsnname)
-            . "</option>";
-    }
-
-    // that's it for the selector control
-    echo "</select>";
-}
-
-// --------------------------------------------------------------------------
 // Store a picture.  This randomly chooses one of the picture databases and
 // stores the image.  The ID is the database number plus the table key.
 // Takes the image binary data as input, returns the ID.
