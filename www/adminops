@@ -2123,7 +2123,7 @@ else if (isset($_REQUEST['deletenews'])) {
         for ($i = 0; $i < count($rows); $i++) {
             $row = $rows[$i];
             error_log($i . " " . json_encode($row));
-            [$search_results] = doSearch($db, "{$row['title']} {$row['author']} -tuid:{$row['id']}", "game", "rel", "limit 0, 5", $browse);
+            [$search_results] = doSearch($db, "{$row['title']} {$row['author']} -tuid:{$row['id']}", "game", "rel", "limit 0, 5", $browse, 1);
             $separator = "|||||||";
             $original = stringify($row);
             $levenshteins = [];
