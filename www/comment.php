@@ -565,8 +565,9 @@ echo helpWinLink("help-formatting?comment#spoilertags", "&lt;SPOILER&gt; tag")
             . "value=\"Y\"> <label for=\"ckPrivate\">"
             . "Private message</label></label><br>"
             . "<span class=details>If you check this box, the message will "
-            . "only be visible to you and "
-            . htmlspecialcharx($privateToName) . ".</span>";
+            . "only be visible to you, "
+            . htmlspecialcharx($privateToName)
+            . ", and IFDB administrators.</span>";
     }
 
     global $nonce;
