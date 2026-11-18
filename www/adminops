@@ -1337,10 +1337,12 @@ else if (isset($_REQUEST['users'])) {
 
     $uid = $_REQUEST['user'];
     $quid = mysql_real_escape_string($uid, $db);
+    $huid = htmlspecialchars($uid);
+    $euid = urlencode($uid);
 
     echo "<form name=\"edituser\" id=\"edituser\" method=\"post\" "
         . "action=\"adminops\">"
-        . "<input type=hidden name=\"user\" value=\"$uid\">";
+        . "<input type=hidden name=\"user\" value=\"$huid\">";
 
     $result = mysql_query(
         "select email, name, acctstatus, profilestatus,
@@ -1457,12 +1459,12 @@ else if (isset($_REQUEST['users'])) {
         . "Created: $created<br>"
         . "Last login: $login<br>"
         . "Activation code: $actcode<br>"
-        . "Profile page: <a href=\"showuser?id=$quid\" target=\"_blank\">"
-        . "showuser?id=$quid</a><br>"
-        . "Comment Log: <a href=\"commentlog?user=$quid&mode=comments\" "
-        . "target=\"_blank\">commentlog?user=$quid&amp;mode=comments</a><br>"
-        . "Update Log: <a href=\"allupdates?user=$quid\" target=\"_blank\">"
-        . "allupdates?user=$quid</a><br>"
+        . "Profile page: <a href=\"showuser?id=$euid\" target=\"_blank\">"
+        . "showuser?id=$huid</a><br>"
+        . "Comment Log: <a href=\"commentlog?user=$euid&mode=comments\" "
+        . "target=\"_blank\">commentlog?user=$huid&amp;mode=comments</a><br>"
+        . "Update Log: <a href=\"allupdates?user=$euid\" target=\"_blank\">"
+        . "allupdates?user=$huid</a><br>"
         . "<span class=details>Activation URL: $acturl</span><br>"
         . "<p>Remarks: $remarks<br>"
         . "<p>" . $adminButtons;
