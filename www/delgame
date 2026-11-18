@@ -216,14 +216,24 @@ function pgErrExit($msg)
 // lock the tables that we'll be checking or updating
 $result = mysql_query(
     "lock tables games write, gamefwds write,
-       gametags read write, playedgames read write,
-       wishlists read write, unwishlists read write,
-       reclistitems write, reviews write,
+       gametags write, gametags as gt2 read,
+       playedgames write, playedgames as pg2 read,
+       wishlists write, wishlists as wl2 read,
+       unwishlists write, unwishlists as uw2 read,
+       reclistitems write, reclistitems as rl2 read,
+       reviews write, reviews as r1 read, reviews as r2 read,
        extreviews write, gamelinks write, gameprofilelinks write,
-       games_history write, ifids read write, crossrecs write,
-       pollvotes read write, pollcomments write, ucomments write,
+       games_history write, ifids write, ifids as if2 read,
+       crossrecs write,
+       playertimes write, playertimes as pt2 read,
+       gamexrefs write, gamexrefs as gx2 read,
+       pollvotes write, pollvotes as pv2 read,
+       pollcomments write, ucomments write,
        reviewflags write, reviewtags write, reviewvotes write,
        news write, compgames write", $db);
+if (!$result)
+    errExit("The database tables couldn't be locked: "
+            . htmlspecialchars(mysql_error($db)));
 
 // we have no referencers yet
 $refs = [];
@@ -506,8 +516,8 @@ $result = true;
 if ($result) {
     $progress = "EXR5201";
     $query = ($createFwd ?
-              "delete from extreviews where gameid = '$qid'" :
-              "update extreviews set gameid='$fwdid' where gameid='$qid'");
+              "update extreviews set gameid='$fwdid' where gameid='$qid'" :
+              "delete from extreviews where gameid = '$qid'");
     $result = mysql_query($query, $db);
 }
 if ($result) {
@@ -518,9 +528,8 @@ if ($result) {
              set gameid='$fwdid'
              where
                gameid='$qid'
-               and (userid, tag) not in (select userid, tag from (
-                 select * from gametags where gameid = '$fwdid')
-               as tmp)", $db);
+               and (userid, tag) not in (select userid, tag
+                 from gametags as gt2 where gt2.gameid = '$fwdid')", $db);
     }
     if ($result) {
         $progress = "GMT5250.d";
@@ -551,7 +560,7 @@ if ($result) {
              set gameid = '$fwdid'
              where
                gameid = '$qid'
-               and ifid not in (select ifid from (select * from ifids where gameid='$fwdid') as tmp)", $db);
+               and ifid not in (select ifid from ifids as if2 where if2.gameid='$fwdid')", $db);
         $progress = "IFI5204.u";
     }
     if ($result) {
@@ -562,9 +571,53 @@ if ($result) {
 }
 
 if ($result) {
+    if ($createFwd) {
+        $progress = "PLT5207.u";
+        $result = mysql_query(
+            "update playertimes
+             set gameid = '$fwdid'
+             where
+               gameid = '$qid'
+               and userid not in (select userid
+                 from playertimes as pt2 where pt2.gameid = '$fwdid')", $db);
+    }
+    if ($result) {
+        $progress = "PLT5207.d";
+        $result = mysql_query(
+            "delete from playertimes where gameid = '$qid'", $db);
+    }
+}
+
+if ($result) {
+    if ($createFwd) {
+        $progress = "XRF5208.u";
+        $result = mysql_query(
+            "update gamexrefs
+             set toid = '$fwdid'
+             where
+               toid = '$qid'
+               and fromid <> '$fwdid'
+               and (fromid, reftype) not in (select fromid, reftype
+                 from gamexrefs as gx2 where gx2.toid = '$fwdid')", $db);
+    }
+    if ($result) {
+        $progress = "XRF5208.d";
+        $result = mysql_query(
+            "delete from gamexrefs where fromid = '$qid' or toid = '$qid'",
+            $db);
+    }
+}
+
+if ($result) {
     $progress = "HST5205";
     $result = mysql_query(
         "delete from games_history where id = '$qid'", $db);
+}
+
+// the playertimes triggers leave @gameid set, and the games trigger reuses it
+if ($result) {
+    $progress = "GME5206.0";
+    $result = mysql_query("set @gameid = null", $db);
 }
 
 if ($result) {
@@ -584,9 +637,8 @@ if ($cascade)
                  set gameid = '$fwdid'
                  where
                    gameid = '$qid'
-                   and (userid) not in (select userid from (
-                     select * from playedgames where gameid = '$fwdid')
-                   as tmp)", $db);
+                   and userid not in (select userid
+                     from playedgames as pg2 where pg2.gameid = '$fwdid')", $db);
         }
         if ($result) {
             $progress = "PLG5251.d";
@@ -603,9 +655,8 @@ if ($cascade)
                  set gameid = '$fwdid'
                  where
                    gameid = '$qid'
-                   and (userid) not in (select userid from (
-                     select * from wishlists where gameid = '$fwdid')
-                   as tmp)", $db);
+                   and userid not in (select userid
+                     from wishlists as wl2 where wl2.gameid = '$fwdid')", $db);
         }
         if ($result) {
             $progress = "WLS5252.d";
@@ -622,9 +673,8 @@ if ($cascade)
                  set gameid = '$fwdid'
                  where
                    gameid = '$qid'
-                   and (userid) not in (select userid from (
-                     select * from unwishlists where gameid = '$fwdid')
-                   as tmp)", $db);
+                   and userid not in (select userid
+                     from unwishlists as uw2 where uw2.gameid = '$fwdid')", $db);
         }
         if ($result) {
             $progress = "UWS5252.d";
@@ -641,9 +691,8 @@ if ($cascade)
                  set gameid = '$fwdid'
                  where
                    gameid = '$qid'
-                   and (listid) not in (select listid from (
-                     select * from reclistitems where gameid = '$fwdid')
-                   as tmp)", $db);
+                   and listid not in (select listid
+                     from reclistitems as rl2 where rl2.gameid = '$fwdid')", $db);
         }
         if ($result) {
             $progress = "RLI5253.d";
@@ -652,57 +701,70 @@ if ($cascade)
         }
     }
 
+    if ($createFwd) {
+        // rating-only reviews on the target that this game has a written review for
+        $superseded = "select r1.id from reviews as r1
+                       where r1.gameid = '$fwdid' and r1.review is null
+                         and r1.userid in (
+                           select r2.userid from reviews as r2
+                           where r2.gameid = '$qid'
+                             and r2.userid not in ('', '\$system')
+                             and r2.review is not null)";
+        $steps = [
+            "RVS5254.t" => "delete from reviewtags where reviewid in ($superseded)",
+            "RVS5254.f" => "delete from reviewflags where reviewid in ($superseded)",
+            "RVS5254.v" => "delete from reviewvotes where reviewid in ($superseded)",
+            "RVS5254.c" => "delete from ucomments
+                            where source = 'R' and sourceid in ($superseded)",
+            "RVS5254.d" => "delete from reviews where id in ($superseded)",
+            "RVW5254.0" => "update reviews set gameid = '$fwdid'
+                            where gameid = '$qid'
+                              and (userid in ('', '\$system') or userid not in
+                                (select r2.userid from reviews as r2
+                                 where r2.gameid = '$fwdid'))",
+        ];
+        foreach ($steps as $code => $sql) {
+            if (!$result)
+                break;
+            $progress = $code;
+            $result = mysql_query($sql, $db);
+        }
+    }
+
     if ($result) {
         $progress = "RVC5254.1";
-        $query = ($createFwd ?
-                  "update ucomments
-                   set sourceid = '$fwdid'
-                   where
-                     source = 'R'
-                     and sourceid in (select id from reviews where gameid = '$qid')" :
-                  "delete from ucomments
-                   where
-                     source = 'R'
-                     and sourceid in (select id from reviews where gameid='$qid')");
-        $result = mysql_query($query, $db);
+        $result = mysql_query(
+            "delete from ucomments
+             where
+               source = 'R'
+               and sourceid in (select id from reviews where gameid='$qid')", $db);
     }
 
-    if ($createFwd)
-    {
-        if ($result) {
-            $progress = "RVW5254.0";
-            $result = mysql_query(
-                "update reviews set gameid='$fwdid' where gameid='$qid'", $db);
-        }
+    if ($result) {
+        $progress = "RVF5254.2";
+        $result = mysql_query(
+            "delete from reviewflags where reviewid in
+             (select id from reviews where gameid='$qid')", $db);
     }
-    else
-    {
-        if ($result) {
-            $progress = "RVF5254.2";
-            $result = mysql_query(
-                "delete from reviewflags where reviewid in
-                 (select id from reviews where gameid='$qid')", $db);
-        }
 
-        if ($result) {
-            $progress = "RVT5254.3";
-            $result = mysql_query(
-                "delete from reviewtags where reviewid in
-                 (select id from reviews where gameid='$qid')", $db);
-        }
+    if ($result) {
+        $progress = "RVT5254.3";
+        $result = mysql_query(
+            "delete from reviewtags where reviewid in
+             (select id from reviews where gameid='$qid')", $db);
+    }
 
-        if ($result) {
-            $progress = "RVV5254.4";
-            $result = mysql_query(
-                "delete from reviewvotes where reviewid in
-                 (select id from reviews where gameid='$qid')", $db);
-        }
+    if ($result) {
+        $progress = "RVV5254.4";
+        $result = mysql_query(
+            "delete from reviewvotes where reviewid in
+             (select id from reviews where gameid='$qid')", $db);
+    }
 
-        if ($result) {
-            $progress = "REV5254";
-            $result = mysql_query(
-                "delete from reviews where gameid='$qid'", $db);
-        }
+    if ($result) {
+        $progress = "REV5254";
+        $result = mysql_query(
+            "delete from reviews where gameid='$qid'", $db);
     }
 
     if ($result) {
@@ -711,7 +773,7 @@ if ($cascade)
             $result = mysql_query(
                 "update crossrecs set fromgame='$fwdid' where fromgame='$qid'", $db);
             if ($result) {
-                $progress = "$CRS5255.2";
+                $progress = "CRS5255.2";
                 $result = mysql_query(
                     "update crossrecs set togame='$fwdid' where togame='$qid'", $db);
             }
@@ -732,9 +794,8 @@ if ($cascade)
                  set gameid = '$fwdid'
                  where
                    gameid = '$qid'
-                   and (pollid, userid) not in (select pollid, userid from (
-                     select * from pollvotes where gameid = '$fwdid')
-                   as tmp)", $db);
+                   and (pollid, userid) not in (select pollid, userid
+                     from pollvotes as pv2 where pv2.gameid = '$fwdid')", $db);
         }
         if ($result) {
             $progress = "PLV5256.d";
