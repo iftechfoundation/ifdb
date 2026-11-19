@@ -181,7 +181,7 @@ function sendCoverArt()
             if (isset($deltas['coverart']))
                 $imgname = $deltas['coverart'];
 
-            if (isset($deltas['cover_art_description']))
+            if (array_key_exists('cover_art_description', $deltas))
                 $cover_art_description = $deltas['cover_art_description'];
 
             if (isset($deltas['title']))
