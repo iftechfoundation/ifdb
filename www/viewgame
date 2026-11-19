@@ -19,13 +19,12 @@ $db = dbConnect();
 $curuser = current_user_id();
 
 // check the user for ADMIN privileges and sandbox setting
-$userprivs = $adminPriv = false;
+$adminPriv = check_admin_privileges($db, $curuser);
 $mysandbox = 0;
 if ($curuser) {
     $result = mysqli_execute_query($db,
-        "select `privileges`, `sandbox` from users where id=?", [$curuser]);
-    [$userprivs, $mysandbox] = mysql_fetch_row($result);
-    $adminPriv = (strpos($userprivs, "A") !== false);
+        "select `sandbox` from users where id=?", [$curuser]);
+    [$mysandbox] = mysql_fetch_row($result);
 }
 
 $errMsg = false;

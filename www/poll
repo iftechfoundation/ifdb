@@ -26,13 +26,7 @@ if ($id == 'new'
     || isset($_REQUEST['comment']))
     require_login();
 
-$adminPriv = false;
-if ($userid) {
-    $userresult = mysql_query(
-        "select `privileges` from users where id='$userid'", $db);
-    $userprivs = mysql_result($userresult, 0, "privileges");
-    $adminPriv = (strpos($userprivs, "A") !== false);
-}
+$adminPriv = check_admin_privileges($db, $userid);
 
 // no error or success messages yet
 $formErrMsg = false;

@@ -17,11 +17,7 @@ if (!check_editing_privileges($db))
     exit();
 
 // check for admin privileges (for diagnostic error detail)
-$result = mysqli_execute_query($db,
-    "select `privileges` from users where id = ?", [$userid]);
-$adminPriv =
-    $result
-    && strpos(mysql_result($result, 0, "privileges"), "A") !== false;
+$adminPriv = check_admin_privileges($db, $userid);
 
 $gameid = get_req_data("game");
 $version = get_req_data("version");

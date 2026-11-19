@@ -15,15 +15,13 @@ $quid = mysql_real_escape_string($uid ?: '', $db);
 
 $loggedIn = (bool)$uid;
 
-$adminPriv = false;
+$adminPriv = check_admin_privileges($db, $uid);
 $caughtUpDate = false;
 $welcomeOpen = true;
 
 if ($uid) {
     $result = mysqli_execute_query($db,
-        "select `privileges`, caughtupdate, welcomeopen from users where id=?", [$uid]);
-    $priv = mysql_result($result, 0, "privileges");
-    $adminPriv = (strpos($priv, "A") !== false);
+        "select caughtupdate, welcomeopen from users where id=?", [$uid]);
     $caughtUpDate = mysql_result($result, 0, "caughtupdate");
     $welcomeOpen = mysql_result($result, 0, "welcomeopen");
 }

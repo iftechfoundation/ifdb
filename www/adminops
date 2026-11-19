@@ -14,19 +14,8 @@ include_once "dbconnect.php";
 require_once "vendor/autoload.php";
 $db = dbConnect();
 
-// assume no privileges
-$userprivs = $adminPriv = false;
-
-// check the user for ADMIN privileges
-if ($userid) {
-    $result = mysql_execute_query($db,
-        "select `privileges` from users where id=?", [$userid]);
-    $userprivs = mysql_result($result, 0, "privileges");
-    $adminPriv = (strpos($userprivs, "A") !== false);
-}
-
 // if this isn't an ADMIN user, send back an error
-if (!$adminPriv) {
+if (!check_admin_privileges($db, $userid)) {
     pageHeader("Unauthorized Access Prohibited");
     echo "<h1>Unauthorized Access Prohibited</h1>
         <p>Access to this page is restricted to authorized users.";

@@ -22,13 +22,12 @@ if (!check_editing_privileges($db))
 
 // get the username
 $result = mysql_query(
-    "select name, location, `privileges` from users
+    "select name, location from users
     where id = '$userid'", $db);
-[$username, $userloc, $userprivs] = mysql_fetch_row($result);
+[$username, $userloc] = mysql_fetch_row($result);
 $username = htmlspecialcharx($username);
 $userloc = htmlspecialcharx($userloc);
-$adminPriv =
-    $result && strpos(mysql_result($result, 0, "privileges"), "A") !== false;
+$adminPriv = check_admin_privileges($db, $userid);
 
 // no errors/status yet
 $errMsg = false;

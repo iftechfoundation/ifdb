@@ -28,13 +28,7 @@ if (isEmpty($id))
 // make sure we process any persistent login state
 $userid = current_user_id();
 
-$adminPriv = false;
-if ($userid) {
-    $result = mysqli_execute_query($db, "select privileges from users where privileges like '%A%' and id = ?", [$userid]);
-    $adminPriv = mysqli_fetch_row($result);
-}
-
-if (!$adminPriv) {
+if (!check_admin_privileges($db, $userid)) {
     http_response_code(403);
     exit("Only administrators are allowed to delete tags.");
 }

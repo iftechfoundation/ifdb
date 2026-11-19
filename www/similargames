@@ -110,18 +110,6 @@ function init()
 
 
 
-// check the user for ADMIN privileges
-// (This is from viewgame. Do we need it? I took out the sandbox 
-// stuff already. Maybe we could eventually make the tag calculations 
-// visible only to admin?)
-//$userprivs = $adminPriv = false;
-//if ($curuser) {
-//    $result = mysqli_execute_query($db,
-//        "select `privileges` from users where id=?", [$curuser]);
-//    $userprivs = mysql_fetch_row($result);
-//    $adminPriv = (strpos($userprivs, "A") !== false);
-//}
-
 $errMsg = false;
 $errCode = false;
 
