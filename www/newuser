@@ -5,6 +5,7 @@ include_once "session-start.php";
 include_once "pagetpl.php";
 include_once "dbconnect.php";
 include_once "util.php";
+include_once "password-login.php";
 include_once "captcha.php";
 include_once "useractivation.php";
 include_once "akismet.php";
@@ -290,28 +291,9 @@ function handlePost()
         return true;
     }
 
-    // make sure that the two copies of the password match
-    if (strcmp($psw, $psw2) != 0) {
-        $errFlagged = "Password mismatch - The two copies of the password
-            you entered don't match. The password must be entered twice
-            <b>identically</b> to protect against typing mistakes. Please
-            re-enter your password.";
+    $errFlagged = new_password_error($psw, $psw2);
+    if ($errFlagged)
         return true;
-    }
-
-    // make sure the password is strong enough
-    if (strlen($psw) < 6) {
-        $errFlagged = "Your password is too short - please use at least
-            six characters.";
-        return true;
-    }
-
-    $max_password_length = MAX_PASSWORD_LENGTH;
-
-    if (strlen($psw) > $max_password_length) {
-        $errFlagged = "Your password is too long - please use no more than $max_password_length characters.";
-        return true;
-    }
 
     // set up the database connection
     $db = dbConnect();
@@ -329,9 +311,7 @@ function handlePost()
     $qdname = mysql_real_escape_string($dname, $db);
     $qremarks = mysql_real_escape_string($remarks, $db);
 
-    // do a one-way hash on the password to store it in encrypted form
-    $salt = md5_rand($email . $dname);
-    $psw = sha1($salt . $psw);
+    $psw = hash_password($psw);
 
     // verify that the email address is unique
     $result = mysql_query("select id from users where email = '$qemail'", $db);
@@ -491,11 +471,11 @@ function handlePost()
     $actcode = random_token();
     $tosver = TOS_VERSION;
     $sql = "insert into users
-        (id, email, name, `password`, pswsalt, activationcode,
+        (id, email, name, `password`, activationcode,
          acctstatus, profilestatus, created, `privileges`, remarks,
          tosversion)
         values ('$userid', '$qemail', '$qdname',
-                '$psw', '$salt', '$actcode',
+                '$psw', '$actcode',
                 '$acctStatus', '$profileStatus', now(), '',
                 '$qremarks', '$tosver')";
 

@@ -2229,17 +2229,6 @@ function ttf_unpack_dir($data, $tblnum)
 
 // ------------------------------------------------------------------------
 //
-// Generate a random MD5 string.  This concatenates the given "key" string
-// with a number of system randomness sources and MD5-hashes the result.
-//
-function md5_rand($key)
-{
-    return md5(rand() . $key . mt_rand() . time() . microtime() . mt_rand());
-}
-
-
-// ------------------------------------------------------------------------
-//
 // Generate a random hex token
 //
 function random_token($bytes = 20)

@@ -5,6 +5,7 @@ include_once "akismet.php";
 
 include_once "session-start.php";
 include_once "current-user.php";
+include_once "password-login.php";
 include_once "pagetpl.php";
 include_once "util.php";
 $usernum = require_login_or_provisional();
@@ -128,7 +129,7 @@ function currentPasswordMatches($psw)
     $result = mysqli_execute_query($db,
         "select password, pswsalt from users where id = ?", [$usernum]);
     $row = mysql_fetch_row($result);
-    return $row && hash_equals($row[0], sha1($row[1] . $psw));
+    return $row && password_matches($psw, $row[0], $row[1]);
 }
 
 // initialize

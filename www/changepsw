@@ -51,8 +51,7 @@ function verify() {
     // check for updates
     if (strlen($oldpsw) != 0 || strlen($psw) != 0 || strlen($psw2) != 0) {
         // validate the OLD password against what's stored in the database
-        $hasholdpsw = sha1($dbsalt . $oldpsw);
-        if (strcmp($hasholdpsw, $dbpsw) != 0) {
+        if (!password_matches($oldpsw, $dbpsw, $dbsalt)) {
             $errFlagged = "Incorrect password - the <b>current</b> password
                 entered doesn't match the password stored in your account.";
             return true;
