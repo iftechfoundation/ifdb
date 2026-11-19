@@ -393,7 +393,7 @@ function getGameInfo($db, $id, $curuser, $requestVersion, &$errMsg, &$errCode)
     return [$ifids, $title, $author, $authorExt,
                  $pubYear, $pubFull, $license,
                  $system, $desc, $rawDesc,
-                 $hasart, $cover_art_description, $genre, $seriesname, $seriesnum,
+                 $hasart, $genre, $seriesname, $seriesnum,
                  $forgiveness, $bafsid, $version,
                  $language, $languageNameOnly,
                  $website, $links,
@@ -403,7 +403,7 @@ function getGameInfo($db, $id, $curuser, $requestVersion, &$errMsg, &$errCode)
                  $moddatelatest,
                  $historyView,
                  $dlnotes, $extReviews, $extRevDisplayRank,
-                 $ratingHisto, $xrefs, $inrefs, $flags];
+                 $ratingHisto, $xrefs, $inrefs, $flags, $cover_art_description];
 }
 
 // ----------------------------------------------------------------------------
