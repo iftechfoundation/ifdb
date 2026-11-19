@@ -68,7 +68,7 @@ function getGameInfo($db, $id, $curuser, $requestVersion, &$errMsg, &$errCode)
     $links = mysqli_fetch_all($result, MYSQL_ASSOC);
 
     // build the list of IFIDS
-    $result = mysqli_execute_query($db, "select ifid from ifids where gameid = ?", [$id]);
+    $result = mysqli_execute_query($db, "select ifid from ifids where gameid = ? order by ifidid", [$id]);
     $ifids = [];
     while ([$ifid] = mysql_fetch_row($result))
         $ifids[] = $ifid;
