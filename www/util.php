@@ -367,8 +367,8 @@ function echoStylesheetLink()
 
 // --------------------------------------------------------------------------
 // send an image description page - this includes the image and the
-// copyright information
-function sendImageLdesc($page_title, $imageID, $cover_art_description, $game_title, $gameID)
+// copyright information. Options for $image_type are "profile" or "cover"
+function sendImageLdesc($page_title, $imageID, $image_type, $cover_art_description = "", $game_title = "", $gameID = "")
 {
     global $copyrightStatList;
     $curuser = current_user_id();
@@ -409,14 +409,15 @@ function sendImageLdesc($page_title, $imageID, $cover_art_description, $game_tit
             [$username] = mysql_fetch_row($result);
     }
 
-    // Generate the alt text for the full-sized cover art
-    $large_cover_alt_text = "";
-    if ($cover_art_description) {
-        $large_cover_alt_text = $cover_art_description;
-    } else {
-        $large_cover_alt_text = "Cover art for $game_title.";
+    // If this is cover art, generate the alt text for the full-sized cover art
+    if ($image_type == "cover") {
+        $large_cover_alt_text = "";
+        if ($cover_art_description) {
+            $large_cover_alt_text = $cover_art_description;
+        } else {
+            $large_cover_alt_text = "Cover art for $game_title.";
+        }
     }
-
     // send the page
 ?>
 <html>
@@ -460,18 +461,19 @@ function sendImageLdesc($page_title, $imageID, $cover_art_description, $game_tit
           echo "</span>";
       }
 
-      if ($cover_art_description) {
-          global $nonce;
-          echo "<br><style nonce='$nonce'>.image_description_box { border: 1px solid gray; padding: 0 1em; }</style>";
-          echo "<div class='image_description_box'>";
-          echo "<p><b>Image description:</b></p><p>".htmlspecialchars($cover_art_description)."</p>";
-          echo "<p><em>Cover art descriptions are contributed by IFDB members.</em></p></div>";
+      if ($image_type == "cover") {
+          if ($cover_art_description) {
+              global $nonce;
+              echo "<br><style nonce='$nonce'>.image_description_box { border: 1px solid gray; padding: 0 1em; }</style>";
+              echo "<div class='image_description_box'>";
+              echo "<p><b>Image description:</b></p><p>".htmlspecialchars($cover_art_description)."</p>";
+              echo "<p><em>Cover art descriptions are contributed by IFDB members.</em></p></div>";
          
-      } else {
-          echo "<p>No image description is available. To help make IFDB more accessible, ";
-          echo "you can <a href=\"editgame?&id=$gameID\">add a cover art description</a>.</p>";
+          } else {
+              echo "<p>No image description is available. To help make IFDB more accessible, ";
+              echo "you can <a href=\"editgame?&id=$gameID\">add a cover art description</a>.</p>";
+          }
       }
-  
    ?>
 </div>
 </body>

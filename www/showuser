@@ -84,7 +84,7 @@ if (isset($_REQUEST['pic'])) {
     // send the image
     if (isset($_REQUEST['ldesc'])) {
         // send it as the full description page
-        sendImageLdesc("Profile Image", $imgname);
+        sendImageLdesc("Profile Image", $imgname, "profile");
     } else {
         // retrieve the data
         [$img, $fmt] = fetch_image($imgname, true);
