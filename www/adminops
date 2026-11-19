@@ -1300,10 +1300,10 @@ else if (isset($_REQUEST['users'])) {
     $result = mysql_query(
         "select email, name, acctstatus, profilestatus,
             created, lastlogin, `privileges`,
-            activationcode, pswsalt, remarks, sandbox
+            activationcode, remarks, sandbox
          from users where id = '$quid'", $db);
     [$email, $name, $stat, $proStat, $created, $login, $privcode,
-        $actcode, $pswsalt, $remarks, $sandbox]
+        $actcode, $remarks, $sandbox]
         = mysql_fetch_row($result);
 
     $email = htmlspecialcharx($email);
@@ -1311,7 +1311,7 @@ else if (isset($_REQUEST['users'])) {
     $remarks = htmlspecialcharx($remarks);
 
     $acturl = get_root_url() . "userconfirm?a=$actcode";
-    [$adminButtons, $adminForms] = genNewUserAdminLinks($actcode, $pswsalt);
+    [$adminButtons, $adminForms] = genNewUserAdminLinks($actcode);
 
     $statMap = ["A" => "Active", "D" => "Pending Activation",
         "B" => "Banned", "X" => "Closed",
