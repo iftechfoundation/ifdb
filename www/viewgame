@@ -201,12 +201,13 @@ function sendCoverArt()
     }
 
     // generate the ldesc page if applicable
-    if (isset($_REQUEST['ldesc']))
+    if (isset($_REQUEST['ldesc'])) {
         $image_type = "cover";
         sendImageLdesc("Cover Art for $title"
                        . ($targVsn ? " (version $targVsn)" : ""),
                        $imgname, $image_type, $cover_art_description, $title, $id);
-
+    }
+    
     // retrieve the image data
     [$imgdata, $fmt] = fetch_image($imgname, true);
 
