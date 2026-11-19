@@ -1,8 +1,11 @@
-# Default is the unpinned minor (php:8-apache) for local compose.
-# docker-compose.prod.yml passes PHP_VERSION=8.3.
-ARG PHP_VERSION=8
+# Match the PHP version Debian ships on production.
+ARG PHP_VERSION=8.4
 
-FROM composer:2 AS builder
+FROM php:${PHP_VERSION}-cli AS php-composer
+RUN apt-get update -y && apt-get install -y unzip
+COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
+
+FROM php-composer AS builder
 WORKDIR /app
 COPY composer.json composer.lock ./
 RUN composer install --no-dev --optimize-autoloader --no-interaction

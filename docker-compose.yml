@@ -33,8 +33,6 @@ services:
     image: ifdb-web:${IFDB_IMAGE_TAG:-latest}
     build:
       context: .
-      args:
-        PHP_VERSION: "8"
     ports:
       - ${IFDB_WEB_PORT:-8080}:80
     links:
