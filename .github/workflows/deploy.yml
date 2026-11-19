@@ -26,7 +26,7 @@ on:
   workflow_call:
     inputs:
       mode:
-        description: dev, dev-branches, prod-on-merge or prod-manual (see .github/scripts/plan-deploy.sh)
+        description: dev, dev-for-prod, dev-branches, prod-on-merge or prod-manual (see .github/scripts/plan-deploy.sh)
         required: true
         type: string
       sha:
@@ -41,6 +41,10 @@ on:
         description: The backup to restore (YYYY-MM-DD); yesterday's by default
         type: string
         default: ''
+    outputs:
+      deployed:
+        description: true once the commit is deployed and the site check passes
+        value: ${{ jobs.deploy.outputs.deployed }}
 
 jobs:
   plan:
@@ -48,6 +52,7 @@ jobs:
     outputs:
       deploy: ${{ steps.plan.outputs.deploy }}
       needs-approval: ${{ steps.plan.outputs.needs-approval }}
+      move-dev: ${{ steps.plan.outputs.move-dev }}
     steps:
       - uses: actions/checkout@v5
         with:
@@ -77,10 +82,12 @@ jobs:
       !cancelled() && needs.plan.outputs.deploy == 'true' &&
       (needs.approve.result == 'success' || needs.approve.result == 'skipped')
     runs-on: ubuntu-latest
+    outputs:
+      deployed: ${{ steps.deployed.outputs.deployed }}
     environment: ${{ startsWith(inputs.mode, 'dev') && 'dev' || 'production' }}
     concurrency:
-      # deploy-ifdb also takes a lock, so dev deploys from both groups queue
-      # on the server instead of replacing each other here.
+      # deploy-ifdb also takes a lock, so dev deploys in different groups
+      # queue on the server instead of replacing each other here.
       group: deploy-${{ startsWith(inputs.mode, 'prod') && 'production' || inputs.mode }}
       cancel-in-progress: false
     steps:
@@ -121,6 +128,15 @@ jobs:
             || gh api -X POST "repos/$GITHUB_REPOSITORY/git/refs" \
               -f ref=refs/tags/production -f sha="$SHA"
 
+      - name: Move the dev branch
+        if: needs.plan.outputs.move-dev == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SHA: ${{ inputs.sha || github.sha }}
+        run: |
+          gh api -X PATCH "repos/$GITHUB_REPOSITORY/git/refs/heads/dev" \
+            -f sha="$SHA" -F force=true
+
       - name: Check the site
         if: vars.SMOKE_URL != ''
         env:
@@ -131,3 +147,6 @@ jobs:
           if [ -n "$SMOKE_AUTH" ]; then auth=(--user "$SMOKE_AUTH"); fi
           curl -fsS --retry 3 --retry-delay 5 "${auth[@]}" -o home.html "$SMOKE_URL"
           grep -q 'Welcome to IFDB' home.html
+
+      - id: deployed
+        run: echo deployed=true >> "$GITHUB_OUTPUT"
