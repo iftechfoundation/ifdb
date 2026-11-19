@@ -1,6 +1,7 @@
 <?php
 
 include_once "session-start.php";
+include_once "current-user.php";
 include_once "pagetpl.php";
 include_once "dbconnect.php";
 include_once "util.php";
@@ -14,7 +15,6 @@ $errFlagged = false;
 $altMsg = false;
 $confirmNeeded = false;
 $actcode = get_req_data('a');
-$reqsalt = get_req_data('s');
 $action = get_req_data('c');
 $reqEmail = get_req_data("email");
 
@@ -22,7 +22,7 @@ $reqEmail = get_req_data("email");
 
 // verifier function
 function verify() {
-    global $actcode, $errFlagged, $altMsg, $reqsalt, $action,
+    global $actcode, $errFlagged, $altMsg, $action,
            $reqEmail, $email, $db,
            $confirmNeeded;
 
@@ -38,7 +38,7 @@ function verify() {
     // look up the activation code
     $qcode = mysql_real_escape_string($actcode, $db);
     $result = mysql_query(
-        "select id, acctstatus, pswsalt, email
+        "select id, acctstatus, email
         from users
         where activationcode = '$qcode'", $db);
     if (mysql_num_rows($result) == 0)
@@ -83,9 +83,8 @@ function verify() {
         // success - clear the activation code to flag the account as active
         $usernum = mysql_result($result, 0, "id");
         $stat = mysql_result($result, 0, "acctstatus");
-        $dbsalt = mysql_result($result, 0, "pswsalt");
         $email = mysql_result($result, 0, "email");
-        if (!$reqsalt && ($stat == 'A' || $stat == 'D')) {
+        if (!$action && ($stat == 'A' || $stat == 'D')) {
             if ($_SERVER['REQUEST_METHOD'] != 'POST') {
                 $confirmNeeded = true;
                 return;
@@ -105,7 +104,7 @@ function verify() {
                     <a href='/contact'>contact us</a> to let us know
                     about it.";
             }
-        } else if ($reqsalt || $stat == 'R') {
+        } else if ($action || $stat == 'R') {
 
             // presume failure
             $errFlagged = "This account is pending review, and is not "
@@ -114,12 +113,13 @@ function verify() {
                           . "email address for the account when the review "
                           . "has been completed.";
 
-            // if the salt is correct, this is an admin approval/deletion
-            if (is_string($reqsalt) && hash_equals($dbsalt, $reqsalt)) {
+            if ($action) {
 
                 // check the action code
                 if ($_SERVER['REQUEST_METHOD'] != 'POST') {
                     $errFlagged = "Admin actions must be submitted from the user admin page.";
+                } else if (!check_admin_privileges($db, current_user_id())) {
+                    $errFlagged = "Only administrators can approve, delete or ban accounts.";
                 } else if ($action == 'approve') {
 
                     // presume success

@@ -27,7 +27,7 @@ function sendActivationEmail($email, $actcode)
     return send_mail($email, "IFDB user activation", $msg, $hdrs);
 }
 
-function genNewUserAdminLinks($actcode, $salt)
+function genNewUserAdminLinks($actcode)
 {
     $actions = [
         ["approve", "<b>Approve</b> - Send activation email", ""],
@@ -39,12 +39,10 @@ function genNewUserAdminLinks($actcode, $salt)
     $forms = [];
     $buttons = [];
     $actcode = htmlspecialcharx($actcode);
-    $salt = htmlspecialcharx($salt);
     foreach ($actions as [$c, $label, $prompt]) {
         $forms[] = "<form id=\"useradmin-$c\" method=\"post\" "
             . "action=\"userconfirm\">"
             . "<input type=hidden name=a value=\"$actcode\">"
-            . "<input type=hidden name=s value=\"$salt\">"
             . "<input type=hidden name=c value=\"$c\">"
             . "</form>";
         $buttons[] = "<button type=submit form=\"useradmin-$c\">"
