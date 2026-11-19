@@ -56,11 +56,11 @@ To change a migration you've applied but haven't merged yet, edit the file, then
 
 # Updating PHP dependencies
 
-Our PHP dependencies are checked into `composer.json` and `composer.lock`. To update those files, you'll need to run `composer` inside the Docker container, using the `docker-php-composer.sh` script, like this:
+Our PHP dependencies are checked into `composer.json` and `composer.lock`. To update those files, you'll need to run `composer` inside a Docker container, using the `docker-php-composer.sh` script, like this:
 
 ```
-docker-php-composer.sh update
-docker-php-composer.sh require whatever/dependency
+./docker-php-composer.sh update
+./docker-php-composer.sh require whatever/dependency
 ```
 
 Then, stop your server and restart your dev environment with these commands:
