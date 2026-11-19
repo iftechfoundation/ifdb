@@ -427,7 +427,7 @@ function sendImageLdesc($page_title, $imageID, $image_type, $cover_art_descripti
 </head>
 <body>
 <div class=main>
-   <img src="showimage?id=<?php echo urlencode($imageID) ?>" alt="<?php echo htmlspecialcharx($large_cover_alt_text) ?>.">
+   <img src="showimage?id=<?php echo urlencode($imageID) ?>" alt="<?php echo htmlspecialcharx($large_cover_alt_text) ?>">
    <?php
       if ($copymsg || ($copystat && isset($copyrightStatList[$copystat]))
           || $username || $created) {
