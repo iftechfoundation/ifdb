@@ -400,7 +400,7 @@ if (!$errMsg) {
         $playOnlineButton = '';
     }
 }
-echo "44";
+
 // check for an explicit redirect from this TUID to another TUID
 function checkRedirect($id)
 {
