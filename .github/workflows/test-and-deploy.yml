@@ -1,6 +1,7 @@
 # Runs the unit tests and Hurl smoke tests on every PR and push to main. After
-# a push to main passes, deploys it to dev, and then to production if the
-# merged PR has the deploy-on-merge label. See deploy.yml.
+# a push to main passes, deploys it to dev unless dev has branches that aren't
+# on main, and then to production if the merged PR has the deploy-on-merge
+# label, replacing those branches if needed. See deploy.yml.
 
 name: Test and deploy
 
@@ -95,13 +96,12 @@ jobs:
     # Without this, deploy.yml gets no secrets, not even its environment's.
     secrets: inherit
     permissions:
-      contents: read
+      contents: write
+      pull-requests: read
 
   deploy-prod:
     needs: deploy-dev
-    if: >-
-      github.repository == 'iftechfoundation/ifdb' &&
-      github.event_name == 'push' && github.ref == 'refs/heads/main'
+    if: needs.deploy-dev.outputs.deployed == 'true'
     uses: ./.github/workflows/deploy.yml
     with:
       mode: prod-on-merge

@@ -1,6 +1,7 @@
 # Run by hand (Actions > Deploy main to production > Run workflow, or
-# `gh workflow run deploy-prod.yml`) to deploy main's tip to production once
-# it's deployed to dev. See deploy.yml and .github/scripts/plan-deploy.sh.
+# `gh workflow run deploy-prod.yml`) to deploy main's tip to dev, replacing
+# any branches there that aren't on main, and then to production. See
+# deploy.yml and .github/scripts/plan-deploy.sh.
 
 name: Deploy main to production
 
@@ -8,13 +9,23 @@ on:
   workflow_dispatch:
 
 jobs:
-  deploy:
+  deploy-dev:
     if: github.repository == 'iftechfoundation/ifdb' && github.ref == 'refs/heads/main'
     uses: ./.github/workflows/deploy.yml
     with:
-      mode: prod-manual
+      mode: dev-for-prod
     # Without this, deploy.yml gets no secrets, not even its environment's.
     secrets: inherit
     permissions:
       contents: write
-      checks: read
+      actions: read
+
+  deploy:
+    needs: deploy-dev
+    if: needs.deploy-dev.outputs.deployed == 'true'
+    uses: ./.github/workflows/deploy.yml
+    with:
+      mode: prod-manual
+    secrets: inherit
+    permissions:
+      contents: write

@@ -1,8 +1,9 @@
 # Run by hand (Actions > Deploy branches to dev > Run workflow) to merge
 # branches into main, force-push the result to the dev branch, and deploy it
 # to dev after approval. PRs, including ones from forks, can be given as #123.
-# With no branches, deploys main. The next push to main deploys plain main to
-# dev again. See deploy.yml.
+# With no branches, deploys main. Pushes to main don't deploy to dev while it
+# has branches that aren't on main, unless they're going to production. See
+# deploy.yml.
 
 name: Deploy branches to dev
 
@@ -64,8 +65,6 @@ jobs:
           git push --force origin HEAD:refs/heads/dev
           echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
 
-  # Not named deploy-dev: plan-deploy.sh looks for test-and-deploy.yml's
-  # deploy-dev / deploy check on main's commits.
   deploy:
     needs: merge
     uses: ./.github/workflows/deploy.yml
