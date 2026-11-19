@@ -59,6 +59,8 @@ if ($api_mode && !$curuser && isset($_SERVER['PHP_AUTH_USER'])) {
 $term = get_req_data('searchfor');
 $bTerm = get_req_data('searchbar');
 $extraLink = get_req_data('xlink');
+$override_game_filter = ($api_mode || get_req_data('nogamefilter') == 1) ? 1 : 0;
+$games_were_filtered = false;
 
 if ($term == "" && $bTerm != "")
     $term = $bTerm;
@@ -277,7 +279,8 @@ if ($pgAll) {
 // fetch through $showAllMaxRows or the end of the page, plus one row to
 // tell whether there are more; doSearch counts games when browsing them
 $fetchRows = $pageRows;
-if (!$api_mode && ($searchType != "game" || $term))
+if (!$api_mode && ($searchType != "game" || $term
+                   || (!$override_game_filter && getGameFilter($db))))
     $fetchRows = max($pageRows, $showAllMaxRows - $firstOnPage) + 1;
 $limit = "limit $firstOnPage, $fetchRows";
 $moreRows = false;
@@ -287,8 +290,8 @@ if ($term || $browse) {
 
     // run the search
     [$rows, $rowcnt, $sortList, $errMsg, $summaryDesc, $badges,
-        $specials, $specialsUsed, $orderBy] =
-        doSearch($db, $term, $searchType, $sortby, $limit, $browse);
+        $specials, $specialsUsed, $orderBy, $games_were_filtered] =
+        doSearch($db, $term, $searchType, $sortby, $limit, $browse, $override_game_filter);
     if (!isset($sortList[$sortby]))
         $sortby = "";
 
@@ -307,7 +310,8 @@ if ($term || $browse) {
     }
 
     // if there's exactly one row, jump directly to the result page
-    if ($rowcnt == 1 && !$browse && !$api_mode && isset($rows[0])) {
+    if ($rowcnt == 1 && !$browse && !$api_mode && !$games_were_filtered && isset($rows[0])) {
+
         $redir = false;
         switch ($searchType) {
         case "game":
@@ -1128,7 +1132,8 @@ else if ($term || $browse)
                                  . ($searchType == "poll" ? "&poll" : "")
                                  . ($searchType == "member" ? "&member" : "")
                                  . ($searchType == "comp" ? "&comp" : "")
-                                 . ($searchType == "tag" ? "&tag" : ""),
+                                 . ($searchType == "tag" ? "&tag" : "")
+                                 . ($override_game_filter ? "&nogamefilter=1" : ""),                                 
                                  $pg, $lastPage, $firstOnPage, $lastOnPage,
                                  $rowcnt, true,
                                  $rowcnt < $showAllMaxRows, $pgAll)
@@ -1139,6 +1144,17 @@ else if ($term || $browse)
     if ($rowcnt == 0) {
 
         echo "<i>No results were found.</i>";
+
+        if ($games_were_filtered) {
+            $page = "";
+            if ($browse) {
+                $page = "browse_games";
+            } else {
+                $page = "search_games";
+            }
+            $games_filtered_announcement = writeGamesFilteredAnnouncement($page, $sortby, $term);
+            echo '<p><i>' . $games_filtered_announcement . '</i></p>';
+        }
 
         if ($searchType == "game") {
             echo "<div class=inlinetip>"
@@ -1252,6 +1268,8 @@ else if ($term || $browse)
             $hids[$searchType] = '1';
         if ($urlXL)
             $hids['xlink'] = $extraLink;
+        if ($override_game_filter)
+            $hids['nogamefilter'] = '1';
         showSortingControls("searchOrder", "sortby", $sortList, $sortby,
                             $hids, "search");
 
@@ -1572,6 +1590,18 @@ else if ($term || $browse)
         // add the page controls again at the bottom, if applicable
         if ($pg != 1 || $rowcnt > $perPage)
             echo "<div class='search__pageCtl'>$pageCtl</div>";
+
+        // Announce that the game results are filtered, if applicable
+        if ($games_were_filtered) {
+            $page = "";
+            if ($browse) {
+                $page = "browse_games";
+            } else {
+                $page = "search_games";
+            }
+            $games_filtered_announcement = writeGamesFilteredAnnouncement($page, $sortby, $term);
+            echo '<p class="details">' . $games_filtered_announcement . '</p>';
+        }
     }
 
 

@@ -43,10 +43,19 @@ function getNewItems($db, $limit = 10, $itemTypes = NEWITEMS_ALLITEMS, $options 
             $sandbox = "(0,$mysandbox)";
     }
 
+    // Apply the user's saved game filter unless they opted out for this request.
+    // When no filter is active, keep the indexed home-page query paths from #1406.
+    $override_game_filter = get_req_data('nogamefilter') == 1 ? 1 : 0;
+    $game_filter_was_applied = false;
+    if ($override_game_filter != 1 && getGameFilter($db)) {
+        $game_filter_was_applied = true;
+        $options['apply_game_filter'] = true;
+    }
+
     $limit++;
     $offset = (int)($options['offset'] ?? 0);
 
-    $sources = newItemsSources($db, $options, $andNotMuted, $sandbox, $limit);
+    $sources = newItemsSources($db, $options, $andNotMuted, $sandbox, $limit, $itemTypes);
     $idQueries = [];
     foreach ($sources as $src) {
         if (!($itemTypes & $src['flag'])) {
@@ -55,7 +64,7 @@ function getNewItems($db, $limit = 10, $itemTypes = NEWITEMS_ALLITEMS, $options 
         $idQueries[] = $src['idQuery'];
     }
     if (!$idQueries) {
-        return [];
+        return [[], $game_filter_was_applied];
     }
 
     $result = mysql_query(
@@ -64,7 +73,7 @@ function getNewItems($db, $limit = 10, $itemTypes = NEWITEMS_ALLITEMS, $options 
          limit " . (int)$limit . " offset $offset", $db);
     if (!$result) {
         error_log(mysql_error($db));
-        return [];
+        return [[], $game_filter_was_applied];
     }
 
     $keys = [];
@@ -95,7 +104,22 @@ function getNewItems($db, $limit = 10, $itemTypes = NEWITEMS_ALLITEMS, $options 
     }
 
     usort($items, "sortNewItemsByDate");
-    return $items;
+    return [$items, $game_filter_was_applied];
+}
+
+// Use doSearch so a saved game filter is applied while still hitting indexed sorts.
+function newItemsFilteredGameIds($db, $sortby, $limit)
+{
+    $limit = max(1, (int)$limit);
+    $limit = max($limit * 3, $limit + 16);
+    [$rows] = doSearch($db, "", "game", $sortby, "limit $limit", 0, 0);
+    $ids = [];
+    foreach ($rows as $row) {
+        if (!empty($row['id'])) {
+            $ids[] = $row['id'];
+        }
+    }
+    return array_values(array_unique($ids));
 }
 
 function newItemsSqlIdList($db, $ids)
@@ -169,7 +193,8 @@ function newItemsHydrateNews($db, $ids, $sourceType, $sourceJoin, $sourceCols, $
     return $rows;
 }
 
-function newItemsSources($db, $options, $andNotMuted, $sandbox, $limit = 10)
+function newItemsSources($db, $options, $andNotMuted, $sandbox, $limit = 10,
+                          $itemTypes = NEWITEMS_ALLITEMS)
 {
     $days = $options['days'] ?? null;
     $ratingsView = getGameRatingsView($db);
@@ -178,15 +203,56 @@ function newItemsSources($db, $options, $andNotMuted, $sandbox, $limit = 10)
         'reviews_limit' => (int)$limit + (int)($options['offset'] ?? 0),
     ];
     $reviewsLimit = (int)$options['reviews_limit'];
+    $gamesLimit = (int)$options['games_limit'];
     $slack = max($reviewsLimit * 3, $reviewsLimit + 16);
+    $applyGameFilter = !empty($options['apply_game_filter']);
 
-    $sources = [
-        [
-            'flag' => NEWITEMS_REVIEWS,
-            'kind' => 'R',
-            'limitKey' => 'reviews_limit',
-            // we use a union query of reviews with and without embargo so we can use the index
-            'idQuery' => "select 'R' as kind, t.d as d, cast(reviews.id as char) as id
+    // When a filter is active, find enough matching games first via indexed doSearch
+    // sorts, then constrain game-related new-item queries to those IDs. Without a
+    // filter, keep the #1406 index-friendly query plans unchanged.
+    $filteredGameIdsSql = [
+        'G' => null,
+        'R' => null,
+        'NG' => null,
+    ];
+    if ($applyGameFilter) {
+        if ($itemTypes & NEWITEMS_GAMES) {
+            $newestGameIds = newItemsFilteredGameIds($db, 'lnew', $gamesLimit);
+            $filteredGameIdsSql['G'] = $newestGameIds
+                ? newItemsSqlIdList($db, $newestGameIds) : "''";
+        }
+        if ($itemTypes & NEWITEMS_REVIEWS) {
+            $reviewedGameIds = newItemsFilteredGameIds($db, 'recently_reviewed', $reviewsLimit);
+            $filteredGameIdsSql['R'] = $reviewedGameIds
+                ? newItemsSqlIdList($db, $reviewedGameIds) : "''";
+        }
+        if ($itemTypes & NEWITEMS_GAMENEWS) {
+            $newsGameIds = newItemsFilteredGameIds($db, 'recent_game_news', $gamesLimit);
+            $filteredGameIdsSql['NG'] = $newsGameIds
+                ? newItemsSqlIdList($db, $newsGameIds) : "''";
+        }
+    }
+
+    $reviewsIdQuery = ($applyGameFilter && ($itemTypes & NEWITEMS_REVIEWS))
+        ? ("select 'R' as kind,
+                    greatest(reviews.createdate,
+                             ifnull(reviews.embargodate, '0000-00-00')) as d,
+                    cast(reviews.id as char) as id
+             from reviews
+             join games on games.id = reviews.gameid
+             join users on users.id = reviews.userid
+             left outer join specialreviewers on specialreviewers.id = special
+             where reviews.gameid in (" . $filteredGameIdsSql['R'] . ")
+               and reviews.review is not null
+               and ifnull(now() >= reviews.embargodate, 1)
+               and ifnull(specialreviewers.code, '') <> 'external'
+               and users.sandbox in $sandbox
+               and " . newItemsDayWhere(
+                    "greatest(reviews.createdate, ifnull(reviews.embargodate, '0000-00-00'))",
+                    $days) . "
+               " . str_replace('#USERID#', 'reviews.userid', $andNotMuted))
+        // we use a union query of reviews with and without embargo so we can use the index
+        : ("select 'R' as kind, t.d as d, cast(reviews.id as char) as id
                         from (
                           (select id, createdate as d
                            from reviews
@@ -214,7 +280,38 @@ function newItemsSources($db, $options, $andNotMuted, $sandbox, $limit = 10)
                           and ifnull(specialreviewers.code, '') <> 'external'
                           and users.sandbox in $sandbox
                           and " . newItemsDayWhere("t.d", $days) . "
-                          " . str_replace('#USERID#', 'reviews.userid', $andNotMuted),
+                          " . str_replace('#USERID#', 'reviews.userid', $andNotMuted));
+
+    $gamesIdQuery = "select 'G' as kind, games.created as d, cast(games.id as char) as id
+                        from games
+                        join $ratingsView on games.id = gameid
+                        where " . newItemsDayWhere("games.created", $days);
+    if ($applyGameFilter && ($itemTypes & NEWITEMS_GAMES)) {
+        $gamesIdQuery .= " and games.id in (" . $filteredGameIdsSql['G'] . ")";
+    }
+
+    $gameNewsIdQuery = "select 'NG' as kind, n.created as d, cast(n.newsid as char) as id
+                        from news as n
+                        join news as norig on norig.newsid = ifnull(n.original, n.newsid)
+                        join users as uorig on uorig.id = norig.userid
+                        left outer join news as nsuper on nsuper.supersedes = n.newsid
+                        join games as g on g.id = n.sourceid
+                        where n.source = 'G'
+                          and n.status = 'A'
+                          and nsuper.newsid is null
+                          and uorig.sandbox in $sandbox
+                          and " . newItemsDayWhere("n.created", $days) . "
+                          " . str_replace('#USERID#', 'n.userid', $andNotMuted);
+    if ($applyGameFilter && ($itemTypes & NEWITEMS_GAMENEWS)) {
+        $gameNewsIdQuery .= " and g.id in (" . $filteredGameIdsSql['NG'] . ")";
+    }
+
+    $sources = [
+        [
+            'flag' => NEWITEMS_REVIEWS,
+            'kind' => 'R',
+            'limitKey' => 'reviews_limit',
+            'idQuery' => $reviewsIdQuery,
             'hydrate' => function($db, $ids) {
                 $idList = newItemsSqlIdList($db, $ids);
                 return newItemsKeyedRows($db,
@@ -267,10 +364,7 @@ function newItemsSources($db, $options, $andNotMuted, $sandbox, $limit = 10)
             'flag' => NEWITEMS_GAMES,
             'kind' => 'G',
             'limitKey' => 'games_limit',
-            'idQuery' => "select 'G' as kind, games.created as d, cast(games.id as char) as id
-                        from games
-                        join $ratingsView on games.id = gameid
-                        where " . newItemsDayWhere("games.created", $days),
+            'idQuery' => $gamesIdQuery,
             'hydrate' => function($db, $ids) {
                 $idList = newItemsSqlIdList($db, $ids);
                 return newItemsKeyedRows($db,
@@ -368,18 +462,7 @@ function newItemsSources($db, $options, $andNotMuted, $sandbox, $limit = 10)
             'flag' => NEWITEMS_GAMENEWS,
             'kind' => 'NG',
             'limitKey' => 'games_limit',
-            'idQuery' => "select 'NG' as kind, n.created as d, cast(n.newsid as char) as id
-                        from news as n
-                        join news as norig on norig.newsid = ifnull(n.original, n.newsid)
-                        join users as uorig on uorig.id = norig.userid
-                        left outer join news as nsuper on nsuper.supersedes = n.newsid
-                        join games as g on g.id = n.sourceid
-                        where n.source = 'G'
-                          and n.status = 'A'
-                          and nsuper.newsid is null
-                          and uorig.sandbox in $sandbox
-                          and " . newItemsDayWhere("n.created", $days) . "
-                          " . str_replace('#USERID#', 'n.userid', $andNotMuted),
+            'idQuery' => $gameNewsIdQuery,
             'hydrate' => function($db, $ids, $andNotMuted, $sandbox) {
                 return newItemsHydrateNews(
                     $db, $ids, "G",
@@ -450,8 +533,8 @@ function showNewItems($db, $first, $last, $items, $options = [])
 {
     $itemTypes = $options['itemTypes'] ?? NEWITEMS_ALLITEMS;
     // if the caller didn't provide the new item lists, query them
-    if (!$items)
-        $items = getNewItems($db, $last, $itemTypes, $options);
+    if ($items === null)
+        [$items] = getNewItems($db, $last, $itemTypes, $options);
 
     // show them
     showNewItemList($db, $first, $last, $items, $options);
@@ -820,7 +903,7 @@ function showNewItemList($db, $first, $last, $items, $options)
 function showNewItemsRSS($db, $showcnt)
 {
     // query the new items
-    $items = getNewItems($db, $showcnt - 1);
+    [$items] = getNewItems($db, $showcnt - 1);
     $totcnt = count($items);
 
     $lastBuildDate = false;

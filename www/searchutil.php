@@ -43,7 +43,38 @@ function convertTimeStringToMinutes($h_m_string) {
 }
 
 
-function doSearch($db, $term, $searchType, $sortby, $limit, $browse)
+// Construct a message telling the user that the game results were filtered
+function writeGamesFilteredAnnouncement($page, $sort_order, $search_term) {
+    $games_filtered_announcement = 'Your account is set up to use a game filter by default, and that filter was applied on this page. You can ';
+    if ($page == "search_games") {
+        $url = "search?" . http_build_query(['sortby' => $sort_order, 'searchfor' => $search_term, 'nogamefilter' => 1]);
+        $games_filtered_announcement .= '<a href="' . htmlspecialcharx($url) . '">search again without the filter</a>.';
+    } else if ($page == "browse_games") {
+        $url = "search?browse&" . http_build_query(['sortby' => $sort_order, 'nogamefilter' => 1]);
+        $games_filtered_announcement .= 'also <a href="' . htmlspecialcharx($url) . '">browse without the filter</a>.';
+    } else if ($page == "all_new_reviews") {
+        $games_filtered_announcement .= 'also <a href="allnew?reviews&nogamefilter=1">browse without the filter</a>.';
+    } else if ($page == "all_new") {
+        $games_filtered_announcement .= 'also <a href="allnew?nogamefilter=1">browse without the filter</a>.';
+    }
+    return $games_filtered_announcement;
+}
+
+
+function getGameFilter($db)
+{
+    $curuser = current_user_id();
+    if (!$curuser)
+        return '';
+    $result = mysqli_execute_query($db, "select game_filter from users where id = ?", [$curuser]);
+    if (!$result)
+        return '';
+    [$gameFilter] = mysql_fetch_row($result);
+    return $gameFilter ?? '';
+}
+
+
+function doSearch($db, $term, $searchType, $sortby, $limit, $browse, $override_game_filter = 0)
 {
     // Sometimes people search with old Latin-1 URLs, e.g. ö as %F6, breaking UTF-8 regexes.
     if ($term !== '' && !mb_check_encoding($term, 'UTF-8')) {
@@ -77,6 +108,9 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse)
     // assume no badge info
     $badges = false;
 
+    // So far, we haven't applied a custom game filter
+    $games_were_filtered = false;
+    
     // set up the parameters for the type of search we're performing
     if ($searchType == "list")
     {
@@ -281,6 +315,7 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse)
                        stdDevRating as ratingdev,
                        numRatingsTotal,
                        numMemberReviews,
+                       lastReviewDate,
                        starsort,
                        games.sort_title as sort_title,
                        games.sort_author as sort_author,
@@ -295,7 +330,18 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse)
         $matchCols = "title, author, `desc`, tags";
         $likeCol = "title";
         $summaryDesc = "Games";
-    }
+    
+
+        // Handle custom game filters
+        if ($override_game_filter != 1) {
+            $gameFilter = getGameFilter($db);
+            if ($gameFilter) {
+                // We've found a custom game filter, so add it to the end of the search term
+                $games_were_filtered = true;
+                $term .= " $gameFilter";
+            }
+        }
+    } 
 
     // parse the search
     for ($ofs = 0, $len = strlen($term), $words = [],
@@ -972,8 +1018,17 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse)
         $defSortBy = 'rel';
     }
 
+    // Internal-only game sorts used by home-page / new-items filtering.
+    // Keep these out of $sortList so they are not shown in the search UI.
+    $internalGameSorts = [
+        'recently_reviewed' => 'lastReviewDate desc,',
+        'recent_game_news' => 'news_create_date desc,',
+    ];
+
     // figure the ordering
-    $orderBy = ((isset($sortList[$sortby])) ? $sortList[$sortby][0] :
+    $orderBy = ($searchType == "game" && isset($internalGameSorts[$sortby]))
+                ? $internalGameSorts[$sortby]
+                : ((isset($sortList[$sortby])) ? $sortList[$sortby][0] :
                 ($defSortBy ? $sortList[$defSortBy][0] : ""));
 
     // Add the relevance to the ORDER BY.  Put exact matches to the LIKE
@@ -1005,6 +1060,18 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse)
             $tableList .= " left outer join gametimes_mv on games.id = gametimes_mv.gameid";
         }
     }
+    
+    // If we're sorting by recent game news, select the news item's create date
+    // and join the recent game news
+    if ($searchType == "game" && $sortby == "recent_game_news") {
+        $selectList .= ", news_create_date";
+        $tableList .= " join (select game_id, max(news_id) as news_id,
+                                     max(news_create_date) as news_create_date
+                              from recentgamenews_mv group by game_id) as rgn
+                        on rgn.game_id = games.id";
+    }
+
+
     
 
     // Build tags join
@@ -1133,7 +1200,7 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse)
 
     // return the results
     return [$rows, $rowcnt, $sortList, $errMsg, $summaryDesc,
-        $badges, $specials, $specialsUsed, $orderBy];
+        $badges, $specials, $specialsUsed, $orderBy, $games_were_filtered];
 }
 
 ?>
