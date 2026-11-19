@@ -142,14 +142,14 @@ function sendCoverArt()
 
     // look up the game
     $result = mysqli_execute_query($db,
-        "select coverart, title, pagevsn from games where id = ?", [$id]);
+        "select coverart, cover_art_description, title, pagevsn from games where id = ?", [$id]);
     if (mysql_num_rows($result) == 0) {
         checkRedirect($id);
         exit("No game record found for ID");
     }
 
     // retrieve the image
-    [$imgname, $title, $pagevsn] = mysql_fetch_row($result);
+    [$imgname, $cover_art_description, $title, $pagevsn] = mysql_fetch_row($result);
 
     if (isset($_REQUEST['version'])) {
         header("Cache-Control: public, max-age=31536000, immutable");
@@ -180,6 +180,9 @@ function sendCoverArt()
             // if this entry defines artwork, use the override
             if (isset($deltas['coverart']))
                 $imgname = $deltas['coverart'];
+
+            if (isset($deltas['cover_art_description']))
+                $imgname = $deltas['cover_art_description'];
 
             if (isset($deltas['title']))
                 $title = $deltas['title'];
