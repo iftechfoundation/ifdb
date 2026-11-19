@@ -182,7 +182,7 @@ function sendCoverArt()
                 $imgname = $deltas['coverart'];
 
             if (isset($deltas['cover_art_description']))
-                $imgname = $deltas['cover_art_description'];
+                $cover_art_description = $deltas['cover_art_description'];
 
             if (isset($deltas['title']))
                 $title = $deltas['title'];
