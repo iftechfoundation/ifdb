@@ -74,6 +74,8 @@ $targVsn = (isset($_REQUEST['version'])
             && (int)$pagevsn != (int)($_REQUEST['version']))
            ? (int)($_REQUEST['version']) : false;
 
+$spamVsn = checkSpamCoverArtVersion($db, $id, $targVsn);
+
 // if we're retrieving an old version, go back and find it
 if ($targVsn) {
     [$foundvsn, $histRec] = applyGameHistoryDeltas(
@@ -94,7 +96,7 @@ if ($targVsn) {
 $thumbnail = (isset($_REQUEST['thumbnail'])
               ? $_REQUEST['thumbnail'] : null);
 
-if (isset($_REQUEST['version'])) {
+if (isset($_REQUEST['version']) && !$spamVsn) {
     header("Cache-Control: public, max-age=31536000, immutable");
 }
 

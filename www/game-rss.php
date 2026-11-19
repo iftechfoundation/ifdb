@@ -105,6 +105,12 @@ function getGameRssItems($db, $id, $feedType, $gameTitle, $links, $extFeed)
              where h.id = '$qid'
              order by h.pagevsn desc", $db);
 
+        $spamResult = mysqli_execute_query($db,
+            "select pagevsn from games_history where id = ? and spam = 1",
+            [$id]);
+        $spamVsns = array_flip(array_column(
+            mysqli_fetch_all($spamResult, MYSQLI_NUM), 0));
+
         for ($i = 0 ; $i < mysql_num_rows($result) ; $i++) {
 
             // fetch the row
@@ -200,8 +206,9 @@ function getGameRssItems($db, $id, $feedType, $gameTitle, $links, $extFeed)
                         . "</item>";
             }
 
-            // add it to the master list
-            $items[] = [$ndate, $item];
+            // add it to the master list, unless it shows a spam version
+            if (!isset($spamVsns[$nvsn]))
+                $items[] = [$ndate, $item];
         }
     }
 
