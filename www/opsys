@@ -30,14 +30,14 @@ $geticon = mysql_real_escape_string(get_req_data('geticon'), $db);
 
 
 // assume no privileges
-$userprivs = $adminPriv = $allOsPriv = $thisOsPriv = false;
+$userprivs = $allOsPriv = $thisOsPriv = false;
+$adminPriv = check_admin_privileges($db, $userid);
 
-// check the user for ADMIN and EDIT OPERATING SYSTEMS privileges
+// check the user for EDIT OPERATING SYSTEMS privileges
 if ($userid) {
     $result = mysql_query(
         "select `privileges` from users where id='$userid'", $db);
     $userprivs = mysql_result($result, 0, "privileges");
-    $adminPriv = (strpos($userprivs, "A") !== false);
     $allOsPriv = (strpos($userprivs, "O") !== false);
 }
 

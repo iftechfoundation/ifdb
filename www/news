@@ -143,15 +143,7 @@ if ($item) {
     $pageCtlBreak = "<br>";
 }
 
-// Check admin privileges
-if ($item && $userid) {
-    $user_result = mysqli_execute_query($db,
-        "select `privileges` from users where id=?", [$userid]);
-    [$userprivs] = mysql_fetch_row($user_result);
-    $adminPriv = (strpos($userprivs, "A") !== false);
-} else {
-    $adminPriv = false;
-}
+$adminPriv = $item && check_admin_privileges($db, $userid);
 
 // show the items
 $lastDate = '';

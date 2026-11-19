@@ -2681,12 +2681,11 @@ function get_root_url() {
 // Checks if the userid is an admin
 //
 function check_admin_privileges($db, $userid) {
-
-    $result = mysql_query("select privileges from users where id='$userid' and privileges='A'", $db);
-    if (mysql_num_rows($result)) return true;
-
-    return false;
-
+    if (!$userid) return false;
+    $result = mysqli_execute_query($db,
+        "select privileges from users where id = ?", [$userid]);
+    $row = mysql_fetch_row($result);
+    return $row && strpos($row[0], "A") !== false;
 }
 
 function coverArtThumbnail($id, $size, $version, $params = "") {

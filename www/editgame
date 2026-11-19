@@ -154,12 +154,7 @@ if (isset($_REQUEST['search']))
 
 // ------------------------------------------------------------------------
 
-// check for special privileges
-$result = mysql_query(
-    "select `privileges` from users where id='$userid'", $db);
-$adminPriv =
-    $result
-    && strpos(mysql_result($result, 0, "privileges"), "A") !== false;
+$adminPriv = check_admin_privileges($db, $userid);
 
 // if there's an image upload, process that
 include "imageuploadhandler.php";

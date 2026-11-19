@@ -17,12 +17,9 @@ $errMsg = false;
 include_once "dbconnect.php";
 $db = dbConnect();
 
-// check for special privileges
+$adminPriv = check_admin_privileges($db, $userid);
 $result = mysql_query(
-    "select `name`, `privileges` from users where id='$userid'", $db);
-$adminPriv =
-    $result
-    && strpos(mysql_result($result, 0, "privileges"), "A") !== false;
+    "select `name` from users where id='$userid'", $db);
 $userName = htmlspecialcharx(mysql_result($result, 0, "name"));
 
 // Check for cascade mode.

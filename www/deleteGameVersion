@@ -24,14 +24,7 @@ $gameid = $_REQUEST['game'] ?? '';
 if (!is_string($gameid))
     $gameid = '';
 
-// check the user for ADMIN privileges
-$userprivs = $adminPriv = false;
-if ($curuser) {
-    $result = mysqli_execute_query($db,
-        "select `privileges` from users where id=?", [$curuser]);
-    $userprivs = mysql_result($result, 0, "privileges");
-    $adminPriv = (strpos($userprivs, "A") !== false);
-}
+$adminPriv = check_admin_privileges($db, $curuser);
 
 function showResult($title, $msg)
 {

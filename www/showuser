@@ -23,13 +23,7 @@ $curuser = current_user_id();
 // check for an unlock override - this allows the administrator to
 // view a new account's page even when it's hidden for review
 $unlock = false;
-$admin = false;
-if ($curuser) {
-    $result = mysql_query(
-        "select `privileges` from users where id='$curuser'", $db);
-    $userprivs = mysql_result($result, 0, "privileges");
-    $admin = (strpos($userprivs, "A") !== false);
-}
+$admin = check_admin_privileges($db, $curuser);
 if (get_req_data("unlock")) {
     $unlock = $admin;
 }

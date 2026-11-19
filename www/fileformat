@@ -35,14 +35,14 @@ $geticon = mysql_real_escape_string(get_req_data('geticon'), $db);
 
 // assume no privileges
 $thisFmtPriv = $allFmtPriv = false;
-$userprivs = $adminPriv = false;
+$userprivs = false;
+$adminPriv = check_admin_privileges($db, $userid);
 
-// check the user for ADMIN and EDIT FORMATS privileges
+// check the user for EDIT FORMATS privileges
 if ($userid) {
     $result = mysql_query(
         "select `privileges` from users where id='$userid'", $db);
     $userprivs = mysql_result($result, 0, "privileges");
-    $adminPriv = (strpos($userprivs, "A") !== false);
     $allFmtPriv = (strpos($userprivs, "F") !== false);
 }
 
