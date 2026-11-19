@@ -238,6 +238,51 @@ function quoteSqlLike($s)
     return preg_replace("/[%_]/", "\\$0", $s);
 }
 
+function fulltextWords($s)
+{
+    return preg_split("/[^\\p{L}\\p{M}\\p{N}_']+/u", $s, -1, PREG_SPLIT_NO_EMPTY) ?: [];
+}
+
+// make one search term safe for InnoDB's boolean-mode MATCH parser
+function fulltextTerm($term)
+{
+    preg_match('/^([-+~<>]?)("?)(.*?)"?$/s', $term, $m);
+    [, $op, $quote, $text] = $m;
+    $words = fulltextWords($text);
+    if (!$words)
+        return "";
+    if ($quote)
+        return "$op\"" . implode(" ", $words) . "\"";
+    $star = preg_match("/\\*[^\\p{L}\\p{M}\\p{N}_']*$/u", $text) ? "*" : "";
+    return $op . implode(" ", $words) . $star;
+}
+
+function fulltextTerms($s)
+{
+    preg_match_all('/[-+~<>]?\(|\)|[-+~<>]?"[^"]*"?|[^\s"()]+/', $s, $m);
+    $terms = [];
+    $depth = 0;
+    $balanced = true;
+    foreach ($m[0] as $t) {
+        if (substr($t, -1) == "(")
+            $depth++;
+        else if ($t == ")")
+            $balanced = $balanced && --$depth >= 0;
+        else
+            $t = fulltextTerm($t);
+        if ($t !== "")
+            $terms[] = $t;
+    }
+    if (!$balanced || $depth)
+        $terms = array_filter($terms, fn($t) => $t != ")" && substr($t, -1) != "(");
+    return array_values($terms);
+}
+
+function fulltextAllWords($s)
+{
+    return implode(" ", array_map(fn($w) => "+$w", fulltextWords($s)));
+}
+
 // quote a SQL RLIKE term - escape regular-expression characters
 function quoteSqlRLike($s)
 {

@@ -123,9 +123,7 @@ if ($editMode) {
             . "\":<br><div class=indented>";
 
         // build the title as a list of mandatory words for boolean search
-        $titleMatch = mysql_real_escape_string(
-            implode(" ", array_map("prependPlus", explode(" ", $searchFor))),
-            $db);
+        $titleMatch = mysql_real_escape_string(fulltextAllWords($searchFor), $db);
 
         // build a LIKE title as well
         $titleLike = mysql_real_escape_string(quoteSqlLike($searchFor), $db);
@@ -613,10 +611,5 @@ if ($editMode) {
 }
 
 pageFooter();
-
-function prependPlus($str)
-{
-    return "+" . $str;
-}
 
 ?>
