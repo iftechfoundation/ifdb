@@ -2240,6 +2240,15 @@ function md5_rand($key)
 
 // ------------------------------------------------------------------------
 //
+// Generate a random hex token
+//
+function random_token($bytes = 20)
+{
+    return bin2hex(random_bytes($bytes));
+}
+
+// ------------------------------------------------------------------------
+//
 // Calculate a SHA-256 hash value
 //
 function sha256($val)
