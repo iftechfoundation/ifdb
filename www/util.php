@@ -410,8 +410,8 @@ function sendImageLdesc($page_title, $imageID, $image_type, $cover_art_descripti
     }
 
     // If this is cover art, generate the alt text for the full-sized cover art
+    $large_cover_alt_text = "";
     if ($image_type == "cover") {
-        $large_cover_alt_text = "";
         if ($cover_art_description) {
             $large_cover_alt_text = $cover_art_description;
         } else {
