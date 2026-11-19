@@ -58,8 +58,6 @@ jobs:
           tags: ifdb-web:latest
           cache-from: type=gha,scope=ifdb-web
           cache-to: type=gha,mode=max,scope=ifdb-web
-          build-args: |
-            PHP_VERSION=8
 
       - name: Start Docker stack
         run: docker compose up -d db web
