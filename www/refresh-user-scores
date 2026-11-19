@@ -2,12 +2,29 @@
 include_once "dbconnect.php";
 include_once "util.php";
 
-// a cron job will call this to refresh the userScores_mv materialized view
+// a cron job will call this to refresh the userScores_mv and
+// databaseStats_mv materialized views
 
 $db = dbConnect();
 
-$result = mysql_query("lock tables userScores_mv write, userScores read", $db);
-if ($result) $result = mysql_query("truncate table userScores_mv", $db);
-if ($result) $result = mysql_query("insert into userScores_mv select *, now() from userScores", $db);
-mysql_query("unlock tables", $db);
+$result = mysqli_execute_query($db, "lock tables userScores_mv write, userScores read");
+if ($result) $result = mysqli_execute_query($db, "truncate table userScores_mv");
+if ($result) $result = mysqli_execute_query($db, "insert into userScores_mv select *, now() from userScores");
+mysqli_execute_query($db, "unlock tables");
+
+$result = mysqli_execute_query($db,
+    "update databaseStats_mv,
+        (select count(review) as reviewCount,
+            count(if(review is null, rating, null)) as ratingCount
+        from reviews
+        where special is null
+        and ifnull(now() >= embargodate, 1)) as r,
+        (select count(*) as memberCount
+        from users
+        where acctstatus = 'A' and ifnull(profilestatus, ' ') != 'R') as u
+    set databaseStats_mv.reviewCount = r.reviewCount,
+        databaseStats_mv.ratingCount = r.ratingCount,
+        databaseStats_mv.memberCount = u.memberCount,
+        databaseStats_mv.updated = now()");
+if (!$result) throw new Exception(mysqli_error($db));
 ?>
