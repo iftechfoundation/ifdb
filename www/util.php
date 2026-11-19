@@ -461,9 +461,9 @@ function sendImageLdesc($page_title, $imageID, $cover_art_description, $game_tit
       }
 
       if ($cover_art_description) {
-          echo "<br><style nonce='$nonce'>";
-          echo "<div class='image_description_box' style='border: 1px solid gray; padding: 0em 1em 0em 1em; height: auto;
-}'>";
+          global $nonce;
+          echo "<br><style nonce='$nonce'>.image_description_box { border: 1px solid gray; padding: 0 1em; }</style>";
+          echo "<div class='image_description_box'>";
           echo "<p><b>Image description:</b></p><p>".htmlspecialchars($cover_art_description)."</p>";
           echo "<p><em>Cover art descriptions are contributed by IFDB members.</em></p></div>";
          
