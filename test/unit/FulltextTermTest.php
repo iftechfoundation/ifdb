@@ -65,7 +65,7 @@ final class FulltextTermTest extends TestCase
             ["+\"multiple endings\"zork", ["+\"multiple endings\"", "zork"]],
             ["title:\"one or\"", ["title", "\"one or\""]],
             ["+zork +(dragon troll)", ["+zork", "+(", "dragon", "troll", ")"]],
-            ["(a (b c)) -()", ["(", "a", "(", "b", "c", ")", ")", "-(", ")"]],
+            ["(a (b c)) -()", ["(", "a", "(", "b", "c", ")", ")"]],
             ["(zork troll", ["zork", "troll"]],
             ["zork) (troll", ["zork", "troll"]],
             ["", []],
@@ -78,10 +78,40 @@ final class FulltextTermTest extends TestCase
         $this->assertSame($expected, fulltextTerms($input));
     }
 
+    public static function stopwordQueries(): array
+    {
+        return [
+            ["+lord +of +the +rings", ["+lord", "+rings"]],
+            ["The Hobbit", ["Hobbit"]],
+            ["+the-end", ["+end"]],
+            ["the*", ["the*"]],
+            ["\"lord of the rings\"", ["\"lord of the rings\""]],
+            ["+\"of the\" zork", ["zork"]],
+            ["+zork +(of the)", ["+zork"]],
+            ["+zork +((of the))", ["+zork"]],
+            ["-zork -(of the)", ["-zork"]],
+            ["+zork +the's", ["+zork", "the's"]],
+            ["+zork +'The", ["+zork"]],
+            ["+\"'the'\" zork", ["zork"]],
+            ["+THE +Zork", ["+Zork"]],
+            ["+à +la", ["+à", "+la"]],
+            ["-the", []],
+        ];
+    }
+
+    #[DataProvider('stopwordQueries')]
+    public function testFulltextTermsWithStopwords(string $input, array $expected): void
+    {
+        $this->assertSame($expected, fulltextTerms($input, ["a", "an", "and", "of", "the"]));
+    }
+
     public function testFulltextAllWords(): void
     {
         $this->assertSame("+Zork +Part +I", fulltextAllWords("Zork - Part I"));
         $this->assertSame("+Spider +Man's +C", fulltextAllWords("Spider-Man's C++"));
         $this->assertSame("", fulltextAllWords("@ --"));
+        $this->assertSame("+Lord +Rings", fulltextAllWords("The Lord of the Rings", ["of", "the"]));
+        $this->assertSame("+Alias +Magpie'", fulltextAllWords("Alias 'The Magpie'", ["the"]));
+        $this->assertSame("+Panique l'a", fulltextAllWords("Panique l'a", ["a"]));
     }
 }

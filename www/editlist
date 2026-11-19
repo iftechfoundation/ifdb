@@ -343,7 +343,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_REQUEST['preview'])) {
                 $matches[] = mysql_fetch_array($result, MYSQL_ASSOC);
 
             // build the title as a list of mandatory words for boolean search
-            $titleMatch = mysql_real_escape_string(fulltextAllWords($title), $db);
+            $titleMatch = mysql_real_escape_string(fulltextAllWords($title, fulltextStopwords($db)), $db);
             $title = mysql_real_escape_string(quoteSqlLike($title), $db);
 
             // do a full-text search against titles

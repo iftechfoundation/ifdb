@@ -35,7 +35,7 @@ if (isset($_REQUEST['id'])) {
 
     // generate the title in the form "+word1 +word2 ..."
     $title = get_req_data('title');
-    $qtitle = mysql_real_escape_string(fulltextAllWords($title), $db);
+    $qtitle = mysql_real_escape_string(fulltextAllWords($title, fulltextStopwords($db)), $db);
 
     // look up games matching the title
     $result = mysql_query("select id, title, author from games

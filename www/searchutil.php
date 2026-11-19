@@ -445,7 +445,7 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse, $override_g
         // because MySQL otherwise would fairly uselessly interpret the
         // query as "<empty set> minus <exclusion words>".  We want to
         // interpreter this as "<everything> minus <exclusions>" instead.
-        $ftWords = fulltextTerms(implode(" ", $words));
+        $ftWords = fulltextTerms(implode(" ", $words), fulltextStopwords($db));
         $notCount = 0;
         $matchMode = "";
         foreach ($ftWords as $w) {
@@ -462,7 +462,7 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse, $override_g
         $matchWords = mysql_real_escape_string(implode(" ", $ftWords), $db);
         $matchExpr = $ftWords
             ? "match ($matchCols) against ('$matchWords' in boolean mode)"
-            : "0";
+            : (count($specials) ? "1" : "0");
 
         // add the LIKE expression for exact title matching
         $likeWords =
