@@ -376,8 +376,8 @@ if (!$errMsg) {
         [$ifids, $title, $author, $authorExt,
             $pubYear, $pubFull, $license,
             $system, $desc, $rawDesc,
-            $hasart, $cover_art_description,
-            $genre, $seriesname, $seriesnum,
+            $hasart, $genre,
+            $seriesname, $seriesnum,
             $forgiveness, $bafsid, $version,
             $language, $languageNameOnly,
             $website, $links,
@@ -387,7 +387,7 @@ if (!$errMsg) {
             $moddatelatest,
             $historyView,
             $dlnotes, $extReviews, $extRevDisplayRank,
-            $ratingHisto, $xrefs, $inrefs, $flags] = $gameInfo;
+            $ratingHisto, $xrefs, $inrefs, $flags, $cover_art_description] = $gameInfo;
         $title = htmlspecialchars($title ?? '');
         $license = htmlspecialchars($license ?? '');
         $language = htmlspecialchars($language ?? '');
@@ -400,7 +400,7 @@ if (!$errMsg) {
         $playOnlineButton = '';
     }
 }
-
+echo "44";
 // check for an explicit redirect from this TUID to another TUID
 function checkRedirect($id)
 {
