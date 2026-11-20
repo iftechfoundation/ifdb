@@ -1,0 +1,42 @@
+<?php
+include_once "session-start.php";
+include_once "util.php";
+include_once "pagetpl.php";
+helpPageHeader("Cover Art Descriptions");
+?>
+
+<h1>Cover Art Descriptions</h1>
+
+<p>IFDB includes cover art descriptions as part of alt text in a few places. Alt text allows people 
+who are blind or who have low vision to read about an image using a screen reader. Alt text is also 
+displayed instead of a picture when images are turned off in the browser.</p>
+<p>Apart from alt text, IFDB also displays the descriptions directly on pages that show full-sized 
+cover art.</p>
+
+<h2>Guidelines for Cover Art Descriptions</h2>
+
+<ul class=doublespace>
+
+    <li>Descriptions should be concise, usually no longer than a sentence or two.</li>
+
+    <li>Avoid beginning with "image of," "picture of," or the like. Screen readers already 
+    announce it as an image. It's okay to use more specific words that name the medium, for 
+    instance, "illustration," "cartoon," or "painting."</li>
+
+    <li>Avoid beginning with "cover art." IFDB will automatically include "Cover art for 
+    [Game Title]" as part of the alt text or on the page.</li>
+
+    <li>Avoid repeating the game's title, author, or other text that is readily available on the 
+    game page, unless there's a reason to say it again. For example, if the image shows a subtitle 
+    that is not found elsewhere, you can include that. After describing the picture, you can add 
+    something like "Text reads: Lost Pig and Place Underground, by Grunk as told to Admiral Jota."</li>
+
+    <li>If the cover art just shows text on a background, you could write something like "Game title 
+    on a black background."</li>
+
+    <li>Use ending punctuation so that screen readers will pause before moving on to other text.</li>
+</ul>
+
+<?php
+helpPageFooter();
+?>
