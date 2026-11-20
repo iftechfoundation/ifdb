@@ -328,6 +328,7 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse, $override_g
         $tableList = "games
                       join ".getGameRatingsView($db)." on games.id = gameid";
         $matchCols = "games.title, games.author, games.`desc`, games.tags";
+        $titleMatchCol = "games.title";
         $likeCol = "games.title";
         $summaryDesc = "Games";
     
@@ -434,6 +435,7 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse, $override_g
     $where = "";
     $having = "";
     $relevance = "";
+    $titleOrder = "";
     $tagsToMatch = [];
     $tagsToNegate = [];
 
@@ -487,6 +489,8 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse, $override_g
 
         // it's also the RELEVANCE column in the query
         $relevance = ", $matchExpr as relevance";
+        if (isset($titleMatchCol) && $ftWords)
+            $titleOrder = "match ($titleMatchCol) against ('$matchWords' in boolean mode) desc,";
     }
 
     // add the specials
@@ -1042,6 +1046,7 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse, $override_g
         $orderBy .= "if($likeCol = '$likeWords',0,1),"
                     . "if($likeCol like '$likeWords%',0,1),"
                     . "if($likeExpr,0,1),"
+                    . $titleOrder
                     . "relevance desc,";
 
     // If we're selecting from the user table, and we need the
