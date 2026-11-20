@@ -327,8 +327,8 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse, $override_g
         $baseOrderBy = "";
         $tableList = "games
                       join ".getGameRatingsView($db)." on games.id = gameid";
-        $matchCols = "title, author, `desc`, tags";
-        $likeCol = "title";
+        $matchCols = "games.title, games.author, games.`desc`, games.tags";
+        $likeCol = "games.title";
         $summaryDesc = "Games";
     
 
