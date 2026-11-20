@@ -140,6 +140,13 @@ function handlePost()
         return false;
     }
 
+    $wait = throttle_account_email($db, $usernum);
+    if ($wait) {
+        $errFlagged = "Too many emails have been requested recently.
+            Please check your inbox and spam folder, or wait $wait
+            minute" . ($wait == 1 ? "" : "s") . " and try again.";
+        return true;
+    }
 
     // select a new activation code for the new request
     $actcode = random_token();

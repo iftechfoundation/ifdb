@@ -65,8 +65,8 @@ function log_in_for_api_request($db, $username, $password)
 }
 
 // Returns [user ID, account status, password hash] if the password
-// matches, or [null, 'too-long', null] or [null, 'no-match', null] if it
-// doesn't.
+// matches, or [null, 'too-long', null], [null, 'throttled', null] or
+// [null, 'no-match', null] if it doesn't.
 function check_credentials($db, $username, $password)
 {
     if (strlen($password) > MAX_PASSWORD_LENGTH)
@@ -79,16 +79,19 @@ function check_credentials($db, $username, $password)
     $result = mysql_query(
         "select id, password, pswsalt, acctstatus
         from users where email = '$quid'", $db);
-    if (mysql_num_rows($result) == 0)
-        return [null, 'no-match', null];
+    if (mysql_num_rows($result) == 0) {
+        $reason = throttled_password_check($db, null, $password, null, null);
+        return [null, $reason, null];
+    }
 
     // verify that it matches what's stored in the database
-    $pswhash = mysql_result($result, 0, "password");
-    if (!password_matches($password, $pswhash,
-                          mysql_result($result, 0, "pswsalt")))
-        return [null, 'no-match', null];
-
     $usernum = mysql_result($result, 0, "id");
+    $pswhash = mysql_result($result, 0, "password");
+    $reason = throttled_password_check($db, $usernum, $password, $pswhash,
+                                       mysql_result($result, 0, "pswsalt"));
+    if ($reason)
+        return [null, $reason, null];
+
     if (password_needs_upgrade($pswhash) && password_can_be_hashed($password)) {
         $newhash = hash_password($password);
         mysqli_execute_query($db,
@@ -110,6 +113,9 @@ function login_error($reason)
     case 'too-long':
         return ["incorrect username or password",
             "The password is too long. If this is your password, please reset it by using the \"Lost Password\" page."];
+
+    case 'throttled':
+        return ["too many failed login attempts", login_throttled_message()];
 
     case 'no-match':
         return ["incorrect username or password",
@@ -170,6 +176,31 @@ function password_matches($password, $hash, $salt)
     if (str_starts_with($hash, '$'))
         return password_verify($password, $hash);
     return hash_equals($hash, sha1($salt . $password));
+}
+
+// Returns null if the password matches, or 'throttled' or 'no-match'
+function throttled_password_check($db, $userid, $password, $hash, $salt)
+{
+    $locks = ['throttle_ip_' . $_SERVER['REMOTE_ADDR']];
+    if ($userid)
+        $locks[] = "throttle_user_$userid";
+    $locked = true;
+    foreach ($locks as $lock)
+        $locked = $locked && throttle_lock($db, $lock);
+
+    if (!$locked || login_throttled($db, $userid)) {
+        $reason = 'throttled';
+    } else if ($userid && password_matches($password, $hash, $salt)) {
+        throttle_clear($db, 'login', $userid);
+        $reason = null;
+    } else {
+        throttle_record($db, 'login', $userid);
+        $reason = 'no-match';
+    }
+
+    foreach ($locks as $lock)
+        mysqli_execute_query($db, "select release_lock(?)", [$lock]);
+    return $reason;
 }
 
 function password_needs_upgrade($hash)

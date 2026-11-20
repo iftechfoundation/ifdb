@@ -51,7 +51,13 @@ function verify() {
     // check for updates
     if (strlen($oldpsw) != 0 || strlen($psw) != 0 || strlen($psw2) != 0) {
         // validate the OLD password against what's stored in the database
-        if (!password_matches($oldpsw, $dbpsw, $dbsalt)) {
+        $reason = throttled_password_check($db, $usernum, $oldpsw,
+                                           $dbpsw, $dbsalt);
+        if ($reason == 'throttled') {
+            $errFlagged = login_throttled_message();
+            return true;
+        }
+        if ($reason) {
             $errFlagged = "Incorrect password - the <b>current</b> password
                 entered doesn't match the password stored in your account.";
             return true;
