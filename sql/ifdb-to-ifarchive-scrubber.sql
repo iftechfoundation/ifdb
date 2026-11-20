@@ -139,6 +139,7 @@ alter table users
   drop column password,
   drop column pswsalt,
   drop column activationcode,
+  drop column if exists resetexpires,
   drop column acctstatus,
   drop column privileges,
   drop column defaultos,

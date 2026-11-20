@@ -97,7 +97,8 @@ function verify() {
             // update the status and activation code
             if (mysql_query(
                 "update users
-                 set acctstatus = 'A', activationcode = '$newcode'
+                 set acctstatus = 'A', activationcode = '$newcode',
+                   resetexpires = null
                  where id = '$usernum'", $db) == false) {
                 $errFlagged = "An error occurred updating the user database.
                     Please try again. If the problem persists, please
@@ -132,7 +133,8 @@ function verify() {
                     // update the code and set status to 'pending activation'
                     if (mysql_query(
                         "update users
-                         set acctstatus = 'D', activationcode = '$newcode'
+                         set acctstatus = 'D', activationcode = '$newcode',
+                             resetexpires = null
                          where id = '$usernum'", $db) == false) {
                         $errFlagged = "Error updating database. ";
                     }

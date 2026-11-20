@@ -157,8 +157,9 @@ function handlePost()
     $actcode = random_token();
 
     // udpate the database
-    mysql_query("update users set activationcode = '$actcode'
-        where id = '$usernum'", $db);
+    mysqli_execute_query($db,
+        "update users set activationcode = ?, resetexpires = null
+         where id = ?", [$actcode, $usernum]);
 
     // assemble the message body
     if (!sendActivationEmail($email, $actcode)) {
