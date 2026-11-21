@@ -145,8 +145,10 @@ function handlePost()
     $actcode = random_token();
 
     // udpate the database
-    mysql_query("update users set activationcode = '$actcode'
-        where id = '$usernum'", $db);
+    mysqli_execute_query($db,
+        "update users set activationcode = ?,
+           resetexpires = date_add(now(), interval 1 day)
+         where id = ?", [$actcode, $usernum]);
 
     // assemble the message body
     $href = get_root_url() . "resetpsw?a=$actcode";
@@ -157,6 +159,7 @@ function handlePost()
     $msg .= "you follow the instructions below.\n\n";
     $msg .= "<p>To select a new password, click on the link below:\n\n";
     $msg .= "<p><a href=\"$href\">$href</a>\n\n";
+    $msg .= "<p>This link expires in 24 hours.\n\n";
     $msg .= "<p>If your email program doesn't let you open the link by\n";
     $msg .= "clicking on it, copy and paste the entire link into your Web\n";
     $msg .= "browser's Address bar.\n\n";

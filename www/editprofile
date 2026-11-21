@@ -590,11 +590,14 @@ complete the re-activation process.</b>
         }
 
         // update the database
+        $setCode = "";
+        if ($emailChanged)
+            $setCode = ",activationcode='$actcode',resetexpires=null";
         if (mysql_query("update users
                 set email = '$qemail', name = '$qdname', location = '$qloc',
                    publicemail = '$qpubemail', profile = '$qprofile',
                    profilestatus = '$newprostat',
-                   acctstatus = '$newstat', activationcode = '$actcode',
+                   acctstatus = '$newstat',
                    defaultos = $qdefos, defaultosvsn = $qdefosvsn,
                    noexedownloads = '$qNoExes', publiclists = '$qPublicLists',
                    gender = '$qGender', emailflags = '$emailflags',
@@ -602,6 +605,7 @@ complete the re-activation process.</b>
                    accessibility = '$qAccessibility',
                    game_filter = '$qgamefilter'
                    $setPic
+                   $setCode
                 where id = '$usernum'", $db) == false) {
             $errFlagged = "An error occurred updating the database. You might
                 want to try again - if the problem persists,
