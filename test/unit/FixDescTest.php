@@ -110,4 +110,18 @@ final class FixDescTest extends TestCase
         $this->assertStringContainsString('<div class="hiddenSpoiler"', fixDesc("<p>a <spoiler>b <br x/> c</spoiler></p>", FixDescSpoiler));
         $this->assertStringContainsString('hidden>b  c</span>', fixDesc("<p>a <spoiler>b </i> c</spoiler></p>", FixDescSpoiler));
     }
+
+    public function testMarkdownInsideSpoiler(): void
+    {
+        $this->assertSame("<p><spoiler><em>a</em></spoiler></p>\n", markdownMultilineText("<spoiler>*a*</spoiler>"));
+        $this->assertSame("<p><code>&lt;spoiler&gt;a&lt;/spoiler&gt;</code></p>\n", markdownMultilineText("`<spoiler>a</spoiler>`"));
+        $this->assertSame("<ul>\n<li>\n<p>a</p>\n<spoiler>\n<p><em>b</em></p>\n</spoiler>\n</li>\n</ul>\n", markdownMultilineText("- a\n  <spoiler>\n  *b*\n  </spoiler>"));
+        $this->assertSame("<blockquote>\n<spoiler>\n<p><em>b</em></p>\n</spoiler>\n</blockquote>\n", markdownMultilineText("> <spoiler>\n> *b*\n> </spoiler>"));
+        $this->assertSame("<pre><code>&lt;spoiler&gt;\nb\n</code></pre>\n", markdownMultilineText("    <spoiler>\n    b"));
+    }
+
+    public function testMarkdownLine(): void
+    {
+        $this->assertSame("Title <em>a</em> b c", markdownLine("# Title\n\n*a*\nb  \n<H1>c</H1>"));
+    }
 }

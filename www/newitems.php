@@ -545,8 +545,6 @@ function showNewItems($db, $first, $last, $items, $options = [])
 
 function showNewItemList($db, $first, $last, $items, $options)
 {
-    // The markdown parser library
-    $parsedown = new Parsedown();
     $showFlagged = $options['showFlagged'] ?? false;
     $allowHiddenBanner = $options['allowHiddenBanner'] ?? true;
     $showDescriptions = $options['showDescriptions'] ?? true;
@@ -652,7 +650,7 @@ function showNewItemList($db, $first, $last, $items, $options)
             }
 
             $stars = showStars($r['rating']);
-            [$summary, $len, $trunc] = summarizeHtml($parsedown->line($r['review']), 140);
+            [$summary, $len, $trunc] = summarizeHtml(markdownLine($r['review']), 140);
             $summary = fixDesc($summary);
             if ($len != 0 || $stars != "")
             {
@@ -921,9 +919,6 @@ function showNewItemsRSS($db, $showcnt)
         }
     }
 
-    // The markdown parser library
-    $parsedown = new Parsedown();
-
     // show the items
     for ($idx = 0 ; $idx < $showcnt && $idx < $totcnt ; $idx++)
     {
@@ -953,7 +948,7 @@ function showNewItemsRSS($db, $showcnt)
                 }
                 $title .= $stars;
             }
-            $desc = fixDesc(parsedownMultilineText($r['review']), FixDescSpoiler | FixDescRSS);
+            $desc = fixDesc(markdownMultilineText($r['review']), FixDescSpoiler | FixDescRSS);
             $link = get_root_url() . "viewgame?id={$r['gameid']}"
                     . "&review={$r['id']}";
             $pubDate = $r['d'];
