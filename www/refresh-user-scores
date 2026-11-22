@@ -21,7 +21,7 @@ $result = mysqli_execute_query($db,
         and ifnull(now() >= embargodate, 1)) as r,
         (select count(*) as memberCount
         from users
-        where acctstatus = 'A' and ifnull(profilestatus, ' ') != 'R') as u
+        where acctstatus = 'A') as u
     set databaseStats_mv.reviewCount = r.reviewCount,
         databaseStats_mv.ratingCount = r.ratingCount,
         databaseStats_mv.memberCount = u.memberCount,

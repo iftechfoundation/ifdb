@@ -55,7 +55,7 @@ if ($adminPrivate)
 // get the name of the target user
 $result = mysql_query(
     "select
-       name, gender, caughtupdate, acctstatus, profilestatus
+       name, gender, caughtupdate, acctstatus
      from
        users
      where
@@ -71,24 +71,21 @@ if (!$userid || mysql_num_rows($result) == 0) {
 }
 
 // fetch the target user's name
-[$username, $gender, $caughtUpDate, $acctStatus, $profileStatus] =
+[$username, $gender, $caughtUpDate, $acctStatus] =
    mysql_fetch_row($result);
 $username = htmlspecialcharx($username);
 
 // check for inactive users
 if (($curuser && $curuser == $userid) || $adminPrivate)
 {
-    // we can view our own comments even when pending review
+    // we can view our own comments even when the account is closed
 }
-else if ($acctStatus == 'X' || $acctStatus == 'B' || $profileStatus == 'R')
+else if ($acctStatus == 'X' || $acctStatus == 'B')
 {
     pageHeader("Comment History");
     echo "<h1>Comment History</h1>";
-    if ($acctStatus == 'X' || $acctStatus == 'B')
-        echo "<span class=\"errmsg\">This user account has been closed."
-            . "</span>";
-    else
-        echo "<i>This user's profile is pending review.</i>";
+    echo "<span class=\"errmsg\">This user account has been closed."
+        . "</span>";
     if ($isAdmin)
         echo "<p><a href=\"commentlog?user=$userid&mode=comments&private=1\">"
             . "View comments including private messages</a>";

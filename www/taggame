@@ -119,23 +119,17 @@ if (!$userid) {
     sendResponse("401 Unauthorized", "Not Saved", "Please specify a valid username and password to login.");
 }
 
-$result = mysqli_execute_query($db, "select acctstatus, profilestatus, sandbox from users where id=?", [$userid]);
+$result = mysqli_execute_query($db, "select acctstatus, sandbox from users where id=?", [$userid]);
 if (!$result || mysql_num_rows($result) == 0) {
     // you're logged in, but there's no users row?!?
     sendResponse("500 Internal Server Error", "Not Saved", "This service is currently unavailable. We apologize for the inconvenience. (Diagnostic information: code APS0930)");
 } else {
-    [$acctstatus, $profilestatus, $sandbox] = mysql_fetch_row($result);
+    [$acctstatus, $sandbox] = mysql_fetch_row($result);
 }
 
 if ($sandbox == 1) {
     // troll sandbox
     sendResponse("500 Internal Server Error", "Not Saved", "This service is currently unavailable. We apologize for the inconvenience. (Diagnostic information: code TCE0916)");
-}
-
-if ($profilestatus == 'R') {
-    sendResponse("401 Unauthorized", "Not Saved", "Your new user account is still pending review. "
-            . "Editing is not available until the account has "
-            . "been approved.");
 }
 
 if ($acctstatus == 'A') {

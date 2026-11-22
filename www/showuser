@@ -230,7 +230,7 @@ if ($errMsg) {
     if ($uid == $curuser)
     {
         if ($pendingReview)
-            echo "<i>Your profile is pending review, and won't be visible "
+            echo "<i>Your profile description is pending review, and won't be visible "
                 . "to other users until approved";
         else
             echo "<i>This is your public profile as it appears to other users";
@@ -238,11 +238,6 @@ if ($errMsg) {
         echo " - <a href=\"editprofile\">Edit</a></i>"
             . "<p><hr class=dots><br>";
     }
-
-    // ignore the picture if the account is pending review (except
-    // in administrative viewing "unlock" mode)
-    if ($pendingReview && !$unlock)
-        $haspic = false;
 
     // show the picture, if present
     if ($haspic)
@@ -264,7 +259,7 @@ if ($errMsg) {
 
     echo "<span class=details>";
 
-    if ($location != "" && !$pendingReview)
+    if ($location != "")
         echo "$location";
 
     echo "<p>";
@@ -279,7 +274,7 @@ if ($errMsg) {
     echo "Profile ID (" . helpWinLink("help-tuid", "TUID")
         . "): $uid<br>";
 
-    if ($pubemail != "" && !$pendingReview) {
+    if ($pubemail != "") {
         if (!$emailcaptcha) {
             echo "<p>E-mail: <a href=\"mailto:$pubemail\">$pubemail</a><br>";
 
@@ -300,19 +295,15 @@ if ($errMsg) {
 
     echo "</span>";
 
-    // if the profile is pending review, stop here
-    if ($pendingReview && $uid != $curuser && !$unlock)
-    {
-        echo "<p><i>This user's profile is pending review.</i>";
-        if ($admin) echo "<p><a href='showuser?id=$uid&unlock=1'>Admin: view user anyway</a></p>";
-        pageFooter();
-        exit();
-    }
-
     if ($haspic)
         echo "</td></tr></table>";
 
-    echo "<p>$profile";
+    if ($pendingReview && $uid != $curuser && !$unlock) {
+        echo "<p><i>This user's profile description is pending review.</i>";
+        if ($admin) echo " <a href='showuser?id=$uid&unlock=1'>Admin: view description</a>";
+    } else {
+        echo "<p>$profile";
+    }
 
     // add the RSS feed for this member's linked games
     echo "<div class='showuser__rss'><span class=details>"
