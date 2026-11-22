@@ -835,7 +835,7 @@ span.spoilerButton {
     background: #eaeaea;
 }
 
-span.hiddenSpoiler {
+.hiddenSpoiler {
     display: none;
 }
 
