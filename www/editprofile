@@ -324,7 +324,7 @@ function saveChanges()
         $qgamefilter = mysql_real_escape_string($game_filter, $db);
 
         // make sure the location doesn't contain a url
-        if (preg_match("/http:/i", $loc)) {
+        if (preg_match("/https?:/i", $loc)) {
             $errFlagged = "For \"Location\", please enter a city or "
                           . "region, not a web site.";
             return;
@@ -362,12 +362,12 @@ function saveChanges()
             $errFlagged = "You must provide an Email Address.";
             return;
         }
-        if (preg_match("/\s*http:/i", $pubemail)) {
+        if (preg_match("/\s*https?:/i", $pubemail)) {
             $errFlagged = "The format of your public email address appears "
                           . "to be invalid.";
             return;
         }
-        if (preg_match("/\s*http:/i", $dname)) {
+        if (preg_match("/\s*https?:/i", $dname)) {
             $errFlagged = "Your Display Name is invalid - you can't use "
                           . "a hyperlink as your display name.";
             return;
@@ -441,7 +441,7 @@ function saveChanges()
         {
             // check for http inclusions - these get the profile flagged
             // for review if it's not marked as trusted
-            if ((preg_match("/http:/i", $profile)
+            if ((preg_match("/https?:/i", $profile)
                  || preg_match("/<\s*a\s+href/i", $profile))
                 && $oldprostat != "T")
             {
