@@ -434,7 +434,7 @@ function sendImageLdesc($page_title, $imageID, $image_type, $cover_art_descripti
           echo "<p><hr class=dots><span class=details>";
 
           if ($copymsg)
-              echo htmlspecialcharx($copymsg) . "<br>";
+              echo "<p>" . htmlspecialcharx($copymsg) . "<br>";
 
           if (isset($copyrightStatList[$copystat]))
               echo $copyrightStatList[$copystat] . "<br>";
@@ -464,11 +464,11 @@ function sendImageLdesc($page_title, $imageID, $image_type, $cover_art_descripti
       if ($image_type == "cover") {
           if ($cover_art_description) {
               global $nonce;
-              echo "<br><style nonce='$nonce'>.image_description_box { border: 1px solid gray; padding: 0 1em; }</style>";
+              echo "<style nonce='$nonce'>.image_description_box { border: 1px solid gray; padding: 0 1em; max-width: var(--paragraph-width);}</style>";
               echo "<div class='image_description_box'>";
-              echo "<p><b>Image description:</b></p><p>".htmlspecialchars($cover_art_description)."</p>";
+              echo "<p><b>Image description:</b></p><p>" . htmlspecialchars($cover_art_description) . "</p>";
               echo "<p><em>Cover art descriptions are contributed by IFDB members.</em></p></div>";
-         
+                 
           } else {
               echo "<p>No image description is available. To help make IFDB more accessible, ";
               echo "you can <a href=\"editgame?&id=$gameID\">add a cover art description</a>.</p>";
