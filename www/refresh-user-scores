@@ -7,10 +7,7 @@ include_once "util.php";
 
 $db = dbConnect();
 
-$result = mysqli_execute_query($db, "lock tables userScores_mv write, userScores read");
-if ($result) $result = mysqli_execute_query($db, "truncate table userScores_mv");
-if ($result) $result = mysqli_execute_query($db, "insert into userScores_mv select *, now() from userScores");
-mysqli_execute_query($db, "unlock tables");
+regenerateMaterializedView($db, "userScores_mv", "userScores");
 
 $result = mysqli_execute_query($db,
     "update databaseStats_mv,

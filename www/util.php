@@ -1695,6 +1695,21 @@ function getGameRatingsView($db)
     }
 }
 
+function regenerateMaterializedView($db, $mv, $view)
+{
+    $result = mysql_query("set transaction isolation level read committed", $db)
+        && mysql_query("start transaction", $db)
+        && mysql_query("delete from $mv", $db)
+        && mysql_query("insert into $mv select *, now() from $view
+                        on duplicate key update updated = updated", $db)
+        && mysql_query("commit", $db);
+    if (!$result) {
+        error_log("regenerating $mv failed: " . mysql_error($db));
+        mysql_query("rollback", $db);
+    }
+    return $result;
+}
+
 // --------------------------------------------------------------------------
 //
 // Calculate a user's Frequent Fiction score
