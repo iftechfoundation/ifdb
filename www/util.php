@@ -1487,13 +1487,13 @@ function check_editing_privileges($db)
     }
 
     // look up the user's account status in the database
-    if (!($result = mysql_query("select acctstatus, profilestatus, sandbox from users where id='$curuser'", $db))
+    if (!($result = mysql_query("select acctstatus, sandbox from users where id='$curuser'", $db))
         || mysql_num_rows($result) == 0)
     {
         redirect_to_login();
         return false;
     }
-    [$acctstatus, $profilestatus, $sandbox] = mysql_fetch_row($result);
+    [$acctstatus, $sandbox] = mysql_fetch_row($result);
 
     // don't allow editing if the user has been flagged as a troll
     if ($sandbox == 1) // troll sandbox
@@ -1501,18 +1501,6 @@ function check_editing_privileges($db)
         pageHeader("Service Unavailable");
         echo "This service is currently unavailable. We apologize for the inconvenience."
             . "<p>(Diagnostic information: code TCE0916)\n";
-        pageFooter();
-        return false;
-    }
-
-    // check if review is pending for a new account
-    if ($profilestatus == 'R')
-    {
-        // pending review
-        pageHeader("Account pending review");
-        echo "Your new user account is still pending review. "
-            . "Editing is not available until the account has "
-            . "been approved.";
         pageFooter();
         return false;
     }

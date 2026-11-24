@@ -189,17 +189,16 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse, $override_g
             "hyperlinks:" => ["/hyperlinks/", 99]];
 
         // SELECT parameters for member queries
+        $orCurUser = ($curuser ? "or u.id = '$curuser'" : "");
         $selectList = "u.id as id,
                        u.name as name,
                        u.location as location,
-                       u.profile profile,
+                       if(ifnull(u.profilestatus, ' ') != 'R' $orCurUser, u.profile, null) as profile,
                        date_format(u.created, '%M %e, %Y') as createdfmt,
                        (u.picture is not null) as haspic";
         $tableList = "users as u";
-        $orCurUser = ($curuser ? "or u.id = '$curuser'" : "");
         $baseWhere = "and u.acctstatus = 'A' "
                      . "and u.sandbox in $sandbox "
-                     . "and (ifnull(u.profilestatus, ' ') != 'R' $orCurUser)"
                      . str_replace('#USERID#', 'u.id', $andNotMuted);
         $groupBy = "";
         $baseOrderBy = "name";
