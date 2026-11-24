@@ -443,26 +443,6 @@ function handlePost()
     {
         // use account statue 'R' - review needed
         $acctStatus = "R";
-
-        pageHeader("Registration Completed");
-        ?>
-        <h1>Registration Completed</h1>
-        <p>You've successfully registered!
-
-        <p>Your registration must now be reviewed by
-        a site administrator.  This extra step is needed
-        due to the large number of fake accounts that spam operators
-        have been creating on the site.
-
-        <p>Once your registration is approved, you'll receive email
-        with instructions on activating your account.  Due to the need
-        for human review, please allow a day or two for the email to
-        arrive.  We apologize for the delay,
-        but trust you'll understand our efforts to keep the site as
-        spam-free as possible.
-        <?php
-
-        pageFooter();
     }
 
     // It all looks good - add the record.  The account status is
@@ -483,8 +463,37 @@ function handlePost()
     $adminUrl = get_root_url() . "adminops?user=$userid";
 
     // add the user record
-    $result = mysql_query($sql, $db);
+    if (!mysql_query($sql, $db)) {
+        $errFlagged = "An error occurred adding the new user record. Please
+            try again. If the problem persists, please
+            <a href='/contact'>contact us</a> to let us know about the
+            problem.";
+        return true;
+    }
     $proPage = get_root_url() . "showuser?id=$userid&unlock=1";
+
+    if ($acctStatus == "R")
+    {
+        pageHeader("Registration Completed");
+        ?>
+        <h1>Registration Completed</h1>
+        <p>You've successfully registered!
+
+        <p>Your registration must now be reviewed by
+        a site administrator.  This extra step is needed
+        due to the large number of fake accounts that spam operators
+        have been creating on the site.
+
+        <p>Once your registration is approved, you'll receive email
+        with instructions on activating your account.  Due to the need
+        for human review, please allow a day or two for the email to
+        arrive.  We apologize for the delay,
+        but trust you'll understand our efforts to keep the site as
+        spam-free as possible.
+        <?php
+
+        pageFooter();
+    }
 
     // add a login record to record the user's IP address
     mysql_query("insert into logins (uid, ip, `when`)
