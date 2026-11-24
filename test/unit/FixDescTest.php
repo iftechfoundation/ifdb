@@ -36,6 +36,12 @@ final class FixDescTest extends TestCase
             # Replaced spoiler tag (in RSS mode)
             ["hello <spoiler>secret</spoiler> <I>world</I>", "hello [spoilers] <I>world</I>", FixDescRSS],
 
+            # Stray spoiler close tags are dropped
+            ["<p>a</spoiler> b</p>", "<p>a b</p>", FixDescSpoiler],
+            ["<b></spoiler            >xyz</b>", "<b>xyz</b>", FixDescSpoiler],
+            ["a </spoiler>b", "a b"],
+            ["a </spoiler>b", "a b", FixDescRSS],
+
             # Strip newlines
             ["\nhello world\n", "hello world"],
             ["\r\nhello world\r\n", "hello world"],
@@ -95,5 +101,13 @@ final class FixDescTest extends TestCase
     public function testFixDesc(string $input, string $expected, int $specials = 0): void
     {
         $this->assertSame($expected, fixDesc($input, $specials));
+    }
+
+    public function testSpoilerHoldingBlocksUsesDiv(): void
+    {
+        $this->assertStringContainsString('<span class="hiddenSpoiler"', fixDesc("<p>a <spoiler>b</spoiler></p>", FixDescSpoiler));
+        $this->assertStringContainsString('<div class="hiddenSpoiler"', fixDesc("<p>a <spoiler>b</p><p>c</spoiler></p>", FixDescSpoiler));
+        $this->assertStringContainsString('<div class="hiddenSpoiler"', fixDesc("<p>a <spoiler>b <br x/> c</spoiler></p>", FixDescSpoiler));
+        $this->assertStringContainsString('hidden>b  c</span>', fixDesc("<p>a <spoiler>b </i> c</spoiler></p>", FixDescSpoiler));
     }
 }

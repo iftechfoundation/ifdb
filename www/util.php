@@ -815,10 +815,10 @@ function valuesToKeys($arr, $val)
 //
 function spoilerWarning($text, $label = "Spoiler - click to show")
 {
-    return spoilerWarningOpen($label) . $text . spoilerWarningClose();
+    return spoilerWarningOpen($label, true) . $text . spoilerWarningClose(true);
 }
 
-function spoilerWarningOpen($label = "Spoiler - click to show")
+function spoilerWarningOpen($label = "Spoiler - click to show", $block = false)
 {
     // each spoiler warning needs its own ID number
     static $spoilerNum = 0;
@@ -827,8 +827,8 @@ function spoilerWarningOpen($label = "Spoiler - click to show")
     $ret = "<span class=\"spoilerButton\" "
            . "id=\"a_spoiler$spoilerNum\">("
            . "<a href=\"#\" data-num='$spoilerNum'>$label</a>)</span>"
-           . "<span class=\"hiddenSpoiler\" "
-           . "id=\"s_spoiler$spoilerNum\">";
+           . "<" . ($block ? "div" : "span") . " class=\"hiddenSpoiler\" "
+           . "id=\"s_spoiler$spoilerNum\" hidden>";
 
     // consume the spoiler number
     $spoilerNum++;
@@ -837,9 +837,9 @@ function spoilerWarningOpen($label = "Spoiler - click to show")
     return $ret;
 }
 
-function spoilerWarningClose()
+function spoilerWarningClose($block = false)
 {
-    return "</span>";
+    return $block ? "</div>" : "</span>";
 }
 
 // Generate the script to handle spoiler buttons.  This should be called
@@ -854,8 +854,9 @@ function spoilerWarningScript()
         $result .= "function showSpoiler(id) { "
             . "document.getElementById(\"a_spoiler\" + id).style.display = "
             . "\"none\";"
-            . "document.getElementById(\"s_spoiler\" + id).style.display = "
-            . "\"inline\";"
+            . "var s = document.getElementById(\"s_spoiler\" + id);"
+            . "s.hidden = false;"
+            . "s.classList.remove(\"hiddenSpoiler\");"
             . "};\n";
     }
     $result .= "document.currentScript.parentElement.querySelectorAll('.spoilerButton a').forEach(function (link) {\n"
@@ -1028,35 +1029,51 @@ function fixDesc($desc, $specials = 0)
                     if (($specials & FixDescSpoiler) != 0
                         && ($specials & FixDescRSS) == 0) {
 
-                        // note that we found a spoiler tag
-                        $foundSpoiler = true;
-
                         // start or end of the spoiler span as appropriate
                         if ($isClose) {
                             // close tag - end the span
-                            $repl = spoilerWarningClose();
+                            for ($k = $tagSp ; $k >= 0 && !isSpoilerTag($tagStack[$k]) ; $k--) ;
+                            if ($k >= 0) {
+                                $tagName = $tagStack[$k];
+                                $repl = spoilerWarningClose($tagName == 'spoilerdiv');
+                            } else {
+                                // no open spoiler - drop the stray close tag
+                                $tagName = '-spoiler';
+                                $repl = "";
+                            }
                         } else {
-                            // open tag - add the link and start the span
-                            $repl = spoilerWarningOpen();
+                            // open tag - add the link and start the span,
+                            // or a div if the spoiler holds block content
+                            $end = findEndTag($desc, "spoiler", $gt);
+                            $content = substr($desc, $gt + 1, $end ? $end[0] - $gt - 1 : null);
+                            if (preg_match('/<\s*(p|ul|ol|li|blockquote|h[1-6]|pre|dl|dt|dd|hr)\b|<\s*br\b[^>]*\//i', $content))
+                                $tagName = 'spoilerdiv';
+                            $repl = spoilerWarningOpen(block: $tagName == 'spoilerdiv');
+                            $foundSpoiler = true;
                         }
 
                         // apply the substitution
                         $desc = substr_replace($desc, $repl, $tagOfs, $tagLen);
-                        $ofs = $tagOfs + strlen($repl) - 1;
+                        $tagLen = strlen($repl);
+                        $ofs = $gt = $tagOfs + $tagLen - 1;
 
                     } else {
 
                         // spoilers aren't allowed, or we're in RSS mode -
                         // scan for the end tag
-                        $ofs2 = findEndTag($desc, "spoiler", $gt);
+                        if ($isClose) {
+                            $ofs2 = $gt + 1;
+                        } else {
+                            $ofs2 = findEndTag($desc, "spoiler", $gt);
 
-                        // if we didn't find it, delete the whole rest of
-                        // the string
-                        $ofs2 = ($ofs2 == false ? strlen($desc) : $ofs2[1]);
+                            // if we didn't find it, delete the whole rest of
+                            // the string
+                            $ofs2 = ($ofs2 == false ? strlen($desc) : $ofs2[1]);
+                        }
 
                         // Remove everything from the start to end tag.  In
                         // RSS mode, substitute "(spoilers)".
-                        $repl = (($specials & FixDescRSS) != 0
+                        $repl = (($specials & FixDescRSS) != 0 && !$isClose
                                  ? "[spoilers]" : "");
 
                         // make the substitution
@@ -1181,7 +1198,7 @@ function fixDesc($desc, $specials = 0)
                                 // If it's SPOILER, never close implicitly.
                                 // Simply assume the current close tag is
                                 // an error, and delete it.
-                                if ($curTag == 'spoiler')
+                                if (isSpoilerTag($curTag))
                                 {
                                     // delete the errant close tag
                                     $desc = substr_replace(
@@ -1206,6 +1223,10 @@ function fixDesc($desc, $specials = 0)
                                 $ofs += $len;
                                 $gt += $len;
                             }
+                        } else if ($tagSp >= 0 && isSpoilerTag($tagStack[$tagSp])) {
+                            // never let a typo close a spoiler
+                            $desc = substr_replace($desc, "", $tagOfs, $tagLen);
+                            $ofs = $tagOfs - 1;
                         } else if ($tagSp >= 0) {
                             // it's not in the stack, so assume it's a typo:
                             // delete this tag and replace it with the
@@ -1325,6 +1346,11 @@ function fixDescTagAttrs($tagName, $attrs)
     return "";
 }
 
+function isSpoilerTag($tag)
+{
+    return $tag == 'spoiler' || $tag == 'spoilerdiv';
+}
+
 // Translate a stacked close tag to the actual HTML close tag
 //
 function closeTagForStackedTag($tag)
@@ -1333,6 +1359,9 @@ function closeTagForStackedTag($tag)
     {
     case "spoiler":
         return "span";
+
+    case "spoilerdiv":
+        return "div";
 
     default:
         return $tag;
