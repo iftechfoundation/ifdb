@@ -810,7 +810,7 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse, $override_g
 
                     // build the expression - match the original string or any
                     // of the results
-                    $qtxt = mysql_real_escape_string(quoteSqlLike($txt), $db);
+                    $qtxt = mysql_real_escape_string(quoteSqlRLike($txt), $db);
                     $expr = "(language rlike '(^|[, ]){$qtxt}[[:>:]]'";
                     for ($i = 0 ; $i < mysql_num_rows($result) ; $i++) {
                         [$cl] = mysql_fetch_row($result);
