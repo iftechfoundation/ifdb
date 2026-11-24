@@ -1695,18 +1695,82 @@ function getGameRatingsView($db)
     }
 }
 
+class TransactionAborted extends RuntimeException {}
+
+// Runs $fn($db) in a transaction, committing if it returns a truthy value
+// and rolling back otherwise.  A nested call uses a savepoint, so its
+// rollback undoes only its own work, and its commit waits for the outer
+// transaction; if the whole transaction is lost inside a nested call, the
+// outermost call rolls back.  Returns $fn's result, or false if the
+// transaction fails, setting $error to the database error, if any.
+function with_transaction($db, $fn, &$error = null)
+{
+    static $states = null;
+    $states ??= new WeakMap();
+    $state = $states[$db] ??= (object)['depth' => 0, 'error' => null];
+    $depth = $state->depth;
+    $savepoint = "with_transaction_$depth";
+
+    $error = null;
+    if (!($depth
+            ? mysqli_savepoint($db, $savepoint)
+            : mysqli_begin_transaction($db))) {
+        $error = mysqli_error($db);
+        if ($depth)
+            throw new TransactionAborted($error);
+        return false;
+    }
+
+    $state->depth++;
+    try {
+        $result = $fn($db);
+        if ($result && ($depth
+                ? mysqli_release_savepoint($db, $savepoint)
+                : mysqli_commit($db)))
+            return $result;
+
+        $error = mysqli_error($db) ?: $state->error;
+        if (!$depth) {
+            mysqli_rollback($db);
+            return false;
+        }
+        $state->error = $error;
+        if (!mysqli_query($db, "rollback to savepoint $savepoint"))
+            throw new TransactionAborted($error);
+        return false;
+    } catch (TransactionAborted $e) {
+        if ($depth)
+            throw $e;
+        mysqli_rollback($db);
+        $error = $e->getMessage();
+        return false;
+    } catch (Throwable $e) {
+        if ($depth)
+            mysqli_query($db, "rollback to savepoint $savepoint");
+        else
+            mysqli_rollback($db);
+        throw $e;
+    } finally {
+        $state->depth = $depth;
+        if (!$depth)
+            $state->error = null;
+    }
+}
+
+// This sets the isolation level, so it can't run inside a transaction.
 function regenerateMaterializedView($db, $mv, $view)
 {
-    $result = mysql_query("set transaction isolation level read committed", $db)
-        && mysql_query("start transaction", $db)
-        && mysql_query("delete from $mv", $db)
-        && mysql_query("insert into $mv select *, now() from $view
-                        on duplicate key update updated = updated", $db)
-        && mysql_query("commit", $db);
-    if (!$result) {
+    if (!mysql_query("set transaction isolation level read committed", $db)) {
         error_log("regenerating $mv failed: " . mysql_error($db));
-        mysql_query("rollback", $db);
+        return false;
     }
+    $result = with_transaction($db, fn($db) =>
+        mysql_query("delete from $mv", $db)
+        && mysql_query("insert into $mv select *, now() from $view
+                        on duplicate key update updated = updated", $db),
+        $error);
+    if (!$result)
+        error_log("regenerating $mv failed: $error");
     return $result;
 }
 
