@@ -678,22 +678,13 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse, $override_g
                     } else if ($minimum == "" && $maximum != "") {
                         // There's only a maximum.
                         $expr = "$col <= '{$maximum}'";
-                    } else {
-                        // Neither minimum nor maximum time is valid, so ignore the whole thing.
-                        $expr = "";
                     }
                 } else if (count($array_of_times) == 1) {
                     // No hyphen was entered, so it's an exact time.
                     $exact_time = convertTimeStringToMinutes($txt);
                     if ($exact_time != "") {
                         $expr = "$col = '$exact_time'";
-                    } else {
-                        // The time didn't convert to a valid pattern, so ignore the whole thing
-                        $expr = "";
                     }
-                } else {
-                    // We've got multiple hyphens, so ignore the whole thing. 
-                    $expr = "";
                 }
                 break;
 
