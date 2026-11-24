@@ -167,11 +167,8 @@ function verify() {
                         $errFlagged = "Error updating database. ";
                     if (!$errFlagged) {
                         error_log("regenerating game ratings sandbox materialized view");
-                        $result = mysql_query("lock tables gameRatingsSandbox0_mv write, gameRatingsSandbox0 read", $db);
-                        if ($result) $result = mysql_query("truncate table gameRatingsSandbox0_mv", $db);
-                        if ($result) $result = mysql_query("insert into gameRatingsSandbox0_mv select *, now() from gameRatingsSandbox0", $db);
-                        if (!$result) $errFlagged = "Error updating database. ";
-                        mysql_query("unlock tables", $db);
+                        if (!regenerateMaterializedView($db, "gameRatingsSandbox0_mv", "gameRatingsSandbox0"))
+                            $errFlagged = "Error updating database. ";
                     }
                     $altMsg = "Account banned.";
 
