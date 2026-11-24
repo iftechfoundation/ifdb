@@ -1,7 +1,7 @@
 services:
   db:
     image: mariadb:11
-    command: mariadbd --sql_mode="" --ft_stopword_file="" --ft_min_word_len=1
+    command: mariadbd --sql_mode="" --ft_stopword_file="" --ft_min_word_len=1 --innodb_ft_min_token_size=1 --innodb_ft_server_stopword_table=ifdb/stopwords
     volumes:
       - ./initdb:/docker-entrypoint-initdb.d
     environment:

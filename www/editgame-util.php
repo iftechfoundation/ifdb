@@ -207,7 +207,7 @@ function loadGameRecord($db, $id)
 
     // build the list of IFIDs
     $result = mysqli_execute_query($db, "select ifid from ifids
-        where gameid = ?", [$id]);
+        where gameid = ? order by ifidid", [$id]);
     $rows = mysql_num_rows($result);
     for ($i = 0, $ifids = [] ; $i < $rows ; $i++)
         $ifids[] = mysql_result($result, $i, "ifid");

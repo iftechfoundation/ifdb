@@ -364,8 +364,6 @@ function makeQuickQuote($notes)
     return $s[0];
 }
 
-function prependPlus($str) { return "+" . $str; }
-
 // check for a final vote form submission
 $voteQuote = false;
 $voteDesc = false;
@@ -688,9 +686,7 @@ if ($userid && $id && isset($_REQUEST['addVote'])) {
 
         // if that still didn't work, try it as a full-text search, using the
         // words in the title as a list of mandatory boolean-search terms
-        $titleMatch = mysql_real_escape_string(
-            implode(" ", array_map("prependPlus", explode(" ", $gameTitle))),
-            $db);
+        $titleMatch = mysql_real_escape_string(fulltextAllWords($gameTitle, fulltextStopwords($db)), $db);
         $titleLike = mysql_real_escape_string(quoteSqlLike($gameTitle), $db);
 
         $result = mysql_query(

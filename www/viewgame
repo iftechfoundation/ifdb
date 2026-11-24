@@ -766,15 +766,17 @@ if (is_null(getID()) && get_req_data('ifid') != "") {
     $titleSearch = [];
     if ($title != "") {
         $qtitle = mysql_real_escape_string($title, $db);
+        $qwords = mysql_real_escape_string(
+            implode(" ", fulltextWords($title)), $db);
         $result = mysql_query(
             "select
                 id, title, author from games
              where
                 title like '$qtitle'
-                or match (title) against ('$qtitle' in boolean mode)
+                or match (title) against ('$qwords' in boolean mode)
              order by
                 if (title like '$qtitle', 0, 1),
-                match (title) against ('$qtitle' in boolean mode) desc
+                match (title) against ('$qwords' in boolean mode) desc
              limit 0, 3", $db);
         $titleSearch = mysqli_fetch_all($result, MYSQL_ASSOC);
     }

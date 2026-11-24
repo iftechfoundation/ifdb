@@ -238,6 +238,94 @@ function quoteSqlLike($s)
     return preg_replace("/[%_]/", "\\$0", $s);
 }
 
+function fulltextWords($s)
+{
+    return preg_split("/[^\\p{L}\\p{M}\\p{N}_']+/u", $s, -1, PREG_SPLIT_NO_EMPTY) ?: [];
+}
+
+// InnoDB checks each apostrophe-separated part of a word against the stopwords
+function fulltextStopwordParts($w, $stopwords)
+{
+    $parts = preg_split("/'+/", mb_strtolower($w), -1, PREG_SPLIT_NO_EMPTY);
+    return [count(array_intersect($parts, $stopwords)), count($parts)];
+}
+
+// make one search term safe for InnoDB's boolean-mode MATCH parser
+function fulltextTerm($term, $stopwords = [])
+{
+    preg_match('/^([-+~<>]?)("?)(.*?)"?$/s', $term, $m);
+    [, $op, $quote, $text] = $m;
+    $words = fulltextWords($text);
+    $isStopword = function ($w) use ($stopwords) {
+        [$n, $total] = fulltextStopwordParts($w, $stopwords);
+        return $n == $total;
+    };
+    if ($quote) {
+        if (!array_filter($words, fn($w) => !$isStopword($w)))
+            return "";
+        return "$op\"" . implode(" ", $words) . "\"";
+    }
+    $star = preg_match("/\\*[^\\p{L}\\p{M}\\p{N}_']*$/u", $text) ? "*" : "";
+    $last = count($words) - 1;
+    $words = array_values(array_filter($words, fn($w, $i) => ($star && $i == $last) || !$isStopword($w), ARRAY_FILTER_USE_BOTH));
+    if (!$words)
+        return "";
+    if ($op == "+" && !($star && count($words) == 1) && fulltextStopwordParts($words[0], $stopwords)[0])
+        $op = "";
+    return $op . implode(" ", $words) . $star;
+}
+
+function fulltextTerms($s, $stopwords = [])
+{
+    preg_match_all('/[-+~<>]?\(|\)|[-+~<>]?"[^"]*"?|[^\s"()]+/', $s, $m);
+    $terms = [];
+    $depth = 0;
+    $balanced = true;
+    foreach ($m[0] as $t) {
+        if (substr($t, -1) == "(")
+            $depth++;
+        else if ($t == ")")
+            $balanced = $balanced && --$depth >= 0;
+        else
+            $t = fulltextTerm($t, $stopwords);
+        if ($t !== "")
+            $terms[] = $t;
+    }
+    if (!$balanced || $depth)
+        $terms = array_filter($terms, fn($t) => $t != ")" && substr($t, -1) != "(");
+    $out = [];
+    foreach ($terms as $t) {
+        if ($t == ")" && $out && substr(end($out), -1) == "(")
+            array_pop($out);
+        else
+            $out[] = $t;
+    }
+    return $out;
+}
+
+function fulltextAllWords($s, $stopwords = [])
+{
+    $terms = [];
+    foreach (fulltextWords($s) as $w) {
+        [$n, $total] = fulltextStopwordParts($w, $stopwords);
+        if ($n < $total)
+            $terms[] = ($n ? "" : "+") . $w;
+    }
+    return implode(" ", $terms);
+}
+
+function fulltextStopwords($db)
+{
+    static $stopwords = null;
+    if ($stopwords === null) {
+        $stopwords = [];
+        $result = mysql_query("select value from stopwords", $db);
+        while ($row = mysql_fetch_row($result))
+            $stopwords[] = mb_strtolower($row[0]);
+    }
+    return $stopwords;
+}
+
 // quote a SQL RLIKE term - escape regular-expression characters
 function quoteSqlRLike($s)
 {
