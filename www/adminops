@@ -1365,7 +1365,6 @@ else if (isset($_REQUEST['users'])) {
             if ($_REQUEST["priv-$k"] == $k)
                 $privcode .= $k;
         }
-        $privcode = mysql_real_escape_string($privcode, $db);
 
         $oldSandbox = $sandbox;
         $newSandbox = $_REQUEST['sandbox'];
@@ -1376,15 +1375,14 @@ else if (isset($_REQUEST['users'])) {
 
         // update the user table
         $result = with_transaction($db, function ($db)
-            use ($stat, $proStat, $privcode, $sandbox, $quid, $uid, &$progress) {
+            use ($stat, $proStat, $privcode, $sandbox, $uid, &$progress) {
             $progress = "updating USERS";
-            $result = mysql_query(
+            $result = mysqli_execute_query($db,
                 "update users
-                 set acctstatus = '$stat',
-                   profilestatus = '$proStat',
-                   `privileges` = '$privcode',
-                   sandbox = '$sandbox'
-                 where id = '$quid'", $db);
+                 set acctstatus = ?, profilestatus = ?, `privileges` = ?,
+                   sandbox = ?
+                 where id = ?",
+                [$stat, $proStat, $privcode, $sandbox, $uid]);
 
             if ($result && $stat != 'A' && $stat != 'D') {
                 $progress = "deleting user's persistent login sessions";

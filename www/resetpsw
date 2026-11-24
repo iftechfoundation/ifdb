@@ -30,10 +30,9 @@ function verify() {
     }
 
     // look up the activation code
-    $qcode = mysql_real_escape_string($actcode, $db);
-    $result = mysql_query("select id, email, acctstatus,
+    $result = mysqli_execute_query($db, "select id, email, acctstatus,
             resetexpires > now() as unexpired
-        from users where activationcode = '$qcode'", $db);
+        from users where activationcode = ?", [$actcode]);
     if (mysql_num_rows($result) == 0) {
         // the activation code doesn't exist
         $errFlagged = "This password reset link isn't valid. Please check
@@ -95,8 +94,9 @@ function verify() {
 
             // activate now, if needed
             if ($acctstatus == 'D'
-                && !mysql_query("update users set acctstatus = 'A'
-                    where id = '$usernum'", $db)) {
+                && !mysqli_execute_query($db,
+                    "update users set acctstatus = 'A' where id = ?",
+                    [$usernum])) {
                 $failed = 'activate';
                 return false;
             }
