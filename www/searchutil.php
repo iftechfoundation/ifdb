@@ -562,16 +562,15 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse, $override_g
                 $expr = "$year <= '{$m[1]}'";
             else if (preg_match("/^[0-9.]+$/", $txt))
                 $expr = "$year = '$txt'";
-            else if (preg_match("/^([0-9.]+)d-([0-9.]+)d$/", $txt, $m))
+            else if (preg_match("/^([0-9]*\.?[0-9]+)d-([0-9]*\.?[0-9]+)d$/", $txt, $m))
                 $expr = "$col >= date_sub(now(), interval {$m[1]} day) AND $col <= date_sub(now(), interval {$m[2]} day)";
-            else if (preg_match("/^([0-9.]+)d[+-]$/", $txt, $m))
+            else if (preg_match("/^([0-9]*\.?[0-9]+)d[+-]$/", $txt, $m))
                 $expr = "$col >= date_sub(now(), interval {$m[1]} day)";
-            else if (preg_match("/^-([0-9.]+)d$/", $txt, $m))
+            else if (preg_match("/^-([0-9]*\.?[0-9]+)d$/", $txt, $m))
                 $expr = "$col <= date_sub(now(), interval {$m[1]} day)";
-            else if (preg_match("/^([0-9.]+)d$/", $txt, $m)) {
+            else if (preg_match("/^([0-9]*\.?[0-9]+)d$/", $txt, $m)) {
                 $day = $m[1];
-                $dayBefore = $day + 1;
-                $expr = "$col >= date_sub(now(), interval $dayBefore day) AND $col <= date_sub(now(), interval $day day)";
+                $expr = "$col >= date_sub(now(), interval $day + 1 day) AND $col <= date_sub(now(), interval $day day)";
             } else
                 $expr = "$year = '" . mysql_real_escape_string($txt, $db) . "'";
             break;
