@@ -23,11 +23,11 @@ function unNegate($w)
 function convertTimeStringToMinutes($h_m_string) {
     $time_in_minutes = "";
     
-    if (preg_match("/^([0-9.]+)h([0-9]+)m$/", $h_m_string, $matches)) {
+    if (preg_match("/^([0-9]*\.?[0-9]+)h([0-9]+)m$/", $h_m_string, $matches)) {
          // String includes both hours and minutes.
          $time_in_minutes = ($matches[1] * 60) + $matches[2];
          
-     } else if (preg_match("/^([0-9.]+)h$/", $h_m_string, $matches)) {
+     } else if (preg_match("/^([0-9]*\.?[0-9]+)h$/", $h_m_string, $matches)) {
          // String includes only hours.
          $time_in_minutes = $matches[1] * 60;
             
