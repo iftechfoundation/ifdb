@@ -455,8 +455,8 @@ function echoStylesheetLink()
 
 // --------------------------------------------------------------------------
 // send an image description page - this includes the image and the
-// copyright information
-function sendImageLdesc($title, $imageID)
+// copyright information. Options for $image_type are "profile" or "cover"
+function sendImageLdesc($page_title, $imageID, $image_type, $cover_art_description = "", $game_title = "", $gameID = "")
 {
     global $copyrightStatList;
     $curuser = current_user_id();
@@ -497,23 +497,32 @@ function sendImageLdesc($title, $imageID)
             [$username] = mysql_fetch_row($result);
     }
 
+    // If this is cover art, generate the alt text for the full-sized cover art
+    $large_cover_alt_text = "";
+    if ($image_type == "cover") {
+        if ($cover_art_description) {
+            $large_cover_alt_text = $cover_art_description;
+        } else {
+            $large_cover_alt_text = "Cover art for $game_title.";
+        }
+    }
     // send the page
 ?>
 <html>
 <head>
    <?php echoStylesheetLink(); ?>
-   <title><?php echo htmlspecialcharx($title) ?></title>
+   <title><?php echo htmlspecialcharx($page_title) ?></title>
 </head>
 <body>
 <div class=main>
-   <img src="showimage?id=<?php echo urlencode($imageID) ?>">
+   <img src="showimage?id=<?php echo urlencode($imageID) ?>" alt="<?php echo htmlspecialcharx($large_cover_alt_text) ?>">
    <?php
       if ($copymsg || ($copystat && isset($copyrightStatList[$copystat]))
           || $username || $created) {
           echo "<p><hr class=dots><span class=details>";
 
           if ($copymsg)
-              echo htmlspecialcharx($copymsg) . "<br>";
+              echo "<p>" . htmlspecialcharx($copymsg) . "<br>";
 
           if (isset($copyrightStatList[$copystat]))
               echo $copyrightStatList[$copystat] . "<br>";
@@ -537,7 +546,21 @@ function sendImageLdesc($title, $imageID)
               echo "<br>";
           }
 
-          echo "</span><br>";
+          echo "</span>";
+      }
+
+      if ($image_type == "cover") {
+          if ($cover_art_description) {
+              global $nonce;
+              echo "<style nonce='$nonce'>.image_description_box { border: 1px solid gray; padding: 0 1em; max-width: var(--paragraph-width);}</style>";
+              echo "<div class='image_description_box'>";
+              echo "<p><b>Image description:</b></p><p>" . htmlspecialchars($cover_art_description) . "</p>";
+              echo "<p><em>Cover art descriptions are contributed by IFDB members.</em></p></div>";
+                 
+          } else {
+              echo "<p>No image description is available. To help make IFDB more accessible, ";
+              echo "you can <a href=\"editgame?&id=$gameID\">add a cover art description</a>.</p>";
+          }
       }
    ?>
 </div>
@@ -2855,7 +2878,7 @@ function check_admin_privileges($db, $userid) {
     return $row && strpos($row[0], "A") !== false;
 }
 
-function coverArtThumbnail($id, $size, $version, $params = "") {
+function coverArtThumbnail($id, $size, $version, $params = "", $alt_text = "") {
     $thumbnail = "/coverart?id=$id&thumbnail=";
     $x15 = round($size * 3 / 2);
     $x2 = $size * 2;
@@ -2865,7 +2888,7 @@ function coverArtThumbnail($id, $size, $version, $params = "") {
     }
     global $nonce;
     return "<style nonce='$nonce'>.coverart__img { max-width: 35vw; height: auto; }</style>"
-        ."<img class='coverart__img' loading='lazy' srcset=\"$thumbnail{$size}x$size$params, $thumbnail{$x15}x$x15$params 1.5x, $thumbnail{$x2}x$x2$params 2x, $thumbnail{$x3}x$x3$params 3x\" src=\"$thumbnail{$size}x$size$params\" height=$size width=$size border=0 alt=\"\">";
+        ."<img class='coverart__img' loading='lazy' srcset=\"$thumbnail{$size}x$size$params, $thumbnail{$x15}x$x15$params 1.5x, $thumbnail{$x2}x$x2$params 2x, $thumbnail{$x3}x$x3$params 3x\" src=\"$thumbnail{$size}x$size$params\" height=$size width=$size border=0 alt=\"".htmlspecialchars($alt_text)."\">";
 }
 
 // ----------------------------------------------------------------------------
