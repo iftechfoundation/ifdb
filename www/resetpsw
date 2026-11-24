@@ -80,37 +80,47 @@ function verify() {
         if ($errFlagged)
             return true;
 
-        // reset codes are one-time-only, so claim this one
-        $newcode = random_token();
-        mysqli_execute_query($db,
-            "update users set activationcode = ?
-             where id = ? and activationcode = ? and resetexpires > now()",
-            [$newcode, $usernum, $actcode]);
-        if (mysqli_affected_rows($db) != 1) {
+        $failed = false;
+        $pswhash = with_transaction($db, function ($db)
+            use ($usernum, $actcode, $acctstatus, $psw, &$failed) {
+            // reset codes are one-time-only, so claim this one
+            mysqli_execute_query($db,
+                "update users set activationcode = ?
+                 where id = ? and activationcode = ? and resetexpires > now()",
+                [random_token(), $usernum, $actcode]);
+            if (mysqli_affected_rows($db) != 1) {
+                $failed = 'claim';
+                return false;
+            }
+
+            // activate now, if needed
+            if ($acctstatus == 'D'
+                && !mysql_query("update users set acctstatus = 'A'
+                    where id = '$usernum'", $db)) {
+                $failed = 'activate';
+                return false;
+            }
+
+            $pswhash = set_password($db, $usernum, $psw);
+            if (!$pswhash)
+                return false;
+            return mysqli_execute_query($db,
+                "update users set resetexpires = null where id = ?",
+                [$usernum]) ? $pswhash : false;
+        });
+        if ($failed == 'claim') {
             $errFlagged = "This password reset link is no longer valid.
                 Please <a href=\"lostpass\">request another reset</a>.";
             $showForm = false;
             return true;
         }
-        $actcode = $newcode;
-
-        // check for activation
-        if ($acctstatus == 'D') {
-            // activate now
-            if (mysql_query("update users set acctstatus = 'A'
-                    where id = '$usernum'", $db) == false) {
-                $errFlagged = "An error occurred updating the user database to
-                    activate your account. Please try again. If the problem
-                    persists, please <a href='/contact'>contact us</a> to
-                    let us know about the problem.";
-                return true;
-            }
-
-            // note that we activated
-            $activated = true;
+        if ($failed == 'activate') {
+            $errFlagged = "An error occurred updating the user database to
+                activate your account. Please try again. If the problem
+                persists, please <a href='/contact'>contact us</a> to
+                let us know about the problem.";
+            return true;
         }
-
-        $pswhash = set_password($db, $usernum, $psw);
         if (!$pswhash) {
             $errFlagged = "An error occurred updating the database. You might
                 want to try again - if the problem persists,
@@ -118,9 +128,7 @@ function verify() {
                 about it.";
             return true;
         }
-        mysqli_execute_query($db,
-            "update users set resetexpires = null
-             where id = ? and activationcode = ?", [$usernum, $actcode]);
+        $activated = $acctstatus == 'D';
 
         throttle_clear($db, 'login', $usernum);
         throttle_clear($db, 'email', $usernum);

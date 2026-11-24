@@ -2435,233 +2435,210 @@ function sha256($val)
 //
 function close_user_acct($db, $uid, $stat, &$progress)
 {
-    // quote parameters
-    $quid = mysql_real_escape_string($uid, $db);
+    $result = with_transaction($db, function ($db) use ($uid, $stat, &$progress) {
+        // quote parameters
+        $quid = mysql_real_escape_string($uid, $db);
 
-    // no table locks yet
-    $tableLocks = false;
+        // If closing the account, set the email to the TUID (which will
+        // definitely be unique, as everything else in the column is
+        // either a valid email address or another TUID), and save the
+        // email with the profile text.
+        $setClosed = "";
+        if ($stat == 'X') {
+            $setClosed = ", profile = concat('[Closed account: email was ', "
+                         . "email, ']\n', profile), email = id";
+        }
 
-    // If closing the account, set the email to the TUID (which will
-    // definitely be unique, as everything else in the column is
-    // either a valid email address or another TUID), and save the
-    // email with the profile text.
-    $setClosed = "";
-    if ($stat == 'X') {
-        $setClosed = ", profile = concat('[Closed account: email was ', "
-                     . "email, ']\n', profile), email = id";
-    }
-
-    // update the status in the user record
-    $progress = "updating USERS";
-    $result = mysql_query(
-        "update users
-         set acctstatus = '$stat' $setClosed
-         where id = '$quid'", $db);
-
-    // cancel any persistent sessions
-    if ($result) {
-        $progress = "deleting user's persistent login sessions";
-        $result = forget_remembered_logins($db, $uid);
-    }
-
-    // delete discussions, part 1: delete postings by user
-    if ($result) {
-        $progress = "deleting user's discussions";
+        // update the status in the user record
+        $progress = "updating USERS";
         $result = mysql_query(
-            "delete from ucomments
-             where userid = '$quid'", $db);
-    }
+            "update users
+             set acctstatus = '$stat' $setClosed
+             where id = '$quid'", $db);
 
-    // delete discussions, part 2: delete posting on this user's profile
-    if ($result) {
-        $progress = "deleting comments on user's profile";
-        $result = mysql_query(
-            "delete from ucomments
-             where source = 'U' and sourceid = '$quid'", $db);
-    }
+        // cancel any persistent sessions
+        if ($result) {
+            $progress = "deleting user's persistent login sessions";
+            $result = forget_remembered_logins($db, $uid);
+        }
 
-    // delete comments on this user's review comments
-    if ($result) {
-        $progress = "deleting comments on user's reviews";
-        $result = mysql_query(
-            "delete from ucomments
-             where source = 'R' and sourceid in
-               (select id from reviews where userid = '$quid')", $db);
-    }
+        // delete discussions, part 1: delete postings by user
+        if ($result) {
+            $progress = "deleting user's discussions";
+            $result = mysql_query(
+                "delete from ucomments
+                 where userid = '$quid'", $db);
+        }
 
-    // delete this user's reviews
-    if ($result) {
-        $progress = "deleting user's reviews";
-        $result = mysql_query(
-            "delete from reviews, reviewtags, reviewvotes
-             using reviews
-               left outer join reviewtags
-                 on reviewtags.reviewid = reviews.id
-               left outer join reviewvotes
-                 on reviewvotes.reviewid = reviews.id
-             where reviews.userid = '$quid'", $db);
-    }
+        // delete discussions, part 2: delete posting on this user's profile
+        if ($result) {
+            $progress = "deleting comments on user's profile";
+            $result = mysql_query(
+                "delete from ucomments
+                 where source = 'U' and sourceid = '$quid'", $db);
+        }
 
-    // delete review flags by user
-    if ($result) {
-        $progress = "deleting user's review flags";
-        $result = mysql_query(
-            "delete from reviewflags where flagger = '$quid'", $db);
-    }
+        // delete comments on this user's review comments
+        if ($result) {
+            $progress = "deleting comments on user's reviews";
+            $result = mysql_query(
+                "delete from ucomments
+                 where source = 'R' and sourceid in
+                   (select id from reviews where userid = '$quid')", $db);
+        }
 
-    // delete review votes by user
-    if ($result) {
-        $progress = "deleting user's review votes";
-        $result = mysql_query(
-            "delete from reviewvotes where userid = '$quid'", $db);
-    }
+        // delete this user's reviews
+        if ($result) {
+            $progress = "deleting user's reviews";
+            $result = mysql_query(
+                "delete from reviews, reviewtags, reviewvotes
+                 using reviews
+                   left outer join reviewtags
+                     on reviewtags.reviewid = reviews.id
+                   left outer join reviewvotes
+                     on reviewvotes.reviewid = reviews.id
+                 where reviews.userid = '$quid'", $db);
+        }
 
-    // lock tables for deleting tags - we need atomic writes to games
-    // and gametags
-    if ($result) {
-        $progress = "locking games, gametags";
-        $result = mysql_query(
-            "lock tables games write, gametags write,
-                gametags as gt1 read, gametags as gt2 read", $db);
+        // delete review flags by user
+        if ($result) {
+            $progress = "deleting user's review flags";
+            $result = mysql_query(
+                "delete from reviewflags where flagger = '$quid'", $db);
+        }
 
-        if ($result)
-            $tableLocks = true;
-    }
+        // delete review votes by user
+        if ($result) {
+            $progress = "deleting user's review votes";
+            $result = mysql_query(
+                "delete from reviewvotes where userid = '$quid'", $db);
+        }
 
-    // rebuild the tag list for any games this user has tagged, without
-    // this user's tags
-    if ($result) {
-        $progress = "rebuilding games.tags for deleting user's game tags";
-        $result = mysql_query(
-            "update games
-             set tags = (
-               select group_concat(tag separator ',')
-               from gametags as gt1
-               where gameid = id and userid != '$quid')
-             where id in (
-               select distinct gameid
-               from gametags as gt2
-               where userid = '$quid')", $db);
-    }
+        // rebuild the tag list for any games this user has tagged, without
+        // this user's tags
+        if ($result) {
+            $progress = "rebuilding games.tags for deleting user's game tags";
+            $result = mysql_query(
+                "update games
+                 set tags = (
+                   select group_concat(tag separator ',')
+                   from gametags as gt1
+                   where gameid = id and userid != '$quid')
+                 where id in (
+                   select distinct gameid
+                   from gametags as gt2
+                   where userid = '$quid')", $db);
+        }
 
-    // delete this user's tags
-    if ($result) {
-        $progress = "deleting user's game tags";
-        $result = mysql_query(
-            "delete from gametags
-             where userid = '$quid'", $db);
-    }
+        // delete this user's tags
+        if ($result) {
+            $progress = "deleting user's game tags";
+            $result = mysql_query(
+                "delete from gametags
+                 where userid = '$quid'", $db);
+        }
 
-    // done with the table locks
-    if ($result) {
-        $progress = "unlocking games, gametags";
-        $result = mysql_query("unlock tables", $db);
-        $tableLocks = false;
-    }
+        // delete cross-recommendations
+        if ($result) {
+            $progress = "deleting user's cross-recommendations";
+            $result = mysql_query(
+                "delete from crossrecs where userid = '$quid'", $db);
+        }
 
-    // delete cross-recommendations
-    if ($result) {
-        $progress = "deleting user's cross-recommendations";
-        $result = mysql_query(
-            "delete from crossrecs where userid = '$quid'", $db);
-    }
+        // delete wish lists, play lists, and unwishlists
+        if ($result) {
+            $progress = "deleting user's wishlist";
+            $result = mysql_query(
+                "delete from wishlists where userid = '$quid'", $db);
+        }
+        if ($result) {
+            $progress = "deleting user's played games list";
+            $result = mysql_query(
+                "delete from playedgames where userid = '$quid'", $db);
+        }
+        if ($result) {
+            $progress = "deleting user's un-wishlist";
+            $result = mysql_query(
+                "delete from unwishlists where userid = '$quid'", $db);
+        }
 
-    // delete wish lists, play lists, and unwishlists
-    if ($result) {
-        $progress = "deleting user's wishlist";
-        $result = mysql_query(
-            "delete from wishlists where userid = '$quid'", $db);
-    }
-    if ($result) {
-        $progress = "deleting user's played games list";
-        $result = mysql_query(
-            "delete from playedgames where userid = '$quid'", $db);
-    }
-    if ($result) {
-        $progress = "deleting user's un-wishlist";
-        $result = mysql_query(
-            "delete from unwishlists where userid = '$quid'", $db);
-    }
+        // delete the user's recommended list comments
+        if ($result) {
+            $progress = "deleting user's recommended list comments";
+            $result = mysql_query(
+                "delete from ucomments
+                 where source = 'L' and sourceid in
+                   (select id from reclists where userid = '$quid')", $db);
+        }
 
-    // delete the user's recommended list comments
-    if ($result) {
-        $progress = "deleting user's recommended list comments";
-        $result = mysql_query(
-            "delete from ucomments
-             where source = 'L' and sourceid in
-               (select id from reclists where userid = '$quid')", $db);
-    }
+        // delete the user's recommended lists
+        if ($result) {
+            $progress = "deleting user's recommended lists";
+            $result = mysql_query(
+                "delete from reclists, reclistitems
+                 using reclists
+                   left outer join reclistitems
+                     on reclistitems.listid = reclists.id
+                 where reclists.userid = '$quid'", $db);
+        }
 
-    // delete the user's recommended lists
-    if ($result) {
-        $progress = "deleting user's recommended lists";
-        $result = mysql_query(
-            "delete from reclists, reclistitems
-             using reclists
-               left outer join reclistitems
-                 on reclistitems.listid = reclists.id
-             where reclists.userid = '$quid'", $db);
-    }
+        // delete the user's poll comments
+        if ($result) {
+            $progress = "deleting user's poll list comments";
+            $result = mysql_query(
+                "delete from ucomments
+                 where source = 'P' and sourceid in
+                   (select pollid from polls where userid = '$quid')", $db);
+        }
 
-    // delete the user's poll comments
-    if ($result) {
-        $progress = "deleting user's poll list comments";
-        $result = mysql_query(
-            "delete from ucomments
-             where source = 'P' and sourceid in
-               (select pollid from polls where userid = '$quid')", $db);
-    }
+        // delete the user's polls
+        if ($result) {
+            $progress = "deleting user's polls";
+            $result = mysql_query(
+                "delete from polls, pollvotes, pollcomments
+                 using polls
+                   left outer join pollvotes
+                     on pollvotes.pollid = polls.pollid
+                   left outer join pollcomments
+                     on pollcomments.pollid = polls.pollid
+                 where polls.userid = '$quid'", $db);
+        }
 
-    // delete the user's polls
-    if ($result) {
-        $progress = "deleting user's polls";
-        $result = mysql_query(
-            "delete from polls, pollvotes, pollcomments
-             using polls
-               left outer join pollvotes
-                 on pollvotes.pollid = polls.pollid
-               left outer join pollcomments
-                 on pollcomments.pollid = polls.pollid
-             where polls.userid = '$quid'", $db);
-    }
+        // delete the user's poll votes
+        if ($result) {
+            $progress = "deleting user's poll votes";
+            $result = mysql_query(
+                "delete from pollvotes where userid = '$quid'", $db);
+        }
 
-    // delete the user's poll votes
-    if ($result) {
-        $progress = "deleting user's poll votes";
-        $result = mysql_query(
-            "delete from pollvotes where userid = '$quid'", $db);
-    }
+        // delete the user's news items
+        if ($result) {
+            $progress = "deleting user's news items";
+            $result = mysql_query(
+                "delete from news where userid = '$quid'", $db);
+        }
 
-    // delete the user's news items
-    if ($result) {
-        $progress = "deleting user's news items";
-        $result = mysql_query(
-            "delete from news where userid = '$quid'", $db);
-    }
+        // delete the user's stylesheets
+        if ($result) {
+            $progress = "deleting user's stylesheets";
+            $result = mysql_query(
+                "delete from stylesheets where userid = '$quid'", $db);
+        }
 
-    // delete the user's stylesheets
-    if ($result) {
-        $progress = "deleting user's stylesheets";
-        $result = mysql_query(
-            "delete from stylesheets where userid = '$quid'", $db);
-    }
+        // delete the user's stylesheet images
+        if ($result) {
+            $progress = "deleting user's stylesheet graphics";
+            $result = mysql_query(
+                "delete from stylepics where userid = '$quid'", $db);
+        }
 
-    // delete the user's stylesheet images
-    if ($result) {
-        $progress = "deleting user's stylesheet graphics";
-        $result = mysql_query(
-            "delete from stylepics where userid = '$quid'", $db);
-    }
+        return $result;
+    }, $error);
 
     // note the database error
     if (!$result)
-        $progress .= " (db error: " . htmlspecialcharx(mysql_error($db)) . ")";
+        $progress .= " (db error: " . htmlspecialcharx($error) . ")";
 
-    // unlock tables, if we haven't already
-    if ($tableLocks)
-        mysql_query("unlock tables", $db);
-
-    // return the success/failure indication
     return $result;
 }
 

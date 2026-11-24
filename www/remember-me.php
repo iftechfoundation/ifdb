@@ -20,7 +20,8 @@ function remember_login($db, $usernum, $ip)
         "insert into persistentsessions (id, userid, lastlogin)
          select ?, id, now() from users
          where id = ? and sha2(password, 256) = ?
-           and acctstatus in ('A', 'D')",
+           and acctstatus in ('A', 'D')
+         lock in share mode",
         [sha256($cookie), $usernum, $_SESSION['pswver'][$usernum] ?? '']);
     if (!$result || mysqli_affected_rows($db) != 1)
         return;

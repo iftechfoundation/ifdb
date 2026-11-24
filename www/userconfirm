@@ -157,12 +157,12 @@ function verify() {
                     // presume success
                     $errFlagged = false;
 
-                    $result = mysql_query(
-                        "update users
-                         set acctstatus = 'B', sandbox = 1
-                         where id = '$usernum'", $db);
-                    if ($result)
-                        $result = forget_remembered_logins($db, $usernum);
+                    $result = with_transaction($db, fn($db) =>
+                        mysql_query(
+                            "update users
+                             set acctstatus = 'B', sandbox = 1
+                             where id = '$usernum'", $db)
+                        && forget_remembered_logins($db, $usernum));
                     if (!$result)
                         $errFlagged = "Error updating database. ";
                     if (!$errFlagged) {
@@ -177,19 +177,17 @@ function verify() {
                     // presume success
                     $errFlagged = false;
 
-                    // close the account
-                    if (!close_user_acct($db, $usernum, "B", $progress)) {
+                    $result = with_transaction($db,
+                        function ($db) use ($usernum, &$progress) {
+                            if (!close_user_acct($db, $usernum, "B", $progress))
+                                return false;
+                            $progress = "deleting USERS";
+                            return mysql_query(
+                                "delete from users
+                                 where id = '$usernum'", $db);
+                        });
+                    if (!$result)
                         $errFlagged = "Error updating database: $progress";
-                    }
-
-                    // delete the user
-                    if (!$errFlagged) {
-                        if (mysql_query(
-                            "delete from users
-                         where id = '$usernum'", $db) == false) {
-                            $errFlagged = "Error updating database. ";
-                        }
-                    }
 
                     $altMsg = "Account deleted.";
                 }
