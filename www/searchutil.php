@@ -23,11 +23,11 @@ function unNegate($w)
 function convertTimeStringToMinutes($h_m_string) {
     $time_in_minutes = "";
     
-    if (preg_match("/^([0-9.]+)h([0-9]+)m$/", $h_m_string, $matches)) {
+    if (preg_match("/^([0-9]*\.?[0-9]+)h([0-9]+)m$/", $h_m_string, $matches)) {
          // String includes both hours and minutes.
          $time_in_minutes = ($matches[1] * 60) + $matches[2];
          
-     } else if (preg_match("/^([0-9.]+)h$/", $h_m_string, $matches)) {
+     } else if (preg_match("/^([0-9]*\.?[0-9]+)h$/", $h_m_string, $matches)) {
          // String includes only hours.
          $time_in_minutes = $matches[1] * 60;
             
@@ -562,16 +562,15 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse, $override_g
                 $expr = "$year <= '{$m[1]}'";
             else if (preg_match("/^[0-9.]+$/", $txt))
                 $expr = "$year = '$txt'";
-            else if (preg_match("/^([0-9.]+)d-([0-9.]+)d$/", $txt, $m))
+            else if (preg_match("/^([0-9]*\.?[0-9]+)d-([0-9]*\.?[0-9]+)d$/", $txt, $m))
                 $expr = "$col >= date_sub(now(), interval {$m[1]} day) AND $col <= date_sub(now(), interval {$m[2]} day)";
-            else if (preg_match("/^([0-9.]+)d[+-]$/", $txt, $m))
+            else if (preg_match("/^([0-9]*\.?[0-9]+)d[+-]$/", $txt, $m))
                 $expr = "$col >= date_sub(now(), interval {$m[1]} day)";
-            else if (preg_match("/^-([0-9.]+)d$/", $txt, $m))
+            else if (preg_match("/^-([0-9]*\.?[0-9]+)d$/", $txt, $m))
                 $expr = "$col <= date_sub(now(), interval {$m[1]} day)";
-            else if (preg_match("/^([0-9.]+)d$/", $txt, $m)) {
+            else if (preg_match("/^([0-9]*\.?[0-9]+)d$/", $txt, $m)) {
                 $day = $m[1];
-                $dayBefore = $day + 1;
-                $expr = "$col >= date_sub(now(), interval $dayBefore day) AND $col <= date_sub(now(), interval $day day)";
+                $expr = "$col >= date_sub(now(), interval $day + 1 day) AND $col <= date_sub(now(), interval $day day)";
             } else
                 $expr = "$year = '" . mysql_real_escape_string($txt, $db) . "'";
             break;
@@ -678,22 +677,13 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse, $override_g
                     } else if ($minimum == "" && $maximum != "") {
                         // There's only a maximum.
                         $expr = "$col <= '{$maximum}'";
-                    } else {
-                        // Neither minimum nor maximum time is valid, so ignore the whole thing.
-                        $expr = "";
                     }
                 } else if (count($array_of_times) == 1) {
                     // No hyphen was entered, so it's an exact time.
                     $exact_time = convertTimeStringToMinutes($txt);
                     if ($exact_time != "") {
                         $expr = "$col = '$exact_time'";
-                    } else {
-                        // The time didn't convert to a valid pattern, so ignore the whole thing
-                        $expr = "";
                     }
-                } else {
-                    // We've got multiple hyphens, so ignore the whole thing. 
-                    $expr = "";
                 }
                 break;
 
@@ -751,6 +741,10 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse, $override_g
             case 'author':
                 // get the names in sorting format
                 $nameList = splitPersonalNameList($txt);
+                if (!$nameList) {
+                    $expr = "(author = '' or author is null)";
+                    break;
+                }
 
                 // look for each name in the list
                 $expr = "(";
@@ -816,7 +810,7 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse, $override_g
 
                     // build the expression - match the original string or any
                     // of the results
-                    $qtxt = mysql_real_escape_string(quoteSqlLike($txt), $db);
+                    $qtxt = mysql_real_escape_string(quoteSqlRLike($txt), $db);
                     $expr = "(language rlike '(^|[, ]){$qtxt}[[:>:]]'";
                     for ($i = 0 ; $i < mysql_num_rows($result) ; $i++) {
                         [$cl] = mysql_fetch_row($result);
