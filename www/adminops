@@ -1365,7 +1365,6 @@ else if (isset($_REQUEST['users'])) {
             if ($_REQUEST["priv-$k"] == $k)
                 $privcode .= $k;
         }
-        $privcode = mysql_real_escape_string($privcode, $db);
 
         $oldSandbox = $sandbox;
         $newSandbox = $_REQUEST['sandbox'];
@@ -1375,23 +1374,26 @@ else if (isset($_REQUEST['users'])) {
             $sandbox = $newSandbox;
 
         // update the user table
-        $progress = "updating USERS";
-        $result = mysql_query(
-            "update users
-             set acctstatus = '$stat',
-               profilestatus = '$proStat',
-               `privileges` = '$privcode',
-               sandbox = '$sandbox'
-             where id = '$quid'", $db);
+        $result = with_transaction($db, function ($db)
+            use ($stat, $proStat, $privcode, $sandbox, $uid, &$progress) {
+            $progress = "updating USERS";
+            $result = mysqli_execute_query($db,
+                "update users
+                 set acctstatus = ?, profilestatus = ?, `privileges` = ?,
+                   sandbox = ?
+                 where id = ?",
+                [$stat, $proStat, $privcode, $sandbox, $uid]);
+
+            if ($result && $stat != 'A' && $stat != 'D') {
+                $progress = "deleting user's persistent login sessions";
+                $result = forget_remembered_logins($db, $uid);
+            }
+            return $result;
+        });
 
         if ($result && $oldSandbox != $newSandbox) {
             $progress = "regenerating game ratings sandbox materialized view";
             $result = regenerateMaterializedView($db, "gameRatingsSandbox0_mv", "gameRatingsSandbox0");
-        }
-
-        if ($result && $stat != 'A' && $stat != 'D') {
-            $progress = "deleting user's persistent login sessions";
-            $result = forget_remembered_logins($db, $uid);
         }
 
         // show the results

@@ -306,15 +306,11 @@ function handlePost()
         return true;
     }
 
-    // escape the parameters that we'll be storing in the database directly
-    $qemail = mysql_real_escape_string($email, $db);
-    $qdname = mysql_real_escape_string($dname, $db);
-    $qremarks = mysql_real_escape_string($remarks, $db);
-
     $psw = hash_password($psw);
 
     // verify that the email address is unique
-    $result = mysql_query("select id from users where email = '$qemail'", $db);
+    $result = mysqli_execute_query($db,
+        "select id from users where email = ?", [$email]);
     if (mysql_num_rows($result) != 0) {
         $errFlagged = "This email address is already registered.  If you've
             already registered this address, and you've forgotten your
@@ -323,7 +319,8 @@ function handlePost()
     }
 
     // verify that the display name is unique
-    $result = mysql_query("select id from users where name = '$qdname'", $db);
+    $result = mysqli_execute_query($db,
+        "select id from users where name = ?", [$dname]);
     if (mysql_num_rows($result) != 0) {
         $errFlagged = "This display name is already taken by another user -
             please choose a different name.";
@@ -443,7 +440,35 @@ function handlePost()
     {
         // use account statue 'R' - review needed
         $acctStatus = "R";
+    }
 
+    // It all looks good - add the record.  The account status is
+    // initially 'D' for deactivated - login is disabled until the
+    // activation process has been completed.
+    $actcode = random_token();
+
+    // generate the admin url base
+    $adminUrl = get_root_url() . "adminops?user=$userid";
+
+    // add the user record
+    if (!mysqli_execute_query($db,
+        "insert into users
+            (id, email, name, `password`, activationcode,
+             acctstatus, profilestatus, created, `privileges`, remarks,
+             tosversion)
+         values (?, ?, ?, ?, ?, ?, ?, now(), '', ?, ?)",
+        [$userid, $email, $dname, $psw, $actcode,
+         $acctStatus, $profileStatus, $remarks, TOS_VERSION])) {
+        $errFlagged = "An error occurred adding the new user record. Please
+            try again. If the problem persists, please
+            <a href='/contact'>contact us</a> to let us know about the
+            problem.";
+        return true;
+    }
+    $proPage = get_root_url() . "showuser?id=$userid&unlock=1";
+
+    if ($acctStatus == "R")
+    {
         pageHeader("Registration Completed");
         ?>
         <h1>Registration Completed</h1>
@@ -465,30 +490,9 @@ function handlePost()
         pageFooter();
     }
 
-    // It all looks good - add the record.  The account status is
-    // initially 'D' for deactivated - login is disabled until the
-    // activation process has been completed.
-    $actcode = random_token();
-    $tosver = TOS_VERSION;
-    $sql = "insert into users
-        (id, email, name, `password`, activationcode,
-         acctstatus, profilestatus, created, `privileges`, remarks,
-         tosversion)
-        values ('$userid', '$qemail', '$qdname',
-                '$psw', '$actcode',
-                '$acctStatus', '$profileStatus', now(), '',
-                '$qremarks', '$tosver')";
-
-    // generate the admin url base
-    $adminUrl = get_root_url() . "adminops?user=$userid";
-
-    // add the user record
-    $result = mysql_query($sql, $db);
-    $proPage = get_root_url() . "showuser?id=$userid&unlock=1";
-
     // add a login record to record the user's IP address
-    mysql_query("insert into logins (uid, ip, `when`)
-        values ('$userid', '$ip', now())", $db);
+    mysqli_execute_query($db, "insert into logins (uid, ip, `when`)
+        values (?, ?, now())", [$userid, $ip]);
 
     // send notification to the ifdb administrator
     $lockdown_message = "";
@@ -497,7 +501,7 @@ function handlePost()
     }
     $msg = "IFDB new user registration\r\n"
 
-           . "<p>New user email: " . htmlspecialcharx($email)
+           . "<p>New user email: " . htmlspecialchars($email)
            . "<br>Screen name: " . htmlspecialchars($dname)
            . "<br>IP address: " . $ip
            . "<br>Account status: "

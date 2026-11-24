@@ -240,16 +240,17 @@ function set_password($db, $userid, $psw, $oldhash = null)
 {
     $hashpsw = hash_password($psw);
 
-    // lock so that no remember-me login sees the new password while the
-    // old logins remain
-    $ok = mysql_query("lock tables users write, persistentsessions write", $db)
+    // lock the user row so that no new remembered login can be added for
+    // the old password
+    $ok = with_transaction($db, fn($db) =>
+        mysqli_execute_query($db,
+            "select id from users where id = ? for update", [$userid])
         && forget_remembered_logins($db, $userid, $oldhash !== null)
         && mysqli_execute_query($db,
             "update users set password = ?
              where id = ? and (? is null or password = ?)",
             [$hashpsw, $userid, $oldhash, $oldhash])
-        && mysqli_affected_rows($db) == 1;
-    mysql_query("unlock tables", $db);
+        && mysqli_affected_rows($db) == 1);
     return $ok ? $hashpsw : false;
 }
 

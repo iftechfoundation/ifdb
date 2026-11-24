@@ -36,11 +36,10 @@ function verify() {
     }
 
     // look up the activation code
-    $qcode = mysql_real_escape_string($actcode, $db);
-    $result = mysql_query(
+    $result = mysqli_execute_query($db,
         "select id, acctstatus, email
         from users
-        where activationcode = '$qcode'", $db);
+        where activationcode = ?", [$actcode]);
     if (mysql_num_rows($result) == 0)
     {
         // The activation code doesn't exist - if there's an email ID,
@@ -92,14 +91,13 @@ function verify() {
 
             // activation codes are single-use, so scramble it
             $newcode = random_token();
-            $newcode = mysql_real_escape_string($newcode, $db);
 
             // update the status and activation code
-            if (mysql_query(
+            if (!mysqli_execute_query($db,
                 "update users
-                 set acctstatus = 'A', activationcode = '$newcode',
+                 set acctstatus = 'A', activationcode = ?,
                    resetexpires = null
-                 where id = '$usernum'", $db) == false) {
+                 where id = ?", [$newcode, $usernum])) {
                 $errFlagged = "An error occurred updating the user database.
                     Please try again. If the problem persists, please
                     <a href='/contact'>contact us</a> to let us know
@@ -128,14 +126,13 @@ function verify() {
 
                     // pick a new activation code
                     $newcode = random_token();
-                    $newcode = mysql_real_escape_string($newcode, $db);
 
                     // update the code and set status to 'pending activation'
-                    if (mysql_query(
+                    if (!mysqli_execute_query($db,
                         "update users
-                         set acctstatus = 'D', activationcode = '$newcode',
+                         set acctstatus = 'D', activationcode = ?,
                              resetexpires = null
-                         where id = '$usernum'", $db) == false) {
+                         where id = ?", [$newcode, $usernum])) {
                         $errFlagged = "Error updating database. ";
                     }
 
@@ -144,25 +141,25 @@ function verify() {
 
                     $altMsg = "Account status changed to Pending Activation; "
                               . "email sent to "
-                              . htmlspecialcharx($email) . ".";
+                              . htmlspecialchars($email) . ".";
 
                 } else if ($action == 'delete') {
 
                     $errFlagged = "\"Delete with notice\" is no longer supported.";
                     $altMsg = "Account deleted; email sent to "
-                              . htmlspecialcharx($email) . ".";
+                              . htmlspecialchars($email) . ".";
 
                 } else if ($action == 'ban') {
 
                     // presume success
                     $errFlagged = false;
 
-                    $result = mysql_query(
-                        "update users
-                         set acctstatus = 'B', sandbox = 1
-                         where id = '$usernum'", $db);
-                    if ($result)
-                        $result = forget_remembered_logins($db, $usernum);
+                    $result = with_transaction($db, fn($db) =>
+                        mysqli_execute_query($db,
+                            "update users
+                             set acctstatus = 'B', sandbox = 1
+                             where id = ?", [$usernum])
+                        && forget_remembered_logins($db, $usernum));
                     if (!$result)
                         $errFlagged = "Error updating database. ";
                     if (!$errFlagged) {
@@ -177,19 +174,17 @@ function verify() {
                     // presume success
                     $errFlagged = false;
 
-                    // close the account
-                    if (!close_user_acct($db, $usernum, "B", $progress)) {
+                    $result = with_transaction($db,
+                        function ($db) use ($usernum, &$progress) {
+                            if (!close_user_acct($db, $usernum, "B", $progress))
+                                return false;
+                            $progress = "deleting USERS";
+                            return mysqli_execute_query($db,
+                                "delete from users
+                                 where id = ?", [$usernum]);
+                        });
+                    if (!$result)
                         $errFlagged = "Error updating database: $progress";
-                    }
-
-                    // delete the user
-                    if (!$errFlagged) {
-                        if (mysql_query(
-                            "delete from users
-                         where id = '$usernum'", $db) == false) {
-                            $errFlagged = "Error updating database. ";
-                        }
-                    }
 
                     $altMsg = "Account deleted.";
                 }
