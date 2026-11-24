@@ -751,6 +751,10 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse, $override_g
             case 'author':
                 // get the names in sorting format
                 $nameList = splitPersonalNameList($txt);
+                if (!$nameList) {
+                    $expr = "(author = '' or author is null)";
+                    break;
+                }
 
                 // look for each name in the list
                 $expr = "(";
