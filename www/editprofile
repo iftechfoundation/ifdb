@@ -122,14 +122,20 @@ function dbEscape($str)
         return "'" . mysql_real_escape_string($str, $db) . "'";
 }
 
-function currentPasswordMatches($psw)
+function currentPasswordError($psw)
 {
     global $db, $usernum;
 
     $result = mysqli_execute_query($db,
         "select password, pswsalt from users where id = ?", [$usernum]);
     $row = mysql_fetch_row($result);
-    return $row && password_matches($psw, $row[0], $row[1]);
+    $reason = throttled_password_check($db, $usernum, $psw,
+                                       $row[0] ?? '', $row[1] ?? '');
+    if ($reason == 'throttled')
+        return login_throttled_message();
+    if ($reason)
+        return "The password you entered doesn't match your current password.";
+    return false;
 }
 
 // initialize
@@ -505,11 +511,8 @@ function saveChanges()
         // if they're changing the email address, verify that they're
         // serious, and that they know the current password
         $pswErr = false;
-        if ($emailChanged && isset($_REQUEST['confirmEmailChange'])
-            && !currentPasswordMatches($_POST['curpsw'] ?? '')) {
-            $pswErr = "The password you entered doesn't match your
-                current password.";
-        }
+        if ($emailChanged && isset($_REQUEST['confirmEmailChange']))
+            $pswErr = currentPasswordError($_POST['curpsw'] ?? '');
         if ($emailChanged
             && (!isset($_REQUEST['confirmEmailChange']) || $pswErr)) {
             // we haven't asked for confirmation yet - display

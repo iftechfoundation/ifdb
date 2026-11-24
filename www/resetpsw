@@ -110,7 +110,8 @@ function verify() {
             $activated = true;
         }
 
-        if (!set_password($db, $usernum, $psw)) {
+        $pswhash = set_password($db, $usernum, $psw);
+        if (!$pswhash) {
             $errFlagged = "An error occurred updating the database. You might
                 want to try again - if the problem persists,
                 <a href=\"/contact\">contact us</a> to let us know
@@ -120,6 +121,15 @@ function verify() {
         mysqli_execute_query($db,
             "update users set resetexpires = null
              where id = ? and activationcode = ?", [$usernum, $actcode]);
+
+        throttle_clear($db, 'login', $usernum);
+        throttle_clear($db, 'email', $usernum);
+
+        $loggedIn = $acctstatus == 'A' || $activated;
+        if ($loggedIn) {
+            record_login($db, $usernum);
+            start_login_session($usernum, $pswhash);
+        }
 
         // all is well - start the page
         pageHeader("Password Reset");
@@ -132,9 +142,12 @@ function verify() {
 <?php
         if ($activated)
             echo "<p>Your new account has also been activated.";
+        if ($loggedIn)
+            echo "<p>You're now logged in. <a href=\"/index\">Click here</a>
+                to go to the IFDB home page.";
+        else
+            echo "<p><a href=\"login\">Click here</a> to log in.";
 ?>
-
-<p><a href="login">Click here</a> to log in.
 
 <?php
 
