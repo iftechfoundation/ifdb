@@ -454,6 +454,7 @@ function newItemsSources($db, $options, $andNotMuted, $sandbox, $limit = 10,
                 return newItemsKeyedRows($db,
                     "select
                        c.compid as compid, c.title as title, c.`desc` as `desc`,
+                       c.moddate as moddate,
                        c.created as d,
                        date_format(c.created, '%M %e, %Y') as fmtdate
                      from competitions as c
@@ -867,8 +868,7 @@ function showNewItemList($db, $first, $last, $items, $options)
             // pull out the competition item
             $cid = $c["compid"];
             $ctitle = htmlspecialcharx($c["title"]);
-            [$cdesc, $len, $trunc] = summarizeHtml($c["desc"], 210);
-            $cdesc = fixDesc($cdesc);
+            [$cdesc, $len, $trunc] = summarizeDesc($c["desc"], isMarkdownDate($c["moddate"]), 210);
             $cdate = $c["fmtdate"];
 
             // show the generic competition icon
@@ -981,8 +981,7 @@ function showNewItemsRSS($db, $showcnt)
         {
             $c = $row;
             $title = "A new competition page: {$c['title']}";
-            [$desc, $len, $trunc] = summarizeHtml($c['desc'], 210);
-            $desc = fixDesc($desc);
+            [$desc, $len, $trunc] = summarizeDesc($c['desc'], isMarkdownDate($c['moddate']), 210);
             $link = get_root_url() . "viewcomp?id={$c['compid']}";
             $pubDate = $c['d'];
         }

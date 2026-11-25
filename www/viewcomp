@@ -161,6 +161,7 @@ if (!$errMsg) {
             // update the current version information in the record
             $rec["pagevsn"] = $hVsn;
             $rec["moddate"] = $hModDate;
+            $rec["rawModDate"] = $hRawModDate;
             $rec["editedby"] = $hEditorID;
             $rec["editedbyName"] = $hEditorName;
 
@@ -317,7 +318,8 @@ if ($errMsg) {
 // pull out the display fields
 $title = htmlspecialcharx($rec["title"]);
 $series = htmlspecialcharx($rec["series"]);
-$desc = fixDesc($rec["desc"], FixDescSpoiler);
+$descMarkdown = isMarkdownDate($rec["rawModDate"]);
+$desc = formatDesc($rec["desc"], $descMarkdown, FixDescSpoiler);
 $keywords = htmlspecialcharx($rec["keywords"]);
 $organizersExt = htmlspecialcharx($rec["organizersExt"]);
 $judgesExt = htmlspecialcharx($rec["judgesExt"]);

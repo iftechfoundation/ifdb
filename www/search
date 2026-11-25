@@ -1051,7 +1051,7 @@ if ($api_mode) {
                 'tuid' => $id,
                 'title' => $row['title'],
                 'link' => get_root_url() . "viewcomp?id=$id",
-                'desc' => fixDesc($row['desc']),
+                'desc' => formatDesc($row['desc'], isMarkdownDate($row['moddate'])),
                 'numGames' => $row['gamecnt'],
                 'numDivisions' => $row['divcnt'],
             ];
@@ -1499,8 +1499,7 @@ else if ($term || $browse)
             case "comp":
                 $id = $row['compid'];
                 $title = htmlspecialcharx($row['title']);
-                $descInfo = summarizeHtml($row['desc'], 240);
-                $desc = fixDesc($descInfo[0]);
+                [$desc] = summarizeDesc($row['desc'], isMarkdownDate($row['moddate']), 240);
                 $adate = $row['awarddate'];
                 $gamecnt = $row['gamecnt'];
                 $divcnt = $row['divcnt'];

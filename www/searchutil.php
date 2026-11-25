@@ -227,6 +227,7 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse, $override_g
         $selectList = "c.compid as compid,
                        c.title as title,
                        c.`desc` as `desc`,
+                       c.moddate as moddate,
                        date_format(c.awarddate, '%M %e, %Y') as awarddate,
                        count(distinct g.gameid) as gamecnt,
                        count(g.gameid) as gamesbydiv,
