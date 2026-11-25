@@ -1036,7 +1036,7 @@ if ($api_mode) {
                 'tuid' => $id,
                 'title' => $row['title'],
                 'link' => get_root_url() . "poll?id=$id",
-                'desc' => fixDesc($row['desc']),
+                'desc' => formatDesc($row['desc'], isMarkdownDate($row['moddate'])),
                 'creatorID' => $row['userid'],
                 'creatorName' => $row['username'],
                 'numVotes' => $row['votecnt'],
@@ -1473,8 +1473,7 @@ else if ($term || $browse)
             case "poll":
                 $id = $row['id'];
                 $title = htmlspecialcharx($row['title']);
-                $descInfo = summarizeHtml($row['desc'], 240);
-                $desc = fixDesc($descInfo[0]);
+                [$desc] = summarizeDesc($row['desc'], isMarkdownDate($row['moddate']), 240);
                 $userid = $row['userid'];
                 $username = htmlspecialcharx($row['username']);
                 $votecnt = $row['votecnt'];

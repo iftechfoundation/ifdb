@@ -495,7 +495,8 @@ if ($errMsg) {
             "select p.pollid, p.title, p.`desc`,
                date_format(p.created, '%M %e, %Y'),
                count(v.gameid) as votecount,
-               count(distinct v.gameid) as gamecount
+               count(distinct v.gameid) as gamecount,
+               p.moddate
             from
                polls as p
                left outer join pollvotes as v on v.pollid = p.pollid
@@ -508,13 +509,12 @@ if ($errMsg) {
 
         for ($i = 0 ; $i < 5 && $i < mysql_num_rows($result) ; $i++) {
             // fetch the next row
-            [$pollid, $title, $desc, $created, $votecnt, $gamecnt] =
+            [$pollid, $title, $desc, $created, $votecnt, $gamecnt, $pollModDate] =
                 mysql_fetch_row($result);
 
             // fix up fields for display
             $title = htmlspecialcharx($title);
-            [$desc, $desclen, $desctrunc] = summarizeHtml($desc, 140);
-            $desc = fixDesc($desc);
+            [$desc, $desclen, $desctrunc] = summarizeDesc($desc, isMarkdownDate($pollModDate), 140);
 
             // show the summary
             echo "<a href=\"poll?id=$pollid\">$title</a> - "

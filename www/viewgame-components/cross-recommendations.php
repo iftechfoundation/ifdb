@@ -150,8 +150,7 @@
                     $p = $polls[$i];
                     $pollid = $p['pollid'];
                     $pollname = htmlspecialcharx($p['title']);
-                    $polldescInfo = summarizeHtml($p['desc'], 240);
-                    $polldesc = fixDesc($polldescInfo[0]);
+                    [$polldesc] = summarizeDesc($p['desc'], isMarkdownDate($p['moddate']), 240);
                     $polluserid = $p['userid'];
                     $pollusername = htmlspecialcharx($p['username']);
 

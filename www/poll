@@ -176,6 +176,7 @@ if ($userid && isset($_REQUEST['editPoll'])) {
                 $result = mysql_query(
                     "update polls
                      set
+                       moddate = now(),
                        title = '$qtitle',
                        `desc` = '$qdesc',
                        keywords = '$qkeywords',
@@ -298,9 +299,9 @@ if (isset($_POST['newPollGo'])) {
         $progress = "INS8103";
         $result = mysql_query(
             "insert into polls
-             (pollid, title, keywords, `desc`, created, userid, flags)
+             (pollid, title, keywords, `desc`, created, moddate, userid, flags)
              values ('$tuid', '$title', '$keywords', '$desc',
-                     now(), '$userid', $newFlags)", $db);
+                     now(), now(), '$userid', $newFlags)", $db);
     }
 
     // unlock tables
@@ -965,7 +966,8 @@ administrators can see who voted for what.)
     $result = mysql_query(
         "select
            p.title, p.`desc`,
-           date_format(p.created, '%M %e, %Y'), p.flags, p.userid, u.name
+           date_format(p.created, '%M %e, %Y'), p.flags, p.userid, u.name,
+           p.moddate
          from
            polls as p
            left outer join users as u on u.id = p.userid
@@ -980,7 +982,7 @@ administrators can see who voted for what.)
     }
 
     // fetch the poll row
-    [$title, $desc, $created, $flags, $authid, $authname] =
+    [$title, $desc, $created, $flags, $authid, $authname, $descModDate] =
         mysql_fetch_row($result);
     $title = htmlspecialcharx($title);
     $authname = htmlspecialcharx($authname);
@@ -1119,7 +1121,7 @@ function expandVote(id)
             . "by <a href=\"showuser?id=$authid\">$authname</a>"
             . "<br><div class=details><a class=\"rss-icon\" href=\"poll?id=$id&rss\">"
             . "RSS Feed</a></div>"
-            . "<p>" . fixDesc($desc)
+            . "<p>" . formatDesc($desc, isMarkdownDate($descModDate))
             . "<p><div class=details>$commentCtl</div><p>"
             . (
                 ($anonymous && $adminPriv && !isset($_REQUEST['unlock']))

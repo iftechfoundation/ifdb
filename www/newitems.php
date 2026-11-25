@@ -427,6 +427,7 @@ function newItemsSources($db, $options, $andNotMuted, $sandbox, $limit = 10,
                 return newItemsKeyedRows($db,
                     "select
                        p.pollid as pollid, p.title as title, p.`desc` as `desc`,
+                       p.moddate as moddate,
                        p.created as d,
                        date_format(p.created, '%M %e, %Y') as fmtdate,
                        count(v.gameid) as votecnt, count(distinct v.gameid) as gamecnt,
@@ -765,8 +766,7 @@ function showNewItemList($db, $first, $last, $items, $options)
             $uid = $p['userid'];
             $uname = htmlspecialcharx($p['username']);
             $title = htmlspecialcharx($p['title']);
-            [$desc, $len, $trunc] = summarizeHtml($p['desc'], 210);
-            $desc = fixDesc($desc);
+            [$desc, $len, $trunc] = summarizeDesc($p['desc'], isMarkdownDate($p['moddate']), 210);
             $votecnt = $p['votecnt'];
             $gamecnt = $p['gamecnt'];
             $cntdesc = ($votecnt == 0 ? "No votes" :
@@ -966,8 +966,7 @@ function showNewItemsRSS($db, $showcnt)
         {
             $p = $row;
             $title = "A poll by {$p['username']}: {$p['title']}";
-            [$desc, $len, $trunc] = summarizeHtml($p['desc'], 210);
-            $desc = fixDesc($desc);
+            [$desc, $len, $trunc] = summarizeDesc($p['desc'], isMarkdownDate($p['moddate']), 210);
             $link = get_root_url() . "poll?id={$p['pollid']}";
             $pubDate = $p['d'];
         }

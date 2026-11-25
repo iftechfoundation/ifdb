@@ -164,6 +164,7 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse, $override_g
                        p.userid as userid,
                        u.name as username,
                        p.`desc` as `desc`,
+                       p.moddate as moddate,
                        count(v.gameid) as votecnt,
                        count(distinct v.gameid) as gamecnt,
                        max(v.votedate) as votedate,

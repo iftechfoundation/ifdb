@@ -1142,6 +1142,7 @@ if (!isEmpty($genre)) {
                p.pollid as pollid,
                p.title as title,
                p.`desc` as `desc`,
+               p.moddate as moddate,
                u.id as userid,
                u.name as username
              from

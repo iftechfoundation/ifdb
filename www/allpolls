@@ -115,7 +115,8 @@ if ($errMsg) {
             date_format(p.created, '%M %e, %Y'),
             p.userid, u.name,
             count(v.gameid) as votecount,
-            count(distinct v.gameid) as gamecount
+            count(distinct v.gameid) as gamecount,
+            p.moddate
             $extraCols
         from
             polls as p
@@ -172,12 +173,11 @@ if ($errMsg) {
 
             // fetch the next row
             [$pollid, $title, $desc, $created, $authid, $authname,
-                $votecnt, $gamecnt] = mysql_fetch_row($result);
+                $votecnt, $gamecnt, $moddate] = mysql_fetch_row($result);
 
             // fix up fields for display
             $title = htmlspecialcharx($title);
-            [$desc, $desclen, $desctrunc] = summarizeHtml($desc, 140);
-            $desc = fixDesc($desc);
+            [$desc, $desclen, $desctrunc] = summarizeDesc($desc, isMarkdownDate($moddate), 140);
             $authname = htmlspecialcharx($authname);
 
             // show the summary
