@@ -196,6 +196,7 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse, $override_g
                        u.name as name,
                        u.location as location,
                        if(ifnull(u.profilestatus, ' ') != 'R' $orCurUser, u.profile, null) as profile,
+                       u.profilemoddate as profilemoddate,
                        date_format(u.created, '%M %e, %Y') as createdfmt,
                        (u.picture is not null) as haspic";
         $tableList = "users as u";

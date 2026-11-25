@@ -1518,8 +1518,7 @@ else if ($term || $browse)
                 $id = $row['id'];
                 $name = htmlspecialcharx($row['name']);
                 $loc = htmlspecialcharx($row['location']);
-                $profileInfo = summarizeHtml($row['profile'], 140);
-                $profile = fixDesc($profileInfo[0]);
+                [$profile] = summarizeDesc($row['profile'], isMarkdownDate($row['profilemoddate']), 140);
                 $created = $row['createdfmt'];
                 $pic = $row['haspic'];
                 $score = isset($row['score']) ? $row['score'] : 0;

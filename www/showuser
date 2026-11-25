@@ -98,6 +98,7 @@ $result = mysql_query(
         name, location, publicemail,
         profile, profilestatus,
         (picture is not null),
+        profilemoddate,
         date_format(created, '%M %e, %Y'),
         date_format(lastlogin, '%M %e, %Y'),
         publiclists, gender, emailflags, acctstatus, email
@@ -106,13 +107,13 @@ if (mysql_num_rows($result) == 0) {
     $errMsg = "The requested member was not found in the database.";
 } else {
     [$username, $location, $pubemail, $profile, $proStat, $haspic,
-        $created, $lastlogin, $publiclists, $gender, $emailflags,
+        $profileModDate, $created, $lastlogin, $publiclists, $gender, $emailflags,
         $acctstatus, $realEmail] =
      mysql_fetch_row($result);
 
     $username = htmlspecialcharx($username);
     $location = htmlspecialcharx($location);
-    $profile = fixDesc($profile);
+    $profile = formatDesc($profile, isMarkdownDate($profileModDate));
     $pubemail = htmlspecialcharx($pubemail);
     $playlistPub = (strpos($publiclists, "P") !== false);
     $wishlistPub = (strpos($publiclists, "W") !== false);
