@@ -398,7 +398,7 @@ function newItemsSources($db, $options, $andNotMuted, $sandbox, $limit = 10,
                 return newItemsKeyedRows($db,
                     "select
                        reclists.id as id, reclists.title as title,
-                       reclists.`desc` as `desc`,
+                       reclists.`desc` as `desc`, reclists.moddate as moddate,
                        reclists.createdate as d,
                        date_format(reclists.createdate, '%M %e, %Y') as fmtdate,
                        count(reclists.id) as itemcnt,
@@ -691,8 +691,7 @@ function showNewItemList($db, $first, $last, $items, $options)
             $itemS = $itemcnt == 1 ? "" : "s";
             $title = htmlspecialcharx($l['title']);
             $username = htmlspecialcharx($l['username']);
-            [$desc, $len, $trunc] = summarizeHtml($l['desc'], 210);
-            $desc = fixDesc($desc);
+            [$desc, $len, $trunc] = summarizeDesc($l['desc'], isMarkdownDate($l['moddate']), 210);
 
             // show the image: user image if available, otherwise the
             // generic list icon
@@ -957,8 +956,7 @@ function showNewItemsRSS($db, $showcnt)
         {
             $l = $row;
             $title = "A Recommended List by {$l['username']}: {$l['title']}";
-            [$desc, $len, $trunc] = summarizeHtml($l['desc'], 210);
-            $desc = fixDesc($desc);
+            [$desc, $len, $trunc] = summarizeDesc($l['desc'], isMarkdownDate($l['moddate']), 210);
             $link = get_root_url() . "viewlist?id={$l['id']}";
             $pubDate = $l['d'];
         }

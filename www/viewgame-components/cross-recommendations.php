@@ -118,8 +118,7 @@
                     $l = $lists[$i];
                     $listid = $l['listid'];
                     $listname = htmlspecialcharx($l['title']);
-                    $listdescInfo = summarizeHtml($l['desc'], 240);
-                    $listdesc = fixDesc($listdescInfo[0]);
+                    [$listdesc] = summarizeDesc($l['desc'], isMarkdownDate($l['moddate']), 240);
                     $listuserid = $l['userid'];
                     $listusername = htmlspecialcharx($l['username']);
 

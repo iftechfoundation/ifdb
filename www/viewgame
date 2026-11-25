@@ -1109,6 +1109,7 @@ if (!isEmpty($genre)) {
                 reclists.id as listid,
                 reclists.title as title,
                 reclists.`desc` as `desc`,
+                reclists.moddate as moddate,
                 users.id as userid,
                 users.name as username
              from

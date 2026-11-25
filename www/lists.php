@@ -2,7 +2,6 @@
 
 include_once "commentutil.php";
 
-
 function listMatchItem($match, $num, $showArt, $rating, $hrefTarget)
 {
     $id = htmlspecialcharx($match['id']);
@@ -47,13 +46,13 @@ function listMatchItem($match, $num, $showArt, $rating, $hrefTarget)
 
 function showRecList($db, $qlistid, $ownerid, $ownername, $ownerloc,
                      $title, $desc, $moddate, $items, $hrefTarget,
-                     $showComments, $showFlagged)
+                     $showComments, $showFlagged, $markdown)
 {
     // fix up the items for display
     $ownername = htmlspecialcharx($ownername);
     $ownerloc = htmlspecialcharx($ownerloc);
     $title = htmlspecialcharx($title);
-    $desc = fixdesc($desc);
+    $desc = formatDesc($desc, $markdown);
 
     // show the list name, author, and overview
     echo "<h1>$title</h1>"
@@ -149,7 +148,7 @@ function showRecList($db, $qlistid, $ownerid, $ownername, $ownerloc,
         }
 
         // get the comments, formatted for display
-        $comments = fixdesc($item['comments']);
+        $comments = formatDesc($item['comments'], $markdown);
 
         // get the game ratings table, taking into account the user's sandbox
         $gameRatingsView = getGameRatingsView($db);

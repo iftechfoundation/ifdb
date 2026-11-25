@@ -135,6 +135,7 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse, $override_g
         $selectList = "reclists.id as id,
                        title,
                        `desc`,
+                       reclists.moddate as moddate,
                        users.id as userid,
                        users.name as username,
                        count(gameid) as itemcount";
