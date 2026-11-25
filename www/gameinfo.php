@@ -82,7 +82,7 @@ function getGameInfo($db, $id, $curuser, $requestVersion, &$errMsg, &$errCode)
     $result = mysqli_execute_query($db,
         "select
            x.url as url, r.rating as rating, r.summary as headline,
-           r.review as summary,
+           r.review as summary, r.moddate as moddate,
            x.sourcename as sourcename, x.sourceurl as sourceurl,
            sr.name as specialname, sr.code as code
          from
