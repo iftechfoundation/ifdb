@@ -61,8 +61,8 @@ if (count($recs) >= 2) {
         $author = collapsedAuthors($author);
         $hasart = $r['hasart'];
         $pagevsn = $r['pagevsn'];
-        [$summary, $len, $trunc] = summarizeHtml($r['description'], 140);
-        $summary = fixDesc($summary);
+        [$summary, $len, $trunc] = summarizeDesc($r['description'],
+            isMarkdownGameDesc($db, $gameid, $pagevsn), 140);
 
         // display the game information
         echo "<p>";

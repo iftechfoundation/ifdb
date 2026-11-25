@@ -12,6 +12,7 @@ $curuser = current_user_id();
 
 include_once "pagetpl.php";
 include_once "util.php";
+include_once "gameinfo.php";
 include "starctl.php";
 
 // get the parameters
@@ -546,8 +547,8 @@ if ($editMode) {
 
         $toTitle = htmlspecialcharx($toTitle);
         $toAuthor = htmlspecialcharx($toAuthor);
-        [$toDesc, $len, $trunc] = summarizeHtml($toDesc, 210);
-        $toDesc = fixDesc($toDesc);
+        [$toDesc, $len, $trunc] = summarizeDesc($toDesc,
+            isMarkdownGameDesc($db, $toID, $toVersion), 210);
 
         // show the game listing
         echo "<tr valign=top class='crossrec__listingRow'>";

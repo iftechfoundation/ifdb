@@ -53,8 +53,8 @@
                     $crid = mysql_real_escape_string($c['id'], $db);
                     $crtitle = htmlspecialcharx($c['title']);
                     $crauthor = htmlspecialcharx($c['author']);
-                    $crdescInfo = summarizeHtml($c['desc'], 240);
-                    $crdesc = fixDesc($crdescInfo[0]);
+                    [$crdesc] = summarizeDesc($c['desc'],
+                        isMarkdownGameDesc($db, $c['id'], $c['pagevsn']), 240);
                     $crart = $c['hasart'];
                     $crversion = $c['pagevsn'];
 

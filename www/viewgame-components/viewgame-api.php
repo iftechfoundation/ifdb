@@ -136,7 +136,11 @@ if (isset($_REQUEST['ifiction']) || $json)
     if ($genre)
         $bibliographic['genre'] = $genre;
 
-    $desc = fixDesc($rawDesc, $json ? 0 : FixDescIfic);
+    if ($json || !$descMarkdown)
+        $desc = formatDesc($rawDesc, $descMarkdown, $json ? 0 : FixDescIfic);
+    else
+        $desc = fixDesc(preg_replace(['#^\s*<p>|</p>\s*$#', '#</p>\s*<p>#'], ['', "\n\n"],
+            markdownMultilineText($rawDesc ?? '')), FixDescIfic);
     if ($desc)
         $bibliographic['description'] = $desc;
 

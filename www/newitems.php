@@ -1,6 +1,7 @@
 <?php
 
 include_once "searchutil.php";
+include_once "gameinfo.php";
 require_once 'vendor/autoload.php';
 
 define("NEWITEMS_SITENEWS", 0x0001);
@@ -745,8 +746,8 @@ function showNewItemList($db, $first, $last, $items, $options)
                 . htmlspecialcharx($g['author'])
                 . " <span class=notes><i>{$g['fmtdate']}</i></span>";
 
-            [$summary, $len, $trunc] = summarizeHtml($g['desc'], 210);
-            $summary = fixDesc($summary);
+            [$summary, $len, $trunc] = summarizeDesc($g['desc'],
+                isMarkdownGameDesc($db, $g['id'], $g['pagevsn']), 210);
             if ($len != 0)
                 echo "<br><div class=indented><span class=details><i>"
                     . $summary
@@ -994,8 +995,8 @@ function showNewItemsRSS($db, $showcnt)
         {
             $g = $row;
             $title = "A new listing for {$g['title']} by {$g['author']}";
-            [$desc, $len, $trunc] = summarizeHtml($g['desc'], 210);
-            $desc = fixDesc($desc);
+            [$desc, $len, $trunc] = summarizeDesc($g['desc'],
+                isMarkdownGameDesc($db, $g['id'], $g['pagevsn']), 210);
             $link = get_root_url() . "viewgame?id={$g['id']}";
             $pubDate = $g['d'];
         }

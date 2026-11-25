@@ -390,7 +390,8 @@ if (!$errMsg) {
             $moddatelatest,
             $historyView,
             $dlnotes, $extReviews, $extRevDisplayRank,
-            $ratingHisto, $xrefs, $inrefs, $flags, $cover_art_description] = $gameInfo;
+            $ratingHisto, $xrefs, $inrefs, $flags, $cover_art_description,
+            $descMarkdown] = $gameInfo;
         $title = htmlspecialchars($title ?? '');
         $license = htmlspecialchars($license ?? '');
         $language = htmlspecialchars($language ?? '');
