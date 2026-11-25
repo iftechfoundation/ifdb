@@ -34,7 +34,7 @@ if (isset($_REQUEST['adminemail'])) {
             <form method=post>
                 <p>To: <br><input type=email name=to required></p>
                 <p>Subject: <br><input name=subject></p>
-                <p>(Type the email in HTML. You have to use &lt;p&gt; tags to insert paragraph breaks.)</p>
+                <p>(Type the email in Markdown or HTML.)</p>
                 <textarea name=body cols=75 rows=20></textarea>
                 <br><button>Preview</button>
             </form>
@@ -44,7 +44,7 @@ if (isset($_REQUEST['adminemail'])) {
             . "Content-type: Text/HTML\r\n";
 
         // send the message
-        if (send_mail($to, $_POST['subject'], $_POST['body'], $hdrs)) {
+        if (send_mail($to, $_POST['subject'], (string)markdownConverter(true)->convert($_POST['body']), $hdrs)) {
             echo "Mail sent.";
         } else {
             echo "There was an error sending the email.";
@@ -54,7 +54,7 @@ if (isset($_REQUEST['adminemail'])) {
         echo "<p>To: " . htmlspecialcharx($to);
         echo "<p>Subject: " . htmlspecialcharx($_POST['subject']);
         echo "<hr>";
-        echo $_POST['body'];
+        echo markdownConverter(true)->convert($_POST['body']);
         echo "<hr><form method=post><input type=hidden name=actuallySend value=true>";
         echo '<input type=hidden name=to value="'.htmlspecialcharx($to).'">';
         echo '<input type=hidden name=subject value="'.htmlspecialcharx($_POST['subject']).'">';
