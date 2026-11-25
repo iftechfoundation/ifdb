@@ -430,7 +430,7 @@ for ($i = 0 ; $i < count($divs) ; $i++) {
     $div = $divs[$i];
     $divid = $div["divid"];
     $divname = htmlspecialcharx($div["divname"]);
-    $divdesc = fixDesc($div["divdesc"], FixDescSpoiler);
+    $divdesc = formatDesc($div["divdesc"], $descMarkdown, FixDescSpoiler);
 
     // show the division header, unless it's "Main"
     if ($divname != "Main")
