@@ -43,7 +43,7 @@ if ($newsID) {
            date_format(n.modified, '%M %e, %Y %l:%i %p'),
            date_format(n.created, '%M %e, %Y %l:%i %p'),
            n.userid, u.name,
-           n.headline, n.body
+           n.headline, n.body, n.modified
          from
            news as n
            join users as u on u.id = n.userid
@@ -197,12 +197,12 @@ if ($errMsg) {
             // decode the record
             [$nid, $ntype, $nsrc, $status,
                 $modified, $created, $userid, $username,
-                $headline, $body] = $hist[$i];
+                $headline, $body, $modDate] = $hist[$i];
 
             // quote items for display
             $username = htmlspecialcharx($username);
             $headline = htmlspecialcharx($headline);
-            $body = fixDesc($body, FixDescSpoiler);
+            $body = formatDesc($body, isMarkdownDate($modDate), FixDescSpoiler);
 
             // for deletions, show a special headline
             if ($status == "D") {
@@ -248,7 +248,7 @@ if ($errMsg) {
         $h = $hist[0];
         [$nid, $nsrc, $nsrcid, $status, $modified, $created,
             $userID, $userName,
-            $headline, $body] = $h;
+            $headline, $body, $modDate] = $h;
 
         // get the immediately preceding item, if this item has edits
         $prvHeadline = $hist[1][8] ?? '';
@@ -260,7 +260,7 @@ if ($errMsg) {
 
         // fix up fields for display
         $headline = htmlspecialcharx($headline);
-        $body = fixDesc($body, FixDescSpoiler);
+        $body = formatDesc($body, isMarkdownDate($modDate), FixDescSpoiler);
         $userName = htmlspecialcharx($userName);
         $origUserName = htmlspecialcharx($origUserName);
 
@@ -356,7 +356,7 @@ if ($errMsg) {
 
             // fix up fields for display
             $headline = htmlspecialcharx($headline);
-            $body = fixDesc($body, FixDescSpoiler);
+            $body = formatDesc($body, isMarkdownDate($modDate), FixDescSpoiler);
             $userName = htmlspecialcharx($userName);
             $origUserName = htmlspecialcharx($origUserName);
 

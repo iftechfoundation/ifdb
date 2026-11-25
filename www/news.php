@@ -38,7 +38,7 @@ function newsSummary($db, $sourceType, $sourceID, $maxItems,
                 $newshead, $newsbody] = mysql_fetch_row($result);
 
             $newshead = htmlspecialcharx($newshead);
-            $newsbody = fixDesc($newsbody, FixDescSpoiler);
+            $newsbody = formatDesc($newsbody, isMarkdownDate($newsmodRaw), FixDescSpoiler);
             $newsuname = htmlspecialcharx($newsuname);
             $newsunameOrig = htmlspecialcharx($newsunameOrig);
 
@@ -113,7 +113,7 @@ function queryNewsRss(&$items, $db, $sourceType, $sourceID, $maxItems,
         $nuname = htmlspecialcharx($nuname);
         $nunameOrig = htmlspecialcharx($nunameOrig);
         $rssdate = date("D, j M Y H:i:s ", strtotime($ncre)) . 'UT';
-        $nbody = htmlspecialcharx(fixDesc($nbody));
+        $nbody = htmlspecialcharx(formatDesc($nbody, isMarkdownDate($nmod)));
 
         $nlink = htmlspecialcharx(
             get_root_url() . "newslog?newsid=$norig");

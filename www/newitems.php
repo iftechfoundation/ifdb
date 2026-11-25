@@ -817,8 +817,7 @@ function showNewItemList($db, $first, $last, $items, $options)
             $nuidOrig = $n['origUserID'];
             $nunameOrig = htmlspecialcharx($n['origUserName']);
             $nhead = htmlspecialcharx($n['headline']);
-            [$nbody, $len, $trunc] = summarizeHtml($n['body'], 210);
-            $nbody = fixDesc($nbody);
+            [$nbody, $len, $trunc] = summarizeDesc($n['body'], isMarkdownDate($n['modified']), 210);
 
             switch ($n['sourceType'])
             {
@@ -976,8 +975,7 @@ function showNewItemsRSS($db, $showcnt)
         {
             $n = $row;
             $title = "News on {$n['sourceTitle']}: {$n['headline']}";
-            [$desc, $len, $trunc] = summarizeHtml($n['body'], 210);
-            $desc = fixDesc($desc);
+            [$desc, $len, $trunc] = summarizeDesc($n['body'], isMarkdownDate($n['modified']), 210);
             $desc = "Reported by {$n['origUserName']}: $desc";
             $link = get_root_url() . "newslog?newsid={$n['newsID']}";
             $pubDate = $n['d'];
