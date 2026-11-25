@@ -301,8 +301,7 @@ for ($i = 0 ; $i < count($comments) ; $i++) {
     if ($rss) {
 
         // set up the XML data
-        [$desc, $len, $trunc] = summarizeHtml($ctxt, 210);
-        $desc = fixDesc($desc, FixDescSpoiler | FixDescRSS);
+        [$desc, $len, $trunc] = summarizeDesc($ctxt, isMarkdownDate($cmodDT), 210, FixDescSpoiler | FixDescRSS);
         $pubDate = date("D, j M Y H:i:s ", strtotime($ccreDT)) . 'UT';
         $link = get_root_url() . $link;
 
@@ -329,9 +328,10 @@ for ($i = 0 ; $i < count($comments) ; $i++) {
     } else {
 
         $showPrivate = ($adminPrivate && $cprivate);
-        if (!$showPrivate)
-            [$ctxt, $len, $trunc] = summarizeHtml($ctxt, 210);
-        $ctxt = fixDesc($ctxt, FixDescSpoiler);
+        if ($showPrivate)
+            $ctxt = formatDesc($ctxt, isMarkdownDate($cmodDT), FixDescSpoiler);
+        else
+            [$ctxt, $len, $trunc] = summarizeDesc($ctxt, isMarkdownDate($cmodDT), 210, FixDescSpoiler);
         $newIcon = ($showNewIcon && $ccreDT > $caughtUpDate ?
                     "<img src='img/blank.gif' class='newcomment'> " : "");
 
