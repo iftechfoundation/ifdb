@@ -1,7 +1,7 @@
 {
     "require": {
         "glenscott/url-normalizer": "^1.4",
-        "erusev/parsedown": "^1.7"
+        "league/commonmark": "^2.10"
     },
     "require-dev": {
         "phpunit/phpunit": "^12"

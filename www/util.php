@@ -1368,14 +1368,29 @@ function closeTagForStackedTag($tag)
     }
 }
 
-function parsedownMultilineText($text) {
-    // parsedown->text converts "1st line \n 2nd line" to "<p>1st line <br /> 2nd line</p>"
+function markdownConverter($breaks)
+{
+    static $converters = [];
+    if (!isset($converters[$breaks])) {
+        $env = new League\CommonMark\Environment\Environment([
+            'renderer' => ['soft_break' => $breaks ? "<br />\n" : "\n"],
+            'max_nesting_level' => 100,
+        ]);
+        $env->addExtension(new League\CommonMark\Extension\CommonMark\CommonMarkCoreExtension());
+        $env->addInlineParser(new League\CommonMark\Extension\Autolink\UrlAutolinkParser());
+        $converters[$breaks] = new League\CommonMark\MarkdownConverter($env);
+    }
+    return $converters[$breaks];
+}
+
+function markdownMultilineText($text) {
+    // Markdown converts "1st line \n 2nd line" to "<p>1st line <br /> 2nd line</p>"
     // that's unfortunate, because fixDesc has a special rule for `<br/>`.
     // We assume that `<br/>` is an iFiction *paragraph* break
     // We *do* have real `<br/>` iFiction paragraph breaks in the DB, which need to be rendered as
     // paragraph breaks.
     // So, we start by replacing all instances of `<br/>` with </p><p>, then run
-    // parsedown, which may generate some new `<br />` tokens. We'll replace those with `<br>`
+    // Markdown, which may generate some new `<br />` tokens. We'll replace those with `<br>`
     // (so fixDesc won't turn them into paragraph breaks)
 
     // example:
@@ -1384,11 +1399,19 @@ function parsedownMultilineText($text) {
 
     // pre-process iFiction-style <br/> paragraph breaks
     $replaced_ific_br = preg_replace("/<br *\\/>/", "</p><p>", $text);
-    $parsedown = new Parsedown();
-    $parsedown->setBreaksEnabled(true);
-    $markdown_converted = $parsedown->text($replaced_ific_br);
+    // keep a spoiler tag on its own line from starting an HTML block that
+    // swallows the Markdown after it
+    $spaced_spoilers = preg_replace('/^((?: {0,3}>)*)( {0,3})(<\s*\/?\s*spoiler( [^>\/]*)?>)[ \t]*\r?$/mi', "$1\n$1$2$3\n$1", $replaced_ific_br);
+    $markdown_converted = (string)markdownConverter(true)->convert($spaced_spoilers);
     $output = preg_replace("/<br \\/>/", "<br>", $markdown_converted);
     return $output;
+}
+
+// Markdown for one-line summaries, with block tags flattened to spaces
+function markdownLine($text) {
+    $html = (string)markdownConverter(false)->convert($text);
+    $html = preg_replace('/<\/?(p|h[1-6]|blockquote|ul|ol|li|pre|hr|dl|dt|dd|br)\b[^>]*>/i', ' ', $html);
+    return trim(preg_replace('/\s+/', ' ', $html));
 }
 
 // --------------------------------------------------------------------------
