@@ -1468,6 +1468,11 @@ function formatInlineDesc($desc, $markdown, $specials = 0)
     return $html;
 }
 
+function siteNewsHtml($moddate, $ldesc)
+{
+    return isMarkdownDate($moddate) ? formatInlineDesc($ldesc, true) : $ldesc;
+}
+
 // Returns [html, length, truncated]
 function summarizeDesc($desc, $markdown, $maxlen, $specials = 0)
 {

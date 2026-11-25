@@ -353,7 +353,7 @@ function newItemsSources($db, $options, $andNotMuted, $sandbox, $limit = 10,
                 $idList = newItemsSqlIdList($db, $ids);
                 return newItemsKeyedRows($db,
                     "select
-                       itemid as sitenewsid, title, ldesc as `desc`,
+                       itemid as sitenewsid, title, ldesc as `desc`, moddate,
                        posted as d,
                        date_format(posted, '%M %e, %Y') as fmtdate,
                        (now() < date_add(posted, interval 3 day)) as freshest
@@ -680,7 +680,8 @@ function showNewItemList($db, $first, $last, $items, $options)
         {
             // it's site news
             echo "<div class=\"site-news\">IFDB <a href='/news'>site news</a> <span class=notes><i>{$row['fmtdate']}</i></span>"
-                . "<br><div class=indented><b>{$row['title']}</b>: {$row['desc']}</div></div>";
+                . "<br><div class=indented><b>{$row['title']}</b>: "
+                . siteNewsHtml($row['moddate'], $row['desc']) . "</div></div>";
         }
         else if ($pick == 'L')
         {
@@ -999,7 +1000,7 @@ function showNewItemsRSS($db, $showcnt)
             // format the items for RSS
             // copied and pasted from /news
             $title = rss_encode("IFDB site news: " . htmlspecialcharx($row['title']));
-            $ldesc = rss_encode(htmlspecialcharx($row['desc']));
+            $ldesc = rss_encode(htmlspecialcharx(siteNewsHtml($row['moddate'], $row['desc'])));
             $pub = date("D, j M Y H:i:s ", strtotime($row['d'])) . 'UT';
 
             $link = get_root_url() . "news?item=" . $row['sitenewsid'];

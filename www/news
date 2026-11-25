@@ -15,7 +15,7 @@ if (isset($_REQUEST['rss'])) {
     // query the latest news items
     $result = mysql_query(
         "select
-           itemid, title, ldesc, posted
+           itemid, title, ldesc, posted, moddate
          from
            sitenews
          order by
@@ -46,7 +46,7 @@ if (isset($_REQUEST['rss'])) {
 
     // send the items
     while ($row = mysql_fetch_row($result)) {
-        [$itemid, $title, $ldesc, $pub] = $row;
+        [$itemid, $title, $ldesc, $pub, $moddate] = $row;
 
         $link = get_root_url() . "news?item=$itemid";
 
@@ -54,7 +54,7 @@ if (isset($_REQUEST['rss'])) {
         echo serialize_xml([
             'item' => [
                 'title' => $title,
-                'description' => $ldesc,
+                'description' => siteNewsHtml($moddate, $ldesc),
                 'link' => $link,
                 'pubDate' => date("r", strtotime($pub)),
                 'guid' => $link,
@@ -112,7 +112,7 @@ if ($item) {
 // query the news list
 $result = mysqli_execute_query($db,
     "select sql_calc_found_rows
-       itemid, title, ldesc, date_format(posted, '%e %M %Y')
+       itemid, title, ldesc, date_format(posted, '%e %M %Y'), moddate
      from
        sitenews
      $where
@@ -149,7 +149,7 @@ $adminPriv = $item && check_admin_privileges($db, $userid);
 $lastDate = '';
 echo "$pageCtl$pageCtlBreak";
 while ($row = mysql_fetch_row($result)) {
-    [$itemid, $title, $ldesc, $posted] = $row;
+    [$itemid, $title, $ldesc, $posted, $moddate] = $row;
 
     echo '<article>';
     // display the next date heading, if this is a new item
@@ -159,7 +159,7 @@ while ($row = mysql_fetch_row($result)) {
     }
 
     // display the item
-    echo "<p><b>$title</b>: $ldesc";
+    echo "<p><b>$title</b>: " . siteNewsHtml($moddate, $ldesc);
 
     if ($adminPriv) {
         echo "<p><a href='/adminops?editnews&item=".htmlspecialcharx($item)."'>Admin: Edit news item</a></p>";
