@@ -1443,6 +1443,38 @@ function markdownLine($text) {
     return trim(preg_replace('/\s+/', ' ', $html));
 }
 
+const MARKDOWN_CUTOFF = '2026-11-27';
+const MARKDOWN_REVIEW_CUTOFF = '2025-08-30';
+
+function isMarkdownDate($date, $cutoff = MARKDOWN_CUTOFF)
+{
+    return strcmp($date ?? '', $cutoff) >= 0;
+}
+
+// Renders user-entered HTML, or Markdown if $markdown is set, for display
+function formatDesc($desc, $markdown, $specials = 0)
+{
+    if ($markdown)
+        return fixDesc(markdownMultilineText($desc ?? ''), $specials | FixDescDemoteHeadings);
+    return fixDesc($desc, $specials);
+}
+
+// For text shown inline, drops the <p> around a single Markdown paragraph
+function formatInlineDesc($desc, $markdown, $specials = 0)
+{
+    $html = formatDesc($desc, $markdown, $specials);
+    if ($markdown && preg_match('#^<p>((?:(?!</?p\b).)*)</p>$#s', $html, $m))
+        return $m[1];
+    return $html;
+}
+
+// Returns [html, length, truncated]
+function summarizeDesc($desc, $markdown, $maxlen, $specials = 0)
+{
+    [$summary, $len, $trunc] = summarizeHtml($markdown ? markdownLine($desc ?? '') : $desc, $maxlen);
+    return [fixDesc($summary, $specials), $len, $trunc];
+}
+
 // --------------------------------------------------------------------------
 // Find an end tag starting from a given position.  Returns an array:
 // [offset of '<' of close tag, offset of next character after '>' of close].

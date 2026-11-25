@@ -569,7 +569,8 @@ if ($errMsg) {
                reviews.review,
                date_format(greatest(reviews.createdate, ifnull(embargodate, cast(0 as datetime))), '%M %e, %Y'),
                date_format(greatest(reviews.moddate, ifnull(embargodate, cast(0 as datetime))), '%M %e, %Y'),
-               greatest(reviews.createdate, ifnull(embargodate, cast(0 as datetime))) as publicationdate
+               greatest(reviews.createdate, ifnull(embargodate, cast(0 as datetime))) as publicationdate,
+               reviews.moddate
              from
                games, reviews
              where
@@ -582,15 +583,14 @@ if ($errMsg) {
         for ($i = 0 ; $i < 5 && $i < mysql_num_rows($result) ; $i++) {
             // retrieve the result
             [$gameid, $title, $author, $revid, $rating,
-                $summary, $review, $createdate, $moddate] = mysql_fetch_row($result);
+                $summary, $review, $createdate, $moddate, , $rawModdate] = mysql_fetch_row($result);
 
             // fix up fields for display
             $title = htmlspecialcharx($title);
             $author = htmlspecialcharx($author);
             $author = collapsedAuthors($author);
             $summary = htmlspecialcharx($summary);
-            [$review, $revlen, $revtrunc] = summarizeHtml($review, 140);
-            $parsedReview = fixDesc(markdownLine($review));
+            [$parsedReview, $revlen, $revtrunc] = summarizeDesc($review, isMarkdownDate($rawModdate, MARKDOWN_REVIEW_CUTOFF), 140);
             if ($moddate && $createdate != $moddate) {
                 $createdate .= " (edited: $moddate)";
             }

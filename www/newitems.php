@@ -317,6 +317,7 @@ function newItemsSources($db, $options, $andNotMuted, $sandbox, $limit = 10,
                 return newItemsKeyedRows($db,
                     "select
                        reviews.id as id, gameid, summary, review, rating, special,
+                       reviews.moddate,
                        games.title as title,
                        users.id as userid, users.name as username,
                        greatest(reviews.createdate,
@@ -650,8 +651,7 @@ function showNewItemList($db, $first, $last, $items, $options)
             }
 
             $stars = showStars($r['rating']);
-            [$summary, $len, $trunc] = summarizeHtml(markdownLine($r['review']), 140);
-            $summary = fixDesc($summary);
+            [$summary, $len, $trunc] = summarizeDesc($r['review'], isMarkdownDate($r['moddate'], MARKDOWN_REVIEW_CUTOFF), 140);
             if ($len != 0 || $stars != "")
             {
                 echo "<br><div class=indented><span class=details>";
@@ -948,7 +948,7 @@ function showNewItemsRSS($db, $showcnt)
                 }
                 $title .= $stars;
             }
-            $desc = fixDesc(markdownMultilineText($r['review']), FixDescSpoiler | FixDescRSS);
+            $desc = formatDesc($r['review'], isMarkdownDate($r['moddate'], MARKDOWN_REVIEW_CUTOFF), FixDescSpoiler | FixDescRSS);
             $link = get_root_url() . "viewgame?id={$r['gameid']}"
                     . "&review={$r['id']}";
             $pubDate = $r['d'];
