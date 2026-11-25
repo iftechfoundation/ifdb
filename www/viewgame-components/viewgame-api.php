@@ -159,6 +159,14 @@ if (isset($_REQUEST['ifiction']) || $json)
         ];
     }
 
+    if ($cover_art_description) {
+       if ($json) {
+            $ifdb_section['coverArtDescription'] = $cover_art_description;
+        } else {
+            $ifdb_section[] = ['coverArtDescription' => $cover_art_description];
+        } 
+    }
+
     if ($rounded_median_time >= 1) {
         if ($json) {
             $ifdb_section['playTimeInMinutes'] = $rounded_median_time;
