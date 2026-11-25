@@ -829,9 +829,9 @@ if ($userid && isset($_REQUEST['comment'])) {
                 if ($qcomment) {
                     $result = mysql_query(
                         "insert into pollcomments
-                           (pollid, gameid, comments)
+                           (pollid, gameid, comments, moddate)
                          values
-                           ('$id', '$gameid', '$qcomment')", $db);
+                           ('$id', '$gameid', '$qcomment', now())", $db);
                 }
 
                 if ($result) {
@@ -1044,7 +1044,8 @@ administrators can see who voted for what.)
             $gameTitle = rss_encode(htmlspecialcharx($gameTitle));
             $gameAuthor = rss_encode(htmlspecialcharx($gameAuthor));
             $quickQuote = rss_encode(htmlspecialcharx($quickQuote));
-            $notes = rss_encode(htmlspecialcharx($notes));
+            $notes = rss_encode(htmlspecialchars(
+                formatInlineDesc($notes, isMarkdownDate($voteDate))));
             $voteDate = rss_encode(
                 date("D, j M Y H:i:s ", strtotime($voteDate))) . 'UT';
             if ($anonymous) {
@@ -1165,7 +1166,8 @@ function expandVote(id)
                v.quickquote, v.notes,
                date_format(v.votedate, '%M %e, %Y'),
                c.comments,
-               r.id, ifnull(r.review, '') <> '', r.rating
+               r.id, ifnull(r.review, '') <> '', r.rating,
+               v.votedate, c.moddate
              from
                pollvotes as v
                left outer join pollcomments as c
@@ -1209,7 +1211,8 @@ function expandVote(id)
                null, null,
                '',
                c.comments,
-               null, null, null
+               null, null, null,
+               null, c.moddate
              from
                pollcomments as c
                join games as g on g.id = c.gameid
@@ -1238,14 +1241,15 @@ function expandVote(id)
                     $quickQuote, $notes,
                     $voteDateFmt,
                     $comments,
-                    $reviewID, $hasReviewText, $rating] = $rows[$i];
+                    $reviewID, $hasReviewText, $rating,
+                    $voteDate, $commentsModDate] = $rows[$i];
 
                 $voteUserName = htmlspecialcharx($voteUserName);
                 $gameTitle = htmlspecialcharx($gameTitle);
                 $gameAuthor = htmlspecialcharx($gameAuthor);
                 $quickQuote = htmlspecialcharx($quickQuote);
-                $notes = fixDesc($notes);
-                $comments = fixDesc($comments);
+                $notes = formatInlineDesc($notes, isMarkdownDate($voteDate));
+                $comments = formatInlineDesc($comments, isMarkdownDate($commentsModDate));
             } else {
                 // last row
                 $gameID = '[end]';
