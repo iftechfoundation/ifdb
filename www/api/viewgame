@@ -99,6 +99,7 @@ choose whether you want to use the JSON API or the <a href="#ifiction">XML API</
     "coverart": {
       "url": "<i>URL to cover art</i>"
     },
+    "coverArtDescription": <i>Description of the cover art (this key will be absent if there's no cover art description)</i> 
     "playTimeInMinutes": <i>Estimated play time in minutes</i>
     "primaryPlayOnlineUrl": "<i>The URL used in the main "Play online" button for the game (this key will be absent if there's no play online URL)</i>
     "downloads": {
@@ -273,6 +274,7 @@ appears at the same XML nesting level as &lt;identification&gt;,
      &lt;coverart&gt;
        &lt;url&gt;<i>URL to cover art image</i>&lt;/url&gt;
      &lt;/coverart&gt;
+     &lt;coverArtDescription&gt;<i>Cover art description</i>&lt;/coverArtDescription&gt;
      &lt;playTimeInMinutes&gt;<i>Estimated play time in minutes</i>&lt;/playTimeInMinutes&gt;
      &lt;primaryPlayOnlineUrl&gt;<i>The main URL for playing this game online (also used for IFDB's large "Play online" button)</i>&lt;/primaryPlayOnlineUrl&gt;
      &lt;averageRating&gt;<i>Average user rating</i>&lt;/averageRating&gt;
