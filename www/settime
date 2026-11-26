@@ -35,23 +35,6 @@ $result = mysqli_execute_query($db, "select id from games where id = ?", [$game]
 if (mysql_num_rows($result) == 0)
     send_action_response("Not Saved", "The specified game was not found.");
 
-// if there's an existing time for this user for this game, simply update
-// the time; otherwise add a new row
-
-$result = mysql_query("lock tables playertimes write", $db);
-if ($result) {
-    $result = mysqli_execute_query($db,
-        "select id, time_in_minutes from playertimes
-         where gameid=? and userid=?", [$game, $userid]);
-}
-if ($result && mysql_num_rows($result)) {
-    // get the ID of the existing record
-    [$rid, $oldtime] = mysql_fetch_row($result);
-} else {
-    $rid = false;
-    $oldtime = false;
-}
-
 if ($newtime < 0 || $newtime > 12000) {
     send_action_response("Not Saved", "The time specified is not valid.");
 }
@@ -61,42 +44,47 @@ if ($newtime < 0 || $newtime > 12000) {
 // - if there's an existing time record, and the new time is zero, delete the record
 // - if there's an existing time, and the new time is not zero, update it
 // - if there's no existing time, insert a new record
-$ok = false;
-if ($newtime == 0 && $rid) {
-    // time changed to zero -> delete the record
-    $result = mysqli_execute_query($db, "delete from playertimes where id=?", [$rid]);
-    if (!$result) error_log(mysql_error($db));
-    $ok = true;
-
-} else if ($rid) {
-    // there's an existing time record, and the new time is not 0, so update the record
+$notFound = false;
+$result = with_transaction($db, function ($db) use ($game, $userid, $newtime, $timenote, &$notFound) {
     $result = mysqli_execute_query($db,
-        "update playertimes set time_in_minutes = ?, time_note = ? where id=?", [$newtime, $timenote, $rid]);
-    if (!$result) error_log(mysql_error($db));
-    $ok = true;
+        "select id from games where id = ? for update", [$game]);
+    if (!$result || mysql_num_rows($result) == 0) {
+        $notFound = (bool)$result;
+        return false;
+    }
 
-} else if ($newtime != 0) {
-    // there's no time there yet for this user, so insert a new one
     $result = mysqli_execute_query($db,
-        "insert into playertimes (gameid, userid, time_in_minutes, time_note)
-         values (?, ?, ?, ?)", [$game, $userid, $newtime, $timenote]);
-    $ok = true;
-} else {
-    $result = true;
-    $ok = true;
-}
+        "select id from playertimes
+         where gameid=? and userid=? for update", [$game, $userid]);
+    if (!$result)
+        return false;
+    [$rid] = mysql_fetch_row($result) ?: [false];
 
-// release the table lock
-mysql_query("unlock tables", $db);
+    if ($newtime == 0 && $rid) {
+        // time changed to zero -> delete the record
+        $result = mysqli_execute_query($db, "delete from playertimes where id=?", [$rid]);
+    } else if ($rid) {
+        // there's an existing time record, and the new time is not 0, so update the record
+        $result = mysqli_execute_query($db,
+            "update playertimes set time_in_minutes = ?, time_note = ? where id=?", [$newtime, $timenote, $rid]);
+    } else if ($newtime != 0) {
+        // there's no time there yet for this user, so insert a new one
+        $result = mysqli_execute_query($db,
+            "insert into playertimes (gameid, userid, time_in_minutes, time_note)
+             values (?, ?, ?, ?)", [$game, $userid, $newtime, $timenote]);
+    }
+    return $result;
+}, $error);
 
 // check the result
 if ($result) {
     send_action_response("Saved", false);
-} else if ($ok) {
+} else if ($notFound) {
+    send_action_response("Not Saved", "The specified game was not found.");
+} else {
+    error_log("settime: $error");
     send_action_response("Not Saved", "An error occurred updating the database. "
                  . "Please try again later.");
-} else {
-    send_action_response("Not Saved", "The request was invalid.");
 }
 
 ?>
