@@ -567,6 +567,14 @@ function saveDivisions($newDivs)
     return [$result, $progress];
 }
 
+// game deletion locks compgames first, so lock it before saving anything
+function lockCompGames($db, $compID)
+{
+    return mysql_query(
+        "select compid from compgames where compid = '$compID'
+         for update", $db);
+}
+
 // save games
 function saveGames($newGames)
 {
@@ -610,7 +618,8 @@ function saveProfileLinks($new, $role)
     $progress = "SEL1147";
     $result = mysql_query(
         "select userid from compprofilelinks
-         where compid = '$compID' and role = '$role'", $db);
+         where compid = '$compID' and role = '$role'
+         for update", $db);
 
     for ($i = 0, $old = [], $oldMap = [] ;
          $i < mysql_num_rows($result) ; $i++)
@@ -682,49 +691,38 @@ function parseProfileLinks(&$newRec, $field, &$errDetail)
 }
 
 // save a new listing
-function saveNew($newRec)
+function saveNew($newRec, $newID)
 {
     global $db, $userid, $compID;
-    $result = true;
 
-    // generate a TUID for the new entry
-    $progress = "TUI8586";
-    $newID = generateTUID($db, "competitions.compid", 10);
-    if (!$newID)
-        $result = false;
+    // get the form fields, formatted and quoted
+    $title = mysql_real_escape_string($newRec["title"], $db);
+    $series = valOrNull($newRec["series"], $db);
+    $desc = valOrNull($newRec["desc"], $db);
+    $url = valOrNull($newRec["url"], $db);
+    $organizers = valOrNull($newRec["organizers"], $db);
+    $organizersExt = valOrNull($newRec["organizersExt"], $db);
+    $judges = valOrNull($newRec["judges"], $db);
+    $judgesExt = valOrNull($newRec["judgesExt"], $db);
+    $qualopen = valOrNull(parseDateVal($newRec["qualopen"]), $db);
+    $qualclose = valOrNull(parseDateVal($newRec["qualclose"]), $db);
+    $awarddate = valOrNull(parseDateVal($newRec["awarddate"]), $db);
 
-    // insert the new main competition record
-    if ($result) {
+    $progress = "INS8586.1";
+    $result = mysql_query(
+        "insert into competitions
+         (compid, title, series, `desc`, url,
+          organizers, organizersExt, judges, judgesExt,
+          qualopen, qualclose, awarddate,
+          created, editedby, moddate, pagevsn)
+         values
+         ('$newID', '$title', $series, $desc, $url,
+          $organizers, $organizersExt, $judges, $judgesExt,
+          $qualopen, $qualclose, $awarddate,
+          now(), '$userid', now(), 1)", $db);
 
-        // get the form fields, formatted and quoted
-        $title = mysql_real_escape_string($newRec["title"], $db);
-        $series = valOrNull($newRec["series"], $db);
-        $desc = valOrNull($newRec["desc"], $db);
-        $url = valOrNull($newRec["url"], $db);
-        $organizers = valOrNull($newRec["organizers"], $db);
-        $organizersExt = valOrNull($newRec["organizersExt"], $db);
-        $judges = valOrNull($newRec["judges"], $db);
-        $judgesExt = valOrNull($newRec["judgesExt"], $db);
-        $qualopen = valOrNull(parseDateVal($newRec["qualopen"]), $db);
-        $qualclose = valOrNull(parseDateVal($newRec["qualclose"]), $db);
-        $awarddate = valOrNull(parseDateVal($newRec["awarddate"]), $db);
-
-        $progress = "INS8586.1";
-        $result = mysql_query(
-            "insert into competitions
-             (compid, title, series, `desc`, url,
-              organizers, organizersExt, judges, judgesExt,
-              qualopen, qualclose, awarddate,
-              created, editedby, moddate, pagevsn)
-             values
-             ('$newID', '$title', $series, $desc, $url,
-              $organizers, $organizersExt, $judges, $judgesExt,
-              $qualopen, $qualclose, $awarddate,
-              now(), '$userid', now(), 1)", $db);
-
-        // we've made it far enough to assign the new ID
-        $compID = $newID;
-    }
+    // we've made it far enough to assign the new ID
+    $compID = $newID;
 
     // insert the divisions
     if ($result)
@@ -741,29 +739,6 @@ function saveNew($newRec)
     if ($result)
         [$result, $progress] = saveProfileLinks(
             $newRec["organizers-links"], "O");
-
-    // check what happened
-    if ($result) {
-
-        // success - use the new TUID for the current record
-        $compID = $newID;
-
-    } else if ($newID) {
-
-        // failed - roll back as much as possible
-        mysql_query(
-            "delete from competitions where compid = '$newID'", $db);
-        mysql_query(
-            "delete from compdivs where compid = '$newID'", $db);
-        mysql_query(
-            "delete from compgames where compid = '$newID'", $db);
-        mysql_query(
-            "delete from compprofilelinks where compid = '$newID'", $db);
-
-        // revert to a new record, and forget any new division IDs assigned
-        $compID = "new";
-        $newDivID = false;
-    }
 
     // return results
     return [$result, $progress];
@@ -880,24 +855,66 @@ if (!$errMsg && isset($_POST["save"])) {
     // if there were no errors, do the update
     if (!$errDetail) {
 
-        // lock the relevant tables
-        $progress = "LCK8586";
-        $result = mysql_query(
-            "lock tables
-               competitions write,
-               compdivs write,
-               compgames write,
-               compprofilelinks write,
-               comps_history write", $db);
+        // generate a TUID for a new entry
+        $result = true;
+        $newID = false;
+        if ($compID == "new") {
+            $progress = "TUI8586";
+            $newID = generateTUID($db, "competitions.compid", 10);
+            $result = (bool)$newID;
+        }
 
         // create a new record or update the old one, as appropriate
         if ($result) {
-            if ($compID == "new") {
+            $progress = "LCK8586";
+            $result = with_transaction($db, function ($db)
+                use ($compID, $newID, $oldRec, &$newRec, &$dispRec,
+                     &$errMsg, &$progress) {
+                if ($newID) {
+                    $progress = "LCG8586";
+                    if (!lockCompGames($db, $newID))
+                        return false;
 
-                // save the new record
-                [$result, $progress] = saveNew($newRec);
+                    // save the new record
+                    [$result, $progress] = saveNew($newRec, $newID);
+                    return $result;
+                }
 
-            } else {
+                // query the current page version, to make sure the page
+                // hasn't been updated concurrently while we were working
+                // on it
+                $progress = "SPV8856";
+                $result = mysql_query(
+                    "select pagevsn from competitions
+                     where compid = '$compID' for update", $db);
+                if (!$result)
+                    return false;
+                [$pagevsn] = mysql_fetch_row($result);
+
+                if ($pagevsn != $newRec["pagevsn"]) {
+                    $errMsg[] =
+                        "This competition listing's in the database "
+                        . "has been updated since you started editing "
+                        . "the page. Another user must have been "
+                        . "editing the same page concurrently. "
+                        . "Please compare your changes to the "
+                        . "<a href=\"viewcomp?id=$compID\" "
+                        . "target='_blank'>current version of the page</a> "
+                        . "to determine if "
+                        . "you want to keep the other user's changes "
+                        . "instead of your own. <b>If you click Save "
+                        . "again, your update will overwrite the "
+                        . "last version.</b>";
+
+                    // update our version indicator to the new version
+                    $newRec["pagevsn"] = $pagevsn;
+                    $dispRec = $newRec;
+                    return false;
+                }
+
+                $progress = "LCG8586";
+                if (!lockCompGames($db, $compID))
+                    return false;
 
                 // compute differences
                 [$changesOld, $changesNew] =
@@ -905,48 +922,22 @@ if (!$errMsg && isset($_POST["save"])) {
 
                 // if we found anything different, save the updates
                 if (count($changesNew) == 0) {
-                    $result = false;
                     $errMsg[] = "You didn't make any changes.";
-                }
-
-                // query the current page version, to make sure the page
-                // hasn't been updated concurrently while we were working
-                // on it
-                if ($result) {
-                    $progress = "SPV8856";
-                    $result = mysql_query(
-                        "select pagevsn from competitions
-                         where compid = '$compID'", $db);
-                    [$pagevsn] = mysql_fetch_row($result);
-
-                    if ($pagevsn != $newRec["pagevsn"]) {
-                        $result = false;
-                        $errMsg[] =
-                            "This competition listing's in the database "
-                            . "has been updated since you started editing "
-                            . "the page. Another user must have been "
-                            . "editing the same page concurrently. "
-                            . "Please compare your changes to the "
-                            . "<a href=\"viewcomp?id=$compID\" "
-                            . "target='_blank'>current version of the page</a> "
-                            . "to determine if "
-                            . "you want to keep the other user's changes "
-                            . "instead of your own. <b>If you click Save "
-                            . "again, your update will overwrite the "
-                            . "last version.</b>";
-
-                        // update our version indicator to the new version
-                        $newRec["pagevsn"] = $pagevsn;
-                        $dispRec = $newRec;
-                    }
+                    return false;
                 }
 
                 // if everything's good, do the update
-                if ($result) {
-                    [$result, $progress] = saveUpdates(
-                        $newRec, $oldRec, $changesNew, $changesOld);
-                }
-            }
+                [$result, $progress] = saveUpdates(
+                    $newRec, $oldRec, $changesNew, $changesOld);
+                return $result;
+            }, $error);
+        }
+
+        // a new record that wasn't saved reverts to a new record, and
+        // forgets any new division IDs assigned
+        if (!$result && $newID) {
+            $compID = "new";
+            $newDivID = false;
         }
 
         // if we encountered a database error, say so
@@ -958,7 +949,7 @@ if (!$errMsg && isset($_POST["save"])) {
                         . "persists. For reference, please pass along this "
                         . "error code: $progress."
                         . ($adminPriv ?
-                           "<br>DB Error: " . mysql_error($db) : "");
+                           "<br>DB Error: " . ($error ?? mysql_error($db)) : "");
 
         }
 
@@ -991,9 +982,6 @@ if (!$errMsg && isset($_POST["save"])) {
             // use the updated post as the display record, too
             $dispRec = $newRec;
 
-            // unlock tables
-            mysql_query("unlock tables", $db);
-
             // redirect to the page we just updated/created
             header("HTTP/1.1 301 Moved Permanently");
             header("Content-Type: text/html");
@@ -1007,9 +995,6 @@ if (!$errMsg && isset($_POST["save"])) {
             // the redirect
             exit();
         }
-
-        // unlock tables
-        mysql_query("unlock tables", $db);
 
     } else {
         // show a general error message at the top of the form
