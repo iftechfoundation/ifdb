@@ -165,74 +165,83 @@ if ($setID) {
         // if this is a SAVE, try posting the update
         if ($isSave && !$errMsg) {
 
-            // lock the style sheet table
-            $progress = "SLC001";
-            $result = mysql_query(
-                "lock tables stylesheets write, users write", $db);
-
             // make sure we have a title
+            $result = true;
             if ($formTitle == '') {
                 $formErrMsg = "Please enter a title for the style sheet.";
                 $result = false;
             }
 
             if ($result) {
-                // if this is new, we'll insert a row; otherwise we'll update
-                if ($editID == 'new') {
-
-                    // make sure this wouldn't create too many entries for
-                    // this user
-                    $progress = "SCM002";
+                // lock the user row, to serialize this user's saves
+                $progress = "SLC001";
+                $newID = false;
+                $result = with_transaction($db, function ($db)
+                    use ($userid, $formTitle, $formDesc, $formContents,
+                         $formDark, $editID, &$newID, &$progress, &$formErrMsg) {
                     $result = mysqli_execute_query($db,
-                        "select count(*) from stylesheets
-                         where userid = ?", [$userid]);
-                    [$scnt] = mysql_fetch_row($result);
+                        "select id from users where id = ? for update",
+                        [$userid]);
+                    if (!$result)
+                        return false;
 
-                    if ($result && $scnt >= MaxSheets) {
-                        $result = false;
-                        $formErrMsg = "Sorry, but the system can only store "
-                                      . MaxSheets . " style sheets for each "
-                                      . "user.  You've already reached the "
-                                      . "limit, so this new sheet cannot "
-                                      . "be saved.";
-                    }
+                    // if this is new, we'll insert a row; otherwise we'll update
+                    if ($editID == 'new') {
 
-                    // if we're okay, do the update
-                    if ($result) {
-                        // add the row
-                        $progress = "SIN003";
+                        // make sure this wouldn't create too many entries for
+                        // this user
+                        $progress = "SCM002";
                         $result = mysqli_execute_query($db,
-                            "insert into stylesheets
-                             (title, userid, `desc`, contents, dark, created)
-                             values (?, ?, ?, ?, ?, now())", [$formTitle, $userid, $formDesc, $formContents, $formDark]);
+                            "select count(*) from stylesheets
+                             where userid = ?", [$userid]);
+                        [$scnt] = mysql_fetch_row($result);
 
-                        // if we succeeded, note the new ID
-                        if ($result)
-                            $editID = mysql_insert_id($db);
+                        if ($result && $scnt >= MaxSheets) {
+                            $result = false;
+                            $formErrMsg = "Sorry, but the system can only store "
+                                          . MaxSheets . " style sheets for each "
+                                          . "user.  You've already reached the "
+                                          . "limit, so this new sheet cannot "
+                                          . "be saved.";
+                        }
+
+                        // if we're okay, do the update
+                        if ($result) {
+                            // add the row
+                            $progress = "SIN003";
+                            $result = mysqli_execute_query($db,
+                                "insert into stylesheets
+                                 (title, userid, `desc`, contents, dark, created)
+                                 values (?, ?, ?, ?, ?, now())", [$formTitle, $userid, $formDesc, $formContents, $formDark]);
+
+                            // if we succeeded, note the new ID
+                            if ($result)
+                                $editID = $newID = mysql_insert_id($db);
+                        }
+
+                    } else {
+
+                        // it's an existing row - update it
+                        $progress = "SUP004";
+                        $result = mysqli_execute_query($db,
+                            "update stylesheets
+                             set
+                               title = ?, `desc` = ?,
+                               contents = ?, dark = ?
+                             where stylesheetid = ?", [$formTitle, $formDesc, $formContents, $formDark, $editID]);
                     }
 
-                } else {
-
-                    // it's an existing row - update it
-                    $progress = "SUP004";
-                    $result = mysqli_execute_query($db,
-                        "update stylesheets
-                         set
-                           title = ?, `desc` = ?,
-                           contents = ?, dark = ?
-                         where stylesheetid = ?", [$formTitle, $formDesc, $formContents, $formDark, $editID]);
-                }
+                    // if desired, activate the style
+                    if ($result && isset($_REQUEST['saveSetStyle'])) {
+                        $result = mysqli_execute_query($db,
+                            "update users set stylesheetid = ?
+                             where id = ?", [$editID, $userid]);
+                    }
+                    return $result;
+                });
+                if ($result && $newID)
+                    $editID = $newID;
             }
-
-            // if desired, activate the style
-            if ($result && isset($_REQUEST['saveSetStyle'])) {
-                mysqli_execute_query($db,
-                    "update users set stylesheetid = ?
-                     where id = ?", [$editID, $userid]);
-            }
-
-            // done with our table lock
-            mysql_query("unlock tables", $db);
 
             // if we failed without a detailed error message, use the
             // current progress point as the error code
