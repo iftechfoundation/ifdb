@@ -281,7 +281,7 @@ function showCommentPage($db, $itemAuthor, $srcID, $srcCode,
         }
 
         // figure the page range
-        $lastPage = (int)floor(($ccnt + $perPage - 1)/$perPage);
+        $lastPage = last_page($ccnt, $perPage);
 
         // get the desired page
         [$pgAll, $pg] = parse_page(get_req_data('pg'));
@@ -289,8 +289,8 @@ function showCommentPage($db, $itemAuthor, $srcID, $srcCode,
             if ($ccnt > 0) {
                 $perPage = $ccnt;
             }
-        } else if ($pg > $lastPage) {
-            $pg = $lastPage;
+        } else {
+            $pg = clamp($pg, 1, $lastPage);
         }
 
         // if there's a specific comment being requested, go to the page

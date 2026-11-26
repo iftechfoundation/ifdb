@@ -175,11 +175,10 @@ if ($errMsg) {
     [$cnt] = mysql_fetch_row($result2);
 
     // figure how many pages that makes
-    $lastPage = (int)floor(($cnt + $perPage - 1)/$perPage);
+    $lastPage = last_page($cnt, $perPage);
 
     // limit the page list based on the available row count
-    if ($pg > $lastPage)
-        $pg = $lastPage;
+    $pg = clamp($pg, 1, $lastPage);
     if ($lastOnPage > $cnt - 1)
         $lastOnPage = $cnt - 1;
 

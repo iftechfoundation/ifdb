@@ -233,9 +233,8 @@ if ($rss) {
         . "RSS Feed</a></span>";
 
     // figure where we are in the list
-    $lastPage = (int)floor(($rowcnt + $perPage - 1)/$perPage);
-    if ($pg > $lastPage)
-        $pg = $lastPage;
+    $lastPage = last_page($rowcnt, $perPage);
+    $pg = clamp($pg, 1, $lastPage);
 
     $lastOnPage = $firstOnPage + $perPage - 1;
     if ($lastOnPage >= $rowcnt)

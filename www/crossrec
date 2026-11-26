@@ -505,11 +505,10 @@ if ($editMode) {
     $cnt = count($recs);
 
     // figure the last page
-    $lastPage = (int)floor(($cnt + $perPage - 1)/$perPage);
+    $lastPage = last_page($cnt, $perPage);
 
     // limit the page to the available range
-    if ($pg > $lastPage)
-        $pg = $lastPage;
+    $pg = clamp($pg, 1, $lastPage);
 
     // limit the last-on-page to the available range
     if ($lastOnPage >= $cnt)
