@@ -38,23 +38,6 @@ $result = mysqli_execute_query($db, "select id from games where id = ?", [$game]
 if (mysql_num_rows($result) == 0)
     send_action_response("Not Saved", "The specified game was not found.");
 
-// if there's an existing review for this user for this game, simply update
-// the rating; otherwise insert a new row with an empty review
-$result = mysql_query("lock tables reviews write", $db);
-if ($result) {
-    $result = mysqli_execute_query($db,
-        "select id, review from reviews
-         where gameid=? and userid=?", [$game, $userid]);
-}
-if ($result && mysql_num_rows($result)) {
-    // get the existing review ID
-    $rid = mysql_result($result, 0, "id");
-    $review = mysql_result($result, 0, "review");
-} else {
-    $rid = false;
-    $review = false;
-}
-
 if ($rating < 0 || $rating > 5) {
     send_action_response("Not Saved", "The rating specified is not valid.");
 }
@@ -64,42 +47,47 @@ if ($rating < 0 || $rating > 5) {
 // - if there's an existing review row with no written review, and the new rating is zero, delete it
 // - if there's an existing review, update it
 // - if there's no existing review, insert it
-$ok = false;
-if ($rating == 0 && $rid && !$review) {
-    // rating to zero -> delete the review
-    $result = mysqli_execute_query($db, "delete from reviews where id=?", [$rid]);
-    if (!$result) error_log(mysql_error($db));
-    $ok = true;
-
-} else if ($rid) {
-    // there's an existing review - update its rating
+$notFound = false;
+$result = with_transaction($db, function ($db) use ($game, $userid, $rating, &$notFound) {
     $result = mysqli_execute_query($db,
-        "update reviews set rating = ? where id=?", [$rating, $rid]);
-    if (!$result) error_log(mysql_error($db));
-    $ok = true;
+        "select id from games where id = ? for update", [$game]);
+    if (!$result || mysql_num_rows($result) == 0) {
+        $notFound = (bool)$result;
+        return false;
+    }
 
-} else if ($rating != 0) {
-    // there's no review there yet for this user, so insert a new one
     $result = mysqli_execute_query($db,
-        "insert into reviews (userid, gameid, createdate, rating)
-         values (?, ?, now(), ?)", [$userid, $game, $rating]);
-    $ok = true;
-} else {
-    $result = true;
-    $ok = true;
-}
+        "select id, review from reviews
+         where gameid=? and userid=? for update", [$game, $userid]);
+    if (!$result)
+        return false;
+    [$rid, $review] = mysql_fetch_row($result) ?: [false, false];
 
-// release the table lock
-mysql_query("unlock tables", $db);
+    if ($rating == 0 && $rid && !$review) {
+        // rating to zero -> delete the review
+        $result = mysqli_execute_query($db, "delete from reviews where id=?", [$rid]);
+    } else if ($rid) {
+        // there's an existing review - update its rating
+        $result = mysqli_execute_query($db,
+            "update reviews set rating = ? where id=?", [$rating, $rid]);
+    } else if ($rating != 0) {
+        // there's no review there yet for this user, so insert a new one
+        $result = mysqli_execute_query($db,
+            "insert into reviews (userid, gameid, createdate, rating)
+             values (?, ?, now(), ?)", [$userid, $game, $rating]);
+    }
+    return $result;
+}, $error);
 
 // check the result
 if ($result) {
     send_action_response("Saved");
-} else if ($ok) {
+} else if ($notFound) {
+    send_action_response("Not Saved", "The specified game was not found.");
+} else {
+    error_log("setrating: $error");
     send_action_response("Not Saved", "An error occurred updating the database. "
                          . "Please try again later.");
-} else {
-    send_action_response("Not Saved", "The request was invalid.");
 }
 
 ?>
