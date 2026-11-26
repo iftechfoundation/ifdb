@@ -107,118 +107,123 @@ if ($userid == $curuser
     // if we're good so far, try storing the image
     if (!$imgErrMsg) {
 
-        // lock the table for a moment
+        // lock the user row for a moment
         $progress = "SLK.001";
-        $result = mysql_query("lock tables stylepics write", $db);
-
-        // make sure the filename isn't already in use
-        if ($result) {
-            $progress = "SCK.002";
+        $imgID = false;
+        $result = with_transaction($db, function ($db)
+            use ($curuser, $uploadFilename, $uploadDesc,
+                 &$imgID, &$progress, &$imgErrMsg) {
             $result = mysql_query(
-                "select name from stylepics
-                 where userid = '$curuser'
-                   and name = '$uploadFilename'", $db);
-            if (mysql_num_rows($result) > 0) {
-                $result = false;
-                $imgErrMsg = "The server filename is already used "
-                             . "for another image in your collection. "
-                             . "You must give each image in your "
-                             . "collection a unique name.";
-            }
-        }
+                "select id from users where id = '$curuser' for update", $db);
 
-        // get the file contents
-        if ($result) {
-            // load the image data
-            $filename = $_FILES['imagefile']['tmp_name'];
-            $imgdata = file_get_contents($filename);
-            $imgbytes = strlen($imgdata);
-            $imgtype = false;
-
-            // check for a TTF font
-            if (strtolower(substr($uploadFilename, -4)) == ".ttf"
-                && validate_ttf($imgdata)) {
-
-                // it looks like a valid font
-                $imgtype = "ttf";
-
-            } else {
-                // parse the image file
-                $imginfo = getimagesize($filename);
-                $imgtype = $imginfo[2];
-
-                // translate the image type to an image/xxx name
-                $xlat = [IMAGETYPE_JPEG => "jpeg",
-                    IMAGETYPE_GIF => "gif",
-                    IMAGETYPE_PNG => "png"];
-                $imgtype = isset($xlat[$imgtype]) ? $xlat[$imgtype] : null;
+            // make sure the filename isn't already in use
+            if ($result) {
+                $progress = "SCK.002";
+                $result = mysql_query(
+                    "select name from stylepics
+                     where userid = '$curuser'
+                       and name = '$uploadFilename'
+                     for update", $db);
+                if (mysql_num_rows($result) > 0) {
+                    $result = false;
+                    $imgErrMsg = "The server filename is already used "
+                                 . "for another image in your collection. "
+                                 . "You must give each image in your "
+                                 . "collection a unique name.";
+                }
             }
 
-            // make sure it's a valid type and not too big
-            if (!$imgtype) {
-                $result = false;
-                $imgErrMsg = "This does not appear to be a valid image "
-                             . "or font - please only upload images "
-                             . "(JPEG, PNG, GIF) or True-Type fonts (TTF). ";
-            } else if ($imgbytes > MaxImageSize) {
-                $result = false;
-                $imgErrMsg = "The image specified is too large. Each "
-                             . "image is limited to "
-                             . (MaxImageSize / 1024) . " KBytes.";
+            // get the file contents
+            if ($result) {
+                // load the image data
+                $filename = $_FILES['imagefile']['tmp_name'];
+                $imgdata = file_get_contents($filename);
+                $imgbytes = strlen($imgdata);
+                $imgtype = false;
+
+                // check for a TTF font
+                if (strtolower(substr($uploadFilename, -4)) == ".ttf"
+                    && validate_ttf($imgdata)) {
+
+                    // it looks like a valid font
+                    $imgtype = "ttf";
+
+                } else {
+                    // parse the image file
+                    $imginfo = getimagesize($filename);
+                    $imgtype = $imginfo[2];
+
+                    // translate the image type to an image/xxx name
+                    $xlat = [IMAGETYPE_JPEG => "jpeg",
+                        IMAGETYPE_GIF => "gif",
+                        IMAGETYPE_PNG => "png"];
+                    $imgtype = isset($xlat[$imgtype]) ? $xlat[$imgtype] : null;
+                }
+
+                // make sure it's a valid type and not too big
+                if (!$imgtype) {
+                    $result = false;
+                    $imgErrMsg = "This does not appear to be a valid image "
+                                 . "or font - please only upload images "
+                                 . "(JPEG, PNG, GIF) or True-Type fonts (TTF). ";
+                } else if ($imgbytes > MaxImageSize) {
+                    $result = false;
+                    $imgErrMsg = "The image specified is too large. Each "
+                                 . "image is limited to "
+                                 . (MaxImageSize / 1024) . " KBytes.";
+                }
             }
-        }
 
-        // if we're good so far, check quota
-        if ($result) {
-            $progress = "SQC.003";
-            $result = mysql_query(
-                "select count(*), sum(picturebytes) from stylepics
-                 where userid = '$curuser'", $db);
-            [$curCnt, $curUsage] = mysql_fetch_row($result);
+            // if we're good so far, check quota
+            if ($result) {
+                $progress = "SQC.003";
+                $result = mysql_query(
+                    "select count(*), sum(picturebytes) from stylepics
+                     where userid = '$curuser'", $db);
+                [$curCnt, $curUsage] = mysql_fetch_row($result);
 
-            if ($result && $curCnt + 1 > MaxImages) {
-                $result = false;
-                $imgErrMsg = "Sorry, but uploading this image would exceed "
-                             . "your maximum storage limit of "
-                             . MaxImages . " images. You will need to "
-                             . "delete some unused images before you "
-                             . "can upload new ones.";
+                if ($result && $curCnt + 1 > MaxImages) {
+                    $result = false;
+                    $imgErrMsg = "Sorry, but uploading this image would exceed "
+                                 . "your maximum storage limit of "
+                                 . MaxImages . " images. You will need to "
+                                 . "delete some unused images before you "
+                                 . "can upload new ones.";
+                }
+
+                if ($result && $curUsage + $imgbytes > MaxImageQuota) {
+                    $result = false;
+                    $imgErrMsg = "Sorry, but uploading this image would exceed "
+                                 . "your maximum style image storage limit of "
+                                 . (MaxImageQuota / 1024) . " KBytes. You "
+                                 . "will need to delete some unused images "
+                                 . "to upload more, or reduce the size "
+                                 . "of this image (for example, by using "
+                                 . "more aggressive compression).";
+                }
             }
 
-            if ($result && $curUsage + $imgbytes > MaxImageQuota) {
-                $result = false;
-                $imgErrMsg = "Sorry, but uploading this image would exceed "
-                             . "your maximum style image storage limit of "
-                             . (MaxImageQuota / 1024) . " KBytes. You "
-                             . "will need to delete some unused images "
-                             . "to upload more, or reduce the size "
-                             . "of this image (for example, by using "
-                             . "more aggressive compression).";
+            // if everything's good to this point, store the image
+            if ($result) {
+                // tentatively store the image
+                $imgID = tentative_store_image(
+                    $imgdata, $imgtype, "C", "", $curuser);
+
+                // store it in the stylepics table
+                $progress = "SIN.004";
+                $result = mysql_query(
+                    "insert into stylepics
+                       (userid, name, picture, `desc`, picturebytes)
+                     values
+                       ('$curuser', '$uploadFilename', '$imgID',
+                        '$uploadDesc', '$imgbytes')", $db);
             }
-        }
+            return $result;
+        });
 
-        // if everything's good to this point, store the image
-        if ($result) {
-            // tentatively store the image
-            $imgID = tentative_store_image(
-                $imgdata, $imgtype, "C", "", $curuser);
-
-            // store it in the stylepics table
-            $progress = "SIN.004";
-            $result = mysql_query(
-                "insert into stylepics
-                   (userid, name, picture, `desc`, picturebytes)
-                 values
-                   ('$curuser', '$uploadFilename', '$imgID',
-                    '$uploadDesc', '$imgbytes')", $db);
-
-            // if that succeeded, commit the stored image
-            if ($result)
-                commit_image($imgID);
-        }
-
-        // done with our table locks
-        mysql_query("unlock tables", $db);
+        // if that succeeded, commit the stored image
+        if ($result)
+            commit_image($imgID);
 
         // if we failed a database operation, flag it
         if (!$result && !$imgErrMsg) {
@@ -380,39 +385,55 @@ if ($userid == $curuser
     if ($mainErrMsg)
         $result = false;
 
-    // lock tables while we're working
+    // lock the user row while we're working
     if ($result) {
         $progress = "SEL.100";
-        $result = mysql_query("lock tables stylepics write", $db);
-    }
+        $result = with_transaction($db, function ($db)
+            use ($curuser, $fname, $oldfname, $imgdesc,
+                 &$progress, &$mainErrMsg) {
+            $result = mysql_query(
+                "select id from users where id = '$curuser' for update", $db);
 
-    // if we're renaming, make sure the new name won't collide with
-    // another image
-    if ($result && $oldfname != $fname) {
-        $progress = "SEQ.101";
-        $result = mysql_query(
-            "select name from stylepics
-             where name = '$fname' and userid = '$curuser'", $db);
-        if (mysql_num_rows($result) > 0) {
-            $mainErrMsg = "The file name is already in use by "
-                          . "another image in your collection. Each "
-                          . "image in your collection must have a "
-                          . "unique name.";
-            $result = false;
-        }
-    }
+            // make sure the image is still there
+            if ($result) {
+                $result = mysql_query(
+                    "select name from stylepics
+                     where name = '$oldfname' and userid = '$curuser'
+                     for update", $db);
+                if ($result && mysql_num_rows($result) == 0) {
+                    $mainErrMsg = "The requested picture was not found in the database.";
+                    $result = false;
+                }
+            }
 
-    // make the update
-    if ($result) {
-        $progress = "SEU.102";
-        $result = mysql_query(
-            "update stylepics
-             set name = '$fname', `desc` = '$imgdesc'
-             where name = '$oldfname' and userid = '$curuser'", $db);
-    }
+            // if we're renaming, make sure the new name won't collide with
+            // another image
+            if ($result && $oldfname != $fname) {
+                $progress = "SEQ.101";
+                $result = mysql_query(
+                    "select name from stylepics
+                     where name = '$fname' and userid = '$curuser'
+                     for update", $db);
+                if (mysql_num_rows($result) > 0) {
+                    $mainErrMsg = "The file name is already in use by "
+                                  . "another image in your collection. Each "
+                                  . "image in your collection must have a "
+                                  . "unique name.";
+                    $result = false;
+                }
+            }
 
-    // done with our table locks
-    mysql_query("unlock tables", $db);
+            // make the update
+            if ($result) {
+                $progress = "SEU.102";
+                $result = mysql_query(
+                    "update stylepics
+                     set name = '$fname', `desc` = '$imgdesc'
+                     where name = '$oldfname' and userid = '$curuser'", $db);
+            }
+            return $result;
+        });
+    }
 
     // check for a database error
     if (!$result && !$mainErrMsg)
