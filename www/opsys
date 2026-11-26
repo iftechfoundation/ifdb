@@ -199,118 +199,129 @@ if ($geticon) {
             $seticon = ",icon=null";
         }
 
-        // set up a transaction and lock the tables we'll be updating
-        $result = mysql_query("set autocommit=0", $db)
-                  && mysql_query("start transaction", $db)
-                  &&mysql_query(
-                      "lock tables operatingsystems write, "
-                      . "osversions write, audit write", $db);
-
-        // check for inserting a new OS
-        if ($qosid == 'new') {
-            $progress = "inserting OS record";
-            $sql = "insert into operatingsystems "
-                   . "(externid,name,icon,displaypriority) "
-                   . "values ('$qexternid', '$qname', $insicon, $ospri)";
-        } else {
-            $progress = "updating OS record";
-            $sql = "update operatingsystems
-                    set externid='$qexternid', name='$qname',
-                      displaypriority='$ospri'  $seticon
-                    where id='$qosid'";
-        }
-        if ($result)
+        $progress = "starting transaction";
+        $newOsid = $saved = false;
+        $result = with_transaction($db, function ($db)
+            use ($qname, $qexternid, $insicon, $seticon, $ospri, $userid,
+                 $qosid, $oldversions, $versions, $saveNotes,
+                 &$newOsid, &$saved, &$progress) {
+            // check for inserting a new OS
+            if ($qosid == 'new') {
+                $progress = "inserting OS record";
+                $sql = "insert into operatingsystems "
+                       . "(externid,name,icon,displaypriority) "
+                       . "values ('$qexternid', '$qname', $insicon, $ospri)";
+            } else {
+                $progress = "updating OS record";
+                $sql = "update operatingsystems
+                        set externid='$qexternid', name='$qname',
+                          displaypriority='$ospri'  $seticon
+                        where id='$qosid'";
+            }
             $result = mysql_query($sql, $db);
 
-        if ($result && $qosid == 'new') {
-            // note the new ID
-            $osid = mysql_insert_id($db);
-            $qosid = mysql_real_escape_string($osid, $db);
-            $sql .= " [new ID=$osid]";
-
-            // add the special "all versions" version row
-            $progress = "inserting OS version '*' record";
-            $result = mysql_query(
-                "insert into osversions (externid, osid, name, seq)
-                 values ('*', '$qosid', '*', 0)", $db);
-        }
-
-        if ($result) {
-            // save an audit entry for the update
-            for ($i = 0 ; $i < count($versions) ; $i++) {
-                $sql .= " [osversion $i = "
-                        . "('{$versions[$i][0]}', '{$versions[$i][1]}')";
-            }
-            mysql_query("insert into audit (userid, action)
-                        values ('$userid', '"
-                        . mysql_real_escape_string($sql, $db) . "')", $db);
-        }
-
-        // insert/update the new version list
-        for ($i = 0 ; $result && $i < count($versions) ; $i++) {
-            // get this record
-            $v = $versions[$i];
-            $vsnid = mysql_real_escape_string($v[0], $db);
-            $vsnname = mysql_real_escape_string($v[1], $db);
-            $vsnextid = mysql_real_escape_string($v[2], $db);
-
-            // assign its sequence - this is just the index in the new list
-            $seq = $i + 1;
-
-            // if we have a version ID in the record, it's an update;
-            // otherwise it's an insertion of a new record
-            if ($vsnid == "") {
-                $progress = "inserting version record #$i ($newvsnid)";
+            // reload the old version list now that the OS row is locked
+            if ($result && $qosid != 'new') {
+                $progress = "loading old version records";
                 $result = mysql_query(
-                    "insert into osversions (osid, externid, name, seq)
-                     values ('$qosid', '$vsnextid', '$vsnname', '$seq')",
-                    $db);
-
-                // update our internal record of the version ID
-                if ($result)
-                    $versions[$i][0] = $v[2];
-            } else {
-                $progress = "updating version record #$i";
-                $result = mysql_query(
-                    "update osversions
-                     set name='$vsnname', externid='$vsnextid', seq='$seq'
-                     where vsnid='$vsnid'", $db);
+                    "select vsnid, name from osversions
+                     where osid = '$qosid' and name != '*'", $db);
+                $oldversions = $result ? mysqli_fetch_all($result, MYSQLI_NUM) : [];
             }
-        }
 
-        // delete versions that are no longer in the list
-        for ($i = 0 ; $result && $i < count($oldversions) ; $i++) {
-            // look for an ID match to oldversion[i] in the new versions list
-            $oldv = $oldversions[$i];
-            $vsnid = $oldv[0];
-            $qvsnid = mysql_real_escape_string($vsnid, $db);
-            $vsnname = $oldv[1];
-            for ($found = false, $j = 0 ; $j < count($versions) ; $j++) {
-                if ($versions[$j][0] == $vsnid) {
-                    $found = true;
-                    break;
+            if ($result && $qosid == 'new') {
+                // note the new ID
+                $osid = $newOsid = mysql_insert_id($db);
+                $qosid = mysql_real_escape_string($osid, $db);
+                $sql .= " [new ID=$osid]";
+
+                // add the special "all versions" version row
+                $progress = "inserting OS version '*' record";
+                $result = mysql_query(
+                    "insert into osversions (externid, osid, name, seq)
+                     values ('*', '$qosid', '*', 0)", $db);
+            }
+
+            if ($result) {
+                // save an audit entry for the update
+                for ($i = 0 ; $i < count($versions) ; $i++) {
+                    $sql .= " [osversion $i = "
+                            . "('{$versions[$i][0]}', '{$versions[$i][1]}')";
+                }
+                $progress = "inserting audit record";
+                $result = mysql_query("insert into audit (userid, action)
+                            values ('$userid', '"
+                            . mysql_real_escape_string($sql, $db) . "')", $db);
+            }
+
+            // insert/update the new version list
+            for ($i = 0 ; $result && $i < count($versions) ; $i++) {
+                // get this record
+                $v = $versions[$i];
+                $vsnid = mysql_real_escape_string($v[0], $db);
+                $vsnname = mysql_real_escape_string($v[1], $db);
+                $vsnextid = mysql_real_escape_string($v[2], $db);
+
+                // assign its sequence - this is just the index in the new list
+                $seq = $i + 1;
+
+                // if we have a version ID in the record, it's an update;
+                // otherwise it's an insertion of a new record
+                if ($vsnid == "") {
+                    $progress = "inserting version record #$i ($newvsnid)";
+                    $result = mysql_query(
+                        "insert into osversions (osid, externid, name, seq)
+                         values ('$qosid', '$vsnextid', '$vsnname', '$seq')",
+                        $db);
+
+                    // update our internal record of the version ID
+                    if ($result)
+                        $versions[$i][0] = $v[2];
+                } else {
+                    $progress = "updating version record #$i";
+                    $result = mysql_query(
+                        "update osversions
+                         set name='$vsnname', externid='$vsnextid', seq='$seq'
+                         where vsnid='$vsnid'", $db);
                 }
             }
 
-            // if we didn't find it, delete it
-            if (!$found) {
-                $progress = "deleting old version record "
-                            . "[vsnid=$vsnid, name=$vsnname]";
-                $result = mysql_query("delete from osversions
-                    where osid='$qosid' and vsnid='$qvsnid'", $db);
+            // delete versions that are no longer in the list
+            for ($i = 0 ; $result && $i < count($oldversions) ; $i++) {
+                // look for an ID match to oldversion[i] in the new versions list
+                $oldv = $oldversions[$i];
+                $vsnid = $oldv[0];
+                $qvsnid = mysql_real_escape_string($vsnid, $db);
+                $vsnname = $oldv[1];
+                for ($found = false, $j = 0 ; $j < count($versions) ; $j++) {
+                    if ($versions[$j][0] == $vsnid) {
+                        $found = true;
+                        break;
+                    }
+                }
 
-                // add a warning about this
-                $saveNotes .= "<span class=errmsg>Warning: Deleted old "
-                              . "version: ID=$vsnid name=$vsnname</span><br>";
+                // if we didn't find it, delete it
+                if (!$found) {
+                    $progress = "deleting old version record "
+                                . "[vsnid=$vsnid, name=$vsnname]";
+                    $result = mysql_query("delete from osversions
+                        where osid='$qosid' and vsnid='$qvsnid'", $db);
+
+                    // add a warning about this
+                    $saveNotes .= "<span class=errmsg>Warning: Deleted old "
+                                  . "version: ID=$vsnid name=$vsnname</span><br>";
+                }
+            }
+            $saved = [$versions, $saveNotes];
+            return $result;
+        });
+        if ($result) {
+            [$versions, $saveNotes] = $saved;
+            if ($newOsid) {
+                $osid = $newOsid;
+                $qosid = mysql_real_escape_string($osid, $db);
             }
         }
-
-        // commit the changes
-        if ($result)
-            $result = mysql_query("commit", $db);
-
-        // done with our locked tables
-        $result = mysql_query("unlock tables", $db);
 
         if (!$result && !$saveErrMsg)
             $saveErrMsg = "A database error occurred updating the OS
