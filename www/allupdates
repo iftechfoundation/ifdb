@@ -299,7 +299,7 @@ $firstOnPage = max(0, ($pg - 1) * $perPage);
 if (!$pageRows && !$pgAll && $pg > 1) {
     [$cnt] = fetchAllUpdatesPage($db, $filter, $uid, $orderBy, 1, 0);
     if ($cnt > 0) {
-        $lastPage = (int)floor(($cnt + $perPage - 1) / $perPage);
+        $lastPage = last_page($cnt, $perPage);
         $pg = $lastPage;
         $firstOnPage = ($pg - 1) * $perPage;
         [$cnt, $pageRows] = fetchAllUpdatesPage(
@@ -310,9 +310,8 @@ if (!$pageRows && !$pgAll && $pg > 1) {
 if ($pgAll && $cnt > 0)
     $perPage = $cnt;
 
-$lastPage = (int)floor(($cnt + $perPage - 1) / $perPage);
-if ($pg > $lastPage)
-    $pg = $lastPage;
+$lastPage = last_page($cnt, $perPage);
+$pg = clamp($pg, 1, $lastPage);
 $firstOnPage = max(0, ($pg - 1) * $perPage);
 $lastOnPage = $firstOnPage + $perPage - 1;
 if ($lastOnPage > $cnt - 1)

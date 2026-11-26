@@ -133,8 +133,7 @@ if ($errMsg) {
     [$lstcnt] = mysql_fetch_row($result2);
 
     // figure how many pages that makes
-    $lastPage = ($pgAll ? 1 :
-                 (int)floor(($lstcnt + $perPage - 1)/$perPage));
+    $lastPage = ($pgAll ? 1 : last_page($lstcnt, $perPage));
 
     // figure the last item on the page
     $lastOnPage = $firstOnPage + $perPage - 1;
@@ -142,8 +141,7 @@ if ($errMsg) {
         $lastOnPage = $lstcnt - 1;
 
     // limit the page request to existing pages
-    if ($pg > $lastPage)
-        $pg = $lastPage;
+    $pg = clamp($pg, 1, $lastPage);
 
     if ($lstcnt == 0)
     {

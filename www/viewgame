@@ -2118,9 +2118,8 @@ if ($embargoCnt > 0)
             $per_page = $totcnt;
 
         // figure the number of pages that gives us
-        $lastPage = (int)floor(($totcnt + $per_page - 1)/$per_page);
-        if ($reviewPage > $lastPage)
-            $reviewPage = $lastPage;
+        $lastPage = last_page($totcnt, $per_page);
+        $reviewPage = clamp($reviewPage, 1, $lastPage);
 
         // calculate the last on the page
         $lastOnPage = $firstOnPage + $per_page - 1;

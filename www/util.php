@@ -210,6 +210,29 @@ function get_req_data($id)
     return $val;
 }
 
+// PHP 8.6 polyfill
+if (!function_exists('clamp')) {
+    function clamp($value, $min, $max)
+    {
+        if (is_float($min) && is_nan($min)) {
+            throw new ValueError("clamp(): Argument #2 (\$min) must not be NAN");
+        }
+        if (is_float($max) && is_nan($max)) {
+            throw new ValueError("clamp(): Argument #3 (\$max) must not be NAN");
+        }
+        if ($max < $min) {
+            throw new ValueError("clamp(): Argument #2 (\$min) must be smaller than or equal to argument #3 (\$max)");
+        }
+        if ($max < $value) {
+            return $max;
+        }
+        if ($value < $min) {
+            return $min;
+        }
+        return $value;
+    }
+}
+
 // Parse a pager `pg` request value. Returns [true, 1] for Show All,
 // otherwise [false, N] with N at least 1. Non-scalars (e.g. pg[])
 // are treated as page 1.
@@ -228,6 +251,12 @@ function parse_page($pg)
         $pg = 1;
     }
     return [false, $pg];
+}
+
+// An empty list still has one (empty) page.
+function last_page($count, $perPage)
+{
+    return max(1, (int)ceil($count / $perPage));
 }
 
 // --------------------------------------------------------------------------

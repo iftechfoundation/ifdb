@@ -87,11 +87,10 @@ if ($errMsg) {
     }
 
     // figure how many pages that makes
-    $lastPage = (int)floor(($cnt + $perPage - 1)/$perPage);
+    $lastPage = last_page($cnt, $perPage);
 
     // limit the page request to existing pages
-    if ($pg > $lastPage)
-        $pg = $lastPage;
+    $pg = clamp($pg, 1, $lastPage);
 
     // calculate our position in the list
     $firstOnPage = ($pg - 1) * $perPage;
