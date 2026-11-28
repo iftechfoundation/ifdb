@@ -391,6 +391,7 @@ if (!$errMsg) {
             $historyView,
             $dlnotes, $extReviews, $extRevDisplayRank,
             $ratingHisto, $xrefs, $inrefs, $flags, $cover_art_description] = $gameInfo;
+        $title_unescaped = $title ?? '';
         $title = htmlspecialchars($title ?? '');
         $license = htmlspecialchars($license ?? '');
         $language = htmlspecialchars($language ?? '');
@@ -951,7 +952,7 @@ echo helpWinLink("help-ifid", "IFID");
 if ($hasart) {
     $arthref = "/viewgame?coverart&id=$id";
     // If there's a custom description for this cover art, include it as part of the alt text.
-    $cover_alt_text = "Cover art for $title. ";
+    $cover_alt_text = "Cover art for $title_unescaped. ";
     if ($cover_art_description) {
         $cover_alt_text .= "$cover_art_description ";
     }
