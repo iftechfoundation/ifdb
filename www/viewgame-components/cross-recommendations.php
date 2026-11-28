@@ -53,8 +53,8 @@
                     $crid = mysql_real_escape_string($c['id'], $db);
                     $crtitle = htmlspecialcharx($c['title']);
                     $crauthor = htmlspecialcharx($c['author']);
-                    $crdescInfo = summarizeHtml($c['desc'], 240);
-                    $crdesc = fixDesc($crdescInfo[0]);
+                    [$crdesc] = summarizeDesc($c['desc'],
+                        isMarkdownGameDesc($db, $c['id'], $c['pagevsn']), 240);
                     $crart = $c['hasart'];
                     $crversion = $c['pagevsn'];
 
@@ -118,8 +118,7 @@
                     $l = $lists[$i];
                     $listid = $l['listid'];
                     $listname = htmlspecialcharx($l['title']);
-                    $listdescInfo = summarizeHtml($l['desc'], 240);
-                    $listdesc = fixDesc($listdescInfo[0]);
+                    [$listdesc] = summarizeDesc($l['desc'], isMarkdownDate($l['moddate']), 240);
                     $listuserid = $l['userid'];
                     $listusername = htmlspecialcharx($l['username']);
 
@@ -150,8 +149,7 @@
                     $p = $polls[$i];
                     $pollid = $p['pollid'];
                     $pollname = htmlspecialcharx($p['title']);
-                    $polldescInfo = summarizeHtml($p['desc'], 240);
-                    $polldesc = fixDesc($polldescInfo[0]);
+                    [$polldesc] = summarizeDesc($p['desc'], isMarkdownDate($p['moddate']), 240);
                     $polluserid = $p['userid'];
                     $pollusername = htmlspecialcharx($p['username']);
 

@@ -268,11 +268,7 @@ function showReview($db, $gameid, $rec, $specialNames, $optionFlags = 0)
     $qreviewid = mysql_real_escape_string($reviewid, $db);
     $rating = $rec['rating'];
     $summary = htmlspecialcharx($rec['summary']);
-    if (strcmp($rec['moddate'], '2025-08-30') < 0) {
-        $review = fixDesc($rec['review'], FixDescSpoiler | FixDescDemoteHeadings);
-    } else {
-        $review = fixDesc(markdownMultilineText($rec['review']), FixDescSpoiler | FixDescDemoteHeadings);
-    }
+    $review = formatDesc($rec['review'], isMarkdownDate($rec['moddate'], MARKDOWN_REVIEW_CUTOFF), FixDescSpoiler | FixDescDemoteHeadings);
     $publicationdate = $rec['publicationdatefmt'] ?? '';
     $moddatefmt = $rec['moddatefmt'] ?? '';
     $lastupdateFootnote = null;

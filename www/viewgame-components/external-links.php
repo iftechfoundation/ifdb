@@ -54,7 +54,7 @@ if (count($links) == 0 && $dlnotes == "") {
     // put the download notes at the top
     if ($dlnotes != "") {
         $dlnotes = preg_replace(
-            "/([a-z0-9][\/.])([a-z0-9])/i", "$1$zwsp$2", $dlnotes);
+            "/([a-z0-9][\/.])(?=[a-z0-9])(?![^<]*>)/i", "$1$zwsp", $dlnotes);
         echo "<i>$dlnotes</i>";
     }
 

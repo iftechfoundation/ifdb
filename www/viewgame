@@ -390,7 +390,8 @@ if (!$errMsg) {
             $moddatelatest,
             $historyView,
             $dlnotes, $extReviews, $extRevDisplayRank,
-            $ratingHisto, $xrefs, $inrefs, $flags, $cover_art_description] = $gameInfo;
+            $ratingHisto, $xrefs, $inrefs, $flags, $cover_art_description,
+            $descMarkdown] = $gameInfo;
         $title = htmlspecialchars($title ?? '');
         $license = htmlspecialchars($license ?? '');
         $language = htmlspecialchars($language ?? '');
@@ -1108,6 +1109,7 @@ if (!isEmpty($genre)) {
                 reclists.id as listid,
                 reclists.title as title,
                 reclists.`desc` as `desc`,
+                reclists.moddate as moddate,
                 users.id as userid,
                 users.name as username
              from
@@ -1141,6 +1143,7 @@ if (!isEmpty($genre)) {
                p.pollid as pollid,
                p.title as title,
                p.`desc` as `desc`,
+               p.moddate as moddate,
                u.id as userid,
                u.name as username
              from
@@ -1749,7 +1752,8 @@ if ($embargoCnt > 0)
             $result = mysqli_execute_query($db,
                 "select
                    r.rating as rating, r.summary as headline,
-                   r.review as summary, sr.name as specialname, sr.code as code,
+                   r.review as summary, r.moddate as moddate,
+                   sr.name as specialname, sr.code as code,
                    sr.displayrank as displayrank,
                    null as sourcename, null as sourceurl, null as url,
                    r.userid as userid, u.name as username
@@ -1882,7 +1886,7 @@ if ($embargoCnt > 0)
 
                 // show the review body if applicable
                 if ($showBody)
-                    $txt .= fixDesc($review, FixDescSpoiler);
+                    $txt .= formatDesc($review, isMarkdownDate($srev['moddate'] ?? null, MARKDOWN_REVIEW_CUTOFF), FixDescSpoiler);
 
                 // for an external review, show the full-review link
                 if ($code == 'external' && $offsiteMode != 'L') {

@@ -135,6 +135,7 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse, $override_g
         $selectList = "reclists.id as id,
                        title,
                        `desc`,
+                       reclists.moddate as moddate,
                        users.id as userid,
                        users.name as username,
                        count(gameid) as itemcount";
@@ -164,6 +165,7 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse, $override_g
                        p.userid as userid,
                        u.name as username,
                        p.`desc` as `desc`,
+                       p.moddate as moddate,
                        count(v.gameid) as votecnt,
                        count(distinct v.gameid) as gamecnt,
                        max(v.votedate) as votedate,
@@ -194,6 +196,7 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse, $override_g
                        u.name as name,
                        u.location as location,
                        if(ifnull(u.profilestatus, ' ') != 'R' $orCurUser, u.profile, null) as profile,
+                       u.profilemoddate as profilemoddate,
                        date_format(u.created, '%M %e, %Y') as createdfmt,
                        (u.picture is not null) as haspic";
         $tableList = "users as u";
@@ -225,6 +228,7 @@ function doSearch($db, $term, $searchType, $sortby, $limit, $browse, $override_g
         $selectList = "c.compid as compid,
                        c.title as title,
                        c.`desc` as `desc`,
+                       c.moddate as moddate,
                        date_format(c.awarddate, '%M %e, %Y') as awarddate,
                        count(distinct g.gameid) as gamecnt,
                        count(g.gameid) as gamesbydiv,

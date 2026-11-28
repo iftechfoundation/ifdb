@@ -1753,7 +1753,7 @@ function onComboSelectReviewSite(val)
                   <span class=details>Summarize the review in your
                      own words, or enter a brief excerpt from the
                      full review (a paragraph or two). - <?php
-                       echo helpWinLink("help-formatting", "Formatting hints");
+                       echo helpWinLink("help-formatting?review", "Formatting hints");
                      ?>
                   </span><br>
                   <textarea id="extrevSummary" rows=5 cols=80></textarea>

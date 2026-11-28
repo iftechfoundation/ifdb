@@ -89,7 +89,7 @@ if ($parentID) {
            c.userid, u.name, c.comment,
            date_format(c.created, '%M %e, %Y'),
            date_format(c.modified, '%M %e, %Y'),
-           c.private
+           c.private, c.modified
          from
            ucomments as c
            join users as u on u.id = c.userid
@@ -122,7 +122,7 @@ if ($commentID || $deleteID) {
            date_format(c.created, '%M %e, %Y'),
            date_format(c.modified, '%M %e, %y'),
            u.name,
-           c.private, pu.name
+           c.private, pu.name, c.modified
          from
            ucomments as c
            join users as u on u.id = c.userid
@@ -140,7 +140,7 @@ if ($commentID || $deleteID) {
     } else {
         // fetch the row
         [$oldText, $oldParent, $author, $created, $modified, $authorName,
-            $oldPrivateTo, $oldPrivateToName] =
+            $oldPrivateTo, $oldPrivateToName, $oldModDate] =
             mysql_fetch_row($result);
 
         // don't allow updating the parent
@@ -280,7 +280,7 @@ if ($errMsg) {
 
         // prepare the results for display
         $authorName = htmlspecialcharx($authorName);
-        $oldText = fixDesc($oldText, FixDescSpoiler);
+        $oldText = formatDesc($oldText, isMarkdownDate($oldModDate), FixDescSpoiler);
         $time = ($created == $modified
                  ? $created : "$created (last updated $modified)");
 
@@ -531,12 +531,12 @@ echo helpWinLink("help-formatting?comment#spoilertags", "&lt;SPOILER&gt; tag")
         if ($parentRow) {
 
             // decode the parent row
-            [$pUserID, $pUserName, $pComment, $pCreated, $pMod]
+            [$pUserID, $pUserName, $pComment, $pCreated, $pMod, , $pModDate]
                 = $parentRow;
 
             // prepare the results for display
             $pUserName = htmlspecialcharx($pUserName);
-            $pComment = fixDesc($pComment, FixDescSpoiler);
+            $pComment = formatDesc($pComment, isMarkdownDate($pModDate), FixDescSpoiler);
             $pTime = ($pCreated == $pMod
                       ? $pCreated : "$pCreated (last updated $pMod)");
 

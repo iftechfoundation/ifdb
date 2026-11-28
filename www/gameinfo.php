@@ -82,7 +82,7 @@ function getGameInfo($db, $id, $curuser, $requestVersion, &$errMsg, &$errCode)
     $result = mysqli_execute_query($db,
         "select
            x.url as url, r.rating as rating, r.summary as headline,
-           r.review as summary,
+           r.review as summary, r.moddate as moddate,
            x.sourcename as sourcename, x.sourceurl as sourceurl,
            sr.name as specialname, sr.code as code
          from
@@ -149,6 +149,10 @@ function getGameInfo($db, $id, $curuser, $requestVersion, &$errMsg, &$errCode)
     // Copy the modification date before replacing it for the requested version
     $rec["moddatelatest"] = $rec["moddate2"];
 
+    $markdownVsn = $requestVersion ? (int)$requestVersion : $rec['pagevsn'];
+    $descMarkdown = isMarkdownGameDesc($db, $id, $markdownVsn);
+    $dlnotesMarkdown = isMarkdownGameDesc($db, $id, $markdownVsn, "downloadnotes");
+
     // if we want to go back in time, apply the history
     $historyView = false;
     if ($requestVersion && (int)$requestVersion != $rec['pagevsn']) {
@@ -184,7 +188,7 @@ function getGameInfo($db, $id, $curuser, $requestVersion, &$errMsg, &$errCode)
     $author = $rec["author"];
     $authorExt = $rec["authorExt"];
     $rawDesc = $rec["desc"];
-    $desc = fixDesc($rawDesc);
+    $desc = formatDesc($rawDesc, $descMarkdown);
     $published = $rec["published"];
     $version = $rec["version"];
     $license = $rec["license"];
@@ -198,7 +202,7 @@ function getGameInfo($db, $id, $curuser, $requestVersion, &$errMsg, &$errCode)
     $forgiveness = $rec["forgiveness"];
     $bafsid = $rec["bafsid"];
     $website = fixUrl($rec["website"]);
-    $dlnotes = fixDesc($rec["downloadnotes"]);
+    $dlnotes = formatInlineDesc($rec["downloadnotes"], $dlnotesMarkdown);
     $editedbyid = $rec["editedby"];
     $moddate = $rec["moddate"];
     $moddate2 = $rec["moddate2"];
@@ -413,7 +417,34 @@ function getGameInfo($db, $id, $curuser, $requestVersion, &$errMsg, &$errCode)
                  $moddatelatest,
                  $historyView,
                  $dlnotes, $extReviews, $extRevDisplayRank,
-                 $ratingHisto, $xrefs, $inrefs, $flags, $cover_art_description];
+                 $ratingHisto, $xrefs, $inrefs, $flags, $cover_art_description,
+                 $descMarkdown];
+}
+
+// Whether the description in a version of a game was last changed on or
+// after the Markdown cutoff
+function isMarkdownGameDesc($db, $id, $pagevsn, $field = "desc")
+{
+    $result = mysqli_execute_query($db,
+        "select h.deltas, ifnull(next.moddate, g.moddate)
+         from games as g
+           join games_history as h on h.id = g.id
+           left join games_history as next
+             on next.id = h.id and next.pagevsn = h.pagevsn + 1
+         where g.id = ? and h.pagevsn < ? and h.deltas like ?
+         order by h.pagevsn desc", [$id, $pagevsn, '%s:' . strlen($field) . ':"' . $field . '";%']);
+    $date = null;
+    while ($row = mysql_fetch_row($result)) {
+        if (array_key_exists($field, unserializeGameDeltas($row[0]))) {
+            $date = $row[1];
+            break;
+        }
+    }
+    if ($date === null) {
+        $result = mysqli_execute_query($db, "select created from games where id = ?", [$id]);
+        $date = mysql_fetch_row($result)[0] ?? null;
+    }
+    return isMarkdownDate($date);
 }
 
 function isSpamGameVersion($db, $id, $version)

@@ -34,7 +34,7 @@ if (isset($_REQUEST['adminemail'])) {
             <form method=post>
                 <p>To: <br><input type=email name=to required></p>
                 <p>Subject: <br><input name=subject></p>
-                <p>(Type the email in HTML. You have to use &lt;p&gt; tags to insert paragraph breaks.)</p>
+                <p>(Type the email in Markdown or HTML.)</p>
                 <textarea name=body cols=75 rows=20></textarea>
                 <br><button>Preview</button>
             </form>
@@ -44,7 +44,7 @@ if (isset($_REQUEST['adminemail'])) {
             . "Content-type: Text/HTML\r\n";
 
         // send the message
-        if (send_mail($to, $_POST['subject'], $_POST['body'], $hdrs)) {
+        if (send_mail($to, $_POST['subject'], (string)markdownConverter(true)->convert($_POST['body']), $hdrs)) {
             echo "Mail sent.";
         } else {
             echo "There was an error sending the email.";
@@ -54,7 +54,7 @@ if (isset($_REQUEST['adminemail'])) {
         echo "<p>To: " . htmlspecialcharx($to);
         echo "<p>Subject: " . htmlspecialcharx($_POST['subject']);
         echo "<hr>";
-        echo $_POST['body'];
+        echo markdownConverter(true)->convert($_POST['body']);
         echo "<hr><form method=post><input type=hidden name=actuallySend value=true>";
         echo '<input type=hidden name=to value="'.htmlspecialcharx($to).'">';
         echo '<input type=hidden name=subject value="'.htmlspecialcharx($_POST['subject']).'">';
@@ -1790,8 +1790,8 @@ else if (isset($_REQUEST['addnews'])) {
         $ldesc = mysql_real_escape_string(get_req_data('ldesc'), $db);
 
         $result = mysql_query(
-            "insert into sitenews (title, ldesc, posted)
-             values ('$title', '$ldesc', now())", $db);
+            "insert into sitenews (title, ldesc, posted, moddate)
+             values ('$title', '$ldesc', now(), now())", $db);
 
         if ($result) {
             $id = mysql_insert_id($db);
@@ -1813,7 +1813,8 @@ else if (isset($_REQUEST['addnews'])) {
         . "<input type=hidden name=go value=1>"
         . "<p><b>Item Title:</b><br>"
         . "<input type=text size=80 name=title value=\"$title\">"
-        . "<p><b>Description:</b><br>"
+        . "<p><b>Description:</b> "
+        . helpWinLink("help-formatting", "Formatting Hints") . "<br>"
         . "<textarea rows=10 cols=80 name=ldesc>"
         . "$ldesc</textarea>"
         . "<p><input type=submit name=submit value=\"Add Item\">"
@@ -1837,7 +1838,7 @@ else if (isset($_REQUEST['editnews'])) {
         $ldesc = get_req_data('ldesc');
 
         $result = mysql_execute_query($db,
-            "update sitenews set title = ?, ldesc = ?
+            "update sitenews set title = ?, ldesc = ?, moddate = now()
              where itemid=?", [$title, $ldesc, $id]);
 
         if ($result) {

@@ -254,7 +254,8 @@ function showCommentPage($db, $itemAuthor, $srcID, $srcCode,
            date_format(c.created, '%M %e, %Y'),
            date_format(c.modified, '%M %e, %Y'),
            c.private,
-           $mutedCol
+           $mutedCol,
+           c.modified
          from
            ucomments as c
            join users as uc on uc.id = c.userid
@@ -392,10 +393,10 @@ function showComment($db,$commentPage, $itemAuthor, $cidx, $coutlst, $i)
     // unpack the item
     $crec = $cidx[$coutlst[$i]];
     [$cid, $cpar, $ctxt, $cuserid, $cusername,
-        $ccreated, $cmodified, $cprivate, $muted] = $crec;
+        $ccreated, $cmodified, $cprivate, $muted, $cmoddate] = $crec;
 
     // quote the items
-    $ctxt = fixDesc($ctxt, FixDescSpoiler);
+    $ctxt = formatDesc($ctxt, isMarkdownDate($cmoddate), FixDescSpoiler);
     $cusername = htmlspecialcharx($cusername);
 
     // start with the reply control

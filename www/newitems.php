@@ -1,6 +1,7 @@
 <?php
 
 include_once "searchutil.php";
+include_once "gameinfo.php";
 require_once 'vendor/autoload.php';
 
 define("NEWITEMS_SITENEWS", 0x0001);
@@ -317,6 +318,7 @@ function newItemsSources($db, $options, $andNotMuted, $sandbox, $limit = 10,
                 return newItemsKeyedRows($db,
                     "select
                        reviews.id as id, gameid, summary, review, rating, special,
+                       reviews.moddate,
                        games.title as title,
                        users.id as userid, users.name as username,
                        greatest(reviews.createdate,
@@ -351,7 +353,7 @@ function newItemsSources($db, $options, $andNotMuted, $sandbox, $limit = 10,
                 $idList = newItemsSqlIdList($db, $ids);
                 return newItemsKeyedRows($db,
                     "select
-                       itemid as sitenewsid, title, ldesc as `desc`,
+                       itemid as sitenewsid, title, ldesc as `desc`, moddate,
                        posted as d,
                        date_format(posted, '%M %e, %Y') as fmtdate,
                        (now() < date_add(posted, interval 3 day)) as freshest
@@ -396,7 +398,7 @@ function newItemsSources($db, $options, $andNotMuted, $sandbox, $limit = 10,
                 return newItemsKeyedRows($db,
                     "select
                        reclists.id as id, reclists.title as title,
-                       reclists.`desc` as `desc`,
+                       reclists.`desc` as `desc`, reclists.moddate as moddate,
                        reclists.createdate as d,
                        date_format(reclists.createdate, '%M %e, %Y') as fmtdate,
                        count(reclists.id) as itemcnt,
@@ -425,6 +427,7 @@ function newItemsSources($db, $options, $andNotMuted, $sandbox, $limit = 10,
                 return newItemsKeyedRows($db,
                     "select
                        p.pollid as pollid, p.title as title, p.`desc` as `desc`,
+                       p.moddate as moddate,
                        p.created as d,
                        date_format(p.created, '%M %e, %Y') as fmtdate,
                        count(v.gameid) as votecnt, count(distinct v.gameid) as gamecnt,
@@ -451,6 +454,7 @@ function newItemsSources($db, $options, $andNotMuted, $sandbox, $limit = 10,
                 return newItemsKeyedRows($db,
                     "select
                        c.compid as compid, c.title as title, c.`desc` as `desc`,
+                       c.moddate as moddate,
                        c.created as d,
                        date_format(c.created, '%M %e, %Y') as fmtdate
                      from competitions as c
@@ -650,8 +654,7 @@ function showNewItemList($db, $first, $last, $items, $options)
             }
 
             $stars = showStars($r['rating']);
-            [$summary, $len, $trunc] = summarizeHtml(markdownLine($r['review']), 140);
-            $summary = fixDesc($summary);
+            [$summary, $len, $trunc] = summarizeDesc($r['review'], isMarkdownDate($r['moddate'], MARKDOWN_REVIEW_CUTOFF), 140);
             if ($len != 0 || $stars != "")
             {
                 echo "<br><div class=indented><span class=details>";
@@ -677,7 +680,8 @@ function showNewItemList($db, $first, $last, $items, $options)
         {
             // it's site news
             echo "<div class=\"site-news\">IFDB <a href='/news'>site news</a> <span class=notes><i>{$row['fmtdate']}</i></span>"
-                . "<br><div class=indented><b>{$row['title']}</b>: {$row['desc']}</div></div>";
+                . "<br><div class=indented><b>{$row['title']}</b>: "
+                . siteNewsHtml($row['moddate'], $row['desc']) . "</div></div>";
         }
         else if ($pick == 'L')
         {
@@ -689,8 +693,7 @@ function showNewItemList($db, $first, $last, $items, $options)
             $itemS = $itemcnt == 1 ? "" : "s";
             $title = htmlspecialcharx($l['title']);
             $username = htmlspecialcharx($l['username']);
-            [$desc, $len, $trunc] = summarizeHtml($l['desc'], 210);
-            $desc = fixDesc($desc);
+            [$desc, $len, $trunc] = summarizeDesc($l['desc'], isMarkdownDate($l['moddate']), 210);
 
             // show the image: user image if available, otherwise the
             // generic list icon
@@ -745,8 +748,8 @@ function showNewItemList($db, $first, $last, $items, $options)
                 . htmlspecialcharx($g['author'])
                 . " <span class=notes><i>{$g['fmtdate']}</i></span>";
 
-            [$summary, $len, $trunc] = summarizeHtml($g['desc'], 210);
-            $summary = fixDesc($summary);
+            [$summary, $len, $trunc] = summarizeDesc($g['desc'],
+                isMarkdownGameDesc($db, $g['id'], $g['pagevsn']), 210);
             if ($len != 0)
                 echo "<br><div class=indented><span class=details><i>"
                     . $summary
@@ -764,8 +767,7 @@ function showNewItemList($db, $first, $last, $items, $options)
             $uid = $p['userid'];
             $uname = htmlspecialcharx($p['username']);
             $title = htmlspecialcharx($p['title']);
-            [$desc, $len, $trunc] = summarizeHtml($p['desc'], 210);
-            $desc = fixDesc($desc);
+            [$desc, $len, $trunc] = summarizeDesc($p['desc'], isMarkdownDate($p['moddate']), 210);
             $votecnt = $p['votecnt'];
             $gamecnt = $p['gamecnt'];
             $cntdesc = ($votecnt == 0 ? "No votes" :
@@ -816,8 +818,7 @@ function showNewItemList($db, $first, $last, $items, $options)
             $nuidOrig = $n['origUserID'];
             $nunameOrig = htmlspecialcharx($n['origUserName']);
             $nhead = htmlspecialcharx($n['headline']);
-            [$nbody, $len, $trunc] = summarizeHtml($n['body'], 210);
-            $nbody = fixDesc($nbody);
+            [$nbody, $len, $trunc] = summarizeDesc($n['body'], isMarkdownDate($n['modified']), 210);
 
             switch ($n['sourceType'])
             {
@@ -868,8 +869,7 @@ function showNewItemList($db, $first, $last, $items, $options)
             // pull out the competition item
             $cid = $c["compid"];
             $ctitle = htmlspecialcharx($c["title"]);
-            [$cdesc, $len, $trunc] = summarizeHtml($c["desc"], 210);
-            $cdesc = fixDesc($cdesc);
+            [$cdesc, $len, $trunc] = summarizeDesc($c["desc"], isMarkdownDate($c["moddate"]), 210);
             $cdate = $c["fmtdate"];
 
             // show the generic competition icon
@@ -948,7 +948,7 @@ function showNewItemsRSS($db, $showcnt)
                 }
                 $title .= $stars;
             }
-            $desc = fixDesc(markdownMultilineText($r['review']), FixDescSpoiler | FixDescRSS);
+            $desc = formatDesc($r['review'], isMarkdownDate($r['moddate'], MARKDOWN_REVIEW_CUTOFF), FixDescSpoiler | FixDescRSS);
             $link = get_root_url() . "viewgame?id={$r['gameid']}"
                     . "&review={$r['id']}";
             $pubDate = $r['d'];
@@ -957,8 +957,7 @@ function showNewItemsRSS($db, $showcnt)
         {
             $l = $row;
             $title = "A Recommended List by {$l['username']}: {$l['title']}";
-            [$desc, $len, $trunc] = summarizeHtml($l['desc'], 210);
-            $desc = fixDesc($desc);
+            [$desc, $len, $trunc] = summarizeDesc($l['desc'], isMarkdownDate($l['moddate']), 210);
             $link = get_root_url() . "viewlist?id={$l['id']}";
             $pubDate = $l['d'];
         }
@@ -966,8 +965,7 @@ function showNewItemsRSS($db, $showcnt)
         {
             $p = $row;
             $title = "A poll by {$p['username']}: {$p['title']}";
-            [$desc, $len, $trunc] = summarizeHtml($p['desc'], 210);
-            $desc = fixDesc($desc);
+            [$desc, $len, $trunc] = summarizeDesc($p['desc'], isMarkdownDate($p['moddate']), 210);
             $link = get_root_url() . "poll?id={$p['pollid']}";
             $pubDate = $p['d'];
         }
@@ -975,8 +973,7 @@ function showNewItemsRSS($db, $showcnt)
         {
             $n = $row;
             $title = "News on {$n['sourceTitle']}: {$n['headline']}";
-            [$desc, $len, $trunc] = summarizeHtml($n['body'], 210);
-            $desc = fixDesc($desc);
+            [$desc, $len, $trunc] = summarizeDesc($n['body'], isMarkdownDate($n['modified']), 210);
             $desc = "Reported by {$n['origUserName']}: $desc";
             $link = get_root_url() . "newslog?newsid={$n['newsID']}";
             $pubDate = $n['d'];
@@ -985,8 +982,7 @@ function showNewItemsRSS($db, $showcnt)
         {
             $c = $row;
             $title = "A new competition page: {$c['title']}";
-            [$desc, $len, $trunc] = summarizeHtml($c['desc'], 210);
-            $desc = fixDesc($desc);
+            [$desc, $len, $trunc] = summarizeDesc($c['desc'], isMarkdownDate($c['moddate']), 210);
             $link = get_root_url() . "viewcomp?id={$c['compid']}";
             $pubDate = $c['d'];
         }
@@ -994,8 +990,8 @@ function showNewItemsRSS($db, $showcnt)
         {
             $g = $row;
             $title = "A new listing for {$g['title']} by {$g['author']}";
-            [$desc, $len, $trunc] = summarizeHtml($g['desc'], 210);
-            $desc = fixDesc($desc);
+            [$desc, $len, $trunc] = summarizeDesc($g['desc'],
+                isMarkdownGameDesc($db, $g['id'], $g['pagevsn']), 210);
             $link = get_root_url() . "viewgame?id={$g['id']}";
             $pubDate = $g['d'];
         }
@@ -1004,7 +1000,7 @@ function showNewItemsRSS($db, $showcnt)
             // format the items for RSS
             // copied and pasted from /news
             $title = rss_encode("IFDB site news: " . htmlspecialcharx($row['title']));
-            $ldesc = rss_encode(htmlspecialcharx($row['desc']));
+            $ldesc = rss_encode(htmlspecialcharx(siteNewsHtml($row['moddate'], $row['desc'])));
             $pub = date("D, j M Y H:i:s ", strtotime($row['d'])) . 'UT';
 
             $link = get_root_url() . "news?item=" . $row['sitenewsid'];

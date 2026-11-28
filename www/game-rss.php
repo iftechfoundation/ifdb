@@ -56,8 +56,8 @@ function getGameRssItems($db, $id, $feedType, $gameTitle, $links, $extFeed)
             $rlink = htmlspecialcharx(
                 get_root_url() . "viewgame?id=$id&review=$rid");
             $rdate = date("D, j M Y H:i:s ", strtotime($r['publicationdate'])) . 'UT';
-            [$rdesc, $len, $trunc] = summarizeHtml($r['review'], 210);
-            $rdesc = htmlspecialcharx(fixDesc($rdesc));
+            [$rdesc, $len, $trunc] = summarizeDesc($r['review'], isMarkdownDate($r['moddate'], MARKDOWN_REVIEW_CUTOFF), 210);
+            $rdesc = htmlspecialcharx($rdesc);
             $rauth = htmlspecialcharx($r['username']);
 
             // for external feeds, add the game title to the title and desc

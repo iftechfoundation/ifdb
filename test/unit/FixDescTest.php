@@ -124,4 +124,26 @@ final class FixDescTest extends TestCase
     {
         $this->assertSame("Title <em>a</em> b c", markdownLine("# Title\n\n*a*\nb  \n<H1>c</H1>"));
     }
+
+    public function testFormatDesc(): void
+    {
+        $this->assertSame("*a*<br>b", formatDesc("*a*\nb", false));
+        $this->assertSame("<p><em>a</em><br>\nb</p>", formatDesc("*a*\nb", true));
+        $this->assertSame("<h4>a</h4>", formatDesc("# a", true));
+        $this->assertSame("", formatDesc(null, true));
+    }
+
+    public function testFormatInlineDesc(): void
+    {
+        $this->assertSame("<em>a</em>", formatInlineDesc("*a*", true));
+        $this->assertSame("<p>a</p>\n<p>b</p>", formatInlineDesc("a\n\nb", true));
+        $this->assertSame("<p>a</p>", formatInlineDesc("<p>a</p>", false));
+    }
+
+    public function testSummarizeDesc(): void
+    {
+        $this->assertSame(["<em>a</em> b", 3, false], summarizeDesc("# *a*\n\nb", true, 10));
+        $this->assertSame(["*a*", 3, false], summarizeDesc("*a*", false, 10));
+        $this->assertSame(["", 0, false], summarizeDesc(null, true, 10));
+    }
 }

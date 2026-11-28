@@ -5,6 +5,7 @@ include_once "pagetpl.php";
 include_once "util.php";
 include_once "dbconnect.php";
 include_once "commentutil.php";
+include_once "gameinfo.php";
 include_once "captcha.php";
 require_once 'vendor/autoload.php';
 
@@ -97,6 +98,7 @@ $result = mysql_query(
         name, location, publicemail,
         profile, profilestatus,
         (picture is not null),
+        profilemoddate,
         date_format(created, '%M %e, %Y'),
         date_format(lastlogin, '%M %e, %Y'),
         publiclists, gender, emailflags, acctstatus, email
@@ -105,13 +107,13 @@ if (mysql_num_rows($result) == 0) {
     $errMsg = "The requested member was not found in the database.";
 } else {
     [$username, $location, $pubemail, $profile, $proStat, $haspic,
-        $created, $lastlogin, $publiclists, $gender, $emailflags,
+        $profileModDate, $created, $lastlogin, $publiclists, $gender, $emailflags,
         $acctstatus, $realEmail] =
      mysql_fetch_row($result);
 
     $username = htmlspecialcharx($username);
     $location = htmlspecialcharx($location);
-    $profile = fixDesc($profile);
+    $profile = formatDesc($profile, isMarkdownDate($profileModDate));
     $pubemail = htmlspecialcharx($pubemail);
     $playlistPub = (strpos($publiclists, "P") !== false);
     $wishlistPub = (strpos($publiclists, "W") !== false);
@@ -378,8 +380,8 @@ if ($errMsg) {
             $author = collapsedAuthors($author);
             $art = $rec['hasart'];
             $pagevsn = $rec['pagevsn'];
-            $descInfo = summarizeHtml($rec['desc'], 200);
-            $desc = fixDesc($descInfo[0]);
+            [$desc] = summarizeDesc($rec['desc'],
+                isMarkdownGameDesc($db, $rec['id'], $pagevsn), 200);
             $shouldHide = $rec['flags'] & FLAG_SHOULD_HIDE;
             if ($shouldHide) {
                 $stars = "";
@@ -442,7 +444,7 @@ if ($errMsg) {
     } else {
         $result = mysql_query(
             "select id, title, `desc`, date_format(moddate, '%M %e, %Y'),
-                count(reclistitems.gameid)
+                count(reclistitems.gameid), moddate
             from reclists, reclistitems
             where
                 userid = '$quid'
@@ -452,13 +454,12 @@ if ($errMsg) {
 
         for ($i = 0 ; $i < 5 && $i < mysql_num_rows($result) ; $i++) {
             // fetch the next row
-            [$listid, $title, $desc, $moddate, $itemcnt] =
+            [$listid, $title, $desc, $moddate, $itemcnt, $rawModDate] =
                 mysql_fetch_row($result);
 
             // fix up fields for display
             $title = htmlspecialcharx($title);
-            [$desc, $desclen, $desctrunc] = summarizeHtml($desc, 140);
-            $desc = fixDesc($desc);
+            [$desc, $desclen, $desctrunc] = summarizeDesc($desc, isMarkdownDate($rawModDate), 140);
 
             // show the summary
             echo "<a href=\"viewlist?id=$listid\">$title</a>"
@@ -494,7 +495,8 @@ if ($errMsg) {
             "select p.pollid, p.title, p.`desc`,
                date_format(p.created, '%M %e, %Y'),
                count(v.gameid) as votecount,
-               count(distinct v.gameid) as gamecount
+               count(distinct v.gameid) as gamecount,
+               p.moddate
             from
                polls as p
                left outer join pollvotes as v on v.pollid = p.pollid
@@ -507,13 +509,12 @@ if ($errMsg) {
 
         for ($i = 0 ; $i < 5 && $i < mysql_num_rows($result) ; $i++) {
             // fetch the next row
-            [$pollid, $title, $desc, $created, $votecnt, $gamecnt] =
+            [$pollid, $title, $desc, $created, $votecnt, $gamecnt, $pollModDate] =
                 mysql_fetch_row($result);
 
             // fix up fields for display
             $title = htmlspecialcharx($title);
-            [$desc, $desclen, $desctrunc] = summarizeHtml($desc, 140);
-            $desc = fixDesc($desc);
+            [$desc, $desclen, $desctrunc] = summarizeDesc($desc, isMarkdownDate($pollModDate), 140);
 
             // show the summary
             echo "<a href=\"poll?id=$pollid\">$title</a> - "
@@ -569,7 +570,8 @@ if ($errMsg) {
                reviews.review,
                date_format(greatest(reviews.createdate, ifnull(embargodate, cast(0 as datetime))), '%M %e, %Y'),
                date_format(greatest(reviews.moddate, ifnull(embargodate, cast(0 as datetime))), '%M %e, %Y'),
-               greatest(reviews.createdate, ifnull(embargodate, cast(0 as datetime))) as publicationdate
+               greatest(reviews.createdate, ifnull(embargodate, cast(0 as datetime))) as publicationdate,
+               reviews.moddate
              from
                games, reviews
              where
@@ -582,15 +584,14 @@ if ($errMsg) {
         for ($i = 0 ; $i < 5 && $i < mysql_num_rows($result) ; $i++) {
             // retrieve the result
             [$gameid, $title, $author, $revid, $rating,
-                $summary, $review, $createdate, $moddate] = mysql_fetch_row($result);
+                $summary, $review, $createdate, $moddate, , $rawModdate] = mysql_fetch_row($result);
 
             // fix up fields for display
             $title = htmlspecialcharx($title);
             $author = htmlspecialcharx($author);
             $author = collapsedAuthors($author);
             $summary = htmlspecialcharx($summary);
-            [$review, $revlen, $revtrunc] = summarizeHtml($review, 140);
-            $parsedReview = fixDesc(markdownLine($review));
+            [$parsedReview, $revlen, $revtrunc] = summarizeDesc($review, isMarkdownDate($rawModdate, MARKDOWN_REVIEW_CUTOFF), 140);
             if ($moddate && $createdate != $moddate) {
                 $createdate .= " (edited: $moddate)";
             }

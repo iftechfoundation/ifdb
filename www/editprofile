@@ -599,6 +599,7 @@ complete the re-activation process.</b>
         if (mysql_query("update users
                 set email = '$qemail', name = '$qdname', location = '$qloc',
                    publicemail = '$qpubemail', profile = '$qprofile',
+                   profilemoddate = now(),
                    profilestatus = '$newprostat',
                    acctstatus = '$newstat',
                    defaultos = $qdefos, defaultosvsn = $qdefosvsn,
@@ -843,7 +844,9 @@ captchaSupportScripts($captchaKey);
             Describe Yourself:
             <br>
             <span class=microhelp>(Your IF interests, accomplishments,
-               etc.)</span>
+               etc.)<br><?php
+                  echo helpWinLink("help-formatting", "Formatting Hints");
+            ?></span>
          </td>
          <td>
             <textarea name="profile" id="profile" rows=10 cols=60><?php

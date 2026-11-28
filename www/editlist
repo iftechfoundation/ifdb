@@ -62,7 +62,7 @@ if ($listid == 'new') {
     $pagetitle = "New Recommended List";
 
 } else {
-    $result = mysql_query("select title, userid, `desc`, keywords
+    $result = mysql_query("select title, userid, `desc`, keywords, moddate
         from reclists
         where id = '$qlistid'", $db);
     if (mysql_num_rows($result) == 0) {
@@ -72,6 +72,7 @@ if ($listid == 'new') {
         $listOwner = mysql_result($result, 0, "userid");
         $listDesc = mysql_result($result, 0, "desc");
         $listKeywords = mysql_result($result, 0, "keywords");
+        $listModDate = mysql_result($result, 0, "moddate");
         if ($listOwner != $userid) {
             $errMsg = "The requested list was created by another user. You
                  can only edit lists that you created.";
@@ -142,7 +143,7 @@ if ($listid != 'new' && isset($_REQUEST['delete'])) {
         . "<p><div class=indented><b>"
         . htmlspecialcharx($listTitle)
         . "</b><br>"
-        . fixDesc($listDesc)
+        . formatDesc($listDesc, isMarkdownDate($listModDate))
         . "</div><p>"
         . "<form name=\"confirmdelete\" id=\"confirmdelete\" method=\"post\" "
         . "action=\"editlist?id=$listid\">"
@@ -529,7 +530,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_REQUEST['preview'])) {
                $now = date("M j, Y");
                showRecList($db, $qlistid, $userid, $username, $userloc,
                            $listTitle, $listDesc, $now, $listItems,
-                           "_blank", false, true);
+                           "_blank", false, true, true);
            ?>
 
            <p><hr class=dots><p>
@@ -613,7 +614,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_REQUEST['publish'])) {
             // existing list - update it
             $progress = "UPL7415";
             $result = mysql_query("update reclists
-                set title='$qtitle', `desc`='$qdesc', keywords='$qkw'
+                set title='$qtitle', `desc`='$qdesc', keywords='$qkw',
+                    moddate=now()
                 where id='$qtuid'", $db);
         }
     }

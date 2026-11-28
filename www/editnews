@@ -225,7 +225,8 @@ function hiddenFields($all)
 function showItem()
 {
     global $db, $newsID, $sourceType, $sourceID, $headline, $body,
-           $authorID, $origUserName, $origUserID, $curuser, $created;
+           $authorID, $origUserName, $origUserID, $curuser, $created,
+           $preview, $modified;
 
     // query the updater's username
     $result = mysql_query(
@@ -254,7 +255,7 @@ function showItem()
 
     // show it
     echo "<b>" . htmlspecialcharx($headline) . "</b><br>"
-        . fixDesc($body, FixDescSpoiler)
+        . formatDesc($body, $preview || isMarkdownDate($modified), FixDescSpoiler)
         . "<div class=smallfoot><span class=details>$byline</span></div>";
 
 }
@@ -544,7 +545,7 @@ if ($show == "form") {
        <table border=0 cellspacing=0 cellpadding=0>
           <tr><td><b>Body:</b></td>
              <td align=right><span class=details><?php
-               echo helpWinLink("help-formatting", "Formatting Tips")
+               echo helpWinLink("help-formatting?comment", "Formatting Tips")
              ?></span></td>
           </tr>
           <tr>
