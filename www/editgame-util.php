@@ -1837,9 +1837,10 @@ function lockGameDeletionTables($db)
 
 // ------------------------------------------------------------------------
 //
-// Permanently delete a game listing, while holding lockGameDeletionTables.
-// With $cascade, references to the game are deleted too, or merged into
-// $fwdid when it's set. Returns null on success, or an error message.
+// Permanently delete a game listing, while holding lockGameDeletionTables
+// with autocommit off, and commit or roll back. With $cascade, references to
+// the game are deleted too, or merged into $fwdid when it's set. Returns null
+// on success, or an error message.
 //
 function deleteGameListing($db, $gameid, $cascade = true, $fwdid = null,
                            $fwdnotes = '', $includeSqlError = false)
@@ -1994,12 +1995,14 @@ function deleteGameListing($db, $gameid, $cascade = true, $fwdid = null,
         $steps[] = ["DFW5259",
             "delete from gamefwds where fwdgameid = ?", $id];
     }
+    $steps[] = ["CTX5260", "commit", []];
 
     foreach ($steps as [$progress, $sql, $params]) {
         if (!mysqli_execute_query($db, $sql, $params)) {
             $sqlerr = $includeSqlError
                 ? "; database error: " . htmlspecialchars(mysql_error($db))
                 : "";
+            mysql_query("rollback", $db);
             return "An error occurred deleting the game from the database "
                 . "(error code $progress$sqlerr).";
         }
