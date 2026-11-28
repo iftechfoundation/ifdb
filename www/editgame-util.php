@@ -313,8 +313,6 @@ function saveUpdates($db, $adminPriv, $apiMode,
     // start a transaction for the update
     $progress = "BTX070A";
     $result = mysql_query("set autocommit=0", $db);
-    if ($result)
-        $result = mysql_query("start transaction", $db);
 
     // lock needed tables while we're working
     if ($result) {
@@ -325,6 +323,7 @@ function saveUpdates($db, $adminPriv, $apiMode,
             extreviews write, reviews write, gamexrefs write,
             gameprofilelinks write, users read, gamexreftypes read", $db);
     }
+    $locked = $result;
 
     // fetch the latest version of the game record, in case it changed
     // since we started working - we have the tables locked now, so there's
@@ -338,8 +337,7 @@ function saveUpdates($db, $adminPriv, $apiMode,
             [$id, $restoredVsn]) : false;
         $row = $check ? mysql_fetch_row($check) : null;
         if (!$row || $row[0]) {
-            mysql_query("unlock tables", $db);
-            mysql_query("set autocommit=1", $db);
+            endLockedTransaction($db);
             $saveErrMsg = $row
                 ? "Version $restoredVsn was marked as spam by IFDB "
                   . "moderators, so it can't be restored."
@@ -679,8 +677,7 @@ function saveUpdates($db, $adminPriv, $apiMode,
                 $saveErrMsg .= " (Note that <b>$errcnt</b> fields
                     require your attention.)";
         }
-        mysql_query("unlock tables", $db);
-        mysql_query("set autocommit=1", $db);
+        endLockedTransaction($db);
         return false;
     }
 
@@ -688,7 +685,10 @@ function saveUpdates($db, $adminPriv, $apiMode,
     // row; otherwise, we need to update an existing GAMES row and
     // save a new GAMES_HISTORY row
     $saveErrMsg = false;
-    if ($id == "new") {
+    if (!$locked) {
+        $result = false;
+    }
+    else if ($id == "new") {
         $newid = false;
         $result = saveNewGame($db, $adminPriv, $apiMode,
                               $changesNew, $newid,
@@ -701,6 +701,10 @@ function saveUpdates($db, $adminPriv, $apiMode,
                               $progress, $saveErrMsg, $saveErrCode, $errDetail);
         $newid = $id;
     }
+
+    if ($result)
+        $progress = "CTX0712";
+    $result = endLockedTransaction($db, $result);
 
     // if any errors occurred, flag it and show the page again;
     // if we were successful, redirect to the new version of the
@@ -1242,7 +1246,6 @@ function saveNewGame($db, $adminPriv, $apiMode,
 
     // we haven't inserted the game row yet
     $newid = false;
-    $insertedGame = false;
 
     // presume success
     $result = true;
@@ -1267,10 +1270,6 @@ function saveNewGame($db, $adminPriv, $apiMode,
         $result = mysql_query(
             "insert into games (id, created, moddate, $cols)
             values ('$qnewid', now(), now(), $vals)", $db);
-
-        // note the insert
-        if ($result)
-            $insertedGame = true;
     }
 
     // insert the IFIDs, if any
@@ -1335,34 +1334,6 @@ function saveNewGame($db, $adminPriv, $apiMode,
         $progress .= " [" . mysql_errno($db) . " - "
                      . mysql_error($db) . "]";
 
-    // unlock the tables
-    mysql_query("unlock tables", $db);
-
-    // if successful so far, commit; otherwise roll back
-    if ($result) {
-        $progress = "CTX0712";
-        $result = mysql_query("commit", $db);
-    }
-    else {
-        //if (!mysql_query("rollback", $db)) {
-            // no transactions - do an ad hoc rollback of whatever we can
-            if ($insertedGame && $newid) {
-                mysql_query("delete from games where id = '$qnewid'", $db);
-                mysql_query(
-                    "delete from gamelinks where gameid = '$qnewid'", $db);
-                mysql_query("delete from ifids where gameid = '$qnewid'", $db);
-                mysql_query(
-                    "delete from reviews where gameid = '$qnewid'", $db);
-                mysql_query(
-                    "delete from gameprofilelinks where gameid = '$qnewid'",
-                    $db);
-            }
-        //}
-    }
-
-    // restore auto-commit mode
-    mysql_query("set autocommit=1", $db);
-
     // return the success/failure indication
     return $result;
 }
@@ -1393,14 +1364,10 @@ function saveOldGame($db, $adminPriv, $apiMode,
     if (count($changesOld) == 0) {
         $saveErrMsg = "You didn't make any changes.";
         $saveErrCode = "NoChanges";
-        mysql_query("unlock tables", $db);
-        mysql_query("set autocommit=1", $db);
         return false;
     }
 
     $progress = "";
-    $insertedHistory = false;
-    $updatedGame = false;
 
     // serialize the OLD values for storage in the history table
     $deltas = serialize($changesOld);
@@ -1515,10 +1482,6 @@ function saveOldGame($db, $adminPriv, $apiMode,
             (id, pagevsn, editedby, moddate, deltas)
             values ('$qid', '$pagevsn', '{$rec['editedby']}',
                     '{$rec['moddate']}', '$deltas')", $db);
-
-        // note if we successfully inserted the history row
-        if ($result)
-            $insertedHistory = true;
     }
 
     // build the update list for the active row
@@ -1567,10 +1530,6 @@ function saveOldGame($db, $adminPriv, $apiMode,
             $progress = "UGR070D";
             $result = mysql_query("update games set $varlist
                 where id = '$qid'", $db);
-
-            // if successful, note that we updated the game row
-            if ($result)
-                $updatedGame = true;
         }
     }
 
@@ -1619,9 +1578,11 @@ function saveOldGame($db, $adminPriv, $apiMode,
             "delete from extreviews where gameid = '$qid'", $db);
 
         // delete the corresponding REVIEWS rows (SPECIAL code 4 = EXTERNAL)
-        $progress = "DLR0720.B";
-        $result = mysql_query(
-            "delete from reviews where gameid='$qid' and special='4'", $db);
+        if ($result) {
+            $progress = "DLR0720.B";
+            $result = mysql_query(
+                "delete from reviews where gameid='$qid' and special='4'", $db);
+        }
 
         // insert the new reviews
         $revs = $changesNew['extreviews'];
@@ -1658,28 +1619,6 @@ function saveOldGame($db, $adminPriv, $apiMode,
     // note the error if in diagnostic mode
     if ($adminPriv)
         $progress .= " [" . mysql_errno($db) . " - " . mysql_error($db) . "]";
-
-    // release table locks
-    mysql_query("unlock tables", $db);
-
-    // if successful so far, commit; otherwise roll back
-    if ($result) {
-        $progress = "CTX0712";
-        $result = mysql_query("commit", $db);
-    }
-    else {
-        //if (!mysql_query("rollback", $db)) {
-            // if we failed trying to update the game row, try
-            // an ad hoc rollback by deleting the history row
-            if ($insertedHistory && !$updatedGame) {
-                mysql_query("delete from games_history
-                    where id='$qid' and pagevsn=$pagevsn", $db);
-            }
-        //}
-    }
-
-    // restore auto-commit mode
-    mysql_query("set autocommit=1", $db);
 
     // return success/failure indication
     return $result;
@@ -1862,6 +1801,21 @@ function safeRollbackBannedUserLatestEdit($db, $gameid, $userid, $adminPriv)
 
 // ------------------------------------------------------------------------
 //
+// End a transaction begun with autocommit=0 before lock tables. Commits if
+// $ok, otherwise rolls back. Returns true if the commit succeeded.
+//
+function endLockedTransaction($db, $ok = false)
+{
+    $ok = $ok && mysql_query("commit", $db);
+    if (!$ok)
+        mysql_query("rollback", $db);
+    mysql_query("unlock tables", $db);
+    mysql_query("set autocommit=1", $db);
+    return $ok;
+}
+
+// ------------------------------------------------------------------------
+//
 // Lock the tables that deleteGameListing reads or writes
 //
 function lockGameDeletionTables($db)
@@ -1887,9 +1841,10 @@ function lockGameDeletionTables($db)
 
 // ------------------------------------------------------------------------
 //
-// Permanently delete a game listing, while holding lockGameDeletionTables.
-// With $cascade, references to the game are deleted too, or merged into
-// $fwdid when it's set. Returns null on success, or an error message.
+// Permanently delete a game listing, while holding lockGameDeletionTables
+// with autocommit off, and commit or roll back. With $cascade, references to
+// the game are deleted too, or merged into $fwdid when it's set. Returns null
+// on success, or an error message.
 //
 function deleteGameListing($db, $gameid, $cascade = true, $fwdid = null,
                            $fwdnotes = '', $includeSqlError = false)
@@ -2044,12 +1999,14 @@ function deleteGameListing($db, $gameid, $cascade = true, $fwdid = null,
         $steps[] = ["DFW5259",
             "delete from gamefwds where fwdgameid = ?", $id];
     }
+    $steps[] = ["CTX5260", "commit", []];
 
     foreach ($steps as [$progress, $sql, $params]) {
         if (!mysqli_execute_query($db, $sql, $params)) {
             $sqlerr = $includeSqlError
                 ? "; database error: " . htmlspecialchars(mysql_error($db))
                 : "";
+            mysql_query("rollback", $db);
             return "An error occurred deleting the game from the database "
                 . "(error code $progress$sqlerr).";
         }

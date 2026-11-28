@@ -200,7 +200,8 @@ if ($adminPriv
         $deleted = 0;
         $failed = [];
         $games = gamesSoleAuthoredByUser($db, $uid);
-        if (!lockGameDeletionTables($db)) {
+        if (!(mysql_query("set autocommit=0", $db)
+              && lockGameDeletionTables($db))) {
             $failed[] = "The database tables couldn't be locked: "
                 . htmlspecialchars(mysql_error($db));
         } else {
@@ -218,8 +219,8 @@ if ($adminPriv
                 else
                     $deleted++;
             }
-            mysql_query("unlock tables", $db);
         }
+        endLockedTransaction($db);
         $statusHtml .= "<p><span class=success>Deleted $deleted game listing"
             . ($deleted == 1 ? "" : "s") . ".</span></p>";
         if (count($failed)) {

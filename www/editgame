@@ -496,9 +496,6 @@ if ($errMsg) {
             saveUpdates($db, $adminPriv, false,
                         $id, $rec, $req,
                         $saveErrMsg, $saveErrCode, $errDetail);
-
-            // unlock tables
-            mysql_query("unlock tables", $db);
         }
     }
 

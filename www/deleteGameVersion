@@ -29,7 +29,7 @@ $adminPriv = check_admin_privileges($db, $curuser);
 function showResult($title, $msg)
 {
     global $gameid, $db;
-    mysql_query("unlock tables", $db);
+    endLockedTransaction($db);
     pageHeader($title);
     echo "<h1>{$title}</h1>"
         . "<p>{$msg}</p>"
@@ -51,10 +51,11 @@ if ($gameid == "") {
 }
 
 if (isset($_POST['confirm'])
-    && !mysql_query("lock tables games write, games_history write,
+    && (!mysql_query("set autocommit=0", $db)
+        || !mysql_query("lock tables games write, games_history write,
            gamelinks write, ifids write, extreviews write, reviews write,
            gamexrefs write, gameprofilelinks write, users read,
-           gamefwds read, gamexreftypes read, filetypes read", $db))
+           gamefwds read, gamexreftypes read, filetypes read", $db)))
     showResult("Error updating database",
                "The database tables couldn't be locked.");
 
@@ -233,8 +234,8 @@ if (count($errors) == 0)
 else
     $errors[] = "<div>Note: errors occurred deleting game version; version history record was not deleted</div>";
 
-// unlock tables
-runQuery("Unlocking tables", "unlock tables");
+if (count($errors) == 0)
+    runQuery("Committing changes", "commit");
 
 // show errors
 if (count($errors))
