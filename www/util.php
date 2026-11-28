@@ -2508,6 +2508,30 @@ function close_user_acct($db, $uid, $stat, &$progress)
             $result = forget_remembered_logins($db, $uid);
         }
 
+        // rebuild the tag list for any games this user has tagged, without
+        // this user's tags
+        if ($result) {
+            $progress = "rebuilding games.tags for deleting user's game tags";
+            $result = mysqli_execute_query($db,
+                "update games
+                 set tags = (
+                   select group_concat(tag separator ',')
+                   from gametags as gt1
+                   where gameid = id and userid != ?)
+                 where id in (
+                   select distinct gameid
+                   from gametags as gt2
+                   where userid = ?)", [$uid, $uid]);
+        }
+
+        // delete this user's tags
+        if ($result) {
+            $progress = "deleting user's game tags";
+            $result = mysqli_execute_query($db,
+                "delete from gametags
+                 where userid = ?", [$uid]);
+        }
+
         // delete discussions, part 1: delete postings by user
         if ($result) {
             $progress = "deleting user's discussions";
@@ -2558,30 +2582,6 @@ function close_user_acct($db, $uid, $stat, &$progress)
             $progress = "deleting user's review votes";
             $result = mysqli_execute_query($db,
                 "delete from reviewvotes where userid = ?", [$uid]);
-        }
-
-        // rebuild the tag list for any games this user has tagged, without
-        // this user's tags
-        if ($result) {
-            $progress = "rebuilding games.tags for deleting user's game tags";
-            $result = mysqli_execute_query($db,
-                "update games
-                 set tags = (
-                   select group_concat(tag separator ',')
-                   from gametags as gt1
-                   where gameid = id and userid != ?)
-                 where id in (
-                   select distinct gameid
-                   from gametags as gt2
-                   where userid = ?)", [$uid, $uid]);
-        }
-
-        // delete this user's tags
-        if ($result) {
-            $progress = "deleting user's game tags";
-            $result = mysqli_execute_query($db,
-                "delete from gametags
-                 where userid = ?", [$uid]);
         }
 
         // delete cross-recommendations
