@@ -2532,6 +2532,18 @@ function close_user_acct($db, $uid, $stat, &$progress)
                  where userid = ?", [$uid]);
         }
 
+        // lock the user's reviews, lists, and polls before deleting the
+        // comments on them
+        foreach (["reviews" => "id", "reclists" => "id",
+                  "polls" => "pollid"] as $table => $key) {
+            if ($result) {
+                $progress = "locking user's $table";
+                $result = mysqli_execute_query($db,
+                    "select $key from $table where userid = ? for update",
+                    [$uid]);
+            }
+        }
+
         // delete discussions, part 1: delete postings by user
         if ($result) {
             $progress = "deleting user's discussions";
