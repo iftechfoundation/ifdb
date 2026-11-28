@@ -153,10 +153,14 @@ if (isset($_REQUEST['ifiction']) || $json)
     $ifdb_section['tuid'] = $id;
     $ifdb_section['pageversion'] = $pagevsn;
     $ifdb_section['link'] = get_root_url() . "viewgame?id=$id";
+
     if ($hasart) {
         $ifdb_section['coverart'] = [
-            'url' => get_root_url() . "coverart?id=$id&version=$pagevsn",
+        'url' => get_root_url() . "coverart?id=$id&version=$pagevsn",
         ];
+        if ($cover_art_description) {
+            $ifdb_section['coverart']['coverArtDescription'] = $cover_art_description;
+        }
     }
 
     if ($rounded_median_time >= 1) {
