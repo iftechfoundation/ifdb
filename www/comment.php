@@ -428,6 +428,7 @@ if ($errMsg) {
         [$captchaOK, $captchaErrMsg] = captchaCheckPost($captchaKey);
 
     // confirming an action
+    $srcGone = false;
     if (!$errMsg && $captchaOK)
     {
         // create or update the comment, as applicable
@@ -448,15 +449,33 @@ if ($errMsg) {
 
             // creating
 
-            // do the insert
+            // do the insert, holding a share lock on the source
+            $srcLock = [
+                'R' => "select id from reviews where id = ?",
+                'P' => "select pollid from polls where pollid = ?",
+                'L' => "select id from reclists where id = ?",
+            ][$srcCode] ?? null;
             $progress = "RVI202";
-            $result = mysqli_execute_query($db,
-                "insert into ucomments
-                 (parent, source, sourceid, userid, comment, private,
-                  created, modified)
-                 values (?, ?, ?, ?, ?, ?, now(), now())",
-                [$parentRow ? $parentID : null, $srcCode, $srcID, $curuser,
-                 $commentText, $privateVal]);
+            $result = with_transaction($db, function ($db)
+                use ($srcLock, $srcCode, $srcID, $parentRow, $parentID,
+                     $curuser, $commentText, $privateVal, &$srcGone) {
+                if ($srcLock) {
+                    $result = mysqli_execute_query($db,
+                        "$srcLock lock in share mode", [$srcID]);
+                    if (!$result)
+                        return false;
+                    $srcGone = mysql_num_rows($result) == 0;
+                    if ($srcGone)
+                        return false;
+                }
+                return mysqli_execute_query($db,
+                    "insert into ucomments
+                     (parent, source, sourceid, userid, comment, private,
+                      created, modified)
+                     values (?, ?, ?, ?, ?, ?, now(), now())",
+                    [$parentRow ? $parentID : null, $srcCode, $srcID,
+                     $curuser, $commentText, $privateVal]);
+            });
         }
 
         // check the results
@@ -465,6 +484,8 @@ if ($errMsg) {
             // success
             $succMsg = "Your comment has been recorded.";
 
+        } else if ($srcGone) {
+            [, , , $errFatal, $errMsg] = getCommentReference($db, $srcID);
         } else {
             // set up the error and fall through to the confirmation form
             $errMsg = "An error occurred updating the database (error "
