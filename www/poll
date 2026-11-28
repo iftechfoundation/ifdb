@@ -51,38 +51,29 @@ if ($userid && isset($_REQUEST['delPoll'])) {
             // check for confirmation
             if (($_POST['confirm'] ?? '') == $id) {
 
-                // lock the related tables
                 $progress = "LKT6101";
-                $result = mysql_query(
-                    "lock tables
-                       polls write,
-                       pollvotes write,
-                       ucomments write", $db);
-
-                // try deleting the poll itself
-                if ($result) {
+                $result = with_transaction($db, function ($db) use ($id, &$progress) {
+                    // try deleting the poll itself
                     $progress = "DEL6102";
                     $result = mysql_query(
                         "delete from polls where pollid = '$id'", $db);
-                }
 
-                // delete the votes
-                if ($result) {
-                    $progress = "DEL6103";
-                    $result = mysql_query(
-                        "delete from pollvotes where pollid = '$id'", $db);
-                }
+                    // delete the votes
+                    if ($result) {
+                        $progress = "DEL6103";
+                        $result = mysql_query(
+                            "delete from pollvotes where pollid = '$id'", $db);
+                    }
 
-                // delete comments on the poll
-                if ($result) {
-                    $progress = "DEL6104";
-                    $result = mysql_query(
-                        "delete from ucomments
-                         where source = 'P' and sourceid = '$id'", $db);
-                }
-
-                // done with the table locks
-                mysql_query("unlock tables", $db);
+                    // delete comments on the poll
+                    if ($result) {
+                        $progress = "DEL6104";
+                        $result = mysql_query(
+                            "delete from ucomments
+                             where source = 'P' and sourceid = '$id'", $db);
+                    }
+                    return $result;
+                });
 
                 // check for success
                 if ($result) {
@@ -278,12 +269,6 @@ if (isset($_POST['newPollGo'])) {
         $result = false;
     }
 
-    // lock tables
-    if ($result) {
-        $progress = "LKT8101";
-        $result = mysql_query("lock tables polls write", $db);
-    }
-
     // generate a TUID
     if ($result) {
         $progress = "TUI8102";
@@ -302,9 +287,6 @@ if (isset($_POST['newPollGo'])) {
              values ('$tuid', '$title', '$keywords', '$desc',
                      now(), '$userid', $newFlags)", $db);
     }
-
-    // unlock tables
-    mysql_query("unlock tables", $db);
 
     if ($result) {
         pageHeader("New Poll");
@@ -380,49 +362,46 @@ if ($userid && $id && isset($_POST['submitVote'])) {
     $qquote = mysql_real_escape_string($voteQuote, $db);
     $qdesc = mysql_real_escape_string($voteDesc, $db);
 
-    // lock tables so we can verify everything
     $progress = "LKT7601";
-    $result = mysql_query(
-        "lock tables polls read, pollvotes write, games read", $db);
-
-    // check that the game exists
-    if ($result) {
+    $result = with_transaction($db, function ($db)
+        use ($id, $gameID, $userid, $qquote, $qdesc, &$progress, &$formErrMsg) {
+        // check that the game exists
         $progress = "VGM7602";
         $result = mysql_query(
-            "select id from games where id = '$gameID'", $db);
+            "select id from games where id = '$gameID'
+             lock in share mode", $db);
+        if (!$result)
+            return false;
         if (mysql_num_rows($result) == 0) {
             $formErrMsg = "The game ID in the request is invalid. This could "
                           . "indicate a database problem, or a network "
                           . "error sending the Web request.";
-            $result = false;
+            return false;
         }
-    }
 
-    // check that the poll exists
-    if ($result) {
+        // check that the poll exists
         $progress = "VPL7603";
         $result = mysql_query(
-            "select pollid, flags from polls where pollid = '$id'", $db);
+            "select pollid, flags from polls where pollid = '$id'
+             for update", $db);
+        if (!$result)
+            return false;
         if (mysql_num_rows($result) == 0) {
             $formErrMsg = "The poll ID in the request is invalid. This could "
                           . "indicate that the poll's creator has deleted "
                           . "the poll, or could be due to a database or "
                           . "network problem.";
-            $result = false;
+            return false;
         }
-        if ($result) {
-            $flags = mysql_fetch_row($result)[1];
-            $locked = $flags & POLL_FLAG_LOCKED;
-            if ($locked) {
-                $formErrMsg = "This poll has been locked by its creator. You can't vote on it now.";
-                $result = false;
-            }
+        $flags = mysql_fetch_row($result)[1];
+        $locked = $flags & POLL_FLAG_LOCKED;
+        if ($locked) {
+            $formErrMsg = "This poll has been locked by its creator. You can't vote on it now.";
+            return false;
         }
-    }
 
-    // if there's already a vote for this user+poll+game, delete it,
-    // so that the new vote replaces the old one
-    if ($result) {
+        // if there's already a vote for this user+poll+game, delete it,
+        // so that the new vote replaces the old one
         $progress = "RDL7604";
         $result = mysql_query(
             "delete from pollvotes
@@ -430,21 +409,19 @@ if ($userid && $id && isset($_POST['submitVote'])) {
                 pollid = '$id'
                 and userid = '$userid'
                 and gameid = '$gameID'", $db);
-    }
 
-    // if we're good so far, insert the new row
-    if ($result) {
-        $progress = "INS7605";
-        $result = mysql_query(
-            "insert into pollvotes
-               (pollid, gameid, userid, quickquote, notes, votedate)
-             values
-               ('$id', '$gameID', '$userid', '$qquote', '$qdesc', now())",
-            $db);
-    }
-
-    // unlock tables
-    mysql_query("unlock tables", $db);
+        // if we're good so far, insert the new row
+        if ($result) {
+            $progress = "INS7605";
+            $result = mysql_query(
+                "insert into pollvotes
+                   (pollid, gameid, userid, quickquote, notes, votedate)
+                 values
+                   ('$id', '$gameID', '$userid', '$qquote', '$qdesc', now())",
+                $db);
+        }
+        return $result;
+    });
 
     // if that failed, re-show the voting form with the error message;
     // otherwise return to the polling page

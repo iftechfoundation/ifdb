@@ -79,104 +79,168 @@ function refErrExit($refs)
     }
 
     // terminate
-    pgErrExit($msg);
-}
-
-function pgErrExit($msg)
-{
-    global $db;
-    mysql_query("unlock tables", $db);
     errExit($msg);
 }
 
 // make sure it's a valid competition
 $result = mysql_query(
-    "select title, editedby from competitions where compid = '$qid'", $db);
+    "select title from competitions where compid = '$qid'", $db);
 if (mysql_num_rows($result) == 0)
     errExit("The specified competition is not in the database.");
 
 $title = htmlspecialcharx(mysql_result($result, 0, "title"));
-$editedby = mysql_result($result, 0, "editedby");
 
-// lock the tables that we'll be checking or updating
-$result = mysql_query(
-    "lock tables
-       competitions write,
-       comps_history write,
-       compdivs write,
-       compgames write,
-       compprofilelinks write,
-       news write", $db);
-
-// we have no referencers yet
+$confirmed = isset($_POST['confirm']);
 $refs = [];
-
-// make sure it's our listing; admin privs overide this
-if (!$adminPriv) {
-    // we can only delete our own listings
+$refBlocked = false;
+$progress = "LCK0656";
+$result = with_transaction($db, function ($db)
+    use ($qid, $userid, $adminPriv, $cascade, $confirmed,
+         &$refs, &$refBlocked, &$errMsg, &$progress) {
+    // lock the competition row
     $result = mysql_query(
-        "select editedby, pagevsn from comps_history where compid='$qid'
-         union select editedby, pagevsn from competitions where compid='$qid'
-         order by pagevsn", $db);
-    [$createdBy] = mysql_fetch_row($result);
-    if ($createdBy != $userid) {
-        pgErrExit("You cannot delete this listing because it was "
-                  . "created by another user. Listings can only be "
-                  . "deleted by their original creators.");
+        "select editedby from competitions where compid = '$qid'
+         for update", $db);
+    if (!$result)
+        return false;
+    if (mysql_num_rows($result) == 0) {
+        $errMsg = "The specified competition is not in the database.";
+        return false;
+    }
+    $editedby = mysql_result($result, 0, "editedby");
+
+    // make sure it's our listing; admin privs overide this
+    if (!$adminPriv) {
+        // we can only delete our own listings
+        $result = mysql_query(
+            "(select editedby, pagevsn from comps_history where compid='$qid'
+              for update)
+             union select editedby, pagevsn from competitions where compid='$qid'
+             order by pagevsn", $db);
+        if (!$result)
+            return false;
+        [$createdBy] = mysql_fetch_row($result);
+        if ($createdBy != $userid) {
+            $errMsg = "You cannot delete this listing because it was "
+                      . "created by another user. Listings can only be "
+                      . "deleted by their original creators.";
+            return false;
+        }
+
+        // check for other users in the change log
+        $result = mysql_query(
+            "select count(*) as c from comps_history
+             where compid='$qid' and ifnull(editedby, '') <> '$userid'", $db);
+        if (!$result)
+            return false;
+
+        if ($userid == ""
+            || $userid != $editedby
+            || mysql_result($result, 0, "c") != 0) {
+            $refs[] = ["Other users have edited this listing (you can "
+                       . "only delete a listing if you created it <b>and</b> "
+                       . "you're the only person who's edited it)", false];
+        }
     }
 
-    // check for other users in the change log
+    // game deletion locks compgames before news
     $result = mysql_query(
-        "select count(*) as c from comps_history
-         where compid='$qid' and ifnull(editedby, '') <> '$userid'", $db);
+        "select compid from compgames where compid = '$qid'
+         for update", $db);
+    if (!$result)
+        return false;
 
-    if ($userid == ""
-        || $userid != $editedby
-        || mysql_result($result, 0, "c") != 0) {
-        $refs[] = ["Other users have edited this listing (you can "
-                   . "only delete a listing if you created it <b>and</b> "
-                   . "you're the only person who's edited it)", false];
-    }
-}
+    // check for references from news
+    $result = mysql_query(
+        "select count(*) as c from news
+         where source = 'C' and sourceid = '$qid'
+         for update", $db);
+    if (!$result)
+        return false;
+    if (mysql_result($result, 0, "c") != 0)
+        $refs[] = ["This competition has one or news items", true];
 
-// Check for references from news
-
-$result = mysql_query(
-    "select count(*) as c from news
-     where source = 'C' and sourceid = '$qid'", $db);
-if (!$result || mysql_result($result, 0, "c") != 0)
-    $refs[] = ["This competition has one or news items", true];
-
-
-// If there are any references, check for an override.  Only allow
-// the deletion if there's a valid override.
-if (count($refs) != 0) {
-    // check for overridability - if there's a single non-overridable
-    // entry, we can't override
-    $canOverride = true;
-    foreach ($refs as $r) {
-        if (!$r[1])
-            $canOverride = false;
-    }
-
-    // ...however, we can always override if we're an administrator
-    if ($adminPriv)
+    // If there are any references, check for an override.  Only allow
+    // the deletion if there's a valid override.
+    if (count($refs) != 0) {
+        // check for overridability - if there's a single non-overridable
+        // entry, we can't override
         $canOverride = true;
+        foreach ($refs as $r) {
+            if (!$r[1])
+                $canOverride = false;
+        }
 
-    // if overriding isn't allowed, or they didn't ask to override,
-    // flag the error
-    if (!$cascade || !$canOverride)
-        refErrExit($refs);
+        // ...however, we can always override if we're an administrator
+        if ($adminPriv)
+            $canOverride = true;
+
+        // if overriding isn't allowed, or they didn't ask to override,
+        // flag the error
+        if (!$cascade || !$canOverride) {
+            $refBlocked = true;
+            return false;
+        }
+    }
+
+    // okay, we've passed our reference checking, so we can proceed,
+    // unless we still need to show the confirmation page
+    if (!$confirmed)
+        return true;
+
+    // we have confirmation - do the deletion
+    $progress = "CPL0657";
+    $result = mysql_query(
+        "delete from compprofilelinks where compid = '$qid'", $db);
+
+    $progress = "CGM0658";
+    if ($result) {
+        $result = mysql_query(
+            "delete from compgames where compid = '$qid'", $db);
+    }
+
+    if ($result) {
+        $progress = "CDV0659";
+        $result = mysql_query(
+            "delete from compdivs where compid = '$qid'", $db);
+    }
+
+    if ($result) {
+        $progress = "CHS0660";
+        $result = mysql_query(
+            "delete from comps_history where compid = '$qid'", $db);
+    }
+
+    if ($result) {
+        $progress = "CMP0661";
+        $result = mysql_query(
+            "delete from competitions where compid = '$qid'", $db);
+    }
+
+    // do the cascading delete, if applicable
+    if ($cascade) {
+
+        if ($result) {
+            $progress = "NWS0662";
+            $result = mysql_query(
+                "delete from news where source = 'C' and sourceid = '$qid'", $db);
+        }
+    }
+    return $result;
+});
+
+if ($errMsg)
+    errExit($errMsg);
+if ($refBlocked)
+    refErrExit($refs);
+if (!$result) {
+    errExit("An error occurred deleting the competition from the database "
+            . "(error code $progress). You might want to try again "
+            . "later.");
 }
-
-// okay, we've passed our reference checking, so we can proceed
 
 // show the confirmation page if applicable
-if (!isset($_POST['confirm'])) {
-
-    // we're done with this operation - release our table locks
-    mysql_query("unlock tables", $db);
-
+if (!$confirmed) {
     pageHeader("$title - Delete Listing");
     echo "<h1>$title - Delete Listing</h1>";
     ?>
@@ -216,54 +280,6 @@ if (!isset($_POST['confirm'])) {
 
     pageFooter();
     exit();
-}
-
-// we have confirmation - do the deletion
-$progress = "CPL0657";
-$result = mysql_query(
-    "delete from compprofilelinks where compid = '$qid'", $db);
-
-$progress = "CGM0658";
-if ($result) {
-    $result = mysql_query(
-        "delete from compgames where compid = '$qid'", $db);
-}
-
-if ($result) {
-    $progress = "CDV0659";
-    $result = mysql_query(
-        "delete from compdivs where compid = '$qid'", $db);
-}
-
-if ($result) {
-    $progress = "CHS0660";
-    $result = mysql_query(
-        "delete from comps_history where compid = '$qid'", $db);
-}
-
-if ($result) {
-    $progress = "CMP0661";
-    $result = mysql_query(
-        "delete from competitions where compid = '$qid'", $db);
-}
-
-// do the cascading delete, if applicable
-if ($cascade) {
-
-    if ($result) {
-        $progress = "NWS0662";
-        $result = mysql_query(
-            "delete from news where source = 'C' and sourceid = '$qid'", $db);
-    }
-}
-
-// we're done with this operation - release our table locks
-mysql_query("unlock tables", $db);
-
-if (!$result) {
-    errExit("An error occurred deleting the competition from the database "
-            . "(error code $progress). You might want to try again "
-            . "later.");
 }
 
 pageHeader("$title - Deleted");

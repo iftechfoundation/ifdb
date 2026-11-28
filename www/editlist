@@ -172,34 +172,26 @@ if ($listid != 'new' && $_SERVER['REQUEST_METHOD'] == 'POST'
 
     // that's a go on delete - delete the list and confirm
 
-    // lock tables
     $progress = "LCK6034";
-    $result = mysql_query(
-        "lock tables
-            reclists write,
-            reclistitems write,
-            ucomments write", $db);
-
-    if ($result) {
+    $result = with_transaction($db, function ($db) use ($qlistid, &$progress) {
         $progress = "DEL6035";
         $result = mysql_query(
             "delete from reclists where id = '$qlistid'", $db);
-    }
 
-    if ($result) {
-        $progress = "DEL6036";
-        $result = mysql_query(
-            "delete from reclistitems  where listid = '$qlistid'", $db);
-    }
+        if ($result) {
+            $progress = "DEL6036";
+            $result = mysql_query(
+                "delete from reclistitems  where listid = '$qlistid'", $db);
+        }
 
-    if ($result) {
-        $progress = "DEL6037";
-        $result = mysql_query(
-            "delete from ucomments
-             where source = 'L' and sourceid = '$qlistid'", $db);
-    }
-
-    mysql_query("unlock tables", $db);
+        if ($result) {
+            $progress = "DEL6037";
+            $result = mysql_query(
+                "delete from ucomments
+                 where source = 'L' and sourceid = '$qlistid'", $db);
+        }
+        return $result;
+    });
 
     // indicate what happened
     pageHeader($result ? "List Deleted" : "Error");
@@ -557,29 +549,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_REQUEST['preview'])) {
 // if we're ready to publish, go ahead with that
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_REQUEST['publish'])) {
 
-    // we haven't added a new row for the list yet
-    $insertedList = false;
-
-    // start a transaction
-    $progress = "BTX7411";
-    $result = mysql_query("set autocommit=0", $db);
-    if ($result)
-        $result = mysql_query("start transaction", $db);
-
-    // lock the tables that will be involved in the transaction
-    if ($result) {
-        $progress = "LKT7412";
-        $result = mysql_query("lock tables reclists write,
-            reclistitems write", $db);
-    }
-
     // if this is a new list, assign an ID for it
+    $result = true;
     if ($listid == 'new') {
         // it's a new list - generate a TUID for it
-        if ($result) {
-            $progress = "TUI7413";
-            $tuid = generateTUID($db, "reclists.id", 10);
-        }
+        $progress = "TUI7413";
+        $tuid = generateTUID($db, "reclists.id", 10);
 
         // if we didn't manage to generate a random ID, give up
         if (!$tuid)
@@ -596,77 +571,64 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_REQUEST['publish'])) {
     $qdesc = mysql_real_escape_string($listDesc, $db);
     $qkw = mysql_real_escape_string($listKeywords, $db);
 
-    // insert or update the main list table row
     if ($result) {
-        if ($listid == 'new') {
-            // new list - insert a row
-            $progress = "INL7414";
-            $result = mysql_query("insert into reclists
-                (id, userid, title, `desc`, keywords, createdate)
-                values ('$qtuid', '$userid', '$qtitle',
-                        '$qdesc', '$qkw', now())", $db);
-
-            // if this was a successful insert, note it
-            if ($result)
-                $insertedList = true;
-        } else {
-            // existing list - update it
-            $progress = "UPL7415";
-            $result = mysql_query("update reclists
-                set title='$qtitle', `desc`='$qdesc', keywords='$qkw'
-                where id='$qtuid'", $db);
-        }
-    }
-
-    // if we're updating an existing list, delete any old items in the list
-    if ($result && $listid != 'new') {
-        $progress = "DLI7416";
-        $result = mysql_query("delete from reclistitems
-            where listid = '$qtuid'", $db);
-    }
-
-    // insert the item rows
-    for ($i = 0 ; $i < count($listItems) ; $i++) {
-        // get the item fields
-        $item = $listItems[$i];
-        $gameid = mysql_real_escape_string($item['tuid'], $db);
-        $comments = mysql_real_escape_string($item['comments'], $db);
-        $ord = $i+1;
-
-        // skip empty rows
-        if ($gameid == "" || $gameid == "(deleted)")
-            continue;
-
-        // insert the row
-        if ($result) {
-            $progress = "INI7417.$i";
-            $result = mysql_query("insert into reclistitems
-                (listid, gameid, comments, displayorder)
-                values ('$qtuid', '$gameid', '$comments', '$ord')", $db);
-        }
-    }
-
-    // unlock the tables
-    mysql_query("unlock tables", $db);
-
-    // if successful so far, commit; otherwise roll back
-    if ($result) {
-        $progress = "CTX7418";
-        $result = mysql_query("commit", $db);
-    }
-    else {
-        //if (!mysql_query("rollback", $db)) {
-            // no transactions - do an ad hoc rollback of whatever we can
-            if ($insertedList) {
-                mysql_query("delete from reclists where id = '$qtuid'", $db);
-                mysql_query("delete from reclistitems
-                   where listid = '$qtuid'", $db);
+        $progress = "BTX7411";
+        $result = with_transaction($db, function ($db)
+            use ($listid, $userid, $qtuid, $qtitle, $qdesc, $qkw,
+                 $listItems, &$progress) {
+            // insert or update the main list table row
+            if ($listid == 'new') {
+                // new list - insert a row
+                $progress = "INL7414";
+                $result = mysql_query("insert into reclists
+                    (id, userid, title, `desc`, keywords, createdate)
+                    values ('$qtuid', '$userid', '$qtitle',
+                            '$qdesc', '$qkw', now())", $db);
+            } else {
+                // existing list - make sure it still exists, then update it
+                $progress = "UPL7415";
+                $result = mysql_query("select id from reclists
+                    where id='$qtuid' for update", $db);
+                if (!$result || mysql_num_rows($result) == 0)
+                    return false;
+                $result = mysql_query("update reclists
+                    set title='$qtitle', `desc`='$qdesc', keywords='$qkw'
+                    where id='$qtuid'", $db);
             }
-        //}
-    }
 
-    // restore auto-commit mode
-    mysql_query("set autocommit=1", $db);
+            // if we're updating an existing list, delete any old items in the list
+            if ($result && $listid != 'new') {
+                $progress = "DLI7416";
+                $result = mysql_query("delete from reclistitems
+                    where listid = '$qtuid'", $db);
+            }
+
+            // insert the item rows
+            for ($i = 0 ; $i < count($listItems) ; $i++) {
+                // get the item fields
+                $item = $listItems[$i];
+                $gameid = mysql_real_escape_string($item['tuid'], $db);
+                $comments = mysql_real_escape_string($item['comments'], $db);
+                $ord = $i+1;
+
+                // skip empty rows
+                if ($gameid == "" || $gameid == "(deleted)")
+                    continue;
+
+                // insert the row
+                if ($result) {
+                    $progress = "INI7417.$i";
+                    $result = mysql_query("insert into reclistitems
+                        (listid, gameid, comments, displayorder)
+                        values ('$qtuid', '$gameid', '$comments', '$ord')", $db);
+                }
+            }
+
+            if ($result)
+                $progress = "CTX7418";
+            return $result;
+        });
+    }
 
     // if we were successful, redirect to the new list page
     if ($result) {

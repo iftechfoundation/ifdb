@@ -186,10 +186,6 @@ if ($geticon) {
             $seticon = ",icon=null";
         }
 
-        // set up a transaction in case we need to lock tables
-        $result = mysql_query("set autocommit=0", $db)
-                  && mysql_query("start transaction", $db);
-
         if ($qfmtid == 'new') {
             $sql = "insert into filetypes "
                    . "(externid, fmtname, `desc`, fmtclass, website, icon, "
@@ -204,30 +200,28 @@ if ($geticon) {
                    .     "where id='$qfmtid'";
         }
 
-        // run the query if we're okay so far
-        if ($result)
+        $newFmtid = false;
+        $result = with_transaction($db, function ($db)
+            use ($sql, $qfmtid, $userid, &$newFmtid) {
             $result = mysql_query($sql, $db);
 
-        if ($result) {
             // note the new ID if we just inserted a row
-            if ($qfmtid == 'new') {
-                $fmtid = mysql_insert_id($db);
-                $qfmtid = mysql_real_escape_string($fmtid, $db);
-            }
+            if ($result && $qfmtid == 'new')
+                $newFmtid = mysql_insert_id($db);
 
             // save an audit entry for the update
-            mysql_query("insert into audit (userid, action)
+            return $result && mysql_query("insert into audit (userid, action)
                 values ('$userid', '" . mysql_real_escape_string($sql, $db)
                         . "')", $db);
+        }, $error);
+        if ($result && $newFmtid) {
+            $fmtid = $newFmtid;
+            $qfmtid = mysql_real_escape_string($fmtid, $db);
         }
 
         // on error, note database error if we have admin privileges
         $dbErr = (!$result && $adminPriv
-                  ? " (" . mysql_error($db) . ")" : "");
-
-        // commit the transaction
-        if ($result)
-            $result = mysql_query("commit", $db);
+                  ? " ($error)" : "");
 
         // provide a generic error message if anything went wrong and
         // we didn't already provide more specific diagnostics

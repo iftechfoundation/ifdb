@@ -533,87 +533,92 @@ up your existing review for further editing.
         $qrflags = ($oldVersion ? RFLAG_OLD_VERSION : 0)
                    | ($omitAvg ? RFLAG_OMIT_AVG : 0);
 
-        // start out with the review table locked, to prevent someone
-        // from sneaking in the same review from another connection
+        // lock the game row, to prevent someone from sneaking in the
+        // same review from another connection
         $progress = "LKT675A";
-        $result = mysql_query(
-            "lock tables reviews write, reviewtags write", $db);
+        $result = with_transaction($db, function ($db)
+            use ($qid, $userid, $qsummary, $qreview, $qrating, $qspecial,
+                 $qembargoDate, $qrflags, $tagList, &$progress) {
+            $result = mysql_query(
+                "select id from games where id = '$qid' for update", $db);
+            if (!$result || mysql_num_rows($result) == 0)
+                return false;
 
-        // look up any existing review by the same user for the same game
-        if ($result) {
+            // look up any existing review by the same user for the same game
             $progress = "SLR675B";
             $result = mysql_query(
                 "select id, (review is not null) as has_review
                 from reviews
-                where gameid = '$qid' and userid = '$userid'", $db);
-        }
+                where gameid = '$qid' and userid = '$userid'
+                for update", $db);
+            if (!$result)
+                return false;
 
-        // if we found an existing review, update it; otherwise, insert
-        // a new row
-        if ($result && mysql_num_rows($result) > 0) {
+            // if we found an existing review, update it; otherwise, insert
+            // a new row
+            if (mysql_num_rows($result) > 0) {
 
-            // there's an existing review - get its key
-            $reviewID = mysql_result($result, 0, "id");
+                // there's an existing review - get its key
+                $reviewID = mysql_result($result, 0, "id");
 
-            // note whether or not we had a review
-            $hadReview = mysql_result($result, 0, "has_review");
+                // note whether or not we had a review
+                $hadReview = mysql_result($result, 0, "has_review");
 
-            // if we didn't have a review, this was simply a rating, so
-            // we're effectively creating the review even though a record
-            // already exists
-            $setCreateDate = ($hadReview
-                              ? ""
-                              : ", createdate = now()");
+                // if we didn't have a review, this was simply a rating, so
+                // we're effectively creating the review even though a record
+                // already exists
+                $setCreateDate = ($hadReview
+                                  ? ""
+                                  : ", createdate = now()");
 
-            // update the existing review
-            $progress = "UPD675C";
-            $result = mysql_query(
-                "update reviews
-                   set summary=$qsummary, review=$qreview,
-                     rating=$qrating, special=$qspecial,
-                     embargodate=$qembargoDate, RFlags='$qrflags'
-                     $setCreateDate
-                   where id='$reviewID'", $db);
-
-            // if that succeeded, delete any prior tags
-            if ($result) {
-                $progress = "DEL675F";
+                // update the existing review
+                $progress = "UPD675C";
                 $result = mysql_query(
-                    "delete from reviewtags where reviewid='$reviewID'", $db);
+                    "update reviews
+                       set summary=$qsummary, review=$qreview,
+                         rating=$qrating, special=$qspecial,
+                         embargodate=$qembargoDate, RFlags='$qrflags'
+                         $setCreateDate
+                       where id='$reviewID'", $db);
+
+                // if that succeeded, delete any prior tags
+                if ($result) {
+                    $progress = "DEL675F";
+                    $result = mysql_query(
+                        "delete from reviewtags where reviewid='$reviewID'", $db);
+                }
+
+            } else {
+
+                // no existing review- insert a new row
+                $progress = "INS675D";
+                $result = mysql_query(
+                    "insert into reviews
+                       (userid, createdate, moddate, embargodate,
+                        summary, review, rating, special, gameid, RFlags)
+                       values ('$userid', now(), now(), $qembargoDate,
+                          $qsummary, $qreview,
+                          $qrating, $qspecial, '$qid', '$qrflags')", $db);
+
+                // get the new review ID
+                $reviewID = mysql_insert_id($db);
             }
 
-        } else {
+            // if we were successful so far, add the tags
+            if ($result && $reviewID) {
+                foreach ($tagList as $t) {
+                    $progress = "INS675E";
+                    $t = mysql_real_escape_string($t, $db);
+                    $result = mysql_query(
+                        "insert into reviewtags (reviewid, tag)
+                         values ('$reviewID', '$t')", $db);
 
-            // no existing review- insert a new row
-            $progress = "INS675D";
-            $result = mysql_query(
-                "insert into reviews
-                   (userid, createdate, moddate, embargodate,
-                    summary, review, rating, special, gameid, RFlags)
-                   values ('$userid', now(), now(), $qembargoDate,
-                      $qsummary, $qreview,
-                      $qrating, $qspecial, '$qid', '$qrflags')", $db);
-
-            // get the new review ID
-            $reviewID = mysql_insert_id($db);
-        }
-
-        // if we were successful so far, add the tags
-        if ($result && $reviewID) {
-            foreach ($tagList as $t) {
-                $progress = "INS675E";
-                $t = mysql_real_escape_string($t, $db);
-                $result = mysql_query(
-                    "insert into reviewtags (reviewid, tag)
-                     values ('$reviewID', '$t')", $db);
-
-                if (!$result)
-                    break;
+                    if (!$result)
+                        break;
+                }
             }
-        }
-
-        // unlock the tables
-        mysql_query("unlock tables", $db);
+            return $result;
+        });
 
         // if that succeeded, redirect back to the game's home page;
         // otherwise, return to the entry page with an error
