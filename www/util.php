@@ -1749,9 +1749,9 @@ function getGameRatingsView($db)
 
 class TransactionAborted extends RuntimeException {}
 
-// Runs $fn($db) in a transaction, committing if it returns a truthy value
-// and rolling back otherwise.  A nested call uses a savepoint, so its
-// rollback undoes only its own work, and its commit waits for the outer
+// Runs $fn($db) in a read committed transaction, committing if it returns a
+// truthy value and rolling back otherwise.  A nested call uses a savepoint, so
+// its rollback undoes only its own work, and its commit waits for the outer
 // transaction; if the whole transaction is lost inside a nested call, the
 // outermost call rolls back.  Returns $fn's result, or false if the
 // transaction fails, setting $error to the database error, if any.
@@ -1766,7 +1766,9 @@ function with_transaction($db, $fn, &$error = null)
     $error = null;
     if (!($depth
             ? mysqli_savepoint($db, $savepoint)
-            : mysqli_begin_transaction($db))) {
+            : mysqli_query($db,
+                  "set transaction isolation level read committed")
+              && mysqli_begin_transaction($db))) {
         $error = mysqli_error($db);
         if ($depth)
             throw new TransactionAborted($error);
@@ -1809,14 +1811,8 @@ function with_transaction($db, $fn, &$error = null)
     }
 }
 
-// This sets the isolation level, so it can't run inside a transaction.
 function regenerateMaterializedView($db, $mv, $view)
 {
-    if (!mysqli_execute_query($db,
-            "set transaction isolation level read committed")) {
-        error_log("regenerating $mv failed: " . mysqli_error($db));
-        return false;
-    }
     $result = with_transaction($db, fn($db) =>
         mysqli_execute_query($db, "delete from $mv")
         && mysqli_execute_query($db, "insert into $mv select *, now() from $view
