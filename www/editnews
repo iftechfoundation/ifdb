@@ -71,6 +71,9 @@ if ($sourceType == 'G') {
     // game source
     $hrefCancel = "viewgame?id=$sourceID";
 
+    $sourceGoneMsg = "The game you're attempting to post about is no longer "
+                     . "in the database.";
+
     // look up the game
     $result = mysql_query(
         "select title, author from games where id = '$sourceID'", $db);
@@ -123,14 +126,16 @@ if ($sourceType == 'G') {
         }
 
     } else {
-        $errMsg = "The game you're attempting to post about is no longer "
-                  . "in the database.";
+        $errMsg = $sourceGoneMsg;
     }
 
 } else if ($sourceType == 'C') {
 
     // competition source
     $hrefCancel = "viewcomp?id=$sourceID";
+
+    $sourceGoneMsg = "The competition you're attempting to post about "
+                     . "is no longer in the database.";
 
     // look up the comp
     $result = mysql_query(
@@ -179,8 +184,7 @@ if ($sourceType == 'G') {
             $sourceInfo .= "</ul>";
         }
     } else {
-        $errMsg = "The competition you're attempting to post about "
-                  . "is no longer in the database.";
+        $errMsg = $sourceGoneMsg;
     }
 
 } else {
@@ -189,6 +193,28 @@ if ($sourceType == 'G') {
     $hrefCancel = "/";
     $errMsg = "The page parameters are incorrect. The link "
               . "that you followed to reach this page might be broken.";
+}
+
+// insert a news row while holding a share lock on its source
+function insertNews($db, $sql, &$sourceGone)
+{
+    global $sourceType, $sourceID;
+    $lock = [
+        'G' => "select id from games where id = '$sourceID'",
+        'C' => "select compid from competitions where compid = '$sourceID'",
+    ][$sourceType] ?? null;
+    $sourceGone = false;
+    return with_transaction($db, function ($db) use ($lock, $sql, &$sourceGone) {
+        if ($lock) {
+            $result = mysql_query("$lock lock in share mode", $db);
+            if (!$result)
+                return false;
+            $sourceGone = mysql_num_rows($result) == 0;
+            if ($sourceGone)
+                return false;
+        }
+        return mysql_query($sql, $db);
+    });
 }
 
 function hiddenFields($all)
@@ -368,19 +394,21 @@ if ($delete && $deleteConfirm) {
     // since we want to keep a full history.  Instead, it inserts a new
     // item that supersedes the item being deleted, and sets the new item's
     // status to 'D' to indicate that it's a deletion.
-    $result = mysql_query(
+    $result = insertNews($db,
         "insert into news
            (source, sourceid, created, modified, userid,
             supersedes, original, status)
          values
            ('$sourceType', '$sourceID', '$created', now(), '$curuser',
-            '$newsID', '$original', 'D')", $db);
+            '$newsID', '$original', 'D')", $sourceGone);
 
     $show = "status";
     if ($result) {
         $succMsg = "The news item has been deleted.";
         $_SESSION['editnews.xactid'] = $xactid;
-    } else
+    } else if ($sourceGone)
+        $errMsg = $sourceGoneMsg;
+    else
         $errMsg = "A database error occurred deleting the new item.";
 
 } else if ($delete) {
@@ -461,7 +489,7 @@ if ($delete && $deleteConfirm) {
         // We're editing an existing item.  Set the 'supersedes' field
         // to the old item's ID, and copy its sequence number.
         $progress = "INS5421";
-        $result = mysql_query(
+        $result = insertNews($db,
             "insert into news
               (source, sourceid, created, modified, userid,
                supersedes, original, status,
@@ -469,14 +497,14 @@ if ($delete && $deleteConfirm) {
              values
               ('$sourceType', '$sourceID', '$created', now(), '$curuser',
                '$newsID', '$original', 'A',
-               '$qHeadline', '$qBody')", $db);
+               '$qHeadline', '$qBody')", $sourceGone);
 
     } else {
 
         // We're adding a new item.  Give it the next higher sequence
         // number for its source.
         $progress = "INS5523";
-        $result = mysql_query(
+        $result = insertNews($db,
             "insert into news
               (source, sourceid, created, modified, userid,
                supersedes, original, status,
@@ -484,13 +512,16 @@ if ($delete && $deleteConfirm) {
              values
               ('$sourceType', '$sourceID', now(), now(), '$curuser',
                null, null, 'A',
-               '$qHeadline', '$qBody')", $db);
+               '$qHeadline', '$qBody')", $sourceGone);
 
     }
 
     if ($result) {
         $succMsg = "The news item has been successfully added.";
         $_SESSION['editnews.xactid'] = $xactid;
+        $show = "status";
+    } else if ($sourceGone) {
+        $errMsg = $sourceGoneMsg;
         $show = "status";
     } else {
         $errMsg = "An error occurred adding the news item. You might "
