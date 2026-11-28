@@ -323,6 +323,7 @@ function saveUpdates($db, $adminPriv, $apiMode,
             extreviews write, reviews write, gamexrefs write,
             gameprofilelinks write, users read, gamexreftypes read", $db);
     }
+    $locked = $result;
 
     // fetch the latest version of the game record, in case it changed
     // since we started working - we have the tables locked now, so there's
@@ -684,7 +685,10 @@ function saveUpdates($db, $adminPriv, $apiMode,
     // row; otherwise, we need to update an existing GAMES row and
     // save a new GAMES_HISTORY row
     $saveErrMsg = false;
-    if ($id == "new") {
+    if (!$locked) {
+        $result = false;
+    }
+    else if ($id == "new") {
         $newid = false;
         $result = saveNewGame($db, $adminPriv, $apiMode,
                               $changesNew, $newid,
